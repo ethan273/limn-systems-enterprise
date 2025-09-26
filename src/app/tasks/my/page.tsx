@@ -164,7 +164,7 @@ export default function MyTasksPage() {
   const getTabCounts = () => {
     const assignedTodo = assignedTasksData?.tasks?.filter(t => t.status !== 'completed' && t.status !== 'cancelled').length || 0;
     const watchingActive = watchingTasksData?.tasks?.filter(t => t.status !== 'completed' && t.status !== 'cancelled').length || 0;
-    const createdActive = createdTasksData?.items?.filter(t => t.status !== 'completed' && t.status !== 'cancelled').length || 0;
+    const createdActive = createdTasksData?.tasks?.filter((t: any) => t.status !== 'completed' && t.status !== 'cancelled').length || 0;
 
     return { assignedTodo, watchingActive, createdActive };
   };
@@ -185,7 +185,7 @@ export default function MyTasksPage() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {(activeTab === "created" ? tasksData?.items : tasksData?.tasks)?.map((task) => (
+          {(activeTab === "created" ? tasksData?.tasks : tasksData?.tasks)?.map((task: any) => (
             <TableRow key={task.id} className={cn(
               "border-gray-700 hover:bg-gray-800/50 h-16",
               isOverdue(task.due_date) && task.status !== 'completed' && task.status !== 'cancelled' && "bg-red-500/10"
@@ -205,7 +205,7 @@ export default function MyTasksPage() {
                   )}
                   {task.tags && task.tags.length > 0 && (
                     <div className="flex gap-1 flex-wrap">
-                      {task.tags.slice(0, 2).map((tag, index) => (
+                      {task.tags.slice(0, 2).map((tag: any, index: number) => (
                         <Badge key={index} variant="outline" className="text-xs">
                           {tag}
                         </Badge>
@@ -270,7 +270,7 @@ export default function MyTasksPage() {
               </TableCell>
             </TableRow>
           ))}
-          {(activeTab === "created" ? tasksData?.items : tasksData?.tasks)?.length === 0 && (
+          {(activeTab === "created" ? tasksData?.tasks : tasksData?.tasks)?.length === 0 && (
             <TableRow>
               <TableCell colSpan={6} className="text-center py-8 text-gray-400">
                 {activeTab === "assigned" && "No tasks assigned to you."}

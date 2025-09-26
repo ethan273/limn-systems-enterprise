@@ -30,5 +30,5 @@ const sentryWebpackPluginOptions = {
   hideSourceMaps: true,
 }
 
-// Temporarily disable Sentry to fix routing issues
-module.exports = nextConfig
+// Export configuration with Sentry enabled
+module.exports = withSentryConfig(nextConfig, sentryWebpackPluginOptions)
