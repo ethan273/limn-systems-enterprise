@@ -67,6 +67,16 @@ export interface Task {
   watchers: string[];
   depends_on: string[];
   blocks: string[];
+  // New fields from Phase 1 enhancement
+  reporter_id?: string | null;
+  resolution?: string | null;
+  archived_at?: Date | null;
+  archived_by?: string | null;
+  last_activity_at?: Date | null;
+  // Optional related data (populated when explicitly requested)
+  task_attachments?: any[];
+  task_activities?: any[];
+  task_entity_links?: any[];
 }
 
 // Customer/Client types
@@ -764,7 +774,7 @@ export class DatabaseClient {
     return this.transformTask(task);
   }
 
-  async findTask(id: string): Promise<Task | null> {
+  async findTask(id: string, options: { include?: any } = {}): Promise<Task | null> {
     const { data: task, error } = await supabase
       .from('tasks')
       .select('*')
@@ -776,7 +786,24 @@ export class DatabaseClient {
       throw new Error(`Failed to find task: ${error.message}`);
     }
 
-    return this.transformTask(task);
+    let result = this.transformTask(task);
+
+    // If includes are requested, fetch related data
+    if (options.include) {
+      if (options.include.task_attachments) {
+        result.task_attachments = await this.getTaskAttachments(id);
+      }
+      if (options.include.task_activities) {
+        const activityOptions = options.include.task_activities;
+        const limit = activityOptions.take || 20;
+        result.task_activities = await this.getTaskActivities(id, { limit });
+      }
+      if (options.include.task_entity_links) {
+        result.task_entity_links = await this.getTaskEntityLinks(id);
+      }
+    }
+
+    return result;
   }
 
   async findManyTasks(options: any = {}): Promise<{
@@ -912,6 +939,169 @@ export class DatabaseClient {
       total: count || 0,
       hasMore: offset + limit < (count || 0),
     };
+  }
+
+  // =====================================================
+  // TASK ATTACHMENTS METHODS
+  // =====================================================
+
+  async createTaskAttachment(data: any): Promise<any> {
+    const { data: attachment, error } = await supabase
+      .from('task_attachments')
+      .insert({
+        ...data,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to create task attachment: ${error.message}`);
+    }
+
+    return attachment;
+  }
+
+  async getTaskAttachments(taskId: string): Promise<any[]> {
+    const { data: attachments, error } = await supabase
+      .from('task_attachments')
+      .select('*')
+      .eq('task_id', taskId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      throw new Error(`Failed to get task attachments: ${error.message}`);
+    }
+
+    return attachments || [];
+  }
+
+  async findTaskAttachment(id: string): Promise<any | null> {
+    const { data: attachment, error } = await supabase
+      .from('task_attachments')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null; // Not found
+      throw new Error(`Failed to find task attachment: ${error.message}`);
+    }
+
+    return attachment;
+  }
+
+  async deleteTaskAttachment(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('task_attachments')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      throw new Error(`Failed to delete task attachment: ${error.message}`);
+    }
+  }
+
+  // =====================================================
+  // TASK ACTIVITIES METHODS
+  // =====================================================
+
+  async createTaskActivity(data: any): Promise<any> {
+    const { data: activity, error } = await supabase
+      .from('task_activities')
+      .insert({
+        ...data,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to create task activity: ${error.message}`);
+    }
+
+    return activity;
+  }
+
+  async getTaskActivities(taskId: string, options: { limit?: number; offset?: number } = {}): Promise<any[]> {
+    const { limit = 20, offset = 0 } = options;
+
+    const { data: activities, error } = await supabase
+      .from('task_activities')
+      .select('*')
+      .eq('task_id', taskId)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      throw new Error(`Failed to get task activities: ${error.message}`);
+    }
+
+    return activities || [];
+  }
+
+  // =====================================================
+  // TASK ENTITY LINKS METHODS
+  // =====================================================
+
+  async createTaskEntityLink(data: any): Promise<any> {
+    const { data: link, error } = await supabase
+      .from('task_entity_links')
+      .insert({
+        ...data,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to create task entity link: ${error.message}`);
+    }
+
+    return link;
+  }
+
+  async getTaskEntityLinks(taskId: string): Promise<any[]> {
+    const { data: links, error } = await supabase
+      .from('task_entity_links')
+      .select('*')
+      .eq('task_id', taskId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      throw new Error(`Failed to get task entity links: ${error.message}`);
+    }
+
+    return links || [];
+  }
+
+  async findTaskEntityLink(id: string): Promise<any | null> {
+    const { data: link, error } = await supabase
+      .from('task_entity_links')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null; // Not found
+      throw new Error(`Failed to find task entity link: ${error.message}`);
+    }
+
+    return link;
+  }
+
+  async deleteTaskEntityLink(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('task_entity_links')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      throw new Error(`Failed to delete task entity link: ${error.message}`);
+    }
   }
 
   // =====================================================
