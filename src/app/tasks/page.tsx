@@ -13,14 +13,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,15 +30,22 @@ import TaskCreateForm from "@/components/TaskCreateForm";
 import TaskStatusSelect from "@/components/TaskStatusSelect";
 import TaskPrioritySelect from "@/components/TaskPrioritySelect";
 import TaskDepartmentSelect from "@/components/TaskDepartmentSelect";
+import TaskAttachments from "@/components/TaskAttachments";
+import TaskActivities from "@/components/TaskActivities";
+import TaskEntityLinks from "@/components/TaskEntityLinks";
 import {
   Search,
   Filter,
   Plus,
   MoreVertical,
   Calendar,
+  ChevronDown,
+  ChevronUp,
+  Users,
+  FolderOpen,
+  Timer,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { cn } from "@/lib/utils";
 
 type TaskStatus = 'todo' | 'in_progress' | 'completed' | 'cancelled';
 type TaskPriority = 'low' | 'medium' | 'high';
@@ -59,6 +61,7 @@ export default function TasksPage() {
   const [page, setPage] = useState(0);
   const [limit] = useState(20);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
 
   const { data: tasksData, isLoading, refetch } = api.tasks.getAllTasks.useQuery({
     limit,
@@ -73,6 +76,35 @@ export default function TasksPage() {
 
   const handleTaskUpdate = () => {
     refetch();
+  };
+
+  const toggleTaskExpanded = (taskId: string) => {
+    const newExpanded = new Set(expandedTasks);
+    if (newExpanded.has(taskId)) {
+      newExpanded.delete(taskId);
+    } else {
+      newExpanded.add(taskId);
+    }
+    setExpandedTasks(newExpanded);
+  };
+
+  // Mock users data - in production this would come from a users API
+  const mockUsers: Record<string, { name: string; initials: string; avatar: string | null }> = {
+    "550e8400-e29b-41d4-a716-446655440000": {
+      name: "John Doe",
+      initials: "JD",
+      avatar: null
+    },
+    "660e8400-e29b-41d4-a716-446655440001": {
+      name: "Jane Smith",
+      initials: "JS",
+      avatar: null
+    },
+    "770e8400-e29b-41d4-a716-446655440002": {
+      name: "Mike Johnson",
+      initials: "MJ",
+      avatar: null
+    }
   };
 
 
@@ -209,7 +241,7 @@ export default function TasksPage() {
         </CardContent>
       </Card>
 
-      {/* Tasks Table */}
+      {/* Tasks Accordion */}
       <Card className="bg-gray-800 border-gray-700">
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
@@ -222,114 +254,205 @@ export default function TasksPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border border-gray-700">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-gray-700">
-                  <TableHead className="text-gray-300">Task</TableHead>
-                  <TableHead className="text-gray-300">Status</TableHead>
-                  <TableHead className="text-gray-300">Priority</TableHead>
-                  <TableHead className="text-gray-300">Department</TableHead>
-                  <TableHead className="text-gray-300">Created</TableHead>
-                  <TableHead className="text-gray-300">Due Date</TableHead>
-                  <TableHead className="text-gray-300 w-12">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {tasksData?.tasks?.map((task) => (
-                  <TableRow key={task.id} className="table-row interactive-element min-h-16">
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="font-medium text-primary">{task.title}</div>
-                        {task.description && (
-                          <div className="text-sm text-secondary line-clamp-2">
-                            {task.description}
+          <div className="space-y-2">
+            {tasksData?.tasks?.map((task) => {
+              const isExpanded = expandedTasks.has(task.id);
+              const assignedUsers = task.assigned_to || [];
+
+              return (
+                <Collapsible key={task.id} open={isExpanded} onOpenChange={() => toggleTaskExpanded(task.id)}>
+                  <div className="border border-gray-700 rounded-lg bg-gray-800/50 hover:bg-gray-700/30 transition-colors">
+                    {/* Main Task Row */}
+                    <CollapsibleTrigger asChild>
+                      <div className="p-4 cursor-pointer">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4 flex-1 min-w-0">
+                            {/* Expand Icon */}
+                            <div className="flex-shrink-0">
+                              {isExpanded ? (
+                                <ChevronUp className="h-4 w-4 text-gray-400" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4 text-gray-400" />
+                              )}
+                            </div>
+
+                            {/* Task Info */}
+                            <div className="flex-1 min-w-0 space-y-2">
+                              <div className="flex items-start gap-3">
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="font-medium text-primary truncate">{task.title}</h3>
+                                  {task.description && (
+                                    <p className="text-sm text-secondary line-clamp-2 mt-1">
+                                      {task.description}
+                                    </p>
+                                  )}
+                                </div>
+
+                                {/* Status, Priority, Department - Mobile responsive */}
+                                <div className="flex items-center gap-2 flex-shrink-0">
+                                  <TaskStatusSelect
+                                    taskId={task.id}
+                                    currentStatus={task.status as TaskStatus}
+                                    onUpdate={handleTaskUpdate}
+                                  />
+                                  <TaskPrioritySelect
+                                    taskId={task.id}
+                                    currentPriority={task.priority as TaskPriority}
+                                    onUpdate={handleTaskUpdate}
+                                  />
+                                  <TaskDepartmentSelect
+                                    taskId={task.id}
+                                    currentDepartment={task.department as TaskDepartment}
+                                    onUpdate={handleTaskUpdate}
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Bottom Row - Assigned To, Project, Time Tracking */}
+                              <div className="flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-4 text-sm text-gray-400">
+                                  {/* Assigned To */}
+                                  <div className="flex items-center gap-2">
+                                    <Users className="h-4 w-4" />
+                                    {assignedUsers.length > 0 ? (
+                                      <div className="flex items-center gap-1">
+                                        <div className="flex -space-x-1">
+                                          {assignedUsers.slice(0, 3).map((userId) => {
+                                            const user = mockUsers[userId] || { name: "Unknown", initials: "?", avatar: null };
+                                            return (
+                                              <Avatar key={userId} className="h-6 w-6 border border-gray-600">
+                                                <AvatarImage src={user.avatar || undefined} />
+                                                <AvatarFallback className="text-xs bg-gray-600">
+                                                  {user.initials}
+                                                </AvatarFallback>
+                                              </Avatar>
+                                            );
+                                          })}
+                                        </div>
+                                        {assignedUsers.length > 3 && (
+                                          <span className="text-xs text-gray-500">+{assignedUsers.length - 3}</span>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <span className="text-gray-500">Unassigned</span>
+                                    )}
+                                  </div>
+
+                                  {/* Project */}
+                                  <div className="flex items-center gap-2">
+                                    <FolderOpen className="h-4 w-4" />
+                                    <span className="text-gray-500">
+                                      {task.project_id ? "Project Name" : "No project"}
+                                    </span>
+                                  </div>
+
+                                  {/* Time Tracking */}
+                                  <div className="flex items-center gap-2">
+                                    <Timer className="h-4 w-4" />
+                                    <span>
+                                      {task.estimated_hours ? `${task.estimated_hours}h est` : "No estimate"}
+                                      {task.actual_hours ? ` / ${task.actual_hours}h actual` : ""}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* Dates and Actions */}
+                                <div className="flex items-center gap-4 text-sm text-gray-400">
+                                  {task.due_date && (
+                                    <div className="flex items-center gap-1">
+                                      <Calendar className="h-4 w-4" />
+                                      <span>
+                                        {formatDistanceToNow(new Date(task.due_date), { addSuffix: true })}
+                                      </span>
+                                    </div>
+                                  )}
+
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="hover:bg-gray-600"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <MoreVertical className="h-4 w-4 text-gray-400" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      <DropdownMenuItem className="text-sm">
+                                        Edit Task
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem className="text-sm">
+                                        View Details
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem className="text-sm text-red-400">
+                                        Delete Task
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </div>
+                              </div>
+
+                              {/* Tags */}
+                              {task.tags && task.tags.length > 0 && (
+                                <div className="flex gap-1 flex-wrap">
+                                  {task.tags.slice(0, 5).map((tag, index) => (
+                                    <Badge key={index} variant="outline" className="text-xs text-tertiary border-gray-600">
+                                      {tag}
+                                    </Badge>
+                                  ))}
+                                  {task.tags.length > 5 && (
+                                    <Badge variant="outline" className="text-xs text-tertiary border-gray-600">
+                                      +{task.tags.length - 5} more
+                                    </Badge>
+                                  )}
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        )}
-                        {task.tags && task.tags.length > 0 && (
-                          <div className="flex gap-1 flex-wrap">
-                            {task.tags.slice(0, 3).map((tag, index) => (
-                              <Badge key={index} variant="outline" className="text-xs text-tertiary border-gray-600">
-                                {tag}
-                              </Badge>
-                            ))}
-                            {task.tags.length > 3 && (
-                              <Badge variant="outline" className="text-xs text-tertiary border-gray-600">+{task.tags.length - 3} more</Badge>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <TaskStatusSelect
-                        taskId={task.id}
-                        currentStatus={task.status as TaskStatus}
-                        onUpdate={handleTaskUpdate}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <TaskPrioritySelect
-                        taskId={task.id}
-                        currentPriority={task.priority as TaskPriority}
-                        onUpdate={handleTaskUpdate}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <TaskDepartmentSelect
-                        taskId={task.id}
-                        currentDepartment={task.department as TaskDepartment}
-                        onUpdate={handleTaskUpdate}
-                      />
-                    </TableCell>
-                    <TableCell className="text-muted">
-                      {task.created_at
-                        ? formatDistanceToNow(new Date(task.created_at), { addSuffix: true })
-                        : 'Unknown'
-                      }
-                    </TableCell>
-                    <TableCell className="text-muted">
-                      {task.due_date ? (
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4" />
-                          <span className="text-sm">
-                            {formatDistanceToNow(new Date(task.due_date), { addSuffix: true })}
-                          </span>
                         </div>
-                      ) : (
-                        <span className="text-sm">No due date</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="hover:bg-gray-700">
-                            <MoreVertical className="h-4 w-4 text-secondary" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem className="text-sm">
-                            Edit Task
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="text-sm">
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="text-sm text-red-400">
-                            Delete Task
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {tasksData?.tasks?.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-gray-400">
-                      No tasks found. Try adjusting your filters or create a new task.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                      </div>
+                    </CollapsibleTrigger>
+
+                    {/* Expandable Content */}
+                    <CollapsibleContent>
+                      <Separator className="bg-gray-700" />
+                      <div className="p-4 pt-6 bg-gray-800/80">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                          {/* Attachments */}
+                          <TaskAttachments
+                            taskId={task.id}
+                            onUpdate={handleTaskUpdate}
+                          />
+
+                          {/* Recent Activity */}
+                          <TaskActivities
+                            taskId={task.id}
+                            onUpdate={handleTaskUpdate}
+                          />
+
+                          {/* Entity Links */}
+                          <TaskEntityLinks
+                            taskId={task.id}
+                            onUpdate={handleTaskUpdate}
+                          />
+                        </div>
+                      </div>
+                    </CollapsibleContent>
+                  </div>
+                </Collapsible>
+              );
+            })}
+
+            {tasksData?.tasks?.length === 0 && (
+              <div className="text-center py-12 text-gray-400">
+                <div className="mb-4">
+                  <Search className="h-12 w-12 mx-auto text-gray-600" />
+                </div>
+                <h3 className="text-lg font-medium mb-2">No tasks found</h3>
+                <p className="text-sm">Try adjusting your filters or create a new task to get started.</p>
+              </div>
+            )}
           </div>
 
           {/* Pagination */}
