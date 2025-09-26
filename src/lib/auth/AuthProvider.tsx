@@ -1,8 +1,8 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User } from '@supabase/supabase-js';
-import { createBrowserClient } from '@supabase/ssr';
+import { User, SupabaseClient } from '@supabase/supabase-js';
+import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 import { UserProfile } from '@/modules/auth/types';
 
 interface AuthContextType {
@@ -21,30 +21,22 @@ const AuthContext = createContext<AuthContextType>({
   refreshProfile: async () => {},
 });
 
-/**
- * Create Supabase browser client
- */
-function createSupabaseClient() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-}
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const supabase = createSupabaseClient();
+  const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
   
   const fetchProfile = async (userId: string) => {
+    if (!supabase) return;
+
     try {
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
         .eq('id', userId)
         .single();
-      
+
       if (error) throw error;
       setProfile(data as UserProfile);
     } catch (error) {
@@ -52,19 +44,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfile(null);
     }
   };
-  
+
   const refreshProfile = async () => {
-    if (user?.id) {
+    if (user?.id && supabase) {
       await fetchProfile(user.id);
     }
   };
-  
+
   useEffect(() => {
+    // Initialize Supabase client on mount
+    try {
+      const client = getSupabaseBrowserClient();
+      if (client) {
+        setSupabase(client);
+      } else if (typeof window !== 'undefined') {
+        // If we're in browser but client is null, something is wrong
+        console.error('Failed to initialize Supabase client in browser');
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Error initializing Supabase client:', error);
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!supabase) return;
+
     const initAuth = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         setUser(user);
-        
+
         if (user) {
           await fetchProfile(user.id);
         }
@@ -74,14 +85,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setLoading(false);
       }
     };
-    
+
     initAuth();
-    
+
     // Subscribe to auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         setUser(session?.user ?? null);
-        
+
         if (session?.user) {
           await fetchProfile(session.user.id);
         } else {
@@ -89,7 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
     );
-    
+
     return () => subscription.unsubscribe();
   }, [supabase]);
   

@@ -7,7 +7,7 @@ import { Users, Building, ShoppingCart } from 'lucide-react'
 export default function LoginPage() {
   const router = useRouter()
 
-  const handleUserTypeSelection = (userType: 'employee' | 'contractor' | 'customer') => {
+  const handleUserTypeSelection = (userType: 'employee' | 'contractor' | 'customer' | 'dev') => {
     switch (userType) {
       case 'employee':
         router.push('/auth/employee')
@@ -17,6 +17,9 @@ export default function LoginPage() {
         break
       case 'customer':
         router.push('/auth/customer')
+        break
+      case 'dev':
+        router.push('/auth/dev')
         break
     }
   }
@@ -104,6 +107,32 @@ export default function LoginPage() {
                 </div>
               </div>
             </button>
+
+            {/* Development Login - Only show in development */}
+            {process.env.NODE_ENV === 'development' && (
+              <button
+                onClick={() => handleUserTypeSelection('dev')}
+                className="w-full p-6 bg-gray-800 border-2 border-gray-600 rounded-lg hover:border-orange-500 hover:bg-gray-700 transition-all group"
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center group-hover:bg-orange-500/30 transition-colors">
+                      <svg className="w-6 h-6 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-lg font-semibold text-white">
+                      Development Login
+                    </h3>
+                    <p className="text-sm text-gray-400">
+                      Testing & development access (dev mode only)
+                    </p>
+                  </div>
+                </div>
+              </button>
+            )}
           </div>
 
           <div className="mt-8 pt-6 border-t border-gray-600">

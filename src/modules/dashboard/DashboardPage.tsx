@@ -3,6 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { api } from '@/lib/api/client'
+import { useAuthContext } from '@/lib/auth/AuthProvider'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -20,8 +21,12 @@ import {
 } from 'lucide-react'
 
 export default function DashboardPage() {
-  // Fetch admin stats for pending requests
-  const { data: adminStats } = api.auth.getRequestStats.useQuery()
+  const { isAdmin } = useAuthContext()
+
+  // Fetch admin stats for pending requests - only if user is admin
+  const { data: adminStats } = api.auth.getRequestStats.useQuery(undefined, {
+    enabled: isAdmin
+  })
 
   return (
     <div className="p-6 max-w-7xl mx-auto">

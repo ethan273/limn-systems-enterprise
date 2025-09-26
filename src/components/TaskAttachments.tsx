@@ -8,6 +8,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
@@ -29,7 +30,7 @@ import {
   File,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { uploadTaskAttachment } from "@/lib/storage";
+import { uploadTaskAttachment, getDownloadUrl } from "@/lib/storage";
 
 interface TaskAttachmentsProps {
   taskId: string;
@@ -71,6 +72,52 @@ export default function TaskAttachments({ taskId, onUpdate }: TaskAttachmentsPro
         id: attachmentId,
         user_id: mockUserId,
       });
+    }
+  };
+
+  const handleViewAttachment = async (filePath: string) => {
+    try {
+      const url = await getDownloadUrl(filePath);
+      if (url) {
+        window.open(url, '_blank');
+      } else {
+        alert('Unable to view file. Please try downloading instead.');
+      }
+    } catch (error) {
+      console.error('Error viewing attachment:', error);
+      alert('Error viewing file. Please try again.');
+    }
+  };
+
+  const handleDownloadAttachment = async (filePath: string, fileName: string) => {
+    try {
+      const url = await getDownloadUrl(filePath);
+      if (url) {
+        // Fetch the file as a blob to force download instead of opening in browser
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error('Failed to fetch file');
+        }
+
+        const blob = await response.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
+
+        // Create a temporary link to trigger download
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+
+        // Clean up
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(blobUrl);
+      } else {
+        alert('Unable to download file. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error downloading attachment:', error);
+      alert('Error downloading file. Please try again.');
     }
   };
 
@@ -145,18 +192,24 @@ export default function TaskAttachments({ taskId, onUpdate }: TaskAttachmentsPro
 
         if (uploadResult.success && uploadResult.data) {
           // Save attachment record to database
-          await addAttachmentMutation.mutateAsync({
-            task_id: taskId,
-            file_name: file.name,
-            file_path: uploadResult.data.path,
-            file_size: file.size,
-            mime_type: file.type,
-            uploaded_by: mockUserId,
-          });
-
-          progressUpdates[fileKey] = 100;
+          try {
+            await addAttachmentMutation.mutateAsync({
+              task_id: taskId,
+              file_name: file.name,
+              file_path: uploadResult.data.path,
+              file_size: file.size,
+              mime_type: file.type,
+              uploaded_by: mockUserId,
+            });
+            progressUpdates[fileKey] = 100;
+          } catch (dbError) {
+            console.error(`Database save failed for ${file.name}:`, dbError);
+            delete progressUpdates[fileKey];
+          }
         } else {
           console.error(`Upload failed for ${file.name}:`, uploadResult.error);
+          // Show user-friendly error message
+          alert(`Upload failed for ${file.name}: ${uploadResult.error}`);
           // Remove failed file from progress
           delete progressUpdates[fileKey];
         }
@@ -168,8 +221,11 @@ export default function TaskAttachments({ taskId, onUpdate }: TaskAttachmentsPro
       setIsUploadDialogOpen(false);
     } catch (error) {
       console.error('Upload error:', error);
+      alert(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setUploading(false);
+      // Always clear the progress and selected files even on error
+      setUploadProgress({});
     }
   };
 
@@ -231,6 +287,9 @@ export default function TaskAttachments({ taskId, onUpdate }: TaskAttachmentsPro
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Upload Attachment</DialogTitle>
+              <DialogDescription>
+                Upload files to attach to this task. Supported formats: images, PDFs, and documents up to 50MB.
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div
@@ -374,11 +433,15 @@ export default function TaskAttachments({ taskId, onUpdate }: TaskAttachmentsPro
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleViewAttachment(attachment.file_path)}
+                  >
                     <Eye className="h-4 w-4 mr-2" />
                     View
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleDownloadAttachment(attachment.file_path, attachment.file_name)}
+                  >
                     <Download className="h-4 w-4 mr-2" />
                     Download
                   </DropdownMenuItem>

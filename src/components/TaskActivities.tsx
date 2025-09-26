@@ -11,6 +11,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
@@ -157,6 +158,9 @@ export default function TaskActivities({ taskId, onUpdate }: TaskActivitiesProps
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Add Comment</DialogTitle>
+              <DialogDescription>
+                Add a comment to this task to provide updates or feedback.
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <Textarea

@@ -5,6 +5,7 @@ import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Select,
   SelectContent,
@@ -12,14 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Separator } from "@/components/ui/separator";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,6 +26,15 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import TaskCreateForm from "@/components/TaskCreateForm";
+import TaskStatusSelect from "@/components/TaskStatusSelect";
+import TaskPrioritySelect from "@/components/TaskPrioritySelect";
+import TaskDepartmentSelect from "@/components/TaskDepartmentSelect";
+import TaskAttachments from "@/components/TaskAttachments";
+import TaskActivities from "@/components/TaskActivities";
+import TaskEntityLinks from "@/components/TaskEntityLinks";
+import TaskTimeTracking from "@/components/TaskTimeTracking";
+import TaskDependencies from "@/components/TaskDependencies";
+import TaskAssignedUsers from "@/components/TaskAssignedUsers";
 import {
   Tabs,
   TabsContent,
@@ -48,6 +52,12 @@ import {
   AlertCircle,
   Eye,
   Plus,
+  Users,
+  ChevronDown,
+  ChevronUp,
+  FolderOpen,
+  Timer,
+  Search,
 } from "lucide-react";
 import { formatDistanceToNow, isAfter, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -63,9 +73,15 @@ export default function MyTasksPage() {
   const [page, setPage] = useState(0);
   const [limit] = useState(20);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
+  const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
+
+  // Use real Development User ID - in production this would come from session
+  const currentUserId = "f146d819-3eed-43e3-80af-835915a5cc14";
 
   // Get my assigned tasks
   const { data: assignedTasksData, isLoading: isLoadingAssigned, refetch: refetchAssigned } = api.tasks.getMyTasks.useQuery({
+    user_id: currentUserId,
     limit,
     offset: page * limit,
     status: statusFilter === 'all' ? undefined : statusFilter,
@@ -74,6 +90,7 @@ export default function MyTasksPage() {
 
   // Get tasks I'm watching
   const { data: watchingTasksData, isLoading: isLoadingWatching, refetch: refetchWatching } = api.tasks.getMyTasks.useQuery({
+    user_id: currentUserId,
     limit,
     offset: page * limit,
     status: statusFilter === 'all' ? undefined : statusFilter,
@@ -99,6 +116,32 @@ export default function MyTasksPage() {
 
   const handleStatusUpdate = (taskId: string, newStatus: TaskStatus) => {
     updateStatusMutation.mutate({ id: taskId, status: newStatus });
+  };
+
+  const handleTaskUpdate = () => {
+    refetchAssigned();
+    refetchWatching();
+    refetchCreated();
+  };
+
+  const toggleTaskExpanded = (taskId: string) => {
+    const newExpanded = new Set(expandedTasks);
+    if (newExpanded.has(taskId)) {
+      newExpanded.delete(taskId);
+    } else {
+      newExpanded.add(taskId);
+    }
+    setExpandedTasks(newExpanded);
+  };
+
+  const handleTaskSelection = (taskId: string, selected: boolean) => {
+    setSelectedTasks(prev => {
+      if (selected) {
+        return [...prev, taskId];
+      } else {
+        return prev.filter(id => id !== taskId);
+      }
+    });
   };
 
   const getStatusIcon = (status: TaskStatus) => {
@@ -171,116 +214,292 @@ export default function MyTasksPage() {
 
   const { assignedTodo, watchingActive, createdActive } = getTabCounts();
 
-  const renderTasksTable = () => (
-    <div className="rounded-md border border-gray-700">
-      <Table>
-        <TableHeader>
-          <TableRow className="border-gray-700">
-            <TableHead className="text-gray-300">Task</TableHead>
-            <TableHead className="text-gray-300">Status</TableHead>
-            <TableHead className="text-gray-300">Priority</TableHead>
-            <TableHead className="text-gray-300">Department</TableHead>
-            <TableHead className="text-gray-300">Due Date</TableHead>
-            <TableHead className="text-gray-300 w-12">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {(activeTab === "created" ? tasksData?.tasks : tasksData?.tasks)?.map((task: any) => (
-            <TableRow key={task.id} className={cn(
-              "border-gray-700 hover:bg-gray-800/50 h-16",
-              isOverdue(task.due_date) && task.status !== 'completed' && task.status !== 'cancelled' && "bg-red-500/10"
-            )}>
-              <TableCell>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <div className="font-medium text-white">{task.title}</div>
-                    {isOverdue(task.due_date) && task.status !== 'completed' && task.status !== 'cancelled' && (
-                      <AlertTriangle className="h-4 w-4 text-red-400" />
-                    )}
+  // Get all user IDs from tasks to fetch user details
+  const allUserIds = [
+    ...(assignedTasksData?.tasks?.flatMap((task: any) => task.assigned_to || []) || []),
+    ...(watchingTasksData?.tasks?.flatMap((task: any) => task.assigned_to || []) || []),
+    ...(createdTasksData?.tasks?.flatMap((task: any) => task.assigned_to || []) || [])
+  ];
+  const uniqueUserIds = Array.from(new Set(allUserIds));
+
+  // Fetch user details for assigned users
+  const { data: usersData } = api.users.getByIds.useQuery({
+    ids: uniqueUserIds,
+  }, { enabled: uniqueUserIds.length > 0 });
+
+  // Create a map for quick user lookup
+  const usersMap = usersData?.reduce((acc, user) => {
+    acc[user.id] = user;
+    return acc;
+  }, {} as Record<string, any>) || {};
+
+  const renderTasksAccordion = () => (
+    <div className="space-y-2">
+      {(activeTab === "created" ? tasksData?.tasks : tasksData?.tasks)?.map((task: any) => {
+        const isExpanded = expandedTasks.has(task.id);
+        const assignedUsers = task.assigned_to || [];
+
+        return (
+          <Collapsible key={task.id} open={isExpanded} onOpenChange={() => toggleTaskExpanded(task.id)}>
+            <div className="border border-gray-700 rounded-lg bg-gray-800/50 hover:bg-gray-700/30 transition-colors">
+              {/* Main Task Row */}
+              <CollapsibleTrigger asChild>
+                <div className="p-4 cursor-pointer">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                      {/* Task Selection Checkbox */}
+                      <div className="flex-shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={selectedTasks.includes(task.id)}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            handleTaskSelection(task.id, e.target.checked);
+                          }}
+                          className="rounded"
+                        />
+                      </div>
+
+                      {/* Expand Icon */}
+                      <div className="flex-shrink-0">
+                        {isExpanded ? (
+                          <ChevronUp className="h-4 w-4 text-gray-400" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4 text-gray-400" />
+                        )}
+                      </div>
+
+                      {/* Task Info */}
+                      <div className="flex-1 min-w-0 space-y-2">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-3 mb-1">
+                              <h3 className="font-medium text-primary truncate">{task.title}</h3>
+                              {isOverdue(task.due_date) && task.status !== 'completed' && task.status !== 'cancelled' && (
+                                <AlertTriangle className="h-4 w-4 text-red-400" />
+                              )}
+                              {/* Assigned Users - moved next to title for prominence */}
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                <Users className="h-4 w-4 text-gray-400" />
+                                {assignedUsers.length > 0 ? (
+                                  <div className="flex items-center gap-1">
+                                    <div className="flex -space-x-1">
+                                      {assignedUsers.slice(0, 3).map((userId: string) => {
+                                        const user = usersMap[userId];
+                                        const initials = user ? (
+                                          user.full_name ?
+                                            user.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) :
+                                            user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
+                                        ) : "?";
+                                        return (
+                                          <Avatar key={userId} className="h-6 w-6 border border-gray-600">
+                                            <AvatarImage src={user?.avatar_url || undefined} />
+                                            <AvatarFallback className="text-xs bg-gray-600">
+                                              {initials}
+                                            </AvatarFallback>
+                                          </Avatar>
+                                        );
+                                      })}
+                                    </div>
+                                    {assignedUsers.length > 3 && (
+                                      <span className="text-xs text-gray-500">+{assignedUsers.length - 3}</span>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <span className="text-gray-500 text-sm">Unassigned</span>
+                                )}
+                              </div>
+                            </div>
+                            {task.description && (
+                              <p className="text-sm text-secondary line-clamp-2 mt-1">
+                                {task.description}
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Status, Priority, Department - Mobile responsive */}
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <TaskStatusSelect
+                              taskId={task.id}
+                              currentStatus={task.status as TaskStatus}
+                              onUpdate={handleTaskUpdate}
+                            />
+                            <TaskPrioritySelect
+                              taskId={task.id}
+                              currentPriority={task.priority as TaskPriority}
+                              onUpdate={handleTaskUpdate}
+                            />
+                            <TaskDepartmentSelect
+                              taskId={task.id}
+                              currentDepartment={task.department as TaskDepartment}
+                              onUpdate={handleTaskUpdate}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Bottom Row - Project, Time Tracking */}
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-4 text-sm text-gray-400">
+                            {/* Project */}
+                            <div className="flex items-center gap-2">
+                              <FolderOpen className="h-4 w-4" />
+                              <span className="text-gray-500">
+                                {task.project_id ? "Project Name" : "No project"}
+                              </span>
+                            </div>
+
+                            {/* Time Tracking */}
+                            <div className="flex items-center gap-2">
+                              <Timer className="h-4 w-4" />
+                              <span>
+                                {task.estimated_hours ? `${task.estimated_hours}h est` : "No estimate"}
+                                {task.actual_hours ? ` / ${task.actual_hours}h actual` : ""}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Dates and Actions */}
+                          <div className="flex items-center gap-4 text-sm text-gray-400">
+                            {task.due_date && (
+                              <div className="flex items-center gap-1">
+                                <Calendar className="h-4 w-4" />
+                                <span className={cn(
+                                  isOverdue(task.due_date) && task.status !== 'completed' && task.status !== 'cancelled' ? "text-red-400" : ""
+                                )}>
+                                  {formatDistanceToNow(task.due_date instanceof Date ? task.due_date : parseISO(task.due_date), { addSuffix: true })}
+                                </span>
+                              </div>
+                            )}
+
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="hover:bg-gray-600"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <MoreVertical className="h-4 w-4 text-gray-400" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => handleStatusUpdate(task.id, 'in_progress')}
+                                  disabled={task.status === 'in_progress'}
+                                >
+                                  <Clock className="h-4 w-4 mr-2" />
+                                  Start Working
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleStatusUpdate(task.id, 'completed')}
+                                  disabled={task.status === 'completed'}
+                                >
+                                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                                  Mark Complete
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="text-sm">
+                                  Edit Task
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="text-sm">
+                                  View Details
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="text-sm text-red-400">
+                                  Delete Task
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </div>
+
+                        {/* Tags */}
+                        {task.tags && task.tags.length > 0 && (
+                          <div className="flex gap-1 flex-wrap">
+                            {task.tags.slice(0, 5).map((tag: any, index: number) => (
+                              <Badge key={index} variant="outline" className="text-xs text-tertiary border-gray-600">
+                                {tag}
+                              </Badge>
+                            ))}
+                            {task.tags.length > 5 && (
+                              <Badge variant="outline" className="text-xs text-tertiary border-gray-600">
+                                +{task.tags.length - 5} more
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  {task.description && (
-                    <div className="text-sm text-gray-400 line-clamp-2">
-                      {task.description}
-                    </div>
-                  )}
-                  {task.tags && task.tags.length > 0 && (
-                    <div className="flex gap-1 flex-wrap">
-                      {task.tags.slice(0, 2).map((tag: any, index: number) => (
-                        <Badge key={index} variant="outline" className="text-xs">
-                          {tag}
-                        </Badge>
-                      ))}
-                      {task.tags.length > 2 && (
-                        <Badge variant="outline" className="text-xs">+{task.tags.length - 2}</Badge>
-                      )}
-                    </div>
-                  )}
                 </div>
-              </TableCell>
-              <TableCell>{getStatusBadge(task.status as TaskStatus)}</TableCell>
-              <TableCell>{getPriorityBadge(task.priority as TaskPriority)}</TableCell>
-              <TableCell>
-                <Badge variant="secondary" className="text-gray-300">
-                  {(task.department as TaskDepartment).charAt(0).toUpperCase() + (task.department as TaskDepartment).slice(1)}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                {task.due_date ? (
-                  <div className={cn(
-                    "flex items-center gap-2",
-                    isOverdue(task.due_date) && task.status !== 'completed' && task.status !== 'cancelled' ? "text-red-400" : "text-gray-400"
-                  )}>
-                    <Calendar className="h-4 w-4" />
-                    <span className="text-sm">
-                      {formatDistanceToNow(task.due_date instanceof Date ? task.due_date : parseISO(task.due_date), { addSuffix: true })}
-                    </span>
+              </CollapsibleTrigger>
+
+              {/* Expandable Content */}
+              <CollapsibleContent>
+                <Separator className="bg-gray-700" />
+                <div className="p-4 pt-6 bg-gray-800/80">
+                  {/* Primary content grid */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    {/* Attachments */}
+                    <TaskAttachments
+                      taskId={task.id}
+                      onUpdate={handleTaskUpdate}
+                    />
+
+                    {/* Recent Activity */}
+                    <TaskActivities
+                      taskId={task.id}
+                      onUpdate={handleTaskUpdate}
+                    />
+
+                    {/* Entity Links */}
+                    <TaskEntityLinks
+                      taskId={task.id}
+                      onUpdate={handleTaskUpdate}
+                    />
                   </div>
-                ) : (
-                  <span className="text-gray-400">No due date</span>
-                )}
-              </TableCell>
-              <TableCell>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={() => handleStatusUpdate(task.id, 'in_progress')}
-                      disabled={task.status === 'in_progress'}
-                    >
-                      <Clock className="h-4 w-4 mr-2" />
-                      Start Working
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => handleStatusUpdate(task.id, 'completed')}
-                      disabled={task.status === 'completed'}
-                    >
-                      <CheckCircle2 className="h-4 w-4 mr-2" />
-                      Mark Complete
-                    </DropdownMenuItem>
-                    <DropdownMenuItem disabled>
-                      <Eye className="h-4 w-4 mr-2" />
-                      View Details
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
-            </TableRow>
-          ))}
-          {(activeTab === "created" ? tasksData?.tasks : tasksData?.tasks)?.length === 0 && (
-            <TableRow>
-              <TableCell colSpan={6} className="text-center py-8 text-gray-400">
-                {activeTab === "assigned" && "No tasks assigned to you."}
-                {activeTab === "watching" && "No tasks you're watching."}
-                {activeTab === "created" && "No tasks created by you."}
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+
+                  {/* Secondary content grid */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Time Tracking */}
+                    <TaskTimeTracking
+                      taskId={task.id}
+                      onUpdate={handleTaskUpdate}
+                    />
+
+                    {/* Dependencies */}
+                    <TaskDependencies
+                      taskId={task.id}
+                      onUpdate={handleTaskUpdate}
+                    />
+                  </div>
+                  {/* User Management section */}
+                  <div className="grid grid-cols-1 gap-6 mt-6">
+                    {/* Assigned Users */}
+                    <TaskAssignedUsers
+                      taskId={task.id}
+                      assignedUsers={task.assigned_to || []}
+                      onUpdate={handleTaskUpdate}
+                    />
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </div>
+          </Collapsible>
+        );
+      })}
+
+      {(activeTab === "created" ? tasksData?.tasks : tasksData?.tasks)?.length === 0 && (
+        <div className="text-center py-12 text-gray-400">
+          <div className="mb-4">
+            <Search className="h-12 w-12 mx-auto text-gray-600" />
+          </div>
+          <h3 className="text-lg font-medium mb-2">No tasks found</h3>
+          <p className="text-sm">
+            {activeTab === "assigned" && "No tasks assigned to you."}
+            {activeTab === "watching" && "No tasks you're watching."}
+            {activeTab === "created" && "No tasks created by you."}
+          </p>
+        </div>
+      )}
     </div>
   );
 
@@ -404,15 +623,15 @@ export default function MyTasksPage() {
             </TabsList>
 
             <TabsContent value="assigned" className="mt-6">
-              {renderTasksTable()}
+              {renderTasksAccordion()}
             </TabsContent>
 
             <TabsContent value="watching" className="mt-6">
-              {renderTasksTable()}
+              {renderTasksAccordion()}
             </TabsContent>
 
             <TabsContent value="created" className="mt-6">
-              {renderTasksTable()}
+              {renderTasksAccordion()}
             </TabsContent>
           </Tabs>
 

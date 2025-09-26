@@ -2,12 +2,20 @@
  * Supabase Storage utilities for file uploads
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
+import { SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+let supabase: SupabaseClient | null = null;
 
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+function getSupabase(): SupabaseClient {
+  if (!supabase) {
+    supabase = getSupabaseBrowserClient();
+  }
+  if (!supabase) {
+    throw new Error('Failed to initialize Supabase client');
+  }
+  return supabase;
+}
 
 export interface UploadResult {
   success: boolean;
@@ -62,7 +70,8 @@ export async function uploadTaskAttachment(
     const filePath = `attachments/task-${taskId}/${fileName}`;
 
     // Upload to Supabase Storage
-    const { data, error } = await supabase.storage
+    const client = getSupabase();
+    const { data, error } = await client.storage
       .from('task-attachments')
       .upload(filePath, file, {
         cacheControl: '3600',
@@ -78,7 +87,7 @@ export async function uploadTaskAttachment(
     }
 
     // Get public URL
-    const { data: urlData } = supabase.storage
+    const { data: urlData } = client.storage
       .from('task-attachments')
       .getPublicUrl(filePath);
 
@@ -105,7 +114,8 @@ export async function uploadTaskAttachment(
  */
 export async function deleteTaskAttachment(filePath: string): Promise<boolean> {
   try {
-    const { error } = await supabase.storage
+    const client = getSupabase();
+    const { error } = await client.storage
       .from('task-attachments')
       .remove([filePath]);
 
@@ -126,7 +136,8 @@ export async function deleteTaskAttachment(filePath: string): Promise<boolean> {
  */
 export async function getDownloadUrl(filePath: string): Promise<string | null> {
   try {
-    const { data } = supabase.storage
+    const client = getSupabase();
+    const { data } = client.storage
       .from('task-attachments')
       .getPublicUrl(filePath);
 
@@ -145,9 +156,10 @@ export async function createThumbnail(
   thumbnailFile: Blob
 ): Promise<string | null> {
   try {
+    const client = getSupabase();
     const thumbnailPath = originalPath.replace(/\.[^.]+$/, '_thumb.jpg');
 
-    const { data, error } = await supabase.storage
+    const { data, error } = await client.storage
       .from('task-attachments')
       .upload(thumbnailPath, thumbnailFile, {
         cacheControl: '3600',

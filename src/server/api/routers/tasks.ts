@@ -118,17 +118,16 @@ export const tasksRouter = createTRPCRouter({
     }),
 
   // Get my tasks (assigned to current user)
-  getMyTasks: protectedProcedure
+  getMyTasks: publicProcedure
     .input(z.object({
+      user_id: z.string().uuid(),
       limit: z.number().min(1).max(100).default(20),
       offset: z.number().min(0).default(0),
       status: z.enum(['todo', 'in_progress', 'completed', 'cancelled']).optional(),
       includeWatching: z.boolean().default(false),
     }))
     .query(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id;
-
-      return await db.getMyTasks(userId, {
+      return await db.getMyTasks(input.user_id, {
         limit: input.limit,
         offset: input.offset,
         status: input.status,

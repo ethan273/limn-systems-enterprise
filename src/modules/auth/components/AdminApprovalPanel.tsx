@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { api } from '@/lib/api/client'
+import { useAuthContext } from '@/lib/auth/AuthProvider'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -13,17 +14,22 @@ import { formatDistanceToNow } from 'date-fns'
 import { CheckIcon, XIcon, ClockIcon, UserIcon, BuildingIcon, PhoneIcon, MailIcon } from 'lucide-react'
 
 export function AdminApprovalPanel() {
+  const { isAdmin } = useAuthContext()
   const [adminNotes, setAdminNotes] = useState<Record<string, string>>({})
   const [selectedStatus, setSelectedStatus] = useState<'pending' | 'approved' | 'denied' | 'all'>('pending')
 
-  // Fetch pending requests
+  // Fetch pending requests - only if user is admin
   const { data: requestsData, isLoading, refetch } = api.auth.getPendingRequests.useQuery({
     status: selectedStatus,
     limit: 50
+  }, {
+    enabled: isAdmin
   })
 
-  // Get statistics
-  const { data: stats } = api.auth.getRequestStats.useQuery()
+  // Get statistics - only if user is admin
+  const { data: stats } = api.auth.getRequestStats.useQuery(undefined, {
+    enabled: isAdmin
+  })
 
   // Review mutation
   const reviewMutation = api.auth.reviewRequest.useMutation({

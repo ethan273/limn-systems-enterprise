@@ -16,6 +16,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
@@ -96,6 +97,12 @@ export default function TaskEntityLinks({ taskId, onUpdate }: TaskEntityLinksPro
         user_id: mockUserId,
       });
     }
+  };
+
+  const handleViewEntityDetails = (link: any) => {
+    // In production, this would navigate to the entity details page
+    console.log('Viewing entity details:', link);
+    alert(`Viewing details for ${link.entity_type}: ${link.entity_name}\nEntity ID: ${link.entity_id}`);
   };
 
   const getEntityIcon = (entityType: EntityType) => {
@@ -186,6 +193,9 @@ export default function TaskEntityLinks({ taskId, onUpdate }: TaskEntityLinksPro
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Link Entity</DialogTitle>
+              <DialogDescription>
+                Link this task to related entities like clients, projects, or orders.
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
@@ -287,7 +297,7 @@ export default function TaskEntityLinks({ taskId, onUpdate }: TaskEntityLinksPro
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleViewEntityDetails(link)}>
                     <ExternalLink className="h-4 w-4 mr-2" />
                     View Details
                   </DropdownMenuItem>

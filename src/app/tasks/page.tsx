@@ -33,6 +33,12 @@ import TaskDepartmentSelect from "@/components/TaskDepartmentSelect";
 import TaskAttachments from "@/components/TaskAttachments";
 import TaskActivities from "@/components/TaskActivities";
 import TaskEntityLinks from "@/components/TaskEntityLinks";
+import TaskAdvancedFilters from "@/components/TaskAdvancedFilters";
+import TaskBulkOperations from "@/components/TaskBulkOperations";
+import TaskTimeTracking from "@/components/TaskTimeTracking";
+import TaskDependencies from "@/components/TaskDependencies";
+import TaskAssignedUsers from "@/components/TaskAssignedUsers";
+import TaskNotifications from "@/components/TaskNotifications";
 import {
   Search,
   Filter,
@@ -46,6 +52,7 @@ import {
   Timer,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import Link from "next/link";
 
 type TaskStatus = 'todo' | 'in_progress' | 'completed' | 'cancelled';
 type TaskPriority = 'low' | 'medium' | 'high';
@@ -62,6 +69,8 @@ export default function TasksPage() {
   const [limit] = useState(20);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
+  const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
+  const [showBulkOps, setShowBulkOps] = useState(false);
 
   const { data: tasksData, isLoading, refetch } = api.tasks.getAllTasks.useQuery({
     limit,
@@ -88,24 +97,40 @@ export default function TasksPage() {
     setExpandedTasks(newExpanded);
   };
 
-  // Mock users data - in production this would come from a users API
-  const mockUsers: Record<string, { name: string; initials: string; avatar: string | null }> = {
-    "550e8400-e29b-41d4-a716-446655440000": {
-      name: "John Doe",
-      initials: "JD",
-      avatar: null
-    },
-    "660e8400-e29b-41d4-a716-446655440001": {
-      name: "Jane Smith",
-      initials: "JS",
-      avatar: null
-    },
-    "770e8400-e29b-41d4-a716-446655440002": {
-      name: "Mike Johnson",
-      initials: "MJ",
-      avatar: null
-    }
+  const handleTaskSelection = (taskId: string, selected: boolean) => {
+    setSelectedTasks(prev => {
+      if (selected) {
+        const newSelection = [...prev, taskId];
+        setShowBulkOps(newSelection.length > 0);
+        return newSelection;
+      } else {
+        const newSelection = prev.filter(id => id !== taskId);
+        setShowBulkOps(newSelection.length > 0);
+        return newSelection;
+      }
+    });
   };
+
+  const handleFiltersChange = (filters: any) => {
+    // Here you would apply the filters to the query
+    console.log('Applying filters:', filters);
+    refetch();
+  };
+
+  // Get all user IDs from tasks to fetch user details
+  const allUserIds = tasksData?.tasks?.flatMap(task => task.assigned_to || []) || [];
+  const uniqueUserIds = Array.from(new Set(allUserIds));
+
+  // Fetch user details for assigned users
+  const { data: usersData } = api.users.getByIds.useQuery({
+    ids: uniqueUserIds,
+  }, { enabled: uniqueUserIds.length > 0 });
+
+  // Create a map for quick user lookup
+  const usersMap = usersData?.reduce((acc, user) => {
+    acc[user.id] = user;
+    return acc;
+  }, {} as Record<string, any>) || {};
 
 
   const clearFilters = () => {
@@ -128,7 +153,19 @@ export default function TasksPage() {
             Manage and track all tasks across your organization
           </p>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <div className="flex items-center gap-2">
+          <TaskNotifications />
+          <Button variant="outline" asChild>
+            <Link href="/tasks/kanban">
+              Kanban View
+            </Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/tasks/templates">
+              Templates
+            </Link>
+          </Button>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
@@ -143,103 +180,34 @@ export default function TasksPage() {
             onCancel={() => setIsCreateDialogOpen(false)}
           />
         </Dialog>
+        </div>
       </div>
 
-      {/* Filters and Search */}
-      <Card className="bg-gray-800 border-gray-700 filters-section">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Filters
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-col lg:flex-row gap-4">
-            {/* Search */}
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Search tasks..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
+      {/* Advanced Filters */}
+      <TaskAdvancedFilters
+        onFiltersChange={handleFiltersChange}
+        taskCount={tasksData?.total || 0}
+      />
 
-            {/* Status Filter */}
-            <Select value={statusFilter} onValueChange={(value: TaskStatus | 'all') => setStatusFilter(value)}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="todo">Todo</SelectItem>
-                <SelectItem value="in_progress">In Progress</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Priority Filter */}
-            <Select value={priorityFilter} onValueChange={(value: TaskPriority | 'all') => setPriorityFilter(value)}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Priority" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Priority</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Department Filter */}
-            <Select value={departmentFilter} onValueChange={(value: TaskDepartment | 'all') => setDepartmentFilter(value)}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Department" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Departments</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="production">Production</SelectItem>
-                <SelectItem value="design">Design</SelectItem>
-                <SelectItem value="sales">Sales</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Button variant="outline" onClick={clearFilters}>
-              Clear Filters
-            </Button>
-          </div>
-
-          {/* Sort Options */}
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-400">Sort by:</span>
-            <Select value={sortBy} onValueChange={(value: 'created_at' | 'due_date' | 'priority' | 'status') => setSortBy(value)}>
-              <SelectTrigger className="w-40">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="created_at">Created Date</SelectItem>
-                <SelectItem value="due_date">Due Date</SelectItem>
-                <SelectItem value="priority">Priority</SelectItem>
-                <SelectItem value="status">Status</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={sortOrder} onValueChange={(value: 'asc' | 'desc') => setSortOrder(value)}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="desc">Newest First</SelectItem>
-                <SelectItem value="asc">Oldest First</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Bulk Operations */}
+      {showBulkOps && (
+        <TaskBulkOperations
+          tasks={tasksData?.tasks?.map(task => ({
+            id: task.id,
+            title: task.title,
+            status: task.status || 'todo',
+            priority: task.priority || 'medium',
+            department: task.department || 'admin'
+          })) || []}
+          selectedTasks={selectedTasks}
+          onSelectionChange={setSelectedTasks}
+          onBulkComplete={() => {
+            refetch();
+            setSelectedTasks([]);
+            setShowBulkOps(false);
+          }}
+        />
+      )}
 
       {/* Tasks Accordion */}
       <Card className="bg-gray-800 border-gray-700">
@@ -267,6 +235,19 @@ export default function TasksPage() {
                       <div className="p-4 cursor-pointer">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-4 flex-1 min-w-0">
+                            {/* Task Selection Checkbox */}
+                            <div className="flex-shrink-0">
+                              <input
+                                type="checkbox"
+                                checked={selectedTasks.includes(task.id)}
+                                onChange={(e) => {
+                                  e.stopPropagation();
+                                  handleTaskSelection(task.id, e.target.checked);
+                                }}
+                                className="rounded"
+                              />
+                            </div>
+
                             {/* Expand Icon */}
                             <div className="flex-shrink-0">
                               {isExpanded ? (
@@ -280,7 +261,40 @@ export default function TasksPage() {
                             <div className="flex-1 min-w-0 space-y-2">
                               <div className="flex items-start gap-3">
                                 <div className="flex-1 min-w-0">
-                                  <h3 className="font-medium text-primary truncate">{task.title}</h3>
+                                  <div className="flex items-center gap-3 mb-1">
+                                    <h3 className="font-medium text-primary truncate">{task.title}</h3>
+                                    {/* Assigned Users - moved next to title for prominence */}
+                                    <div className="flex items-center gap-2 flex-shrink-0">
+                                      <Users className="h-4 w-4 text-gray-400" />
+                                      {assignedUsers.length > 0 ? (
+                                        <div className="flex items-center gap-1">
+                                          <div className="flex -space-x-1">
+                                            {assignedUsers.slice(0, 3).map((userId) => {
+                                              const user = usersMap[userId];
+                                              const initials = user ? (
+                                                user.full_name ?
+                                                  user.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) :
+                                                  user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
+                                              ) : "?";
+                                              return (
+                                                <Avatar key={userId} className="h-6 w-6 border border-gray-600">
+                                                  <AvatarImage src={user?.avatar_url || undefined} />
+                                                  <AvatarFallback className="text-xs bg-gray-600">
+                                                    {initials}
+                                                  </AvatarFallback>
+                                                </Avatar>
+                                              );
+                                            })}
+                                          </div>
+                                          {assignedUsers.length > 3 && (
+                                            <span className="text-xs text-gray-500">+{assignedUsers.length - 3}</span>
+                                          )}
+                                        </div>
+                                      ) : (
+                                        <span className="text-gray-500 text-sm">Unassigned</span>
+                                      )}
+                                    </div>
+                                  </div>
                                   {task.description && (
                                     <p className="text-sm text-secondary line-clamp-2 mt-1">
                                       {task.description}
@@ -308,36 +322,9 @@ export default function TasksPage() {
                                 </div>
                               </div>
 
-                              {/* Bottom Row - Assigned To, Project, Time Tracking */}
+                              {/* Bottom Row - Project, Time Tracking */}
                               <div className="flex items-center justify-between gap-4">
                                 <div className="flex items-center gap-4 text-sm text-gray-400">
-                                  {/* Assigned To */}
-                                  <div className="flex items-center gap-2">
-                                    <Users className="h-4 w-4" />
-                                    {assignedUsers.length > 0 ? (
-                                      <div className="flex items-center gap-1">
-                                        <div className="flex -space-x-1">
-                                          {assignedUsers.slice(0, 3).map((userId) => {
-                                            const user = mockUsers[userId] || { name: "Unknown", initials: "?", avatar: null };
-                                            return (
-                                              <Avatar key={userId} className="h-6 w-6 border border-gray-600">
-                                                <AvatarImage src={user.avatar || undefined} />
-                                                <AvatarFallback className="text-xs bg-gray-600">
-                                                  {user.initials}
-                                                </AvatarFallback>
-                                              </Avatar>
-                                            );
-                                          })}
-                                        </div>
-                                        {assignedUsers.length > 3 && (
-                                          <span className="text-xs text-gray-500">+{assignedUsers.length - 3}</span>
-                                        )}
-                                      </div>
-                                    ) : (
-                                      <span className="text-gray-500">Unassigned</span>
-                                    )}
-                                  </div>
-
                                   {/* Project */}
                                   <div className="flex items-center gap-2">
                                     <FolderOpen className="h-4 w-4" />
@@ -418,7 +405,8 @@ export default function TasksPage() {
                     <CollapsibleContent>
                       <Separator className="bg-gray-700" />
                       <div className="p-4 pt-6 bg-gray-800/80">
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* Primary content grid */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
                           {/* Attachments */}
                           <TaskAttachments
                             taskId={task.id}
@@ -434,6 +422,30 @@ export default function TasksPage() {
                           {/* Entity Links */}
                           <TaskEntityLinks
                             taskId={task.id}
+                            onUpdate={handleTaskUpdate}
+                          />
+                        </div>
+
+                        {/* Secondary content grid */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                          {/* Time Tracking */}
+                          <TaskTimeTracking
+                            taskId={task.id}
+                            onUpdate={handleTaskUpdate}
+                          />
+
+                          {/* Dependencies */}
+                          <TaskDependencies
+                            taskId={task.id}
+                            onUpdate={handleTaskUpdate}
+                          />
+                        </div>
+                        {/* User Management section */}
+                        <div className="grid grid-cols-1 gap-6 mt-6">
+                          {/* Assigned Users */}
+                          <TaskAssignedUsers
+                            taskId={task.id}
+                            assignedUsers={task.assigned_to || []}
                             onUpdate={handleTaskUpdate}
                           />
                         </div>

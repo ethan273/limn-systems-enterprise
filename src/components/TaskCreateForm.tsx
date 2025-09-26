@@ -44,6 +44,15 @@ export default function TaskCreateForm({ onSuccess, onCancel }: TaskCreateFormPr
   const [newTag, setNewTag] = useState("");
   const [visibility, setVisibility] = useState<"company" | "project" | "private">("company");
 
+  // Mock users data - in production this would come from API
+  const [availableUsers] = useState([
+    { id: "550e8400-e29b-41d4-a716-446655440000", name: "Development User", email: "dev-user@limn.us.com", department: "development" },
+    { id: "660e8400-e29b-41d4-a716-446655440001", name: "John Smith", email: "john.smith@limn.us.com", department: "production" },
+    { id: "770e8400-e29b-41d4-a716-446655440002", name: "Sarah Wilson", email: "sarah.wilson@limn.us.com", department: "design" },
+    { id: "880e8400-e29b-41d4-a716-446655440003", name: "Mike Johnson", email: "mike.johnson@limn.us.com", department: "sales" },
+    { id: "990e8400-e29b-41d4-a716-446655440004", name: "Emily Davis", email: "emily.davis@limn.us.com", department: "admin" },
+  ]);
+
   // Mock user ID - in production this would come from session
   const mockCreatedBy = "550e8400-e29b-41d4-a716-446655440000";
 
@@ -104,6 +113,21 @@ export default function TaskCreateForm({ onSuccess, onCancel }: TaskCreateFormPr
       e.preventDefault();
       addTag();
     }
+  };
+
+  const addAssignee = (userId: string) => {
+    if (!assignedTo.includes(userId)) {
+      setAssignedTo([...assignedTo, userId]);
+    }
+  };
+
+  const removeAssignee = (userId: string) => {
+    setAssignedTo(assignedTo.filter(id => id !== userId));
+  };
+
+  const getAssignedUserName = (userId: string) => {
+    const user = availableUsers.find(u => u.id === userId);
+    return user ? user.name : "Unknown User";
   };
 
   return (
@@ -248,6 +272,57 @@ export default function TaskCreateForm({ onSuccess, onCancel }: TaskCreateFormPr
               <SelectItem value="private">Private</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+
+        {/* Assigned To */}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium text-gray-300">
+            Assigned To ({assignedTo.length} selected)
+          </Label>
+          <Select onValueChange={(value: string) => addAssignee(value)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select team members..." />
+            </SelectTrigger>
+            <SelectContent>
+              {availableUsers
+                .filter(user => !assignedTo.includes(user.id))
+                .map((user) => (
+                  <SelectItem key={user.id} value={user.id}>
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-xs font-medium text-white">
+                        {user.name.split(' ').map(n => n[0]).join('')}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium">{user.name}</span>
+                        <span className="text-xs text-gray-500 capitalize">{user.department}</span>
+                      </div>
+                    </div>
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+          {assignedTo.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {assignedTo.map((userId) => {
+                const user = availableUsers.find(u => u.id === userId);
+                return (
+                  <Badge key={userId} variant="secondary" className="flex items-center gap-2 pr-2">
+                    <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center text-xs font-medium text-white">
+                      {user ? user.name.split(' ').map(n => n[0]).join('') : '?'}
+                    </div>
+                    <span className="text-sm">{user ? user.name : 'Unknown'}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeAssignee(userId)}
+                      className="hover:text-red-400 transition-colors ml-1"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Tags */}

@@ -21,7 +21,8 @@ import {
   XIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { api } from "@/lib/api/client";
 
 interface NavSubItem {
   label: string;
@@ -35,48 +36,83 @@ interface NavModule {
   items: NavSubItem[];
 }
 
-const navigationModules: NavModule[] = [
-  {
-    label: "Dashboards",
-    icon: BarChart3,
-    items: [
-      { label: "Main Dashboard", href: "/dashboard" },
-      { label: "Analytics Dashboard", href: "/dashboards/analytics" },
-      { label: "Executive Dashboard", href: "/dashboards/executive" },
-      { label: "Project Dashboard", href: "/dashboards/projects" },
-    ]
-  },
-  {
-    label: "Tasks",
-    icon: CheckSquare,
-    items: [
-      { label: "All Tasks", href: "/tasks", badge: 23 },
-      { label: "My Tasks", href: "/tasks/my", badge: 8 },
-      { label: "Manufacturer Tasks", href: "/tasks/manufacturer" },
-      { label: "Designer Tasks", href: "/tasks/designer" },
-      { label: "Client Tasks", href: "/tasks/client" },
-    ]
-  },
-  {
-    label: "CRM",
-    icon: Users,
-    items: [
-      { label: "Contacts", href: "/crm/contacts", badge: 156 },
-      { label: "Leads", href: "/crm/leads", badge: 12 },
-      { label: "Prospects", href: "/crm/prospects", badge: 24 },
-      { label: "Clients", href: "/crm/clients", badge: 67 },
-      { label: "Projects", href: "/crm/projects", badge: 45 },
-    ]
-  }
-];
 export default function Sidebar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  // Keep Tasks expanded if we're on any Tasks page
+  const isOnTasksPage = pathname.startsWith('/tasks');
+
   const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({
-    "Dashboards": true, // Default expand the first module
-    "Tasks": false,
-    "CRM": false
+    "Dashboards": pathname === '/dashboard' || pathname.startsWith('/dashboards'),
+    "Tasks": isOnTasksPage,
+    "CRM": pathname.startsWith('/crm')
   });
+
+  // Update expanded modules when pathname changes to keep relevant module open
+  useEffect(() => {
+    setExpandedModules({
+      "Dashboards": pathname === '/dashboard' || pathname.startsWith('/dashboards'),
+      "Tasks": pathname.startsWith('/tasks'),
+      "CRM": pathname.startsWith('/crm')
+    });
+  }, [pathname]);
+
+  // Current user ID - in production this would come from session
+  const currentUserId = "f146d819-3eed-43e3-80af-835915a5cc14";
+
+  // Get all tasks count
+  const { data: allTasksData } = api.tasks.getAllTasks.useQuery({
+    limit: 1,
+    offset: 0,
+  });
+
+  // Get my tasks count
+  const { data: myTasksData } = api.tasks.getMyTasks.useQuery({
+    user_id: currentUserId,
+    limit: 1,
+    offset: 0,
+    includeWatching: false,
+  });
+
+  // Calculate counts with safety checks
+  const allTasksCount = allTasksData?.total || 0;
+  const myTasksCount = myTasksData?.total || 0;
+
+  // Dynamic navigation modules with real data
+  const navigationModules: NavModule[] = [
+    {
+      label: "Dashboards",
+      icon: BarChart3,
+      items: [
+        { label: "Main Dashboard", href: "/dashboard" },
+        { label: "Analytics Dashboard", href: "/dashboards/analytics" },
+        { label: "Executive Dashboard", href: "/dashboards/executive" },
+        { label: "Project Dashboard", href: "/dashboards/projects" },
+      ]
+    },
+    {
+      label: "Tasks",
+      icon: CheckSquare,
+      items: [
+        { label: "All Tasks", href: "/tasks", badge: allTasksCount > 0 ? allTasksCount : undefined },
+        { label: "My Tasks", href: "/tasks/my", badge: myTasksCount > 0 ? myTasksCount : undefined },
+        { label: "Manufacturer Tasks", href: "/tasks/manufacturer" },
+        { label: "Designer Tasks", href: "/tasks/designer" },
+        { label: "Client Tasks", href: "/tasks/client" },
+      ]
+    },
+    {
+      label: "CRM",
+      icon: Users,
+      items: [
+        { label: "Contacts", href: "/crm/contacts" },
+        { label: "Leads", href: "/crm/leads" },
+        { label: "Prospects", href: "/crm/prospects" },
+        { label: "Clients", href: "/crm/clients" },
+        { label: "Projects", href: "/crm/projects" },
+      ]
+    }
+  ];
 
   const toggleModule = (moduleLabel: string) => {
     setExpandedModules(prev => ({
@@ -86,9 +122,8 @@ export default function Sidebar() {
   };
 
   const isItemActive = (href: string) => {
-    if (href === pathname) return true;
-    if (href !== "/" && pathname.startsWith(href)) return true;
-    return false;
+    // Use exact matching for navigation items to avoid conflicts between /tasks and /tasks/my
+    return href === pathname;
   };
 
   const isModuleActive = (module: NavModule) => {

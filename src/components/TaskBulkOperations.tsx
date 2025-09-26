@@ -1,0 +1,326 @@
+"use client";
+
+import { useState } from "react";
+import { api } from "@/lib/api/client";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  CheckSquare,
+  Square,
+  ChevronDown,
+  Edit,
+  Archive,
+  Trash2,
+  CheckCircle2,
+  Clock,
+  AlertTriangle,
+  Users,
+  Building2,
+  X,
+} from "lucide-react";
+
+type TaskStatus = 'todo' | 'in_progress' | 'completed' | 'cancelled';
+type TaskPriority = 'low' | 'medium' | 'high';
+type TaskDepartment = 'admin' | 'production' | 'design' | 'sales';
+
+interface Task {
+  id: string;
+  title: string;
+  status: string;
+  priority: string;
+  department: string;
+}
+
+interface TaskBulkOperationsProps {
+  tasks: Task[];
+  selectedTasks: string[];
+  onSelectionChange: (taskIds: string[]) => void;
+  onBulkComplete: () => void;
+}
+
+export default function TaskBulkOperations({
+  tasks,
+  selectedTasks,
+  onSelectionChange,
+  onBulkComplete,
+}: TaskBulkOperationsProps) {
+  const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
+  const [isPriorityDialogOpen, setIsPriorityDialogOpen] = useState(false);
+  const [isDepartmentDialogOpen, setIsDepartmentDialogOpen] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState<TaskStatus>('todo');
+  const [selectedPriority, setSelectedPriority] = useState<TaskPriority>('medium');
+  const [selectedDepartment, setSelectedDepartment] = useState<TaskDepartment>('admin');
+
+  // Mock user ID - in production this would come from session
+  const mockUserId = "550e8400-e29b-41d4-a716-446655440000";
+
+  const bulkUpdateStatusMutation = api.tasks.bulkUpdateStatus.useMutation({
+    onSuccess: () => {
+      onBulkComplete();
+      onSelectionChange([]);
+      setIsStatusDialogOpen(false);
+    },
+  });
+
+  const bulkArchiveMutation = api.tasks.bulkArchive.useMutation({
+    onSuccess: () => {
+      onBulkComplete();
+      onSelectionChange([]);
+    },
+  });
+
+  const isAllSelected = tasks.length > 0 && selectedTasks.length === tasks.length;
+  const isIndeterminate = selectedTasks.length > 0 && selectedTasks.length < tasks.length;
+
+  const handleSelectAll = () => {
+    if (isAllSelected) {
+      onSelectionChange([]);
+    } else {
+      onSelectionChange(tasks.map(task => task.id));
+    }
+  };
+
+  const handleBulkStatusUpdate = () => {
+    if (selectedTasks.length === 0) return;
+
+    bulkUpdateStatusMutation.mutate({
+      task_ids: selectedTasks,
+      status: selectedStatus,
+      user_id: mockUserId,
+    });
+  };
+
+  const handleBulkArchive = () => {
+    if (selectedTasks.length === 0) return;
+
+    bulkArchiveMutation.mutate({
+      task_ids: selectedTasks,
+      user_id: mockUserId,
+    });
+  };
+
+  const getStatusConfig = (status: TaskStatus) => {
+    switch (status) {
+      case 'todo':
+        return { icon: AlertTriangle, color: 'text-gray-400', label: 'Todo' };
+      case 'in_progress':
+        return { icon: Clock, color: 'text-blue-400', label: 'In Progress' };
+      case 'completed':
+        return { icon: CheckCircle2, color: 'text-green-400', label: 'Completed' };
+      case 'cancelled':
+        return { icon: X, color: 'text-red-400', label: 'Cancelled' };
+    }
+  };
+
+  if (selectedTasks.length === 0) {
+    return (
+      <div className="flex items-center gap-3 p-4 bg-gray-800/30 rounded-lg border border-gray-700">
+        <button
+          onClick={handleSelectAll}
+          className="flex items-center gap-2 text-sm text-gray-400 hover:text-gray-300"
+        >
+          <Square className="h-4 w-4" />
+          Select all tasks
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center justify-between p-4 bg-blue-900/20 rounded-lg border border-blue-500/30">
+      <div className="flex items-center gap-3">
+        <button
+          onClick={handleSelectAll}
+          className="flex items-center gap-2 text-sm text-blue-300 hover:text-blue-200"
+        >
+          {isAllSelected ? (
+            <CheckSquare className="h-4 w-4" />
+          ) : (
+            <div className="relative">
+              <Square className="h-4 w-4" />
+              {isIndeterminate && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-2 h-0.5 bg-blue-400" />
+                </div>
+              )}
+            </div>
+          )}
+          {selectedTasks.length} of {tasks.length} selected
+        </button>
+
+        <Badge variant="outline" className="bg-blue-500/20 text-blue-300 border-blue-500/30">
+          {selectedTasks.length} task{selectedTasks.length !== 1 ? 's' : ''}
+        </Badge>
+      </div>
+
+      <div className="flex items-center gap-2">
+        {/* Quick Actions */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="flex items-center gap-2">
+              <Edit className="h-4 w-4" />
+              Bulk Actions
+              <ChevronDown className="h-3 w-3" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              onClick={() => setIsStatusDialogOpen(true)}
+              disabled={bulkUpdateStatusMutation.isPending}
+            >
+              <CheckCircle2 className="h-4 w-4 mr-2" />
+              Update Status
+            </DropdownMenuItem>
+            <DropdownMenuItem disabled>
+              <AlertTriangle className="h-4 w-4 mr-2" />
+              Update Priority
+            </DropdownMenuItem>
+            <DropdownMenuItem disabled>
+              <Building2 className="h-4 w-4 mr-2" />
+              Update Department
+            </DropdownMenuItem>
+            <DropdownMenuItem disabled>
+              <Users className="h-4 w-4 mr-2" />
+              Assign Users
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={handleBulkArchive}
+              disabled={bulkArchiveMutation.isPending}
+            >
+              <Archive className="h-4 w-4 mr-2" />
+              Archive Tasks
+            </DropdownMenuItem>
+            <DropdownMenuItem disabled className="text-red-400">
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Tasks
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onSelectionChange([])}
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+
+      {/* Status Update Dialog */}
+      <Dialog open={isStatusDialogOpen} onOpenChange={setIsStatusDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Task Status</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-400">
+              Update the status of {selectedTasks.length} selected task{selectedTasks.length !== 1 ? 's' : ''}
+            </p>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-300">
+                New Status
+              </label>
+              <Select
+                value={selectedStatus}
+                onValueChange={(value: TaskStatus) => setSelectedStatus(value)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(['todo', 'in_progress', 'completed', 'cancelled'] as TaskStatus[]).map((status) => {
+                    const config = getStatusConfig(status);
+                    const StatusIcon = config.icon;
+                    return (
+                      <SelectItem key={status} value={status}>
+                        <div className="flex items-center gap-2">
+                          <StatusIcon className={`h-4 w-4 ${config.color}`} />
+                          {config.label}
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsStatusDialogOpen(false)}
+                disabled={bulkUpdateStatusMutation.isPending}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleBulkStatusUpdate}
+                disabled={bulkUpdateStatusMutation.isPending}
+              >
+                {bulkUpdateStatusMutation.isPending ? 'Updating...' : 'Update Status'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Archive Confirmation */}
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <div />
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Archive Tasks</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to archive {selectedTasks.length} task{selectedTasks.length !== 1 ? 's' : ''}?
+              Archived tasks can be restored later.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleBulkArchive}
+              disabled={bulkArchiveMutation.isPending}
+            >
+              {bulkArchiveMutation.isPending ? 'Archiving...' : 'Archive Tasks'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}

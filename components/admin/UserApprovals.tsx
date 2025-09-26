@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -28,7 +28,13 @@ export default function UserApprovals() {
     fetchPendingUsers();
   }, []);
 
-  const fetchPendingUsers = async () => {    try {
+  const fetchPendingUsers = async () => {
+    try {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        throw new Error('Supabase client not available');
+      }
+
       const { data, error } = await supabase
         .from('user_approvals')
         .select(`
@@ -49,16 +55,22 @@ export default function UserApprovals() {
   };
 
   const handleApproval = async (
-    approvalId: string, 
-    userId: string, 
+    approvalId: string,
+    userId: string,
     approved: boolean
   ) => {
     try {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        throw new Error('Supabase client not available');
+      }
+
       // Update approval status
       const { error: approvalError } = await supabase
         .from('user_approvals')
         .update({
-          status: approved ? 'approved' : 'rejected',          reviewed_by: (await supabase.auth.getUser()).data.user?.id,
+          status: approved ? 'approved' : 'rejected',
+          reviewed_by: (await supabase.auth.getUser()).data.user?.id,
           reviewed_at: new Date().toISOString(),
         })
         .eq('id', approvalId);
@@ -88,7 +100,8 @@ export default function UserApprovals() {
 
       toast.success(`User ${approved ? 'approved' : 'rejected'} successfully`);
       fetchPendingUsers();
-    } catch (error) {      console.error('Error processing approval:', error);
+    } catch (error) {
+      console.error('Error processing approval:', error);
       toast.error('Failed to process approval');
     }
   };

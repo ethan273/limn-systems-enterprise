@@ -1,4 +1,6 @@
-import { supabase } from './supabase';
+import { getSupabaseAdmin } from './supabase';
+
+const supabase = getSupabaseAdmin();
 
 /**
  * HYBRID DATABASE ARCHITECTURE - PRODUCTION SOLUTION
@@ -77,6 +79,22 @@ export interface Task {
   task_attachments?: any[];
   task_activities?: any[];
   task_entity_links?: any[];
+}
+
+// User types
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  full_name?: string | null;
+  avatar_url?: string | null;
+  title?: string | null;
+  job_title?: string | null;
+  department?: string | null;
+  is_active?: boolean | null;
+  hire_date?: Date | null;
+  created_at?: Date | null;
+  updated_at?: Date | null;
 }
 
 // Customer/Client types
@@ -486,7 +504,7 @@ export class DatabaseClient {
 
     const { data, error } = await supabase
       .from(tableName)
-      .insert(dataWithTimestamps);
+      .insert(dataWithTimestamps as any);
 
     if (error) {
       throw new Error(`Failed to create many in ${tableName}: ${error.message}`);
@@ -758,6 +776,7 @@ export class DatabaseClient {
 
     const { data: task, error } = await supabase
       .from('tasks')
+      // @ts-ignore - Supabase type generation issue
       .update({
         ...updateData,
         updated_at: new Date().toISOString(),
@@ -908,12 +927,12 @@ export class DatabaseClient {
 
     // Build OR conditions for tasks assigned to user, created by user, or watched by user
     let conditions = [
-      `assigned_to.cs.{${userId}}`,
+      `assigned_to.ov.{${userId}}`,
       `created_by.eq.${userId}`
     ];
 
     if (includeWatching) {
-      conditions.push(`watchers.cs.{${userId}}`);
+      conditions.push(`watchers.ov.{${userId}}`);
     }
 
     query = query.or(conditions.join(','));
@@ -1119,7 +1138,7 @@ export class DatabaseClient {
         reason_for_access: data.reason_for_access,
         status: 'pending',
         metadata: data.metadata || {},
-      })
+      } as any)
       .select()
       .single();
 
@@ -1200,6 +1219,7 @@ export class DatabaseClient {
 
     const { data: request, error } = await supabase
       .from('pending_user_requests')
+      // @ts-ignore - Supabase type generation issue
       .update(updateData)
       .eq('id', data.id)
       .select()
@@ -1298,6 +1318,106 @@ export class DatabaseClient {
   };
 
   // =====================================================
+  // USER METHODS
+  // =====================================================
+
+  /**
+   * Get all active users from user_profiles table
+   */
+  async findManyUsers(options: {
+    limit?: number;
+    offset?: number;
+    search?: string;
+  } = {}): Promise<{ users: User[]; total: number; hasMore: boolean }> {
+    try {
+      const { limit = 50, offset = 0, search } = options;
+
+      let query = supabase
+        .from('user_profiles')
+        .select('*', { count: 'exact' })
+        .eq('is_active', true)
+        .order('name', { ascending: true });
+
+      // Apply search filter if provided
+      if (search) {
+        query = query.or(`name.ilike.%${search}%,email.ilike.%${search}%`);
+      }
+
+      // Apply pagination
+      query = query.range(offset, offset + limit - 1);
+
+      const { data, error, count } = await query;
+
+      if (error) {
+        console.error('Error fetching users:', error);
+        throw new Error(`Failed to fetch users: ${error.message}`);
+      }
+
+      const users = data?.map(this.transformUser.bind(this)) || [];
+      const total = count || 0;
+      const hasMore = offset + limit < total;
+
+      return { users, total, hasMore };
+    } catch (error) {
+      console.error('Error in findManyUsers:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get a single user by ID
+   */
+  async findUser(id: string): Promise<User | null> {
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', id)
+        .eq('is_active', true)
+        .single();
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          return null; // User not found
+        }
+        console.error('Error fetching user:', error);
+        throw new Error(`Failed to fetch user: ${error.message}`);
+      }
+
+      return this.transformUser(data);
+    } catch (error) {
+      console.error('Error in findUser:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get users by their IDs (for assigned users lookup)
+   */
+  async findUsersByIds(ids: string[]): Promise<User[]> {
+    try {
+      if (ids.length === 0) return [];
+
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .in('id', ids)
+        .eq('is_active', true)
+        .order('name', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching users by IDs:', error);
+        throw new Error(`Failed to fetch users: ${error.message}`);
+      }
+
+      return data?.map(this.transformUser.bind(this)) || [];
+    } catch (error) {
+      console.error('Error in findUsersByIds:', error);
+      throw error;
+    }
+  }
+
+  // =====================================================
   // UTILITY METHODS
   // =====================================================
 
@@ -1372,6 +1492,24 @@ export class DatabaseClient {
       watchers: raw.watchers || [],
       depends_on: raw.depends_on || [],
       blocks: raw.blocks || [],
+    };
+  }
+
+  // Transform raw database result to typed User object
+  private transformUser(raw: any): User {
+    return {
+      id: raw.id,
+      name: raw.name,
+      email: raw.email,
+      full_name: raw.full_name,
+      avatar_url: raw.avatar_url,
+      title: raw.title,
+      job_title: raw.job_title,
+      department: raw.department,
+      is_active: raw.is_active,
+      hire_date: raw.hire_date ? new Date(raw.hire_date) : null,
+      created_at: raw.created_at ? new Date(raw.created_at) : null,
+      updated_at: raw.updated_at ? new Date(raw.updated_at) : null,
     };
   }
 }
