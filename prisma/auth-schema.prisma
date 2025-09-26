@@ -1,0 +1,200 @@
+// Authentication Database Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String        @id @default(uuid())
+  email             String        @unique
+  firstName         String?
+  lastName          String?
+  role              UserRole
+  status            UserStatus
+  provider          AuthProvider
+  organizationId    String?
+  organization      Organization? @relation(fields: [organizationId], references: [id])
+  phoneNumber       String?
+  passwordHash      String?       // Only for email/password auth
+  mfaSecret         String?       // For TOTP MFA
+  mfaEnabled        Boolean       @default(false)
+  emailVerified     Boolean       @default(false)
+  phoneVerified     Boolean       @default(false)
+  lastLoginAt       DateTime?
+  approvedBy        String?
+  approvedByUser    User?         @relation("ApprovalRelation", fields: [approvedBy], references: [id])
+  approvals         User[]        @relation("ApprovalRelation")
+  approvedAt        DateTime?
+  rejectedBy        String?
+  rejectedAt        DateTime?
+  rejectionReason   String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  sessions          AuthSession[]
+  auditLogs         AuditLog[]
+  magicLinks        MagicLink[]
+  notifications     Notification[]
+  
+  @@index([email])
+  @@index([organizationId])
+  @@index([status])
+  @@index([role])
+}
+
+model Organization {
+  id          String   @id @default(uuid())
+  name        String
+  domain      String?  @unique // For automatic user assignment based on email domain
+  isInternal  Boolean  @default(false) // True for Limn Systems
+  users       User[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model PendingSignUp {
+  id                    String   @id @default(uuid())
+  email                 String   @unique
+  firstName             String?
+  lastName              String?
+  companyName           String?
+  phoneNumber           String?
+  requestedRole         UserRole
+  businessJustification String?  @db.Text
+  referralSource        String?
+  status                SignUpStatus @default(PENDING)
+  verificationToken     String?  @unique
+  emailVerified         Boolean  @default(false)
+  requestedAt           DateTime @default(now())
+  reviewedBy            String?
+  reviewedAt            DateTime?
+  reviewNotes           String?  @db.Text
+  approvalToken         String?  @unique @default(uuid())
+  
+  @@index([status])
+  @@index([email])
+  @@index([requestedAt])
+}
+
+model AuthSession {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token        String   @unique
+  refreshToken String   @unique
+  expiresAt    DateTime
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime @default(now())
+  
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+}
+
+model MagicLink {
+  id          String    @id @default(uuid())
+  userId      String?
+  user        User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email       String?
+  phoneNumber String?
+  token       String    @unique
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime  @default(now())
+  
+  @@index([token])
+  @@index([email])
+  @@index([phoneNumber])
+  @@index([expiresAt])
+}
+
+model Permission {
+  id       String   @id @default(uuid())
+  resource String
+  action   String
+  role     UserRole
+  
+  @@unique([resource, action, role])
+  @@index([role])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  action     String
+  resource   String?
+  resourceId String?
+  metadata   Json?
+  ipAddress  String?
+  userAgent  String?
+  timestamp  DateTime @default(now())
+  
+  @@index([userId])
+  @@index([action])
+  @@index([timestamp])
+}
+
+model Notification {
+  id         String           @id @default(uuid())
+  userId     String
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type       NotificationType
+  title      String
+  message    String           @db.Text
+  metadata   Json?
+  read       Boolean          @default(false)
+  readAt     DateTime?
+  createdAt  DateTime         @default(now())
+  
+  @@index([userId])
+  @@index([type])
+  @@index([read])
+  @@index([createdAt])
+}
+
+// Enums
+enum UserRole {
+  SUPER_ADMIN
+  CLIENT_ADMIN
+  CLIENT_USER
+  PARTNER
+  VIEWER
+}
+
+enum UserStatus {
+  PENDING_APPROVAL
+  ACTIVE
+  SUSPENDED
+  REJECTED
+  DEACTIVATED
+}
+
+enum AuthProvider {
+  GOOGLE
+  EMAIL
+  MAGIC_LINK
+}
+
+enum SignUpStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum NotificationType {
+  SIGN_UP_REQUEST
+  APPROVAL_GRANTED
+  APPROVAL_DENIED
+  PASSWORD_RESET
+  MFA_ENABLED
+  LOGIN_FROM_NEW_DEVICE
+  ACCOUNT_SUSPENDED
+  SYSTEM_ANNOUNCEMENT
+}

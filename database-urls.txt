@@ -1,0 +1,14 @@
+# Supabase Database Connection URLs for Prisma
+
+# Your Supabase project ref: kufakdnlhhcwynkfchbb
+# Region: us-east-1 (default)
+
+# For Prisma migrations and introspection (direct connection - port 5432)
+DIRECT_URL="postgresql://postgres.kufakdnlhhcwynkfchbb:Qykmof-xucqod-fupde9@aws-0-us-east-1.pooler.supabase.com:5432/postgres"
+
+# For application queries (connection pooler - port 6543)
+DATABASE_URL="postgresql://postgres.kufakdnlhhcwynkfchbb:Qykmof-xucqod-fupde9@aws-0-us-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+
+# Alternative format if above doesn't work:
+# DIRECT_URL="postgresql://postgres:Qykmof-xucqod-fupde9@db.kufakdnlhhcwynkfchbb.supabase.co:5432/postgres"
+# DATABASE_URL="postgresql://postgres:Qykmof-xucqod-fupde9@db.kufakdnlhhcwynkfchbb.supabase.co:6543/postgres?pgbouncer=true&connection_limit=1"

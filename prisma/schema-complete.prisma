@@ -1,0 +1,4030 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Generated from 260 discovered Supabase tables
+// Date: 2025-09-24T12:07:18.523Z
+
+model order_profitability {
+  id String @db.Uuid? @id @default(uuid())
+  order_number String?
+  customer_id String @db.Uuid?
+  customer_name String?
+  revenue Float?
+  total_costs Float?
+  gross_profit Float?
+  margin_percent Float?
+  order_date String?
+  status String?
+}
+
+model safe_users {
+  id String @db.Uuid? @id @default(uuid())
+  email String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+  name String?
+  first_name String?
+  last_name String?
+  full_name String?
+  avatar_url String?
+  title String?
+  department String?
+  user_type String?
+  is_active Boolean?
+}
+
+model payments {
+  id String @db.Uuid @id @default(uuid())
+  payment_number String
+  quickbooks_payment_id String?
+  invoice_id String @db.Uuid?
+  customer_id String @db.Uuid?
+  payment_date String
+  payment_method String?
+  payment_type String?
+  amount Float
+  currency String?
+  exchange_rate Float?
+  reference_number String?
+  processor_transaction_id String?
+  processing_fee Float?
+  net_amount Float?
+  status String?
+  notes String?
+  quickbooks_sync_date String?
+  created_by String @db.Uuid?
+  created_at String? @default(now())
+}
+
+model design_briefs {
+  id String @db.Uuid @id @default(uuid())
+  design_project_id String @db.Uuid?
+  title String
+  description String?
+  target_market String?
+  price_point_min Float?
+  price_point_max Float?
+  materials_preference String?
+  style_references String?
+  functional_requirements String?
+  dimensional_constraints String?
+  sustainability_requirements String?
+  created_by String @db.Uuid?
+  approved_date String?
+  approved_by String @db.Uuid?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model sso_configuration {
+  id String @db.Uuid @id @default(uuid())
+  provider_name String
+  saml_metadata_url String?
+  saml_entity_id String?
+  saml_sso_url String?
+  saml_x509_cert String?
+  attribute_mapping String?
+  domain_restriction String?
+  auto_provision_users Boolean?
+  default_user_type String?
+  is_active Boolean?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model push_subscriptions {
+  id String @db.Uuid @id @default(uuid())
+  user_id String @db.Uuid?
+  device_id String
+  device_type String?
+  push_token String
+  endpoint String?
+  auth_keys String?
+  platform_details String?
+  is_active Boolean?
+  last_used String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model v_user_management {
+  user_id String @db.Uuid?
+  email String?
+  name String?
+  title String?
+  department String?
+  user_type String?
+  is_active Boolean?
+  hire_date String?
+  permissions String?
+  account_created String?
+  last_sign_in_at String?
+  user_role String?
+}
+
+model status_change_log {
+  id String @db.Uuid @id @default(uuid())
+  table_name String
+  record_id String @db.Uuid
+  field_name String
+  old_value String?
+  new_value String
+  changed_by String @db.Uuid?
+  change_reason String?
+  automated Boolean?
+  created_at String? @default(now())
+}
+
+model document_templates {
+  id String @db.Uuid @id @default(uuid())
+  template_name String
+  category String
+  naming_pattern String?
+  default_tags Json?
+  default_metadata String?
+  folder_structure String?
+  is_active Boolean?
+  created_at String? @default(now())
+}
+
+model product_materials {
+  id String @db.Uuid @id @default(uuid())
+  product_id String @db.Uuid?
+  metal_option_id String @db.Uuid?
+  wood_option_id String @db.Uuid?
+  stone_option_id String @db.Uuid?
+  weave_option_id String @db.Uuid?
+  carving_option_id String @db.Uuid?
+  additional_specs String?
+  is_default Boolean?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model performance_metrics {
+  id String @db.Uuid @id @default(uuid())
+  metric_date String
+  metric_type String?
+  metric_value Float?
+  metadata String?
+  created_at String? @default(now())
+}
+
+model production_milestones {
+  id String @db.Uuid @id @default(uuid())
+  manufacturer_project_id String @db.Uuid?
+  milestone_name String
+  milestone_type String?
+  planned_date String?
+  actual_date String?
+  status String?
+  completion_percentage Int?
+  notes String?
+  photos String?
+  created_by String @db.Uuid?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model v_customer_financial_dashboard {
+  customer_id String @db.Uuid?
+  customer_name String?
+  email String?
+  company String?
+  credit_limit Float?
+  balance_outstanding Float?
+  ytd_sales Float?
+  lifetime_value Float?
+  payment_terms String?
+  credit_status String?
+  total_orders Int?
+  total_invoices Int?
+  total_paid Float?
+  total_outstanding Float?
+}
+
+model metal_types {
+  id String @db.Uuid @id @default(uuid())
+  name String
+  description String?
+  price_modifier Float?
+  active Boolean?
+  sort_order Int?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model warnings_fixed {
+  status String?
+  completed_at String?
+}
+
+model qc_inspections {
+  id String @db.Uuid @id @default(uuid())
+  order_id String @db.Uuid
+  order_item_id String @db.Uuid?
+  production_item_id String @db.Uuid?
+  batch_id String?
+  qc_stage String
+  status String
+  assigned_inspector_id String @db.Uuid?
+  priority String
+  defects_found Int
+  started_at String?
+  due_date String?
+  completed_at String?
+  notes String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model feature_permissions {
+  id String @db.Uuid @id @default(uuid())
+  user_type String
+  feature_name String
+  feature_category String?
+  is_enabled Boolean?
+  description String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model quickbooks_recurring_payments {
+  id String @db.Uuid @id @default(uuid())
+  customer_id String @db.Uuid?
+  payment_method_id String @db.Uuid?
+  amount Float
+  frequency String?
+  start_date String
+  end_date String?
+  next_payment_date String?
+  is_active Boolean?
+  last_payment_id String @db.Uuid?
+  total_payments_made Int?
+  total_amount_collected Float?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model task_activity {
+  id String @db.Uuid @id @default(uuid())
+  task_id String @db.Uuid?
+  user_id String @db.Uuid?
+  action String
+  changes String?
+  created_at String? @default(now())
+}
+
+model notification_analytics {
+  date String?
+  total_notifications Int?
+  delivered Int?
+  failed Int?
+  pending Int?
+  scheduled Int?
+  urgent_priority Int?
+  high_priority Int?
+  normal_priority Int?
+  low_priority Int?
+  delivery_rate Float?
+}
+
+model collections {
+  id String @db.Uuid @id @default(uuid())
+  name String
+  description String?
+  category String?
+  image_url String?
+  is_active Boolean?
+  display_order Int?
+  metadata String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+  prefix String?
+}
+
+model sms_delivery_timeline {
+  id String @db.Uuid? @id @default(uuid())
+  campaign_name String?
+  recipient_phone String?
+  event_type String?
+  event_time String?
+  error_message String?
+  event_data String?
+  event_hour Float?
+  event_day Float?
+}
+
+model task_comments {
+  id String @db.Uuid @id @default(uuid())
+  task_id String @db.Uuid?
+  user_id String @db.Uuid?
+  comment String
+  mentions Json?
+  created_at String? @default(now())
+}
+
+model design_project_overview {
+  id String @db.Uuid? @id @default(uuid())
+  project_name String?
+  project_code String?
+  current_stage String?
+  priority String?
+  designer_name String?
+  designer_email String?
+  brief_title String?
+  deliverable_count Int?
+  revision_count Int?
+  latest_revision Int?
+  target_launch_date String?
+  budget Float?
+  status String?
+}
+
+model recent_notification_activity {
+  id String @db.Uuid? @id @default(uuid())
+  title String?
+  status String?
+  priority String?
+  user_email String?
+  device_type String?
+  device_id String?
+  created_at String? @default(now())
+  sent_at String?
+  processing_time_seconds Int?
+}
+
+model document_categories {
+  id String @db.Uuid @id @default(uuid())
+  category String
+  subcategories String?
+  icon String?
+  color String?
+  sort_order Int?
+  is_active Boolean?
+  created_at String? @default(now())
+}
+
+model qc_photos {
+  id String @db.Uuid @id @default(uuid())
+  qc_inspection_id String @db.Uuid?
+  qc_defect_id String @db.Uuid?
+  photo_url String
+  caption String?
+  uploaded_by String @db.Uuid?
+  created_at String? @default(now())
+}
+
+model contacts {
+  id String @db.Uuid @id @default(uuid())
+  name String
+  email String?
+  phone String?
+  company String?
+  position String?
+  notes String?
+  tags Json?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+  created_by String?
+}
+
+model shipping_events {
+  id String @db.Uuid @id @default(uuid())
+  shipment_id String @db.Uuid
+  event_type String
+  event_description String?
+  event_location String?
+  event_timestamp String
+  seko_event_id String?
+  created_at String? @default(now())
+}
+
+model sms_providers {
+  id String @db.Uuid @id @default(uuid())
+  provider_name String
+  provider_type String?
+  api_endpoint String?
+  api_key_encrypted String?
+  api_secret_encrypted String?
+  from_number String?
+  is_active Boolean?
+  is_primary Boolean?
+  priority_order Int?
+  success_rate Float?
+  avg_delivery_time_ms Int?
+  cost_per_sms Float?
+  monthly_limit Int?
+  current_month_usage Int?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model active_manufacturer_projects {
+  id String @db.Uuid? @id @default(uuid())
+  project_name String?
+  reference_number String?
+  project_type String?
+  project_status String?
+  manufacturer_name String?
+  contact_person String?
+  manufacturer_email String?
+  item_name String?
+  collection_name String?
+  start_date String?
+  quoted_lead_time_days Int?
+  expected_completion String?
+  shop_drawing_status String?
+  review_deadline String?
+  qc_inspections Int?
+  last_inspection String?
+}
+
+model manufacturer_pricing {
+  id String @db.Uuid @id @default(uuid())
+  manufacturer_id String @db.Uuid?
+  pricing_type String?
+  base_rate Float?
+  currency String?
+  volume_discounts String?
+  rush_multiplier Float?
+  payment_terms String?
+  valid_from String?
+  valid_until String?
+  notes String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model client_notifications {
+  id String @db.Uuid @id @default(uuid())
+  customer_id String @db.Uuid
+  type String
+  title String
+  message String
+  data String?
+  read Boolean?
+  created_at String? @default(now())
+}
+
+model pickup_requests {
+  id String @db.Uuid @id @default(uuid())
+  shipment_id String @db.Uuid?
+  pickup_date String
+  ready_time String
+  close_time String
+  location String
+  confirmation_number String?
+  driver_name String?
+  driver_phone String?
+  status String?
+  seko_pickup_response String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model manufacturer_qc_records {
+  id String @db.Uuid @id @default(uuid())
+  manufacturer_project_id String @db.Uuid?
+  inspection_type String?
+  inspection_date String?
+  inspector_name String?
+  passed Boolean?
+  defects_found String?
+  measurements String?
+  corrective_actions String?
+  reinspection_required Boolean?
+  photos String?
+  report_url String?
+  created_at String? @default(now())
+}
+
+model orders {
+  id String @db.Uuid @id @default(uuid())
+  order_number String
+  customer_id String @db.Uuid?
+  collection_id String @db.Uuid?
+  status String
+  order_type String?
+  priority String?
+  total_amount Float?
+  currency String?
+  payment_status String?
+  payment_terms String?
+  order_date String?
+  estimated_completion String?
+  actual_completion String?
+  items String?
+  metadata String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+  created_by String @db.Uuid?
+  design_approved_at String?
+  client_notes String?
+}
+
+model metal_options {
+  id String @db.Uuid @id @default(uuid())
+  type String
+  finish String?
+  color String?
+  code String
+  price_modifier Float?
+  active Boolean?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model sms_analytics {
+  id String @db.Uuid @id @default(uuid())
+  date String
+  provider_id String @db.Uuid?
+  total_sent Int?
+  total_delivered Int?
+  total_failed Int?
+  total_cost Float?
+  avg_delivery_time_ms Int?
+  success_rate Float?
+  peak_hour Int?
+  peak_hour_volume Int?
+  created_at String? @default(now())
+}
+
+model pwa_devices {
+  id String @db.Uuid @id @default(uuid())
+  user_id String @db.Uuid?
+  device_id String
+  device_type String?
+  platform String?
+  browser String?
+  version String?
+  last_active String?
+  push_enabled Boolean?
+  created_at String? @default(now())
+}
+
+model fabric_colors {
+  id String @db.Uuid @id @default(uuid())
+  collection_id String @db.Uuid?
+  name String
+  hex_code String?
+  price_modifier Float?
+  active Boolean?
+  sort_order Int?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model financial_periods {
+  id String @db.Uuid @id @default(uuid())
+  period_type String?
+  period_name String
+  start_date String
+  end_date String
+  is_closed Boolean?
+  closed_date String?
+  closed_by String @db.Uuid?
+  total_revenue Float?
+  total_costs Float?
+  gross_profit Float?
+  gross_margin_percent Float?
+  invoice_count Int?
+  payment_count Int?
+  created_at String? @default(now())
+}
+
+model task_templates {
+  id String @db.Uuid @id @default(uuid())
+  name String
+  description String?
+  template_data String
+  category String?
+  is_active Boolean?
+  created_at String? @default(now())
+}
+
+model workflow_templates {
+  id String @db.Uuid @id @default(uuid())
+  name String
+  description String?
+  category String?
+  template_definition String
+  icon String?
+  is_public Boolean?
+  usage_count Int?
+  created_by String @db.Uuid?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model portal_invitations {
+  id String @db.Uuid @id @default(uuid())
+  customer_id String @db.Uuid
+  email String
+  full_name String
+  title String?
+  portal_role String?
+  invitation_token String
+  status String?
+  sent_at String?
+  expires_at String?
+  accepted_at String?
+  revoked_at String?
+  initial_permissions String?
+  custom_message String?
+  sender_name String?
+  created_by String @db.Uuid
+  created_at String? @default(now())
+}
+
+model manufacturer_contracts {
+  id String @db.Uuid @id @default(uuid())
+  manufacturer_id String @db.Uuid?
+  contract_number String?
+  contract_type String?
+  start_date String?
+  end_date String?
+  auto_renew Boolean?
+  terms String?
+  min_commitment Float?
+  max_liability Float?
+  document_url String?
+  status String?
+  signed_date String?
+  signed_by String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model quality_inspections {
+  id String @db.Uuid @id @default(uuid())
+  manufacturer_project_id String @db.Uuid?
+  inspection_type String?
+  inspection_date String?
+  inspector_name String?
+  overall_grade String?
+  dimensional_accuracy_score Int?
+  finish_quality_score Int?
+  assembly_quality_score Int?
+  defects_found Int?
+  defect_descriptions Json?
+  corrective_actions Json?
+  photos String?
+  passed Boolean?
+  notes String?
+  created_at String? @default(now())
+}
+
+model sso_user_mappings {
+  id String @db.Uuid @id @default(uuid())
+  user_id String @db.Uuid?
+  google_workspace_id String?
+  google_email String?
+  primary_email String?
+  department String?
+  job_title String?
+  manager_email String?
+  google_groups Json?
+  assigned_user_type String?
+  is_active Boolean?
+  last_login String?
+  first_login String?
+  metadata String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model order_materials {
+  id String @db.Uuid @id @default(uuid())
+  order_id String @db.Uuid?
+  order_item_id String @db.Uuid?
+  fabric_option_id String @db.Uuid?
+  wood_option_id String @db.Uuid?
+  metal_option_id String @db.Uuid?
+  stone_option_id String @db.Uuid?
+  weaving_material_id String @db.Uuid?
+  carving_style_id String @db.Uuid?
+  additional_specs String?
+  custom_notes String?
+  generated_sku String?
+  material_cost Float?
+  labor_cost Float?
+  total_cost Float?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+  created_by String @db.Uuid?
+}
+
+model leads {
+  id String @db.Uuid @id @default(uuid())
+  name String
+  company String
+  email String
+  phone String?
+  status String?
+  source String?
+  value Float?
+  assigned_to String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+  last_contact String?
+  next_followup String?
+  notes String?
+  tags Json?
+  metadata String?
+  created_by String?
+  converted_to_customer_id String @db.Uuid?
+  conversion_date String?
+}
+
+model cost_tracking {
+  id String @db.Uuid @id @default(uuid())
+  order_id String @db.Uuid?
+  order_item_id String @db.Uuid?
+  cost_category String?
+  vendor_id String @db.Uuid?
+  description String?
+  quantity Float?
+  unit_cost Float?
+  total_cost Float
+  currency String?
+  invoice_number String?
+  paid Boolean?
+  paid_date String?
+  quickbooks_expense_id String?
+  notes String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model user_preferences {
+  id String @db.Uuid @id @default(uuid())
+  user_id String @db.Uuid?
+  notification_email Boolean?
+  notification_sms Boolean?
+  notification_in_app Boolean?
+  theme String?
+  language String?
+  timezone String?
+  date_format String?
+  time_format String?
+  email_digest String?
+  metadata String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model quickbooks_webhooks {
+  id String @db.Uuid @id @default(uuid())
+  event_type String
+  realm_id String
+  entity_name String?
+  entity_id String?
+  operation String?
+  last_updated_time String?
+  webhook_payload String
+  processed Boolean?
+  processed_at String?
+  error_message String?
+  received_at String?
+}
+
+model portal_sessions {
+  id String @db.Uuid @id @default(uuid())
+  customer_id String @db.Uuid
+  portal_user_id String @db.Uuid?
+  session_token String
+  ip_address String?
+  user_agent String?
+  device_info String?
+  started_at String?
+  last_activity String?
+  ended_at String?
+  is_active Boolean?
+  pages_visited Json?
+  actions_performed String?
+  is_suspicious Boolean?
+  risk_score Int?
+}
+
+model shop_drawings_list {
+  id String @db.Uuid @id @default(uuid())
+  shop_drawing_id String
+  drawing_number String
+  title String
+  description String?
+  order_id String @db.Uuid?
+  customer_name String
+  project_name String
+  item_id String @db.Uuid?
+  item_name String?
+  drawing_type String?
+  revision_number Int?
+  status String?
+  priority String?
+  assigned_to String?
+  submitted_date String?
+  due_date String
+  approved_date String?
+  completed_date String?
+  file_path String?
+  file_size Int?
+  file_type String?
+  notes String?
+  approval_notes String?
+  rejection_reason String?
+  notification_sent Boolean?
+  manufacturing_ready Boolean?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+  created_by String
+}
+
+model sms_invitations {
+  id String @db.Uuid @id @default(uuid())
+  portal_user_id String @db.Uuid
+  phone_number String
+  message_content String
+  provider String?
+  provider_message_id String?
+  status String?
+  sent_at String?
+  delivered_at String?
+  failed_reason String?
+  cost_cents Int?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model notification_queue {
+  id String @db.Uuid @id @default(uuid())
+  user_id String @db.Uuid?
+  title String
+  body String
+  icon String?
+  badge Int?
+  priority String?
+  status String?
+  scheduled_for String?
+  sent_at String?
+  error_message String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model wood_types {
+  id String @db.Uuid @id @default(uuid())
+  name String
+  description String?
+  price_modifier Float?
+  active Boolean?
+  sort_order Int?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model customer_portal_activity {
+  id String @db.Uuid @id @default(uuid())
+  portal_id String @db.Uuid
+  portal_user_id String @db.Uuid?
+  activity_type String
+  activity_description String?
+  resource_type String?
+  resource_id String @db.Uuid?
+  metadata String?
+  ip_address String?
+  user_agent String?
+  created_at String? @default(now())
+}
+
+model weaving_patterns {
+  id String @db.Uuid @id @default(uuid())
+  material_id String @db.Uuid?
+  name String
+  description String?
+  price_modifier Float?
+  active Boolean?
+  sort_order Int?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model quickbooks_oauth_states {
+  id String @db.Uuid @id @default(uuid())
+  user_id String @db.Uuid
+  state String
+  created_at String? @default(now())
+  expires_at String
+}
+
+model approval_templates {
+  id String @db.Uuid @id @default(uuid())
+  template_name String
+  description String?
+  document_category String?
+  document_type String?
+  approval_stages String
+  sequential Boolean?
+  auto_start Boolean?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model manufacturer_project_tracking {
+  id String @db.Uuid? @id @default(uuid())
+  project_name String?
+  reference_number String?
+  project_type String?
+  project_status String?
+  priority String?
+  quantity Int?
+  quoted_price Float?
+  final_price Float?
+  manufacturer_name String?
+  manufacturer_status String?
+  manufacturer_rating Float?
+  total_drawings Int?
+  approved_drawings Int?
+  total_milestones Int?
+  completed_milestones Int?
+  avg_milestone_progress Float?
+  material_items Int?
+  total_material_cost Float?
+  qc_checks Int?
+  has_passed_qc Boolean?
+  start_date String?
+  quoted_lead_time_days Int?
+  expected_completion String?
+  days_in_production Int?
+  timeline_status String?
+}
+
+model sms_usage {
+  id String @db.Uuid @id @default(uuid())
+  phone_number String
+  date String
+  message_count Int?
+  total_cost Float?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model document_approvals {
+  id String @db.Uuid @id @default(uuid())
+  document_id String @db.Uuid
+  approver_id String @db.Uuid?
+  approver_email String?
+  approver_role String?
+  approval_status String
+  comments String?
+  conditions_for_approval String?
+  markup_file_url String?
+  requested_at String?
+  requested_by String @db.Uuid
+  responded_at String?
+  deadline String?
+  reminder_sent_at String?
+  auto_escalate_after String?
+  escalated_to String @db.Uuid?
+  escalated_at String?
+  priority String?
+  approval_order Int?
+  requires_all Boolean?
+}
+
+model document_comments_new {
+  id String @db.Uuid @id @default(uuid())
+  document_id String @db.Uuid?
+  user_id Int?
+  comment String
+  created_at String? @default(now())
+}
+
+model production_progress {
+  id String @db.Uuid @id @default(uuid())
+  order_id String @db.Uuid
+  stage String
+  status String?
+  progress_percentage Int?
+  estimated_completion String?
+  actual_completion String?
+  notes String?
+  updated_by String @db.Uuid?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model user_notification_metrics {
+  user_id String @db.Uuid?
+  email String?
+  total_notifications Int?
+  delivered_count Int?
+  failed_count Int?
+  pending_count Int?
+  urgent_count Int?
+  high_count Int?
+  last_notification_at String?
+  active_devices Int?
+}
+
+model sms_scheduled_jobs {
+  id String @db.Uuid @id @default(uuid())
+  job_type String?
+  recipient_phone String?
+  recipient_list String?
+  template_id String @db.Uuid?
+  message_content String?
+  variables String?
+  scheduled_time String
+  time_zone String?
+  status String?
+  priority Int?
+  retry_count Int?
+  max_retries Int?
+  created_by String @db.Uuid?
+  created_at String? @default(now())
+  processed_at String?
+}
+
+model portal_activity_log {
+  id String @db.Uuid @id @default(uuid())
+  customer_id String @db.Uuid?
+  user_id String @db.Uuid?
+  activity_type String
+  description String?
+  metadata String?
+  ip_address String?
+  user_agent String?
+  created_at String? @default(now())
+}
+
+model manufacturer_communications {
+  id String @db.Uuid @id @default(uuid())
+  manufacturer_id String @db.Uuid?
+  project_id String @db.Uuid?
+  communication_type String?
+  subject String?
+  summary String?
+  participants String?
+  action_items String?
+  follow_up_required Boolean?
+  follow_up_date String?
+  created_by String @db.Uuid?
+  created_at String? @default(now())
+}
+
+model customers {
+  id String @db.Uuid @id @default(uuid())
+  name String
+  email String?
+  phone String?
+  company String?
+  address String?
+  type String?
+  status String?
+  notes String?
+  tags Json?
+  created_by String @db.Uuid?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+  portal_access Boolean?
+  portal_password String?
+  last_portal_login String?
+  portal_access_granted_at String?
+  portal_access_granted_by String @db.Uuid?
+  user_id String @db.Uuid?
+  company_name String?
+  city String?
+  state String?
+  zip String?
+  country String?
+  billing_address_line1 String?
+  billing_address_line2 String?
+  billing_city String?
+  billing_state String?
+  billing_zip String?
+  billing_country String?
+  shipping_same_as_billing Boolean?
+  credit_limit Float?
+  portal_created_at String?
+  portal_created_by String @db.Uuid?
+  last_password_reset String?
+}
+
+model automation_logs {
+  id String @db.Uuid @id @default(uuid())
+  rule_id String @db.Uuid?
+  trigger_data String?
+  actions_executed String?
+  status String?
+  error_message String?
+  execution_time_ms Int?
+  created_at String? @default(now())
+}
+
+model integration_status {
+  id String @db.Uuid @id @default(uuid())
+  service_name String
+  status String?
+  last_sync String?
+  sync_errors String?
+  metadata String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model integration_health {
+  service_name String?
+  status String?
+  last_sync String?
+  sync_status String?
+  hours_since_sync Float?
+}
+
+model order_item_materials {
+  id String @db.Uuid @id @default(uuid())
+  order_item_id String @db.Uuid?
+  metal_option_id String @db.Uuid?
+  wood_option_id String @db.Uuid?
+  stone_option_id String @db.Uuid?
+  weave_option_id String @db.Uuid?
+  carving_option_id String @db.Uuid?
+  additional_specs String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model user_document_permissions {
+  id String @db.Uuid @id @default(uuid())
+  user_id String @db.Uuid
+  can_access_documents Boolean?
+  can_download Boolean?
+  can_upload Boolean?
+  can_delete Boolean?
+  can_approve Boolean?
+  can_share Boolean?
+  max_upload_size_mb Int?
+  storage_quota_gb Float?
+  storage_used_gb Float?
+  allowed_file_types Json?
+  restricted_categories Json?
+  access_expires_at String?
+  download_expires_at String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+  created_by String @db.Uuid?
+  last_modified_by String @db.Uuid?
+  notes String?
+  permission_reason String?
+  permission_history String?
+}
+
+model tasks {
+  id String @db.Uuid @id @default(uuid())
+  title String
+  description String?
+  status String?
+  priority String?
+  assigned_to Json?
+  created_by String
+  due_date String?
+  project_id String?
+  department String?
+  visibility String?
+  mentioned_users Json?
+  tags Json?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+  task_type String?
+  completed_at String?
+  start_date String?
+  estimated_hours Float?
+  actual_hours Float?
+  position Int?
+  is_archived Boolean?
+  watchers Json?
+  depends_on Json?
+  blocks Json?
+}
+
+model profiles {
+  id String @db.Uuid @id @default(uuid())
+  email String?
+  full_name String?
+  role String?
+  tenant_id String @db.Uuid?
+  department String?
+  permissions String?
+  is_active Boolean?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model tracking_milestones {
+  id String @db.Uuid @id @default(uuid())
+  shipment_id String @db.Uuid?
+  milestone_code String?
+  milestone_description String?
+  location String?
+  carrier_status_code String?
+  carrier_status_description String?
+  milestone_date String
+  estimated Boolean?
+  signature String?
+  pod_url String?
+  exception_reason String?
+  raw_data String?
+  created_at String? @default(now())
+}
+
+model verification_logs {
+  id String @db.Uuid @id @default(uuid())
+  user_id String @db.Uuid?
+  email String?
+  type String
+  success Boolean
+  ip_address String?
+  user_agent String?
+  error_message String?
+  metadata String?
+  created_at String? @default(now())
+  phone_number String?
+  provider String?
+  delivery_status String?
+  delivery_timestamp String?
+}
+
+model design_deliverables {
+  id String @db.Uuid @id @default(uuid())
+  design_project_id String @db.Uuid?
+  deliverable_type String?
+  version Int?
+  file_name String?
+  file_url String?
+  file_size Int?
+  status String?
+  submitted_date String?
+  reviewed_by String @db.Uuid?
+  review_date String?
+  review_comments String?
+  created_at String? @default(now())
+}
+
+model v_active_pwa_devices {
+  id String @db.Uuid? @id @default(uuid())
+  user_id String @db.Uuid?
+  device_id String?
+  device_type String?
+  platform String?
+  browser String?
+  push_enabled Boolean?
+  last_active String?
+}
+
+model document_approval_workflow {
+  id String @db.Uuid @id @default(uuid())
+  document_id String @db.Uuid
+  approval_step Int
+  approver_id String @db.Uuid
+  approval_status String?
+  approval_date String?
+  comments String?
+  due_date String?
+  created_at String? @default(now())
+}
+
+model payment_allocations {
+  id String @db.Uuid @id @default(uuid())
+  payment_id String @db.Uuid?
+  invoice_id String @db.Uuid?
+  allocated_amount Float
+  created_at String? @default(now())
+}
+
+model portal_users {
+  id String @db.Uuid @id @default(uuid())
+  customer_id String @db.Uuid
+  auth_user_id String @db.Uuid?
+  email String
+  full_name String
+  title String?
+  phone String?
+  portal_role String?
+  is_active Boolean?
+  is_primary_contact Boolean?
+  permissions String?
+  last_login String?
+  login_count Int?
+  password_reset_required Boolean?
+  created_at String? @default(now())
+  created_by String @db.Uuid?
+  updated_at String? @updatedAt
+  updated_by String @db.Uuid?
+}
+
+model quickbooks_payment_methods {
+  id String @db.Uuid @id @default(uuid())
+  quickbooks_method_id String
+  method_name String
+  method_type String?
+  is_active Boolean?
+  is_default Boolean?
+  processing_fee_percent Float?
+  processing_fee_fixed Float?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model invoice_items {
+  id String @db.Uuid @id @default(uuid())
+  invoice_id String @db.Uuid?
+  item_id String @db.Uuid?
+  order_item_id String @db.Uuid?
+  quickbooks_item_id String?
+  description String
+  quantity Float
+  unit_price Float
+  discount_percent Float?
+  discount_amount Float?
+  tax_rate Float?
+  tax_amount Float?
+  line_total Float?
+  item_type String?
+  sort_order Int?
+  created_at String? @default(now())
+}
+
+model orders_old {
+  id String @db.Uuid @id @default(uuid())
+  order_number String
+  customer_id String @db.Uuid?
+  project_id String @db.Uuid?
+  status String?
+  order_date String?
+  delivery_date String?
+  subtotal Float?
+  tax Float?
+  shipping Float?
+  total Float?
+  currency String?
+  payment_status String?
+  payment_terms String?
+  shipping_address String?
+  billing_address String?
+  notes String?
+  metadata String?
+  created_by String @db.Uuid?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model export_configurations {
+  id String @db.Uuid @id @default(uuid())
+  name String
+  module String
+  export_type String
+  fields String
+  filters String?
+  schedule_enabled Boolean?
+  schedule_frequency String?
+  schedule_time String?
+  schedule_day_of_week Int?
+  schedule_day_of_month Int?
+  email_recipients Json?
+  is_active Boolean?
+  created_by String @db.Uuid?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model offline_sync_queue {
+  id String @db.Uuid @id @default(uuid())
+  user_id String @db.Uuid?
+  action String
+  entity_type String
+  entity_id String @db.Uuid?
+  payload String
+  status String?
+  attempts Int?
+  error_message String?
+  created_at String? @default(now())
+  synced_at String?
+}
+
+model customer_portal_users {
+  id String @db.Uuid @id @default(uuid())
+  portal_id String @db.Uuid
+  email String
+  full_name String
+  title String?
+  phone String?
+  role String
+  is_primary_contact Boolean?
+  is_active Boolean?
+  invitation_status String?
+  invitation_sent_at String?
+  invitation_accepted_at String?
+  last_login_at String?
+  auth_user_id String @db.Uuid?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+  phone_verified Boolean?
+  sms_invitation_sent Boolean?
+  sms_invitation_sent_at String?
+  preferred_contact_method String?
+}
+
+model customer_credit_status {
+  id String @db.Uuid? @id @default(uuid())
+  name String?
+  company_name String?
+  credit_limit Float?
+  current_balance Float?
+  available_credit Float?
+  credit_status String?
+}
+
+model material_inventory {
+  id String @db.Uuid @id @default(uuid())
+  material_type String
+  option_id String @db.Uuid
+  quantity Float?
+  unit String?
+  min_quantity Float?
+  max_quantity Float?
+  location String?
+  last_restocked String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model v_ready_to_invoice {
+  order_id String @db.Uuid?
+  order_number String?
+  customer_id String @db.Uuid?
+  customer_name String?
+  total_amount Float?
+  status String?
+  estimated_completion String?
+  actual_completion String?
+}
+
+model production_events {
+  id String @db.Uuid @id @default(uuid())
+  production_tracking_id String @db.Uuid?
+  event_type String
+  title String
+  description String?
+  severity String?
+  data String?
+  created_by String @db.Uuid?
+  created_at String? @default(now())
+}
+
+model pandadoc_templates {
+  id Int @id @default(uuid())
+  pandadoc_template_id String
+  name String
+  template_type String
+  description String?
+  tags Json?
+  is_active Boolean?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model designer_performance {
+  id String @db.Uuid @id @default(uuid())
+  designer_id String @db.Uuid?
+  project_id String @db.Uuid?
+  on_time_delivery Boolean?
+  revision_count Int?
+  quality_rating Int?
+  creativity_rating Int?
+  communication_rating Int?
+  would_rehire Boolean?
+  notes String?
+  created_at String? @default(now())
+}
+
+model email_campaigns {
+  id String @db.Uuid @id @default(uuid())
+  campaign_name String
+  subject_line String
+  email_template String
+  from_name String?
+  from_email String?
+  reply_to String?
+  recipient_list String?
+  segment_criteria String?
+  scheduled_date String?
+  status String?
+  total_recipients Int?
+  sent_count Int?
+  open_count Int?
+  click_count Int?
+  bounce_count Int?
+  unsubscribe_count Int?
+  created_by String @db.Uuid?
+  created_at String? @default(now())
+  sent_at String?
+  scheduled_for String?
+  updated_at String? @updatedAt
+}
+
+model design_revisions {
+  id String @db.Uuid @id @default(uuid())
+  design_project_id String @db.Uuid?
+  revision_number Int
+  revision_stage String?
+  requested_by String @db.Uuid?
+  request_date String?
+  revision_notes String?
+  changes_requested String?
+  designer_response String?
+  response_date String?
+  approved Boolean?
+  approved_by String @db.Uuid?
+  approval_date String?
+  time_spent_hours Float?
+  created_at String? @default(now())
+}
+
+model shop_drawings {
+  id String @db.Uuid @id @default(uuid())
+  manufacturer_project_id String @db.Uuid?
+  manufacturer_id String @db.Uuid?
+  version Int?
+  status String?
+  submitted_date String?
+  review_deadline String?
+  reviewed_by String @db.Uuid?
+  review_date String?
+  approved_date String?
+  approved_by String @db.Uuid?
+  rejection_reason String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model designers {
+  id String @db.Uuid @id @default(uuid())
+  name String
+  company_name String?
+  contact_email String
+  phone String?
+  website String?
+  portfolio_url String?
+  specialties String?
+  design_style String?
+  hourly_rate Float?
+  currency String?
+  status String?
+  rating Float?
+  years_experience Int?
+  certifications String?
+  notes String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model quickbooks_payment_reconciliation {
+  id String @db.Uuid @id @default(uuid())
+  payment_id String @db.Uuid?
+  quickbooks_payment_id String?
+  quickbooks_deposit_id String?
+  reconciliation_date String?
+  bank_account String?
+  expected_amount Float?
+  actual_amount Float?
+  difference Float?
+  status String?
+  notes String?
+  reconciled_by String @db.Uuid?
+  created_at String? @default(now())
+}
+
+model invoice_summary {
+  id String @db.Uuid? @id @default(uuid())
+  invoice_number String?
+  status String?
+  customer_name String?
+  invoice_date String?
+  due_date String?
+  total_amount Float?
+  amount_paid Float?
+  balance_due Float?
+  aging_status String?
+  days_overdue_interval Int?
+}
+
+model quickbooks_entity_mapping {
+  id String @db.Uuid @id @default(uuid())
+  entity_type String
+  limn_id String @db.Uuid
+  quickbooks_id String
+  quickbooks_sync_token String?
+  last_synced_at String?
+  sync_status String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model shop_drawing_files {
+  id String @db.Uuid @id @default(uuid())
+  shop_drawing_id String @db.Uuid?
+  file_name String
+  file_url String
+  file_size Int?
+  drawing_type String?
+  drawing_number String?
+  scale String?
+  sheet_size String?
+  notes String?
+  created_at String? @default(now())
+}
+
+model sku_management {
+  id String @db.Uuid? @id @default(uuid())
+  name String?
+  base_sku String?
+  full_sku String?
+  client_sku String?
+  base_price Float?
+  currency String?
+  category String?
+  subcategory String?
+  client_name String?
+  project_type String?
+  project_code String?
+  material String?
+  color String?
+  finish String?
+  full_material_specs String?
+  is_active Boolean?
+  lead_time_days Int?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model designer_contracts {
+  id String @db.Uuid @id @default(uuid())
+  designer_id String @db.Uuid?
+  contract_number String?
+  contract_type String?
+  start_date String?
+  end_date String?
+  payment_terms String?
+  deliverables String?
+  total_value Float?
+  status String?
+  signed_date String?
+  document_url String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model document_access_log {
+  id String @db.Uuid @id @default(uuid())
+  document_id String @db.Uuid
+  accessed_by String @db.Uuid
+  access_type String?
+  ip_address String?
+  user_agent String?
+  accessed_at String?
+}
+
+model quickbooks_payment_queue {
+  id String @db.Uuid @id @default(uuid())
+  invoice_id String @db.Uuid?
+  customer_id String @db.Uuid?
+  amount Float
+  payment_method_id String @db.Uuid?
+  scheduled_date String?
+  status String?
+  attempts Int?
+  last_attempt_at String?
+  error_message String?
+  quickbooks_payment_id String?
+  quickbooks_transaction_id String?
+  metadata String?
+  created_at String? @default(now())
+  processed_at String?
+}
+
+model workflow_executions {
+  id String @db.Uuid @id @default(uuid())
+  workflow_id String @db.Uuid
+  started_at String?
+  completed_at String?
+  status String
+  trigger_data String?
+  execution_context String?
+  execution_result String?
+  error_message String?
+  error_details String?
+  duration_ms Int?
+  steps_completed Int?
+  steps_total Int?
+  initiated_by String @db.Uuid?
+  cancelled_by String @db.Uuid?
+  created_at String? @default(now())
+}
+
+model v_order_financial_pipeline {
+  order_id String @db.Uuid?
+  order_number String?
+  customer_id String @db.Uuid?
+  customer_name String?
+  order_date String?
+  order_status String?
+  total_amount Float?
+  invoice_id String @db.Uuid?
+  invoice_number String?
+  invoice_date String?
+  due_date String?
+  invoice_status String?
+  invoice_amount Float?
+  amount_paid Float?
+  balance_due Float?
+  payment_id String @db.Uuid?
+  payment_date String?
+  payment_amount Float?
+  payment_method String?
+}
+
+model document_revisions {
+  id String @db.Uuid @id @default(uuid())
+  document_id String @db.Uuid?
+  version Int
+  name String?
+  size Int?
+  uploaded_by String?
+  created_at String? @default(now())
+  revision_notes String?
+  url String?
+  file_hash String?
+  changed_by String @db.Uuid?
+  reviewed_by String @db.Uuid?
+  review_status String?
+  review_date String?
+}
+
+model additional_specs {
+  id String @db.Uuid @id @default(uuid())
+  spec_category String
+  spec_name String
+  spec_type String?
+  default_value String?
+  min_value Float?
+  max_value Float?
+  unit String?
+  price_impact Float?
+  affects_lead_time Boolean?
+  additional_days Int?
+  is_required Boolean?
+  is_active Boolean?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model shipping_status {
+  id String @db.Uuid? @id @default(uuid())
+  order_id String @db.Uuid?
+  tracking_number String?
+  status String?
+  shipped_date String?
+  estimated_delivery String?
+  actual_delivery String?
+  carrier_id String @db.Uuid?
+  carrier_name String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model email_tracking {
+  id String @db.Uuid @id @default(uuid())
+  campaign_id String @db.Uuid?
+  recipient_email String?
+  event_type String?
+  event_data String?
+  ip_address String?
+  user_agent String?
+  created_at String? @default(now())
+}
+
+model shipping_quotes {
+  id String @db.Uuid @id @default(uuid())
+  order_id String @db.Uuid?
+  ship_from String
+  ship_to String
+  packages String
+  carrier_quotes String?
+  selected_quote String?
+  quote_expires_at String?
+  seko_quote_response String?
+  created_at String? @default(now())
+  status String?
+  customer_id String @db.Uuid?
+  quote_number String?
+  customer_name String?
+  service_type String?
+  quoted_cost Float?
+}
+
+model orders_compatible {
+  id String @db.Uuid? @id @default(uuid())
+  order_number String?
+  customer_id String @db.Uuid?
+  project_id String @db.Uuid?
+  status String?
+  order_date String?
+  delivery_date String?
+  subtotal Float?
+  tax_amount Float?
+  shipping_amount Float?
+  total_amount Float?
+  currency String?
+  payment_status String?
+  payment_terms String?
+  shipping_address String?
+  billing_address String?
+  notes String?
+  metadata String?
+  created_by String @db.Uuid?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model sms_campaign_performance {
+  id String @db.Uuid? @id @default(uuid())
+  campaign_name String?
+  campaign_type String?
+  status String?
+  created_at String? @default(now())
+  completed_at String?
+  sent_count Int?
+  delivered_count Int?
+  failed_count Int?
+  opt_out_count Int?
+  delivery_rate Float?
+  failure_rate Float?
+  opt_out_rate Float?
+  target_audience String?
+  created_by_email String?
+}
+
+model admin_permissions {
+  id String @db.Uuid @id @default(uuid())
+  role_name String
+  resource String
+  action String
+  created_at String? @default(now())
+}
+
+model shop_drawing_comments {
+  id String @db.Uuid @id @default(uuid())
+  drawing_id String @db.Uuid?
+  comment String
+  comment_type String?
+  is_internal Boolean?
+  created_at String? @default(now())
+  created_by String
+  user_name String
+}
+
+model quickbooks_sync_log {
+  id String @db.Uuid @id @default(uuid())
+  sync_batch_id String @db.Uuid?
+  sync_type String
+  sync_direction String
+  entity_id String @db.Uuid?
+  quickbooks_id String?
+  action String
+  status String
+  request_data String?
+  response_data String?
+  error_message String?
+  error_code String?
+  started_at String?
+  completed_at String?
+  created_by String @db.Uuid?
+}
+
+model project_materials {
+  id String @db.Uuid @id @default(uuid())
+  manufacturer_project_id String @db.Uuid?
+  material_name String
+  material_type String?
+  supplier_name String?
+  quantity_needed Float?
+  quantity_ordered Float?
+  quantity_received Float?
+  unit_of_measure String?
+  unit_cost Float?
+  total_cost Float?
+  order_date String?
+  expected_delivery_date String?
+  actual_delivery_date String?
+  status String?
+  quality_grade String?
+  storage_location String?
+  notes String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model material_options_view {
+  id String @db.Uuid? @id @default(uuid())
+  name String?
+  code String?
+  type String?
+  color String?
+  finish String?
+  base_price Float?
+  active Boolean?
+  category_name String?
+}
+
+model stone_options {
+  id String @db.Uuid @id @default(uuid())
+  type String
+  finish String?
+  code String
+  price_modifier Float?
+  active Boolean?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model pwa_cache_manifest {
+  id String @db.Uuid @id @default(uuid())
+  cache_name String
+  cache_version String
+  urls Json
+  strategy String?
+  max_age_seconds Int?
+  is_active Boolean?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model client_portal_sessions {
+  id String @db.Uuid @id @default(uuid())
+  customer_id String @db.Uuid
+  user_email String
+  ip_address String?
+  user_agent String?
+  started_at String?
+  ended_at String?
+  pages_visited String?
+}
+
+model metal_colors {
+  id String @db.Uuid @id @default(uuid())
+  metal_finish_id String @db.Uuid?
+  name String
+  hex_code String?
+  price_modifier Float?
+  active Boolean?
+  sort_order Int?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model products {
+  id String @db.Uuid @id @default(uuid())
+  sku String
+  name String
+  category String?
+  base_price Float?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+  description String?
+  unit String?
+  weight_lbs Float?
+  dimensions String?
+}
+
+model manufacturer_overview {
+  id String @db.Uuid? @id @default(uuid())
+  name String?
+  company_name String?
+  status String?
+  rating Float?
+  contact_person String?
+  email String?
+  phone String?
+  total_projects Int?
+  active_projects Int?
+  completed_projects Int?
+  avg_quality_rating Float?
+  last_project_date String?
+  capability_count Int?
+  capabilities Json?
+}
+
+model designer_dashboard {
+  id String @db.Uuid? @id @default(uuid())
+  name String?
+  company_name String?
+  contact_email String?
+  status String?
+  active_projects Int?
+  total_deliverables Int?
+  avg_project_budget Float?
+}
+
+model pwa_subscriptions {
+  id String @db.Uuid @id @default(uuid())
+  user_id String @db.Uuid?
+  endpoint String
+  keys String
+  device_info String?
+  is_active Boolean?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model wood_options {
+  id String @db.Uuid @id @default(uuid())
+  type String
+  finish String?
+  code String
+  price_modifier Float?
+  active Boolean?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model packing_jobs {
+  id String @db.Uuid @id @default(uuid())
+  order_id String @db.Uuid
+  order_item_id String @db.Uuid?
+  qc_inspection_id String @db.Uuid?
+  quantity Int
+  packed_quantity Int
+  box_count Int
+  total_weight Float?
+  dimensions String?
+  packing_status String
+  packer_assigned_id String @db.Uuid?
+  priority String
+  special_instructions String?
+  packed_date String?
+  tracking_number String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model quickbooks_sync_config {
+  id String @db.Uuid @id @default(uuid())
+  entity_type String
+  sync_enabled Boolean?
+  sync_direction String?
+  last_sync_at String?
+  sync_frequency_minutes Int?
+  field_mappings String?
+  filters String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model email_campaign_performance {
+  id String @db.Uuid? @id @default(uuid())
+  campaign_name String?
+  subject_line String?
+  status String?
+  created_at String? @default(now())
+  sent_at String?
+  sent_count Int?
+  open_count Int?
+  click_count Int?
+  bounce_count Int?
+  unsubscribe_count Int?
+  open_rate Float?
+  click_rate Float?
+  click_to_open_rate Float?
+  bounce_rate Float?
+  segment_criteria String?
+  created_by_email String?
+}
+
+model manufacturer_performance {
+  id String @db.Uuid @id @default(uuid())
+  manufacturer_id String @db.Uuid?
+  metric_date String
+  on_time_delivery_rate Float?
+  quality_score Float?
+  defect_rate Float?
+  response_time_hours Int?
+  rework_rate Float?
+  projects_completed Int?
+  projects_delayed Int?
+  created_at String? @default(now())
+}
+
+model admin_sessions {
+  id String @db.Uuid @id @default(uuid())
+  user_id String @db.Uuid?
+  session_token String?
+  ip_address String?
+  user_agent String?
+  is_active Boolean?
+  created_at String? @default(now())
+  ended_at String?
+}
+
+model automation_rules {
+  id String @db.Uuid @id @default(uuid())
+  rule_name String
+  rule_type String?
+  trigger_event String?
+  trigger_conditions String?
+  actions String
+  is_active Boolean?
+  priority Int?
+  last_triggered_at String?
+  trigger_count Int?
+  created_by String @db.Uuid?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model qc_defects {
+  id String @db.Uuid @id @default(uuid())
+  qc_inspection_id String @db.Uuid
+  defect_type String
+  severity String
+  description String?
+  location String?
+  action_required String?
+  resolved_at String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model payment_batch_summary {
+  month String?
+  batch_count Int?
+  total_amount Float?
+  avg_batch_amount Float?
+  completed_batches Int?
+  pending_batches Int?
+}
+
+model teams {
+  id String @db.Uuid @id @default(uuid())
+  name String
+  description String?
+  created_by String @db.Uuid?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model my_permissions {
+  module String?
+  can_view Boolean?
+  can_edit Boolean?
+}
+
+model portal_documents {
+  id String @db.Uuid @id @default(uuid())
+  customer_id String @db.Uuid?
+  document_type String
+  title String
+  description String?
+  file_url String?
+  file_size Int?
+  mime_type String?
+  is_public Boolean?
+  uploaded_by String @db.Uuid?
+  tags Json?
+  metadata String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model order_tracking_view {
+  id String @db.Uuid? @id @default(uuid())
+  order_number String?
+  customer_id String @db.Uuid?
+  status String?
+  total_amount Float?
+  order_date String?
+  estimated_completion String?
+  actual_completion String?
+  customer_name String?
+  item_count Int?
+  shipment_count Int?
+  last_delivery_date String?
+}
+
+model quickbooks_field_templates {
+  id String @db.Uuid @id @default(uuid())
+  entity_type String
+  template_name String
+  field_mappings String
+  is_default Boolean?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model saved_searches {
+  id String @db.Uuid @id @default(uuid())
+  user_id String @db.Uuid?
+  search_name String?
+  entity_type String?
+  search_criteria String
+  sort_config String?
+  is_default Boolean?
+  is_shared Boolean?
+  created_at String? @default(now())
+}
+
+model production_batches {
+  id String @db.Uuid @id @default(uuid())
+  batch_number String
+  order_id String @db.Uuid?
+  status String?
+  start_date String?
+  completion_date String?
+  assigned_to String?
+  notes String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model projects {
+  id String @db.Uuid @id @default(uuid())
+  name String
+  customer_id String @db.Uuid?
+  status String?
+  start_date String?
+  end_date String?
+  budget Float?
+  description String?
+  metadata String?
+  created_by String @db.Uuid
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+  user_id String @db.Uuid
+  tenant_id String @db.Uuid?
+  priority String?
+  estimated_completion_date String?
+  actual_completion_date String?
+  budget_estimate Float?
+  actual_cost Float?
+  project_manager String @db.Uuid?
+}
+
+model weave_options {
+  id String @db.Uuid @id @default(uuid())
+  material String
+  pattern String?
+  color String?
+  code String
+  price_modifier Float?
+  active Boolean?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model shop_drawing_revisions {
+  id String @db.Uuid @id @default(uuid())
+  drawing_id String @db.Uuid?
+  revision_number Int
+  description String
+  file_path String
+  file_size Int?
+  changes_summary String?
+  status String?
+  created_at String? @default(now())
+  created_by String
+}
+
+model fabric_options {
+  id String @db.Uuid @id @default(uuid())
+  brand String
+  collection String?
+  pattern String?
+  color String?
+  material_composition String?
+  width_inches Float?
+  repeat_inches Float?
+  durability_rating String?
+  price_per_yard Float?
+  in_stock Boolean?
+  lead_time_days Int?
+  supplier String?
+  sku_code String?
+  is_active Boolean?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model password_reset_tokens {
+  id String @db.Uuid @id @default(uuid())
+  user_id String @db.Uuid?
+  token String
+  expires_at String
+  used_at String?
+  ip_address String?
+  created_at String? @default(now())
+}
+
+model document_comments {
+  id String @db.Uuid @id @default(uuid())
+  document_id String @db.Uuid
+  revision_id String @db.Uuid?
+  comment_text String
+  commented_by String @db.Uuid
+  parent_comment_id String @db.Uuid?
+  mentioned_users Json?
+  is_resolved Boolean?
+  resolved_by String @db.Uuid?
+  resolved_at String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model fabric_brands {
+  id String @db.Uuid @id @default(uuid())
+  name String
+  description String?
+  price_modifier Float?
+  active Boolean?
+  sort_order Int?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model delivery_addresses {
+  id String @db.Uuid @id @default(uuid())
+  shipment_id String @db.Uuid
+  contact_name String?
+  company_name String?
+  street_address String
+  city String
+  state String
+  postal_code String
+  country String?
+  phone String?
+  email String?
+  address_type String?
+  created_at String? @default(now())
+}
+
+model pandadoc_documents {
+  id String @db.Uuid @id @default(uuid())
+  document_id String
+  template_id String @db.Uuid?
+  order_id String @db.Uuid?
+  customer_id String @db.Uuid?
+  document_type String?
+  status String?
+  recipients String?
+  metadata String?
+  sent_at String?
+  viewed_at String?
+  signed_at String?
+  expired_at String?
+  document_url String?
+  created_by String @db.Uuid?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model portal_configurations {
+  id String @db.Uuid @id @default(uuid())
+  customer_id String @db.Uuid
+  portal_name String?
+  welcome_message String?
+  custom_logo_url String?
+  primary_color String?
+  show_dashboard Boolean?
+  show_orders Boolean?
+  show_shipping Boolean?
+  show_financials Boolean?
+  show_documents Boolean?
+  show_approvals Boolean?
+  show_production_tracking Boolean?
+  show_design_center Boolean?
+  show_support_tickets Boolean?
+  show_invoice_details Boolean?
+  show_payment_history Boolean?
+  show_outstanding_balance Boolean?
+  allow_online_payments Boolean?
+  allow_document_upload Boolean?
+  allowed_file_types Json?
+  max_file_size_mb Int?
+  require_approval_for_uploads Boolean?
+  enable_notifications Boolean?
+  enable_email_notifications Boolean?
+  notification_frequency String?
+  session_timeout_minutes Int?
+  require_mfa Boolean?
+  allowed_ip_ranges Json?
+  created_at String? @default(now())
+  created_by String @db.Uuid?
+  updated_at String? @updatedAt
+  updated_by String @db.Uuid?
+}
+
+model optimization_final_status {
+  foreign_key_indexes Int?
+  total_policies Int?
+  total_tables Int?
+  optimization_status String?
+  completed_at String?
+}
+
+model tax_rates {
+  id String @db.Uuid @id @default(uuid())
+  name String
+  rate Float
+  tax_agency String?
+  quickbooks_tax_code String?
+  is_compound Boolean?
+  is_default Boolean?
+  active Boolean?
+  created_at String? @default(now())
+}
+
+model policy_count_by_table {
+  tablename String?
+  policy_count Int?
+  status String?
+}
+
+model items_display {
+  id String @db.Uuid? @id @default(uuid())
+  name String?
+  base_sku String?
+  description String?
+  dimensions_formatted String?
+  dimensions_json String?
+  base_price Float?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model invoices {
+  id String @db.Uuid @id @default(uuid())
+  invoice_number String
+  quickbooks_invoice_id String?
+  order_id String @db.Uuid?
+  customer_id String @db.Uuid?
+  invoice_type String?
+  status String?
+  invoice_date String
+  due_date String
+  currency String?
+  exchange_rate Float?
+  subtotal Float
+  discount_amount Float?
+  discount_percent Float?
+  tax_amount Float?
+  tax_rate Float?
+  shipping_amount Float?
+  total_amount Float
+  amount_paid Float?
+  balance_due Float?
+  billing_address String?
+  shipping_address String?
+  po_number String?
+  terms_conditions String?
+  notes String?
+  internal_notes String?
+  sent_date String?
+  viewed_date String?
+  paid_date String?
+  quickbooks_sync_date String?
+  created_by String @db.Uuid?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+  amount_due Float?
+}
+
+model ar_aging {
+  id String @db.Uuid @id @default(uuid())
+  snapshot_date String
+  customer_id String @db.Uuid?
+  current_amount Float?
+  days_1_30 Float?
+  days_31_60 Float?
+  days_61_90 Float?
+  over_90_days Float?
+  total_outstanding Float?
+  created_at String? @default(now())
+}
+
+model customer_orders_view {
+  id String @db.Uuid? @id @default(uuid())
+  order_number String?
+  customer_id String @db.Uuid?
+  customer_name String?
+  order_date String?
+  status String?
+  total_amount Float?
+  metadata String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model packing_boxes {
+  id String @db.Uuid @id @default(uuid())
+  packing_job_id String @db.Uuid
+  box_number Int
+  box_type String?
+  dimensions String?
+  weight Float?
+  contents_description String?
+  barcode String?
+  tracking_number String?
+  created_at String? @default(now())
+}
+
+model stone_types {
+  id String @db.Uuid @id @default(uuid())
+  name String
+  description String?
+  price_modifier Float?
+  active Boolean?
+  sort_order Int?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model order_items {
+  id String @db.Uuid @id @default(uuid())
+  order_id String @db.Uuid?
+  item_id String @db.Uuid?
+  quantity Int
+  unit_price Float?
+  customizations String?
+  notes String?
+  created_at String? @default(now())
+  material_selections String?
+  custom_specifications String?
+  sku_full String?
+  client_sku String?
+}
+
+model email_templates {
+  id String @db.Uuid @id @default(uuid())
+  template_key String
+  name String
+  subject String
+  html_content String
+  text_content String?
+  variables Json?
+  language String?
+  is_active Boolean?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model weaving_materials_old {
+  id String @db.Uuid @id @default(uuid())
+  material_name String
+  material_type String?
+  weave_pattern String?
+  color String?
+  thickness_mm Float?
+  weather_resistance String?
+  uv_resistant Boolean?
+  price_per_meter Float?
+  minimum_order_qty Float?
+  in_stock Boolean?
+  lead_time_days Int?
+  supplier String?
+  sku_code String?
+  is_active Boolean?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model user_profiles {
+  id String @db.Uuid @id @default(uuid())
+  email String?
+  name String?
+  avatar_url String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+  title String?
+  user_type String?
+  is_active Boolean?
+  department String?
+  hire_date String?
+  permissions String?
+  is_sso_user Boolean?
+  sso_provider String?
+  google_workspace_id String?
+  last_sso_login String?
+  user_id String @db.Uuid?
+  first_name String?
+  last_name String?
+  full_name String?
+  job_title String?
+  raw_metadata String?
+}
+
+model portal_access_logs {
+  id String @db.Uuid @id @default(uuid())
+  customer_id String @db.Uuid?
+  portal_user_id String @db.Uuid?
+  action String
+  resource_type String?
+  resource_id String @db.Uuid?
+  ip_address String?
+  user_agent String?
+  request_method String?
+  request_path String?
+  response_status Int?
+  occurred_at String?
+  processing_time_ms Int?
+  metadata String?
+}
+
+model workflows {
+  id String @db.Uuid @id @default(uuid())
+  name String
+  description String?
+  trigger_type String
+  trigger_config String?
+  status String?
+  workflow_definition String
+  last_run_at String?
+  last_run_status String?
+  last_run_error String?
+  run_count Int?
+  success_count Int?
+  failure_count Int?
+  department_id String @db.Uuid?
+  created_by String @db.Uuid?
+  updated_by String @db.Uuid?
+  tags Json?
+  category String?
+  priority Int?
+  is_template Boolean?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+  deleted_at String?
+}
+
+model user_roles {
+  id String @db.Uuid @id @default(uuid())
+  user_id String @db.Uuid?
+  role_name String
+  created_at String? @default(now())
+}
+
+model carving_styles_old {
+  id String @db.Uuid @id @default(uuid())
+  style_name String
+  complexity_level String?
+  application_area String?
+  estimated_hours Float?
+  price_per_hour Float?
+  sample_image_url String?
+  description String?
+  artisan_required Boolean?
+  sku_code String?
+  is_active Boolean?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model production_status {
+  id String @db.Uuid? @id @default(uuid())
+  item_name String?
+  current_stage_name String?
+  progress Int?
+  status String?
+  customer_name String?
+  assigned_to String?
+  started_at String?
+  estimated_completion String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model materials {
+  id String @db.Uuid @id @default(uuid())
+  category_id String @db.Uuid?
+  name String
+  code String
+  base_price Float?
+  unit String?
+  active Boolean?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+  type String?
+  color String?
+  finish String?
+  price_modifier Float?
+  description String?
+  specifications String?
+}
+
+model client_files {
+  id String @db.Uuid @id @default(uuid())
+  customer_id String @db.Uuid?
+  order_id String @db.Uuid?
+  file_name String
+  file_type String
+  file_size Int?
+  file_url String
+  storage_path String?
+  category String?
+  description String?
+  uploaded_by String @db.Uuid?
+  uploaded_at String?
+  is_client_visible Boolean?
+  is_archived Boolean?
+  metadata String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model user_dashboards {
+  id String @db.Uuid @id @default(uuid())
+  user_id String @db.Uuid?
+  dashboard_name String
+  dashboard_layout String?
+  widget_ids Json?
+  is_default Boolean?
+  is_shared Boolean?
+  shared_with Json?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model payment_batches {
+  id String @db.Uuid @id @default(uuid())
+  batch_number String
+  total_amount Float?
+  status String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model design_files {
+  id String @db.Uuid @id @default(uuid())
+  design_approval_id String @db.Uuid?
+  file_name String
+  file_type String
+  file_size Int?
+  file_url String
+  thumbnail_url String?
+  storage_path String?
+  uploaded_by String @db.Uuid?
+  uploaded_at String?
+  is_active Boolean?
+  metadata String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model system_logs {
+  id String @db.Uuid @id @default(uuid())
+  level String
+  category String
+  message String
+  timestamp String
+  user_id String @db.Uuid?
+  session_id String?
+  request_id String?
+  ip_address String?
+  user_agent String?
+  method String?
+  url String?
+  status_code Int?
+  response_time Int?
+  metadata String?
+  error_stack String?
+  created_at String? @default(now())
+}
+
+model deals {
+  id String @db.Uuid @id @default(uuid())
+  title String
+  client String
+  value Float
+  stage String?
+  probability Int?
+  expected_close_date String?
+  actual_close_date String?
+  assigned_to String @db.Uuid?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+  notes String?
+  customer_id String @db.Uuid?
+  lead_id String @db.Uuid?
+  loss_reason String?
+  competitors Json?
+  products Json?
+  created_by String @db.Uuid?
+  metadata String?
+}
+
+model qc_checkpoints {
+  id String @db.Uuid @id @default(uuid())
+  qc_inspection_id String @db.Uuid
+  checkpoint_name String
+  status String
+  notes String?
+  inspector_id String @db.Uuid?
+  completed_at String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model collection_activities {
+  id String @db.Uuid @id @default(uuid())
+  customer_id String @db.Uuid?
+  activity_type String?
+  notes String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+  created_by String @db.Uuid?
+  updated_by String @db.Uuid?
+}
+
+model portal_settings {
+  id String @db.Uuid @id @default(uuid())
+  customer_id String @db.Uuid?
+  show_production_tracking Boolean?
+  show_financial_details Boolean?
+  show_shipping_info Boolean?
+  allow_document_upload Boolean?
+  allow_design_approval Boolean?
+  custom_branding String?
+  notification_preferences String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model sms_opt_outs {
+  id String @db.Uuid @id @default(uuid())
+  phone_number String
+  customer_id String @db.Uuid?
+  opt_out_date String?
+  opt_out_reason String?
+  opt_out_method String?
+  can_resubscribe Boolean?
+  resubscribe_date String?
+  created_at String? @default(now())
+}
+
+model customer_portal_sessions {
+  id String @db.Uuid @id @default(uuid())
+  portal_user_id String @db.Uuid
+  session_token String
+  ip_address String?
+  user_agent String?
+  started_at String?
+  last_active_at String?
+  ended_at String?
+  is_active Boolean?
+}
+
+model metal_finishes {
+  id String @db.Uuid @id @default(uuid())
+  metal_type_id String @db.Uuid?
+  name String
+  description String?
+  price_modifier Float?
+  active Boolean?
+  sort_order Int?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model webhook_endpoints {
+  id String @db.Uuid @id @default(uuid())
+  customer_id String @db.Uuid?
+  url String
+  secret String?
+  events Json?
+  is_active Boolean?
+  last_success String?
+  last_failure String?
+  failure_count Int?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model client_projects {
+  id String @db.Uuid @id @default(uuid())
+  client_name String
+  project_code String
+  project_type String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model manufacturer_projects {
+  id String @db.Uuid @id @default(uuid())
+  manufacturer_id String @db.Uuid?
+  project_type String?
+  project_name String?
+  reference_number String?
+  item_id String @db.Uuid?
+  collection_id String @db.Uuid?
+  status String?
+  quoted_price Float?
+  final_price Float?
+  quoted_lead_time_days Int?
+  actual_lead_time_days Int?
+  start_date String?
+  completion_date String?
+  quality_rating Int?
+  notes String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+  unit_cost Float?
+  quantity Int?
+  priority String?
+  project_code String?
+  total_value Float?
+  estimated_start_date String?
+  estimated_completion_date String?
+  actual_start_date String?
+  actual_completion_date String?
+  currency String?
+  shipping_method String?
+  tracking_number String?
+  quality_requirements String?
+  special_instructions String?
+  created_by String @db.Uuid?
+}
+
+model production_stage_history {
+  id String @db.Uuid @id @default(uuid())
+  production_tracking_id String @db.Uuid?
+  stage_id String @db.Uuid?
+  entered_at String?
+  exited_at String?
+  duration_minutes Int?
+  completed_by String @db.Uuid?
+  notes String?
+  photos String?
+  issues_reported String?
+  approval_status String?
+  approved_by String @db.Uuid?
+  approval_notes String?
+  created_at String? @default(now())
+}
+
+model customer_communication_preferences {
+  id String @db.Uuid @id @default(uuid())
+  customer_id String @db.Uuid
+  portal_user_id String @db.Uuid?
+  email_notifications Boolean?
+  sms_notifications Boolean?
+  push_notifications Boolean?
+  notification_frequency String?
+  quiet_hours_start String?
+  quiet_hours_end String?
+  timezone String?
+  language_preference String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model weaving_colors {
+  id String @db.Uuid @id @default(uuid())
+  pattern_id String @db.Uuid?
+  name String
+  hex_code String?
+  price_modifier Float?
+  active Boolean?
+  sort_order Int?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model design_to_prototype {
+  id String @db.Uuid @id @default(uuid())
+  design_project_id String @db.Uuid?
+  manufacturer_project_id String @db.Uuid?
+  prototype_status String?
+  handoff_date String?
+  estimated_completion String?
+  actual_completion String?
+  notes String?
+  created_at String? @default(now())
+}
+
+model webhook_deliveries {
+  id String @db.Uuid @id @default(uuid())
+  endpoint_id String @db.Uuid?
+  event_type String
+  payload String
+  response_status Int?
+  response_body String?
+  attempted_at String?
+  delivered_at String?
+  retry_count Int?
+  next_retry_at String?
+  created_at String? @default(now())
+}
+
+model export_history {
+  id String @db.Uuid @id @default(uuid())
+  configuration_id String @db.Uuid?
+  module String
+  export_type String
+  file_name String
+  file_size Int?
+  file_url String?
+  storage_path String?
+  record_count Int?
+  filters_applied String?
+  status String?
+  error_message String?
+  started_at String?
+  completed_at String?
+  expires_at String?
+  created_by String @db.Uuid?
+  created_at String? @default(now())
+}
+
+model quickbooks_connections {
+  id String @db.Uuid @id @default(uuid())
+  user_id String @db.Uuid
+  company_id String
+  company_name String?
+  access_token String
+  refresh_token String
+  token_expires_at String?
+  realm_id String
+  scope String?
+  is_active Boolean?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model admin_settings {
+  id String @db.Uuid @id @default(uuid())
+  category String
+  key String
+  value String?
+  updated_at String? @updatedAt
+}
+
+model shipping_carriers {
+  id String @db.Uuid @id @default(uuid())
+  name String
+  code String?
+  tracking_url_template String?
+  logo_url String?
+  is_active Boolean?
+  created_at String? @default(now())
+}
+
+model workflow_steps {
+  id String @db.Uuid @id @default(uuid())
+  workflow_id String @db.Uuid
+  step_order Int
+  step_name String
+  step_type String
+  step_config String?
+  is_required Boolean?
+  retry_on_failure Boolean?
+  max_retries Int?
+  timeout_seconds Int?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model documents {
+  id String @db.Uuid @id @default(uuid())
+  name String
+  original_name String
+  auto_generated_name String?
+  type String?
+  category String?
+  subcategory String?
+  size Int?
+  uploaded_by String?
+  project_id String @db.Uuid?
+  project_name String?
+  client_id String @db.Uuid?
+  client_name String?
+  order_id String @db.Uuid?
+  order_number String?
+  item_id String @db.Uuid?
+  item_name String?
+  collection_id String @db.Uuid?
+  manufacturer_id String @db.Uuid?
+  manufacturer_project_id String @db.Uuid?
+  designer_id String @db.Uuid?
+  design_project_id String @db.Uuid?
+  customer_id String @db.Uuid?
+  order_item_id String @db.Uuid?
+  status String?
+  tags String?
+  url String?
+  download_url String?
+  version Int?
+  revision_notes String?
+  parent_document_id String @db.Uuid?
+  is_latest_version Boolean?
+  access_permissions String?
+  file_hash String?
+  confidentiality String?
+  metadata String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+  uploaded_by_user String @db.Uuid?
+  approved_by String @db.Uuid?
+  approved_at String?
+  approval_status String?
+}
+
+model sms_tracking {
+  id String @db.Uuid @id @default(uuid())
+  campaign_id String @db.Uuid?
+  recipient_phone String
+  event_type String?
+  event_timestamp String?
+  error_message String?
+  event_data String?
+  created_at String? @default(now())
+}
+
+model stone_finishes {
+  id String @db.Uuid @id @default(uuid())
+  stone_type_id String @db.Uuid?
+  name String
+  description String?
+  price_modifier Float?
+  active Boolean?
+  sort_order Int?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model manufacturers {
+  id String @db.Uuid @id @default(uuid())
+  name String
+  company_name String?
+  contact_person String?
+  email String?
+  phone String?
+  website String?
+  address String?
+  established_year Int?
+  employee_count String?
+  certifications String?
+  status String?
+  rating Float?
+  notes String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+  contact_email String?
+  contact_phone String?
+  performance_rating Float?
+  quality_rating Float?
+  delivery_rating Float?
+  communication_rating Float?
+  city String?
+  state String?
+  country String?
+  postal_code String?
+  years_in_business Int?
+  annual_capacity Int?
+  lead_time_weeks Int?
+  minimum_order_quantity Int?
+  payment_terms String?
+}
+
+model sso_login_audit {
+  id String @db.Uuid @id @default(uuid())
+  user_id String @db.Uuid?
+  google_email String?
+  login_time String?
+  login_type String?
+  ip_address String?
+  user_agent String?
+  success Boolean?
+  error_message String?
+  session_id String?
+  metadata String?
+}
+
+model design_projects {
+  id String @db.Uuid @id @default(uuid())
+  project_name String
+  project_code String?
+  designer_id String @db.Uuid?
+  collection_id String @db.Uuid?
+  project_type String?
+  current_stage String?
+  target_launch_date String?
+  budget Float?
+  priority String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+  designer_name String?
+  manufacturer_name String?
+  next_action String?
+  days_in_stage Int?
+}
+
+model carving_options {
+  id String @db.Uuid @id @default(uuid())
+  style String
+  code String
+  price_modifier Float?
+  complexity String?
+  active Boolean?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model tenants {
+  id String @db.Uuid @id @default(uuid())
+  name String
+  slug String?
+  settings String?
+  is_active Boolean?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model magic_link_tokens {
+  id String @db.Uuid @id @default(uuid())
+  email String
+  token String
+  expires_at String
+  used_at String?
+  ip_address String?
+  user_agent String?
+  created_at String? @default(now())
+}
+
+model user_feature_overrides {
+  id String @db.Uuid @id @default(uuid())
+  user_id String @db.Uuid
+  feature_name String
+  is_enabled Boolean
+  override_reason String?
+  overridden_by String @db.Uuid?
+  created_at String? @default(now())
+}
+
+model notification_dashboard {
+  id String @db.Uuid? @id @default(uuid())
+  user_id String @db.Uuid?
+  user_email String?
+  title String?
+  body String?
+  icon String?
+  badge String?
+  priority String?
+  status String?
+  scheduled_for String?
+  sent_at String?
+  error_message String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+  delivery_status String?
+  delivery_time_minutes Int?
+}
+
+model seko_config {
+  id String @db.Uuid @id @default(uuid())
+  profile_id String
+  api_key String?
+  api_secret String?
+  environment String?
+  base_url String?
+  is_active Boolean?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model projects_compatible {
+  id String @db.Uuid? @id @default(uuid())
+  name String?
+  project_name String?
+  customer_id String @db.Uuid?
+  status String?
+  priority String?
+  start_date String?
+  end_date String?
+  estimated_completion_date String?
+  actual_completion_date String?
+  budget Float?
+  budget_estimate Float?
+  actual_cost Float?
+  project_manager String @db.Uuid?
+  description String?
+  metadata String?
+  created_by String @db.Uuid?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+  user_id String @db.Uuid?
+  tenant_id String @db.Uuid?
+}
+
+model cash_flow_summary {
+  month String?
+  inflows Float?
+  outflows Float?
+  net_flow Float?
+  transaction_count Int?
+}
+
+model inventory {
+  id String @db.Uuid @id @default(uuid())
+  item_id String @db.Uuid?
+  location String?
+  quantity Int?
+  reserved_quantity Int?
+  reorder_point Int?
+  reorder_quantity Int?
+  last_counted String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model sms_logs {
+  id String @db.Uuid @id @default(uuid())
+  recipient_phone String
+  message String
+  template_id String @db.Uuid?
+  status String?
+  provider String?
+  provider_message_id String?
+  error_message String?
+  sent_at String?
+  delivered_at String?
+  created_at String? @default(now())
+}
+
+model sso_group_role_mappings {
+  id String @db.Uuid @id @default(uuid())
+  google_group_email String
+  user_type String
+  permissions String?
+  priority Int?
+  is_active Boolean?
+  created_at String? @default(now())
+}
+
+model email_engagement_timeline {
+  id String @db.Uuid? @id @default(uuid())
+  campaign_name String?
+  recipient_email String?
+  event_type String?
+  event_time String?
+  ip_address String?
+  event_data String?
+  event_hour Float?
+  event_day Float?
+}
+
+model fabric_collections {
+  id String @db.Uuid @id @default(uuid())
+  brand_id String @db.Uuid?
+  name String
+  description String?
+  price_modifier Float?
+  active Boolean?
+  sort_order Int?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model manufacturer_capabilities {
+  id String @db.Uuid @id @default(uuid())
+  manufacturer_id String @db.Uuid?
+  category String?
+  techniques String?
+  materials String?
+  max_dimensions String?
+  min_order_quantity Int?
+  max_capacity_monthly Int?
+  lead_time_days Int?
+  rush_available Boolean?
+  created_at String? @default(now())
+}
+
+model app_settings {
+  id String @db.Uuid @id @default(uuid())
+  user_id String @db.Uuid?
+  theme String?
+  notifications_enabled Boolean?
+  offline_mode_enabled Boolean?
+  data_saver Boolean?
+  sync_frequency String?
+  cache_size_mb Int?
+  language String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model quickbooks_auth {
+  id String @db.Uuid @id @default(uuid())
+  company_id String
+  access_token String
+  refresh_token String
+  token_expiry String
+  refresh_token_expiry String
+  company_name String?
+  is_active Boolean?
+  connected_by String @db.Uuid?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model admin_audit_log {
+  id String @db.Uuid @id @default(uuid())
+  action String
+  user_id String @db.Uuid?
+  user_email String?
+  resource_type String?
+  resource_id String?
+  metadata String?
+  ip_address String?
+  created_at String? @default(now())
+}
+
+model customer_portal_access {
+  id String @db.Uuid @id @default(uuid())
+  customer_id String @db.Uuid?
+  user_id String @db.Uuid?
+  portal_role String?
+  is_active Boolean?
+  last_login String?
+  login_count Int?
+  invited_by String @db.Uuid?
+  invited_at String?
+  accepted_at String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model user_permissions {
+  id String @db.Uuid @id @default(uuid())
+  user_id String @db.Uuid
+  module String
+  can_view Boolean?
+  can_edit Boolean?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model sms_campaigns {
+  id String @db.Uuid @id @default(uuid())
+  campaign_name String
+  campaign_type String?
+  template_id String @db.Uuid?
+  target_audience String?
+  scheduled_date String?
+  status String?
+  total_recipients Int?
+  sent_count Int?
+  delivered_count Int?
+  failed_count Int?
+  opt_out_count Int?
+  created_by String @db.Uuid?
+  approved_by String @db.Uuid?
+  approved_at String?
+  created_at String? @default(now())
+  completed_at String?
+  updated_at String? @updatedAt
+}
+
+model customer_portals {
+  id String @db.Uuid @id @default(uuid())
+  customer_id String @db.Uuid
+  portal_name String
+  welcome_message String?
+  primary_color String?
+  configuration String
+  is_active Boolean?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+  created_by String @db.Uuid?
+  updated_by String @db.Uuid?
+}
+
+model production_items {
+  id String @db.Uuid @id @default(uuid())
+  order_id String @db.Uuid
+  order_item_id String @db.Uuid?
+  item_name String
+  current_stage_name String?
+  current_stage_id String?
+  progress Int?
+  priority String
+  assigned_to String?
+  started_at String?
+  estimated_completion String?
+  customer_name String?
+  status String
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model sms_templates {
+  id String @db.Uuid @id @default(uuid())
+  name String
+  template_key String
+  message String
+  variables Json?
+  is_active Boolean?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model wood_finishes {
+  id String @db.Uuid @id @default(uuid())
+  wood_type_id String @db.Uuid?
+  name String
+  description String?
+  price_modifier Float?
+  active Boolean?
+  sort_order Int?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model customer_production_notifications {
+  id String @db.Uuid @id @default(uuid())
+  customer_id String @db.Uuid?
+  order_id String @db.Uuid?
+  type String?
+  channel String?
+  subject String?
+  message String
+  data String?
+  status String?
+  sent_at String?
+  read_at String?
+  error_message String?
+  created_at String? @default(now())
+}
+
+model material_combinations {
+  id String @db.Uuid? @id @default(uuid())
+  name String?
+  material_count Int?
+}
+
+model activities {
+  id String @db.Uuid @id @default(uuid())
+  type String
+  title String
+  description String?
+  lead_id String @db.Uuid?
+  contact_id String @db.Uuid?
+  customer_id String @db.Uuid?
+  created_by String?
+  scheduled_at String?
+  completed_at String?
+  status String?
+  metadata String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model manufacturer_shipments {
+  id String @db.Uuid @id @default(uuid())
+  manufacturer_project_id String @db.Uuid?
+  shipment_number String?
+  shipping_carrier String?
+  tracking_number String?
+  shipping_method String?
+  ship_date String?
+  estimated_delivery_date String?
+  actual_delivery_date String?
+  ship_from_address String?
+  ship_to_address String?
+  package_count Int?
+  total_weight Float?
+  total_dimensions String?
+  shipping_cost Float?
+  insurance_value Float?
+  special_handling String?
+  delivery_instructions String?
+  status String?
+  recipient_signature String?
+  delivery_photos String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model invoice_line_items {
+  id String @db.Uuid? @id @default(uuid())
+  invoice_id String @db.Uuid?
+  item_id String @db.Uuid?
+  order_item_id String @db.Uuid?
+  quickbooks_item_id String?
+  description String?
+  quantity Float?
+  unit_price Float?
+  discount_percent Float?
+  discount_amount Float?
+  tax_rate Float?
+  tax_amount Float?
+  line_total Float?
+  item_type String?
+  sort_order Int?
+  created_at String? @default(now())
+}
+
+model designer_performance_summary {
+  id String @db.Uuid? @id @default(uuid())
+  name String?
+  status String?
+  rating Float?
+  hourly_rate Float?
+  total_projects Int?
+  active_projects Int?
+  avg_quality_rating Float?
+  avg_creativity_rating Float?
+  avg_communication_rating Float?
+  would_rehire_count Int?
+}
+
+model shipping_tracking {
+  id String @db.Uuid @id @default(uuid())
+  order_id String @db.Uuid
+  carrier String?
+  tracking_number String?
+  status String?
+  current_location String?
+  estimated_delivery String?
+  actual_delivery String?
+  tracking_events String?
+  last_api_update String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model document_folders {
+  id String @db.Uuid @id @default(uuid())
+  folder_name String
+  parent_folder_id String @db.Uuid?
+  google_drive_folder_id String?
+  customer_id String @db.Uuid?
+  order_id String @db.Uuid?
+  project_type String?
+  full_path String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model email_queue {
+  id String @db.Uuid @id @default(uuid())
+  recipient_email String
+  template_id String @db.Uuid?
+  subject String
+  html_content String?
+  text_content String?
+  status String?
+  provider String?
+  provider_message_id String?
+  error_message String?
+  sent_at String?
+  delivered_at String?
+  priority Int?
+  metadata String?
+  created_at String? @default(now())
+}
+
+model admin_security_events {
+  id String @db.Uuid @id @default(uuid())
+  event_type String
+  user_id String @db.Uuid?
+  ip_address String?
+  user_agent String?
+  metadata String?
+  severity String?
+  created_at String? @default(now())
+}
+
+model production_tracking {
+  id String @db.Uuid @id @default(uuid())
+  order_id String @db.Uuid?
+  current_stage_id String @db.Uuid?
+  progress Int?
+  stage_history String?
+  started_at String?
+  estimated_completion String?
+  completed_at String?
+  internal_notes String?
+  customer_notes String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+  updated_by String @db.Uuid?
+}
+
+model database_health_final {
+  issues_resolved Int?
+  total_tables Int?
+  total_indexes Int?
+  total_policies Int?
+  custom_indexes Int?
+  tables_with_policies Int?
+  avg_policies_per_table Float?
+  database_size String?
+  overall_grade String?
+  security_score String?
+  performance_score String?
+}
+
+model material_price_history {
+  id String @db.Uuid @id @default(uuid())
+  material_type String
+  option_id String @db.Uuid
+  price Float
+  effective_date String
+  created_by String @db.Uuid?
+  notes String?
+  created_at String? @default(now())
+}
+
+model production_stages {
+  id String @db.Uuid @id @default(uuid())
+  name String
+  stage_order Int
+  description String?
+  typical_duration_days Int?
+  color String?
+  icon String?
+  is_active Boolean?
+  created_at String? @default(now())
+}
+
+model shipments {
+  id String @db.Uuid @id @default(uuid())
+  order_id String @db.Uuid?
+  carrier_id String @db.Uuid?
+  tracking_number String?
+  status String?
+  ship_from String?
+  ship_to String?
+  shipped_date String?
+  estimated_delivery String?
+  actual_delivery String?
+  package_count Int?
+  weight Float?
+  dimensions String?
+  shipping_cost Float?
+  insurance_amount Float?
+  tracking_events String?
+  last_tracking_update String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+  seko_shipment_id String?
+  last_seko_sync String?
+  priority String?
+  packing_job_id String @db.Uuid?
+}
+
+model analytics_dashboard_widgets {
+  id String @db.Uuid @id @default(uuid())
+  widget_name String
+  widget_type String?
+  data_source String?
+  query_config String
+  display_config String?
+  refresh_interval_seconds Int?
+  is_active Boolean?
+  created_by String @db.Uuid?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model document_summary {
+  id String @db.Uuid? @id @default(uuid())
+  name String?
+  category String?
+  subcategory String?
+  status String?
+  version Int?
+  is_latest_version Boolean?
+  created_at String? @default(now())
+  uploaded_by String?
+  uploaded_by_name String?
+  project_name String?
+  client_name String?
+  order_number String?
+  revision_count Int?
+}
+
+model customer_financials {
+  id String @db.Uuid @id @default(uuid())
+  customer_id String @db.Uuid?
+  quickbooks_customer_id String?
+  credit_limit Float?
+  payment_terms String?
+  currency String?
+  tax_exempt Boolean?
+  tax_id String?
+  credit_status String?
+  balance_outstanding Float?
+  ytd_sales Float?
+  lifetime_value Float?
+  average_days_to_pay Int?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model payment_transactions {
+  id String @db.Uuid @id @default(uuid())
+  type String
+  amount Float
+  currency String?
+  status String?
+  method String?
+  reference_number String?
+  description String?
+  customer_id String @db.Uuid?
+  customer_name String?
+  invoice_id String @db.Uuid?
+  invoice_number String?
+  quickbooks_id String?
+  quickbooks_sync_status String?
+  processed_date String?
+  created_date String?
+  batch_id String?
+  fee_amount Float?
+  net_amount Float?
+  metadata String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model sms_delivery_logs {
+  id String @db.Uuid @id @default(uuid())
+  sms_log_id String @db.Uuid?
+  provider_id String @db.Uuid?
+  delivery_status String?
+  provider_message_id String?
+  provider_status_code String?
+  provider_status_message String?
+  delivery_timestamp String?
+  attempt_number Int?
+  cost Float?
+  carrier_info String?
+  created_at String? @default(now())
+}
+
+model notifications {
+  id String @db.Uuid @id @default(uuid())
+  customer_id String @db.Uuid?
+  user_id String @db.Uuid?
+  type String?
+  title String
+  message String
+  data String?
+  read Boolean?
+  read_at String?
+  sent_via String?
+  priority String?
+  expires_at String?
+  created_at String? @default(now())
+}
+
+model team_members {
+  id String @db.Uuid @id @default(uuid())
+  team_id String @db.Uuid?
+  user_id String @db.Uuid?
+  role String?
+  joined_at String?
+}
+
+model material_categories {
+  id String @db.Uuid @id @default(uuid())
+  name String
+  icon String?
+  sort_order Int?
+  active Boolean?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model carving_styles {
+  id String @db.Uuid @id @default(uuid())
+  name String
+  description String?
+  price_modifier Float?
+  active Boolean?
+  sort_order Int?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+  complexity_level Int?
+}
+
+model production_reset_config {
+  id String @db.Uuid @id @default(uuid())
+  table_name String
+  reset_strategy String?
+  load_order Int?
+  notes String?
+  created_at String? @default(now())
+}
+
+model design_approvals {
+  id String @db.Uuid @id @default(uuid())
+  order_id String @db.Uuid?
+  customer_id String @db.Uuid?
+  design_name String
+  version String?
+  status String?
+  submitted_at String?
+  submitted_by String @db.Uuid?
+  reviewed_at String?
+  reviewed_by String @db.Uuid?
+  approved_at String?
+  approved_by String @db.Uuid?
+  notes String?
+  feedback String?
+  revision_count Int?
+  metadata String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+  created_by String @db.Uuid?
+  updated_by String @db.Uuid?
+}
+
+model weaving_materials {
+  id String @db.Uuid @id @default(uuid())
+  name String
+  description String?
+  price_modifier Float?
+  active Boolean?
+  sort_order Int?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+}
+
+model budgets {
+  id String @db.Uuid @id @default(uuid())
+  name String
+  budget_type String?
+  period_start String
+  period_end String
+  total_budget Float
+  allocated_amount Float?
+  spent_amount Float?
+  remaining_amount Float?
+  status String?
+  owner_id String @db.Uuid?
+  notes String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+  category String?
+  department String?
+  period_name String?
+}
+
+model items {
+  id String @db.Uuid @id @default(uuid())
+  sku String
+  name String
+  collection_id String @db.Uuid?
+  category String?
+  subcategory String?
+  description String?
+  base_price Float?
+  currency String?
+  dimensions String?
+  materials String?
+  colors Json?
+  lead_time_days Int?
+  min_order_quantity Int?
+  is_active Boolean?
+  is_customizable Boolean?
+  image_urls Json?
+  metadata String?
+  created_at String? @default(now())
+  updated_at String? @updatedAt
+  item_code String?
+  weight_lbs Float?
+  full_sku String?
+  client_sku String?
+  material_specifications String?
+  client_info String?
+  sku_base String?
+  project_sku String?
+  type String?
+  prototype_status String?
+}
+
