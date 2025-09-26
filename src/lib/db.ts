@@ -104,22 +104,30 @@ export interface Customer {
   email?: string | null;
   phone?: string | null;
   company?: string | null;
-  type?: 'prospect' | 'client' | 'vip' | null;
-  status?: 'active' | 'inactive' | 'suspended' | null;
+  company_name?: string | null;
   address?: any | null;
   billing_address?: any | null;
   shipping_address?: any | null;
+  type?: string | null;
+  status?: string | null;
+  notes?: string | null;
+  tags: string[];
+  created_by?: string | null;
+  created_at?: Date | null;
+  updated_at?: Date | null;
+  portal_access?: boolean | null;
+  portal_password?: string | null;
+  last_portal_login?: Date | null;
+  portal_access_granted_at?: Date | null;
+  portal_access_granted_by?: string | null;
+  user_id?: string | null;
   credit_limit?: number | null;
   payment_terms?: string | null;
   tax_id?: string | null;
-  notes?: string | null;
-  tags?: string[] | null;
-  portal_access_enabled?: boolean | null;
-  portal_password_hash?: string | null;
-  created_at?: Date | null;
-  updated_at?: Date | null;
-  user_id?: string | null;
+  sales_rep_id?: string | null;
   metadata?: any | null;
+  // Enhanced CRM fields
+  last_activity_date?: Date | null;
 }
 
 // Project types
@@ -162,35 +170,53 @@ export interface Order {
 // Lead types
 export interface Lead {
   id: string;
-  contact_id?: string | null;
-  company_name: string;
-  contact_person: string;
-  email: string;
+  name: string;
+  company?: string | null;
+  email?: string | null;
   phone?: string | null;
-  status?: 'new' | 'contacted' | 'qualified' | 'proposal' | 'negotiation' | 'won' | 'lost' | null;
-  prospect_status?: 'cold' | 'warm' | 'hot' | null;
-  source?: string | null;
-  estimated_value?: number | null;
-  probability?: number | null;
-  notes?: string | null;
+  status?: string | null;
+  lead_source?: string | null;
+  interest_level?: string | null;
+  lead_value?: number | null;
+  assigned_to?: string | null;
   created_at?: Date | null;
   updated_at?: Date | null;
+  last_contacted?: Date | null;
+  follow_up_date?: Date | null;
+  notes?: string | null;
+  tags: string[];
+  created_by?: string | null;
+  converted_to_customer_id?: string | null;
+  converted_at?: Date | null;
+  conversion_type?: string | null;
+  prospect_status?: string | null;
+  contact_method?: string | null;
+  website?: string | null;
+  // Enhanced CRM fields
+  pipeline_stage?: string | null;
+  last_activity_date?: Date | null;
 }
 
 // Contact types
 export interface Contact {
   id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
+  name: string;
+  email?: string | null;
   phone?: string | null;
   company?: string | null;
   position?: string | null;
-  source?: string | null;
   notes?: string | null;
-  tags?: string[] | null;
+  tags: string[];
   created_at?: Date | null;
   updated_at?: Date | null;
+  created_by?: string | null;
+  lead_conversion_date?: Date | null;
+  // Enhanced CRM fields
+  last_contacted?: Date | null;
+  source?: string | null;
+  score?: number | null;
+  assigned_to?: string | null;
+  last_activity_date?: Date | null;
 }
 
 // Auth-related types
@@ -253,15 +279,16 @@ export class DatabaseClient {
    * Provides Supabase-based transaction support
    */
   async $transaction<T>(callback: TransactionCallback<T>): Promise<T>;
-  async $transaction<T>(operations: (() => Promise<T>)[]): Promise<T[]>;
-  async $transaction<T>(callbackOrOperations: TransactionCallback<T> | (() => Promise<T>)[]): Promise<T | T[]> {
+  async $transaction<T>(operations: Promise<T>[]): Promise<T[]>;
+  async $transaction<T>(callbackOrOperations: TransactionCallback<T> | Promise<T>[]): Promise<T | T[]> {
     // Since Supabase doesn't have traditional transactions like Prisma,
     // we implement a best-effort approach for the hybrid client
     // For true ACID transactions, this would need to be enhanced
 
     if (Array.isArray(callbackOrOperations)) {
-      // Handle array of operations (like Prisma transactions)
-      const results = await Promise.all(callbackOrOperations.map(op => op()));
+      // Handle array of promises (like Prisma transactions)
+      // These are already resolved promises from the model operations
+      const results = await Promise.all(callbackOrOperations);
       return results;
     } else {
       // Handle callback-based transactions
@@ -407,21 +434,21 @@ export class DatabaseClient {
   ): Promise<T> {
     const { data: inputData, include = {}, select } = options;
 
-    let query: any = supabase.from(tableName);
-
+    // For insert operations, we need to handle select separately
+    let selectFields = '*';
     if (select) {
-      const selectFields = Object.keys(select).filter(key => select[key]);
-      query = query.select(selectFields.join(', '));
-    } else {
-      query = query.select('*');
+      const selectedFields = Object.keys(select).filter(key => select[key]);
+      selectFields = selectedFields.length > 0 ? selectedFields.join(', ') : '*';
     }
 
-    const { data, error } = await query
+    const { data, error } = await supabase
+      .from(tableName)
       .insert({
         ...inputData,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
+      .select(selectFields)
       .single();
 
     if (error) {
@@ -440,8 +467,18 @@ export class DatabaseClient {
   ): Promise<T> {
     const { where, data: updateData, include = {}, select } = options;
 
-    let query: any = supabase.from(tableName);
+    // Start with update operation
+    let query: any = supabase.from(tableName).update({
+      ...updateData,
+      updated_at: new Date().toISOString(),
+    });
 
+    // Apply where conditions
+    Object.entries(where).forEach(([key, value]) => {
+      query = query.eq(key, value);
+    });
+
+    // Add select clause
     if (select) {
       const selectFields = Object.keys(select).filter(key => select[key]);
       query = query.select(selectFields.join(', '));
@@ -449,17 +486,7 @@ export class DatabaseClient {
       query = query.select('*');
     }
 
-    // Apply where conditions
-    Object.entries(where).forEach(([key, value]) => {
-      query = query.eq(key, value);
-    });
-
-    const { data, error } = await query
-      .update({
-        ...updateData,
-        updated_at: new Date().toISOString(),
-      })
-      .single();
+    const { data, error } = await query.single();
 
     if (error) {
       throw new Error(`Failed to update in ${tableName}: ${error.message}`);
@@ -569,6 +596,97 @@ export class DatabaseClient {
     return count || 0;
   }
 
+  /**
+   * Generic groupBy operation for aggregating data
+   */
+  private async groupByGeneric(
+    tableName: string,
+    options: {
+      by: string[];
+      where?: Record<string, any>;
+      _count?: Record<string, boolean>;
+    }
+  ): Promise<any[]> {
+    const { by, where = {}, _count } = options;
+
+    // For now, we'll implement a simplified version
+    // In a real implementation, this would need proper SQL aggregation
+    let query = supabase.from(tableName);
+
+    // Select the grouping fields and any count fields
+    const selectFields = [...by];
+    if (_count) {
+      // This is a simplified approach - real groupBy would need proper SQL
+      selectFields.push('*');
+    }
+
+    query = query.select(selectFields.join(', '));
+
+    // Apply where conditions
+    Object.entries(where).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        query = query.eq(key, value);
+      }
+    });
+
+    const { data, error } = await query;
+
+    if (error) {
+      throw new Error(`Failed to group by in ${tableName}: ${error.message}`);
+    }
+
+    // For now, return a basic grouping (this would need proper aggregation in production)
+    return data || [];
+  }
+
+  /**
+   * Generic aggregate operation for any table
+   */
+  private async aggregateGeneric(
+    tableName: string,
+    options: {
+      _sum?: Record<string, boolean>;
+      _count?: boolean;
+      where?: Record<string, any>;
+    }
+  ): Promise<any> {
+    const { _sum, _count, where = {} } = options;
+
+    // For now, implement a simplified version
+    let query = supabase.from(tableName);
+
+    // Apply where conditions
+    Object.entries(where).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        query = query.eq(key, value);
+      }
+    });
+
+    // Get all data first, then perform calculations client-side
+    // In a real implementation, this would use proper SQL aggregation
+    const { data, error } = await query.select('*');
+
+    if (error) {
+      throw new Error(`Failed to aggregate in ${tableName}: ${error.message}`);
+    }
+
+    const result: any = {};
+
+    if (_count) {
+      result._count = data?.length || 0;
+    }
+
+    if (_sum && data) {
+      result._sum = {};
+      Object.keys(_sum).forEach(field => {
+        const values = data.map(item => item[field]).filter(val => typeof val === 'number');
+        result._sum[field] = values.reduce((acc, val) => acc + val, 0);
+      });
+    }
+
+    return result;
+  }
+
   // =====================================================
   // MODEL-SPECIFIC OPERATIONS
   // =====================================================
@@ -671,6 +789,10 @@ export class DatabaseClient {
       this.deleteManyGeneric('leads', options),
     count: (options?: { where?: Record<string, any> }) =>
       this.countGeneric('leads', options),
+    groupBy: (options: { by: string[]; where?: Record<string, any>; _count?: Record<string, boolean>; _sum?: Record<string, boolean> }) =>
+      this.groupByGeneric('leads', options),
+    aggregate: (options: { _sum?: Record<string, boolean>; _count?: boolean; where?: Record<string, any> }) =>
+      this.aggregateGeneric('leads', options),
   };
 
   // Contacts model
@@ -1267,6 +1389,7 @@ export class DatabaseClient {
 
     return (requests || []).map(req => this.transformPendingUserRequest(req));
   }
+
 
   // =====================================================
   // PRISMA-STYLE COMPATIBILITY LAYER
