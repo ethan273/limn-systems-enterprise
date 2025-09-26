@@ -14,14 +14,23 @@ You will ONLY make changes to, add, edit, update, delete, etc... from the **limn
 ## 🚨 CRITICAL COMMIT REQUIREMENTS 🚨
 
 **BEFORE ANY COMMIT - RUN ALL CHECKS AND FIX ALL ISSUES:**
-- `npm run lint` - Fix ALL linting errors and warnings
+- `npm run lint` - Fix ALL linting errors and warnings (including security rules)
 - `npm run type-check` - Fix ALL TypeScript errors
 - `npm run test:ci` - Fix ALL failing tests
+- `npm run security:audit` - Fix ALL security vulnerabilities
 - `npm run build` - Fix ALL build errors
+
+**SECURITY REQUIREMENTS:**
+- `npm run security:check` - Run full security audit and scan
+- Review and address ALL security warnings from ESLint security plugin
+- NEVER commit code with HIGH or CRITICAL security vulnerabilities
+- Validate all user inputs and sanitize outputs
+- Use parameterized queries for database operations
+- Implement proper authentication and authorization checks
 
 **NEVER commit with ANY errors, warnings, or violations of any type. This is a critical requirement that must NEVER be forgotten.**
 
-Use `npm run pre-commit` to run all checks at once before committing.
+Use `npm run pre-commit` to run all checks at once before committing (includes security audit).
 
 ## Database Configuration
 
@@ -79,6 +88,39 @@ npm run pre-commit     # Run all quality checks (lint, type-check, test)
 - **Edge runtime monitoring** - `sentry.edge.config.ts`
 - **Features enabled**: Error tracking, performance monitoring, session replay
 - **Environment-aware**: Different sampling rates for development vs production
+
+## Security Framework ✅ ENABLED
+
+**Security Tools & Monitoring:**
+- **ESLint Security Plugin** - Real-time security vulnerability detection
+- **npm audit** - Dependency vulnerability scanning
+- **Automated security checks** - Integrated into pre-commit pipeline
+
+**Security Rules Enforced:**
+- Object injection detection (`security/detect-object-injection`)
+- Unsafe regex detection (`security/detect-unsafe-regex`)
+- Buffer security (`security/detect-buffer-noassert`)
+- Child process monitoring (`security/detect-child-process`)
+- Eval expression detection (`security/detect-eval-with-expression`)
+- CSRF protection verification (`security/detect-no-csrf-before-method-override`)
+- File system security (`security/detect-non-literal-fs-filename`)
+- Cryptographic security (`security/detect-pseudoRandomBytes`)
+
+**Security Commands:**
+```bash
+npm run security:audit    # Dependency vulnerability scan
+npm run security:scan     # ESLint security rule scan
+npm run security:check    # Complete security audit
+```
+
+**Critical Security Requirements:**
+- ✅ Input validation and sanitization
+- ✅ Parameterized database queries (via Prisma)
+- ✅ Authentication & authorization (Supabase Auth + tRPC)
+- ✅ Environment variable security
+- ✅ Session management
+- ✅ HTTPS enforcement
+- ✅ Rate limiting considerations
 
 ## Environment Configuration
 
