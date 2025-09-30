@@ -47,8 +47,25 @@ const nextConfig = {
   // Output configuration for optimal builds
   output: 'standalone',
 
-  // Disable webpack configuration when using Turbopack
-  webpack: undefined,
+  // Webpack configuration to suppress Prisma instrumentation warnings (production builds only)
+  webpack: (config, { dev }) => {
+    // Only apply webpack config during production builds (not with Turbopack in dev)
+    if (!dev) {
+      // Suppress critical dependency warnings from @prisma/instrumentation
+      config.ignoreWarnings = [
+        {
+          module: /@prisma\/instrumentation/,
+          message: /Critical dependency: the request of a dependency is an expression/,
+        },
+        {
+          module: /@opentelemetry\/instrumentation/,
+          message: /Critical dependency: the request of a dependency is an expression/,
+        },
+      ];
+    }
+
+    return config;
+  },
 };
 
 // Sentry configuration - enterprise optimized
