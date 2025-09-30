@@ -99,7 +99,7 @@ export async function requireAuth(
  * Higher-order function to wrap API routes with authentication
  */
 export function withAuth(
-  handler: (req: NextRequest, user: AuthenticatedUser) => Promise<NextResponse>
+  handler: (_req: NextRequest, _user: AuthenticatedUser) => Promise<NextResponse>
 ) {
   return async (req: NextRequest): Promise<NextResponse> => {
     try {

@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+
+// Disable static generation for auth-dependent pages
+export const dynamic = 'force-dynamic';
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -157,7 +160,7 @@ export default function MyTasksPage() {
     }
   };
 
-  const getStatusBadge = (status: TaskStatus) => {
+  const _getStatusBadge = (status: TaskStatus) => {
     const colors = {
       todo: 'bg-gray-500/20 text-gray-400 border-gray-500/20',
       in_progress: 'bg-blue-500/20 text-blue-400 border-blue-500/20',
@@ -165,7 +168,7 @@ export default function MyTasksPage() {
       cancelled: 'bg-red-500/20 text-red-400 border-red-500/20',
     };
     return (
-      <Badge variant="outline" className={cn("border", colors[status])}>
+      <Badge variant="outline" className={cn("border", Object.prototype.hasOwnProperty.call(colors, status) ? colors[status as keyof typeof colors] : colors.todo)}>
         {getStatusIcon(status)}
         <span className="ml-1 capitalize">
           {status === 'in_progress' ? 'In Progress' : status}
@@ -174,14 +177,14 @@ export default function MyTasksPage() {
     );
   };
 
-  const getPriorityBadge = (priority: TaskPriority) => {
+  const _getPriorityBadge = (priority: TaskPriority) => {
     const colors = {
       low: 'bg-green-500/20 text-green-400 border-green-500/20',
       medium: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/20',
       high: 'bg-red-500/20 text-red-400 border-red-500/20',
     };
     return (
-      <Badge variant="outline" className={cn("border", colors[priority])}>
+      <Badge variant="outline" className={cn("border", Object.prototype.hasOwnProperty.call(colors, priority) ? colors[priority as keyof typeof colors] : colors.low)}>
         {priority.toUpperCase()}
       </Badge>
     );
@@ -285,7 +288,7 @@ export default function MyTasksPage() {
                                   <div className="flex items-center gap-1">
                                     <div className="flex -space-x-1">
                                       {assignedUsers.slice(0, 3).map((userId: string) => {
-                                        const user = usersMap[userId];
+                                        const user = Object.prototype.hasOwnProperty.call(usersMap, userId) ? usersMap[userId as keyof typeof usersMap] : null;
                                         const initials = user ? (
                                           user.full_name ?
                                             user.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) :
@@ -554,7 +557,7 @@ export default function MyTasksPage() {
           <CardContent>
             <div className="text-2xl font-bold text-white">{watchingActive}</div>
             <p className="text-xs text-gray-400 mt-1">
-              Tasks you're following
+              Tasks you&apos;re following
             </p>
           </CardContent>
         </Card>
@@ -566,7 +569,7 @@ export default function MyTasksPage() {
           <CardContent>
             <div className="text-2xl font-bold text-white">{createdActive}</div>
             <p className="text-xs text-gray-400 mt-1">
-              Tasks you've created
+              Tasks you&apos;ve created
             </p>
           </CardContent>
         </Card>

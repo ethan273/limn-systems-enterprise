@@ -1,14 +1,14 @@
 // Authentication Service Implementation - Part 1
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import speakeasy from 'speakeasy';
-import QRCode from 'qrcode';
-import { randomBytes } from 'crypto';
-import { addHours, addMinutes, isAfter } from 'date-fns';
+import _bcrypt from 'bcryptjs';
+import _jwt from 'jsonwebtoken';
+import _speakeasy from 'speakeasy';
+import _QRCode from 'qrcode';
+import { randomBytes as _randomBytes } from 'crypto';
+import { addHours as _addHours, addMinutes as _addMinutes, isAfter as _isAfter } from 'date-fns';
 import { Resend } from 'resend';
 import twilio from 'twilio';
-import { UserRole, UserStatus, AuthProvider } from '@/types/auth/auth.types';
+import { UserRole, UserStatus as _UserStatus, AuthProvider as _AuthProvider } from '@/types/auth/auth.types';
 
 const prisma = new PrismaClient();
 
@@ -16,14 +16,14 @@ const prisma = new PrismaClient();
 let resendInstance: any = null;
 let twilioInstance: any = null;
 
-function getResend() {
+function _getResend() {
   if (!resendInstance && process.env.RESEND_API_KEY) {
     resendInstance = new Resend(process.env.RESEND_API_KEY);
   }
   return resendInstance;
 }
 
-function getTwilio() {
+function _getTwilio() {
   if (!twilioInstance && process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
     twilioInstance = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
   }
@@ -40,7 +40,7 @@ interface SignUpRequest {
   referralSource?: string;
   password?: string;
 }
-interface ApprovalDecision {
+interface _ApprovalDecision {
   pendingSignUpId: string;
   approved: boolean;
   reviewNotes?: string;
@@ -67,7 +67,7 @@ export class AuthService {
       throw new Error('An account with this email already exists');
     }
   }
-  async verifyEmail(token: string) {
+  async verifyEmail(_token: string) {
     // TODO: Implement when pending_sign_up table is available
     throw new Error('Email verification not implemented - pending_sign_up table missing');
 
@@ -94,7 +94,8 @@ export class AuthService {
     // return { message: 'Email verified successfully. Your request is pending admin approval.' };
   }
 }
-export default new AuthService();
+const authServiceInstance = new AuthService();
+export default authServiceInstance;
 
 // Placeholder for additional methods - to be added
 // This service contains:

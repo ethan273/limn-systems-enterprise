@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,13 +39,11 @@ import {
   Filter,
   Plus,
   MoreVertical,
-  Calendar,
   ChevronDown,
   ChevronUp,
   Building,
   Mail,
   Phone,
-  User,
   Tag,
   Edit,
   Trash,
@@ -222,7 +220,7 @@ export default function LeadsPage() {
     },
   });
 
-  const handleLeadUpdate = () => {
+  const _handleLeadUpdate = () => {
     refetch();
   };
 
@@ -649,7 +647,7 @@ export default function LeadsPage() {
                 <div>
                   <p className="text-sm text-gray-400">Hot Prospects</p>
                   <p className="text-xl font-bold text-primary">
-                    {pipelineStats.prospectStats.find(s => s.prospect_status === 'hot')?._count || 0}
+                    {(pipelineStats.prospectStats as any[]).find((s: any) => s.prospect_status === 'hot')?._count || 0}
                   </p>
                 </div>
               </div>
@@ -664,7 +662,7 @@ export default function LeadsPage() {
                 <div>
                   <p className="text-sm text-gray-400">Won This Month</p>
                   <p className="text-xl font-bold text-primary">
-                    {pipelineStats.statusStats.find(s => s.status === 'won')?._count || 0}
+                    {(pipelineStats.statusStats as any[]).find((s: any) => s.status === 'won')?._count || 0}
                   </p>
                 </div>
               </div>

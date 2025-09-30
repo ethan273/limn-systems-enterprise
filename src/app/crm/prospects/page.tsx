@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,14 +29,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Search,
   Filter,
-  Plus,
   MoreVertical,
   Calendar,
   ChevronDown,
@@ -44,17 +42,14 @@ import {
   Building,
   Mail,
   Phone,
-  User,
   Tag,
   Edit,
   Trash,
   CheckSquare,
   Square,
   DollarSign,
-  TrendingUp,
   Users,
   Target,
-  Briefcase,
   ArrowRight,
   Thermometer,
   Clock,
@@ -325,7 +320,7 @@ export default function ProspectsPage() {
   };
 
   // Filter prospects based on search and filters
-  const filteredProspects = prospectsData?.items?.filter((prospect: any) => {
+  const filteredProspects = (prospectsData?.items as any[] || []).filter((prospect: any) => {
     const matchesSearch = !search ||
       prospect.name.toLowerCase().includes(search.toLowerCase()) ||
       prospect.email.toLowerCase().includes(search.toLowerCase()) ||
@@ -335,7 +330,7 @@ export default function ProspectsPage() {
   }) || [];
 
   // Sort prospects by priority and status
-  const sortedProspects = [...filteredProspects].sort((a, b) => {
+  const sortedProspects = [...filteredProspects].sort((a: any, b: any) => {
     const aPriority = getProspectPriority(a);
     const bPriority = getProspectPriority(b);
     if (aPriority !== bPriority) return bPriority - aPriority;

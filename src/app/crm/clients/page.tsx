@@ -53,7 +53,6 @@ import {
 import {
   Plus,
   Search,
-  Filter,
   MoreHorizontal,
   Edit,
   Trash2,
@@ -63,15 +62,12 @@ import {
   DollarSign,
   Calendar,
   Users,
-  FileText,
-  Settings,
   TrendingUp,
   AlertCircle,
   CheckCircle,
   Clock,
   ExternalLink,
   Download,
-  Upload,
   Tag,
 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -152,7 +148,8 @@ export default function ClientsPage() {
     offset: 0,
   });
 
-  const customers = customersData?.items || [];
+  // Memoize customers to prevent dependencies from changing on every render
+  const customers = useMemo(() => customersData?.items || [], [customersData?.items]);
 
   // Mutations
   const createCustomer = api.crm.customers.create.useMutation({

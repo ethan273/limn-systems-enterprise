@@ -117,7 +117,7 @@ export default function TaskAssignedUsers({ taskId, assignedUsers = [], onUpdate
       'bg-indigo-500',
     ];
     const index = parseInt(userId.slice(-1), 16) % colors.length;
-    return colors[index];
+    return colors[index as keyof typeof colors] || colors[0];
   };
 
   return (

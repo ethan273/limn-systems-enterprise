@@ -4,14 +4,14 @@ import { useState } from 'react'
 import { api } from '@/lib/api/client'
 import { useAuthContext } from '@/lib/auth/AuthProvider'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+// Input component not used in this file
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
-import { CheckIcon, XIcon, ClockIcon, UserIcon, BuildingIcon, PhoneIcon, MailIcon } from 'lucide-react'
+import { CheckIcon, XIcon, UserIcon, BuildingIcon, PhoneIcon, MailIcon } from 'lucide-react'
 
 export function AdminApprovalPanel() {
   const { isAdmin } = useAuthContext()
@@ -47,7 +47,7 @@ export function AdminApprovalPanel() {
     reviewMutation.mutate({
       requestId,
       action,
-      adminNotes: adminNotes[requestId]
+      adminNotes: Object.prototype.hasOwnProperty.call(adminNotes, requestId) ? adminNotes[requestId as keyof typeof adminNotes] : ''
     })
   }
 

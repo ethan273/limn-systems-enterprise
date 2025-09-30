@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { api } from "@/lib/api/client";
+import { api as _api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -36,7 +36,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
+  AlertDialogTrigger as _AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
   FileText,
@@ -49,7 +49,7 @@ import {
   Star,
   Clock,
   Tag,
-  Users,
+  Users as _Users,
 } from "lucide-react";
 
 type TaskPriority = 'low' | 'medium' | 'high';
@@ -72,14 +72,17 @@ interface TaskTemplate {
   tasks: {
     title: string;
     description: string;
+    priority?: TaskPriority;
+    department?: TaskDepartment;
     estimatedHours?: number;
+    estimated_hours?: number;
     tags: string[];
     order: number;
   }[];
 }
 
 interface TaskTemplatesProps {
-  onCreateFromTemplate?: (templateId: string) => void;
+  onCreateFromTemplate?: (_templateId: string) => void;
 }
 
 export default function TaskTemplates({ onCreateFromTemplate }: TaskTemplatesProps) {
@@ -95,7 +98,7 @@ export default function TaskTemplates({ onCreateFromTemplate }: TaskTemplatesPro
   const [templatePriority, setTemplatePriority] = useState<TaskPriority>('medium');
   const [templateDepartment, setTemplateDepartment] = useState<TaskDepartment>('admin');
   const [templateTags, setTemplateTags] = useState<string[]>([]);
-  const [templateTasks, setTemplateTasks] = useState<{ title: string; description: string; estimatedHours?: number; tags: string[]; order: number }[]>([
+  const [templateTasks, setTemplateTasks] = useState<{ title: string; description: string; priority?: TaskPriority; department?: TaskDepartment; estimatedHours?: number; estimated_hours?: number; tags: string[]; order: number }[]>([
     { title: "", description: "", tags: [], order: 0 }
   ]);
 
@@ -191,7 +194,33 @@ export default function TaskTemplates({ onCreateFromTemplate }: TaskTemplatesPro
 
   const updateTask = (index: number, field: string, value: string | number) => {
     const updatedTasks = [...templateTasks];
-    updatedTasks[index] = { ...updatedTasks[index], [field]: value };
+    const currentTask = updatedTasks.at(index);
+    if (currentTask && index >= 0 && index < updatedTasks.length) {
+      const validFields = ['title', 'description', 'priority', 'department', 'estimated_hours'] as const;
+      if (validFields.includes(field as any)) {
+        const newTask = { ...currentTask };
+        switch (field) {
+          case 'title':
+            newTask.title = value as string;
+            break;
+          case 'description':
+            newTask.description = value as string;
+            break;
+          case 'priority':
+            newTask.priority = value as TaskPriority;
+            break;
+          case 'department':
+            newTask.department = value as TaskDepartment;
+            break;
+          case 'estimated_hours':
+            newTask.estimated_hours = value as number;
+            break;
+        }
+        if (index >= 0 && index < updatedTasks.length) {
+          updatedTasks.splice(index, 1, newTask);
+        }
+      }
+    }
     setTemplateTasks(updatedTasks);
   };
 
@@ -222,7 +251,7 @@ export default function TaskTemplates({ onCreateFromTemplate }: TaskTemplatesPro
     setIsCreateDialogOpen(false);
   };
 
-  const useTemplate = (templateId: string) => {
+  const handleUseTemplate = (templateId: string) => {
     console.log('Using template:', templateId);
     onCreateFromTemplate?.(templateId);
   };
@@ -456,7 +485,7 @@ export default function TaskTemplates({ onCreateFromTemplate }: TaskTemplatesPro
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => useTemplate(template.id)}>
+                    <DropdownMenuItem onClick={() => handleUseTemplate(template.id)}>
                       <Play className="h-4 w-4 mr-2" />
                       Use Template
                     </DropdownMenuItem>
@@ -519,7 +548,7 @@ export default function TaskTemplates({ onCreateFromTemplate }: TaskTemplatesPro
               <Button
                 className="w-full"
                 size="sm"
-                onClick={() => useTemplate(template.id)}
+                onClick={() => handleUseTemplate(template.id)}
               >
                 <Play className="h-4 w-4 mr-2" />
                 Use Template

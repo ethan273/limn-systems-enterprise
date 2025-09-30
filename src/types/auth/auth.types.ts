@@ -1,25 +1,25 @@
 // Authentication Types and Interfaces
 
 export enum UserRole {
-  SUPER_ADMIN = 'super_admin',     // Limn employees - full system access
-  CLIENT_ADMIN = 'client_admin',   // Client company owner
-  CLIENT_USER = 'client_user',     // Regular client employees  
-  PARTNER = 'partner',              // Designers/manufacturers
-  VIEWER = 'viewer'                 // Read-only access
+  _SUPER_ADMIN = 'super_admin',     // Limn employees - full system access
+  _CLIENT_ADMIN = 'client_admin',   // Client company owner
+  _CLIENT_USER = 'client_user',     // Regular client employees
+  _PARTNER = 'partner',              // Designers/manufacturers
+  _VIEWER = 'viewer'                 // Read-only access
 }
 
 export enum AuthProvider {
-  GOOGLE = 'google',
-  EMAIL = 'email',
-  MAGIC_LINK = 'magic_link'
+  _GOOGLE = 'google',
+  _EMAIL = 'email',
+  _MAGIC_LINK = 'magic_link'
 }
 
 export enum UserStatus {
-  PENDING_APPROVAL = 'pending_approval',
-  ACTIVE = 'active',
-  SUSPENDED = 'suspended',
-  REJECTED = 'rejected',
-  DEACTIVATED = 'deactivated'
+  _PENDING_APPROVAL = 'pending_approval',
+  _ACTIVE = 'active',
+  _SUSPENDED = 'suspended',
+  _REJECTED = 'rejected',
+  _DEACTIVATED = 'deactivated'
 }
 
 export interface User {

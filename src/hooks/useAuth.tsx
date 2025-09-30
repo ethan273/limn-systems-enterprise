@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface User {
@@ -12,8 +12,8 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signIn: (email: string, password?: string) => Promise<void>;
-  signInWithMagicLink: (email: string) => Promise<void>;
+  signIn: (_email: string, _password?: string) => Promise<void>;
+  signInWithMagicLink: (_email: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   refreshToken: () => Promise<void>;
@@ -26,12 +26,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    checkAuth();    const interval = setInterval(refreshToken, 14 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, []);
+  const signOut = useCallback(async () => {
+    try {
+      const accessToken = localStorage.getItem('access_token');
 
-  const checkAuth = async () => {
+      if (accessToken) {
+        await fetch('/api/auth/signout', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+      }
+    } catch (error) {
+      console.error('Sign out error:', error);
+    } finally {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      setUser(null);
+      router.push('/auth/signin');
+    }
+  }, [router]);
+
+  const refreshToken = useCallback(async () => {
+    try {
+      const refreshToken = localStorage.getItem('refresh_token');
+      if (!refreshToken) return;
+
+      const response = await fetch('/api/auth/refresh', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refreshToken }),
+      });
+
+      if (response.ok) {
+        const { accessToken, user: userData } = await response.json();
+        localStorage.setItem('access_token', accessToken);
+        setUser(userData);
+      } else {
+        signOut();
+      }
+    } catch (error) {
+      console.error('Token refresh error:', error);
+      signOut();
+    }
+  }, [signOut]);
+
+  const checkAuth = useCallback(async () => {
     try {
       const accessToken = localStorage.getItem('access_token');
       if (!accessToken) {
@@ -56,32 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  };
-  const refreshToken = async () => {
-    try {
-      const refreshToken = localStorage.getItem('refresh_token');
-      if (!refreshToken) return;
-
-      const response = await fetch('/api/auth/refresh', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ refreshToken }),
-      });
-
-      if (response.ok) {
-        const { accessToken, user: userData } = await response.json();
-        localStorage.setItem('access_token', accessToken);
-        setUser(userData);
-      } else {
-        signOut();
-      }
-    } catch (error) {
-      console.error('Token refresh error:', error);
-      signOut();
-    }
-  };
+  }, [refreshToken]);
 
   const signIn = async (email: string, password?: string) => {
     const response = await fetch('/api/auth/signin', {
@@ -128,27 +146,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     window.location.href = '/api/auth/google';
   };
 
-  const signOut = async () => {
-    try {
-      const accessToken = localStorage.getItem('access_token');
-      
-      if (accessToken) {
-        await fetch('/api/auth/signout', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-      }
-    } catch (error) {
-      console.error('Sign out error:', error);
-    } finally {
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      setUser(null);
-      router.push('/auth/signin');
-    }
-  };
+  useEffect(() => {
+    checkAuth();
+    const interval = setInterval(refreshToken, 14 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [checkAuth, refreshToken]);
+
   return (
     <AuthContext.Provider
       value={{
@@ -169,6 +172,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
+    // During SSR/build time, return a default context instead of throwing
+    if (typeof window === 'undefined') {
+      return {
+        user: null,
+        loading: true,
+        error: null,
+        signIn: async () => ({ error: 'SSR context' }),
+        signOut: async () => {},
+        signUp: async () => ({ error: 'SSR context' }),
+        resetPassword: async () => ({ error: 'SSR context' }),
+        updateProfile: async () => ({ error: 'SSR context' }),
+      };
+    }
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;

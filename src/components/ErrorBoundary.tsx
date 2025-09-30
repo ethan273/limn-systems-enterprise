@@ -61,7 +61,7 @@ export class ErrorBoundary extends Component<Props, State> {
             </h1>
 
             <p className="text-sm text-gray-600 mb-6">
-              We've been notified about this error and are working on a fix.
+              We&apos;ve been notified about this error and are working on a fix.
             </p>
 
             {this.state.errorId && (

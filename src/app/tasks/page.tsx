@@ -1,18 +1,13 @@
 "use client";
 
 import { useState } from "react";
+
+// Disable static generation for auth-dependent pages
+export const dynamic = 'force-dynamic';
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -41,7 +36,6 @@ import TaskAssignedUsers from "@/components/TaskAssignedUsers";
 import TaskNotifications from "@/components/TaskNotifications";
 import {
   Search,
-  Filter,
   Plus,
   MoreVertical,
   Calendar,
@@ -133,7 +127,7 @@ export default function TasksPage() {
   }, {} as Record<string, any>) || {};
 
 
-  const clearFilters = () => {
+  const _clearFilters = () => {
     setSearch("");
     setStatusFilter('all');
     setPriorityFilter('all');
@@ -270,7 +264,7 @@ export default function TasksPage() {
                                         <div className="flex items-center gap-1">
                                           <div className="flex -space-x-1">
                                             {assignedUsers.slice(0, 3).map((userId) => {
-                                              const user = usersMap[userId];
+                                              const user = Object.prototype.hasOwnProperty.call(usersMap, userId) ? usersMap[userId as keyof typeof usersMap] : null;
                                               const initials = user ? (
                                                 user.full_name ?
                                                   user.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) :

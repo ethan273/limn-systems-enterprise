@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { api } from "@/lib/api/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -49,9 +51,12 @@ type EntityType = 'client' | 'project' | 'order' | 'collection' | 'item' | 'desi
 type LinkType = 'related' | 'blocks' | 'depends_on';
 
 export default function TaskEntityLinks({ taskId, onUpdate }: TaskEntityLinksProps) {
+  const { user } = useAuth();
   const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
   const [selectedEntityType, setSelectedEntityType] = useState<EntityType>('client');
   const [selectedLinkType, setSelectedLinkType] = useState<LinkType>('related');
+  const [selectedEntityId, setSelectedEntityId] = useState<string>('');
+  const [selectedEntityName, setSelectedEntityName] = useState<string>('');
 
   const { data: entityLinks, isLoading, refetch } = api.tasks.getEntityLinks.useQuery({
     task_id: taskId,
@@ -72,29 +77,32 @@ export default function TaskEntityLinks({ taskId, onUpdate }: TaskEntityLinksPro
     },
   });
 
-  // Mock user ID - in production this would come from session
-  const mockUserId = "550e8400-e29b-41d4-a716-446655440000";
+  // Get current user ID from auth
+  const currentUserId = user?.id;
 
   const handleAddEntityLink = () => {
-    // Mock entity ID - in production this would come from a search/select dialog
-    const mockEntityId = "880e8400-e29b-41d4-a716-446655440000";
-    const mockEntityName = `Sample ${selectedEntityType}`;
+    if (!currentUserId || !selectedEntityId || !selectedEntityName) {
+      alert('Please select an entity to link.');
+      return;
+    }
 
     addEntityLinkMutation.mutate({
       task_id: taskId,
       entity_type: selectedEntityType,
-      entity_id: mockEntityId,
-      entity_name: mockEntityName,
+      entity_id: selectedEntityId,
+      entity_name: selectedEntityName,
       link_type: selectedLinkType,
-      created_by: mockUserId,
+      created_by: currentUserId,
     });
   };
 
   const handleRemoveEntityLink = (linkId: string) => {
+    if (!currentUserId) return;
+
     if (confirm("Are you sure you want to remove this link?")) {
       removeEntityLinkMutation.mutate({
         id: linkId,
-        user_id: mockUserId,
+        user_id: currentUserId,
       });
     }
   };
@@ -185,7 +193,7 @@ export default function TaskEntityLinks({ taskId, onUpdate }: TaskEntityLinksPro
         </div>
         <Dialog open={isLinkDialogOpen} onOpenChange={setIsLinkDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="text-xs">
+            <Button variant="outline" size="sm" className="text-xs" disabled={!currentUserId}>
               <Plus className="h-3 w-3 mr-1" />
               Link Item
             </Button>
@@ -241,6 +249,28 @@ export default function TaskEntityLinks({ taskId, onUpdate }: TaskEntityLinksPro
                 </Select>
               </div>
 
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-300">
+                  Entity ID
+                </label>
+                <Input
+                  value={selectedEntityId}
+                  onChange={(e) => setSelectedEntityId(e.target.value)}
+                  placeholder="Enter entity ID..."
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-300">
+                  Entity Name
+                </label>
+                <Input
+                  value={selectedEntityName}
+                  onChange={(e) => setSelectedEntityName(e.target.value)}
+                  placeholder="Enter entity name..."
+                />
+              </div>
+
               <div className="flex justify-end gap-2">
                 <Button
                   variant="outline"
@@ -253,7 +283,7 @@ export default function TaskEntityLinks({ taskId, onUpdate }: TaskEntityLinksPro
                 <Button
                   size="sm"
                   onClick={handleAddEntityLink}
-                  disabled={addEntityLinkMutation.isPending}
+                  disabled={addEntityLinkMutation.isPending || !currentUserId || !selectedEntityId || !selectedEntityName}
                 >
                   {addEntityLinkMutation.isPending ? "Linking..." : "Link Entity"}
                 </Button>

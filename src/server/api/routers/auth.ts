@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { createTRPCRouter, publicProcedure, protectedProcedure, adminProcedure } from '../trpc/init'
+import { createTRPCRouter, publicProcedure, protectedProcedure as _protectedProcedure, adminProcedure } from '../trpc/init'
 import { TRPCError } from '@trpc/server'
 import { createClient } from '@supabase/supabase-js'
 

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { api } from "@/lib/api/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,6 +31,7 @@ interface TaskCreateFormProps {
 }
 
 export default function TaskCreateForm({ onSuccess, onCancel }: TaskCreateFormProps) {
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -43,18 +45,29 @@ export default function TaskCreateForm({ onSuccess, onCancel }: TaskCreateFormPr
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState("");
   const [visibility, setVisibility] = useState<"company" | "project" | "private">("company");
+  const [availableUsers, setAvailableUsers] = useState<Array<{ id: string; name: string; email: string; department: string }>>([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
 
-  // Mock users data - in production this would come from API
-  const [availableUsers] = useState([
-    { id: "550e8400-e29b-41d4-a716-446655440000", name: "Development User", email: "dev-user@limn.us.com", department: "development" },
-    { id: "660e8400-e29b-41d4-a716-446655440001", name: "John Smith", email: "john.smith@limn.us.com", department: "production" },
-    { id: "770e8400-e29b-41d4-a716-446655440002", name: "Sarah Wilson", email: "sarah.wilson@limn.us.com", department: "design" },
-    { id: "880e8400-e29b-41d4-a716-446655440003", name: "Mike Johnson", email: "mike.johnson@limn.us.com", department: "sales" },
-    { id: "990e8400-e29b-41d4-a716-446655440004", name: "Emily Davis", email: "emily.davis@limn.us.com", department: "admin" },
-  ]);
+  // Get current user ID from auth
+  const currentUserId = user?.id;
 
-  // Mock user ID - in production this would come from session
-  const mockCreatedBy = "550e8400-e29b-41d4-a716-446655440000";
+  // Load users data
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        // TODO: Implement proper tRPC client call
+        console.log('TODO: Load users data via tRPC');
+        setAvailableUsers([]);
+      } catch (error) {
+        console.error('Failed to fetch users:', error);
+        setAvailableUsers([]);
+      } finally {
+        setLoadingUsers(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   const createTaskMutation = api.tasks.create.useMutation({
     onSuccess: () => {
@@ -67,7 +80,7 @@ export default function TaskCreateForm({ onSuccess, onCancel }: TaskCreateFormPr
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) return;
+    if (!title.trim() || !currentUserId) return;
 
     setIsSubmitting(true);
 
@@ -80,7 +93,7 @@ export default function TaskCreateForm({ onSuccess, onCancel }: TaskCreateFormPr
         department,
         visibility,
         assigned_to: assignedTo,
-        created_by: mockCreatedBy,
+        created_by: currentUserId,
         due_date: dueDate ? new Date(dueDate).toISOString() : undefined,
         start_date: startDate ? new Date(startDate).toISOString() : undefined,
         estimated_hours: estimatedHours ? parseFloat(estimatedHours) : undefined,
@@ -125,7 +138,7 @@ export default function TaskCreateForm({ onSuccess, onCancel }: TaskCreateFormPr
     setAssignedTo(assignedTo.filter(id => id !== userId));
   };
 
-  const getAssignedUserName = (userId: string) => {
+  const _getAssignedUserName = (userId: string) => {
     const user = availableUsers.find(u => u.id === userId);
     return user ? user.name : "Unknown User";
   };
@@ -279,9 +292,9 @@ export default function TaskCreateForm({ onSuccess, onCancel }: TaskCreateFormPr
           <Label className="text-sm font-medium text-gray-300">
             Assigned To ({assignedTo.length} selected)
           </Label>
-          <Select onValueChange={(value: string) => addAssignee(value)}>
+          <Select onValueChange={(value: string) => addAssignee(value)} disabled={loadingUsers}>
             <SelectTrigger>
-              <SelectValue placeholder="Select team members..." />
+              <SelectValue placeholder={loadingUsers ? "Loading users..." : "Select team members..."} />
             </SelectTrigger>
             <SelectContent>
               {availableUsers
@@ -375,7 +388,7 @@ export default function TaskCreateForm({ onSuccess, onCancel }: TaskCreateFormPr
           </Button>
           <Button
             type="submit"
-            disabled={!title.trim() || isSubmitting}
+            disabled={!title.trim() || isSubmitting || !currentUserId}
             className={cn(
               "min-w-24",
               isSubmitting && "opacity-50 cursor-not-allowed"

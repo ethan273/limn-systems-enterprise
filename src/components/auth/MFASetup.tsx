@@ -4,37 +4,38 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
-  Shield, 
-  Smartphone, 
-  Key, 
-  Copy, 
-  Check, 
-  AlertCircle,
-  Loader2,
-  Download,
-  X
+  Shield as _Shield,
+  Smartphone as _Smartphone,
+  Key as _Key,
+  Copy as _Copy,
+  Check as _Check,
+  AlertCircle as _AlertCircle,
+  Loader2 as _Loader2,
+  Download as _Download,
+  X as _X
 } from 'lucide-react';
 
-interface BackupCode {
+interface _BackupCode {
   code: string;
   used: boolean;
 }
 
 export default function MFASetup() {
-  const router = useRouter();
-  const [step, setStep] = useState<'intro' | 'qr' | 'verify' | 'backup' | 'complete'>('intro');
+  const _router = useRouter();
+  const [_step, _setStep] = useState<'intro' | 'qr' | 'verify' | 'backup' | 'complete'>('intro');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [qrCode, setQrCode] = useState('');  const [secret, setSecret] = useState('');
-  const [backupCodes, setBackupCodes] = useState<string[]>([]);
-  const [verificationCode, setVerificationCode] = useState('');
-  const [copiedSecret, setCopiedSecret] = useState(false);
-  const [downloadedCodes, setDownloadedCodes] = useState(false);
+  const [_error, _setError] = useState('');
+  const [_qrCode, _setQrCode] = useState('');
+  const [_secret, _setSecret] = useState('');
+  const [_backupCodes, _setBackupCodes] = useState<string[]>([]);
+  const [_verificationCode, _setVerificationCode] = useState('');
+  const [_copiedSecret, _setCopiedSecret] = useState(false);
+  const [_downloadedCodes, _setDownloadedCodes] = useState(false);
 
   // Enable MFA and get QR code
   const enableMFA = async () => {
     setIsLoading(true);
-    setError('');
+    _setError('');
 
     try {
       const response = await fetch('/api/auth/mfa/enable', {
@@ -45,15 +46,15 @@ export default function MFASetup() {
       const data = await response.json();
 
       if (response.ok) {
-        setQrCode(data.qrCode);
-        setSecret(data.secret);
-        setBackupCodes(data.backupCodes);
-        setStep('qr');
+        _setQrCode(data.qrCode);
+        _setSecret(data.secret);
+        _setBackupCodes(data.backupCodes);
+        _setStep('qr');
       } else {
-        setError(data.error || 'Failed to enable MFA');
+        _setError(data.error || 'Failed to enable MFA');
       }
-    } catch (err) {
-      setError('An error occurred. Please try again.');
+    } catch (_err) {
+      _setError('An error occurred. Please try again.');
     }    finally {
       setIsLoading(false);
     }

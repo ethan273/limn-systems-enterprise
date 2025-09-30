@@ -10,7 +10,7 @@ export const usersRouter = createTRPCRouter({
       offset: z.number().min(0).default(0),
       search: z.string().optional(),
     }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ ctx: _ctx, input }) => {
       return await db.findManyUsers({
         limit: input.limit,
         offset: input.offset,
@@ -23,7 +23,7 @@ export const usersRouter = createTRPCRouter({
     .input(z.object({
       id: z.string().uuid(),
     }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ ctx: _ctx, input }) => {
       const user = await db.findUser(input.id);
       if (!user) {
         throw new Error('User not found');
@@ -36,7 +36,7 @@ export const usersRouter = createTRPCRouter({
     .input(z.object({
       ids: z.array(z.string().uuid()),
     }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ ctx: _ctx, input }) => {
       return await db.findUsersByIds(input.ids);
     }),
 });

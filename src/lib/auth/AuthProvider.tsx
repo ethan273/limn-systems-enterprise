@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User, SupabaseClient } from '@supabase/supabase-js';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 import { UserProfile } from '@/modules/auth/types';
@@ -27,7 +27,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
   
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = useCallback(async (userId: string) => {
     if (!supabase) return;
 
     try {
@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('Error fetching profile:', error);
       setProfile(null);
     }
-  };
+  }, [supabase]);
 
   const refreshProfile = async () => {
     if (user?.id && supabase) {
@@ -102,7 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
 
     return () => subscription.unsubscribe();
-  }, [supabase]);
+  }, [supabase, fetchProfile]);
   
   const isAdmin = profile?.user_type === 'Super Admin' || profile?.user_type === 'Employee';
   

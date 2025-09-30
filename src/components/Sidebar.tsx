@@ -6,16 +6,9 @@ import {
   BarChart3,
   CheckSquare,
   Users,
+  Package,
   ChevronDown,
   ChevronRight,
-  Home,
-  User,
-  Building,
-  FolderOpen,
-  ListTodo,
-  UserCheck,
-  Contact,
-  Target,
   LogOutIcon,
   MenuIcon,
   XIcon
@@ -45,6 +38,7 @@ export default function Sidebar() {
   const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({
     "Dashboards": pathname === '/dashboard' || pathname.startsWith('/dashboards'),
     "Tasks": isOnTasksPage,
+    "Products": pathname.startsWith('/products'),
     "CRM": pathname.startsWith('/crm')
   });
 
@@ -53,6 +47,7 @@ export default function Sidebar() {
     setExpandedModules({
       "Dashboards": pathname === '/dashboard' || pathname.startsWith('/dashboards'),
       "Tasks": pathname.startsWith('/tasks'),
+      "Products": pathname.startsWith('/products'),
       "CRM": pathname.startsWith('/crm')
     });
   }, [pathname]);
@@ -111,13 +106,25 @@ export default function Sidebar() {
         { label: "Clients", href: "/crm/clients" },
         { label: "Projects", href: "/crm/projects" },
       ]
+    },
+    {
+      label: "Products",
+      icon: Package,
+      items: [
+        { label: "Collections", href: "/products/collections" },
+        { label: "Materials", href: "/products/materials" },
+        { label: "Concepts", href: "/products/concepts" },
+        { label: "Prototypes", href: "/products/prototypes" },
+        { label: "Catalog", href: "/products/catalog" },
+        { label: "Ordered", href: "/products/ordered-items" },
+      ]
     }
   ];
 
   const toggleModule = (moduleLabel: string) => {
     setExpandedModules(prev => ({
       ...prev,
-      [moduleLabel]: !prev[moduleLabel]
+      [moduleLabel]: !Object.prototype.hasOwnProperty.call(prev, moduleLabel) || !prev[moduleLabel as keyof typeof prev]
     }));
   };
 

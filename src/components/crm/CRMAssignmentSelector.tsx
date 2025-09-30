@@ -15,23 +15,23 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  // DialogTrigger not used
 } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
-  Users,
+  // Users not used
   UserPlus,
   Search,
   X,
   ChevronDown,
   Building2,
   Mail,
-  Phone,
+  // Phone not used
 } from 'lucide-react';
 
 interface CRMAssignmentSelectorProps {
   selectedUserIds: string[];
-  onSelectionChange: (userIds: string[]) => void;
+  onSelectionChange: (_userIds: string[]) => void;
   label?: string;
   placeholder?: string;
   maxAssignees?: number;
@@ -42,9 +42,9 @@ interface CRMAssignmentSelectorProps {
 
 interface UserSelectorDialogProps {
   selectedUserIds: string[];
-  onSelectionChange: (userIds: string[]) => void;
+  onSelectionChange: (_userIds: string[]) => void;
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  onOpenChange: (_open: boolean) => void;
   maxAssignees?: number;
 }
 
@@ -58,9 +58,10 @@ function UserSelectorDialog({
   const [searchTerm, setSearchTerm] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState<string>('all');
 
-  const { data: users = [], isLoading } = api.users.getAll.useQuery();
+  const { data: usersData, isLoading } = api.users.getAllUsers.useQuery({ limit: 100 });
+  const users = usersData?.users || [];
 
-  const filteredUsers = users.filter((user) => {
+  const filteredUsers = users.filter((user: User) => {
     const matchesSearch =
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -71,7 +72,7 @@ function UserSelectorDialog({
     return matchesSearch && matchesDepartment;
   });
 
-  const departments = Array.from(new Set(users.map(user => user.department).filter(Boolean)));
+  const departments = Array.from(new Set(users.map((user: User) => user.department).filter(Boolean)));
 
   const handleUserToggle = (userId: string, isSelected: boolean) => {
     if (isSelected) {
@@ -84,7 +85,7 @@ function UserSelectorDialog({
   };
 
   const handleSelectAll = () => {
-    const allUserIds = filteredUsers.map(user => user.id);
+    const allUserIds = filteredUsers.map((user: User) => user.id);
     const limitedUserIds = maxAssignees
       ? allUserIds.slice(0, maxAssignees)
       : allUserIds;
@@ -124,9 +125,9 @@ function UserSelectorDialog({
               className="px-3 py-2 rounded-md border border-gray-700 bg-gray-800 text-white"
             >
               <option value="all">All Departments</option>
-              {departments.map(dept => (
-                <option key={dept} value={dept}>
-                  {dept.charAt(0).toUpperCase() + dept.slice(1)}
+              {departments.map((dept) => (
+                <option key={dept as string} value={dept as string}>
+                  {(dept as string).charAt(0).toUpperCase() + (dept as string).slice(1)}
                 </option>
               ))}
             </select>
@@ -155,7 +156,7 @@ function UserSelectorDialog({
             ) : filteredUsers.length === 0 ? (
               <div className="text-center py-8 text-gray-400">No users found</div>
             ) : (
-              filteredUsers.map((user) => {
+              filteredUsers.map((user: User) => {
                 const isSelected = selectedUserIds.includes(user.id);
                 const isDisabled = !isSelected && maxAssignees && selectedUserIds.length >= maxAssignees;
 
@@ -170,8 +171,8 @@ function UserSelectorDialog({
                   >
                     <Checkbox
                       checked={isSelected}
-                      onCheckedChange={(checked) => handleUserToggle(user.id, !!checked)}
-                      disabled={isDisabled}
+                      onCheckedChange={(checked) => handleUserToggle(user.id, Boolean(checked))}
+                      disabled={Boolean(isDisabled)}
                     />
                     <Avatar className="w-10 h-10">
                       <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium">
@@ -231,11 +232,12 @@ export function CRMAssignmentSelector({
   variant = 'default',
 }: CRMAssignmentSelectorProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [_isPopoverOpen, _setIsPopoverOpen] = useState(false);
 
-  const { data: users = [] } = api.users.getAll.useQuery();
+  const { data: usersData } = api.users.getAllUsers.useQuery({ limit: 100 });
+  const users = usersData?.users || [];
 
-  const selectedUsers = users.filter(user => selectedUserIds.includes(user.id));
+  const selectedUsers = users.filter((user: User) => selectedUserIds.includes(user.id));
 
   const removeUser = (userId: string) => {
     onSelectionChange(selectedUserIds.filter(id => id !== userId));
@@ -285,7 +287,7 @@ export function CRMAssignmentSelector({
             </Label>
           )}
           <div className="flex flex-wrap gap-2">
-            {selectedUsers.map((user) => (
+            {selectedUsers.map((user: User) => (
               <div
                 key={user.id}
                 className="flex items-center gap-2 bg-gray-800/50 rounded-lg px-3 py-2 border border-gray-700"
@@ -325,7 +327,7 @@ export function CRMAssignmentSelector({
           variant="outline"
           onClick={() => setIsDialogOpen(true)}
           className="flex items-center gap-2"
-          disabled={maxAssignees && selectedUserIds.length >= maxAssignees}
+          disabled={Boolean(maxAssignees && selectedUserIds.length >= maxAssignees)}
         >
           <UserPlus className="w-4 h-4" />
           {selectedUsers.length === 0 ? 'Assign Users' : 'Add More Users'}
@@ -366,7 +368,7 @@ export function QuickUserSelector({
   className = '',
 }: {
   selectedUserIds: string[];
-  onSelectionChange: (userIds: string[]) => void;
+  onSelectionChange: (_userIds: string[]) => void;
   className?: string;
 }) {
   return (
@@ -388,7 +390,7 @@ export function DetailedUserSelector({
   className = '',
 }: {
   selectedUserIds: string[];
-  onSelectionChange: (userIds: string[]) => void;
+  onSelectionChange: (_userIds: string[]) => void;
   maxAssignees?: number;
   className?: string;
 }) {

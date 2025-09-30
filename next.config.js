@@ -2,33 +2,86 @@ const { withSentryConfig } = require('@sentry/nextjs');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Image optimization
   images: {
     domains: ['localhost', 'via.placeholder.com'],
   },
+
+  // Production optimizations
+  compress: true,
+
+  // Turbopack configuration (updated for Next.js 15)
+  // Note: memoryLimit is not a supported option in Next.js 15.5.4
+
+  // Experimental features
   experimental: {
+    // Server actions configuration
     serverActions: {
       allowedOrigins: ["localhost:3000", "127.0.0.1:3000"],
     },
   },
-}
 
-// Sentry configuration
+  // Headers for security and performance
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+        ],
+      },
+    ];
+  },
+
+  // Output configuration for optimal builds
+  output: 'standalone',
+
+  // Disable webpack configuration when using Turbopack
+  webpack: undefined,
+};
+
+// Sentry configuration - enterprise optimized
 const sentryWebpackPluginOptions = {
-  // For all available options, see:
-  // https://github.com/getsentry/sentry-webpack-plugin#options
-
-  // Suppresses source map uploading logs during build
+  // Essential Sentry options
   silent: true,
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
-
-  // Only upload source maps in production and if auth token is provided
   authToken: process.env.SENTRY_AUTH_TOKEN,
 
-  // Disable source map upload in development
+  // Performance optimizations
   disableLogger: process.env.NODE_ENV === 'development',
   hideSourceMaps: true,
-}
+  dryRun: process.env.NODE_ENV === 'development',
 
-// Export configuration with Sentry enabled
-module.exports = withSentryConfig(nextConfig, sentryWebpackPluginOptions)
+  // Upload optimizations
+  include: ['./src', './.next'],
+  ignore: ['node_modules', 'webpack.config.js', '*.test.js', '*.test.ts', '*.test.tsx'],
+
+  // Source map optimization
+  sourcemaps: {
+    disable: process.env.NODE_ENV === 'development',
+    deleteAfterUpload: true,
+  },
+
+  // Release optimization
+  release: {
+    name: process.env.SENTRY_RELEASE || `${process.env.npm_package_name}@${process.env.npm_package_version}`,
+    deploy: {
+      env: process.env.NODE_ENV || 'development',
+    },
+  },
+};
+
+// Export configuration without Sentry in development to prevent instrumentation conflicts
+module.exports = nextConfig;

@@ -1,6 +1,9 @@
 import { z } from 'zod';
 import { createCrudRouter } from '../utils/crud-generator';
 import { createTRPCRouter, publicProcedure } from '../trpc/init';
+// TODO: These imports will be used for full dimension form integration
+// import { createDualDimension, dualDimensionToDb } from '@/lib/utils/unit-conversion';
+import { validateFurnitureDimensions, type FurnitureType } from '@/lib/utils/dimension-validation';
 
 // Collections Schema
 const createCollectionSchema = z.object({
@@ -8,7 +11,7 @@ const createCollectionSchema = z.object({
   description: z.string().optional(),
   category: z.string().optional(),
   prefix: z.string().min(1).max(10),
-  is_active: z.boolean().default(true),
+  active: z.boolean().default(true),
   display_order: z.number().default(0),
   metadata: z.record(z.any()).optional(),
 });
@@ -22,12 +25,12 @@ export const collectionsRouter = createCrudRouter({
   defaultOrderBy: { display_order: 'asc' },
   defaultInclude: {
     items: {
-      where: { is_active: true },
+      where: { active: true },
       select: {
         id: true,
         name: true,
         sku: true,
-        base_price: true,
+        list_price: true,
       },
     },
   },
@@ -41,7 +44,7 @@ const createMaterialSchema = z.object({
   type: z.string(),
   color: z.string().optional(),
   finish: z.string().optional(),
-  base_price: z.number().min(0),
+  list_price: z.number().min(0),
   unit: z.string().default('unit'),
   specifications: z.record(z.any()).optional(),
   active: z.boolean().default(true),
@@ -67,17 +70,125 @@ const createItemSchema = z.object({
   category: z.string().optional(),
   subcategory: z.string().optional(),
   description: z.string().optional(),
-  base_price: z.number().min(0),
+  list_price: z.number().min(0),
   currency: z.string().default('USD'),
   dimensions: z.record(z.any()).optional(),
   materials: z.array(z.string()).optional(),
   colors: z.array(z.string()).optional(),
   lead_time_days: z.number().optional(),
   min_order_quantity: z.number().default(1),
-  is_active: z.boolean().default(true),
+  active: z.boolean().default(true),
   is_customizable: z.boolean().default(false),
-  type: z.enum(['Standard', 'Custom', 'Concept', 'Prototype']).default('Standard'),
+  type: z.enum(['Concept', 'Prototype', 'Production Ready']).default('Production Ready'),
   prototype_status: z.string().optional(),
+  furniture_type: z.enum(['chair', 'bench', 'table', 'sofa/loveseat', 'sectional', 'lounge', 'chaise_lounge', 'ottoman']).optional(),
+});
+
+// Furniture Dimensions Schema
+const furnitureDimensionsSchema = z.object({
+  item_id: z.string().uuid(),
+  furniture_type: z.enum(['chair', 'bench', 'table', 'sofa/loveseat', 'sectional', 'lounge', 'chaise_lounge', 'ottoman']),
+
+  // Universal dimensions
+  height_inches: z.number().positive().optional(),
+  height_cm: z.number().positive().optional(),
+  width_inches: z.number().positive().optional(),
+  width_cm: z.number().positive().optional(),
+  depth_inches: z.number().positive().optional(),
+  depth_cm: z.number().positive().optional(),
+  weight_capacity: z.number().positive().optional(),
+
+  // Table-specific
+  length_inches: z.number().positive().optional(),
+  length_cm: z.number().positive().optional(),
+  apron_height_inches: z.number().positive().optional(),
+  apron_height_cm: z.number().positive().optional(),
+  leg_clearance_inches: z.number().positive().optional(),
+  leg_clearance_cm: z.number().positive().optional(),
+  overhang_inches: z.number().positive().optional(),
+  overhang_cm: z.number().positive().optional(),
+  leaf_width_inches: z.number().positive().optional(),
+  leaf_width_cm: z.number().positive().optional(),
+  leaf_length_inches: z.number().positive().optional(),
+  leaf_length_cm: z.number().positive().optional(),
+
+  // Chair/Seating-specific
+  seat_height_inches: z.number().positive().optional(),
+  seat_height_cm: z.number().positive().optional(),
+  seat_width_inches: z.number().positive().optional(),
+  seat_width_cm: z.number().positive().optional(),
+  seat_depth_inches: z.number().positive().optional(),
+  seat_depth_cm: z.number().positive().optional(),
+  arm_height_inches: z.number().positive().optional(),
+  arm_height_cm: z.number().positive().optional(),
+  backrest_height_inches: z.number().positive().optional(),
+  backrest_height_cm: z.number().positive().optional(),
+  width_across_arms_inches: z.number().positive().optional(),
+  width_across_arms_cm: z.number().positive().optional(),
+
+  // Additional specialized dimensions can be added here
+  clearance_required_inches: z.number().positive().optional(),
+  clearance_required_cm: z.number().positive().optional(),
+  doorway_clearance_inches: z.number().positive().optional(),
+  doorway_clearance_cm: z.number().positive().optional(),
+
+  // Lounge-specific
+  reclined_depth_inches: z.number().positive().optional(),
+  reclined_depth_cm: z.number().positive().optional(),
+  footrest_length_inches: z.number().positive().optional(),
+  footrest_length_cm: z.number().positive().optional(),
+  zero_wall_clearance_inches: z.number().positive().optional(),
+  zero_wall_clearance_cm: z.number().positive().optional(),
+  swivel_range: z.number().positive().optional(),
+
+  // Ottoman dimensions
+  ottoman_height_inches: z.number().positive().optional(),
+  ottoman_height_cm: z.number().positive().optional(),
+  ottoman_length_inches: z.number().positive().optional(),
+  ottoman_length_cm: z.number().positive().optional(),
+  ottoman_width_inches: z.number().positive().optional(),
+  ottoman_width_cm: z.number().positive().optional(),
+
+  // Interior/Storage dimensions
+  interior_width_inches: z.number().positive().optional(),
+  interior_width_cm: z.number().positive().optional(),
+  interior_depth_inches: z.number().positive().optional(),
+  interior_depth_cm: z.number().positive().optional(),
+  interior_height_inches: z.number().positive().optional(),
+  interior_height_cm: z.number().positive().optional(),
+
+  // Specialized measurements
+  backrest_angle: z.number().positive().optional(),
+  chaise_orientation: z.enum(['left', 'right']).optional(),
+  adjustable_positions: z.number().positive().optional(),
+  cushion_thickness_compressed_inches: z.number().positive().optional(),
+  cushion_thickness_compressed_cm: z.number().positive().optional(),
+  cushion_thickness_uncompressed_inches: z.number().positive().optional(),
+  cushion_thickness_uncompressed_cm: z.number().positive().optional(),
+  stacking_height_inches: z.number().positive().optional(),
+  stacking_height_cm: z.number().positive().optional(),
+  folded_width_inches: z.number().positive().optional(),
+  folded_width_cm: z.number().positive().optional(),
+  folded_depth_inches: z.number().positive().optional(),
+  folded_depth_cm: z.number().positive().optional(),
+  folded_height_inches: z.number().positive().optional(),
+  folded_height_cm: z.number().positive().optional(),
+  diagonal_depth_inches: z.number().positive().optional(),
+  diagonal_depth_cm: z.number().positive().optional(),
+});
+
+// Item Images Schema
+const itemImageSchema = z.object({
+  item_id: z.string().uuid(),
+  image_type: z.enum(['line_drawing', 'isometric', '3d_model', 'rendering', 'photograph']),
+  file_url: z.string().url(),
+  file_name: z.string().optional(),
+  file_size: z.number().positive().optional(),
+  mime_type: z.string().optional(),
+  alt_text: z.string().optional(),
+  description: z.string().optional(),
+  sort_order: z.number().default(0),
+  is_primary: z.boolean().default(false),
 });
 
 const baseItemsRouter = createCrudRouter({
@@ -100,7 +211,15 @@ const baseItemsRouter = createCrudRouter({
 
 // Extend items router with catalog-specific operations
 export const itemsRouter = createTRPCRouter({
-  ...baseItemsRouter._def.procedures,
+  // Include all CRUD operations from base router
+  getAll: baseItemsRouter._def.procedures.getAll,
+  getById: baseItemsRouter._def.procedures.getById,
+  search: baseItemsRouter._def.procedures.search,
+  create: baseItemsRouter._def.procedures.create,
+  update: baseItemsRouter._def.procedures.update,
+  delete: baseItemsRouter._def.procedures.delete,
+  createMany: baseItemsRouter._def.procedures.createMany,
+  deleteMany: baseItemsRouter._def.procedures.deleteMany,
   
   // Get items by collection
   getByCollection: publicProcedure
@@ -114,7 +233,7 @@ export const itemsRouter = createTRPCRouter({
       };
       
       if (!input.includeInactive) {
-        where.is_active = true;
+        where.active = true;
       }
       
       return ctx.db.items.findMany({
@@ -162,7 +281,167 @@ export const itemsRouter = createTRPCRouter({
         sku: skuParts.join('-'),
         item,
         material,
-        totalPrice: Number(item.base_price ?? 0) + Number(material.base_price ?? 0),
+        totalPrice: Number(item.list_price ?? 0) + Number(material.list_price ?? 0),
+      };
+    }),
+
+  // Furniture Dimensions Operations
+  getFurnitureDimensions: publicProcedure
+    .input(z.object({ itemId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      try {
+        console.log('getFurnitureDimensions called with itemId:', input.itemId);
+        const result = await ctx.db.furniture_dimensions.findUnique({
+          where: { item_id: input.itemId },
+        });
+        console.log('getFurnitureDimensions result:', result ? 'Found' : 'Not found');
+        return result;
+      } catch (error) {
+        console.error('getFurnitureDimensions error:', error);
+        throw error;
+      }
+    }),
+
+  updateFurnitureDimensions: publicProcedure
+    .input(furnitureDimensionsSchema)
+    .mutation(async ({ ctx, input }) => {
+      // Validate dimensions for the furniture type
+      // Filter out non-dimension fields for validation
+      const dimensionsOnly: Record<string, number | undefined> = {};
+      Object.entries(input).forEach(([key, value]) => {
+        if (key !== 'item_id' && key !== 'furniture_type' && typeof value === 'number') {
+          dimensionsOnly[key as keyof typeof dimensionsOnly] = value;
+        }
+      });
+      const validation = validateFurnitureDimensions(input.furniture_type as FurnitureType, dimensionsOnly);
+
+      if (!validation.valid) {
+        throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
+      }
+
+      // Upsert furniture dimensions
+      return ctx.db.furniture_dimensions.upsert({
+        where: { item_id: input.item_id },
+        create: input,
+        update: input,
+      });
+    }),
+
+  deleteFurnitureDimensions: publicProcedure
+    .input(z.object({ itemId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      return ctx.db.furniture_dimensions.delete({
+        where: { item_id: input.itemId },
+      });
+    }),
+
+  // Item Images Operations
+  getItemImages: publicProcedure
+    .input(z.object({ itemId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      return ctx.db.item_images.findMany({
+        where: { item_id: input.itemId },
+        orderBy: [{ sort_order: 'asc' }, { created_at: 'asc' }],
+      });
+    }),
+
+  addItemImage: publicProcedure
+    .input(itemImageSchema)
+    .mutation(async ({ ctx, input }) => {
+      // Check if this image type has a limit (line_drawing, isometric, 3d_model = 1 each)
+      const singleImageTypes = ['line_drawing', 'isometric', '3d_model'];
+
+      if (singleImageTypes.includes(input.image_type)) {
+        // Delete existing image of this type first
+        await ctx.db.item_images.deleteMany({
+          where: {
+            item_id: input.item_id,
+            image_type: input.image_type,
+          },
+        });
+      }
+
+      return ctx.db.item_images.create({
+        data: input,
+      });
+    }),
+
+  updateItemImage: publicProcedure
+    .input(z.object({
+      id: z.string().uuid(),
+      data: itemImageSchema.partial().omit({ item_id: true }),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      return ctx.db.item_images.update({
+        where: { id: input.id },
+        data: input.data,
+      });
+    }),
+
+  deleteItemImage: publicProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      return ctx.db.item_images.delete({
+        where: { id: input.id },
+      });
+    }),
+
+  reorderItemImages: publicProcedure
+    .input(z.object({
+      itemId: z.string().uuid(),
+      imageType: z.enum(['line_drawing', 'isometric', '3d_model', 'rendering', 'photograph']),
+      imageIds: z.array(z.string().uuid()),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // Update sort order for each image
+      const updates = input.imageIds.map((imageId, index) =>
+        ctx.db.item_images.update({
+          where: {
+            id: imageId,
+            item_id: input.itemId,
+            image_type: input.imageType,
+          },
+          data: { sort_order: index },
+        })
+      );
+
+      return Promise.all(updates);
+    }),
+
+  // Combined operations for efficiency
+  getItemWithDimensionsAndImages: publicProcedure
+    .input(z.object({ itemId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const [item, dimensions, images] = await Promise.all([
+        ctx.db.items.findUnique({
+          where: { id: input.itemId },
+          include: {
+            collections: {
+              select: {
+                id: true,
+                name: true,
+                prefix: true,
+              },
+            },
+          },
+        }),
+        ctx.db.furniture_dimensions.findUnique({
+          where: { item_id: input.itemId },
+        }),
+        ctx.db.item_images.findMany({
+          where: { item_id: input.itemId },
+          orderBy: [{ image_type: 'asc' }, { sort_order: 'asc' }],
+        }),
+      ]);
+
+      return {
+        item,
+        dimensions,
+        images: images.reduce((acc: Record<string, any[]>, image: any) => {
+          if (!acc[image.image_type]) acc[image.image_type] = [];
+          acc[image.image_type].push(image);
+          return acc;
+        }, {} as Record<string, any[]>),
       };
     }),
 });

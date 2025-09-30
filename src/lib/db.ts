@@ -242,9 +242,205 @@ export interface PendingUserRequest {
   } | null;
 }
 
+// =====================================================
+// PRODUCT MODULE TYPES
+// =====================================================
+
+// Collection types (enhanced with material counts)
+export interface Collection {
+  id: string;
+  name: string;
+  prefix: string;
+  description?: string | null;
+  image_url?: string | null;
+  display_order?: number | null;
+  is_active?: boolean | null;
+  designer?: string | null;
+  created_at?: Date | null;
+  updated_at?: Date | null;
+  // Enhanced fields for material management
+  material_counts?: {
+    fabrics: number;
+    woods: number;
+    metals: number;
+    stones: number;
+    weaving: number;
+    carving: number;
+  };
+}
+
+// Material interface base
+export interface MaterialBase {
+  id: string;
+  name: string;
+  description?: string | null;
+  price_modifier: number;
+  active: boolean;
+  sort_order?: number | null;
+  created_at?: Date | null;
+  updated_at?: Date | null;
+  // Enhanced fields for collection management
+  assigned_collections?: Collection[];
+  available_to_all_collections?: boolean;
+}
+
+// Fabric hierarchy types
+export interface FabricBrand extends MaterialBase {
+  hex_code?: string | null;
+}
+
+export interface FabricCollection extends MaterialBase {
+  brand_id: string;
+  brand?: FabricBrand;
+}
+
+export interface FabricColor extends MaterialBase {
+  collection_id: string;
+  hex_code?: string | null;
+  collection?: FabricCollection & { brand?: FabricBrand };
+}
+
+// Wood hierarchy types
+export interface WoodType extends MaterialBase {}
+
+export interface WoodFinish extends MaterialBase {
+  wood_type_id: string;
+  wood_type?: WoodType;
+}
+
+// Metal hierarchy types
+export interface MetalType extends MaterialBase {}
+
+export interface MetalFinish extends MaterialBase {
+  metal_type_id: string;
+  metal_type?: MetalType;
+}
+
+export interface MetalColor extends MaterialBase {
+  metal_finish_id: string;
+  hex_code?: string | null;
+  metal_finish?: MetalFinish & { metal_type?: MetalType };
+}
+
+// Stone hierarchy types
+export interface StoneType extends MaterialBase {}
+
+export interface StoneFinish extends MaterialBase {
+  stone_type_id: string;
+  stone_type?: StoneType;
+}
+
+// Weaving hierarchy types
+export interface WeavingMaterial extends MaterialBase {}
+
+export interface WeavingPattern extends MaterialBase {
+  material_id: string;
+  weaving_material?: WeavingMaterial;
+}
+
+export interface WeavingColor extends MaterialBase {
+  pattern_id: string;
+  hex_code?: string | null;
+  weaving_pattern?: WeavingPattern & { weaving_material?: WeavingMaterial };
+}
+
+// Carving types
+export interface CarvingStyle extends MaterialBase {}
+
+// Material-Collection junction types
+export interface MaterialCollectionAssignment {
+  id: string;
+  material_type: string;
+  material_id: string;
+  collection_id: string;
+  created_by?: string | null;
+  created_at?: Date | null;
+}
+
+// Audit trail types
+export interface MaterialCollectionAudit {
+  id: string;
+  material_type: string;
+  material_id: string;
+  collection_id: string;
+  action: 'added' | 'removed';
+  user_id?: string | null;
+  created_at?: Date | null;
+  notes?: string | null;
+  // Enhanced fields for display
+  material_name?: string;
+  collection_name?: string;
+  user_name?: string;
+}
+
+// Product catalog types
+export interface Product {
+  id: string;
+  name: string;
+  sku_base: string;
+  collection_id: string;
+  collection?: Collection;
+  description?: string | null;
+  list_price: number;
+  is_active: boolean;
+  created_at?: Date | null;
+  updated_at?: Date | null;
+  type?: 'concept' | 'prototype' | 'production_ready' | null;
+  // Dimensions
+  width?: number | null;
+  depth?: number | null;
+  height?: number | null;
+  dimension_units?: 'inches' | 'cm' | null;
+  // Materials and options
+  primary_material?: string | null;
+  available_finishes?: string[];
+  available_fabrics?: string[];
+  // Images
+  primary_image_url?: string | null;
+  gallery_images?: string[];
+}
+
+// Order items (critical for CRM Projects integration)
+export interface OrderItem {
+  id: string;
+  order_id: string;
+  product_id?: string | null;
+  sku_base?: string | null;
+  sku_full?: string | null;
+  client_sku?: string | null;
+  item_name: string;
+  collection_id?: string | null;
+  collection_name?: string | null;
+  customer_name?: string | null;
+  order_number?: string | null;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+  is_rush?: boolean | null;
+  status?: string | null;
+  // Material specifications
+  materials?: {
+    fabric?: string | null;
+    wood?: string | null;
+    metal?: string | null;
+    stone?: string | null;
+    weave?: string | null;
+    carving?: string | null;
+  };
+  dimensions?: {
+    width?: number | null;
+    height?: number | null;
+    depth?: number | null;
+    weight?: number | null;
+  };
+  created_at?: Date | null;
+  updated_at?: Date | null;
+  custom_specifications?: string | null;
+}
+
 // Generic query types
 export interface QueryOptions {
-  limit?: number;
+  limit?: number | null;
   offset?: number;
   take?: number;
   skip?: number;
@@ -262,7 +458,7 @@ export interface PaginationResult<T> {
 }
 
 // Transaction callback type
-export type TransactionCallback<T> = (tx: DatabaseClient) => Promise<T>;
+export type TransactionCallback<T> = (_tx: DatabaseClient) => Promise<T>;
 
 // =====================================================
 // MAIN DATABASE CLIENT CLASS
@@ -278,8 +474,8 @@ export class DatabaseClient {
    * Execute operations within a transaction
    * Provides Supabase-based transaction support
    */
-  async $transaction<T>(callback: TransactionCallback<T>): Promise<T>;
-  async $transaction<T>(operations: Promise<T>[]): Promise<T[]>;
+  async $transaction<T>(_callback: TransactionCallback<T>): Promise<T>;
+  async $transaction<T>(_operations: Promise<T>[]): Promise<T[]>;
   async $transaction<T>(callbackOrOperations: TransactionCallback<T> | Promise<T>[]): Promise<T | T[]> {
     // Since Supabase doesn't have traditional transactions like Prisma,
     // we implement a best-effort approach for the hybrid client
@@ -315,7 +511,7 @@ export class DatabaseClient {
       skip,
       orderBy,
       where = {},
-      include = {},
+      include: _include = {},
       select
     } = options;
 
@@ -326,7 +522,7 @@ export class DatabaseClient {
     let query: any = supabase.from(tableName);
 
     if (select) {
-      const selectFields = Object.keys(select).filter(key => select[key]);
+      const selectFields = Object.keys(select).filter(key => Object.prototype.hasOwnProperty.call(select, key) && select[key as keyof typeof select]);
       query = query.select(selectFields.join(', '));
     } else {
       query = query.select('*');
@@ -404,7 +600,7 @@ export class DatabaseClient {
     let query: any = supabase.from(tableName);
 
     if (options.select) {
-      const selectFields = Object.keys(options.select).filter(key => options.select![key]);
+      const selectFields = Object.keys(options.select).filter(key => Object.prototype.hasOwnProperty.call(options.select!, key) && options.select![key as keyof typeof options.select]);
       query = query.select(selectFields.join(', '));
     } else {
       query = query.select('*');
@@ -432,16 +628,16 @@ export class DatabaseClient {
     tableName: string,
     options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }
   ): Promise<T> {
-    const { data: inputData, include = {}, select } = options;
+    const { data: inputData, include: _include = {}, select } = options;
 
     // For insert operations, we need to handle select separately
     let selectFields = '*';
     if (select) {
-      const selectedFields = Object.keys(select).filter(key => select[key]);
+      const selectedFields = Object.keys(select).filter(key => Object.prototype.hasOwnProperty.call(select, key) && select[key as keyof typeof select]);
       selectFields = selectedFields.length > 0 ? selectedFields.join(', ') : '*';
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from(tableName)
       .insert({
         ...inputData,
@@ -465,10 +661,10 @@ export class DatabaseClient {
     tableName: string,
     options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }
   ): Promise<T> {
-    const { where, data: updateData, include = {}, select } = options;
+    const { where, data: updateData, include: _include = {}, select } = options;
 
     // Start with update operation
-    let query: any = supabase.from(tableName).update({
+    let query: any = (supabase as any).from(tableName).update({
       ...updateData,
       updated_at: new Date().toISOString(),
     });
@@ -480,7 +676,7 @@ export class DatabaseClient {
 
     // Add select clause
     if (select) {
-      const selectFields = Object.keys(select).filter(key => select[key]);
+      const selectFields = Object.keys(select).filter(key => Object.prototype.hasOwnProperty.call(select, key) && select[key as keyof typeof select]);
       query = query.select(selectFields.join(', '));
     } else {
       query = query.select('*');
@@ -611,7 +807,7 @@ export class DatabaseClient {
 
     // For now, we'll implement a simplified version
     // In a real implementation, this would need proper SQL aggregation
-    let query = supabase.from(tableName);
+    let query = (supabase as any).from(tableName);
 
     // Select the grouping fields and any count fields
     const selectFields = [...by];
@@ -620,16 +816,16 @@ export class DatabaseClient {
       selectFields.push('*');
     }
 
-    query = query.select(selectFields.join(', '));
+    query = (query as any).select(selectFields.join(', '));
 
     // Apply where conditions
     Object.entries(where).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
-        query = query.eq(key, value);
+        query = (query as any).eq(key, value);
       }
     });
 
-    const { data, error } = await query;
+    const { data, error } = await (query as any);
 
     if (error) {
       throw new Error(`Failed to group by in ${tableName}: ${error.message}`);
@@ -653,12 +849,12 @@ export class DatabaseClient {
     const { _sum, _count, where = {} } = options;
 
     // For now, implement a simplified version
-    let query = supabase.from(tableName);
+    let query = (supabase as any).from(tableName);
 
     // Apply where conditions
     Object.entries(where).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
-        query = query.eq(key, value);
+        query = (query as any).eq(key, value);
       }
     });
 
@@ -679,8 +875,10 @@ export class DatabaseClient {
     if (_sum && data) {
       result._sum = {};
       Object.keys(_sum).forEach(field => {
-        const values = data.map(item => item[field]).filter(val => typeof val === 'number');
-        result._sum[field] = values.reduce((acc, val) => acc + val, 0);
+        const values = data.map((item: any) => Object.prototype.hasOwnProperty.call(item, field) ? item[field as keyof typeof item] : null).filter((val: any) => typeof val === 'number');
+        if (Object.prototype.hasOwnProperty.call(result._sum, field)) {
+          result._sum[field as keyof typeof result._sum] = values.reduce((acc: any, val: any) => acc + val, 0);
+        }
       });
     }
 
@@ -871,6 +1069,121 @@ export class DatabaseClient {
       this.countGeneric('materials', options),
   };
 
+  // Material Categories model
+  material_categories = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('material_categories', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('material_categories', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('material_categories', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('material_categories', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('material_categories', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('material_categories', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('material_categories', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('material_categories', options),
+  };
+
+  // Material Collections Junction model
+  material_collections = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('material_collections', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('material_collections', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('material_collections', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('material_collections', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('material_collections', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('material_collections', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('material_collections', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('material_collections', options),
+  };
+
+  // Furniture Dimensions model
+  furniture_dimensions = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('furniture_dimensions', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('furniture_dimensions', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('furniture_dimensions', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('furniture_dimensions', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('furniture_dimensions', options),
+    upsert: async (options: { where: Record<string, any>; create: Record<string, any>; update: Record<string, any> }) => {
+      // Try to find existing record
+      const existing = await this.findUniqueGeneric<any>('furniture_dimensions', { where: options.where });
+      if (existing) {
+        return this.updateGeneric<any>('furniture_dimensions', { where: options.where, data: options.update });
+      } else {
+        return this.createGeneric<any>('furniture_dimensions', { data: { ...options.where, ...options.create } });
+      }
+    },
+  };
+
+  // Item Images model
+  item_images = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('item_images', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('item_images', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('item_images', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('item_images', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('item_images', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('item_images', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('item_images', options),
+  };
+
+  // Fabric Brands model (for materials management)
+  fabric_brands = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('fabric_brands', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('fabric_brands', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('fabric_brands', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('fabric_brands', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('fabric_brands', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('fabric_brands', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('fabric_brands', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('fabric_brands', options),
+  };
+
+  // Fabric Brand Collections junction table (for assignments)
+  fabric_brand_collections = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('fabric_brand_collections', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('fabric_brand_collections', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('fabric_brand_collections', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('fabric_brand_collections', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('fabric_brand_collections', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('fabric_brand_collections', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('fabric_brand_collections', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('fabric_brand_collections', options),
+  };
+
   // =====================================================
   // LEGACY TASK OPERATIONS (PRESERVED FOR COMPATIBILITY)
   // =====================================================
@@ -927,7 +1240,7 @@ export class DatabaseClient {
       throw new Error(`Failed to find task: ${error.message}`);
     }
 
-    let result = this.transformTask(task);
+    const result = this.transformTask(task);
 
     // If includes are requested, fetch related data
     if (options.include) {
@@ -1048,7 +1361,7 @@ export class DatabaseClient {
       .select('*', { count: 'exact' });
 
     // Build OR conditions for tasks assigned to user, created by user, or watched by user
-    let conditions = [
+    const conditions = [
       `assigned_to.ov.{${userId}}`,
       `created_by.eq.${userId}`
     ];
@@ -1243,6 +1556,31 @@ export class DatabaseClient {
     if (error) {
       throw new Error(`Failed to delete task entity link: ${error.message}`);
     }
+  }
+
+  // Get unique tags from all tasks
+  async getUniqueTags(): Promise<string[]> {
+    const { data: tasks, error } = await supabase
+      .from('tasks')
+      .select('tags')
+      .not('tags', 'is', null);
+
+    if (error) {
+      throw new Error(`Failed to get unique tags: ${error.message}`);
+    }
+
+    const allTags = new Set<string>();
+    tasks?.forEach((task: any) => {
+      if (Array.isArray(task.tags)) {
+        task.tags.forEach((tag: string) => {
+          if (tag && tag.trim()) {
+            allTags.add(tag.trim());
+          }
+        });
+      }
+    });
+
+    return Array.from(allTags).sort();
   }
 
   // =====================================================
@@ -1559,8 +1897,8 @@ export class DatabaseClient {
     ];
 
     dateFields.forEach(field => {
-      if (transformed[field] && typeof transformed[field] === 'string') {
-        transformed[field] = new Date(transformed[field]);
+      if (Object.prototype.hasOwnProperty.call(transformed, field) && typeof transformed[field as keyof typeof transformed] === 'string') {
+        transformed[field as keyof typeof transformed] = new Date(transformed[field as keyof typeof transformed] as string);
       }
     });
 

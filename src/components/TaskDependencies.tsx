@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { api } from "@/lib/api/client";
+import { api as _api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -39,7 +39,7 @@ import {
   CheckCircle2,
   X,
   MoreVertical,
-  Trash2,
+  Trash2 as _Trash2,
 } from "lucide-react";
 
 type TaskStatus = 'todo' | 'in_progress' | 'completed' | 'cancelled';
@@ -145,11 +145,11 @@ export default function TaskDependencies({ taskId, onUpdate }: TaskDependenciesP
     }
   };
 
-  const getDependencyIcon = (type: DependencyType) => {
+  const _getDependencyIcon = (type: DependencyType) => {
     return type === 'depends_on' ? <ArrowRight className="h-4 w-4" /> : <Link2 className="h-4 w-4" />;
   };
 
-  const getDependencyColor = (type: DependencyType) => {
+  const _getDependencyColor = (type: DependencyType) => {
     return type === 'depends_on'
       ? 'text-blue-400 border-blue-400/30 bg-blue-400/10'
       : 'text-orange-400 border-orange-400/30 bg-orange-400/10';

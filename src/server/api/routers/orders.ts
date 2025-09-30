@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { createCrudRouter } from '../utils/crud-generator';
 import { createTRPCRouter, publicProcedure } from '../trpc/init';
+import { getSupabaseAdmin } from '@/lib/supabase';
 
 // Order Schema
 const createOrderSchema = z.object({
@@ -207,6 +208,91 @@ export const ordersRouter = createTRPCRouter({
       }
 
       return order;
+    }),
+
+  // Create order with order items (for project orders)
+  createWithItems: publicProcedure
+    .input(z.object({
+      project_id: z.string().uuid(),
+      customer_id: z.string().uuid(),
+      collection_id: z.string().uuid().optional(),
+      order_items: z.array(z.object({
+        product_name: z.string(),
+        product_sku: z.string(),
+        project_sku: z.string(),
+        base_sku: z.string(),
+        quantity: z.number().min(1),
+        unit_price: z.number().min(0),
+        total_price: z.number().min(0),
+        material_selections: z.record(z.string()),
+        custom_specifications: z.string().optional(),
+      })),
+      notes: z.string().optional(),
+      priority: z.enum(['low', 'normal', 'high', 'urgent']).default('normal'),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // Generate order number
+      const orderCount = await ctx.db.orders.count();
+      const orderNumber = `ORD-${(orderCount + 1).toString().padStart(6, '0')}`;
+
+      // Calculate total amount
+      const totalAmount = input.order_items.reduce((sum, item) => sum + item.total_price, 0);
+
+      // Create the order
+      const order = await ctx.db.orders.create({
+        data: {
+          order_number: orderNumber,
+          customer_id: input.customer_id,
+          collection_id: input.collection_id,
+          status: 'pending',
+          priority: input.priority,
+          total_amount: totalAmount,
+          notes: input.notes,
+          created_by: ctx.session?.user?.id || 'system',
+        },
+      });
+
+      // Create order items using Supabase admin client
+      const supabase = getSupabaseAdmin();
+      const createdItems: any[] = [];
+
+      for (const item of input.order_items) {
+        const orderItemData = {
+          order_id: order.id,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          client_sku: item.project_sku, // Use project SKU as client SKU
+          description: item.product_name,
+          specifications: {
+            product_sku: item.product_sku,
+            project_sku: item.project_sku,
+            base_sku: item.base_sku,
+            material_selections: item.material_selections,
+            custom_specifications: item.custom_specifications,
+          },
+          status: 'pending',
+        };
+
+        const { data: orderItem, error } = await supabase
+          .from('order_items')
+          .insert(orderItemData as any)
+          .select()
+          .single();
+
+        if (error) {
+          throw new Error(`Failed to create order item: ${error.message}`);
+        }
+
+        createdItems.push(orderItem);
+      }
+
+      // Return order with items
+      return {
+        order,
+        order_items: createdItems,
+        total_items: createdItems.length,
+        total_amount: totalAmount,
+      };
     }),
 
   // Update order status with validation

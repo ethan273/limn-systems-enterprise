@@ -2,25 +2,25 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { format } from 'date-fns';
+import { format as _format } from 'date-fns';
 import { 
-  Check, 
-  X, 
-  Eye, 
-  Clock, 
-  AlertCircle, 
-  Filter, 
-  Search,
-  ChevronDown,
-  UserCheck,
-  UserX,
-  Building,
-  Mail,
-  Phone,
-  Calendar,
-  MessageSquare,
+  Check as _Check,
+  X as _X,
+  Eye as _Eye,
+  Clock as _Clock,
+  AlertCircle as _AlertCircle,
+  Filter as _Filter,
+  Search as _Search,
+  ChevronDown as _ChevronDown,
+  UserCheck as _UserCheck,
+  UserX as _UserX,
+  Building as _Building,
+  Mail as _Mail,
+  Phone as _Phone,
+  Calendar as _Calendar,
+  MessageSquare as _MessageSquare,
   Loader2,
-  RefreshCw
+  RefreshCw as _RefreshCw
 } from 'lucide-react';
 
 interface PendingSignUp {
@@ -39,10 +39,10 @@ interface PendingSignUp {
 export default function AdminApprovalDashboard() {
   const [signUps, setSignUps] = useState<PendingSignUp[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedSignUp, setSelectedSignUp] = useState<PendingSignUp | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'verified' | 'unverified'>('all');
-  const [refreshing, setRefreshing] = useState(false);
+  const [_selectedSignUp, _setSelectedSignUp] = useState<PendingSignUp | null>(null);
+  const [_searchTerm, _setSearchTerm] = useState('');
+  const [_filterStatus, _setFilterStatus] = useState<'all' | 'verified' | 'unverified'>('all');
+  const [_refreshing, _setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchPendingSignUps();

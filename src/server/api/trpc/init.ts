@@ -2,7 +2,7 @@ import { initTRPC, TRPCError } from '@trpc/server';
 import superjson from 'superjson';
 import { ZodError } from 'zod';
 import type { Context } from './context';
-import { captureException, withSentryTracing, addBreadcrumb } from '@/lib/sentry';
+import { captureException, addBreadcrumb } from '@/lib/sentry';
 
 const t = initTRPC.context<Context>().create({
   transformer: superjson,

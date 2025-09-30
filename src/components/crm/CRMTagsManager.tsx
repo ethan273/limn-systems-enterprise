@@ -30,7 +30,7 @@ import {
   Trash2,
   Hash,
   Search,
-  Filter,
+  // Filter not used
   MoreHorizontal,
   Check,
   Copy,
@@ -38,7 +38,7 @@ import {
 
 interface CRMTagsManagerProps {
   tags: string[];
-  onTagsChange: (tags: string[]) => void;
+  onTagsChange: (_tags: string[]) => void;
   label?: string;
   placeholder?: string;
   maxTags?: number;
@@ -51,7 +51,7 @@ interface CRMTagsManagerProps {
 
 interface TagInputProps {
   value: string;
-  onChange: (value: string) => void;
+  onChange: (_value: string) => void;
   onSubmit: () => void;
   onCancel: () => void;
   placeholder?: string;
@@ -221,7 +221,7 @@ export function CRMTagsManager({
             size="sm"
             onClick={() => setIsDialogOpen(true)}
             className="h-6 px-2 text-xs"
-            disabled={maxTags && tags.length >= maxTags}
+            disabled={Boolean(maxTags && tags.length >= maxTags)}
           >
             <Plus className="w-3 h-3 mr-1" />
             Add
@@ -301,7 +301,7 @@ export function CRMTagsManager({
             size="sm"
             onClick={() => setIsAddingTag(true)}
             className="h-7 px-3 text-sm"
-            disabled={maxTags && tags.length >= maxTags}
+            disabled={Boolean(maxTags && tags.length >= maxTags)}
           >
             <Plus className="w-3 h-3 mr-1" />
             Add Tag
@@ -417,7 +417,7 @@ export function CRMTagsManager({
                 variant="outline"
                 size="sm"
                 onClick={() => setIsAddingTag(true)}
-                disabled={maxTags && tags.length >= maxTags}
+                disabled={Boolean(maxTags && tags.length >= maxTags)}
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add Custom Tag
@@ -432,7 +432,7 @@ export function CRMTagsManager({
               <Button
                 variant="outline"
                 size="sm"
-                disabled={maxTags && tags.length >= maxTags}
+                disabled={Boolean(maxTags && tags.length >= maxTags)}
               >
                 <Hash className="w-4 h-4 mr-2" />
                 Browse Tags
@@ -470,7 +470,7 @@ export function CRMTagsManager({
                           size="sm"
                           onClick={() => handleAddPredefinedTag(tag)}
                           className="h-7 px-3 text-sm justify-start"
-                          disabled={maxTags && tags.length >= maxTags}
+                          disabled={Boolean(maxTags && tags.length >= maxTags)}
                         >
                           <Plus className="w-3 h-3 mr-1" />
                           {tag}
@@ -490,7 +490,7 @@ export function CRMTagsManager({
                           setSearchTerm('');
                         }}
                         className="w-full justify-start"
-                        disabled={maxTags && tags.length >= maxTags}
+                        disabled={Boolean(maxTags && tags.length >= maxTags)}
                       >
                         <Plus className="w-4 h-4 mr-2" />
                         Create &quot;{searchTerm}&quot;
@@ -526,7 +526,7 @@ export function QuickTagsManager({
   className = '',
 }: {
   tags: string[];
-  onTagsChange: (tags: string[]) => void;
+  onTagsChange: (_tags: string[]) => void;
   className?: string;
 }) {
   return (
@@ -546,7 +546,7 @@ export function InlineTagsManager({
   className = '',
 }: {
   tags: string[];
-  onTagsChange: (tags: string[]) => void;
+  onTagsChange: (_tags: string[]) => void;
   className?: string;
 }) {
   return (

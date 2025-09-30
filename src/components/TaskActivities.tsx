@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { api } from "@/lib/api/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -33,9 +34,12 @@ interface TaskActivitiesProps {
 type ActivityType = 'comment' | 'status_change' | 'assignment' | 'attachment' | 'entity_linked' | 'task_created';
 
 export default function TaskActivities({ taskId, onUpdate }: TaskActivitiesProps) {
+  const { user } = useAuth();
   const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [users, setUsers] = useState<Record<string, { name: string; initials: string; avatar: string | null }>>({});
+  const [_loadingUsers, setLoadingUsers] = useState(true);
 
   const { data: activities, isLoading, refetch } = api.tasks.getActivities.useQuery({
     task_id: taskId,
@@ -56,35 +60,35 @@ export default function TaskActivities({ taskId, onUpdate }: TaskActivitiesProps
     },
   });
 
-  // Mock user data - in production this would come from a users API
-  const mockUsers: Record<string, { name: string; initials: string; avatar: string | null }> = {
-    "550e8400-e29b-41d4-a716-446655440000": {
-      name: "John Doe",
-      initials: "JD",
-      avatar: null
-    },
-    "660e8400-e29b-41d4-a716-446655440001": {
-      name: "Jane Smith",
-      initials: "JS",
-      avatar: null
-    },
-    "770e8400-e29b-41d4-a716-446655440002": {
-      name: "Mike Johnson",
-      initials: "MJ",
-      avatar: null
-    }
-  };
+  // Get current user ID from auth
+  const currentUserId = user?.id;
 
-  // Mock user ID - in production this would come from session
-  const mockUserId = "550e8400-e29b-41d4-a716-446655440000";
+  // Load users data
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        // TODO: Implement proper tRPC client call
+        // const result = await api.users.getAllUsers.fetch({ limit: 100 });
+        console.log('TODO: Load users data via tRPC');
+        // TODO: Process user data when API is properly implemented
+        setUsers({});
+      } catch (error) {
+        console.error('Failed to fetch users:', error);
+      } finally {
+        setLoadingUsers(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   const handleAddComment = async () => {
-    if (!commentText.trim() || isSubmitting) return;
+    if (!commentText.trim() || isSubmitting || !currentUserId) return;
 
     setIsSubmitting(true);
     addActivityMutation.mutate({
       task_id: taskId,
-      user_id: mockUserId,
+      user_id: currentUserId,
       activity_type: 'comment',
       content: commentText.trim(),
       mentioned_users: [],
@@ -150,7 +154,7 @@ export default function TaskActivities({ taskId, onUpdate }: TaskActivitiesProps
         </div>
         <Dialog open={isCommentDialogOpen} onOpenChange={setIsCommentDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="text-xs">
+            <Button variant="outline" size="sm" className="text-xs" disabled={!currentUserId}>
               <Plus className="h-3 w-3 mr-1" />
               Add Comment
             </Button>
@@ -198,7 +202,7 @@ export default function TaskActivities({ taskId, onUpdate }: TaskActivitiesProps
       <div className="space-y-3">
         {activities && activities.length > 0 ? (
           activities.map((activity) => {
-            const user = mockUsers[activity.user_id] || { name: "Unknown User", initials: "?", avatar: null };
+            const activityUser = users[activity.user_id] || { name: "Unknown User", initials: "?", avatar: null };
 
             return (
               <div
@@ -206,16 +210,16 @@ export default function TaskActivities({ taskId, onUpdate }: TaskActivitiesProps
                 className="flex gap-3 p-3 bg-gray-700/20 rounded-lg border border-gray-600/30"
               >
                 <Avatar className="h-8 w-8 flex-shrink-0">
-                  <AvatarImage src={user.avatar || undefined} />
+                  <AvatarImage src={activityUser.avatar || undefined} />
                   <AvatarFallback className="text-xs bg-gray-600">
-                    {user.initials}
+                    {activityUser.initials}
                   </AvatarFallback>
                 </Avatar>
 
                 <div className="flex-1 min-w-0 space-y-1">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-gray-200">
-                      {user.name}
+                      {activityUser.name}
                     </span>
                     <div className={`flex items-center gap-1 ${getActivityColor(activity.activity_type as ActivityType)}`}>
                       {getActivityIcon(activity.activity_type as ActivityType)}

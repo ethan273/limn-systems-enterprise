@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { api } from "@/lib/api/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader as _CardHeader, CardTitle as _CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,9 +31,9 @@ import {
   MoreVertical,
   Edit,
   Trash2,
-  Calendar,
+  Calendar as _Calendar,
 } from "lucide-react";
-import { formatDistanceToNow, format, differenceInSeconds } from "date-fns";
+import { formatDistanceToNow as _formatDistanceToNow, format, differenceInSeconds } from "date-fns";
 
 interface TimeEntry {
   id: string;
@@ -51,31 +51,9 @@ interface TaskTimeTrackingProps {
   onUpdate?: () => void;
 }
 
-// Mock time entries created outside component to prevent recreation on re-render
-const createMockTimeEntries = (taskId: string): TimeEntry[] => [
-  {
-    id: "1",
-    taskId,
-    userId: "550e8400-e29b-41d4-a716-446655440000",
-    description: "Initial research and planning",
-    startTime: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-    endTime: new Date(Date.now() - 1.5 * 60 * 60 * 1000), // 1.5 hours ago
-    duration: 30 * 60, // 30 minutes in seconds
-    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-  },
-  {
-    id: "2",
-    taskId,
-    userId: "550e8400-e29b-41d4-a716-446655440000",
-    description: "Code implementation",
-    startTime: new Date(Date.now() - 1 * 60 * 60 * 1000), // 1 hour ago
-    endTime: new Date(Date.now() - 0.25 * 60 * 60 * 1000), // 15 minutes ago
-    duration: 45 * 60, // 45 minutes in seconds
-    createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000),
-  },
-];
 
 export default function TaskTimeTracking({ taskId, onUpdate }: TaskTimeTrackingProps) {
+  const { user } = useAuth();
   const [isTrackingTime, setIsTrackingTime] = useState(false);
   const [currentStartTime, setCurrentStartTime] = useState<Date | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -88,12 +66,32 @@ export default function TaskTimeTracking({ taskId, onUpdate }: TaskTimeTrackingP
   const [editHours, setEditHours] = useState("");
   const [editMinutes, setEditMinutes] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
+  const [loadingEntries, setLoadingEntries] = useState(true);
 
-  // Mock time entries - in production this would come from the API
-  const [timeEntries, setTimeEntries] = useState<TimeEntry[]>(() => createMockTimeEntries(taskId));
+  // Get current user ID from auth
+  const currentUserId = user?.id;
 
-  // Mock user ID - in production this would come from session
-  const mockUserId = "550e8400-e29b-41d4-a716-446655440000";
+  // Load time entries on mount
+  useEffect(() => {
+    const loadTimeEntries = async () => {
+      try {
+        // TODO: Implement time tracking API endpoints
+        // const entries = await api.tasks.getTimeEntries.query({ taskId });
+        // setTimeEntries(entries);
+        console.log('Loading time entries for task:', taskId);
+        // For now, set empty array since we don't have the API yet
+        setTimeEntries([]);
+      } catch (error) {
+        console.error('Failed to load time entries:', error);
+        setTimeEntries([]);
+      } finally {
+        setLoadingEntries(false);
+      }
+    };
+
+    loadTimeEntries();
+  }, [taskId]);
 
   // Update elapsed time every second when tracking
   useEffect(() => {
@@ -127,14 +125,29 @@ export default function TaskTimeTracking({ taskId, onUpdate }: TaskTimeTrackingP
     const endTime = new Date();
     const duration = differenceInSeconds(endTime, currentStartTime);
 
-    // Here you would save the time entry via API
-    console.log('Saving time entry:', {
-      taskId,
-      userId: mockUserId,
-      startTime: currentStartTime,
-      endTime,
-      duration,
-    });
+    // Save the time entry via API
+    if (currentUserId) {
+      try {
+        // Note: This would need to be implemented in the API
+        console.log('Saving time entry:', {
+          taskId,
+          userId: currentUserId,
+          startTime: currentStartTime,
+          endTime,
+          duration,
+        });
+        // TODO: Implement time tracking API endpoints
+        // await api.tasks.addTimeEntry.mutate({
+        //   taskId,
+        //   userId: currentUserId,
+        //   startTime: currentStartTime.toISOString(),
+        //   endTime: endTime.toISOString(),
+        //   duration,
+        // });
+      } catch (error) {
+        console.error('Failed to save time entry:', error);
+      }
+    }
 
     // Reset timer state
     setIsTrackingTime(false);
@@ -153,15 +166,30 @@ export default function TaskTimeTracking({ taskId, onUpdate }: TaskTimeTrackingP
     const now = new Date();
     const startTime = new Date(now.getTime() - totalMinutes * 60 * 1000);
 
-    // Here you would save the manual time entry via API
-    console.log('Saving manual time entry:', {
-      taskId,
-      userId: mockUserId,
-      description: entryDescription,
-      startTime,
-      endTime: now,
-      duration: totalMinutes * 60,
-    });
+    // Save the manual time entry via API
+    if (currentUserId) {
+      try {
+        console.log('Saving manual time entry:', {
+          taskId,
+          userId: currentUserId,
+          description: entryDescription,
+          startTime,
+          endTime: now,
+          duration: totalMinutes * 60,
+        });
+        // TODO: Implement time tracking API endpoints
+        // await api.tasks.addTimeEntry.mutate({
+        //   taskId,
+        //   userId: currentUserId,
+        //   description: entryDescription,
+        //   startTime: startTime.toISOString(),
+        //   endTime: now.toISOString(),
+        //   duration: totalMinutes * 60,
+        // });
+      } catch (error) {
+        console.error('Failed to save manual time entry:', error);
+      }
+    }
 
     setManualHours("");
     setManualMinutes("");
@@ -436,7 +464,12 @@ export default function TaskTimeTracking({ taskId, onUpdate }: TaskTimeTrackingP
       <div className="space-y-2">
         <h4 className="text-sm font-medium text-gray-300">Time Entries</h4>
 
-        {timeEntries.length > 0 ? (
+{loadingEntries ? (
+          <div className="text-center py-6 text-gray-500">
+            <Clock className="h-8 w-8 mx-auto mb-2 text-gray-600 animate-spin" />
+            <p className="text-sm">Loading time entries...</p>
+          </div>
+        ) : timeEntries.length > 0 ? (
           <div className="space-y-2">
             {timeEntries.map((entry) => (
               <div

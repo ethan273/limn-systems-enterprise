@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { api } from "@/lib/api/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -26,7 +27,7 @@ import {
   Trash2,
   Upload,
   FileText,
-  Image,
+  Image as ImageIcon,
   File,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -38,6 +39,7 @@ interface TaskAttachmentsProps {
 }
 
 export default function TaskAttachments({ taskId, onUpdate }: TaskAttachmentsProps) {
+  const { user } = useAuth();
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
@@ -63,14 +65,16 @@ export default function TaskAttachments({ taskId, onUpdate }: TaskAttachmentsPro
     },
   });
 
-  // Mock user ID - in production this would come from session
-  const mockUserId = "550e8400-e29b-41d4-a716-446655440000";
+  // Get current user ID from auth
+  const currentUserId = user?.id;
 
   const handleDeleteAttachment = (attachmentId: string) => {
+    if (!currentUserId) return;
+
     if (confirm("Are you sure you want to delete this attachment?")) {
       deleteAttachmentMutation.mutate({
         id: attachmentId,
-        user_id: mockUserId,
+        user_id: currentUserId,
       });
     }
   };
@@ -167,26 +171,27 @@ export default function TaskAttachments({ taskId, onUpdate }: TaskAttachmentsPro
   };
 
   const uploadFiles = async () => {
-    if (selectedFiles.length === 0 || uploading) return;
+    if (selectedFiles.length === 0 || uploading || !currentUserId) return;
 
     setUploading(true);
-    const progressUpdates: Record<string, number> = {};
+    const progressUpdates = new Map<string, number>();
 
     try {
       for (let i = 0; i < selectedFiles.length; i++) {
-        const file = selectedFiles[i];
+        const file = selectedFiles.at(i);
+        if (!file) continue;
         const fileKey = `${file.name}-${i}`;
 
-        progressUpdates[fileKey] = 0;
-        setUploadProgress({ ...progressUpdates });
+        progressUpdates.set(fileKey, 0);
+        setUploadProgress(Object.fromEntries(progressUpdates));
 
         // Upload to Supabase Storage
         const uploadResult = await uploadTaskAttachment(
           taskId,
           file,
           (progress) => {
-            progressUpdates[fileKey] = progress;
-            setUploadProgress({ ...progressUpdates });
+            progressUpdates.set(fileKey, progress);
+            setUploadProgress(Object.fromEntries(progressUpdates));
           }
         );
 
@@ -199,19 +204,19 @@ export default function TaskAttachments({ taskId, onUpdate }: TaskAttachmentsPro
               file_path: uploadResult.data.path,
               file_size: file.size,
               mime_type: file.type,
-              uploaded_by: mockUserId,
+              uploaded_by: currentUserId!,
             });
-            progressUpdates[fileKey] = 100;
+            progressUpdates.set(fileKey, 100);
           } catch (dbError) {
             console.error(`Database save failed for ${file.name}:`, dbError);
-            delete progressUpdates[fileKey];
+            progressUpdates.delete(fileKey);
           }
         } else {
           console.error(`Upload failed for ${file.name}:`, uploadResult.error);
           // Show user-friendly error message
           alert(`Upload failed for ${file.name}: ${uploadResult.error}`);
           // Remove failed file from progress
-          delete progressUpdates[fileKey];
+          progressUpdates.delete(fileKey);
         }
       }
 
@@ -233,7 +238,7 @@ export default function TaskAttachments({ taskId, onUpdate }: TaskAttachmentsPro
     if (!mimeType) {
       const ext = fileName.split('.').pop()?.toLowerCase();
       if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext || '')) {
-        return <Image className="h-4 w-4 text-blue-400" />;
+        return <ImageIcon className="h-4 w-4 text-blue-400" />;
       }
       if (['pdf', 'doc', 'docx', 'txt'].includes(ext || '')) {
         return <FileText className="h-4 w-4 text-green-400" />;
@@ -242,7 +247,7 @@ export default function TaskAttachments({ taskId, onUpdate }: TaskAttachmentsPro
     }
 
     if (mimeType.startsWith('image/')) {
-      return <Image className="h-4 w-4 text-blue-400" />;
+      return <ImageIcon className="h-4 w-4 text-blue-400" />;
     }
     if (mimeType.includes('pdf') || mimeType.includes('document')) {
       return <FileText className="h-4 w-4 text-green-400" />;
@@ -255,7 +260,7 @@ export default function TaskAttachments({ taskId, onUpdate }: TaskAttachmentsPro
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + (sizes[i as keyof typeof sizes] || 'Bytes');
   };
 
   if (isLoading) {
@@ -279,7 +284,7 @@ export default function TaskAttachments({ taskId, onUpdate }: TaskAttachmentsPro
         </div>
         <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="text-xs">
+            <Button variant="outline" size="sm" className="text-xs" disabled={!currentUserId}>
               <Plus className="h-3 w-3 mr-1" />
               Add File
             </Button>
@@ -330,7 +335,7 @@ export default function TaskAttachments({ taskId, onUpdate }: TaskAttachmentsPro
                     <div className="max-h-32 overflow-y-auto space-y-1">
                       {selectedFiles.map((file, index) => {
                         const fileKey = `${file.name}-${index}`;
-                        const progress = uploadProgress[fileKey] || 0;
+                        const progress = Object.prototype.hasOwnProperty.call(uploadProgress, fileKey) ? uploadProgress[fileKey as keyof typeof uploadProgress] : 0;
 
                         return (
                           <div
@@ -390,7 +395,7 @@ export default function TaskAttachments({ taskId, onUpdate }: TaskAttachmentsPro
                 <Button
                   size="sm"
                   onClick={uploadFiles}
-                  disabled={selectedFiles.length === 0 || uploading}
+                  disabled={selectedFiles.length === 0 || uploading || !currentUserId}
                 >
                   {uploading ? 'Uploading...' : `Upload ${selectedFiles.length} File${selectedFiles.length === 1 ? '' : 's'}`}
                 </Button>

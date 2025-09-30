@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,7 +38,6 @@ import {
   Filter,
   Plus,
   MoreVertical,
-  Calendar,
   ChevronDown,
   ChevronUp,
   Building,
@@ -134,7 +133,7 @@ export default function ContactsPage() {
     },
   });
 
-  const handleContactUpdate = () => {
+  const _handleContactUpdate = () => {
     refetch();
   };
 

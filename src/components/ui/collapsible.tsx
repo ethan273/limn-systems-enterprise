@@ -1,6 +1,6 @@
 "use client"
 
-import * as React from "react"
+// React import not needed for this simple re-export component
 import * as CollapsiblePrimitive from "@radix-ui/react-collapsible"
 
 const Collapsible = CollapsiblePrimitive.Root

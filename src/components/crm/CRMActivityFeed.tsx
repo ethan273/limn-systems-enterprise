@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Avatar } from '@/components/ui/avatar';
+// Avatar component not used in this file
 import {
   Dialog,
   DialogContent,
@@ -14,7 +14,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  // DialogTrigger not used
 } from '@/components/ui/dialog';
 import {
   Select,
@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Calendar,
   Clock,
@@ -33,21 +33,14 @@ import {
   MessageSquare,
   FileText,
   DollarSign,
-  HandHeart,
-  AlertCircle,
   CheckCircle,
   Plus,
-  Filter,
   Search,
-  MoreHorizontal,
   ExternalLink,
-  MapPin,
   Video,
   Coffee,
   Briefcase,
   Target,
-  TrendingUp,
-  Send,
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 
@@ -90,8 +83,8 @@ export interface CRMActivity {
 
 interface CRMActivityFeedProps {
   activities: CRMActivity[];
-  onActivityAdd?: (activity: Omit<CRMActivity, 'id' | 'created_at' | 'updated_at'>) => void;
-  onActivityUpdate?: (id: string, updates: Partial<CRMActivity>) => void;
+  onActivityAdd?: (_activity: Omit<CRMActivity, 'id' | 'created_at' | 'updated_at'>) => void;
+  onActivityUpdate?: (_id: string, _updates: Partial<CRMActivity>) => void;
   entityType?: 'contact' | 'lead' | 'customer' | 'opportunity';
   entityId?: string;
   showAddButton?: boolean;
@@ -104,8 +97,8 @@ interface CRMActivityFeedProps {
 
 interface AddActivityDialogProps {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onActivityAdd: (activity: Omit<CRMActivity, 'id' | 'created_at' | 'updated_at'>) => void;
+  onOpenChange: (_open: boolean) => void;
+  onActivityAdd: (_activity: Omit<CRMActivity, 'id' | 'created_at' | 'updated_at'>) => void;
   entityType?: 'contact' | 'lead' | 'customer' | 'opportunity';
   entityId?: string;
   entityName?: string;
@@ -311,7 +304,7 @@ export function CRMActivityFeed({
 }: CRMActivityFeedProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [filterType, setFilterType] = useState<ActivityType | 'all'>('all');
-  const [filterStatus, setFilterStatus] = useState<ActivityStatus | 'all'>('all');
+  const [filterStatus, _setFilterStatus] = useState<ActivityStatus | 'all'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('all');
 
@@ -530,7 +523,7 @@ export function CRMActivityFeed({
 export function EntityActivityFeed({
   entityType,
   entityId,
-  entityName,
+  entityName: _entityName,
   activities,
   onActivityAdd,
   onActivityUpdate,
@@ -542,8 +535,8 @@ export function EntityActivityFeed({
   entityId: string;
   entityName: string;
   activities: CRMActivity[];
-  onActivityAdd?: (activity: Omit<CRMActivity, 'id' | 'created_at' | 'updated_at'>) => void;
-  onActivityUpdate?: (id: string, updates: Partial<CRMActivity>) => void;
+  onActivityAdd?: (_activity: Omit<CRMActivity, 'id' | 'created_at' | 'updated_at'>) => void;
+  onActivityUpdate?: (_id: string, _updates: Partial<CRMActivity>) => void;
   currentUserId?: string;
   currentUserName?: string;
   className?: string;

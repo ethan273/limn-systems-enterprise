@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card as _Card, CardContent as _CardContent, CardHeader as _CardHeader, CardTitle as _CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar as _Avatar, AvatarFallback as _AvatarFallback, AvatarImage as _AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
@@ -34,7 +35,7 @@ import {
   AlertTriangle,
   FileText,
   Users,
-  Calendar,
+  Calendar as _Calendar,
   Star,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -66,105 +67,46 @@ interface TaskNotification {
 }
 
 interface TaskNotificationsProps {
-  onNotificationClick?: (notification: TaskNotification) => void;
+  onNotificationClick?: (_notification: TaskNotification) => void;
 }
 
 export default function TaskNotifications({ onNotificationClick }: TaskNotificationsProps) {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<TaskNotification[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Mock current user
-  const mockUserId = "550e8400-e29b-41d4-a716-446655440000";
+  // Get current user ID from auth
+  const currentUserId = user?.id;
 
-  // Initialize with mock notifications
+  // Load notifications from API
   useEffect(() => {
-    const mockNotifications: TaskNotification[] = [
-      {
-        id: "1",
-        type: 'task_assigned',
-        title: "New task assigned",
-        message: "You have been assigned to 'Fix login bug'",
-        taskId: "task-1",
-        taskTitle: "Fix login bug",
-        userId: "manager-1",
-        userName: "Sarah Johnson",
-        isRead: false,
-        isImportant: true,
-        createdAt: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
-      },
-      {
-        id: "2",
-        type: 'task_commented',
-        title: "New comment",
-        message: "Mike Johnson commented on 'Database migration'",
-        taskId: "task-2",
-        taskTitle: "Database migration",
-        userId: "user-2",
-        userName: "Mike Johnson",
-        isRead: false,
-        isImportant: false,
-        createdAt: new Date(Date.now() - 15 * 60 * 1000), // 15 minutes ago
-      },
-      {
-        id: "3",
-        type: 'task_due_soon',
-        title: "Task due soon",
-        message: "'Update documentation' is due in 2 hours",
-        taskId: "task-3",
-        taskTitle: "Update documentation",
-        userId: "system",
-        userName: "System",
-        isRead: false,
-        isImportant: true,
-        createdAt: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
-      },
-      {
-        id: "4",
-        type: 'task_completed',
-        title: "Task completed",
-        message: "Jane Smith completed 'Design review'",
-        taskId: "task-4",
-        taskTitle: "Design review",
-        userId: "user-3",
-        userName: "Jane Smith",
-        isRead: true,
-        isImportant: false,
-        createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000), // 1 hour ago
-      },
-      {
-        id: "5",
-        type: 'task_mentioned',
-        title: "You were mentioned",
-        message: "You were mentioned in 'Project planning'",
-        taskId: "task-5",
-        taskTitle: "Project planning",
-        userId: "user-4",
-        userName: "Alex Chen",
-        isRead: true,
-        isImportant: false,
-        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-      },
-      {
-        id: "6",
-        type: 'task_overdue',
-        title: "Task overdue",
-        message: "'Client presentation' is overdue by 1 day",
-        taskId: "task-6",
-        taskTitle: "Client presentation",
-        userId: "system",
-        userName: "System",
-        isRead: true,
-        isImportant: true,
-        createdAt: new Date(Date.now() - 25 * 60 * 60 * 1000), // 25 hours ago
-      },
-    ];
+    const loadNotifications = async () => {
+      if (!currentUserId) {
+        setIsLoading(false);
+        return;
+      }
 
-    setNotifications(mockNotifications);
-  }, []);
+      try {
+        // TODO: Implement notifications API endpoint
+        // const notificationsData = await api.notifications.getUserNotifications.query({ userId: currentUserId });
+        // setNotifications(notificationsData);
+        console.log('Loading notifications for user:', currentUserId);
+        // For now, set empty array since we don't have the API yet
+        setNotifications([]);
+      } catch (error) {
+        console.error('Failed to load notifications:', error);
+        setNotifications([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadNotifications();
+  }, [currentUserId]);
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
-  const importantUnreadCount = notifications.filter(n => !n.isRead && n.isImportant).length;
+  const _importantUnreadCount = notifications.filter(n => !n.isRead && n.isImportant).length;
 
   const getNotificationIcon = (type: NotificationType) => {
     switch (type) {
@@ -212,28 +154,87 @@ export default function TaskNotifications({ onNotificationClick }: TaskNotificat
     }
   };
 
-  const markAsRead = (notificationId: string) => {
+  const markAsRead = async (notificationId: string) => {
     setNotifications(prev =>
       prev.map(n =>
         n.id === notificationId ? { ...n, isRead: true } : n
       )
     );
+
+    try {
+      // TODO: Implement notification API endpoints
+      // await api.notifications.markAsRead.mutate({ notificationId });
+      console.log('Marking notification as read:', notificationId);
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+      // Revert the optimistic update
+      setNotifications(prev =>
+        prev.map(n =>
+          n.id === notificationId ? { ...n, isRead: false } : n
+        )
+      );
+    }
   };
 
-  const markAllAsRead = () => {
+  const markAllAsRead = async () => {
+    const unreadNotifications = notifications.filter(n => !n.isRead);
+
     setNotifications(prev =>
       prev.map(n => ({ ...n, isRead: true }))
     );
+
+    try {
+      // TODO: Implement notification API endpoints
+      // await api.notifications.markAllAsRead.mutate({ userId: currentUserId });
+      console.log('Marking all notifications as read for user:', currentUserId);
+    } catch (error) {
+      console.error('Failed to mark all notifications as read:', error);
+      // Revert the optimistic update
+      setNotifications(prev =>
+        prev.map(n => {
+          const wasUnread = unreadNotifications.find(un => un.id === n.id);
+          return wasUnread ? { ...n, isRead: false } : n;
+        })
+      );
+    }
   };
 
-  const deleteNotification = (notificationId: string) => {
+  const deleteNotification = async (notificationId: string) => {
+    const deletedNotification = notifications.find(n => n.id === notificationId);
+
     setNotifications(prev =>
       prev.filter(n => n.id !== notificationId)
     );
+
+    try {
+      // TODO: Implement notification API endpoints
+      // await api.notifications.deleteNotification.mutate({ notificationId });
+      console.log('Deleting notification:', notificationId);
+    } catch (error) {
+      console.error('Failed to delete notification:', error);
+      // Revert the optimistic update
+      if (deletedNotification) {
+        setNotifications(prev => [...prev, deletedNotification].sort((a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        ));
+      }
+    }
   };
 
-  const clearAllNotifications = () => {
+  const clearAllNotifications = async () => {
+    const previousNotifications = [...notifications];
+
     setNotifications([]);
+
+    try {
+      // TODO: Implement notification API endpoints
+      // await api.notifications.clearAll.mutate({ userId: currentUserId });
+      console.log('Clearing all notifications for user:', currentUserId);
+    } catch (error) {
+      console.error('Failed to clear all notifications:', error);
+      // Revert the optimistic update
+      setNotifications(previousNotifications);
+    }
   };
 
   const handleNotificationClick = (notification: TaskNotification) => {
@@ -319,7 +320,13 @@ export default function TaskNotifications({ onNotificationClick }: TaskNotificat
         </DialogHeader>
 
         <div className="max-h-[60vh] overflow-y-auto">
-          {notifications.length > 0 ? (
+          {isLoading ? (
+            <div className="text-center py-12 px-6 text-gray-400">
+              <Bell className="h-12 w-12 mx-auto mb-4 text-gray-600 animate-pulse" />
+              <h3 className="text-lg font-medium mb-2">Loading notifications...</h3>
+              <p className="text-sm">Please wait while we fetch your notifications.</p>
+            </div>
+          ) : notifications.length > 0 ? (
             <div className="space-y-1 p-2">
               {notifications.map((notification) => (
                 <div
@@ -425,7 +432,7 @@ export default function TaskNotifications({ onNotificationClick }: TaskNotificat
             <div className="text-center py-12 px-6 text-gray-400">
               <Bell className="h-12 w-12 mx-auto mb-4 text-gray-600" />
               <h3 className="text-lg font-medium mb-2">No notifications</h3>
-              <p className="text-sm">You're all caught up! New notifications will appear here.</p>
+              <p className="text-sm">You&apos;re all caught up! New notifications will appear here.</p>
             </div>
           )}
         </div>

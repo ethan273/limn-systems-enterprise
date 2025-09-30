@@ -47,22 +47,22 @@ export const addBreadcrumb = (message: string, category?: string, level?: Sentry
 };
 
 // Performance monitoring for API calls
-export const withSentryTracing = <T extends (...args: any[]) => Promise<any>>(
+export const withSentryTracing = <T extends (..._args: any[]) => Promise<any>>(
   fn: T,
   operationName: string
 ): T => {
-  return (async (...args: any[]) => {
+  return (async (..._args: any[]) => {
     return await Sentry.startSpan({
       name: operationName,
       op: 'function',
     }, async (span) => {
       try {
-        const result = await fn(...args);
+        const result = await fn(..._args);
         span?.setStatus({ code: 1 }); // OK status
         return result;
       } catch (error) {
         span?.setStatus({ code: 2 }); // INTERNAL_ERROR status
-        captureException(error as Error, { operation: operationName, args });
+        captureException(error as Error, { operation: operationName, args: _args });
         throw error;
       }
     });

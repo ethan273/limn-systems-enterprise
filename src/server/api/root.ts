@@ -8,7 +8,9 @@ import { crmRouter } from './routers/crm';
 import { clientsRouter } from './routers/clients';
 import { projectsRouter } from './routers/projects';
 import { collectionsRouter, itemsRouter, materialsRouter } from './routers/catalog';
+import { productsRouter } from './routers/products';
 import { ordersRouter } from './routers/orders';
+import { orderItemsRouter } from './routers/order-items';
 
 /**
  * Main API router
@@ -35,9 +37,11 @@ export const appRouter = createTRPCRouter({
   collections: collectionsRouter,
   items: itemsRouter,
   materials: materialsRouter,
-  
+  products: productsRouter,
+
   // Orders
   orders: ordersRouter,
+  orderItems: orderItemsRouter,
 });
 
 // Export type for client

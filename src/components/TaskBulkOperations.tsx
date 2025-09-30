@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { api } from "@/lib/api/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -16,7 +17,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -66,7 +66,7 @@ interface Task {
 interface TaskBulkOperationsProps {
   tasks: Task[];
   selectedTasks: string[];
-  onSelectionChange: (taskIds: string[]) => void;
+  onSelectionChange: (_taskIds: string[]) => void;
   onBulkComplete: () => void;
 }
 
@@ -76,15 +76,16 @@ export default function TaskBulkOperations({
   onSelectionChange,
   onBulkComplete,
 }: TaskBulkOperationsProps) {
+  const { user } = useAuth();
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
-  const [isPriorityDialogOpen, setIsPriorityDialogOpen] = useState(false);
-  const [isDepartmentDialogOpen, setIsDepartmentDialogOpen] = useState(false);
+  const [_isPriorityDialogOpen, _setIsPriorityDialogOpen] = useState(false);
+  const [_isDepartmentDialogOpen, _setIsDepartmentDialogOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<TaskStatus>('todo');
-  const [selectedPriority, setSelectedPriority] = useState<TaskPriority>('medium');
-  const [selectedDepartment, setSelectedDepartment] = useState<TaskDepartment>('admin');
+  const [_selectedPriority, _setSelectedPriority] = useState<TaskPriority>('medium');
+  const [_selectedDepartment, _setSelectedDepartment] = useState<TaskDepartment>('admin');
 
-  // Mock user ID - in production this would come from session
-  const mockUserId = "550e8400-e29b-41d4-a716-446655440000";
+  // Get current user ID from auth
+  const currentUserId = user?.id;
 
   const bulkUpdateStatusMutation = api.tasks.bulkUpdateStatus.useMutation({
     onSuccess: () => {
@@ -113,21 +114,21 @@ export default function TaskBulkOperations({
   };
 
   const handleBulkStatusUpdate = () => {
-    if (selectedTasks.length === 0) return;
+    if (selectedTasks.length === 0 || !currentUserId) return;
 
     bulkUpdateStatusMutation.mutate({
       task_ids: selectedTasks,
       status: selectedStatus,
-      user_id: mockUserId,
+      user_id: currentUserId,
     });
   };
 
   const handleBulkArchive = () => {
-    if (selectedTasks.length === 0) return;
+    if (selectedTasks.length === 0 || !currentUserId) return;
 
     bulkArchiveMutation.mutate({
       task_ids: selectedTasks,
-      user_id: mockUserId,
+      user_id: currentUserId,
     });
   };
 
@@ -198,7 +199,7 @@ export default function TaskBulkOperations({
           <DropdownMenuContent align="end">
             <DropdownMenuItem
               onClick={() => setIsStatusDialogOpen(true)}
-              disabled={bulkUpdateStatusMutation.isPending}
+              disabled={bulkUpdateStatusMutation.isPending || !currentUserId}
             >
               <CheckCircle2 className="h-4 w-4 mr-2" />
               Update Status
@@ -218,7 +219,7 @@ export default function TaskBulkOperations({
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={handleBulkArchive}
-              disabled={bulkArchiveMutation.isPending}
+              disabled={bulkArchiveMutation.isPending || !currentUserId}
             >
               <Archive className="h-4 w-4 mr-2" />
               Archive Tasks
@@ -288,7 +289,7 @@ export default function TaskBulkOperations({
               </Button>
               <Button
                 onClick={handleBulkStatusUpdate}
-                disabled={bulkUpdateStatusMutation.isPending}
+                disabled={bulkUpdateStatusMutation.isPending || !currentUserId}
               >
                 {bulkUpdateStatusMutation.isPending ? 'Updating...' : 'Update Status'}
               </Button>
@@ -314,7 +315,7 @@ export default function TaskBulkOperations({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleBulkArchive}
-              disabled={bulkArchiveMutation.isPending}
+              disabled={bulkArchiveMutation.isPending || !currentUserId}
             >
               {bulkArchiveMutation.isPending ? 'Archiving...' : 'Archive Tasks'}
             </AlertDialogAction>

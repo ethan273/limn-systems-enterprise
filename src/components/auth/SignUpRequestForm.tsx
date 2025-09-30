@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { AlertCircle, CheckCircle, Loader2, Building, User, Phone, Mail } from 'lucide-react';
+import { User } from 'lucide-react';
 
 const signUpSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -23,9 +23,9 @@ type SignUpFormData = z.infer<typeof signUpSchema>;
 
 export default function SignUpRequestForm() {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
-  const [errorMessage, setErrorMessage] = useState('');
+  const [_isSubmitting, setIsSubmitting] = useState(false);
+  const [_submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [_errorMessage, setErrorMessage] = useState('');
   const {
     register,
     handleSubmit,

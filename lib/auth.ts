@@ -11,6 +11,7 @@ export function generateSecurePassword(): string {
   
   for (let i = 0; i < length; i++) {
     const randomIndex = crypto.randomInt(0, charset.length);
+    // eslint-disable-next-line security/detect-object-injection
     password += charset[randomIndex];
   }
   

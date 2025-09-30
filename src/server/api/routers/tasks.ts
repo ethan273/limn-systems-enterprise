@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { createCrudRouter } from '../utils/crud-generator';
-import { createTRPCRouter, publicProcedure, protectedProcedure } from '../trpc/init';
+import { createTRPCRouter, publicProcedure } from '../trpc/init';
 import { db } from '@/lib/db';
 
 // Schema for creating tasks - matches updated database schema
@@ -86,7 +86,7 @@ export const tasksRouter = createTRPCRouter({
   // Create a new task
   create: publicProcedure
     .input(createTaskSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ ctx: _ctx, input }) => {
       return await db.createTask(input);
     }),
   
@@ -102,7 +102,7 @@ export const tasksRouter = createTRPCRouter({
       sortBy: z.enum(['created_at', 'due_date', 'priority', 'status', 'title']).default('created_at'),
       sortOrder: z.enum(['asc', 'desc']).default('desc'),
     }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ ctx: _ctx, input }) => {
       return await db.findManyTasks({
         limit: input.limit,
         offset: input.offset,
@@ -126,7 +126,7 @@ export const tasksRouter = createTRPCRouter({
       status: z.enum(['todo', 'in_progress', 'completed', 'cancelled']).optional(),
       includeWatching: z.boolean().default(false),
     }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ ctx: _ctx, input }) => {
       return await db.getMyTasks(input.user_id, {
         limit: input.limit,
         offset: input.offset,
@@ -141,7 +141,7 @@ export const tasksRouter = createTRPCRouter({
       id: z.string().uuid(),
       status: z.enum(['todo', 'in_progress', 'completed', 'cancelled']),
     }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ ctx: _ctx, input }) => {
       return await db.updateTask({
         id: input.id,
         status: input.status,
@@ -154,7 +154,7 @@ export const tasksRouter = createTRPCRouter({
       id: z.string().uuid(),
       priority: z.enum(['low', 'medium', 'high']),
     }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ ctx: _ctx, input }) => {
       return await db.updateTask({
         id: input.id,
         priority: input.priority,
@@ -167,7 +167,7 @@ export const tasksRouter = createTRPCRouter({
       id: z.string().uuid(),
       department: z.enum(['admin', 'production', 'design', 'sales']),
     }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ ctx: _ctx, input }) => {
       return await db.updateTask({
         id: input.id,
         department: input.department,
@@ -180,7 +180,7 @@ export const tasksRouter = createTRPCRouter({
       projectId: z.string().uuid(),
       includeCompleted: z.boolean().default(false),
     }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ ctx: _ctx, input }) => {
       return await db.getTasksByProject(input.projectId, input.includeCompleted);
     }),
 
@@ -189,7 +189,7 @@ export const tasksRouter = createTRPCRouter({
     .input(z.object({
       id: z.string().uuid(),
     }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ ctx: _ctx, input }) => {
       const task = await db.findTask(input.id);
       if (!task) {
         throw new Error('Task not found');
@@ -200,7 +200,7 @@ export const tasksRouter = createTRPCRouter({
   // Update task
   update: publicProcedure
     .input(updateTaskSchema.extend({ id: z.string().uuid() }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ ctx: _ctx, input }) => {
       return await db.updateTask(input);
     }),
 
@@ -209,7 +209,7 @@ export const tasksRouter = createTRPCRouter({
     .input(z.object({
       id: z.string().uuid(),
     }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ ctx: _ctx, input }) => {
       await db.deleteTask(input.id);
       return { success: true };
     }),
@@ -220,7 +220,7 @@ export const tasksRouter = createTRPCRouter({
       id: z.string().uuid(),
       archived_by: z.string().uuid(),
     }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ ctx: _ctx, input }) => {
       return await db.updateTask({
         id: input.id,
         archived_at: new Date().toISOString(),
@@ -233,7 +233,7 @@ export const tasksRouter = createTRPCRouter({
     .input(z.object({
       id: z.string().uuid(),
     }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ ctx: _ctx, input }) => {
       const task = await db.findTask(input.id, {
         include: {
           task_attachments: true,
@@ -254,7 +254,7 @@ export const tasksRouter = createTRPCRouter({
   // TASK ATTACHMENTS
   addAttachment: publicProcedure
     .input(taskAttachmentSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ ctx: _ctx, input }) => {
       const attachment = await db.createTaskAttachment(input);
 
       // Create activity log
@@ -279,7 +279,7 @@ export const tasksRouter = createTRPCRouter({
     .input(z.object({
       task_id: z.string().uuid(),
     }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ ctx: _ctx, input }) => {
       return await db.getTaskAttachments(input.task_id);
     }),
 
@@ -288,7 +288,7 @@ export const tasksRouter = createTRPCRouter({
       id: z.string().uuid(),
       user_id: z.string().uuid(),
     }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ ctx: _ctx, input }) => {
       const attachment = await db.findTaskAttachment(input.id);
       if (!attachment) {
         throw new Error('Attachment not found');
@@ -311,7 +311,7 @@ export const tasksRouter = createTRPCRouter({
   // TASK ACTIVITIES
   addActivity: publicProcedure
     .input(taskActivitySchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ ctx: _ctx, input }) => {
       const activity = await db.createTaskActivity(input);
 
       // Update task last_activity_at
@@ -329,7 +329,7 @@ export const tasksRouter = createTRPCRouter({
       limit: z.number().min(1).max(100).default(20),
       offset: z.number().min(0).default(0),
     }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ ctx: _ctx, input }) => {
       return await db.getTaskActivities(input.task_id, {
         limit: input.limit,
         offset: input.offset,
@@ -339,7 +339,7 @@ export const tasksRouter = createTRPCRouter({
   // TASK ENTITY LINKS
   addEntityLink: publicProcedure
     .input(taskEntityLinkSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ ctx: _ctx, input }) => {
       const link = await db.createTaskEntityLink(input);
 
       // Create activity log
@@ -358,7 +358,7 @@ export const tasksRouter = createTRPCRouter({
     .input(z.object({
       task_id: z.string().uuid(),
     }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ ctx: _ctx, input }) => {
       return await db.getTaskEntityLinks(input.task_id);
     }),
 
@@ -367,7 +367,7 @@ export const tasksRouter = createTRPCRouter({
       id: z.string().uuid(),
       user_id: z.string().uuid(),
     }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ ctx: _ctx, input }) => {
       const link = await db.findTaskEntityLink(input.id);
       if (!link) {
         throw new Error('Entity link not found');
@@ -394,7 +394,7 @@ export const tasksRouter = createTRPCRouter({
       status: z.enum(['todo', 'in_progress', 'completed', 'cancelled']),
       user_id: z.string().uuid(),
     }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ ctx: _ctx, input }) => {
       const results = await Promise.all(
         input.task_ids.map(async (taskId) => {
           await db.updateTask({ id: taskId, status: input.status });
@@ -420,7 +420,7 @@ export const tasksRouter = createTRPCRouter({
       task_ids: z.array(z.string().uuid()),
       user_id: z.string().uuid(),
     }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ ctx: _ctx, input }) => {
       const results = await Promise.all(
         input.task_ids.map(async (taskId) => {
           return await db.updateTask({
@@ -432,5 +432,11 @@ export const tasksRouter = createTRPCRouter({
       );
 
       return { archived: results.length };
+    }),
+
+  // Get unique tags from all tasks
+  getUniqueTags: publicProcedure
+    .query(async ({ ctx: _ctx }) => {
+      return await db.getUniqueTags();
     }),
 });

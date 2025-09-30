@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { createTRPCRouter, publicProcedure, protectedProcedure } from '../trpc/init';
 import type { Prisma } from '@prisma/client';
 
-interface CrudOptions<T> {
+interface CrudOptions<_T> {
   name: string;
   model: keyof Prisma.ModelName;
   createSchema?: z.ZodSchema<any>;
@@ -17,7 +17,7 @@ interface CrudOptions<T> {
  * Generate a complete CRUD router for any Prisma model
  * Provides: getAll, getById, search, create, update, delete
  */
-export function createCrudRouter<T>(options: CrudOptions<T>) {
+export function createCrudRouter<_T>(options: CrudOptions<_T>) {
   const {
     name,
     model,
@@ -31,21 +31,21 @@ export function createCrudRouter<T>(options: CrudOptions<T>) {
 
   const procedure = protect ? protectedProcedure : publicProcedure;
   
-  // Pagination schema
+  // Pagination schema - all fields optional with defaults
   const paginationSchema = z.object({
     limit: z.number().min(1).max(100).default(20),
     offset: z.number().min(0).default(0),
     orderBy: z.record(z.enum(['asc', 'desc'])).optional(),
     include: z.record(z.boolean()).optional(),
-  });
+  }).partial().default({ limit: 20, offset: 0 });
 
   return createTRPCRouter({
     // Get all with pagination
     getAll: procedure
       .input(paginationSchema)
       .query(async ({ ctx, input }) => {
-        const { limit, offset, orderBy, include } = input;
-        
+        const { limit = 20, offset = 0, orderBy, include } = input;
+
         // Type-safe model access with explicit any for dynamic access
         const modelAccess = (ctx.db as any)[model as string];
         const [items, total] = await ctx.db.$transaction([
@@ -57,7 +57,7 @@ export function createCrudRouter<T>(options: CrudOptions<T>) {
           }),
           modelAccess.count(),
         ]) as [any[], number];
-        
+
         return {
           items,
           total,

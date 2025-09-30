@@ -33,7 +33,7 @@ export interface UploadResult {
 export async function uploadTaskAttachment(
   taskId: string,
   file: File,
-  _onProgress?: (progress: number) => void
+  _onProgress?: (_progress: number) => void
 ): Promise<UploadResult> {
   try {
     // Validate file size (50MB limit)

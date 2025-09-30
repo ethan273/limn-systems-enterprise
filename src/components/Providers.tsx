@@ -6,7 +6,7 @@ import { AuthProvider } from "@/lib/auth/AuthProvider";
 
 interface AppContextType {
   sidebarOpen: boolean;
-  setSidebarOpen: (open: boolean) => void;
+  setSidebarOpen: (_open: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);

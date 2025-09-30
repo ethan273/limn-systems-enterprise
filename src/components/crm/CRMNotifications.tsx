@@ -1,23 +1,23 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Avatar } from '@/components/ui/avatar';
+// Avatar import not used
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
+  // DialogDescription not used
+  // DialogHeader not used
+  // DialogTitle not used
   DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
+  // DropdownMenuLabel not used
+  // DropdownMenuSeparator not used
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -27,21 +27,20 @@ import {
   Calendar,
   Clock,
   DollarSign,
-  Mail,
-  Phone,
+  // Mail not used
+  // Phone not used
   TrendingUp,
   AlertTriangle,
   CheckCircle,
   Users,
-  Building2,
+  // Building2 not used
   Target,
-  Handshake,
   FileText,
   Star,
   X,
   Settings,
-  Volume2,
-  VolumeX,
+  // Volume2 not used
+  // VolumeX not used
   Trash2,
   MoreHorizontal,
   ExternalLink,
@@ -95,11 +94,11 @@ export interface CRMNotification {
 
 interface CRMNotificationsProps {
   notifications: CRMNotification[];
-  onNotificationRead?: (id: string) => void;
-  onNotificationDismiss?: (id: string) => void;
-  onNotificationAction?: (notification: CRMNotification) => void;
-  onBulkMarkRead?: (ids: string[]) => void;
-  onBulkDismiss?: (ids: string[]) => void;
+  onNotificationRead?: (_id: string) => void;
+  onNotificationDismiss?: (_id: string) => void;
+  onNotificationAction?: (_notification: CRMNotification) => void;
+  onBulkMarkRead?: (_ids: string[]) => void;
+  onBulkDismiss?: (_ids: string[]) => void;
   showBellIcon?: boolean;
   maxDisplayCount?: number;
   className?: string;
@@ -107,11 +106,11 @@ interface CRMNotificationsProps {
 
 interface NotificationCenterProps {
   notifications: CRMNotification[];
-  onNotificationRead?: (id: string) => void;
-  onNotificationDismiss?: (id: string) => void;
-  onNotificationAction?: (notification: CRMNotification) => void;
-  onBulkMarkRead?: (ids: string[]) => void;
-  onBulkDismiss?: (ids: string[]) => void;
+  onNotificationRead?: (_id: string) => void;
+  onNotificationDismiss?: (_id: string) => void;
+  onNotificationAction?: (_notification: CRMNotification) => void;
+  onBulkMarkRead?: (_ids: string[]) => void;
+  onBulkDismiss?: (_ids: string[]) => void;
 }
 
 function getNotificationIcon(type: CRMNotificationType) {
@@ -270,7 +269,7 @@ function NotificationCenter({
               <div className="text-center py-8">
                 <Bell className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <h4 className="text-lg font-medium text-white mb-2">No notifications</h4>
-                <p className="text-gray-400">You're all caught up!</p>
+                <p className="text-gray-400">You&apos;re all caught up!</p>
               </div>
             ) : (
               <div className="space-y-1">
@@ -402,7 +401,7 @@ export function CRMNotifications({
   const [isOpen, setIsOpen] = useState(false);
 
   const unreadCount = notifications.filter(n => n.status === 'unread').length;
-  const recentNotifications = notifications
+  const _recentNotifications = notifications
     .filter(n => n.status !== 'archived')
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, maxDisplayCount);
@@ -507,8 +506,8 @@ export function NotificationBell({
   className = '',
 }: {
   notifications: CRMNotification[];
-  onNotificationRead?: (id: string) => void;
-  onNotificationAction?: (notification: CRMNotification) => void;
+  onNotificationRead?: (_id: string) => void;
+  onNotificationAction?: (_notification: CRMNotification) => void;
   className?: string;
 }) {
   return (
@@ -531,9 +530,9 @@ export function NotificationPanel({
   className = '',
 }: {
   notifications: CRMNotification[];
-  onNotificationRead?: (id: string) => void;
-  onNotificationDismiss?: (id: string) => void;
-  onNotificationAction?: (notification: CRMNotification) => void;
+  onNotificationRead?: (_id: string) => void;
+  onNotificationDismiss?: (_id: string) => void;
+  onNotificationAction?: (_notification: CRMNotification) => void;
   className?: string;
 }) {
   return (

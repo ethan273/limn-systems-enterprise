@@ -17,14 +17,14 @@ export async function POST(request: NextRequest) {
     const testUserId = '550e8400-e29b-41d4-a716-446655440000'; // Same as mock user ID in TaskAttachments
 
     // First, try to find user by email to see if one already exists
-    const { data: existingUsers, error: listUsersError } = await supabase.auth.admin.listUsers();
+    const { data: existingUsers, error: _listUsersError } = await supabase.auth.admin.listUsers();
     const existingUser = existingUsers?.users?.find(user => user.email === testEmail);
 
     let actualUserId = testUserId;
 
     if (!existingUser) {
       // User doesn't exist, create new one
-      const { data: newUser, error: createUserError } = await supabase.auth.admin.createUser({
+      const { data: _newUser, error: createUserError } = await supabase.auth.admin.createUser({
         id: testUserId,
         email: testEmail,
         email_confirm: true,
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create user profile if it doesn't exist
-    const { data: existingProfile, error: getProfileError } = await supabase
+    const { data: _existingProfile, error: getProfileError } = await supabase
       .from('user_profiles')
       .select('*')
       .eq('id', actualUserId)

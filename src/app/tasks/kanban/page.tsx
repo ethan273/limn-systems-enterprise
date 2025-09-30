@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,7 +17,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import TaskCreateForm from "@/components/TaskCreateForm";
-import TaskStatusSelect from "@/components/TaskStatusSelect";
 import TaskPrioritySelect from "@/components/TaskPrioritySelect";
 import {
   Plus,
@@ -62,6 +61,8 @@ const statusConfig = {
 
 export default function TasksKanbanPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [users, setUsers] = useState<Record<string, { name: string; initials: string; avatar: string | null }>>({});
+  const [_loadingUsers, setLoadingUsers] = useState(true);
 
   const { data: tasksData, isLoading, refetch } = api.tasks.getAllTasks.useQuery({
     limit: 100,
@@ -76,24 +77,24 @@ export default function TasksKanbanPage() {
     },
   });
 
-  // Mock users data - in production this would come from a users API
-  const mockUsers: Record<string, { name: string; initials: string; avatar: string | null }> = {
-    "550e8400-e29b-41d4-a716-446655440000": {
-      name: "John Doe",
-      initials: "JD",
-      avatar: null
-    },
-    "660e8400-e29b-41d4-a716-446655440001": {
-      name: "Jane Smith",
-      initials: "JS",
-      avatar: null
-    },
-    "770e8400-e29b-41d4-a716-446655440002": {
-      name: "Mike Johnson",
-      initials: "MJ",
-      avatar: null
-    }
-  };
+  // Fetch users data
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        // TODO: Implement proper tRPC client call
+        // const result = await api.users.getAllUsers.fetch({ limit: 100 });
+        console.log('TODO: Load users data via tRPC');
+        // TODO: Process user data when API is properly implemented
+        setUsers({});
+      } catch (error) {
+        console.error('Failed to fetch users:', error);
+      } finally {
+        setLoadingUsers(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   const handleStatusChange = (taskId: string, newStatus: TaskStatus) => {
     updateStatusMutation.mutate({ id: taskId, status: newStatus });
@@ -243,7 +244,7 @@ export default function TasksKanbanPage() {
                               <Users className="h-3 w-3 text-gray-400" />
                               <div className="flex -space-x-1">
                                 {assignedUsers.slice(0, 3).map((userId) => {
-                                  const user = mockUsers[userId] || { name: "Unknown", initials: "?", avatar: null };
+                                  const user = users[userId as keyof typeof users] || { name: "Unknown", initials: "?", avatar: null };
                                   return (
                                     <Avatar key={userId} className="h-5 w-5 border border-gray-600">
                                       <AvatarImage src={user.avatar || ""} />

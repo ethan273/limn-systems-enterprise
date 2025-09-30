@@ -21,6 +21,9 @@ const handler = (req: NextRequest) =>
       req: req as any,
       res: undefined,
     }),
+    batching: {
+      enabled: true,
+    },
     onError:
       process.env.NODE_ENV === 'development'
         ? ({ path, error }) => {

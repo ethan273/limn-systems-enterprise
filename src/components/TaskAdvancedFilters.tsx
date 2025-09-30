@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -53,7 +54,7 @@ interface FilterState {
 }
 
 interface TaskAdvancedFiltersProps {
-  onFiltersChange: (filters: FilterState) => void;
+  onFiltersChange: (_filters: FilterState) => void;
   taskCount?: number;
 }
 
@@ -123,7 +124,7 @@ export default function TaskAdvancedFilters({ onFiltersChange, taskCount = 0 }: 
     key: 'assignedTo' | 'tags',
     value: T
   ) => {
-    const currentArray = filters[key] as T[];
+    const currentArray = Object.prototype.hasOwnProperty.call(filters, key) ? filters[key as keyof typeof filters] as T[] : [];
     const newArray = currentArray.includes(value)
       ? currentArray.filter(item => item !== value)
       : [...currentArray, value];
@@ -134,7 +135,7 @@ export default function TaskAdvancedFilters({ onFiltersChange, taskCount = 0 }: 
     key: 'status' | 'priority' | 'department',
     value: TaskStatus | TaskPriority | TaskDepartment
   ) => {
-    const current = filters[key];
+    const current = Object.prototype.hasOwnProperty.call(filters, key) ? filters[key as keyof typeof filters] : 'all';
     if (current === 'all') {
       updateFilter(key, [value] as any);
     } else if (Array.isArray(current)) {
@@ -145,14 +146,42 @@ export default function TaskAdvancedFilters({ onFiltersChange, taskCount = 0 }: 
     }
   };
 
-  // Mock data for filters
-  const mockUsers = [
-    { id: "550e8400-e29b-41d4-a716-446655440000", name: "John Doe" },
-    { id: "660e8400-e29b-41d4-a716-446655440001", name: "Jane Smith" },
-    { id: "770e8400-e29b-41d4-a716-446655440002", name: "Mike Johnson" },
-  ];
+  // Real data from APIs
+  const { user: _user } = useAuth();
+  const [users, setUsers] = useState<{ id: string; name: string }[]>([]);
+  const [tags, setTags] = useState<string[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
+  const [loadingTags, setLoadingTags] = useState(true);
 
-  const mockTags = ["urgent", "bug", "feature", "enhancement", "documentation"];
+  // Fetch users and tags on component mount
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        // TODO: Implement proper tRPC client call
+        console.log('TODO: Load users data via tRPC');
+        setUsers([]);
+      } catch (error) {
+        console.error('Failed to fetch users:', error);
+      } finally {
+        setLoadingUsers(false);
+      }
+    };
+
+    const fetchTags = async () => {
+      try {
+        // TODO: Implement proper tRPC client call
+        console.log('TODO: Load tags data via tRPC');
+        setTags([]);
+      } catch (error) {
+        console.error('Failed to fetch tags:', error);
+      } finally {
+        setLoadingTags(false);
+      }
+    };
+
+    fetchUsers();
+    fetchTags();
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -286,17 +315,23 @@ export default function TaskAdvancedFilters({ onFiltersChange, taskCount = 0 }: 
                     Assigned To
                   </h3>
                   <div className="space-y-2">
-                    {mockUsers.map((user) => (
-                      <label key={user.id} className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={filters.assignedTo.includes(user.id)}
-                          onChange={() => toggleArrayFilter('assignedTo', user.id)}
-                          className="rounded"
-                        />
-                        <span className="text-sm">{user.name}</span>
-                      </label>
-                    ))}
+                    {loadingUsers ? (
+                      <div className="text-sm text-gray-400">Loading users...</div>
+                    ) : users.length === 0 ? (
+                      <div className="text-sm text-gray-400">No users available</div>
+                    ) : (
+                      users.map((user) => (
+                        <label key={user.id} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={filters.assignedTo.includes(user.id)}
+                            onChange={() => toggleArrayFilter('assignedTo', user.id)}
+                            className="rounded"
+                          />
+                          <span className="text-sm">{user.name}</span>
+                        </label>
+                      ))
+                    )}
                   </div>
                 </div>
 
@@ -389,16 +424,22 @@ export default function TaskAdvancedFilters({ onFiltersChange, taskCount = 0 }: 
                   Tags
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  {mockTags.map((tag) => (
-                    <Badge
-                      key={tag}
-                      variant={filters.tags.includes(tag) ? "default" : "outline"}
-                      className="cursor-pointer"
-                      onClick={() => toggleArrayFilter('tags', tag)}
-                    >
-                      {tag}
-                    </Badge>
-                  ))}
+                  {loadingTags ? (
+                    <div className="text-sm text-gray-400">Loading tags...</div>
+                  ) : tags.length === 0 ? (
+                    <div className="text-sm text-gray-400">No tags available</div>
+                  ) : (
+                    tags.map((tag) => (
+                      <Badge
+                        key={tag}
+                        variant={filters.tags.includes(tag) ? "default" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => toggleArrayFilter('tags', tag)}
+                      >
+                        {tag}
+                      </Badge>
+                    ))
+                  )}
                 </div>
               </div>
 
@@ -431,7 +472,7 @@ export default function TaskAdvancedFilters({ onFiltersChange, taskCount = 0 }: 
 
                 {filters.search && (
                   <Badge variant="secondary" className="flex items-center gap-1">
-                    Search: "{filters.search}"
+                    Search: &quot;{filters.search}&quot;
                     <X className="h-3 w-3 cursor-pointer" onClick={() => updateFilter('search', '')} />
                   </Badge>
                 )}
