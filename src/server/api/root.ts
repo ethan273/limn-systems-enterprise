@@ -27,6 +27,7 @@ import { shopDrawingsRouter } from './routers/shop-drawings';
 import { prototypesRouter } from './routers/prototypes';
 import { factoryReviewsRouter } from './routers/factoryReviews';
 import { qcRouter } from './routers/qc';
+import { packingRouter } from './routers/packing';
 
 /**
  * Main API router
@@ -87,6 +88,9 @@ export const appRouter = createTRPCRouter({
 
   // QC Mobile (Phase 2 - Week 19)
   qc: qcRouter,
+
+  // Packing Lists (Phase 2 - Week 20)
+  packing: packingRouter,
 
   // Shipping (SEKO Integration)
   shipping: shippingRouter,

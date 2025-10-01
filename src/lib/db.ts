@@ -506,6 +506,10 @@ export class DatabaseClient {
   qc_checkpoints = prisma.qc_checkpoints;
   qc_issue_comments = prisma.qc_issue_comments;
 
+  // Packing Lists (Week 20)
+  packing_jobs = prisma.packing_jobs;
+  packing_boxes = prisma.packing_boxes;
+
   // =====================================================
   // TRANSACTION SUPPORT
   // =====================================================
