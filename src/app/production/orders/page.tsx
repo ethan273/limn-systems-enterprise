@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronRight, Search, Package, DollarSign, Calendar } from "lucide-react";
+import { ChevronDown, ChevronRight, Search, Package, DollarSign, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
@@ -27,7 +27,8 @@ export default function ProductionOrdersPage() {
     }
   }, [authLoading, user, router]);
 
-  const { data, isLoading } = api.orders.getAll.useQuery(
+  // Query PRODUCTION ORDERS (Phase 1 system with invoices/payments)
+  const { data, isLoading } = api.productionOrders.getAll.useQuery(
     {},
     { enabled: !authLoading && !!user }
   );
@@ -43,7 +44,7 @@ export default function ProductionOrdersPage() {
     const query = searchQuery.toLowerCase();
     return (
       order.order_number.toLowerCase().includes(query) ||
-      order.customers?.name?.toLowerCase().includes(query) ||
+      order.item_name.toLowerCase().includes(query) ||
       order.projects?.name?.toLowerCase().includes(query)
     );
   });
@@ -64,22 +65,19 @@ export default function ProductionOrdersPage() {
     // Define status info with explicit switch for security
     let info: { label: string; variant: string; className: string };
     switch (status) {
-      case 'draft':
-        info = { label: "Draft", variant: "outline", className: "bg-gray-100 text-gray-800 border-gray-300" };
+      case 'awaiting_deposit':
+        info = { label: "Awaiting Deposit", variant: "outline", className: "bg-yellow-100 text-yellow-800 border-yellow-300" };
         break;
-      case 'pending':
-        info = { label: "Pending", variant: "outline", className: "bg-yellow-100 text-yellow-800 border-yellow-300" };
+      case 'in_progress':
+        info = { label: "In Progress", variant: "outline", className: "bg-blue-100 text-blue-800 border-blue-300" };
         break;
-      case 'confirmed':
-        info = { label: "Confirmed", variant: "outline", className: "bg-blue-100 text-blue-800 border-blue-300" };
+      case 'completed':
+        info = { label: "Completed", variant: "outline", className: "bg-purple-100 text-purple-800 border-purple-300" };
         break;
-      case 'in_production':
-        info = { label: "In Production", variant: "outline", className: "bg-purple-100 text-purple-800 border-purple-300" };
+      case 'awaiting_final_payment':
+        info = { label: "Awaiting Final Payment", variant: "outline", className: "bg-orange-100 text-orange-800 border-orange-300" };
         break;
-      case 'quality_check':
-        info = { label: "Quality Check", variant: "outline", className: "bg-indigo-100 text-indigo-800 border-indigo-300" };
-        break;
-      case 'ready_to_ship':
+      case 'final_paid':
         info = { label: "Ready to Ship", variant: "outline", className: "bg-green-100 text-green-800 border-green-300" };
         break;
       case 'shipped':
@@ -88,16 +86,20 @@ export default function ProductionOrdersPage() {
       case 'delivered':
         info = { label: "Delivered", variant: "outline", className: "bg-emerald-100 text-emerald-800 border-emerald-300" };
         break;
-      case 'completed':
-        info = { label: "Completed", variant: "outline", className: "bg-green-200 text-green-900 border-green-400" };
-        break;
-      case 'cancelled':
-        info = { label: "Cancelled", variant: "outline", className: "bg-red-100 text-red-800 border-red-300" };
-        break;
       default:
-        info = { label: "Draft", variant: "outline", className: "bg-gray-100 text-gray-800 border-gray-300" };
+        info = { label: "Unknown", variant: "outline", className: "bg-gray-100 text-gray-800 border-gray-300" };
     }
     return <Badge variant={info.variant as any} className={info.className}>{info.label}</Badge>;
+  };
+
+  const getPaymentStatusBadge = (depositPaid: boolean, finalPaymentPaid: boolean) => {
+    if (!depositPaid) {
+      return <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">No Deposit</Badge>;
+    }
+    if (depositPaid && !finalPaymentPaid) {
+      return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">Deposit Paid</Badge>;
+    }
+    return <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">Fully Paid</Badge>;
   };
 
   // Show loading state while checking authentication
@@ -126,7 +128,7 @@ export default function ProductionOrdersPage() {
         <div>
           <h1 className="text-3xl font-bold">Production Orders</h1>
           <p className="text-muted-foreground">
-            View orders created from Projects. To create new orders, go to{" "}
+            View production orders with auto-generated invoices and payment tracking. To create orders, go to{" "}
             <Link href="/crm/projects" className="text-blue-600 hover:underline font-medium">
               CRM → Projects
             </Link>
@@ -140,7 +142,7 @@ export default function ProductionOrdersPage() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by order number, customer, or project..."
+              placeholder="Search by order number, item name, or project..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 w-full"
@@ -153,16 +155,13 @@ export default function ProductionOrdersPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="draft">Draft</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="confirmed">Confirmed</SelectItem>
-            <SelectItem value="in_production">In Production</SelectItem>
-            <SelectItem value="quality_check">Quality Check</SelectItem>
-            <SelectItem value="ready_to_ship">Ready to Ship</SelectItem>
+            <SelectItem value="awaiting_deposit">Awaiting Deposit</SelectItem>
+            <SelectItem value="in_progress">In Progress</SelectItem>
+            <SelectItem value="completed">Completed</SelectItem>
+            <SelectItem value="awaiting_final_payment">Awaiting Final Payment</SelectItem>
+            <SelectItem value="final_paid">Ready to Ship</SelectItem>
             <SelectItem value="shipped">Shipped</SelectItem>
             <SelectItem value="delivered">Delivered</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-            <SelectItem value="cancelled">Cancelled</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -182,7 +181,7 @@ export default function ProductionOrdersPage() {
             <span>Total Value</span>
           </div>
           <div className="text-2xl font-bold">
-            ${filteredOrders?.reduce((sum: number, order: any) => sum + Number(order.total_amount || 0), 0).toFixed(2)}
+            ${filteredOrders?.reduce((sum: number, order: any) => sum + Number(order.total_cost || 0), 0).toFixed(2)}
           </div>
         </div>
         <div className="p-4 border rounded-lg bg-card">
@@ -191,16 +190,16 @@ export default function ProductionOrdersPage() {
             <span>In Production</span>
           </div>
           <div className="text-2xl font-bold">
-            {filteredOrders?.filter((order: any) => order.status === 'in_production').length || 0}
+            {filteredOrders?.filter((order: any) => order.status === 'in_progress').length || 0}
           </div>
         </div>
         <div className="p-4 border rounded-lg bg-card">
           <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
-            <Calendar className="h-4 w-4" />
-            <span>Completed</span>
+            <AlertCircle className="h-4 w-4" />
+            <span>Awaiting Payment</span>
           </div>
           <div className="text-2xl font-bold">
-            {filteredOrders?.filter((order: any) => order.status === 'completed').length || 0}
+            {filteredOrders?.filter((order: any) => order.status === 'awaiting_deposit' || order.status === 'awaiting_final_payment').length || 0}
           </div>
         </div>
       </div>
@@ -212,24 +211,25 @@ export default function ProductionOrdersPage() {
             <TableRow>
               <TableHead className="w-12"></TableHead>
               <TableHead>Order Number</TableHead>
-              <TableHead>Customer</TableHead>
+              <TableHead>Item</TableHead>
               <TableHead>Project</TableHead>
+              <TableHead>Quantity</TableHead>
+              <TableHead>Total Cost</TableHead>
+              <TableHead>Payment Status</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Total Amount</TableHead>
-              <TableHead>Items</TableHead>
               <TableHead>Order Date</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8">Loading orders...</TableCell>
+                <TableCell colSpan={9} className="text-center py-8">Loading production orders...</TableCell>
               </TableRow>
             ) : filteredOrders?.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8">
+                <TableCell colSpan={9} className="text-center py-8">
                   <div className="space-y-2">
-                    <p className="text-muted-foreground">No orders found</p>
+                    <p className="text-muted-foreground">No production orders found</p>
                     <p className="text-sm text-muted-foreground">
                       Create orders from{" "}
                       <Link href="/crm/projects" className="text-blue-600 hover:underline">
@@ -242,7 +242,6 @@ export default function ProductionOrdersPage() {
             ) : (
               filteredOrders?.map((order: any) => {
                 const isExpanded = expandedOrders.has(order.id);
-                const orderItems = order.order_items || [];
 
                 return (
                   <Collapsible key={order.id} open={isExpanded} onOpenChange={() => toggleOrderExpansion(order.id)} asChild>
@@ -260,125 +259,101 @@ export default function ProductionOrdersPage() {
                           </CollapsibleTrigger>
                         </TableCell>
                         <TableCell>
-                          <span className="font-medium text-blue-600">{order.order_number}</span>
+                          <Link href={`/production/orders/${order.id}`} className="font-medium text-blue-600 hover:underline">
+                            {order.order_number}
+                          </Link>
                         </TableCell>
-                        <TableCell>{order.customers?.name || "—"}</TableCell>
+                        <TableCell>{order.item_name}</TableCell>
                         <TableCell>{order.projects?.name || "—"}</TableCell>
+                        <TableCell>{order.quantity}</TableCell>
+                        <TableCell>
+                          <span className="font-medium">${Number(order.total_cost || 0).toFixed(2)}</span>
+                        </TableCell>
+                        <TableCell>{getPaymentStatusBadge(order.deposit_paid, order.final_payment_paid)}</TableCell>
                         <TableCell>{getStatusBadge(order.status)}</TableCell>
                         <TableCell>
-                          <span className="font-medium">${Number(order.total_amount || 0).toFixed(2)}</span>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{orderItems.length} items</Badge>
-                        </TableCell>
-                        <TableCell>
-                          {order.created_at ? new Date(order.created_at).toLocaleDateString() : "—"}
+                          {order.order_date ? new Date(order.order_date).toLocaleDateString() : "—"}
                         </TableCell>
                       </TableRow>
 
-                      {/* Expanded Content - Order Items */}
+                      {/* Expanded Content - Order Details */}
                       <TableRow>
-                        <TableCell colSpan={8} className="p-0">
+                        <TableCell colSpan={9} className="p-0">
                           <CollapsibleContent>
                             <div className="px-6 py-4 bg-muted/20 border-t">
-                              <h4 className="font-medium mb-3">Order Items</h4>
-                              {orderItems.length === 0 ? (
-                                <p className="text-sm text-muted-foreground">No items in this order</p>
-                              ) : (
-                                <div className="space-y-3">
-                                  {orderItems.map((item: any, index: number) => (
-                                    <div key={item.id} className="border rounded-lg p-4 bg-card">
-                                      <div className="flex items-start justify-between">
-                                        <div className="flex-1 space-y-2">
-                                          <div className="flex items-center gap-3">
-                                            <Badge variant="outline" className="font-mono text-xs">
-                                              Item #{index + 1}
-                                            </Badge>
-                                            <span className="font-medium">{item.description || item.items?.name || "Unnamed Item"}</span>
-                                          </div>
-
-                                          {/* Item Details Grid */}
-                                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                                            <div>
-                                              <span className="text-muted-foreground">Quantity:</span>
-                                              <span className="ml-2 font-medium">{item.quantity}</span>
-                                            </div>
-                                            <div>
-                                              <span className="text-muted-foreground">Unit Price:</span>
-                                              <span className="ml-2 font-medium">${Number(item.unit_price || 0).toFixed(2)}</span>
-                                            </div>
-                                            <div>
-                                              <span className="text-muted-foreground">Total:</span>
-                                              <span className="ml-2 font-medium">
-                                                ${(Number(item.quantity || 0) * Number(item.unit_price || 0)).toFixed(2)}
-                                              </span>
-                                            </div>
-                                            {item.project_sku && (
-                                              <div>
-                                                <span className="text-muted-foreground">Project SKU:</span>
-                                                <span className="ml-2 font-mono text-xs">{item.project_sku}</span>
-                                              </div>
-                                            )}
-                                          </div>
-
-                                          {/* Item Catalog Reference */}
-                                          {item.items && (
-                                            <div className="text-sm">
-                                              <span className="text-muted-foreground">Catalog Item:</span>
-                                              <span className="ml-2">{item.items.name}</span>
-                                              {item.items.sku_full && (
-                                                <Badge variant="outline" className="ml-2 font-mono text-xs">
-                                                  {item.items.sku_full}
-                                                </Badge>
-                                              )}
-                                            </div>
-                                          )}
-
-                                          {/* Specifications */}
-                                          {item.specifications && (
-                                            <div className="text-sm">
-                                              <span className="text-muted-foreground">Specifications:</span>
-                                              <div className="mt-1 p-2 bg-muted/50 rounded text-xs">
-                                                {typeof item.specifications === 'object' ? (
-                                                  <pre className="whitespace-pre-wrap">
-                                                    {JSON.stringify(item.specifications, null, 2)}
-                                                  </pre>
-                                                ) : (
-                                                  <span>{String(item.specifications)}</span>
-                                                )}
-                                              </div>
-                                            </div>
-                                          )}
-
-                                          {/* Item Status */}
-                                          {item.status && (
-                                            <div className="text-sm">
-                                              <span className="text-muted-foreground">Item Status:</span>
-                                              <Badge variant="outline" className="ml-2">{item.status}</Badge>
-                                            </div>
-                                          )}
-
-                                          {/* Notes */}
-                                          {item.notes && (
-                                            <div className="text-sm">
-                                              <span className="text-muted-foreground">Notes:</span>
-                                              <p className="mt-1 text-muted-foreground">{item.notes}</p>
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                {/* Order Details */}
+                                <div className="space-y-2">
+                                  <h4 className="font-medium text-sm">Order Details</h4>
+                                  <div className="text-sm space-y-1">
+                                    <div>
+                                      <span className="text-muted-foreground">Type:</span>
+                                      <Badge variant="outline" className="ml-2 capitalize">{order.product_type}</Badge>
                                     </div>
-                                  ))}
+                                    <div>
+                                      <span className="text-muted-foreground">Unit Price:</span>
+                                      <span className="ml-2 font-medium">${Number(order.unit_price).toFixed(2)}</span>
+                                    </div>
+                                    {order.item_description && (
+                                      <div>
+                                        <span className="text-muted-foreground">Description:</span>
+                                        <p className="text-sm mt-1">{order.item_description}</p>
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
-                              )}
 
-                              {/* Order Notes */}
-                              {order.notes && (
-                                <div className="mt-4 pt-4 border-t">
-                                  <h5 className="font-medium text-sm mb-2">Order Notes</h5>
-                                  <p className="text-sm text-muted-foreground">{order.notes}</p>
+                                {/* Payment Info */}
+                                <div className="space-y-2">
+                                  <h4 className="font-medium text-sm">Payment Status</h4>
+                                  <div className="text-sm space-y-1">
+                                    <div>
+                                      <span className="text-muted-foreground">Deposit (50%):</span>
+                                      <Badge variant="outline" className={`ml-2 ${order.deposit_paid ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                        {order.deposit_paid ? 'Paid' : 'Pending'}
+                                      </Badge>
+                                    </div>
+                                    <div>
+                                      <span className="text-muted-foreground">Final Payment (50%):</span>
+                                      <Badge variant="outline" className={`ml-2 ${order.final_payment_paid ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                        {order.final_payment_paid ? 'Paid' : 'Pending'}
+                                      </Badge>
+                                    </div>
+                                  </div>
                                 </div>
-                              )}
+
+                                {/* Shipping Info */}
+                                <div className="space-y-2">
+                                  <h4 className="font-medium text-sm">Shipping</h4>
+                                  <div className="text-sm space-y-1">
+                                    <div>
+                                      <span className="text-muted-foreground">Estimated Ship:</span>
+                                      <span className="ml-2">{order.estimated_ship_date ? new Date(order.estimated_ship_date).toLocaleDateString() : '—'}</span>
+                                    </div>
+                                    {order.actual_ship_date && (
+                                      <div>
+                                        <span className="text-muted-foreground">Actual Ship:</span>
+                                        <span className="ml-2">{new Date(order.actual_ship_date).toLocaleDateString()}</span>
+                                      </div>
+                                    )}
+                                    {order.manufacturers && (
+                                      <div>
+                                        <span className="text-muted-foreground">Factory:</span>
+                                        <span className="ml-2">{order.manufacturers.name}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Action Button */}
+                              <div className="mt-4 pt-4 border-t">
+                                <Link href={`/production/orders/${order.id}`}>
+                                  <Button variant="outline" size="sm">
+                                    View Full Details →
+                                  </Button>
+                                </Link>
+                              </div>
                             </div>
                           </CollapsibleContent>
                         </TableCell>
