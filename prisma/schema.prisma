@@ -186,6 +186,7 @@ model performance_metrics {
 model production_milestones {
   id                      String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   manufacturer_project_id String?                @db.Uuid
+  production_order_id     String?                @db.Uuid // Phase 1: Production Orders tracking
   milestone_name          String
   milestone_type          String?
   planned_date            DateTime?              @db.Date
@@ -199,9 +200,11 @@ model production_milestones {
   updated_at              DateTime?              @default(now()) @updatedAt @db.Timestamp(6)
   users                   users?                 @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
   manufacturer_projects   manufacturer_projects? @relation(fields: [manufacturer_project_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  production_orders       production_orders?     @relation(fields: [production_order_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([created_by], map: "idx_production_milestones_created_by")
   @@index([manufacturer_project_id], map: "idx_production_milestones_manufacturer_project_id")
+  @@index([production_order_id], map: "idx_production_milestones_production_order_id")
   @@schema("public")
 }
 
@@ -6034,6 +6037,7 @@ model production_orders {
   production_invoices      production_invoices[]
   production_payments      production_payments[]
   ordered_items_production ordered_items_production[]
+  production_milestones    production_milestones[]
   documents                documents[]
   
   @@index([project_id], map: "idx_production_orders_project_id")

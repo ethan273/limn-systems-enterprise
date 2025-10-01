@@ -126,6 +126,7 @@ export default function Sidebar() {
       label: "Production",
       icon: Factory,
       items: [
+        { label: "Dashboard", href: "/production/dashboard" },
         { label: "Orders", href: "/production/orders" },
       ]
     }

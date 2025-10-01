@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { createCrudRouter } from '../utils/crud-generator';
 import { createTRPCRouter, publicProcedure } from '../trpc/init';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { generateProjectSku } from '@/lib/utils/project-sku-generator';
 
 // Order Schema
 const createOrderSchema = z.object({
@@ -361,5 +362,21 @@ export const ordersRouter = createTRPCRouter({
       });
 
       return updatedOrder;
+    }),
+
+  // Generate Project SKU for order tracking
+  generateProjectSku: publicProcedure
+    .input(z.object({
+      clientName: z.string(),
+      projectName: z.string().nullable().optional(),
+      orderId: z.string(),
+    }))
+    .mutation(async ({ input }) => {
+      const projectSku = await generateProjectSku(
+        input.clientName,
+        input.projectName,
+        input.orderId
+      );
+      return { projectSku };
     }),
 });

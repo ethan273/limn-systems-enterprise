@@ -13,6 +13,7 @@ import { ordersRouter } from './routers/orders';
 import { orderItemsRouter } from './routers/order-items';
 import { productionOrdersRouter } from './routers/production-orders';
 import { productionInvoicesRouter } from './routers/production-invoices';
+import { productionTrackingRouter } from './routers/production-tracking';
 
 /**
  * Main API router
@@ -48,6 +49,7 @@ export const appRouter = createTRPCRouter({
   // Production Orders (Phase 1)
   productionOrders: productionOrdersRouter,
   productionInvoices: productionInvoicesRouter,
+  productionTracking: productionTrackingRouter,
 });
 
 // Export type for client

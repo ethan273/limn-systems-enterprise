@@ -1275,6 +1275,25 @@ export class DatabaseClient {
       this.countGeneric('ordered_items_production', options),
   };
 
+  // Production Milestones model
+  production_milestones = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('production_milestones', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('production_milestones', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('production_milestones', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('production_milestones', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('production_milestones', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('production_milestones', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('production_milestones', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('production_milestones', options),
+  };
+
   // =====================================================
   // LEGACY TASK OPERATIONS (PRESERVED FOR COMPATIBILITY)
   // =====================================================
