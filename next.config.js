@@ -27,11 +27,18 @@ const nextConfig = {
   // Turbopack configuration (updated for Next.js 15)
   // Note: memoryLimit is not a supported option in Next.js 15.5.4
 
+  // Allow network access from other devices
+  allowedDevOrigins: [
+    'localhost:3000',
+    '127.0.0.1:3000',
+    '192.168.50.158:3000',
+  ],
+
   // Experimental features
   experimental: {
     // Server actions configuration
     serverActions: {
-      allowedOrigins: ["localhost:3000", "127.0.0.1:3000"],
+      allowedOrigins: ["localhost:3000", "127.0.0.1:3000", "192.168.50.158:3000"],
     },
   },
 

@@ -1,63 +1,107 @@
 "use client";
 
+/**
+ * Design Documents Library Page
+ *
+ * Integrated with hybrid storage system (Supabase + Google Drive).
+ * Week 13-15 Day 9: Updated with real API integration.
+ */
+
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthContext } from "@/lib/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Upload, FileText, Download, Eye, HardDrive, Cloud } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Search,
+  Upload,
+  FileText,
+  Eye,
+  HardDrive,
+  Cloud,
+  Trash2,
+  AlertCircle,
+  CheckCircle,
+  Link2,
+  X,
+} from "lucide-react";
+import { api } from "@/lib/api/client";
+import { FileUploader } from "@/components/design/FileUploader";
+import { formatFileSize } from "@/lib/storage/hybrid-storage";
 
 export const dynamic = 'force-dynamic';
 
-// Mock data for demonstration (will be replaced with real API in Day 7-9)
-const mockDocuments = [
-  {
-    id: "1",
-    file_name: "Modern Chair Design Specs.pdf",
-    document_type: "Technical Drawing",
-    file_size: 2457600,
-    storage_type: "supabase",
-    upload_date: new Date("2025-09-15"),
-    status: "active",
-  },
-  {
-    id: "2",
-    file_name: "Material Samples Photos.zip",
-    document_type: "Reference Images",
-    file_size: 15728640,
-    storage_type: "google_drive",
-    upload_date: new Date("2025-09-20"),
-    status: "active",
-  },
-  {
-    id: "3",
-    file_name: "Client Feedback Notes.docx",
-    document_type: "Meeting Notes",
-    file_size: 98304,
-    storage_type: "supabase",
-    upload_date: new Date("2025-09-22"),
-    status: "active",
-  },
-  {
-    id: "4",
-    file_name: "3D Rendering Final.blend",
-    document_type: "3D Model",
-    file_size: 52428800,
-    storage_type: "google_drive",
-    upload_date: new Date("2025-09-25"),
-    status: "active",
-  },
-];
-
 export default function DesignDocumentsPage() {
   const [storageFilter, setStorageFilter] = useState<string>("all");
-  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [page, setPage] = useState(0);
+  const pageSize = 20;
+
   const { user, loading: authLoading } = useAuthContext();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Get OAuth connection status
+  const { data: connectionStatus } = api.oauth.getConnectionStatus.useQuery();
+  const { data: authUrl } = api.oauth.getAuthUrl.useQuery();
+
+  // Get files list
+  const {
+    data: filesData,
+    isLoading: filesLoading,
+    refetch: refetchFiles,
+  } = api.storage.listFiles.useQuery({
+    storageType: storageFilter === "all" ? undefined : (storageFilter as "supabase" | "google_drive"),
+    category: categoryFilter === "all" ? undefined : categoryFilter,
+    limit: pageSize,
+    offset: page * pageSize,
+  });
+
+  // Get storage stats
+  const { data: stats } = api.storage.getStorageStats.useQuery();
+
+  // Delete file mutation
+  const deleteFile = api.storage.deleteFile.useMutation({
+    onSuccess: () => {
+      void refetchFiles();
+    },
+  });
+
+  // Disconnect OAuth mutation
+  const disconnectOAuth = api.oauth.disconnect.useMutation({
+    onSuccess: () => {
+      window.location.reload();
+    },
+  });
+
+  // Check for OAuth callback messages
+  useEffect(() => {
+    const success = searchParams.get('success');
+    const error = searchParams.get('error');
+
+    if (success === 'google_connected') {
+      // Show success message
+      console.log('Google Drive connected successfully');
+    }
+
+    if (error) {
+      // Show error message
+      console.error('OAuth error:', error);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -65,32 +109,40 @@ export default function DesignDocumentsPage() {
     }
   }, [authLoading, user, router]);
 
-  const filteredDocuments = mockDocuments.filter((doc) => {
-    const matchesStorage = storageFilter === "all" || doc.storage_type === storageFilter;
-    const matchesType = typeFilter === "all" || doc.document_type === typeFilter;
-    const matchesSearch = !searchQuery || doc.file_name.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesStorage && matchesType && matchesSearch;
-  });
+  const handleDelete = async (fileId: string) => {
+    if (!confirm('Are you sure you want to delete this file?')) {
+      return;
+    }
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-    return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+    await deleteFile.mutateAsync({ fileId });
+  };
+
+  const handleConnectGoogleDrive = () => {
+    if (authUrl?.url) {
+      window.location.href = authUrl.url;
+    }
+  };
+
+  const handleDisconnect = async () => {
+    if (!confirm('Are you sure you want to disconnect Google Drive?')) {
+      return;
+    }
+
+    await disconnectOAuth.mutateAsync();
   };
 
   const getStorageBadge = (storageType: string) => {
     switch (storageType) {
       case 'supabase':
         return (
-          <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
+          <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20">
             <HardDrive className="mr-1 h-3 w-3" />
             Supabase
           </Badge>
         );
       case 'google_drive':
         return (
-          <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
+          <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/20">
             <Cloud className="mr-1 h-3 w-3" />
             Google Drive
           </Badge>
@@ -117,6 +169,9 @@ export default function DesignDocumentsPage() {
     return null;
   }
 
+  const files = filesData?.files || [];
+  const total = filesData?.total || 0;
+
   return (
     <div className="container mx-auto py-6 space-y-6">
       {/* Header */}
@@ -127,11 +182,50 @@ export default function DesignDocumentsPage() {
             Manage design documents across Supabase and Google Drive
           </p>
         </div>
-        <Button>
+        <Button onClick={() => setUploadDialogOpen(true)}>
           <Upload className="mr-2 h-4 w-4" />
           Upload Document
         </Button>
       </div>
+
+      {/* Google Drive Connection Status */}
+      {connectionStatus && !connectionStatus.connected && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription className="flex items-center justify-between">
+            <span>
+              Connect Google Drive to upload files ≥50MB
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleConnectGoogleDrive}
+            >
+              <Link2 className="mr-2 h-4 w-4" />
+              Connect Google Drive
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {connectionStatus && connectionStatus.connected && (
+        <Alert>
+          <CheckCircle className="h-4 w-4" />
+          <AlertDescription className="flex items-center justify-between">
+            <span>
+              Google Drive connected as {connectionStatus.email}
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleDisconnect}
+            >
+              <X className="mr-2 h-4 w-4" />
+              Disconnect
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Filters */}
       <div className="flex gap-4 filters-section">
@@ -156,78 +250,97 @@ export default function DesignDocumentsPage() {
             <SelectItem value="google_drive">Google Drive</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={typeFilter} onValueChange={setTypeFilter}>
+        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
           <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Filter by type" />
+            <SelectValue placeholder="Filter by category" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="Technical Drawing">Technical Drawing</SelectItem>
-            <SelectItem value="Reference Images">Reference Images</SelectItem>
-            <SelectItem value="Meeting Notes">Meeting Notes</SelectItem>
-            <SelectItem value="3D Model">3D Model</SelectItem>
+            <SelectItem value="all">All Categories</SelectItem>
+            <SelectItem value="image">Images</SelectItem>
+            <SelectItem value="document">Documents</SelectItem>
+            <SelectItem value="pdf">PDFs</SelectItem>
+            <SelectItem value="video">Videos</SelectItem>
+            <SelectItem value="file">Other Files</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="p-4 border rounded-lg bg-card">
+        <div className="p-4 border border-gray-800 rounded-lg bg-gray-900/50">
           <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
             <FileText className="h-4 w-4" />
             <span>Total Documents</span>
           </div>
-          <div className="text-2xl font-bold">{filteredDocuments.length}</div>
+          <div className="text-2xl font-bold">{stats?.total.files || 0}</div>
+          <div className="text-xs text-muted-foreground mt-1">
+            {formatFileSize(stats?.total.size || 0)}
+          </div>
         </div>
-        <div className="p-4 border rounded-lg bg-card">
+        <div className="p-4 border border-gray-800 rounded-lg bg-gray-900/50">
           <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
             <HardDrive className="h-4 w-4" />
             <span>Supabase</span>
           </div>
-          <div className="text-2xl font-bold">
-            {filteredDocuments.filter((d) => d.storage_type === "supabase").length}
+          <div className="text-2xl font-bold">{stats?.supabase.files || 0}</div>
+          <div className="text-xs text-muted-foreground mt-1">
+            {formatFileSize(stats?.supabase.size || 0)}
           </div>
         </div>
-        <div className="p-4 border rounded-lg bg-card">
+        <div className="p-4 border border-gray-800 rounded-lg bg-gray-900/50">
           <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
             <Cloud className="h-4 w-4" />
             <span>Google Drive</span>
           </div>
-          <div className="text-2xl font-bold">
-            {filteredDocuments.filter((d) => d.storage_type === "google_drive").length}
+          <div className="text-2xl font-bold">{stats?.googleDrive.files || 0}</div>
+          <div className="text-xs text-muted-foreground mt-1">
+            {formatFileSize(stats?.googleDrive.size || 0)}
           </div>
         </div>
-        <div className="p-4 border rounded-lg bg-card">
+        <div className="p-4 border border-gray-800 rounded-lg bg-gray-900/50">
           <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
             <FileText className="h-4 w-4" />
-            <span>Total Size</span>
+            <span>Average Size</span>
           </div>
           <div className="text-2xl font-bold">
-            {formatFileSize(filteredDocuments.reduce((sum, doc) => sum + doc.file_size, 0))}
+            {stats && stats.total.files > 0
+              ? formatFileSize(Math.floor(stats.total.size / stats.total.files))
+              : '0 B'}
           </div>
         </div>
       </div>
 
       {/* Documents Table */}
-      <div className="rounded-md border">
+      <div className="rounded-md border border-gray-800">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>File Name</TableHead>
-              <TableHead>Type</TableHead>
+              <TableHead>Category</TableHead>
               <TableHead>Size</TableHead>
               <TableHead>Storage</TableHead>
               <TableHead>Upload Date</TableHead>
+              <TableHead>Uploaded By</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredDocuments.length === 0 ? (
+            {filesLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8">
+                <TableCell colSpan={7} className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+                </TableCell>
+              </TableRow>
+            ) : files.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8">
                   <div className="space-y-2">
                     <p className="text-muted-foreground">No documents found</p>
-                    <Button variant="outline" size="sm">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setUploadDialogOpen(true)}
+                    >
                       <Upload className="mr-2 h-4 w-4" />
                       Upload your first document
                     </Button>
@@ -235,31 +348,48 @@ export default function DesignDocumentsPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredDocuments.map((doc) => (
-                <TableRow key={doc.id}>
+              files.map((file) => (
+                <TableRow key={file.id}>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <FileText className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">{doc.file_name}</span>
+                      <span className="font-medium">{file.file_name}</span>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">{doc.document_type}</Badge>
+                    <Badge variant="outline">{file.category || 'file'}</Badge>
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    {formatFileSize(doc.file_size)}
+                    {formatFileSize(file.file_size)}
                   </TableCell>
-                  <TableCell>{getStorageBadge(doc.storage_type)}</TableCell>
+                  <TableCell>{getStorageBadge(file.storage_type)}</TableCell>
                   <TableCell className="text-sm">
-                    {doc.upload_date.toLocaleDateString()}
+                    {new Date(file.created_at).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {file.users_design_files_uploaded_byTousers?.full_name ||
+                      file.users_design_files_uploaded_byTousers?.email ||
+                      'Unknown'}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <Button variant="ghost" size="sm">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          if (file.google_drive_url) {
+                            window.open(file.google_drive_url, '_blank');
+                          }
+                        }}
+                      >
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm">
-                        <Download className="h-4 w-4" />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => void handleDelete(file.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>
@@ -270,20 +400,52 @@ export default function DesignDocumentsPage() {
         </Table>
       </div>
 
-      {/* Placeholder Notice */}
-      <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
-        <div className="flex items-start gap-3">
-          <FileText className="h-5 w-5 text-yellow-600 mt-0.5" />
-          <div>
-            <h3 className="font-medium text-yellow-900">Document Management Placeholder</h3>
-            <p className="text-sm text-yellow-700 mt-1">
-              This page displays sample data for demonstration. Full document upload and management
-              functionality (including Supabase Storage and Google Drive integration) will be
-              implemented in Week 13-15 Day 7-9.
-            </p>
+      {/* Pagination */}
+      {total > pageSize && (
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            Showing {page * pageSize + 1} to {Math.min((page + 1) * pageSize, total)} of {total} documents
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage(p => Math.max(0, p - 1))}
+              disabled={page === 0}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage(p => p + 1)}
+              disabled={(page + 1) * pageSize >= total}
+            >
+              Next
+            </Button>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Upload Dialog */}
+      <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Upload Documents</DialogTitle>
+            <DialogDescription>
+              Upload files to your document library. Files under 50MB are stored in Supabase,
+              files 50MB and larger are stored in Google Drive.
+            </DialogDescription>
+          </DialogHeader>
+
+          <FileUploader
+            onUploadComplete={() => {
+              setUploadDialogOpen(false);
+              void refetchFiles();
+            }}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

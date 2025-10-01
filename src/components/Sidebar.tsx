@@ -13,7 +13,10 @@ import {
   ChevronRight,
   LogOutIcon,
   MenuIcon,
-  XIcon
+  XIcon,
+  Palette,
+  Building2,
+  Shield
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
@@ -40,10 +43,13 @@ export default function Sidebar() {
   const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({
     "Dashboards": pathname === '/dashboard' || pathname.startsWith('/dashboards'),
     "Tasks": isOnTasksPage,
-    "Products": pathname.startsWith('/products'),
     "CRM": pathname.startsWith('/crm'),
+    "Partners": pathname.startsWith('/partners'),
+    "Design": pathname.startsWith('/design'),
+    "Products": pathname.startsWith('/products'),
     "Production": pathname.startsWith('/production'),
-    "Finance": pathname.startsWith('/finance')
+    "Finance": pathname.startsWith('/finance'),
+    "Admin": pathname.startsWith('/admin')
   });
 
   // Update expanded modules when pathname changes to keep relevant module open
@@ -51,10 +57,13 @@ export default function Sidebar() {
     setExpandedModules({
       "Dashboards": pathname === '/dashboard' || pathname.startsWith('/dashboards'),
       "Tasks": pathname.startsWith('/tasks'),
-      "Products": pathname.startsWith('/products'),
       "CRM": pathname.startsWith('/crm'),
+      "Partners": pathname.startsWith('/partners'),
+      "Design": pathname.startsWith('/design'),
+      "Products": pathname.startsWith('/products'),
       "Production": pathname.startsWith('/production'),
-      "Finance": pathname.startsWith('/finance')
+      "Finance": pathname.startsWith('/finance'),
+      "Admin": pathname.startsWith('/admin')
     });
   }, [pathname]);
 
@@ -115,6 +124,24 @@ export default function Sidebar() {
       ]
     },
     {
+      label: "Partners",
+      icon: Building2,
+      items: [
+        { label: "Designers", href: "/partners/designers" },
+        { label: "Factories", href: "/partners/factories" },
+      ]
+    },
+    {
+      label: "Design",
+      icon: Palette,
+      items: [
+        { label: "Design Briefs", href: "/design/briefs" },
+        { label: "Design Projects", href: "/design/projects" },
+        { label: "Mood Boards", href: "/design/boards" },
+        { label: "Documents", href: "/design/documents" },
+      ]
+    },
+    {
       label: "Products",
       icon: Package,
       items: [
@@ -139,6 +166,13 @@ export default function Sidebar() {
       icon: DollarSign,
       items: [
         { label: "Dashboard", href: "/finance" },
+      ]
+    },
+    {
+      label: "Admin",
+      icon: Shield,
+      items: [
+        { label: "Approvals", href: "/admin/approvals" },
       ]
     }
   ];

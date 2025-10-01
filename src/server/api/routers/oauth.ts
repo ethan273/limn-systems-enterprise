@@ -1,0 +1,215 @@
+/**
+ * OAuth tRPC Router
+ *
+ * Provides API endpoints for Google Drive OAuth operations.
+ */
+
+import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
+import {
+  generateAuthUrl,
+  refreshAccessToken,
+  revokeToken,
+  isTokenExpired,
+} from '@/lib/oauth/google-drive-client';
+import { encryptToken, decryptToken } from '@/lib/oauth/token-encryption';
+import { TRPCError } from '@trpc/server';
+
+export const oauthRouter = createTRPCRouter({
+  /**
+   * Generate Google OAuth authorization URL
+   */
+  getAuthUrl: protectedProcedure.query(({ ctx }) => {
+    const userId = ctx.session.user.id;
+    const authUrl = generateAuthUrl(userId);
+
+    return {
+      url: authUrl,
+    };
+  }),
+
+  /**
+   * Get current OAuth connection status
+   */
+  getConnectionStatus: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+
+    const token = await ctx.db.oauth_tokens.findFirst({
+      where: {
+        user_id: userId,
+        provider: 'google_drive',
+      },
+    });
+
+    if (!token) {
+      return {
+        connected: false,
+        email: null,
+        name: null,
+      };
+    }
+
+    // Check if token is expired
+    const expiryDate = token.expires_at ? token.expires_at.getTime() : null;
+    const expired = isTokenExpired(expiryDate);
+
+    return {
+      connected: true,
+      expired,
+      email: token.provider_user_email,
+      name: token.provider_user_name,
+      connectedAt: token.created_at,
+    };
+  }),
+
+  /**
+   * Refresh OAuth access token if needed
+   */
+  refreshToken: protectedProcedure.mutation(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+
+    // Get existing token
+    const token = await ctx.db.oauth_tokens.findFirst({
+      where: {
+        user_id: userId,
+        provider: 'google_drive',
+      },
+    });
+
+    if (!token) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'No Google Drive connection found. Please connect your account.',
+      });
+    }
+
+    if (!token.refresh_token) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'No refresh token available. Please reconnect your Google Drive account.',
+      });
+    }
+
+    // Decrypt refresh token
+    const decryptedRefreshToken = decryptToken(token.refresh_token);
+
+    // Get new access token
+    const newTokens = await refreshAccessToken(decryptedRefreshToken);
+
+    // Encrypt new access token
+    const encryptedAccessToken = encryptToken(newTokens.access_token);
+
+    // Update in database
+    await ctx.db.oauth_tokens.update({
+      where: { id: token.id },
+      data: {
+        access_token: encryptedAccessToken,
+        expires_at: newTokens.expiry_date ? new Date(newTokens.expiry_date) : null,
+        updated_at: new Date(),
+      },
+    });
+
+    return {
+      success: true,
+      expiresAt: newTokens.expiry_date,
+    };
+  }),
+
+  /**
+   * Disconnect Google Drive (revoke tokens)
+   */
+  disconnect: protectedProcedure.mutation(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+
+    // Get existing token
+    const token = await ctx.db.oauth_tokens.findFirst({
+      where: {
+        user_id: userId,
+        provider: 'google_drive',
+      },
+    });
+
+    if (!token) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'No Google Drive connection found.',
+      });
+    }
+
+    try {
+      // Decrypt access token
+      const decryptedAccessToken = decryptToken(token.access_token);
+
+      // Revoke token with Google
+      await revokeToken(decryptedAccessToken);
+    } catch (error) {
+      console.error('Error revoking token with Google:', error);
+      // Continue to delete from database even if revocation fails
+    }
+
+    // Delete from database
+    await ctx.db.oauth_tokens.delete({
+      where: { id: token.id },
+    });
+
+    return {
+      success: true,
+      message: 'Google Drive disconnected successfully',
+    };
+  }),
+
+  /**
+   * Get valid access token (refresh if needed)
+   * Internal helper for other routers
+   */
+  getValidAccessToken: protectedProcedure.query(async ({ ctx }: { ctx: any }) => {
+    const userId = ctx.session.user.id;
+
+    // Get existing token
+    const token = await ctx.db.oauth_tokens.findFirst({
+      where: {
+        user_id: userId,
+        provider: 'google_drive',
+      },
+    });
+
+    if (!token) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'No Google Drive connection found. Please connect your account.',
+      });
+    }
+
+    // Check if token is expired
+    const expiryDate = token.expires_at ? token.expires_at.getTime() : null;
+    const expired = isTokenExpired(expiryDate);
+
+    // If expired, refresh it
+    if (expired && token.refresh_token) {
+      const decryptedRefreshToken = decryptToken(token.refresh_token);
+      const newTokens = await refreshAccessToken(decryptedRefreshToken);
+      const encryptedAccessToken = encryptToken(newTokens.access_token);
+
+      await ctx.db.oauth_tokens.update({
+        where: { id: token.id },
+        data: {
+          access_token: encryptedAccessToken,
+          expires_at: newTokens.expiry_date ? new Date(newTokens.expiry_date) : null,
+          updated_at: new Date(),
+        },
+      });
+
+      return {
+        accessToken: newTokens.access_token,
+        refreshed: true,
+      };
+    }
+
+    // Decrypt and return existing token
+    const decryptedAccessToken = decryptToken(token.access_token);
+
+    return {
+      accessToken: decryptedAccessToken,
+      refreshed: false,
+    };
+  }),
+});
