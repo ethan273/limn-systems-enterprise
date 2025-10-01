@@ -431,4 +431,105 @@ export const productionInvoicesRouter = createTRPCRouter({
         },
       });
     }),
+
+  // Create invoice for CRM order (covers all production orders in that order)
+  createForOrder: protectedProcedure
+    .input(z.object({
+      order_id: z.string().uuid(),
+      invoice_type: z.enum(['deposit', 'final']).default('deposit'),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // Find all production orders for this CRM order
+      const productionOrders = await ctx.db.production_orders.findMany({
+        where: { order_id: input.order_id },
+        include: {
+          projects: {
+            include: {
+              customers: true,
+            },
+          },
+        },
+      });
+
+      if (productionOrders.length === 0) {
+        throw new Error('No production orders found for this order');
+      }
+
+      // Calculate total cost from all production orders
+      const totalCost = productionOrders.reduce((sum, po) => sum + Number(po.total_cost), 0);
+
+      // Get project and customer info from first production order
+      const firstPO = productionOrders[0];
+      const project = firstPO?.projects;
+      const customer = project?.customers;
+
+      // Calculate amounts based on invoice type
+      const subtotal = input.invoice_type === 'deposit' ? totalCost * 0.5 : totalCost * 0.5;
+      const shipping = input.invoice_type === 'final' ? 0 : 0; // TODO: Calculate shipping
+      const total = subtotal + shipping;
+
+      // Generate invoice number
+      const year = new Date().getFullYear();
+      const count = await ctx.db.production_invoices.count({
+        where: {
+          invoice_number: {
+            startsWith: `INV-${year}-`,
+          },
+        },
+      });
+      const invoiceNumber = `INV-${year}-${String(count + 1).padStart(4, '0')}`;
+
+      // Create invoice
+      const invoice = await ctx.db.production_invoices.create({
+        data: {
+          invoice_number: invoiceNumber,
+          invoice_type: input.invoice_type,
+          order_id: input.order_id,
+          project_id: firstPO?.project_id,
+          customer_id: customer?.id,
+          subtotal: new Prisma.Decimal(subtotal),
+          tax: new Prisma.Decimal(0),
+          shipping: new Prisma.Decimal(shipping),
+          total: new Prisma.Decimal(total),
+          amount_paid: new Prisma.Decimal(0),
+          amount_due: new Prisma.Decimal(total),
+          payment_terms: input.invoice_type === 'deposit'
+            ? '50% deposit due on PO creation'
+            : '50% balance + shipping due at FOB',
+          status: 'pending_payment',
+        },
+      });
+
+      // Create line items for each production order
+      const lineItems = await Promise.all(
+        productionOrders.map((po, index) => {
+          const itemAmount = input.invoice_type === 'deposit'
+            ? Number(po.total_cost) * 0.5
+            : Number(po.total_cost) * 0.5;
+
+          return ctx.db.production_invoice_line_items.create({
+            data: {
+              production_invoice_id: invoice.id,
+              line_number: index + 1,
+              description: `${po.item_name} (${po.product_type})`,
+              quantity: po.quantity,
+              unit_price: new Prisma.Decimal(po.unit_price),
+              subtotal: new Prisma.Decimal(itemAmount),
+              tax: new Prisma.Decimal(0),
+              total: new Prisma.Decimal(itemAmount),
+              metadata: {
+                production_order_id: po.id,
+                production_order_number: po.order_number,
+              },
+            },
+          });
+        })
+      );
+
+      return {
+        invoice,
+        lineItems,
+        message: `Invoice ${invoiceNumber} created for order with ${productionOrders.length} items. Total: $${total.toFixed(2)}`,
+      };
+    }),
 });

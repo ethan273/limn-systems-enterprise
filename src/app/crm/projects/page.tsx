@@ -1515,7 +1515,9 @@ export default function ProjectsPage() {
 
   const createProjectMutation = api.projects.create.useMutation();
   const updateProjectMutation = api.projects.update.useMutation();
-  const createOrderMutation = api.orders.createWithItems.useMutation();
+  const createCRMOrderMutation = api.orders.createWithItems.useMutation();
+  const createProductionOrderMutation = api.productionOrders.create.useMutation();
+  const createInvoiceForOrderMutation = api.productionInvoices.createForOrder.useMutation();
   const { refetch: refetchProjects } = api.projects.getAll.useQuery({ limit: 100, offset: 0 });
 
   const handleSaveProject = async (data: ProjectFormData) => {
@@ -1583,11 +1585,11 @@ export default function ProjectsPage() {
         return;
       }
 
-      // Create the order with items
-      const result = await createOrderMutation.mutateAsync({
+      // STEP 1: Create CRM Order with all items
+      const crmOrderResult = await createCRMOrderMutation.mutateAsync({
         project_id: projectId,
         customer_id: project.customer_id,
-        collection_id: orderItems[0]?.base_sku ? undefined : undefined, // We'll enhance this later
+        collection_id: orderItems[0]?.base_sku ? undefined : undefined,
         order_items: orderItems.map(item => ({
           product_name: item.product_name,
           product_sku: item.product_sku,
@@ -1603,9 +1605,41 @@ export default function ProjectsPage() {
         priority: 'normal',
       });
 
+      const crmOrderId = crmOrderResult.order.id;
+      const crmOrderNumber = crmOrderResult.order.order_number;
+
+      // STEP 2: Create production orders (one per order item) - all linked to CRM order
+      const createdProductionOrders = [];
+      let totalCost = 0;
+
+      for (const item of orderItems) {
+        const result = await createProductionOrderMutation.mutateAsync({
+          order_id: crmOrderId, // CRITICAL: Links back to CRM order for grouping/shipping
+          project_id: projectId,
+          product_type: 'catalog', // TODO: Determine from base_sku or item type
+          catalog_item_id: undefined, // TODO: Map from catalog if available
+          item_name: item.product_name,
+          item_description: `${item.project_sku} - ${item.custom_specifications || ''}`,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          estimated_ship_date: undefined,
+          factory_id: undefined,
+          factory_notes: undefined,
+        });
+
+        createdProductionOrders.push(result.order);
+        totalCost += item.total_price;
+      }
+
+      // STEP 3: Create ONE deposit invoice for the entire CRM order (50%)
+      const invoiceResult = await createInvoiceForOrderMutation.mutateAsync({
+        order_id: crmOrderId,
+        invoice_type: 'deposit',
+      });
+
       toast({
         title: "Success",
-        description: `Order ${result.order.order_number} created successfully with ${result.total_items} items totaling $${result.total_amount.toFixed(2)}`,
+        description: `Order ${crmOrderNumber} created with ${createdProductionOrders.length} item${createdProductionOrders.length > 1 ? 's' : ''} totaling $${totalCost.toFixed(2)}. Deposit invoice ${invoiceResult.invoice.invoice_number} generated for $${Number(invoiceResult.invoice.total).toFixed(2)}.`,
         variant: "default",
       });
 

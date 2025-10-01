@@ -8,6 +8,7 @@ import { Prisma } from '@prisma/client';
 
 const createProductionOrderSchema = z.object({
   // Links
+  order_id: z.string().uuid().optional(), // Links to CRM orders table for grouping/shipping
   project_id: z.string().uuid().optional(),
 
   // Product Type (90% catalog, 10% custom)
@@ -72,8 +73,10 @@ async function generateInvoiceNumber(db: any): Promise<string> {
 
 /**
  * Creates a deposit invoice (50%) when production order is created
+ * NOTE: Currently unused - invoice generation moved to per-CRM-order level
+ * Kept for backward compatibility and potential future use
  */
-async function createDepositInvoice(
+async function _createDepositInvoice(
   db: any,
   orderId: string,
   orderData: {
@@ -282,6 +285,7 @@ export const productionOrdersRouter = createTRPCRouter({
       const order = await ctx.db.production_orders.create({
         data: {
           order_number: orderNumber,
+          order_id: input.order_id, // Links to CRM order for grouping/shipping
           project_id: input.project_id,
           product_type: input.product_type,
           catalog_item_id: input.catalog_item_id,
@@ -302,19 +306,13 @@ export const productionOrdersRouter = createTRPCRouter({
         },
       });
 
-      // AUTO-CREATE DEPOSIT INVOICE (50%)
-      const depositInvoice = await createDepositInvoice(ctx.db, order.id, {
-        project_id: input.project_id,
-        total_cost: totalCost,
-        item_name: input.item_name,
-        quantity: input.quantity,
-        unit_price: input.unit_price,
-      });
+      // NOTE: Invoice generation is handled separately per CRM order (not per production order)
+      // When order_id is provided, ONE invoice covers all production orders for that CRM order
+      // Skipping individual invoice creation to avoid duplicate invoices
 
       return {
         order,
-        depositInvoice,
-        message: `Production order ${orderNumber} created. Deposit invoice ${depositInvoice.invoice_number} generated for $${(totalCost * 0.5).toFixed(2)}. Production blocked until deposit is paid.`,
+        message: `Production order ${orderNumber} created and linked to CRM order. Invoice will be generated for the complete order.`,
       };
     }),
 
