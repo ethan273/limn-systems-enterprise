@@ -1422,6 +1422,86 @@ export class DatabaseClient {
   };
 
   // =====================================================
+  // PHASE 2: PARTNERS MODULE
+  // =====================================================
+
+  // Partners model (factories and designers)
+  partners = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('partners', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('partners', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('partners', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('partners', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('partners', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('partners', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('partners', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('partners', options),
+  };
+
+  // Partner Contacts model
+  partner_contacts = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('partner_contacts', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('partner_contacts', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('partner_contacts', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('partner_contacts', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('partner_contacts', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('partner_contacts', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('partner_contacts', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('partner_contacts', options),
+  };
+
+  // Partner Documents model
+  partner_documents = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('partner_documents', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('partner_documents', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('partner_documents', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('partner_documents', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('partner_documents', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('partner_documents', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('partner_documents', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('partner_documents', options),
+  };
+
+  // Partner Performance model
+  partner_performance = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('partner_performance', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('partner_performance', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('partner_performance', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('partner_performance', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('partner_performance', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('partner_performance', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('partner_performance', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('partner_performance', options),
+  };
+
+  // =====================================================
   // LEGACY TASK OPERATIONS (PRESERVED FOR COMPATIBILITY)
   // =====================================================
 

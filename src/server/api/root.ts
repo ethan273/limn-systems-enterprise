@@ -16,6 +16,7 @@ import { productionInvoicesRouter } from './routers/production-invoices';
 import { productionTrackingRouter } from './routers/production-tracking';
 import { shippingRouter } from './routers/shipping';
 import { quickbooksSyncRouter } from './routers/quickbooks-sync';
+import { partnersRouter } from './routers/partners';
 
 /**
  * Main API router
@@ -52,6 +53,9 @@ export const appRouter = createTRPCRouter({
   productionOrders: productionOrdersRouter,
   productionInvoices: productionInvoicesRouter,
   productionTracking: productionTrackingRouter,
+
+  // Partners (Phase 2)
+  partners: partnersRouter,
 
   // Shipping (SEKO Integration)
   shipping: shippingRouter,
