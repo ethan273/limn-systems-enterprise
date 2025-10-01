@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { exchangeCodeForTokens, getUserInfo } from '@/lib/oauth/google-drive-client';
+import { exchangeCodeForTokens, getUserInfo as _getUserInfo } from '@/lib/oauth/google-drive-client';
 import { encryptToken } from '@/lib/oauth/token-encryption';
 import { db } from '@/lib/db';
 
@@ -49,7 +49,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user info from Google
-    const userInfo = await getUserInfo(tokens.access_token);
+    // User info not needed for token storage
+    // const _userInfo = await getUserInfo(tokens.access_token);
 
     // Encrypt tokens before storing
     const encryptedAccessToken = encryptToken(tokens.access_token);
@@ -74,11 +75,8 @@ export async function GET(request: NextRequest) {
           access_token: encryptedAccessToken,
           refresh_token: encryptedRefreshToken,
           token_type: tokens.token_type,
-          expires_at: tokens.expiry_date ? new Date(tokens.expiry_date) : null,
+          expires_at: tokens.expiry_date ? new Date(tokens.expiry_date) : new Date(Date.now() + 3600000), // Default 1 hour if no expiry
           scope: tokens.scope,
-          provider_user_id: userInfo.email || undefined,
-          provider_user_email: userInfo.email || undefined,
-          provider_user_name: userInfo.name || undefined,
           updated_at: new Date(),
         },
       });
@@ -91,11 +89,8 @@ export async function GET(request: NextRequest) {
           access_token: encryptedAccessToken,
           refresh_token: encryptedRefreshToken,
           token_type: tokens.token_type,
-          expires_at: tokens.expiry_date ? new Date(tokens.expiry_date) : null,
+          expires_at: tokens.expiry_date ? new Date(tokens.expiry_date) : new Date(Date.now() + 3600000), // Default 1 hour if no expiry
           scope: tokens.scope,
-          provider_user_id: userInfo.email || undefined,
-          provider_user_email: userInfo.email || undefined,
-          provider_user_name: userInfo.name || undefined,
         },
       });
     }

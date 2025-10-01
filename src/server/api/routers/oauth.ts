@@ -19,6 +19,13 @@ export const oauthRouter = createTRPCRouter({
    * Generate Google OAuth authorization URL
    */
   getAuthUrl: publicProcedure.query(({ ctx }) => {
+    if (!ctx.session?.user?.id) {
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'User must be logged in',
+      });
+    }
+
     const userId = ctx.session.user.id;
     const authUrl = generateAuthUrl(userId);
 
@@ -31,6 +38,13 @@ export const oauthRouter = createTRPCRouter({
    * Get current OAuth connection status
    */
   getConnectionStatus: publicProcedure.query(async ({ ctx }) => {
+    if (!ctx.session?.user?.id) {
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'User must be logged in',
+      });
+    }
+
     const userId = ctx.session.user.id;
 
     const token = await ctx.db.oauth_tokens.findFirst({
@@ -43,8 +57,6 @@ export const oauthRouter = createTRPCRouter({
     if (!token) {
       return {
         connected: false,
-        email: null,
-        name: null,
       };
     }
 
@@ -55,8 +67,6 @@ export const oauthRouter = createTRPCRouter({
     return {
       connected: true,
       expired,
-      email: token.provider_user_email,
-      name: token.provider_user_name,
       connectedAt: token.created_at,
     };
   }),
@@ -65,6 +75,13 @@ export const oauthRouter = createTRPCRouter({
    * Refresh OAuth access token if needed
    */
   refreshToken: publicProcedure.mutation(async ({ ctx }) => {
+    if (!ctx.session?.user?.id) {
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'User must be logged in',
+      });
+    }
+
     const userId = ctx.session.user.id;
 
     // Get existing token
@@ -103,7 +120,7 @@ export const oauthRouter = createTRPCRouter({
       where: { id: token.id },
       data: {
         access_token: encryptedAccessToken,
-        expires_at: newTokens.expiry_date ? new Date(newTokens.expiry_date) : null,
+        expires_at: newTokens.expiry_date ? new Date(newTokens.expiry_date) : new Date(Date.now() + 3600000),
         updated_at: new Date(),
       },
     });
@@ -118,6 +135,13 @@ export const oauthRouter = createTRPCRouter({
    * Disconnect Google Drive (revoke tokens)
    */
   disconnect: publicProcedure.mutation(async ({ ctx }) => {
+    if (!ctx.session?.user?.id) {
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'User must be logged in',
+      });
+    }
+
     const userId = ctx.session.user.id;
 
     // Get existing token
@@ -162,6 +186,13 @@ export const oauthRouter = createTRPCRouter({
    * Internal helper for other routers
    */
   getValidAccessToken: publicProcedure.query(async ({ ctx }: { ctx: any }) => {
+    if (!ctx.session?.user?.id) {
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'User must be logged in',
+      });
+    }
+
     const userId = ctx.session.user.id;
 
     // Get existing token
@@ -193,7 +224,7 @@ export const oauthRouter = createTRPCRouter({
         where: { id: token.id },
         data: {
           access_token: encryptedAccessToken,
-          expires_at: newTokens.expiry_date ? new Date(newTokens.expiry_date) : null,
+          expires_at: newTokens.expiry_date ? new Date(newTokens.expiry_date) : new Date(Date.now() + 3600000),
           updated_at: new Date(),
         },
       });

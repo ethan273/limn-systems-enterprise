@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { createTRPCRouter, publicProcedure } from '../trpc/init';
 import { TRPCError } from '@trpc/server';
 import {
-  getFileCategory,
+  getFileCategory as _getFileCategory,
 } from '@/lib/storage/hybrid-storage';
 import { deleteFromSupabase } from '@/lib/storage/supabase-storage';
 import {
@@ -18,6 +18,52 @@ import {
 import { decryptToken } from '@/lib/oauth/token-encryption';
 import { isTokenExpired, refreshAccessToken } from '@/lib/oauth/google-drive-client';
 import { encryptToken } from '@/lib/oauth/token-encryption';
+
+// Helper function to get access token (used internally within router)
+async function getValidAccessToken(ctx: any): Promise<string> {
+  if (!ctx.session?.user?.id) {
+    throw new TRPCError({
+      code: 'UNAUTHORIZED',
+      message: 'User must be logged in',
+    });
+  }
+
+  const token = await ctx.db.oauth_tokens.findFirst({
+    where: {
+      user_id: ctx.session.user.id,
+      provider: 'google_drive',
+    },
+  });
+
+  if (!token) {
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: 'No Google Drive connection found',
+    });
+  }
+
+  const expiryDate = token.expires_at ? token.expires_at.getTime() : null;
+  const expired = isTokenExpired(expiryDate);
+
+  if (expired && token.refresh_token) {
+    const decryptedRefreshToken = decryptToken(token.refresh_token);
+    const newTokens = await refreshAccessToken(decryptedRefreshToken);
+    const encryptedAccessToken = encryptToken(newTokens.access_token);
+
+    await ctx.db.oauth_tokens.update({
+      where: { id: token.id },
+      data: {
+        access_token: encryptedAccessToken,
+        expires_at: newTokens.expiry_date ? new Date(newTokens.expiry_date) : new Date(Date.now() + 3600000),
+        updated_at: new Date(),
+      },
+    });
+
+    return newTokens.access_token;
+  }
+
+  return decryptToken(token.access_token);
+}
 
 export const storageRouter = createTRPCRouter({
   /**
@@ -40,6 +86,13 @@ export const storageRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      if (!ctx.session?.user?.id) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'User must be logged in',
+        });
+      }
+
       // Store file metadata in database
       const fileRecord = await ctx.db.design_files.create({
         data: {
@@ -50,10 +103,8 @@ export const storageRouter = createTRPCRouter({
           storage_path: input.storagePath || null,
           google_drive_id: input.googleDriveId || null,
           google_drive_url: input.publicUrl || null,
+          file_url: input.publicUrl || '',
           uploaded_by: ctx.session.user.id,
-          project_id: input.projectId || null,
-          design_brief_id: input.briefId || null,
-          category: input.category || getFileCategory(input.fileType),
         },
       });
 
@@ -68,6 +119,13 @@ export const storageRouter = createTRPCRouter({
    * Get valid Google Drive access token (refresh if needed)
    */
   getAccessToken: publicProcedure.query(async ({ ctx }) => {
+    if (!ctx.session?.user?.id) {
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'User must be logged in',
+      });
+    }
+
     const userId = ctx.session.user.id;
 
     // Get OAuth token from database
@@ -99,7 +157,7 @@ export const storageRouter = createTRPCRouter({
         where: { id: token.id },
         data: {
           access_token: encryptedAccessToken,
-          expires_at: newTokens.expiry_date ? new Date(newTokens.expiry_date) : null,
+          expires_at: newTokens.expiry_date ? new Date(newTokens.expiry_date) : new Date(Date.now() + 3600000),
           updated_at: new Date(),
         },
       });
@@ -152,11 +210,10 @@ export const storageRouter = createTRPCRouter({
           take: input.limit,
           skip: input.offset,
           include: {
-            users_design_files_uploaded_byTousers: {
+            users: {
               select: {
                 id: true,
                 email: true,
-                full_name: true,
               },
             },
           },
@@ -180,11 +237,10 @@ export const storageRouter = createTRPCRouter({
       const file = await ctx.db.design_files.findUnique({
         where: { id: input.fileId },
         include: {
-          users_design_files_uploaded_byTousers: {
+          users: {
             select: {
               id: true,
               email: true,
-              full_name: true,
             },
           },
         },
@@ -206,6 +262,13 @@ export const storageRouter = createTRPCRouter({
   deleteFile: publicProcedure
     .input(z.object({ fileId: z.string() }))
     .mutation(async ({ ctx, input }) => {
+    if (!ctx.session?.user?.id) {
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'User must be logged in',
+      });
+    }
+
       const userId = ctx.session.user.id;
 
       // Get file record
@@ -233,7 +296,7 @@ export const storageRouter = createTRPCRouter({
         await deleteFromSupabase(file.storage_path);
       } else if (file.storage_type === 'google_drive' && file.google_drive_id) {
         // Get access token
-        const { accessToken } = await ctx.caller.storage.getAccessToken();
+        const accessToken = await getValidAccessToken(ctx);
         await deleteFromGoogleDrive(file.google_drive_id, accessToken);
       }
 
@@ -273,7 +336,7 @@ export const storageRouter = createTRPCRouter({
         };
       } else {
         // Get Google Drive metadata for latest URL
-        const { accessToken } = await ctx.caller.storage.getAccessToken();
+        const accessToken = await getValidAccessToken(ctx);
         const metadata = await getGoogleDriveFileMetadata(file.google_drive_id!, accessToken);
 
         return {
@@ -287,6 +350,13 @@ export const storageRouter = createTRPCRouter({
    * Get storage statistics
    */
   getStorageStats: publicProcedure.query(async ({ ctx }) => {
+    if (!ctx.session?.user?.id) {
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'User must be logged in',
+      });
+    }
+
     const userId = ctx.session.user.id;
 
     const stats = await ctx.db.design_files.groupBy({

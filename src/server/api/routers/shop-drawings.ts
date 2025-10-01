@@ -63,7 +63,6 @@ export const shopDrawingsRouter = createTRPCRouter({
             },
             creator: {
               select: {
-                name: true,
                 email: true,
               },
             },
@@ -115,19 +114,16 @@ export const shopDrawingsRouter = createTRPCRouter({
           },
           creator: {
             select: {
-              name: true,
               email: true,
             },
           },
           limn_approver: {
             select: {
-              name: true,
               email: true,
             },
           },
           designer_approver: {
             select: {
-              name: true,
               email: true,
             },
           },
@@ -135,7 +131,6 @@ export const shopDrawingsRouter = createTRPCRouter({
             include: {
               uploader: {
                 select: {
-                  name: true,
                   email: true,
                 },
               },
@@ -143,13 +138,11 @@ export const shopDrawingsRouter = createTRPCRouter({
                 include: {
                   author: {
                     select: {
-                      name: true,
                       email: true,
                     },
                   },
                   resolver: {
                     select: {
-                      name: true,
                       email: true,
                     },
                   },
@@ -162,7 +155,6 @@ export const shopDrawingsRouter = createTRPCRouter({
                 include: {
                   approver: {
                     select: {
-                      name: true,
                       email: true,
                     },
                   },
@@ -207,6 +199,13 @@ export const shopDrawingsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      if (!ctx.session?.user?.id) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'User must be logged in',
+        });
+      }
+
       const userId = ctx.session.user.id;
 
       // Generate drawing number: SD-2025-0001
@@ -288,6 +287,13 @@ export const shopDrawingsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      if (!ctx.session?.user?.id) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'User must be logged in',
+        });
+      }
+
       const userId = ctx.session.user.id;
 
       // Get current drawing
@@ -375,6 +381,13 @@ export const shopDrawingsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      if (!ctx.session?.user?.id) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'User must be logged in',
+        });
+      }
+
       const userId = ctx.session.user.id;
 
       const comment = await ctx.db.shop_drawing_comments.create({
@@ -394,7 +407,6 @@ export const shopDrawingsRouter = createTRPCRouter({
         include: {
           author: {
             select: {
-              name: true,
               email: true,
             },
           },
@@ -419,6 +431,13 @@ export const shopDrawingsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      if (!ctx.session?.user?.id) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'User must be logged in',
+        });
+      }
+
       const userId = ctx.session.user.id;
 
       const comment = await ctx.db.shop_drawing_comments.update({
@@ -452,6 +471,13 @@ export const shopDrawingsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      if (!ctx.session?.user?.id) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'User must be logged in',
+        });
+      }
+
       const userId = ctx.session.user.id;
 
       // Get version and drawing
@@ -575,7 +601,6 @@ export const shopDrawingsRouter = createTRPCRouter({
         include: {
           uploader: {
             select: {
-              name: true,
               email: true,
             },
           },
@@ -638,13 +663,11 @@ export const shopDrawingsRouter = createTRPCRouter({
         include: {
           author: {
             select: {
-              name: true,
               email: true,
             },
           },
           resolver: {
             select: {
-              name: true,
               email: true,
             },
           },
@@ -652,7 +675,6 @@ export const shopDrawingsRouter = createTRPCRouter({
             include: {
               author: {
                 select: {
-                  name: true,
                   email: true,
                 },
               },
@@ -681,13 +703,11 @@ export const shopDrawingsRouter = createTRPCRouter({
         include: {
           limn_approver: {
             select: {
-              name: true,
               email: true,
             },
           },
           designer_approver: {
             select: {
-              name: true,
               email: true,
             },
           },
@@ -697,7 +717,6 @@ export const shopDrawingsRouter = createTRPCRouter({
                 include: {
                   approver: {
                     select: {
-                      name: true,
                       email: true,
                     },
                   },
@@ -752,21 +771,21 @@ export const shopDrawingsRouter = createTRPCRouter({
         include: {
           creator: {
             select: {
-              name: true,
+              email: true,
             },
           },
           versions: {
             include: {
               uploader: {
                 select: {
-                  name: true,
+                  email: true,
                 },
               },
               comments: {
                 include: {
                   author: {
                     select: {
-                      name: true,
+                      email: true,
                     },
                   },
                 },
@@ -775,7 +794,7 @@ export const shopDrawingsRouter = createTRPCRouter({
                 include: {
                   approver: {
                     select: {
-                      name: true,
+                      email: true,
                     },
                   },
                 },
@@ -799,7 +818,7 @@ export const shopDrawingsRouter = createTRPCRouter({
       activities.push({
         type: 'drawing_created',
         timestamp: drawing.created_at,
-        user: drawing.creator.name,
+        user: drawing.creator.email,
         description: `Created drawing ${drawing.drawing_number}`,
       });
 
@@ -808,7 +827,7 @@ export const shopDrawingsRouter = createTRPCRouter({
         activities.push({
           type: 'version_uploaded',
           timestamp: version.uploaded_at,
-          user: version.uploader.name,
+          user: version.uploader.email,
           description: `Uploaded version ${version.version_number}`,
           versionNumber: version.version_number,
         });
@@ -818,7 +837,7 @@ export const shopDrawingsRouter = createTRPCRouter({
           activities.push({
             type: 'comment_added',
             timestamp: comment.created_at,
-            user: comment.author.name,
+            user: comment.author.email,
             description: `Added ${comment.comment_type} comment`,
             versionNumber: version.version_number,
           });
@@ -829,7 +848,7 @@ export const shopDrawingsRouter = createTRPCRouter({
           activities.push({
             type: 'approval_given',
             timestamp: approval.approved_at,
-            user: approval.approver.name,
+            user: approval.approver.email,
             description: `${approval.decision === 'approved' ? 'Approved' : approval.decision === 'rejected' ? 'Rejected' : 'Requested changes for'} version ${version.version_number}`,
             versionNumber: version.version_number,
             decision: approval.decision,

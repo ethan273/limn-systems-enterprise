@@ -213,7 +213,7 @@ export default function DesignDocumentsPage() {
           <CheckCircle className="h-4 w-4" />
           <AlertDescription className="flex items-center justify-between">
             <span>
-              Google Drive connected as {connectionStatus.email}
+              Google Drive connected
             </span>
             <Button
               size="sm"
@@ -357,18 +357,18 @@ export default function DesignDocumentsPage() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">{file.category || 'file'}</Badge>
+                    <Badge variant="outline">{file.file_type || 'file'}</Badge>
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    {formatFileSize(file.file_size)}
+                    {formatFileSize(file.file_size || 0)}
                   </TableCell>
-                  <TableCell>{getStorageBadge(file.storage_type)}</TableCell>
+                  <TableCell>{getStorageBadge(file.storage_type || 'supabase')}</TableCell>
                   <TableCell className="text-sm">
-                    {new Date(file.created_at).toLocaleDateString()}
+                    {new Date(file.created_at || new Date()).toLocaleDateString()}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    {file.users_design_files_uploaded_byTousers?.full_name ||
-                      file.users_design_files_uploaded_byTousers?.email ||
+                    {
+                      file.users?.email ||
                       'Unknown'}
                   </TableCell>
                   <TableCell className="text-right">
