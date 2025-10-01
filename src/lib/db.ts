@@ -1503,6 +1503,67 @@ export class DatabaseClient {
       this.countGeneric('partner_performance', options),
   };
 
+  // Design Module Tables (Phase 2 - Week 13-15)
+  design_briefs = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('design_briefs', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('design_briefs', options),
+    findFirst: (options?: { where?: Record<string, any>; orderBy?: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findFirstGeneric<any>('design_briefs', { where: options?.where || {}, orderBy: options?.orderBy, include: options?.include, select: options?.select }),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('design_briefs', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('design_briefs', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('design_briefs', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('design_briefs', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('design_briefs', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('design_briefs', options),
+  };
+
+  design_projects = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('design_projects', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('design_projects', options),
+    findFirst: (options?: { where?: Record<string, any>; orderBy?: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findFirstGeneric<any>('design_projects', { where: options?.where || {}, orderBy: options?.orderBy, include: options?.include, select: options?.select }),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('design_projects', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('design_projects', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('design_projects', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('design_projects', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('design_projects', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('design_projects', options),
+  };
+
+  mood_boards = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('mood_boards', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('mood_boards', options),
+    findFirst: (options?: { where?: Record<string, any>; orderBy?: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findFirstGeneric<any>('mood_boards', { where: options?.where || {}, orderBy: options?.orderBy, include: options?.include, select: options?.select }),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('mood_boards', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('mood_boards', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('mood_boards', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('mood_boards', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('mood_boards', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('mood_boards', options),
+  };
+
   // =====================================================
   // LEGACY TASK OPERATIONS (PRESERVED FOR COMPATIBILITY)
   // =====================================================

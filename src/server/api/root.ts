@@ -18,6 +18,9 @@ import { shippingRouter } from './routers/shipping';
 import { quickbooksSyncRouter } from './routers/quickbooks-sync';
 import { partnersRouter } from './routers/partners';
 import { portalRouter } from './routers/portal';
+import { designBriefsRouter } from './routers/design-briefs';
+import { designProjectsRouter } from './routers/design-projects-router';
+import { moodBoardsRouter } from './routers/mood-boards';
 
 /**
  * Main API router
@@ -57,6 +60,11 @@ export const appRouter = createTRPCRouter({
 
   // Partners (Phase 2)
   partners: partnersRouter,
+
+  // Design Module (Phase 2 - Week 13-15)
+  designBriefs: designBriefsRouter,
+  designProjects: designProjectsRouter,
+  moodBoards: moodBoardsRouter,
 
   // Shipping (SEKO Integration)
   shipping: shippingRouter,
