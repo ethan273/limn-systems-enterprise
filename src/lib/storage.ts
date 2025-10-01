@@ -177,3 +177,103 @@ export async function createThumbnail(
     return null;
   }
 }
+
+/**
+ * Upload a product image to Supabase Storage
+ */
+export async function uploadProductImage(
+  itemId: string,
+  file: File,
+  _onProgress?: (_progress: number) => void
+): Promise<UploadResult> {
+  try {
+    // Validate file size (10MB limit for images)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      return {
+        success: false,
+        error: 'Image size exceeds 10MB limit'
+      };
+    }
+
+    // Validate file type - images only
+    const allowedTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'image/webp'
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      return {
+        success: false,
+        error: 'File type not allowed. Please upload an image (JPEG, PNG, GIF, or WebP).'
+      };
+    }
+
+    // Generate unique file name
+    const fileExtension = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExtension}`;
+    const filePath = `products/${itemId}/${fileName}`;
+
+    // Upload to Supabase Storage
+    const client = getSupabase();
+    const { data, error } = await client.storage
+      .from('product-images')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (error) {
+      console.error('Storage upload error:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+
+    // Get public URL
+    const { data: urlData } = client.storage
+      .from('product-images')
+      .getPublicUrl(filePath);
+
+    return {
+      success: true,
+      data: {
+        path: filePath,
+        fullPath: data.path,
+        publicUrl: urlData.publicUrl
+      }
+    };
+
+  } catch (error) {
+    console.error('Upload error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Upload failed'
+    };
+  }
+}
+
+/**
+ * Delete a product image from Supabase Storage
+ */
+export async function deleteProductImage(filePath: string): Promise<boolean> {
+  try {
+    const client = getSupabase();
+    const { error } = await client.storage
+      .from('product-images')
+      .remove([filePath]);
+
+    if (error) {
+      console.error('Storage delete error:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Delete error:', error);
+    return false;
+  }
+}

@@ -60,6 +60,92 @@ import { ImageManager } from "@/components/furniture/ImageManager";
 import { DimensionDisplay } from "@/components/furniture/DimensionDisplay";
 import type { FurnitureType } from "@/lib/utils/dimension-validation";
 import type { ImageType, ItemImage } from "@/components/furniture/ImageManager";
+import { uploadProductImage } from "@/lib/storage";
+
+// Image Manager Wrapper Component for Catalog
+function CatalogImageManager({ itemId }: { itemId: string }) {
+  const { data: itemImages, refetch: refetchImages } = api.items.getItemImages.useQuery({ itemId });
+  const addImageMutation = api.items.addItemImage.useMutation();
+  const updateImageMutation = api.items.updateItemImage.useMutation();
+  const deleteImageMutation = api.items.deleteItemImage.useMutation();
+
+  // Group images by type
+  const groupedImages: Record<ImageType, ItemImage[]> = {
+    line_drawing: [],
+    isometric: [],
+    '3d_model': [],
+    rendering: [],
+    photograph: [],
+  };
+
+  if (itemImages) {
+    itemImages.forEach((img: any) => {
+      const imageType = img.image_type as ImageType;
+      // eslint-disable-next-line security/detect-object-injection
+      if (groupedImages[imageType]) {
+        // eslint-disable-next-line security/detect-object-injection
+        groupedImages[imageType].push(img as ItemImage);
+      }
+    });
+  }
+
+  const handleUpload = async (imageType: ImageType, file: File, metadata: Partial<ItemImage>) => {
+    try {
+      const result = await uploadProductImage(itemId, file);
+      if (!result.success || !result.data) {
+        throw new Error(result.error || 'Upload failed');
+      }
+
+      await addImageMutation.mutateAsync({
+        item_id: itemId,
+        image_type: imageType,
+        file_url: result.data.publicUrl,
+        file_name: metadata.file_name || file.name,
+        file_size: metadata.file_size || file.size,
+        mime_type: metadata.mime_type || file.type,
+        alt_text: metadata.alt_text,
+        description: metadata.description,
+        sort_order: metadata.sort_order || 0,
+        is_primary: metadata.is_primary || false,
+      });
+
+      await refetchImages();
+    } catch (error) {
+      console.error('Upload error:', error);
+      throw error;
+    }
+  };
+
+  const handleUpdate = async (imageId: string, metadata: Partial<ItemImage>) => {
+    try {
+      await updateImageMutation.mutateAsync({ id: imageId, data: metadata });
+      await refetchImages();
+    } catch (error) {
+      console.error('Update error:', error);
+      throw error;
+    }
+  };
+
+  const handleDelete = async (imageId: string) => {
+    try {
+      await deleteImageMutation.mutateAsync({ id: imageId });
+      await refetchImages();
+    } catch (error) {
+      console.error('Delete error:', error);
+      throw error;
+    }
+  };
+
+  return (
+    <ImageManager
+      images={groupedImages}
+      onUpload={handleUpload}
+      onUpdate={handleUpdate}
+      onDelete={handleDelete}
+      disabled={false}
+    />
+  );
+}
 
 interface Collection {
   id: string;
@@ -70,7 +156,7 @@ interface Collection {
 interface Item {
   id: string;
   name: string;
-  sku_base: string;  // Base product SKU from catalog
+  base_sku: string;  // Base product SKU from catalog
   sku?: string;      // Full SKU with materials (optional)
   client_sku?: string; // Client-specific tracking ID
   project_sku?: string; // Project-level grouping
@@ -161,7 +247,8 @@ interface Item {
 interface ItemFormData {
   // Basic Information
   name: string;
-  sku_base: string;
+  base_sku: string;
+  variation_type: string; // e.g., "Deep", "Short", "Wide"
   collection_id: string;
   description: string;
   type: 'Concept' | 'Prototype' | 'Production Ready';
@@ -267,11 +354,14 @@ interface ItemFormData {
   fabric_brand: string;
   fabric_collection: string;
   fabric_color: string;
+  wood_type_id?: string; // Parent material ID for hierarchical filtering
   wood_type: string;
   wood_finish: string;
+  metal_type_id?: string; // Parent material ID for hierarchical filtering
   metal_type: string;
   metal_finish: string;
   metal_color: string;
+  stone_type_id?: string; // Parent material ID for hierarchical filtering
   stone_type: string;
   stone_finish: string;
   weaving_material: string;
@@ -308,7 +398,8 @@ function ItemDialog({
   const [formData, setFormData] = useState<ItemFormData>({
     // Basic Information
     name: item?.name || "",
-    sku_base: item?.sku_base || "",
+    base_sku: item?.base_sku || "",
+    variation_type: (item as any)?.variation_type || "",
     collection_id: item?.collection_id || "",
     description: item?.description || "",
     type: item?.type || 'Concept',
@@ -414,11 +505,14 @@ function ItemDialog({
     fabric_brand: item?.fabric_brand || "",
     fabric_collection: item?.fabric_collection || "",
     fabric_color: item?.fabric_color || "",
+    wood_type_id: "",
     wood_type: item?.wood_type || "",
     wood_finish: item?.wood_finish || "",
+    metal_type_id: "",
     metal_type: item?.metal_type || "",
     metal_finish: item?.metal_finish || "",
     metal_color: item?.metal_color || "",
+    stone_type_id: "",
     stone_type: item?.stone_type || "",
     stone_finish: item?.stone_finish || "",
     weaving_material: item?.weaving_material || "",
@@ -499,7 +593,9 @@ function ItemDialog({
               <TabsTrigger value="inventory">Inventory</TabsTrigger>
               <TabsTrigger value="shipping">Shipping</TabsTrigger>
               <TabsTrigger value="materials">Materials</TabsTrigger>
-              <TabsTrigger value="images">Images</TabsTrigger>
+              <TabsTrigger value="images" disabled={!item?.id}>
+                Images {!item?.id && <span className="text-xs ml-1">(Save first)</span>}
+              </TabsTrigger>
               <TabsTrigger value="variations">Variations</TabsTrigger>
               <TabsTrigger value="history">History</TabsTrigger>
             </TabsList>
@@ -507,25 +603,60 @@ function ItemDialog({
             <TabsContent value="basic" className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="name">Item Name *</Label>
+                  <Label htmlFor="name">
+                    Item Name *
+                    {formData.type === 'Production Ready' && (
+                      <span className="ml-2 text-xs text-orange-600 font-semibold">🔒 Locked</span>
+                    )}
+                  </Label>
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                     placeholder="Item name"
                     required
+                    disabled={formData.type === 'Production Ready'}
+                    className={formData.type === 'Production Ready' ? 'bg-gray-100 cursor-not-allowed' : ''}
                   />
+                  {formData.type === 'Production Ready' && (
+                    <p className="text-xs text-gray-500 mt-1">Change to Prototype to edit</p>
+                  )}
                 </div>
 
                 <div>
-                  <Label htmlFor="sku_base">Base SKU *</Label>
+                  <Label htmlFor="base_sku">
+                    Base SKU *
+                    {formData.type === 'Production Ready' && (
+                      <span className="ml-2 text-xs text-orange-600 font-semibold">🔒 Locked</span>
+                    )}
+                  </Label>
                   <Input
-                    id="sku_base"
-                    value={formData.sku_base}
-                    onChange={(e) => setFormData(prev => ({ ...prev, sku_base: e.target.value }))}
-                    placeholder="BASE-SKU-001"
+                    id="base_sku"
+                    value={formData.base_sku}
+                    onChange={(e) => setFormData(prev => ({ ...prev, base_sku: e.target.value }))}
+                    placeholder="AUTO-GENERATED"
                     required
+                    disabled={formData.type === 'Production Ready'}
+                    className={formData.type === 'Production Ready' ? 'bg-gray-100 cursor-not-allowed' : 'bg-blue-50'}
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {formData.type === 'Production Ready'
+                      ? 'Change to Prototype to edit'
+                      : '✨ Auto-generated from name + collection + variation'}
+                  </p>
+                </div>
+
+                <div>
+                  <Label htmlFor="variation_type">Variation Type (Optional)</Label>
+                  <Input
+                    id="variation_type"
+                    value={formData.variation_type}
+                    onChange={(e) => setFormData(prev => ({ ...prev, variation_type: e.target.value }))}
+                    placeholder="e.g., Deep, Short, Wide"
+                    disabled={formData.type === 'Production Ready'}
+                    className={formData.type === 'Production Ready' ? 'bg-gray-100 cursor-not-allowed' : ''}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Included in Base SKU (e.g., IN-SOFA-DEEP-001)</p>
                 </div>
 
                 <div>
@@ -1835,12 +1966,25 @@ function ItemDialog({
                   <div className="space-y-2">
                     <Label htmlFor="wood_type">Wood Type</Label>
                     <Select
-                      value={formData.wood_type}
-                      onValueChange={(value) => setFormData({
-                        ...formData,
-                        wood_type: value,
-                        wood_finish: "" // Reset finish when type changes
-                      })}
+                      value={formData.wood_type_id || "none"}
+                      onValueChange={(value) => {
+                        if (value === "none") {
+                          setFormData({
+                            ...formData,
+                            wood_type_id: "",
+                            wood_type: "",
+                            wood_finish: ""
+                          });
+                        } else {
+                          const selectedWood: any = woodMaterials.find((m: any) => m.id === value);
+                          setFormData({
+                            ...formData,
+                            wood_type_id: value,
+                            wood_type: (selectedWood as any)?.name || "",
+                            wood_finish: "" // Reset finish when type changes
+                          });
+                        }
+                      }}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select wood type" />
@@ -1848,7 +1992,7 @@ function ItemDialog({
                       <SelectContent>
                         <SelectItem value="none">No selection</SelectItem>
                         {woodMaterials.filter((m: any) => m.hierarchy_level === 1).map((wood: any) => (
-                          <SelectItem key={wood.id} value={wood.name}>
+                          <SelectItem key={wood.id} value={wood.id}>
                             {wood.name}
                           </SelectItem>
                         ))}
@@ -1860,18 +2004,23 @@ function ItemDialog({
                     <Select
                       value={formData.wood_finish}
                       onValueChange={(value) => setFormData({ ...formData, wood_finish: value })}
-                      disabled={!formData.wood_type}
+                      disabled={!formData.wood_type_id}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder={formData.wood_type ? "Select wood finish" : "Select wood type first"} />
+                        <SelectValue placeholder={formData.wood_type_id ? "Select wood finish" : "Select wood type first"} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">No selection</SelectItem>
-                        {woodMaterials.filter((m: any) => m.hierarchy_level === 2).map((finish: any) => (
-                          <SelectItem key={finish.id} value={finish.name}>
-                            {finish.name}
-                          </SelectItem>
-                        ))}
+                        {woodMaterials
+                          .filter((m: any) =>
+                            m.hierarchy_level === 2 &&
+                            m.parent_material_id === formData.wood_type_id
+                          )
+                          .map((finish: any) => (
+                            <SelectItem key={finish.id} value={finish.name}>
+                              {finish.name}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -1885,13 +2034,27 @@ function ItemDialog({
                   <div className="space-y-2">
                     <Label htmlFor="metal_type">Metal Type</Label>
                     <Select
-                      value={formData.metal_type}
-                      onValueChange={(value) => setFormData({
-                        ...formData,
-                        metal_type: value,
-                        metal_finish: "", // Reset finish when type changes
-                        metal_color: "" // Reset color when type changes
-                      })}
+                      value={formData.metal_type_id || "none"}
+                      onValueChange={(value) => {
+                        if (value === "none") {
+                          setFormData({
+                            ...formData,
+                            metal_type_id: "",
+                            metal_type: "",
+                            metal_finish: "",
+                            metal_color: ""
+                          });
+                        } else {
+                          const selectedMetal: any = metalMaterials.find((m: any) => m.id === value);
+                          setFormData({
+                            ...formData,
+                            metal_type_id: value,
+                            metal_type: (selectedMetal as any)?.name || "",
+                            metal_finish: "", // Reset finish when type changes
+                            metal_color: "" // Reset color when type changes
+                          });
+                        }
+                      }}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select metal type" />
@@ -1899,7 +2062,7 @@ function ItemDialog({
                       <SelectContent>
                         <SelectItem value="none">No selection</SelectItem>
                         {metalMaterials.filter((m: any) => m.hierarchy_level === 1).map((metal: any) => (
-                          <SelectItem key={metal.id} value={metal.name}>
+                          <SelectItem key={metal.id} value={metal.id}>
                             {metal.name}
                           </SelectItem>
                         ))}
@@ -1911,18 +2074,23 @@ function ItemDialog({
                     <Select
                       value={formData.metal_finish}
                       onValueChange={(value) => setFormData({ ...formData, metal_finish: value })}
-                      disabled={!formData.metal_type}
+                      disabled={!formData.metal_type_id}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder={formData.metal_type ? "Select metal finish" : "Select metal type first"} />
+                        <SelectValue placeholder={formData.metal_type_id ? "Select metal finish" : "Select metal type first"} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">No selection</SelectItem>
-                        {metalMaterials.filter((m: any) => m.hierarchy_level === 2).map((finish: any) => (
-                          <SelectItem key={finish.id} value={finish.name}>
-                            {finish.name}
-                          </SelectItem>
-                        ))}
+                        {metalMaterials
+                          .filter((m: any) =>
+                            m.hierarchy_level === 2 &&
+                            m.parent_material_id === formData.metal_type_id
+                          )
+                          .map((finish: any) => (
+                            <SelectItem key={finish.id} value={finish.name}>
+                              {finish.name}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -1956,12 +2124,25 @@ function ItemDialog({
                   <div className="space-y-2">
                     <Label htmlFor="stone_type">Stone Type</Label>
                     <Select
-                      value={formData.stone_type}
-                      onValueChange={(value) => setFormData({
-                        ...formData,
-                        stone_type: value,
-                        stone_finish: "" // Reset finish when type changes
-                      })}
+                      value={formData.stone_type_id || "none"}
+                      onValueChange={(value) => {
+                        if (value === "none") {
+                          setFormData({
+                            ...formData,
+                            stone_type_id: "",
+                            stone_type: "",
+                            stone_finish: ""
+                          });
+                        } else {
+                          const selectedStone: any = stoneMaterials.find((m: any) => m.id === value);
+                          setFormData({
+                            ...formData,
+                            stone_type_id: value,
+                            stone_type: (selectedStone as any)?.name || "",
+                            stone_finish: "" // Reset finish when type changes
+                          });
+                        }
+                      }}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select stone type" />
@@ -1969,7 +2150,7 @@ function ItemDialog({
                       <SelectContent>
                         <SelectItem value="none">No selection</SelectItem>
                         {stoneMaterials.filter((m: any) => m.hierarchy_level === 1).map((stone: any) => (
-                          <SelectItem key={stone.id} value={stone.name}>
+                          <SelectItem key={stone.id} value={stone.id}>
                             {stone.name}
                           </SelectItem>
                         ))}
@@ -1981,18 +2162,23 @@ function ItemDialog({
                     <Select
                       value={formData.stone_finish}
                       onValueChange={(value) => setFormData({ ...formData, stone_finish: value })}
-                      disabled={!formData.stone_type}
+                      disabled={!formData.stone_type_id}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder={formData.stone_type ? "Select stone finish" : "Select stone type first"} />
+                        <SelectValue placeholder={formData.stone_type_id ? "Select stone finish" : "Select stone type first"} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">No selection</SelectItem>
-                        {stoneMaterials.filter((m: any) => m.hierarchy_level === 2).map((finish: any) => (
-                          <SelectItem key={finish.id} value={finish.name}>
-                            {finish.name}
-                          </SelectItem>
-                        ))}
+                        {stoneMaterials
+                          .filter((m: any) =>
+                            m.hierarchy_level === 2 &&
+                            m.parent_material_id === formData.stone_type_id
+                          )
+                          .map((finish: any) => (
+                            <SelectItem key={finish.id} value={finish.name}>
+                              {finish.name}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -2110,40 +2296,14 @@ function ItemDialog({
             </TabsContent>
 
             <TabsContent value="images" className="space-y-4">
-              <ImageManager
-                images={{
-                  line_drawing: [],
-                  isometric: [],
-                  '3d_model': [],
-                  rendering: [],
-                  photograph: [],
-                }}
-                onUpload={async (imageType: ImageType, file: File, metadata: Partial<ItemImage>) => {
-                  // TODO: Implement image upload with real storage backend
-                  console.log('Upload image:', { imageType, file, metadata });
-                  toast({
-                    title: 'Upload Started',
-                    description: `Uploading ${file.name} as ${imageType}`,
-                  });
-                }}
-                onUpdate={async (imageId: string, metadata: Partial<ItemImage>) => {
-                  // TODO: Implement image metadata update
-                  console.log('Update image:', { imageId, metadata });
-                  toast({
-                    title: 'Image Updated',
-                    description: 'Image metadata has been updated',
-                  });
-                }}
-                onDelete={async (imageId: string) => {
-                  // TODO: Implement image deletion
-                  console.log('Delete image:', { imageId });
-                  toast({
-                    title: 'Image Deleted',
-                    description: 'Image has been removed',
-                  });
-                }}
-                disabled={false}
-              />
+              {item?.id ? (
+                <CatalogImageManager itemId={item.id} />
+              ) : (
+                <div className="border-2 border-dashed border-gray-700 rounded-lg p-8 text-center">
+                  <p className="text-gray-400 mb-2">Save the catalog item first to upload images</p>
+                  <p className="text-sm text-gray-500">Images can be added after creating the item</p>
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="variations" className="space-y-4">
@@ -2531,7 +2691,7 @@ export default function CatalogPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <span className="font-mono text-sm">{item.sku_base}</span>
+                      <span className="font-mono text-sm">{item.base_sku}</span>
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline">{item.collections?.name || 'No collection'}</Badge>
@@ -2784,18 +2944,7 @@ export default function CatalogPage() {
                             </TabsContent>
 
                             <TabsContent value="images" className="mt-4">
-                              <div className="space-y-4">
-                                <div>
-                                  <Label className="text-xs text-gray-400">Primary Image</Label>
-                                  <div className="text-sm text-gray-300">{item.primary_image_url || 'No image set'}</div>
-                                </div>
-                                <div>
-                                  <Label className="text-xs text-gray-400">Gallery Images</Label>
-                                  <div className="text-sm text-gray-300">
-                                    {item.gallery_images?.length ? `${item.gallery_images.length} images` : 'No gallery images'}
-                                  </div>
-                                </div>
-                              </div>
+                              <CatalogImageManager itemId={item.id} />
                             </TabsContent>
 
                             <TabsContent value="variations" className="mt-4">

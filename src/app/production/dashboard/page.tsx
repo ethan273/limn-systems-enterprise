@@ -9,20 +9,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DollarSign, Package, TrendingUp, AlertCircle, Clock, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 
 export default function ProductionDashboardPage() {
   const [dateRange, setDateRange] = useState<"7d" | "30d" | "90d" | "all">("30d");
   const { user, loading: authLoading } = useAuth();
-  const router = useRouter();
-
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push("/login");
-    }
-  }, [authLoading, user, router]);
 
   const { data: stats } = api.productionTracking.getDashboardStats.useQuery(
     { date_range: dateRange },

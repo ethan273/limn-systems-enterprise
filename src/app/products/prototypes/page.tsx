@@ -56,6 +56,94 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DimensionDisplay } from "@/components/furniture/DimensionDisplay";
 import type { FurnitureType } from "@/lib/utils/dimension-validation";
+import { ImageManager } from "@/components/furniture/ImageManager";
+import type { ImageType, ItemImage } from "@/components/furniture/ImageManager";
+import { uploadProductImage } from "@/lib/storage";
+
+// Image Manager Wrapper Component
+function PrototypeImageManager({ itemId }: { itemId: string }) {
+  const { data: itemImages, refetch: refetchImages } = api.items.getItemImages.useQuery({ itemId });
+  const addImageMutation = api.items.addItemImage.useMutation();
+  const updateImageMutation = api.items.updateItemImage.useMutation();
+  const deleteImageMutation = api.items.deleteItemImage.useMutation();
+
+  // Group images by type
+  const groupedImages: Record<ImageType, ItemImage[]> = {
+    line_drawing: [],
+    isometric: [],
+    '3d_model': [],
+    rendering: [],
+    photograph: [],
+  };
+
+  if (itemImages) {
+    itemImages.forEach((img: any) => {
+      const imageType = img.image_type as ImageType;
+      // eslint-disable-next-line security/detect-object-injection
+      if (groupedImages[imageType]) {
+        // eslint-disable-next-line security/detect-object-injection
+        groupedImages[imageType].push(img as ItemImage);
+      }
+    });
+  }
+
+  const handleUpload = async (imageType: ImageType, file: File, metadata: Partial<ItemImage>) => {
+    try {
+      const result = await uploadProductImage(itemId, file);
+      if (!result.success || !result.data) {
+        throw new Error(result.error || 'Upload failed');
+      }
+
+      await addImageMutation.mutateAsync({
+        item_id: itemId,
+        image_type: imageType,
+        file_url: result.data.publicUrl,
+        file_name: metadata.file_name || file.name,
+        file_size: metadata.file_size || file.size,
+        mime_type: metadata.mime_type || file.type,
+        alt_text: metadata.alt_text,
+        description: metadata.description,
+        sort_order: metadata.sort_order || 0,
+        is_primary: metadata.is_primary || false,
+      });
+
+      await refetchImages();
+    } catch (error) {
+      console.error('Upload error:', error);
+      throw error;
+    }
+  };
+
+  const handleUpdate = async (imageId: string, metadata: Partial<ItemImage>) => {
+    try {
+      await updateImageMutation.mutateAsync({ id: imageId, data: metadata });
+      await refetchImages();
+    } catch (error) {
+      console.error('Update error:', error);
+      throw error;
+    }
+  };
+
+  const handleDelete = async (imageId: string) => {
+    try {
+      await deleteImageMutation.mutateAsync({ id: imageId });
+      await refetchImages();
+    } catch (error) {
+      console.error('Delete error:', error);
+      throw error;
+    }
+  };
+
+  return (
+    <ImageManager
+      images={groupedImages}
+      onUpload={handleUpload}
+      onUpdate={handleUpdate}
+      onDelete={handleDelete}
+      disabled={false}
+    />
+  );
+}
 
 interface Collection {
   id: string;
@@ -66,7 +154,7 @@ interface Collection {
 interface Item {
   id: string;
   name: string;
-  sku_base: string;  // Base product SKU from catalog
+  base_sku: string;  // Base product SKU from catalog
   sku?: string;      // Full SKU with materials (optional)
   client_sku?: string; // Client-specific tracking ID
   project_sku?: string; // Project-level grouping
@@ -157,7 +245,8 @@ interface Item {
 interface ItemFormData {
   // Basic Information
   name: string;
-  sku_base: string;
+  base_sku: string;
+  variation_type: string;
   collection_id: string;
   description: string;
   type: 'Concept' | 'Prototype' | 'Production Ready';
@@ -253,7 +342,8 @@ function ItemDialog({
   const [formData, setFormData] = useState<ItemFormData>({
     // Basic Information
     name: item?.name || "",
-    sku_base: item?.sku_base || "",
+    base_sku: item?.base_sku || "",
+    variation_type: (item as any)?.variation_type || "",
     collection_id: item?.collection_id || "",
     description: item?.description || "",
     type: item?.type || 'Prototype',
@@ -383,7 +473,9 @@ function ItemDialog({
               <TabsTrigger value="inventory">Inventory</TabsTrigger>
               <TabsTrigger value="shipping">Shipping</TabsTrigger>
               <TabsTrigger value="materials">Materials</TabsTrigger>
-              <TabsTrigger value="images">Images</TabsTrigger>
+              <TabsTrigger value="images" disabled={!item?.id}>
+                Images {!item?.id && <span className="text-xs ml-1">(Save first)</span>}
+              </TabsTrigger>
               <TabsTrigger value="variations">Variations</TabsTrigger>
               <TabsTrigger value="history">History</TabsTrigger>
             </TabsList>
@@ -391,25 +483,60 @@ function ItemDialog({
             <TabsContent value="basic" className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="name">Item Name *</Label>
+                  <Label htmlFor="name">
+                    Item Name *
+                    {formData.type === 'Production Ready' && (
+                      <span className="ml-2 text-xs text-orange-600 font-semibold">🔒 Locked</span>
+                    )}
+                  </Label>
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                     placeholder="Prototype name"
                     required
+                    disabled={formData.type === 'Production Ready'}
+                    className={formData.type === 'Production Ready' ? 'bg-gray-100 cursor-not-allowed' : ''}
                   />
+                  {formData.type === 'Production Ready' && (
+                    <p className="text-xs text-gray-500 mt-1">Change to Prototype to edit</p>
+                  )}
                 </div>
 
                 <div>
-                  <Label htmlFor="sku_base">Base SKU *</Label>
+                  <Label htmlFor="base_sku">
+                    Base SKU *
+                    {formData.type === 'Production Ready' && (
+                      <span className="ml-2 text-xs text-orange-600 font-semibold">🔒 Locked</span>
+                    )}
+                  </Label>
                   <Input
-                    id="sku_base"
-                    value={formData.sku_base}
-                    onChange={(e) => setFormData(prev => ({ ...prev, sku_base: e.target.value }))}
-                    placeholder="PROTOTYPE-SKU-001"
+                    id="base_sku"
+                    value={formData.base_sku}
+                    onChange={(e) => setFormData(prev => ({ ...prev, base_sku: e.target.value }))}
+                    placeholder="AUTO-GENERATED"
                     required
+                    disabled={formData.type === 'Production Ready'}
+                    className={formData.type === 'Production Ready' ? 'bg-gray-100 cursor-not-allowed' : 'bg-blue-50'}
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {formData.type === 'Production Ready'
+                      ? 'Change to Prototype to edit'
+                      : '✨ Auto-generated from name + collection + variation'}
+                  </p>
+                </div>
+
+                <div>
+                  <Label htmlFor="variation_type">Variation Type (Optional)</Label>
+                  <Input
+                    id="variation_type"
+                    value={formData.variation_type}
+                    onChange={(e) => setFormData(prev => ({ ...prev, variation_type: e.target.value }))}
+                    placeholder="e.g., Deep, Short, Wide"
+                    disabled={formData.type === 'Production Ready'}
+                    className={formData.type === 'Production Ready' ? 'bg-gray-100 cursor-not-allowed' : ''}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Included in Base SKU (e.g., IN-SOFA-DEEP-001)</p>
                 </div>
 
                 <div>
@@ -1145,17 +1272,14 @@ function ItemDialog({
             </TabsContent>
 
             <TabsContent value="images" className="space-y-4">
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="primary_image_url">Primary Image URL</Label>
-                  <Input
-                    id="primary_image_url"
-                    value={formData.primary_image_url}
-                    onChange={(e) => setFormData(prev => ({ ...prev, primary_image_url: e.target.value }))}
-                    placeholder="https://example.com/prototype-image.jpg"
-                  />
+              {item?.id ? (
+                <PrototypeImageManager itemId={item.id} />
+              ) : (
+                <div className="border-2 border-dashed border-gray-700 rounded-lg p-8 text-center">
+                  <p className="text-gray-400 mb-2">Save the prototype first to upload images</p>
+                  <p className="text-sm text-gray-500">Images can be added after creating the prototype</p>
                 </div>
-              </div>
+              )}
             </TabsContent>
 
             <TabsContent value="variations" className="space-y-4">
@@ -1334,7 +1458,7 @@ export default function PrototypesPage() {
 
   const filteredItems = items.filter((item) => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.sku_base.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         item.base_sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const matchesCollection = selectedCollection === "all" || item.collection_id === selectedCollection;
@@ -1345,14 +1469,76 @@ export default function PrototypesPage() {
     return matchesSearch && matchesCollection && isPrototype;
   });
 
+  const createItemMutation = api.items.create.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Prototype created",
+        description: "The prototype has been created successfully. You can now upload images.",
+      });
+      refetchItems();
+      setIsDialogOpen(false);
+      setEditingItem(undefined);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error creating prototype",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateItemMutation = api.items.update.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Prototype updated",
+        description: "The prototype has been updated successfully.",
+      });
+      refetchItems();
+      setIsDialogOpen(false);
+      setEditingItem(undefined);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error updating prototype",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleSaveItem = (data: ItemFormData) => {
-    // TODO: Implement API call to save item
-    console.log('Saving prototype:', data);
-    toast({
-      title: editingItem ? "Prototype updated" : "Prototype created",
-      description: `${data.name} has been ${editingItem ? 'updated' : 'created'} successfully.`,
-    });
-    setEditingItem(undefined);
+    if (editingItem) {
+      // Update existing item
+      updateItemMutation.mutate({
+        id: editingItem.id,
+        data: {
+          name: data.name,
+          base_sku: data.base_sku,
+          variation_type: data.variation_type,
+          collection_id: data.collection_id,
+          description: data.description,
+          type: data.type,
+          furniture_type: data.furniture_type,
+          list_price: data.list_price,
+          active: data.is_active,
+        },
+      });
+    } else {
+      // Create new item
+      createItemMutation.mutate({
+        sku: data.base_sku, // For now, using base_sku as sku
+        name: data.name,
+        base_sku: data.base_sku,
+        variation_type: data.variation_type,
+        collection_id: data.collection_id,
+        description: data.description,
+        type: data.type,
+        furniture_type: data.furniture_type,
+        list_price: data.list_price,
+        active: data.is_active,
+      });
+    }
   };
 
   const handleEditItem = (item: Item) => {
@@ -1828,18 +2014,7 @@ export default function PrototypesPage() {
                             </TabsContent>
 
                             <TabsContent value="images" className="mt-4">
-                              <div className="space-y-4">
-                                <div>
-                                  <Label className="text-xs text-gray-400">Primary Image</Label>
-                                  <div className="text-sm text-gray-300">{item.primary_image_url || 'No image set'}</div>
-                                </div>
-                                <div>
-                                  <Label className="text-xs text-gray-400">Testing Photos</Label>
-                                  <div className="text-sm text-gray-300">
-                                    {item.gallery_images?.length ? `${item.gallery_images.length} photos` : 'No testing photos'}
-                                  </div>
-                                </div>
-                              </div>
+                              <PrototypeImageManager itemId={item.id} />
                             </TabsContent>
 
                             <TabsContent value="variations" className="mt-4">

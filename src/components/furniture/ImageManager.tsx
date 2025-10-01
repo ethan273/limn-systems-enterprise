@@ -78,35 +78,35 @@ const IMAGE_TYPE_CONFIG: Record<ImageType, {
     description: 'Technical line drawing or blueprint',
     icon: FileImage,
     maxCount: 1,
-    acceptedTypes: ['image/svg+xml', 'image/png', 'image/jpeg', 'application/pdf'],
+    acceptedTypes: ['image/png', 'image/jpeg', 'image/webp', 'image/gif'],
   },
   isometric: {
     label: 'Isometric',
     description: '3D isometric perspective drawing',
     icon: Box,
     maxCount: 1,
-    acceptedTypes: ['image/png', 'image/jpeg', 'image/svg+xml'],
+    acceptedTypes: ['image/png', 'image/jpeg', 'image/webp', 'image/gif'],
   },
   '3d_model': {
     label: '3D Model',
     description: '3D model file or rendered view',
     icon: Layers,
     maxCount: 1,
-    acceptedTypes: ['image/png', 'image/jpeg', 'model/gltf+json', 'model/obj'],
+    acceptedTypes: ['image/png', 'image/jpeg', 'image/webp', 'image/gif'],
   },
   rendering: {
     label: 'Renderings',
     description: 'Computer-generated renderings',
     icon: ImageIcon,
     maxCount: 10,
-    acceptedTypes: ['image/png', 'image/jpeg', 'image/webp'],
+    acceptedTypes: ['image/png', 'image/jpeg', 'image/webp', 'image/gif'],
   },
   photograph: {
     label: 'Photographs',
     description: 'Real photographs of the item',
     icon: Camera,
     maxCount: 20,
-    acceptedTypes: ['image/png', 'image/jpeg', 'image/webp'],
+    acceptedTypes: ['image/png', 'image/jpeg', 'image/webp', 'image/gif'],
   },
 };
 
@@ -286,6 +286,7 @@ export function ImageManager({
           {/* Overlay Actions */}
           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
             <Button
+              type="button"
               size="sm"
               variant="secondary"
               onClick={() => setPreviewImage(image)}
@@ -294,6 +295,7 @@ export function ImageManager({
               <Eye className="h-4 w-4" />
             </Button>
             <Button
+              type="button"
               size="sm"
               variant="secondary"
               onClick={() => setEditingImage(image)}
@@ -302,6 +304,7 @@ export function ImageManager({
               <Edit className="h-4 w-4" />
             </Button>
             <Button
+              type="button"
               size="sm"
               variant="destructive"
               onClick={() => setDeletingImage(image)}
@@ -357,6 +360,7 @@ export function ImageManager({
             </div>
             {canUpload && (
               <Button
+                type="button"
                 size="sm"
                 variant="outline"
                 onClick={() => handleUploadClick(imageType)}
@@ -378,6 +382,7 @@ export function ImageManager({
               <p className="text-gray-400 mb-4">No {config.label.toLowerCase()} uploaded</p>
               {canUpload && (
                 <Button
+                  type="button"
                   variant="outline"
                   onClick={() => handleUploadClick(imageType)}
                   disabled={disabled}

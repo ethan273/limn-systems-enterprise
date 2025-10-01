@@ -12,23 +12,24 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({
   children,
   requiredRole,
-  fallbackPath = '/auth/signin',
+  fallbackPath = '/login',
 }: ProtectedRouteProps) {
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (!loading) {
       if (!user) {
         router.push(fallbackPath);
-      } else if (requiredRole && !requiredRole.includes(user.role)) {
+      } else if (requiredRole && profile?.user_type && !requiredRole.includes(profile.user_type)) {
         router.push('/unauthorized');
       }
     }
-  }, [user, loading, requiredRole, router, fallbackPath]);
+  }, [user, profile, loading, requiredRole, router, fallbackPath]);
 
   if (loading) {
-    return (      <div className="flex items-center justify-center min-h-screen">
+    return (
+      <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="w-8 h-8 animate-spin" />
       </div>
     );
@@ -38,7 +39,7 @@ export default function ProtectedRoute({
     return null;
   }
 
-  if (requiredRole && !requiredRole.includes(user.role)) {
+  if (requiredRole && profile?.user_type && !requiredRole.includes(profile.user_type)) {
     return null;
   }
 

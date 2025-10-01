@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { api } from "@/lib/api/client";
+import { generateProductSku } from "@/lib/utils/product-sku-generator";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -105,76 +106,9 @@ interface OrderCreationFormData {
   notes: string;
 }
 
-// Helper function to generate SKU codes (3 characters)
-const createSKUCode = (text: string, fallback = 'UNK'): string => {
-  if (!text || typeof text !== 'string') return fallback;
-  return text.trim().substring(0, 3).toUpperCase() || fallback;
-};
-
-// Material priority for hierarchical selection
-const materialPriority = [
-  'fabric_color',      // Most visible/important
-  'wood_type',         // Structure material
-  'metal_finish',      // Hardware finish
-  'stone_type',        // Surface material
-  'weaving_pattern',   // Texture
-  'carving_style'      // Detail work
-];
-
-// Generate hierarchical product SKU (extends base catalog SKU)
-const generateProductSKU = (
-  baseSKU: string,
-  materialSelections: Record<string, string>
-): string => {
-  if (!baseSKU) return '';
-
-  // Filter to only selected materials in priority order
-  const selectedMaterials = materialPriority
-    .filter(material => {
-      // Validate material key exists and is a string
-      if (typeof material !== 'string' || !Object.prototype.hasOwnProperty.call(materialSelections, material)) {
-        return false;
-      }
-      // Safe object access to prevent injection
-      // eslint-disable-next-line security/detect-object-injection
-      const value = Object.prototype.hasOwnProperty.call(materialSelections, material) ? materialSelections[material] : null;
-      return typeof value === 'string' && value.trim().length > 0;
-    })
-    .slice(0, 2); // Take top 2 materials only
-
-  if (selectedMaterials.length === 0) {
-    return baseSKU; // No materials selected, return base SKU
-  }
-
-  // Generate material codes (3 chars each)
-  const materialCodes = selectedMaterials
-    .map(material => {
-      // Safe access with validation
-      // Safe object access to prevent injection
-      // eslint-disable-next-line security/detect-object-injection
-      const value = Object.prototype.hasOwnProperty.call(materialSelections, material) ? materialSelections[material] : '';
-      return createSKUCode(typeof value === 'string' ? value : '', 'MAT');
-    })
-    .join('-');
-
-  return `${baseSKU}-${materialCodes}`;
-};
-
-// Generate client/project tracking SKU
-const generateProjectSKU = (
-  clientName: string,
-  projectName: string,
-  orderNumber: number,
-  itemNumber: number
-): string => {
-  const year = new Date().getFullYear().toString().slice(-2);
-  const clientCode = createSKUCode(clientName, 'CLI').substring(0, 4);
-  const projectCode = createSKUCode(projectName, 'PRJ');
-  const orderCode = String(orderNumber).padStart(3, '0');
-  const itemCode = String(itemNumber).padStart(3, '0');
-
-  return `${clientCode}-${year}-${projectCode}-${orderCode}.${itemCode}`;
-};
+// SKU generation now handled by utility functions:
+// - generateProductSku() from @/lib/utils/product-sku-generator
+// - generateProjectSku() from @/lib/utils/project-sku-generator
 
 interface ProjectFormData {
   name: string;
@@ -374,7 +308,7 @@ function OrderCreationDialog({
   // Check if basic order info is complete
   const isBasicOrderComplete = formData.collection_id && selectedItem;
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.product_name.trim()) {
       toast({
         title: "Validation Error",
@@ -446,16 +380,11 @@ function OrderCreationDialog({
     const version = String(orderItems.length + 1).padStart(3, '0');
     const baseSKU = `${collectionPrefix}-${itemCode}-${version}`;
 
-    // Generate hierarchical product SKU
-    const productSKU = generateProductSKU(baseSKU, materialSelections);
+    // Generate hierarchical product SKU using utility function
+    const productSKU = generateProductSku(baseSKU, materialSelections);
 
-    // Generate project tracking SKU (simplified)
-    const projectSKU = generateProjectSKU(
-      'CLIENT',
-      'PROJECT',
-      1,
-      orderItems.length + 1
-    );
+    // Generate project tracking SKU (temporary - will be generated on server when order is saved)
+    const projectSKU = `TEMP-${Date.now()}`;
 
     // Create new order item with dual SKUs
     const newOrderItem = {
@@ -681,10 +610,10 @@ function OrderCreationDialog({
               <div className="space-y-2 border-b pb-4">
                 <Label htmlFor="furniture_collection_id">Filter by Furniture Collection (Optional)</Label>
                 <Select
-                  value={formData.furniture_collection_id}
+                  value={formData.furniture_collection_id || "all"}
                   onValueChange={(value) => setFormData({
                     ...formData,
-                    furniture_collection_id: value,
+                    furniture_collection_id: value === "all" ? "" : value,
                     // Reset all material selections when furniture collection changes
                     fabric_brand_id: "",
                     fabric_collection_id: "",
@@ -707,7 +636,7 @@ function OrderCreationDialog({
                     <SelectValue placeholder="All furniture collections" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Collections (No Filter)</SelectItem>
+                    <SelectItem value="all">All Collections (No Filter)</SelectItem>
                     {furnitureCollections?.map((fc: any) => (
                       <SelectItem key={fc.id} value={fc.id}>
                         {fc.name} {fc.prefix ? `(${fc.prefix})` : ''}
@@ -734,10 +663,10 @@ function OrderCreationDialog({
                   <div className="space-y-2">
                     <Label htmlFor="fabric_brand_id">Fabric Brand</Label>
                     <Select
-                      value={formData.fabric_brand_id}
+                      value={formData.fabric_brand_id || "none"}
                       onValueChange={(value) => setFormData({
                         ...formData,
-                        fabric_brand_id: value,
+                        fabric_brand_id: value === "none" ? "" : value,
                         fabric_collection_id: "", // Reset children
                         fabric_color_id: ""
                       })}
@@ -747,7 +676,7 @@ function OrderCreationDialog({
                         <SelectValue placeholder="Select brand" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No selection</SelectItem>
+                        <SelectItem value="none">No selection</SelectItem>
                         {fabricBrands.map((brand: any) => (
                           <SelectItem key={brand.id} value={brand.id}>
                             {brand.name}
@@ -764,10 +693,10 @@ function OrderCreationDialog({
                   <div className="space-y-2">
                     <Label htmlFor="fabric_collection_id">Fabric Collection</Label>
                     <Select
-                      value={formData.fabric_collection_id}
+                      value={formData.fabric_collection_id || "none"}
                       onValueChange={(value) => setFormData({
                         ...formData,
-                        fabric_collection_id: value,
+                        fabric_collection_id: value === "none" ? "" : value,
                         fabric_color_id: ""
                       })}
                       disabled={!formData.fabric_brand_id || !isBasicOrderComplete}
@@ -776,7 +705,7 @@ function OrderCreationDialog({
                         <SelectValue placeholder={formData.fabric_brand_id ? "Select collection" : "Select brand first"} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No selection</SelectItem>
+                        <SelectItem value="none">No selection</SelectItem>
                         {fabricCollections.map((collection: any) => (
                           <SelectItem key={collection.id} value={collection.id}>
                             {collection.name}
@@ -791,15 +720,15 @@ function OrderCreationDialog({
                   <div className="space-y-2">
                     <Label htmlFor="fabric_color_id">Fabric Color</Label>
                     <Select
-                      value={formData.fabric_color_id}
-                      onValueChange={(value) => setFormData({ ...formData, fabric_color_id: value })}
+                      value={formData.fabric_color_id || "none"}
+                      onValueChange={(value) => setFormData({ ...formData, fabric_color_id: value === "none" ? "" : value })}
                       disabled={!formData.fabric_collection_id || !isBasicOrderComplete}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder={formData.fabric_collection_id ? "Select color" : "Select collection first"} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No selection</SelectItem>
+                        <SelectItem value="none">No selection</SelectItem>
                         {fabricColors.map((color: any) => (
                           <SelectItem key={color.id} value={color.id}>
                             {color.name}
@@ -821,10 +750,10 @@ function OrderCreationDialog({
                   <div className="space-y-2">
                     <Label htmlFor="wood_type_id">Wood Type</Label>
                     <Select
-                      value={formData.wood_type_id}
+                      value={formData.wood_type_id || "none"}
                       onValueChange={(value) => setFormData({
                         ...formData,
-                        wood_type_id: value,
+                        wood_type_id: value === "none" ? "" : value,
                         wood_finish_id: ""
                       })}
                       disabled={!isBasicOrderComplete}
@@ -833,7 +762,7 @@ function OrderCreationDialog({
                         <SelectValue placeholder="Select wood type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No selection</SelectItem>
+                        <SelectItem value="none">No selection</SelectItem>
                         {woodTypes.map((wood: any) => (
                           <SelectItem key={wood.id} value={wood.id}>
                             {wood.name}
@@ -845,15 +774,15 @@ function OrderCreationDialog({
                   <div className="space-y-2">
                     <Label htmlFor="wood_finish_id">Wood Finish</Label>
                     <Select
-                      value={formData.wood_finish_id}
-                      onValueChange={(value) => setFormData({ ...formData, wood_finish_id: value })}
+                      value={formData.wood_finish_id || "none"}
+                      onValueChange={(value) => setFormData({ ...formData, wood_finish_id: value === "none" ? "" : value })}
                       disabled={!formData.wood_type_id || !isBasicOrderComplete}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder={formData.wood_type_id ? "Select wood finish" : "Select wood type first"} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No selection</SelectItem>
+                        <SelectItem value="none">No selection</SelectItem>
                         {woodFinishes.map((finish: any) => (
                           <SelectItem key={finish.id} value={finish.id}>
                             {finish.name}
@@ -875,10 +804,10 @@ function OrderCreationDialog({
                   <div className="space-y-2">
                     <Label htmlFor="metal_type_id">Metal Type</Label>
                     <Select
-                      value={formData.metal_type_id}
+                      value={formData.metal_type_id || "none"}
                       onValueChange={(value) => setFormData({
                         ...formData,
-                        metal_type_id: value,
+                        metal_type_id: value === "none" ? "" : value,
                         metal_finish_id: "",
                         metal_color_id: ""
                       })}
@@ -888,7 +817,7 @@ function OrderCreationDialog({
                         <SelectValue placeholder="Select metal type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No selection</SelectItem>
+                        <SelectItem value="none">No selection</SelectItem>
                         {metalTypes.map((metal: any) => (
                           <SelectItem key={metal.id} value={metal.id}>
                             {metal.name}
@@ -900,10 +829,10 @@ function OrderCreationDialog({
                   <div className="space-y-2">
                     <Label htmlFor="metal_finish_id">Metal Finish</Label>
                     <Select
-                      value={formData.metal_finish_id}
+                      value={formData.metal_finish_id || "none"}
                       onValueChange={(value) => setFormData({
                         ...formData,
-                        metal_finish_id: value,
+                        metal_finish_id: value === "none" ? "" : value,
                         metal_color_id: ""
                       })}
                       disabled={!formData.metal_type_id || !isBasicOrderComplete}
@@ -912,7 +841,7 @@ function OrderCreationDialog({
                         <SelectValue placeholder={formData.metal_type_id ? "Select metal finish" : "Select metal type first"} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No selection</SelectItem>
+                        <SelectItem value="none">No selection</SelectItem>
                         {metalFinishes.map((finish: any) => (
                           <SelectItem key={finish.id} value={finish.id}>
                             {finish.name}
@@ -927,15 +856,15 @@ function OrderCreationDialog({
                   <div className="space-y-2">
                     <Label htmlFor="metal_color_id">Metal Color</Label>
                     <Select
-                      value={formData.metal_color_id}
-                      onValueChange={(value) => setFormData({ ...formData, metal_color_id: value })}
+                      value={formData.metal_color_id || "none"}
+                      onValueChange={(value) => setFormData({ ...formData, metal_color_id: value === "none" ? "" : value })}
                       disabled={!formData.metal_finish_id || !isBasicOrderComplete}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder={formData.metal_finish_id ? "Select metal color" : "Select finish first"} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No selection</SelectItem>
+                        <SelectItem value="none">No selection</SelectItem>
                         {metalColors.map((color: any) => (
                           <SelectItem key={color.id} value={color.id}>
                             {color.name}
@@ -957,10 +886,10 @@ function OrderCreationDialog({
                   <div className="space-y-2">
                     <Label htmlFor="stone_type_id">Stone Type</Label>
                     <Select
-                      value={formData.stone_type_id}
+                      value={formData.stone_type_id || "none"}
                       onValueChange={(value) => setFormData({
                         ...formData,
-                        stone_type_id: value,
+                        stone_type_id: value === "none" ? "" : value,
                         stone_finish_id: ""
                       })}
                       disabled={!isBasicOrderComplete}
@@ -969,7 +898,7 @@ function OrderCreationDialog({
                         <SelectValue placeholder="Select stone type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No selection</SelectItem>
+                        <SelectItem value="none">No selection</SelectItem>
                         {stoneTypes.map((stone: any) => (
                           <SelectItem key={stone.id} value={stone.id}>
                             {stone.name}
@@ -981,15 +910,15 @@ function OrderCreationDialog({
                   <div className="space-y-2">
                     <Label htmlFor="stone_finish_id">Stone Finish</Label>
                     <Select
-                      value={formData.stone_finish_id}
-                      onValueChange={(value) => setFormData({ ...formData, stone_finish_id: value })}
+                      value={formData.stone_finish_id || "none"}
+                      onValueChange={(value) => setFormData({ ...formData, stone_finish_id: value === "none" ? "" : value })}
                       disabled={!formData.stone_type_id || !isBasicOrderComplete}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder={formData.stone_type_id ? "Select stone finish" : "Select stone type first"} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No selection</SelectItem>
+                        <SelectItem value="none">No selection</SelectItem>
                         {stoneFinishes.map((finish: any) => (
                           <SelectItem key={finish.id} value={finish.id}>
                             {finish.name}
@@ -1011,15 +940,15 @@ function OrderCreationDialog({
                   <div className="space-y-2">
                     <Label htmlFor="weaving_material_id">Weaving Material</Label>
                     <Select
-                      value={formData.weaving_material_id}
-                      onValueChange={(value) => setFormData({ ...formData, weaving_material_id: value })}
+                      value={formData.weaving_material_id || "none"}
+                      onValueChange={(value) => setFormData({ ...formData, weaving_material_id: value === "none" ? "" : value })}
                       disabled={!isBasicOrderComplete}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select material" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No selection</SelectItem>
+                        <SelectItem value="none">No selection</SelectItem>
                         {weavingMaterials.map((material: any) => (
                           <SelectItem key={material.id} value={material.id}>
                             {material.name}
@@ -1031,15 +960,15 @@ function OrderCreationDialog({
                   <div className="space-y-2">
                     <Label htmlFor="weaving_pattern_id">Weaving Pattern</Label>
                     <Select
-                      value={formData.weaving_pattern_id}
-                      onValueChange={(value) => setFormData({ ...formData, weaving_pattern_id: value })}
+                      value={formData.weaving_pattern_id || "none"}
+                      onValueChange={(value) => setFormData({ ...formData, weaving_pattern_id: value === "none" ? "" : value })}
                       disabled={!isBasicOrderComplete}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select pattern" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No selection</SelectItem>
+                        <SelectItem value="none">No selection</SelectItem>
                         {weavingPatterns.map((pattern: any) => (
                           <SelectItem key={pattern.id} value={pattern.id}>
                             {pattern.name}
@@ -1051,15 +980,15 @@ function OrderCreationDialog({
                   <div className="space-y-2">
                     <Label htmlFor="weaving_color_id">Weaving Color</Label>
                     <Select
-                      value={formData.weaving_color_id}
-                      onValueChange={(value) => setFormData({ ...formData, weaving_color_id: value })}
+                      value={formData.weaving_color_id || "none"}
+                      onValueChange={(value) => setFormData({ ...formData, weaving_color_id: value === "none" ? "" : value })}
                       disabled={!isBasicOrderComplete}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select color" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No selection</SelectItem>
+                        <SelectItem value="none">No selection</SelectItem>
                         {weavingColors.map((color: any) => (
                           <SelectItem key={color.id} value={color.id}>
                             {color.name}
@@ -1078,15 +1007,15 @@ function OrderCreationDialog({
                   <div className="space-y-2">
                     <Label htmlFor="carving_style_id">Carving Style</Label>
                     <Select
-                      value={formData.carving_style_id}
-                      onValueChange={(value) => setFormData({ ...formData, carving_style_id: value })}
+                      value={formData.carving_style_id || "none"}
+                      onValueChange={(value) => setFormData({ ...formData, carving_style_id: value === "none" ? "" : value })}
                       disabled={!isBasicOrderComplete}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select carving style" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No selection</SelectItem>
+                        <SelectItem value="none">No selection</SelectItem>
                         {carvingStyles.map((style: any) => (
                           <SelectItem key={style.id} value={style.id}>
                             {style.name}
@@ -1098,15 +1027,15 @@ function OrderCreationDialog({
                   <div className="space-y-2">
                     <Label htmlFor="carving_pattern_id">Carving Pattern</Label>
                     <Select
-                      value={formData.carving_pattern_id}
-                      onValueChange={(value) => setFormData({ ...formData, carving_pattern_id: value })}
+                      value={formData.carving_pattern_id || "none"}
+                      onValueChange={(value) => setFormData({ ...formData, carving_pattern_id: value === "none" ? "" : value })}
                       disabled={!isBasicOrderComplete}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select carving pattern" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No selection</SelectItem>
+                        <SelectItem value="none">No selection</SelectItem>
                         {carvingPatterns.map((pattern: any) => (
                           <SelectItem key={pattern.id} value={pattern.id}>
                             {pattern.name}
@@ -1537,7 +1466,7 @@ export default function ProjectsPage() {
     limit: 100,
     offset: 0,
   });
-  const customers = customersData?.items || [];
+  const _customers = customersData?.items || [];
 
   const filteredProjects = projects.filter((project: any) => {
     const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -1746,18 +1675,11 @@ export default function ProjectsPage() {
       const version = String(orderItems.length + 1).padStart(3, '0');
       const baseSKU = `${collectionPrefix}-${itemCode}-${version}`;
 
-      // Generate hierarchical product SKU
-      const productSKU = generateProductSKU(baseSKU, materialSelections);
+      // Generate hierarchical product SKU using utility function
+      const productSKU = generateProductSku(baseSKU, materialSelections);
 
-      // Generate project tracking SKU
-      const client = customers?.find((c: any) => c.id === project.customer_id);
-      const clientName = client?.company_name || 'CLIENT';
-      const projectSKU = generateProjectSKU(
-        clientName,
-        project.name,
-        1, // order number (simplified)
-        orderItems.length + 1 // item number
-      );
+      // Generate project tracking SKU (temporary - will be generated on server when order is saved)
+      const projectSKU = `TEMP-${Date.now()}`;
 
       // Create new order item with dual SKUs
       const newOrderItem = {
