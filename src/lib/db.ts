@@ -499,6 +499,9 @@ export class DatabaseClient {
   factory_review_comments = prisma.factory_review_comments;
   factory_review_documents = prisma.factory_review_documents;
 
+  // QC Mobile Interface (Week 19)
+  qc_issue_comments = prisma.qc_issue_comments;
+
   // =====================================================
   // TRANSACTION SUPPORT
   // =====================================================

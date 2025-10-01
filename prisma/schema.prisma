@@ -2502,7 +2502,8 @@ model qc_defects {
   created_at       DateTime?            @default(now()) @db.Timestamptz(6)
   updated_at       DateTime?            @default(now()) @updatedAt @db.Timestamptz(6)
   qc_inspections   qc_inspections       @relation(fields: [qc_inspection_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  qc_photos        qc_photos[]
+  qc_photos          qc_photos[]
+  qc_issue_comments  qc_issue_comments[]
 
   @@index([qc_inspection_id], map: "idx_qc_defects_qc_inspection_id")
   @@schema("public")
@@ -5242,6 +5243,7 @@ model users {
   factory_review_comments_authored                                      factory_review_comments[]
   factory_review_comments_resolved                                      factory_review_comments[]           @relation("CommentResolver")
   factory_review_documents_uploaded                                     factory_review_documents[]
+  qc_issue_comments_authored                                            qc_issue_comments[]
 
   @@index([instance_id])
   @@index([is_anonymous])
@@ -7380,5 +7382,36 @@ model factory_review_documents {
   created_at             DateTime  @default(now()) @db.Timestamptz(6)
 
   @@index([session_id], map: "idx_factory_review_documents_session")
+  @@schema("public")
+}
+
+// ============================================================================
+// QC MOBILE INTERFACE - Mobile-optimized quality control with photo-based issue tracking
+// ============================================================================
+
+/// QC Issue Comments - Multi-party discussion on QC issues (mobile-friendly)
+model qc_issue_comments {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  // Link to QC defect (issue)
+  issue_id    String   @db.Uuid
+  qc_defects  qc_defects @relation(fields: [issue_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  // Comment Details
+  comment_text String  @db.Text
+  author_id    String  @db.Uuid
+  author       users   @relation(fields: [author_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  author_role  String  // "qc_team" | "factory" | "limn_team"
+
+  // Voice Note Support
+  voice_note_url String? // URL to voice recording file
+  voice_note_duration Int? // Duration in seconds
+
+  // Audit
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  @@index([issue_id], map: "idx_qc_issue_comments_issue")
+  @@index([author_id], map: "idx_qc_issue_comments_author")
   @@schema("public")
 }
