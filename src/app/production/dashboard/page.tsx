@@ -8,12 +8,49 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DollarSign, Package, TrendingUp, AlertCircle, Clock, CheckCircle } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function ProductionDashboardPage() {
   const [dateRange, setDateRange] = useState<"7d" | "30d" | "90d" | "all">("30d");
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
 
-  const { data: stats } = api.productionTracking.getDashboardStats.useQuery({ date_range: dateRange });
-  const { data: progress } = api.productionTracking.getProductionProgress.useQuery({ limit: 10 });
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [authLoading, user, router]);
+
+  const { data: stats } = api.productionTracking.getDashboardStats.useQuery(
+    { date_range: dateRange },
+    { enabled: !!user }
+  );
+  const { data: progress } = api.productionTracking.getProductionProgress.useQuery(
+    { limit: 10 },
+    { enabled: !!user }
+  );
+
+  // Show loading state while checking authentication
+  if (authLoading) {
+    return (
+      <div className="container mx-auto py-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render if not authenticated (will redirect)
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="container mx-auto py-6">

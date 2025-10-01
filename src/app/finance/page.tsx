@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { api } from "@/lib/api/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,25 +9,39 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle2, XCircle, Clock, TrendingUp, FileText, CreditCard, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
 
 export default function FinanceDashboard() {
   const [syncingInvoice, setSyncingInvoice] = useState(false);
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [authLoading, user, router]);
 
   // API queries
   const { data: connectionStatus, isLoading: loadingConnection, refetch: refetchConnection } =
-    api.quickbooksSync.getConnectionStatus.useQuery();
+    api.quickbooksSync.getConnectionStatus.useQuery(undefined, { enabled: !!user });
 
   const { data: syncStats, isLoading: loadingStats, refetch: refetchStats } =
-    api.quickbooksSync.getSyncStats.useQuery();
+    api.quickbooksSync.getSyncStats.useQuery(undefined, { enabled: !!user });
 
   // Get all production invoices for manual sync
-  const { data: invoicesData } = api.productionInvoices.getAll.useQuery({
-    limit: 50,
-    offset: 0,
-  });
+  const { data: invoicesData } = api.productionInvoices.getAll.useQuery(
+    {
+      limit: 50,
+      offset: 0,
+    },
+    { enabled: !!user }
+  );
 
   // Get all payments (via invoice payments)
-  const { data: outstandingInvoices } = api.productionInvoices.getOutstanding.useQuery({});
+  const { data: outstandingInvoices } = api.productionInvoices.getOutstanding.useQuery({}, { enabled: !!user });
 
   // Sync mutations
   const syncInvoiceMutation = api.quickbooksSync.syncInvoice.useMutation({
@@ -46,6 +60,25 @@ export default function FinanceDashboard() {
     setSyncingInvoice(true);
     syncInvoiceMutation.mutate({ production_invoice_id: invoiceId });
   };
+
+  // Show loading state while checking authentication
+  if (authLoading) {
+    return (
+      <div className="container mx-auto py-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render if not authenticated (will redirect)
+  if (!user) {
+    return null;
+  }
 
   if (loadingConnection || loadingStats) {
     return (

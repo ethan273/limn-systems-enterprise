@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,14 +9,28 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Search } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
 
 export default function ProductionOrdersPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
 
-  const { data, isLoading } = api.productionOrders.getAll.useQuery({
-    status: statusFilter === "all" ? undefined : statusFilter,
-  });
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [authLoading, user, router]);
+
+  const { data, isLoading } = api.productionOrders.getAll.useQuery(
+    {
+      status: statusFilter === "all" ? undefined : statusFilter,
+    },
+    { enabled: !!user }
+  );
 
   // Filter by search query (client-side)
   const filteredItems = data?.items.filter((order: any) => {
@@ -44,6 +58,25 @@ export default function ProductionOrdersPage() {
     if (depositPaid && !finalPaymentPaid) return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">Deposit Paid</Badge>;
     if (finalPaymentPaid) return <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">Fully Paid</Badge>;
   };
+
+  // Show loading state while checking authentication
+  if (authLoading) {
+    return (
+      <div className="container mx-auto py-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render if not authenticated (will redirect)
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="container mx-auto py-6">
