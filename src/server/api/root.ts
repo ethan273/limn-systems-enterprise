@@ -15,6 +15,7 @@ import { productionOrdersRouter } from './routers/production-orders';
 import { productionInvoicesRouter } from './routers/production-invoices';
 import { productionTrackingRouter } from './routers/production-tracking';
 import { shippingRouter } from './routers/shipping';
+import { quickbooksSyncRouter } from './routers/quickbooks-sync';
 
 /**
  * Main API router
@@ -54,6 +55,9 @@ export const appRouter = createTRPCRouter({
 
   // Shipping (SEKO Integration)
   shipping: shippingRouter,
+
+  // QuickBooks Integration
+  quickbooksSync: quickbooksSyncRouter,
 });
 
 // Export type for client

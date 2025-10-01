@@ -1370,6 +1370,57 @@ export class DatabaseClient {
       this.countGeneric('shipments', options),
   };
 
+  // QuickBooks Auth model
+  quickbooks_auth = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('quickbooks_auth', options),
+    findFirst: (options: { where: Record<string, any>; orderBy?: Record<string, any>; include?: Record<string, any> }) =>
+      this.findFirstGeneric<any>('quickbooks_auth', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('quickbooks_auth', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('quickbooks_auth', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('quickbooks_auth', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('quickbooks_auth', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('quickbooks_auth', options),
+  };
+
+  // QuickBooks Entity Mapping model
+  quickbooks_entity_mapping = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('quickbooks_entity_mapping', options),
+    findFirst: (options: { where: Record<string, any>; orderBy?: Record<string, any>; include?: Record<string, any> }) =>
+      this.findFirstGeneric<any>('quickbooks_entity_mapping', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('quickbooks_entity_mapping', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('quickbooks_entity_mapping', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('quickbooks_entity_mapping', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('quickbooks_entity_mapping', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('quickbooks_entity_mapping', options),
+  };
+
+  // QuickBooks Sync Log model
+  quickbooks_sync_log = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('quickbooks_sync_log', options),
+    findFirst: (options: { where: Record<string, any>; orderBy?: Record<string, any>; include?: Record<string, any> }) =>
+      this.findFirstGeneric<any>('quickbooks_sync_log', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('quickbooks_sync_log', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('quickbooks_sync_log', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('quickbooks_sync_log', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('quickbooks_sync_log', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('quickbooks_sync_log', options),
+  };
+
   // =====================================================
   // LEGACY TASK OPERATIONS (PRESERVED FOR COMPATIBILITY)
   // =====================================================
