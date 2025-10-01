@@ -5237,6 +5237,11 @@ model users {
   prototype_feedback_addressed                                          prototype_feedback[]                @relation("FeedbackAddresser")
   prototype_revisions_created                                           prototype_revisions[]               @relation("RevisionCreator")
   prototype_revisions_approved                                          prototype_revisions[]               @relation("RevisionApprover")
+  factory_review_sessions_created                                       factory_review_sessions[]
+  factory_review_photos_uploaded                                        factory_review_photos[]
+  factory_review_comments_authored                                      factory_review_comments[]
+  factory_review_comments_resolved                                      factory_review_comments[]           @relation("CommentResolver")
+  factory_review_documents_uploaded                                     factory_review_documents[]
 
   @@index([instance_id])
   @@index([is_anonymous])
@@ -6808,7 +6813,7 @@ model prototype_production {
 
   // Relationships
   shop_drawings        shop_drawings[]
-  // factory_reviews      factory_review_sessions[]  // Will be added in Week 18
+  factory_reviews      factory_review_sessions[]
   qc_inspections       qc_inspections[]
 
   // Metadata
@@ -7233,5 +7238,147 @@ model prototype_revisions {
 
   @@index([prototype_id], map: "idx_prototype_revisions_prototype")
   @@index([revision_type], map: "idx_prototype_revisions_type")
+  @@schema("public")
+}
+
+// ============================================================================
+// FACTORY REVIEWS - On-site factory review sessions with photo-comment workflow
+// ============================================================================
+
+model factory_review_sessions {
+  id                     String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  
+  // Link to prototype production
+  prototype_production_id String   @db.Uuid
+  prototype_production    prototype_production @relation(fields: [prototype_production_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  // Session Details
+  session_number         Int      // 1st review, 2nd review, etc.
+  session_name           String
+  review_date            DateTime @db.Date
+  location               String?  // Factory location
+
+  // Attendees
+  limn_team_members      String[] // Array of user IDs
+  designer_ids           String[] // Array of designer/partner IDs  
+  factory_representatives String[] // Factory contact names (text array)
+
+  // Status
+  status                 String   @default("scheduled")
+  // "scheduled" | "in_progress" | "completed"
+  
+  completion_notes       String?  @db.Text
+  completed_at           DateTime? @db.Timestamptz(6)
+
+  // Relationships
+  photos                 factory_review_photos[]
+  comments               factory_review_comments[]
+  documents              factory_review_documents[]
+
+  // Audit
+  created_by             String   @db.Uuid
+  creator                users    @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  created_at             DateTime @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  @@index([prototype_production_id], map: "idx_factory_review_sessions_production")
+  @@index([review_date], map: "idx_factory_review_sessions_date")
+  @@index([status], map: "idx_factory_review_sessions_status")
+  @@schema("public")
+}
+
+model factory_review_photos {
+  id                     String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  session_id             String    @db.Uuid
+  session                factory_review_sessions @relation(fields: [session_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  // Photo Details
+  file_url               String
+  thumbnail_url          String?
+  file_name              String
+  file_size              BigInt
+  mime_type              String?
+
+  // Context
+  component_area         String?  // Which part of prototype
+  issue_severity         String   @default("observation")
+  // "critical" | "major" | "minor" | "observation"
+
+  // Metadata
+  uploaded_by            String    @db.Uuid
+  uploader               users     @relation(fields: [uploaded_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  uploaded_by_role       String    // "limn_team" | "designer"
+  
+  // Relationships
+  comments               factory_review_comments[]
+
+  // Audit
+  created_at             DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@index([session_id], map: "idx_factory_review_photos_session")
+  @@index([issue_severity], map: "idx_factory_review_photos_severity")
+  @@schema("public")
+}
+
+model factory_review_comments {
+  id                     String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  
+  // Link to photo or session
+  photo_id               String?   @db.Uuid
+  photo                  factory_review_photos? @relation(fields: [photo_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  
+  session_id             String    @db.Uuid
+  session                factory_review_sessions @relation(fields: [session_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  // Comment Details
+  comment_text           String    @db.Text
+  comment_type           String    @default("issue")
+  // "issue" | "change_request" | "question" | "response" | "approval"
+
+  // Author
+  author_id              String    @db.Uuid
+  author                 users     @relation(fields: [author_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  author_role            String    // "limn_team" | "designer" | "factory"
+
+  // Action Item Tracking
+  is_action_item         Boolean   @default(false)
+  assigned_to            String?   // Factory contact or team member name
+  due_date               DateTime? @db.Date
+  resolved_at            DateTime? @db.Timestamptz(6)
+  resolved_by            String?   @db.Uuid
+  resolver               users?    @relation("CommentResolver", fields: [resolved_by], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  // Threading (replies to comments)
+  parent_comment_id      String?   @db.Uuid
+  parent                 factory_review_comments? @relation("CommentReplies", fields: [parent_comment_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  replies                factory_review_comments[] @relation("CommentReplies")
+
+  // Audit
+  created_at             DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+
+  @@index([photo_id], map: "idx_factory_review_comments_photo")
+  @@index([session_id], map: "idx_factory_review_comments_session")
+  @@index([is_action_item], map: "idx_factory_review_comments_action")
+  @@schema("public")
+}
+
+model factory_review_documents {
+  id                     String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  session_id             String    @db.Uuid
+  session                factory_review_sessions @relation(fields: [session_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  // Document Details
+  file_url               String
+  file_name              String
+  file_size              BigInt?
+  document_type          String?   // "measurement" | "specification" | "reference" | "other"
+
+  // Metadata
+  uploaded_by            String    @db.Uuid
+  uploader               users     @relation(fields: [uploaded_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  created_at             DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@index([session_id], map: "idx_factory_review_documents_session")
   @@schema("public")
 }
