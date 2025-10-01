@@ -24,6 +24,7 @@ import { moodBoardsRouter } from './routers/mood-boards';
 import { oauthRouter } from './routers/oauth';
 import { storageRouter } from './routers/storage';
 import { shopDrawingsRouter } from './routers/shop-drawings';
+import { prototypesRouter } from './routers/prototypes';
 
 /**
  * Main API router
@@ -75,6 +76,9 @@ export const appRouter = createTRPCRouter({
 
   // Shop Drawings (Phase 2 - Week 16)
   shopDrawings: shopDrawingsRouter,
+
+  // Prototypes (Phase 2 - Week 17)
+  prototypes: prototypesRouter,
 
   // Shipping (SEKO Integration)
   shipping: shippingRouter,
