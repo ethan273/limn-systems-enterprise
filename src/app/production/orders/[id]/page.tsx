@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Textarea } from "@/components/ui/textarea";
-import { DollarSign, Package, Truck, AlertCircle, CheckCircle, ArrowLeft, Settings, Trash2, Ship, Clock } from "lucide-react";
+import { DollarSign, Package, Truck, AlertCircle, CheckCircle, ArrowLeft, Settings, Trash2, Ship, Clock, PackageCheck } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -138,6 +138,26 @@ export default function ProductionOrderDetailPage() {
 
   const { data: shipments } = api.shipping.getShipmentsByOrder.useQuery({
     production_order_id: params.id as string,
+  });
+
+  // Packing jobs query
+  const { data: packingJobsData, refetch: refetchPackingJobs } = api.packing.getAllJobs.useQuery({
+    orderId: order?.order_id,
+    limit: 50,
+    offset: 0,
+  }, { enabled: !!order?.order_id });
+
+  const packingJobs = packingJobsData?.jobs || [];
+
+  // Auto-generate packing jobs mutation
+  const autoGeneratePackingJobs = api.packing.autoGenerateFromOrder.useMutation({
+    onSuccess: (data) => {
+      toast.success(data.message || "Packing jobs generated successfully!");
+      void refetchPackingJobs();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to generate packing jobs");
+    },
   });
 
   const openPaymentDialog = (invoiceId: string, amountDue: number) => {
@@ -298,6 +318,7 @@ export default function ProductionOrderDetailPage() {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="invoices">Invoices & Payments</TabsTrigger>
           <TabsTrigger value="items">Ordered Items ({order.ordered_items_production?.length ?? 0})</TabsTrigger>
+          <TabsTrigger value="packing">Packing</TabsTrigger>
           <TabsTrigger value="shipments">Shipments</TabsTrigger>
         </TabsList>
 
@@ -610,6 +631,83 @@ export default function ProductionOrderDetailPage() {
                     ))}
                   </TableBody>
                 </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Packing Tab */}
+        <TabsContent value="packing" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Packing Jobs</CardTitle>
+                <Button
+                  onClick={() => autoGeneratePackingJobs.mutate({ productionOrderId: order.id })}
+                  disabled={autoGeneratePackingJobs.isPending || packingJobs.length > 0}
+                >
+                  <PackageCheck className="w-4 h-4 mr-2" aria-hidden="true" />
+                  {packingJobs.length > 0 ? "Packing Jobs Generated" : "Auto-Generate Packing Jobs"}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {packingJobs.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <PackageCheck className="w-12 h-12 mx-auto mb-2 opacity-50" aria-hidden="true" />
+                  <p className="text-sm mb-4">No packing jobs generated yet</p>
+                  <p className="text-xs">Click &quot;Auto-Generate Packing Jobs&quot; to create packing jobs from production order items</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" aria-hidden="true" />
+                    <AlertDescription>
+                      {packingJobs.length} packing {packingJobs.length === 1 ? "job" : "jobs"} generated from this production order
+                    </AlertDescription>
+                  </Alert>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Item Description</TableHead>
+                        <TableHead>Quantity</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Boxes</TableHead>
+                        <TableHead>Weight</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {packingJobs.map((job: any) => (
+                        <TableRow key={job.id}>
+                          <TableCell>{job.order_items?.description || "—"}</TableCell>
+                          <TableCell>
+                            {job.packed_quantity} / {job.quantity}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={
+                              job.packing_status === "shipped" ? "bg-purple-100 text-purple-800 border-purple-300" :
+                              job.packing_status === "packed" ? "bg-green-100 text-green-800 border-green-300" :
+                              job.packing_status === "in_progress" ? "bg-blue-100 text-blue-800 border-blue-300" :
+                              "bg-gray-100 text-gray-800 border-gray-300"
+                            }>
+                              {job.packing_status.replace(/_/g, " ").toUpperCase()}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{job.box_count || 0}</TableCell>
+                          <TableCell>
+                            {job.total_weight ? `${Number(job.total_weight).toFixed(2)} lbs` : "—"}
+                          </TableCell>
+                          <TableCell>
+                            <Link href={`/packing/${job.id}`}>
+                              <Button variant="outline" size="sm">View</Button>
+                            </Link>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               )}
             </CardContent>
           </Card>
