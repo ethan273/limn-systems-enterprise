@@ -16,6 +16,9 @@ process.emit = function (name, data, ...args) {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Explicitly set workspace root to prevent inference warnings
+  outputFileTracingRoot: __dirname,
+
   // Image optimization
   images: {
     domains: ['localhost', 'via.placeholder.com', 'gwqkbjymbarkufwvdmar.supabase.co'],

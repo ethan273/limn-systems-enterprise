@@ -7,7 +7,7 @@
  * Week 13-15 Day 9: Updated with real API integration.
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthContext } from "@/lib/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
@@ -42,7 +42,7 @@ import { formatFileSize } from "@/lib/storage/hybrid-storage";
 
 export const dynamic = 'force-dynamic';
 
-export default function DesignDocumentsPage() {
+function DesignDocumentsContent() {
   const [storageFilter, setStorageFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -447,5 +447,22 @@ export default function DesignDocumentsPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export default function DesignDocumentsPage() {
+  return (
+    <Suspense fallback={
+      <div className="container mx-auto py-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+      </div>
+    }>
+      <DesignDocumentsContent />
+    </Suspense>
   );
 }

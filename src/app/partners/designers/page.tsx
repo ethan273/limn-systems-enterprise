@@ -214,7 +214,7 @@ export default function DesignersPage() {
                   specializations: string[];
                   quality_rating: number | null;
                   status: string;
-                  _count: { production_orders: number };
+                  _count: { production_orders: number; design_projects?: number };
                 }) => (
                   <TableRow
                     key={designer.id}
@@ -272,7 +272,7 @@ export default function DesignersPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="font-medium">{designer._count.production_orders}</div>
+                      <div className="font-medium">{designer._count?.design_projects || designer._count?.production_orders || 0}</div>
                       <div className="text-xs text-muted-foreground">projects</div>
                     </TableCell>
                     <TableCell>
