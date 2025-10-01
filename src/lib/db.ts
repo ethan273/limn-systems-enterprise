@@ -1185,6 +1185,97 @@ export class DatabaseClient {
   };
 
   // =====================================================
+  // PHASE 1: PRODUCTION ORDERS MODULE
+  // =====================================================
+
+  // Production Orders model
+  production_orders = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('production_orders', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('production_orders', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('production_orders', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('production_orders', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('production_orders', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('production_orders', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('production_orders', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('production_orders', options),
+  };
+
+  // Production Invoices model
+  production_invoices = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('production_invoices', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('production_invoices', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('production_invoices', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('production_invoices', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('production_invoices', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('production_invoices', options),
+    findFirst: (options?: QueryOptions) => {
+      const modifiedOptions = { ...options, limit: 1, take: 1 };
+      return this.findManyGeneric<any>('production_invoices', modifiedOptions).then(results => results[0] || null);
+    },
+  };
+
+  // Production Invoice Line Items model
+  production_invoice_line_items = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('production_invoice_line_items', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('production_invoice_line_items', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('production_invoice_line_items', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('production_invoice_line_items', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('production_invoice_line_items', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('production_invoice_line_items', options),
+  };
+
+  // Production Payments model
+  production_payments = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('production_payments', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('production_payments', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('production_payments', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('production_payments', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('production_payments', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('production_payments', options),
+  };
+
+  // Ordered Items Production model
+  ordered_items_production = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('ordered_items_production', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('ordered_items_production', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('ordered_items_production', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('ordered_items_production', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('ordered_items_production', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('ordered_items_production', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('ordered_items_production', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('ordered_items_production', options),
+  };
+
+  // =====================================================
   // LEGACY TASK OPERATIONS (PRESERVED FOR COMPATIBILITY)
   // =====================================================
 

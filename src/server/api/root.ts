@@ -11,6 +11,8 @@ import { collectionsRouter, itemsRouter, materialsRouter } from './routers/catal
 import { productsRouter } from './routers/products';
 import { ordersRouter } from './routers/orders';
 import { orderItemsRouter } from './routers/order-items';
+import { productionOrdersRouter } from './routers/production-orders';
+import { productionInvoicesRouter } from './routers/production-invoices';
 
 /**
  * Main API router
@@ -42,6 +44,10 @@ export const appRouter = createTRPCRouter({
   // Orders
   orders: ordersRouter,
   orderItems: orderItemsRouter,
+
+  // Production Orders (Phase 1)
+  productionOrders: productionOrdersRouter,
+  productionInvoices: productionInvoicesRouter,
 });
 
 // Export type for client
