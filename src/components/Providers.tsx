@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 import { TRPCProvider } from "@/lib/api/client";
 import { AuthProvider } from "@/lib/auth/AuthProvider";
+import { Toaster } from "sonner";
 
 interface AppContextType {
   sidebarOpen: boolean;
@@ -19,6 +20,7 @@ export function Providers({ children }: { children: ReactNode }) {
       <AuthProvider>
         <AppContext.Provider value={{ sidebarOpen, setSidebarOpen }}>
           {children}
+          <Toaster richColors position="top-right" />
         </AppContext.Provider>
       </AuthProvider>
     </TRPCProvider>

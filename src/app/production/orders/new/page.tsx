@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,7 +38,11 @@ export default function NewProductionOrderPage() {
 
   const createOrder = api.productionOrders.create.useMutation({
     onSuccess: (data) => {
+      toast.success(data.message || "Production order created successfully!");
       router.push(`/production/orders/${data.order.id}`);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to create production order");
     },
   });
 

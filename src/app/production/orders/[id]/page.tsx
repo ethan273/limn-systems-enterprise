@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,14 +15,17 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Textarea } from "@/components/ui/textarea";
-import { DollarSign, Package, Truck, AlertCircle, CheckCircle, ArrowLeft } from "lucide-react";
+import { DollarSign, Package, Truck, AlertCircle, CheckCircle, ArrowLeft, Settings, Trash2 } from "lucide-react";
 import Link from "next/link";
 
 export default function ProductionOrderDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<string>("");
+  const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [paymentForm, setPaymentForm] = useState({
     amount: 0,
     payment_method: "credit_card" as "credit_card" | "wire_transfer" | "check" | "ach",
@@ -34,10 +38,35 @@ export default function ProductionOrderDetailPage() {
   });
 
   const recordPayment = api.productionInvoices.recordPayment.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
+      toast.success(data.message || "Payment recorded successfully!");
       void refetch();
       setPaymentDialogOpen(false);
       setPaymentForm({ amount: 0, payment_method: "credit_card", transaction_id: "", notes: "" });
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to record payment");
+    },
+  });
+
+  const updateStatus = api.productionOrders.updateStatus.useMutation({
+    onSuccess: (data) => {
+      toast.success(data.message || "Status updated successfully!");
+      void refetch();
+      setStatusDialogOpen(false);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update status");
+    },
+  });
+
+  const deleteOrder = api.productionOrders.delete.useMutation({
+    onSuccess: () => {
+      toast.success("Production order deleted successfully!");
+      router.push("/production/orders");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to delete production order");
     },
   });
 
@@ -83,7 +112,27 @@ export default function ProductionOrderDetailPage() {
             <h1 className="text-3xl font-bold">{order.order_number}</h1>
             <p className="text-muted-foreground">{order.item_name}</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSelectedStatus(order.status);
+                setStatusDialogOpen(true);
+              }}
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              Update Status
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setDeleteDialogOpen(true)}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </Button>
             <Badge variant="outline" className={
               order.status === "awaiting_deposit" ? "bg-yellow-100 text-yellow-800 border-yellow-300" :
               order.status === "in_progress" ? "bg-blue-100 text-blue-800 border-blue-300" :
@@ -569,6 +618,102 @@ export default function ProductionOrderDetailPage() {
                 <AlertDescription>{recordPayment.error.message}</AlertDescription>
               </Alert>
             )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Status Update Dialog */}
+      <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Production Order Status</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="status">New Status</Label>
+              <Select
+                value={selectedStatus}
+                onValueChange={setSelectedStatus}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="awaiting_deposit">Awaiting Deposit</SelectItem>
+                  <SelectItem value="in_progress">In Progress</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="awaiting_final_payment">Awaiting Final Payment</SelectItem>
+                  <SelectItem value="final_paid">Final Paid (Ready to Ship)</SelectItem>
+                  <SelectItem value="shipped">Shipped</SelectItem>
+                  <SelectItem value="delivered">Delivered</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-sm text-muted-foreground mt-2">
+                Note: Changing status to "completed" will auto-generate the final invoice
+              </p>
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                onClick={() => {
+                  updateStatus.mutate({
+                    id: params.id as string,
+                    status: selectedStatus,
+                  });
+                }}
+                disabled={updateStatus.isPending}
+              >
+                {updateStatus.isPending ? "Updating..." : "Update Status"}
+              </Button>
+              <Button variant="outline" onClick={() => setStatusDialogOpen(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Production Order</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                <strong>Warning:</strong> This action cannot be undone. The production order will be permanently deleted.
+              </AlertDescription>
+            </Alert>
+
+            {order && (Number(order.production_invoices?.find((inv: any) => inv.amount_paid > 0)?.amount_paid) > 0) && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Cannot Delete:</strong> This production order has received payments and cannot be deleted. Please cancel it instead.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <p className="text-sm text-muted-foreground">
+              Are you sure you want to delete production order <strong>{order?.order_number}</strong>?
+            </p>
+
+            <div className="flex gap-2">
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  deleteOrder.mutate({ id: params.id as string });
+                }}
+                disabled={deleteOrder.isPending || (Number(order?.production_invoices?.find((inv: any) => inv.amount_paid > 0)?.amount_paid) > 0)}
+              >
+                {deleteOrder.isPending ? "Deleting..." : "Delete Production Order"}
+              </Button>
+              <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                Cancel
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

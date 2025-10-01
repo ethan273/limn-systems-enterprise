@@ -7,6 +7,7 @@ import {
   CheckSquare,
   Users,
   Package,
+  Factory,
   ChevronDown,
   ChevronRight,
   LogOutIcon,
@@ -39,7 +40,8 @@ export default function Sidebar() {
     "Dashboards": pathname === '/dashboard' || pathname.startsWith('/dashboards'),
     "Tasks": isOnTasksPage,
     "Products": pathname.startsWith('/products'),
-    "CRM": pathname.startsWith('/crm')
+    "CRM": pathname.startsWith('/crm'),
+    "Production": pathname.startsWith('/production')
   });
 
   // Update expanded modules when pathname changes to keep relevant module open
@@ -48,7 +50,8 @@ export default function Sidebar() {
       "Dashboards": pathname === '/dashboard' || pathname.startsWith('/dashboards'),
       "Tasks": pathname.startsWith('/tasks'),
       "Products": pathname.startsWith('/products'),
-      "CRM": pathname.startsWith('/crm')
+      "CRM": pathname.startsWith('/crm'),
+      "Production": pathname.startsWith('/production')
     });
   }, [pathname]);
 
@@ -117,6 +120,13 @@ export default function Sidebar() {
         { label: "Prototypes", href: "/products/prototypes" },
         { label: "Catalog", href: "/products/catalog" },
         { label: "Ordered", href: "/products/ordered-items" },
+      ]
+    },
+    {
+      label: "Production",
+      icon: Factory,
+      items: [
+        { label: "Orders", href: "/production/orders" },
       ]
     }
   ];
