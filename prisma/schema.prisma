@@ -1358,6 +1358,8 @@ model customers {
   sms_opt_outs                                    sms_opt_outs[]
   webhook_endpoints                               webhook_endpoints[]
   production_invoices                             production_invoices[]
+  customer_notifications                          customer_notifications[]
+  customer_shipping_addresses                     customer_shipping_addresses[]
 
   @@index([city], map: "idx_customers_city")
   @@index([company], map: "idx_customers_company")
@@ -2258,31 +2260,31 @@ model email_tracking {
 }
 
 model shipping_quotes {
-  id                   String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  order_id             String?             @db.Uuid
-  production_order_id  String?             @db.Uuid
-  ship_from            Json
-  ship_to              Json
-  origin_address       Json?               @default("{}")
-  destination_address  Json?               @default("{}")
-  packages             Json
-  carrier_quotes       Json?               @default("[]")
-  quotes               Json?               @default("[]")
-  selected_quote       Json?
-  quote_expires_at     DateTime?           @db.Timestamp(6)
-  seko_quote_response  Json?
-  requested_at         DateTime?           @default(now()) @db.Timestamp(6)
-  requested_by         String?             @db.Uuid
-  created_at           DateTime?           @default(now()) @db.Timestamp(6)
-  status               String?             @default("pending") @db.VarChar(50)
-  customer_id          String?             @db.Uuid
-  quote_number         String?             @db.VarChar(50)
-  customer_name        String?             @db.VarChar(255)
-  service_type         String?             @default("ground") @db.VarChar(50)
-  quoted_cost          Decimal?            @default(0) @db.Decimal(10, 2)
-  customers            customers?          @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  users                users?              @relation(fields: [requested_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  production_orders    production_orders?  @relation(fields: [production_order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id                  String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  order_id            String?            @db.Uuid
+  production_order_id String?            @db.Uuid
+  ship_from           Json
+  ship_to             Json
+  origin_address      Json?              @default("{}")
+  destination_address Json?              @default("{}")
+  packages            Json
+  carrier_quotes      Json?              @default("[]")
+  quotes              Json?              @default("[]")
+  selected_quote      Json?
+  quote_expires_at    DateTime?          @db.Timestamp(6)
+  seko_quote_response Json?
+  requested_at        DateTime?          @default(now()) @db.Timestamp(6)
+  requested_by        String?            @db.Uuid
+  created_at          DateTime?          @default(now()) @db.Timestamp(6)
+  status              String?            @default("pending") @db.VarChar(50)
+  customer_id         String?            @db.Uuid
+  quote_number        String?            @db.VarChar(50)
+  customer_name       String?            @db.VarChar(255)
+  service_type        String?            @default("ground") @db.VarChar(50)
+  quoted_cost         Decimal?           @default(0) @db.Decimal(10, 2)
+  customers           customers?         @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users               users?             @relation(fields: [requested_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  production_orders   production_orders? @relation(fields: [production_order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([customer_id], map: "idx_shipping_quotes_customer_id")
   @@index([order_id], map: "idx_shipping_quotes_order_id")
@@ -2681,20 +2683,20 @@ model production_batches {
 }
 
 model projects {
-  id                        String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                        String                @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   name                      String?
-  customer_id               String?      @db.Uuid
+  customer_id               String?               @db.Uuid
   status                    String?
   start_date                String?
   end_date                  String?
   budget                    Int?
   description               String?
   metadata                  Json?
-  created_by                String?      @db.Uuid
-  created_at                DateTime?    @default(now()) @db.Timestamptz(6)
-  updated_at                DateTime?    @default(now()) @updatedAt @db.Timestamptz(6)
-  user_id                   String?      @db.Uuid
-  tenant_id                 String?      @db.Uuid
+  created_by                String?               @db.Uuid
+  created_at                DateTime?             @default(now()) @db.Timestamptz(6)
+  updated_at                DateTime?             @default(now()) @updatedAt @db.Timestamptz(6)
+  user_id                   String?               @db.Uuid
+  tenant_id                 String?               @db.Uuid
   priority                  String?
   estimated_completion_date String?
   actual_completion_date    String?
@@ -2702,8 +2704,8 @@ model projects {
   actual_cost               String?
   project_manager           String?
   orders_old                orders_old[]
-  customers                 customers?   @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  tenants                   tenants?     @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  customers                 customers?            @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tenants                   tenants?              @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   production_orders         production_orders[]
   production_invoices       production_invoices[]
   shipments                 shipments[]
@@ -4505,45 +4507,45 @@ model production_stages {
 }
 
 model shipments {
-  id                   String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  shipment_number      String?              @db.VarChar(50)
-  order_id             String?              @db.Uuid
-  carrier_id           String?              @db.Uuid
-  carrier              String?              @db.VarChar(100)
-  service_level        String?              @db.VarChar(100)
-  tracking_number      String?
-  status               String?              @default("pending")
-  ship_from            Json?                @default("{}")
-  ship_to              Json?                @default("{}")
-  origin_address       Json?                @default("{}")
-  destination_address  Json?                @default("{}")
-  packages             Json?                @default("[]")
-  shipped_date         DateTime?            @db.Timestamptz(6)
-  estimated_delivery   DateTime?            @db.Date
-  actual_delivery      DateTime?            @db.Timestamptz(6)
-  package_count        Int?                 @default(1)
-  weight               Decimal?             @db.Decimal(10, 2)
-  dimensions           Json?                @default("{}")
-  shipping_cost        Decimal?             @db.Decimal(10, 2)
-  insurance_amount     Decimal?             @db.Decimal(10, 2)
-  label_url            String?
-  special_instructions String?
-  tracking_events      Json?                @default("[]")
-  last_tracking_update DateTime?            @db.Timestamptz(6)
-  created_at           DateTime?            @default(now()) @db.Timestamptz(6)
-  updated_at           DateTime?            @default(now()) @updatedAt @db.Timestamptz(6)
-  created_by           String?              @db.Uuid
-  project_id           String?              @db.Uuid
-  seko_shipment_id     String?              @db.VarChar(100)
-  last_seko_sync       DateTime?            @db.Timestamptz(6)
-  priority             String?              @db.VarChar(20)
-  packing_job_id       String?              @db.Uuid
-  delivery_addresses   delivery_addresses[]
-  shipping_carriers    shipping_carriers?   @relation(fields: [carrier_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  packing_jobs         packing_jobs?        @relation(fields: [packing_job_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  users                users?               @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  projects             projects?            @relation(fields: [project_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  shipping_events      shipping_events[]
+  id                       String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  shipment_number          String?                    @db.VarChar(50)
+  order_id                 String?                    @db.Uuid
+  carrier_id               String?                    @db.Uuid
+  carrier                  String?                    @db.VarChar(100)
+  service_level            String?                    @db.VarChar(100)
+  tracking_number          String?
+  status                   String?                    @default("pending")
+  ship_from                Json?                      @default("{}")
+  ship_to                  Json?                      @default("{}")
+  origin_address           Json?                      @default("{}")
+  destination_address      Json?                      @default("{}")
+  packages                 Json?                      @default("[]")
+  shipped_date             DateTime?                  @db.Timestamptz(6)
+  estimated_delivery       DateTime?                  @db.Date
+  actual_delivery          DateTime?                  @db.Timestamptz(6)
+  package_count            Int?                       @default(1)
+  weight                   Decimal?                   @db.Decimal(10, 2)
+  dimensions               Json?                      @default("{}")
+  shipping_cost            Decimal?                   @db.Decimal(10, 2)
+  insurance_amount         Decimal?                   @db.Decimal(10, 2)
+  label_url                String?
+  special_instructions     String?
+  tracking_events          Json?                      @default("[]")
+  last_tracking_update     DateTime?                  @db.Timestamptz(6)
+  created_at               DateTime?                  @default(now()) @db.Timestamptz(6)
+  updated_at               DateTime?                  @default(now()) @updatedAt @db.Timestamptz(6)
+  created_by               String?                    @db.Uuid
+  project_id               String?                    @db.Uuid
+  seko_shipment_id         String?                    @db.VarChar(100)
+  last_seko_sync           DateTime?                  @db.Timestamptz(6)
+  priority                 String?                    @db.VarChar(20)
+  packing_job_id           String?                    @db.Uuid
+  delivery_addresses       delivery_addresses[]
+  shipping_carriers        shipping_carriers?         @relation(fields: [carrier_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  packing_jobs             packing_jobs?              @relation(fields: [packing_job_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users                    users?                     @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  projects                 projects?                  @relation(fields: [project_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  shipping_events          shipping_events[]
   ordered_items_production ordered_items_production[]
 
   @@index([carrier_id], map: "idx_shipments_carrier_id")
@@ -4802,53 +4804,53 @@ model budgets {
 }
 
 model items {
-  id                    String                  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  name                  String                  @db.VarChar
-  sku_full              String?                 @db.VarChar
-  description           String?
-  price                 Decimal?                @db.Decimal(10, 2)
-  category              String?                 @db.VarChar
-  created_at            DateTime?               @default(now()) @db.Timestamptz(6)
-  updated_at            DateTime?               @default(now()) @updatedAt @db.Timestamptz(6)
-  collection_id         String?                 @db.Uuid
-  list_price            Decimal?                @db.Decimal(10, 2)
-  cost                  Decimal?                @db.Decimal(10, 2)
-  weight                Decimal?                @db.Decimal
-  dimensions            String?
-  material_id           String?                 @db.Uuid
-  labor_hours           Decimal?                @db.Decimal
-  setup_fee             Decimal?                @db.Decimal(10, 2)
-  minimum_quantity      Int?
-  lead_time_days        Int?
-  active                Boolean?                @default(true)
-  tags                  String[]
-  notes                 String?
-  created_by            String?
-  supplier_id           String?                 @db.Uuid
-  supplier_sku          String?
-  barcode               String?
-  location              String?
-  reorder_point         Int?
-  reorder_quantity      Int?
-  stock_quantity        Int?
-  reserved_quantity     Int?
-  sku                   String?                 @db.VarChar
-  item_code             String?                 @db.VarChar
-  variation_type        String?                 @db.VarChar(50)
-  furniture_type        String?                 @db.VarChar(50)
-  type                  String?                 @db.VarChar(50)
-  base_sku              String?                 @unique @db.VarChar(50)
-  product_sku           String?                 @db.VarChar(100)
-  furniture_dimensions  furniture_dimensions[]
-  invoice_items         invoice_items[]
-  item_images           item_images[]
-  furniture_collections furniture_collections?  @relation(fields: [collection_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  manufacturer_projects manufacturer_projects[]
-  order_items           order_items[]
-  product_materials     product_materials[]
-  production_orders_catalog   production_orders[] @relation("ProductionOrderCatalog")
-  production_orders_prototype production_orders[] @relation("ProductionOrderPrototype")
-  production_orders_concept   production_orders[] @relation("ProductionOrderConcept")
+  id                          String                  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name                        String                  @db.VarChar
+  sku_full                    String?                 @db.VarChar
+  description                 String?
+  price                       Decimal?                @db.Decimal(10, 2)
+  category                    String?                 @db.VarChar
+  created_at                  DateTime?               @default(now()) @db.Timestamptz(6)
+  updated_at                  DateTime?               @default(now()) @updatedAt @db.Timestamptz(6)
+  collection_id               String?                 @db.Uuid
+  list_price                  Decimal?                @db.Decimal(10, 2)
+  cost                        Decimal?                @db.Decimal(10, 2)
+  weight                      Decimal?                @db.Decimal
+  dimensions                  String?
+  material_id                 String?                 @db.Uuid
+  labor_hours                 Decimal?                @db.Decimal
+  setup_fee                   Decimal?                @db.Decimal(10, 2)
+  minimum_quantity            Int?
+  lead_time_days              Int?
+  active                      Boolean?                @default(true)
+  tags                        String[]
+  notes                       String?
+  created_by                  String?
+  supplier_id                 String?                 @db.Uuid
+  supplier_sku                String?
+  barcode                     String?
+  location                    String?
+  reorder_point               Int?
+  reorder_quantity            Int?
+  stock_quantity              Int?
+  reserved_quantity           Int?
+  sku                         String?                 @db.VarChar
+  item_code                   String?                 @db.VarChar
+  variation_type              String?                 @db.VarChar(50)
+  furniture_type              String?                 @db.VarChar(50)
+  type                        String?                 @db.VarChar(50)
+  base_sku                    String?                 @unique @db.VarChar(50)
+  product_sku                 String?                 @db.VarChar(100)
+  furniture_dimensions        furniture_dimensions[]
+  invoice_items               invoice_items[]
+  item_images                 item_images[]
+  furniture_collections       furniture_collections?  @relation(fields: [collection_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  manufacturer_projects       manufacturer_projects[]
+  order_items                 order_items[]
+  product_materials           product_materials[]
+  production_orders_catalog   production_orders[]     @relation("ProductionOrderCatalog")
+  production_orders_prototype production_orders[]     @relation("ProductionOrderPrototype")
+  production_orders_concept   production_orders[]     @relation("ProductionOrderConcept")
 
   @@index([category], map: "idx_items_category")
   @@index([collection_id], map: "idx_items_collection_id")
@@ -5298,6 +5300,7 @@ model users {
   shipments                                                             shipments[]
   partners_portal_user                                                  partners?                           @relation("PartnerPortalUser")
   partner_documents                                                     partner_documents[]
+  customer_notifications                                                customer_notifications[]
 
   @@index([instance_id])
   @@index([is_anonymous])
@@ -6015,58 +6018,58 @@ enum user_type_enum {
 
 // Production Orders - Main production order tracking with payment gates
 model production_orders {
-  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  order_number      String   @unique // Auto-generated: PO-2025-0001
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  order_number String @unique // Auto-generated: PO-2025-0001
 
   // Links to existing tables
-  order_id          String?  @db.Uuid  // Links to CRM orders table - groups production orders for shipping
-  orders            orders?  @relation(fields: [order_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  project_id        String?  @db.Uuid
-  projects          projects? @relation(fields: [project_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  order_id   String?   @db.Uuid // Links to CRM orders table - groups production orders for shipping
+  orders     orders?   @relation(fields: [order_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  project_id String?   @db.Uuid
+  projects   projects? @relation(fields: [project_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
 
   // Product Type (90% catalog, 10% custom)
-  product_type      String   // "catalog" | "prototype" | "concept"
-  catalog_item_id   String?  @db.Uuid
-  items_catalog     items?   @relation("ProductionOrderCatalog", fields: [catalog_item_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  prototype_id      String?  @db.Uuid
-  items_prototype   items?   @relation("ProductionOrderPrototype", fields: [prototype_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  concept_id        String?  @db.Uuid
-  items_concept     items?   @relation("ProductionOrderConcept", fields: [concept_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  
+  product_type    String // "catalog" | "prototype" | "concept"
+  catalog_item_id String? @db.Uuid
+  items_catalog   items?  @relation("ProductionOrderCatalog", fields: [catalog_item_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  prototype_id    String? @db.Uuid
+  items_prototype items?  @relation("ProductionOrderPrototype", fields: [prototype_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  concept_id      String? @db.Uuid
+  items_concept   items?  @relation("ProductionOrderConcept", fields: [concept_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
   // Order Details
-  item_name         String
-  item_description  String?
-  quantity          Int
-  unit_price        Decimal  @db.Decimal(10, 2)
-  total_cost        Decimal  @db.Decimal(10, 2) // quantity × unitPrice
-  
+  item_name        String
+  item_description String?
+  quantity         Int
+  unit_price       Decimal @db.Decimal(10, 2)
+  total_cost       Decimal @db.Decimal(10, 2) // quantity × unitPrice
+
   // Payment Status - CRITICAL FOR WORKFLOW GATES
-  deposit_paid      Boolean  @default(false)
+  deposit_paid       Boolean @default(false)
   final_payment_paid Boolean @default(false)
-  
+
   // Production Status
-  status            String   @default("awaiting_deposit")
+  status String @default("awaiting_deposit")
   // Status flow:
   // awaiting_deposit → deposit_paid → in_progress → completed → 
   // awaiting_final_payment → final_paid → shipped → delivered
-  
+
   // Dates
-  order_date        DateTime @default(now()) @db.Timestamptz(6)
+  order_date          DateTime  @default(now()) @db.Timestamptz(6)
   estimated_ship_date DateTime? @db.Date
-  actual_ship_date  DateTime? @db.Date
-  
+  actual_ship_date    DateTime? @db.Date
+
   // Factory Assignment
-  factory_id        String?  @db.Uuid
-  manufacturers     manufacturers? @relation(fields: [factory_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  partners          partners? @relation("FactoryOrders", fields: [factory_id], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "production_orders_partner_factory_id_fkey")
-  factory_notes     String?
-  
+  factory_id    String?        @db.Uuid
+  manufacturers manufacturers? @relation(fields: [factory_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  partners      partners?      @relation("FactoryOrders", fields: [factory_id], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "production_orders_partner_factory_id_fkey")
+  factory_notes String?
+
   // Metadata
-  created_at        DateTime @default(now()) @db.Timestamptz(6)
-  updated_at        DateTime @default(now()) @updatedAt @db.Timestamptz(6)
-  created_by        String?  @db.Uuid
-  users             users?   @relation(fields: [created_by], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+  created_by String?  @db.Uuid
+  users      users?   @relation(fields: [created_by], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
   // Relations
   production_invoices      production_invoices[]
   production_payments      production_payments[]
@@ -6086,48 +6089,48 @@ model production_orders {
 
 // Production Invoices - Auto-generated invoices with deposit/final workflow
 model production_invoices {
-  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  invoice_number        String   @unique // Auto-generated: INV-2025-0001
+  id             String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  invoice_number String @unique // Auto-generated: INV-2025-0001
 
   // Invoice Type - CRITICAL FOR AUTO-GENERATION
-  invoice_type          String   // "deposit" | "final" | "full" | "custom"
+  invoice_type String // "deposit" | "final" | "full" | "custom"
 
   // Linked Records
-  order_id              String?  @db.Uuid  // Links to CRM order (ONE invoice per CRM order)
-  orders                orders?  @relation(fields: [order_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  production_order_id   String?  @db.Uuid  // Deprecated: kept for backward compatibility
-  production_orders     production_orders? @relation(fields: [production_order_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  project_id            String?  @db.Uuid
-  projects              projects? @relation(fields: [project_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  customer_id           String?  @db.Uuid
-  customers             customers? @relation(fields: [customer_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  
+  order_id            String?            @db.Uuid // Links to CRM order (ONE invoice per CRM order)
+  orders              orders?            @relation(fields: [order_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  production_order_id String?            @db.Uuid // Deprecated: kept for backward compatibility
+  production_orders   production_orders? @relation(fields: [production_order_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  project_id          String?            @db.Uuid
+  projects            projects?          @relation(fields: [project_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  customer_id         String?            @db.Uuid
+  customers           customers?         @relation(fields: [customer_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
   // Amounts
-  subtotal              Decimal  @db.Decimal(10, 2)
-  tax                   Decimal  @default(0) @db.Decimal(10, 2)
-  shipping              Decimal  @default(0) @db.Decimal(10, 2)
-  total                 Decimal  @db.Decimal(10, 2)
-  amount_paid           Decimal  @default(0) @db.Decimal(10, 2)
-  amount_due            Decimal  @db.Decimal(10, 2)
-  
+  subtotal    Decimal @db.Decimal(10, 2)
+  tax         Decimal @default(0) @db.Decimal(10, 2)
+  shipping    Decimal @default(0) @db.Decimal(10, 2)
+  total       Decimal @db.Decimal(10, 2)
+  amount_paid Decimal @default(0) @db.Decimal(10, 2)
+  amount_due  Decimal @db.Decimal(10, 2)
+
   // Payment Terms - CRITICAL
-  payment_terms         String   // "50% deposit due on PO" | "50% balance + shipping at FOB"
-  due_date              DateTime? @db.Date
-  
+  payment_terms String // "50% deposit due on PO" | "50% balance + shipping at FOB"
+  due_date      DateTime? @db.Date
+
   // Status
-  status                String   @default("pending_payment")
+  status String @default("pending_payment")
   // pending_payment → partial_payment → paid → overdue → cancelled
-  
+
   // Dates
-  invoice_date          DateTime @default(now()) @db.Timestamptz(6)
-  paid_date             DateTime? @db.Timestamptz(6)
-  created_at            DateTime @default(now()) @db.Timestamptz(6)
-  updated_at            DateTime @default(now()) @updatedAt @db.Timestamptz(6)
-  
+  invoice_date DateTime  @default(now()) @db.Timestamptz(6)
+  paid_date    DateTime? @db.Timestamptz(6)
+  created_at   DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+
   // Relations
   production_invoice_line_items production_invoice_line_items[]
   production_payments           production_payments[]
-  
+
   @@index([order_id], map: "idx_production_invoices_order_id")
   @@index([production_order_id], map: "idx_production_invoices_production_order_id")
   @@index([project_id], map: "idx_production_invoices_project_id")
@@ -6139,49 +6142,49 @@ model production_invoices {
 
 // Production Invoice Line Items - Invoice details
 model production_invoice_line_items {
-  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  production_invoice_id String   @db.Uuid
+  id                    String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  production_invoice_id String              @db.Uuid
   production_invoices   production_invoices @relation(fields: [production_invoice_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  
-  description           String
-  quantity              Int
-  unit_price            Decimal  @db.Decimal(10, 2)
-  total                 Decimal  @db.Decimal(10, 2)
-  
-  created_at            DateTime @default(now()) @db.Timestamptz(6)
-  
+
+  description String
+  quantity    Int
+  unit_price  Decimal @db.Decimal(10, 2)
+  total       Decimal @db.Decimal(10, 2)
+
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
   @@index([production_invoice_id], map: "idx_production_invoice_line_items_invoice_id")
   @@schema("public")
 }
 
 // Production Payments - Payment tracking with transaction details
 model production_payments {
-  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  payment_number        String   @unique // Auto-generated: PAY-2025-0001
-  
+  id             String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  payment_number String @unique // Auto-generated: PAY-2025-0001
+
   // Links
-  production_invoice_id String   @db.Uuid
+  production_invoice_id String              @db.Uuid
   production_invoices   production_invoices @relation(fields: [production_invoice_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  production_order_id   String?  @db.Uuid
-  production_orders     production_orders? @relation(fields: [production_order_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  
+  production_order_id   String?             @db.Uuid
+  production_orders     production_orders?  @relation(fields: [production_order_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
   // Payment Details
-  amount                Decimal  @db.Decimal(10, 2)
-  payment_method        String   // "credit_card" | "wire_transfer" | "check" | "ach"
-  transaction_id        String?  // External transaction reference
-  
+  amount         Decimal @db.Decimal(10, 2)
+  payment_method String // "credit_card" | "wire_transfer" | "check" | "ach"
+  transaction_id String? // External transaction reference
+
   // Status
-  status                String   @default("completed")
+  status String @default("completed")
   // pending → processing → completed → failed → refunded
-  
+
   // Metadata
-  payment_date          DateTime @default(now()) @db.Timestamptz(6)
-  notes                 String?
-  created_at            DateTime @default(now()) @db.Timestamptz(6)
-  updated_at            DateTime @default(now()) @updatedAt @db.Timestamptz(6)
-  created_by            String?  @db.Uuid
-  users                 users?   @relation(fields: [created_by], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  
+  payment_date DateTime @default(now()) @db.Timestamptz(6)
+  notes        String?
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+  created_by   String?  @db.Uuid
+  users        users?   @relation(fields: [created_by], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
   @@index([production_invoice_id], map: "idx_production_payments_invoice_id")
   @@index([production_order_id], map: "idx_production_payments_order_id")
   @@index([status], map: "idx_production_payments_status")
@@ -6191,41 +6194,41 @@ model production_payments {
 
 // Ordered Items Production - Individual unit tracking for production orders
 model ordered_items_production {
-  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  sku                   String   @unique // Auto-generated from production order
-  
+  id  String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sku String @unique // Auto-generated from production order
+
   // Links
-  production_order_id   String   @db.Uuid
-  production_orders     production_orders @relation(fields: [production_order_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  
+  production_order_id String            @db.Uuid
+  production_orders   production_orders @relation(fields: [production_order_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
   // Item Details
-  item_number           Int      // 1, 2, 3... for tracking individual units
-  serial_number         String?  // Optional manufacturer serial
-  
+  item_number   Int // 1, 2, 3... for tracking individual units
+  serial_number String? // Optional manufacturer serial
+
   // Production Status
-  status                String   @default("pending")
+  status String @default("pending")
   // pending → in_production → quality_check → approved → packed → shipped → delivered
-  
+
   // Quality Control
-  qc_status             String?  // "pass" | "fail" | "pending"
-  qc_notes              String?
-  qc_date               DateTime? @db.Timestamptz(6)
-  qc_by                 String?  @db.Uuid
-  users                 users?   @relation(fields: [qc_by], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  
+  qc_status String? // "pass" | "fail" | "pending"
+  qc_notes  String?
+  qc_date   DateTime? @db.Timestamptz(6)
+  qc_by     String?   @db.Uuid
+  users     users?    @relation(fields: [qc_by], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
   // Shipment Tracking
-  shipment_id           String?  @db.Uuid
-  shipments             shipments? @relation(fields: [shipment_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  
+  shipment_id String?    @db.Uuid
+  shipments   shipments? @relation(fields: [shipment_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
   // Dates
   production_start_date DateTime? @db.Timestamptz(6)
   production_end_date   DateTime? @db.Timestamptz(6)
   shipped_date          DateTime? @db.Timestamptz(6)
   delivered_date        DateTime? @db.Timestamptz(6)
-  
-  created_at            DateTime @default(now()) @db.Timestamptz(6)
-  updated_at            DateTime @default(now()) @updatedAt @db.Timestamptz(6)
-  
+
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
   @@index([production_order_id], map: "idx_ordered_items_production_order_id")
   @@index([shipment_id], map: "idx_ordered_items_production_shipment_id")
   @@index([status], map: "idx_ordered_items_production_status")
@@ -6233,78 +6236,77 @@ model ordered_items_production {
   @@schema("public")
 }
 
-
 // ============================================
 // PHASE 2: PARTNERS MODULE
 // ============================================
 
 // Partners - Factories and Designers
 model partners {
-  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  type                  String   // "factory" | "designer"
-  
+  id   String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type String // "factory" | "designer"
+
   // Company Information
-  company_name          String
-  business_name         String?
-  registration_number   String?
-  
+  company_name        String
+  business_name       String?
+  registration_number String?
+
   // Contact Information
-  primary_contact       String
-  primary_email         String
-  primary_phone         String
-  website               String?
-  
+  primary_contact String
+  primary_email   String
+  primary_phone   String
+  website         String?
+
   // Address
-  address_line1         String
-  address_line2         String?
-  city                  String
-  state                 String?
-  postal_code           String
-  country               String
-  
+  address_line1 String
+  address_line2 String?
+  city          String
+  state         String?
+  postal_code   String
+  country       String
+
   // Business Details
-  specializations       String[]  // Array: ["Upholstery", "Wood Furniture"]
-  capabilities          String[]  // Array: ["Large Scale", "Custom Work"]
-  certifications        String[]  // Array: ["ISO 9001", "FSC Certified"]
-  languages             String[]  // Languages spoken
-  
+  specializations String[] // Array: ["Upholstery", "Wood Furniture"]
+  capabilities    String[] // Array: ["Large Scale", "Custom Work"]
+  certifications  String[] // Array: ["ISO 9001", "FSC Certified"]
+  languages       String[] // Languages spoken
+
   // Capacity & Metrics
-  production_capacity   Int?      // Units per month
-  lead_time_days        Int?      // Typical lead time
-  minimum_order         Int?      // Minimum order quantity
-  
+  production_capacity Int? // Units per month
+  lead_time_days      Int? // Typical lead time
+  minimum_order       Int? // Minimum order quantity
+
   // Financial
-  payment_terms         String?   // "Net 30", "50% upfront"
-  currency              String    @default("USD")
-  
+  payment_terms String? // "Net 30", "50% upfront"
+  currency      String  @default("USD")
+
   // Status
-  status                String    @default("active")
+  status String @default("active")
   // active | inactive | pending_approval | suspended
-  
+
   // Quality Metrics
-  quality_rating        Decimal?  @db.Decimal(3, 2) // 0.00 to 5.00
-  on_time_delivery_rate Decimal?  @db.Decimal(5, 2) // Percentage
-  defect_rate           Decimal?  @db.Decimal(5, 2) // Percentage
-  
+  quality_rating        Decimal? @db.Decimal(3, 2) // 0.00 to 5.00
+  on_time_delivery_rate Decimal? @db.Decimal(5, 2) // Percentage
+  defect_rate           Decimal? @db.Decimal(5, 2) // Percentage
+
   // Portal Access
-  portal_enabled        Boolean   @default(false)
-  portal_user_id        String?   @unique @db.Uuid
-  portal_user           users?    @relation("PartnerPortalUser", fields: [portal_user_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  
+  portal_enabled Boolean @default(false)
+  portal_user_id String? @unique @db.Uuid
+  portal_user    users?  @relation("PartnerPortalUser", fields: [portal_user_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
   // Relationships
-  contacts              partner_contacts[]
-  documents             partner_documents[]
-  production_orders     production_orders[] @relation("FactoryOrders")
-  partner_performance   partner_performance[]
+  contacts            partner_contacts[]
+  documents           partner_documents[]
+  production_orders   production_orders[]   @relation("FactoryOrders")
+  partner_performance partner_performance[]
 
   // Metadata
-  notes                 String?
-  internal_rating       String?   // Internal notes on partner
-  tags                  String[]
-  
-  created_at            DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at            DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
-  
+  notes           String?
+  internal_rating String? // Internal notes on partner
+  tags            String[]
+
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
   @@index([type], map: "idx_partners_type")
   @@index([status], map: "idx_partners_status")
   @@index([company_name], map: "idx_partners_company_name")
@@ -6313,37 +6315,37 @@ model partners {
 
 // Partner Contacts - Multiple contacts per partner
 model partner_contacts {
-  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  partner_id            String   @db.Uuid
-  partners              partners @relation(fields: [partner_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  partner_id String   @db.Uuid
+  partners   partners @relation(fields: [partner_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
   // Contact Details
-  name                  String
-  role                  String   // "Production Manager", "Quality Lead", "Design Director"
-  email                 String
-  phone                 String?
-  mobile                String?
-  
+  name   String
+  role   String // "Production Manager", "Quality Lead", "Design Director"
+  email  String
+  phone  String?
+  mobile String?
+
   // Contact Type
-  is_primary            Boolean  @default(false)
-  is_qc                 Boolean  @default(false)
-  is_production         Boolean  @default(false)
-  is_finance            Boolean  @default(false)
-  
+  is_primary    Boolean @default(false)
+  is_qc         Boolean @default(false)
+  is_production Boolean @default(false)
+  is_finance    Boolean @default(false)
+
   // Communication Preferences
   preferred_contact_method String? // "email" | "phone" | "whatsapp"
-  timezone              String?
-  languages             String[]
-  
+  timezone                 String?
+  languages                String[]
+
   // Status
-  active                Boolean  @default(true)
-  
+  active Boolean @default(true)
+
   // Metadata
-  notes                 String?
-  
-  created_at            DateTime @default(now()) @db.Timestamptz(6)
-  updated_at            DateTime @default(now()) @updatedAt @db.Timestamptz(6)
-  
+  notes String?
+
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
   @@index([partner_id], map: "idx_partner_contacts_partner_id")
   @@index([email], map: "idx_partner_contacts_email")
   @@schema("public")
@@ -6351,36 +6353,36 @@ model partner_contacts {
 
 // Partner Documents - Contracts, certifications, NDAs
 model partner_documents {
-  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  partner_id            String   @db.Uuid
-  partners              partners @relation(fields: [partner_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  partner_id String   @db.Uuid
+  partners   partners @relation(fields: [partner_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
   // Document Details
-  document_type         String   // "contract" | "nda" | "certification" | "insurance" | "quality_report"
-  title                 String
-  description           String?
-  
+  document_type String // "contract" | "nda" | "certification" | "insurance" | "quality_report"
+  title         String
+  description   String?
+
   // File Storage
-  file_url              String   // Supabase storage URL
-  file_name             String
-  file_size             BigInt
-  mime_type             String
-  
+  file_url  String // Supabase storage URL
+  file_name String
+  file_size BigInt
+  mime_type String
+
   // Document Status
-  status                String   @default("active")
+  status String @default("active")
   // active | expired | pending_renewal | archived
-  
+
   // Dates
-  issue_date            DateTime? @db.Timestamptz(6)
-  expiry_date           DateTime? @db.Timestamptz(6)
-  
+  issue_date  DateTime? @db.Timestamptz(6)
+  expiry_date DateTime? @db.Timestamptz(6)
+
   // Uploaded By
-  uploaded_by           String   @db.Uuid
-  users                 users    @relation(fields: [uploaded_by], references: [id], onDelete: Restrict, onUpdate: NoAction)
-  
-  created_at            DateTime @default(now()) @db.Timestamptz(6)
-  updated_at            DateTime @default(now()) @updatedAt @db.Timestamptz(6)
-  
+  uploaded_by String @db.Uuid
+  users       users  @relation(fields: [uploaded_by], references: [id], onDelete: Restrict, onUpdate: NoAction)
+
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
   @@index([partner_id], map: "idx_partner_documents_partner_id")
   @@index([document_type], map: "idx_partner_documents_document_type")
   @@index([status], map: "idx_partner_documents_status")
@@ -6389,35 +6391,110 @@ model partner_documents {
 
 // Partner Performance Tracking
 model partner_performance {
-  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  partner_id            String   @db.Uuid
-  partners              partners @relation(fields: [partner_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  partner_id String   @db.Uuid
+  partners   partners @relation(fields: [partner_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
   // Time Period
-  period_start          DateTime @db.Timestamptz(6)
-  period_end            DateTime @db.Timestamptz(6)
-  
+  period_start DateTime @db.Timestamptz(6)
+  period_end   DateTime @db.Timestamptz(6)
+
   // Metrics
-  orders_completed      Int      @default(0)
-  orders_on_time        Int      @default(0)
-  total_defects         Int      @default(0)
-  average_lead_time     Int?     // Days
-  
+  orders_completed  Int  @default(0)
+  orders_on_time    Int  @default(0)
+  total_defects     Int  @default(0)
+  average_lead_time Int? // Days
+
   // Calculated Rates
-  on_time_rate          Decimal  @db.Decimal(5, 2)
-  defect_rate           Decimal  @db.Decimal(5, 2)
-  
+  on_time_rate Decimal @db.Decimal(5, 2)
+  defect_rate  Decimal @db.Decimal(5, 2)
+
   // Financial
-  total_revenue         Decimal  @db.Decimal(12, 2)
-  average_order_value   Decimal  @db.Decimal(10, 2)
-  
+  total_revenue       Decimal @db.Decimal(12, 2)
+  average_order_value Decimal @db.Decimal(10, 2)
+
   // Satisfaction
-  satisfaction_score    Decimal? @db.Decimal(3, 2) // 0.00 to 5.00
-  
-  created_at            DateTime @default(now()) @db.Timestamptz(6)
-  updated_at            DateTime @default(now()) @updatedAt @db.Timestamptz(6)
-  
+  satisfaction_score Decimal? @db.Decimal(3, 2) // 0.00 to 5.00
+
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
   @@unique([partner_id, period_start, period_end], map: "unique_partner_performance_period")
   @@index([partner_id], map: "idx_partner_performance_partner_id")
+  @@schema("public")
+}
+
+// ===================================
+// PHASE 3: CUSTOMER PORTAL TABLES
+// ===================================
+
+// Customer Notifications (Phase 3)
+model customer_notifications {
+  id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id     String @db.Uuid
+  customer_id String @db.Uuid
+
+  // Notification Details
+  type    String  @db.VarChar(50)
+  // "order_update" | "payment_received" | "shipment_update" | "document_uploaded"
+  title   String  @db.VarChar(255)
+  message String
+  link    String? @db.VarChar(500)
+  // Link to relevant page in portal
+
+  // Status
+  read    Boolean   @default(false)
+  read_at DateTime? @db.Timestamptz(6)
+
+  // Related Entity (optional)
+  related_entity_type String? @db.VarChar(50)
+  // "production_order" | "invoice" | "shipment" | "document"
+  related_entity_id   String? @db.Uuid
+
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  users     users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  customers customers @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id, read], map: "idx_customer_notifications_user_read")
+  @@index([customer_id], map: "idx_customer_notifications_customer_id")
+  @@index([created_at], map: "idx_customer_notifications_created_at")
+  @@index([type], map: "idx_customer_notifications_type")
+  @@schema("public")
+}
+
+// Customer Shipping Addresses (Phase 3)
+model customer_shipping_addresses {
+  id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customer_id String @db.Uuid
+
+  // Address Details
+  label          String  @db.VarChar(100)
+  // "Home", "Office", "Warehouse", etc.
+  recipient_name String  @db.VarChar(255)
+  address_line1  String  @db.VarChar(255)
+  address_line2  String? @db.VarChar(255)
+  city           String  @db.VarChar(100)
+  state          String  @db.VarChar(50)
+  postal_code    String  @db.VarChar(20)
+  country        String  @default("USA") @db.VarChar(100)
+
+  // Contact
+  phone String? @db.VarChar(20)
+
+  // Status
+  is_default Boolean @default(false)
+  active     Boolean @default(true)
+
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  // Relations
+  customers customers @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([customer_id], map: "idx_customer_shipping_addresses_customer_id")
+  @@index([is_default], map: "idx_customer_shipping_addresses_is_default")
+  @@index([active], map: "idx_customer_shipping_addresses_active")
   @@schema("public")
 }

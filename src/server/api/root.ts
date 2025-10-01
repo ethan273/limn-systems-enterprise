@@ -17,6 +17,7 @@ import { productionTrackingRouter } from './routers/production-tracking';
 import { shippingRouter } from './routers/shipping';
 import { quickbooksSyncRouter } from './routers/quickbooks-sync';
 import { partnersRouter } from './routers/partners';
+import { portalRouter } from './routers/portal';
 
 /**
  * Main API router
@@ -62,6 +63,9 @@ export const appRouter = createTRPCRouter({
 
   // QuickBooks Integration
   quickbooksSync: quickbooksSyncRouter,
+
+  // Customer Portal (Phase 3)
+  portal: portalRouter,
 });
 
 // Export type for client
