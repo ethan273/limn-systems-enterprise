@@ -495,6 +495,192 @@ export const portalRouter = createTRPCRouter({
     }),
 
   // ============================================
+  // Customer Orders & Tracking (Week 21 Day 2)
+  // ============================================
+
+  /**
+   * Get Customer Orders
+   * Returns all production orders for the customer
+   */
+  getCustomerOrders: portalProcedure
+    .input(z.object({
+      status: z.enum(['pending', 'pending_deposit', 'in_production', 'ready_to_ship', 'shipped', 'delivered', 'all']).optional().default('all'),
+      limit: z.number().min(1).max(100).optional().default(20),
+      offset: z.number().min(0).optional().default(0),
+    }))
+    .query(async ({ ctx, input }) => {
+      const where: any = {
+        projects: {
+          customer_id: ctx.customerId,
+        },
+      };
+
+      if (input.status && input.status !== 'all') {
+        where.status = input.status;
+      }
+
+      const [orders, total] = await Promise.all([
+        prisma.production_orders.findMany({
+          where,
+          include: {
+            projects: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            production_invoices: {
+              select: {
+                id: true,
+                invoice_type: true,
+                status: true,
+                total: true,
+                amount_due: true,
+              },
+            },
+          },
+          orderBy: {
+            created_at: 'desc',
+          },
+          take: input.limit,
+          skip: input.offset,
+        }),
+        prisma.production_orders.count({ where }),
+      ]);
+
+      return {
+        orders,
+        total,
+        hasMore: input.offset + input.limit < total,
+      };
+    }),
+
+  /**
+   * Get Single Order Details
+   */
+  getOrderById: portalProcedure
+    .input(z.object({
+      orderId: z.string().uuid(),
+    }))
+    .query(async ({ ctx, input }) => {
+      const order = await prisma.production_orders.findFirst({
+        where: {
+          id: input.orderId,
+          projects: {
+            customer_id: ctx.customerId,
+          },
+        },
+        include: {
+          projects: true,
+          production_invoices: {
+            include: {
+              production_payments: {
+                orderBy: {
+                  payment_date: 'desc',
+                },
+              },
+            },
+            orderBy: {
+              created_at: 'asc',
+            },
+          },
+        },
+      });
+
+      if (!order) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Order not found or you do not have permission to view it',
+        });
+      }
+
+      return order;
+    }),
+
+  /**
+   * Get Order Shipments
+   */
+  getOrderShipments: portalProcedure
+    .input(z.object({
+      orderId: z.string().uuid(),
+    }))
+    .query(async ({ ctx, input }) => {
+      // Verify order belongs to customer and get project_id
+      const order = await prisma.production_orders.findFirst({
+        where: {
+          id: input.orderId,
+          projects: {
+            customer_id: ctx.customerId,
+          },
+        },
+        select: {
+          id: true,
+          project_id: true,
+        },
+      });
+
+      if (!order) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Order not found',
+        });
+      }
+
+      // Get shipments via project_id (shipments link to projects, not production_orders)
+      if (!order.project_id) {
+        return [];
+      }
+
+      return prisma.shipments.findMany({
+        where: {
+          project_id: order.project_id,
+        },
+        orderBy: {
+          created_at: 'desc',
+        },
+      });
+    }),
+
+  /**
+   * Get Shipment Tracking
+   */
+  getShipmentTracking: portalProcedure
+    .input(z.object({
+      shipmentId: z.string().uuid(),
+    }))
+    .query(async ({ ctx, input }) => {
+      const shipment = await prisma.shipments.findFirst({
+        where: {
+          id: input.shipmentId,
+          projects: {
+            customer_id: ctx.customerId,
+          },
+        },
+        include: {
+          projects: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      });
+
+      if (!shipment) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Shipment not found',
+        });
+      }
+
+      return {
+        shipment,
+        trackingEvents: shipment.tracking_events || [],
+        estimatedDelivery: shipment.estimated_delivery,
+        status: shipment.status,
+      };
+    }),
+
+  // ============================================
   // Activity Logging
   // ============================================
 
