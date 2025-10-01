@@ -16,14 +16,12 @@ import { api } from '@/lib/api/client';
 import {
   determineStorageType,
   validateFile,
-  generateUniqueFilename,
   formatFileSize,
   getStorageTypeLabel,
   getStorageTypeBadgeColor,
   type StorageType,
 } from '@/lib/storage/hybrid-storage';
-import { uploadToSupabase } from '@/lib/storage/supabase-storage';
-import { uploadToGoogleDrive } from '@/lib/storage/google-drive-storage';
+// Upload functions moved to API route to avoid Node.js imports in client
 
 interface FileUploaderProps {
   projectId?: string;
@@ -111,58 +109,62 @@ export function FileUploader({
         try {
           const file = uploadFile.file;
           const storageType = uploadFile.storageType!;
-          const uniqueFilename = generateUniqueFilename(file.name);
 
-          let result;
-
-          if (storageType === 'supabase') {
-            // Upload to Supabase
-            const path = `design-documents/${projectId || briefId || 'general'}/${uniqueFilename}`;
-            result = await uploadToSupabase(file, path);
-
-            if (!result.success) {
-              throw new Error(result.error || 'Upload failed');
-            }
-
-            // Record in database
-            await recordUpload.mutateAsync({
-              fileName: file.name,
-              fileSize: file.size,
-              fileType: file.type,
-              storageType: 'supabase',
-              storagePath: result.storagePath,
-              publicUrl: result.publicUrl,
-              projectId,
-              briefId,
-              category,
-            });
-          } else {
-            // Get access token for Google Drive
+          // Get access token if needed for Google Drive
+          let accessToken: string | null = null;
+          if (storageType === 'google_drive') {
             const { data: tokenData } = await getAccessToken.refetch();
             if (!tokenData?.accessToken) {
               throw new Error('Could not get Google Drive access token');
             }
-
-            // Upload to Google Drive
-            result = await uploadToGoogleDrive(file, tokenData.accessToken);
-
-            if (!result.success) {
-              throw new Error(result.error || 'Upload failed');
-            }
-
-            // Record in database
-            await recordUpload.mutateAsync({
-              fileName: file.name,
-              fileSize: file.size,
-              fileType: file.type,
-              storageType: 'google_drive',
-              googleDriveId: result.fileId,
-              publicUrl: result.publicUrl,
-              projectId,
-              briefId,
-              category,
-            });
+            accessToken = tokenData.accessToken;
           }
+
+          // Upload via API route (server-side to avoid Node.js imports in client)
+          const uploadFormData = new FormData();
+          uploadFormData.append('file', file);
+          if (accessToken) {
+            uploadFormData.append('accessToken', accessToken);
+          }
+          if (category) {
+            uploadFormData.append('category', category);
+          }
+          if (projectId) {
+            uploadFormData.append('projectId', projectId);
+          }
+          if (briefId) {
+            uploadFormData.append('briefId', briefId);
+          }
+
+          const uploadResponse = await fetch('/api/upload', {
+            method: 'POST',
+            body: uploadFormData,
+          });
+
+          if (!uploadResponse.ok) {
+            const errorData = await uploadResponse.json();
+            throw new Error(errorData.error || 'Upload failed');
+          }
+
+          const result = await uploadResponse.json();
+
+          if (!result.success) {
+            throw new Error(result.error || 'Upload failed');
+          }
+
+          // Record in database
+          await recordUpload.mutateAsync({
+            fileName: file.name,
+            fileSize: file.size,
+            fileType: file.type,
+            storageType: result.storageType,
+            storagePath: result.storagePath,
+            googleDriveId: result.fileId,
+            publicUrl: result.publicUrl,
+            projectId,
+            briefId,
+            category,
+          });
 
           // Update status to success
           setUploadingFiles(prev =>

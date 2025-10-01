@@ -4,7 +4,7 @@
  * Provides API endpoints for Google Drive OAuth operations.
  */
 
-import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
+import { createTRPCRouter, publicProcedure } from '../trpc/init';
 import {
   generateAuthUrl,
   refreshAccessToken,
@@ -18,7 +18,7 @@ export const oauthRouter = createTRPCRouter({
   /**
    * Generate Google OAuth authorization URL
    */
-  getAuthUrl: protectedProcedure.query(({ ctx }) => {
+  getAuthUrl: publicProcedure.query(({ ctx }) => {
     const userId = ctx.session.user.id;
     const authUrl = generateAuthUrl(userId);
 
@@ -30,7 +30,7 @@ export const oauthRouter = createTRPCRouter({
   /**
    * Get current OAuth connection status
    */
-  getConnectionStatus: protectedProcedure.query(async ({ ctx }) => {
+  getConnectionStatus: publicProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id;
 
     const token = await ctx.db.oauth_tokens.findFirst({
@@ -64,7 +64,7 @@ export const oauthRouter = createTRPCRouter({
   /**
    * Refresh OAuth access token if needed
    */
-  refreshToken: protectedProcedure.mutation(async ({ ctx }) => {
+  refreshToken: publicProcedure.mutation(async ({ ctx }) => {
     const userId = ctx.session.user.id;
 
     // Get existing token
@@ -117,7 +117,7 @@ export const oauthRouter = createTRPCRouter({
   /**
    * Disconnect Google Drive (revoke tokens)
    */
-  disconnect: protectedProcedure.mutation(async ({ ctx }) => {
+  disconnect: publicProcedure.mutation(async ({ ctx }) => {
     const userId = ctx.session.user.id;
 
     // Get existing token
@@ -161,7 +161,7 @@ export const oauthRouter = createTRPCRouter({
    * Get valid access token (refresh if needed)
    * Internal helper for other routers
    */
-  getValidAccessToken: protectedProcedure.query(async ({ ctx }: { ctx: any }) => {
+  getValidAccessToken: publicProcedure.query(async ({ ctx }: { ctx: any }) => {
     const userId = ctx.session.user.id;
 
     // Get existing token

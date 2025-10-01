@@ -970,48 +970,7 @@ model portal_sessions {
   @@schema("public")
 }
 
-model shop_drawings_list {
-  id                     String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  shop_drawing_id        String                   @unique @db.VarChar(50)
-  drawing_number         String                   @db.VarChar(100)
-  title                  String                   @db.VarChar(255)
-  description            String?
-  order_id               String?                  @db.Uuid
-  customer_name          String                   @db.VarChar(255)
-  project_name           String                   @db.VarChar(255)
-  item_id                String?                  @db.Uuid
-  item_name              String?                  @db.VarChar(255)
-  drawing_type           String?                  @default("General") @db.VarChar(100)
-  revision_number        Int?                     @default(1)
-  status                 String?                  @default("draft") @db.VarChar(50)
-  priority               String?                  @default("normal") @db.VarChar(20)
-  assigned_to            String?                  @db.VarChar(255)
-  submitted_date         DateTime?                @db.Timestamptz(6)
-  due_date               DateTime                 @db.Timestamptz(6)
-  approved_date          DateTime?                @db.Timestamptz(6)
-  completed_date         DateTime?                @db.Timestamptz(6)
-  file_path              String?
-  file_size              Int?
-  file_type              String?                  @db.VarChar(50)
-  notes                  String?
-  approval_notes         String?
-  rejection_reason       String?
-  notification_sent      Boolean?                 @default(false)
-  manufacturing_ready    Boolean?                 @default(false)
-  created_at             DateTime?                @default(now()) @db.Timestamptz(6)
-  updated_at             DateTime?                @default(now()) @updatedAt @db.Timestamptz(6)
-  created_by             String                   @db.VarChar(255)
-  shop_drawing_comments  shop_drawing_comments[]
-  shop_drawing_revisions shop_drawing_revisions[]
-
-  @@index([assigned_to], map: "idx_shop_drawings_assigned_to")
-  @@index([customer_name], map: "idx_shop_drawings_customer")
-  @@index([due_date], map: "idx_shop_drawings_due_date")
-  @@index([order_id], map: "idx_shop_drawings_order")
-  @@index([priority], map: "idx_shop_drawings_priority")
-  @@index([status], map: "idx_shop_drawings_status")
-  @@schema("public")
-}
+// OLD shop_drawings_list model removed - see comprehensive implementation at end of file
 
 model sms_invitations {
   id                    String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -1994,33 +1953,7 @@ model design_revisions {
   @@schema("public")
 }
 
-model shop_drawings {
-  id                                     String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  manufacturer_project_id                String?                @db.Uuid
-  manufacturer_id                        String?                @db.Uuid
-  version                                Int?                   @default(1)
-  status                                 String?                @default("pending")
-  submitted_date                         DateTime?              @db.Timestamp(6)
-  review_deadline                        DateTime?              @db.Date
-  reviewed_by                            String?                @db.Uuid
-  review_date                            DateTime?              @db.Timestamp(6)
-  approved_date                          DateTime?              @db.Timestamp(6)
-  approved_by                            String?                @db.Uuid
-  rejection_reason                       String?
-  created_at                             DateTime?              @default(now()) @db.Timestamp(6)
-  updated_at                             DateTime?              @default(now()) @updatedAt @db.Timestamp(6)
-  shop_drawing_files                     shop_drawing_files[]
-  users_shop_drawings_approved_byTousers users?                 @relation("shop_drawings_approved_byTousers", fields: [approved_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  manufacturers                          manufacturers?         @relation(fields: [manufacturer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  manufacturer_projects                  manufacturer_projects? @relation(fields: [manufacturer_project_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users_shop_drawings_reviewed_byTousers users?                 @relation("shop_drawings_reviewed_byTousers", fields: [reviewed_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@index([approved_by], map: "idx_shop_drawings_approved_by")
-  @@index([manufacturer_id], map: "idx_shop_drawings_manufacturer_id")
-  @@index([manufacturer_project_id], map: "idx_shop_drawings_manufacturer_project_id")
-  @@index([reviewed_by], map: "idx_shop_drawings_reviewed_by")
-  @@schema("public")
-}
+// OLD shop_drawings model removed - see comprehensive implementation at end of file
 
 model designers {
   id                   String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -2092,23 +2025,7 @@ model quickbooks_entity_mapping {
   @@schema("public")
 }
 
-model shop_drawing_files {
-  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  shop_drawing_id String?        @db.Uuid
-  file_name       String
-  file_url        String
-  file_size       Int?
-  drawing_type    String?
-  drawing_number  String?
-  scale           String?
-  sheet_size      String?
-  notes           String?
-  created_at      DateTime?      @default(now()) @db.Timestamp(6)
-  shop_drawings   shop_drawings? @relation(fields: [shop_drawing_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@index([shop_drawing_id], map: "idx_shop_drawing_files_shop_drawing_id")
-  @@schema("public")
-}
+// OLD shop_drawing_files model removed - see comprehensive implementation at end of file
 
 model designer_contracts {
   id              String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -2305,19 +2222,7 @@ model admin_permissions {
   @@schema("public")
 }
 
-model shop_drawing_comments {
-  id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  drawing_id         String?             @db.Uuid
-  comment            String
-  comment_type       String?             @default("general") @db.VarChar(50)
-  is_internal        Boolean?            @default(false)
-  created_at         DateTime?           @default(now()) @db.Timestamptz(6)
-  created_by         String              @db.VarChar(255)
-  user_name          String              @db.VarChar(255)
-  shop_drawings_list shop_drawings_list? @relation(fields: [drawing_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@schema("public")
-}
+// OLD shop_drawing_comments model removed - see comprehensive implementation at end of file
 
 model quickbooks_sync_log {
   id             String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -2739,22 +2644,7 @@ model weave_options {
   @@schema("public")
 }
 
-model shop_drawing_revisions {
-  id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  drawing_id         String?             @db.Uuid
-  revision_number    Int
-  description        String
-  file_path          String
-  file_size          Int?
-  changes_summary    String?
-  status             String?             @default("active") @db.VarChar(20)
-  created_at         DateTime?           @default(now()) @db.Timestamptz(6)
-  created_by         String              @db.VarChar(255)
-  shop_drawings_list shop_drawings_list? @relation(fields: [drawing_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@unique([drawing_id, revision_number])
-  @@schema("public")
-}
+// OLD shop_drawing_revisions model removed - see comprehensive implementation at end of file
 
 model fabric_options {
   id                   String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -3536,7 +3426,6 @@ model manufacturer_projects {
   production_milestones       production_milestones[]
   project_materials           project_materials[]
   quality_inspections         quality_inspections[]
-  shop_drawings               shop_drawings[]
 
   @@index([collection_id], map: "idx_manufacturer_projects_collection_id")
   @@index([item_id], map: "idx_manufacturer_projects_item_id")
@@ -3886,7 +3775,6 @@ model manufacturers {
   manufacturer_performance    manufacturer_performance[]
   manufacturer_pricing        manufacturer_pricing[]
   manufacturer_projects       manufacturer_projects[]
-  shop_drawings               shop_drawings[]
   production_orders           production_orders[]
 
   @@index([rating(sort: Desc)], map: "idx_manufacturer_rating")
@@ -5283,8 +5171,13 @@ model users {
   quickbooks_payment_reconciliation                                     quickbooks_payment_reconciliation[]
   quickbooks_sync_log                                                   quickbooks_sync_log[]
   saved_searches                                                        saved_searches[]
-  shop_drawings_shop_drawings_approved_byTousers                        shop_drawings[]                     @relation("shop_drawings_approved_byTousers")
-  shop_drawings_shop_drawings_reviewed_byTousers                        shop_drawings[]                     @relation("shop_drawings_reviewed_byTousers")
+  shop_drawings_created                                                 shop_drawings[]                     @relation("DrawingCreator")
+  shop_drawings_limn_approved                                           shop_drawings[]                     @relation("LimnDrawingApprover")
+  shop_drawings_designer_approved                                       shop_drawings[]                     @relation("DesignerDrawingApprover")
+  shop_drawing_versions_uploaded                                        shop_drawing_versions[]             @relation("VersionUploader")
+  shop_drawing_comments_authored                                        shop_drawing_comments[]             @relation("DrawingCommentAuthor")
+  shop_drawing_comments_resolved                                        shop_drawing_comments[]             @relation("DrawingCommentResolver")
+  shop_drawing_approvals_given                                          shop_drawing_approvals[]            @relation("DrawingApprover")
   sms_campaigns_sms_campaigns_approved_byTousers                        sms_campaigns[]                     @relation("sms_campaigns_approved_byTousers")
   sms_campaigns_sms_campaigns_created_byTousers                         sms_campaigns[]                     @relation("sms_campaigns_created_byTousers")
   sms_scheduled_jobs                                                    sms_scheduled_jobs[]
@@ -6097,6 +5990,7 @@ model production_orders {
   production_milestones    production_milestones[]
   documents                documents[]
   shipping_quotes          shipping_quotes[]
+  shop_drawings            shop_drawings[]
 
   @@index([order_id], map: "idx_production_orders_order_id")
   @@index([project_id], map: "idx_production_orders_project_id")
@@ -6318,6 +6212,7 @@ model partners {
   documents           partner_documents[]
   production_orders   production_orders[]   @relation("FactoryOrders")
   partner_performance partner_performance[]
+  shop_drawings       shop_drawings[]       @relation("FactoryShopDrawings")
 
   // Metadata
   notes           String?
@@ -6576,5 +6471,191 @@ model mood_boards {
   @@index([board_type], map: "idx_mood_boards_board_type")
   @@index([status], map: "idx_mood_boards_status")
   @@index([created_by], map: "idx_mood_boards_created_by")
+  @@schema("public")
+}
+
+// ============================================================================
+// SHOP DRAWINGS MODULE - Complex Multi-Party Review Workflow
+// ============================================================================
+
+model shop_drawings {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  // Production Order Link
+  production_order_id  String    @db.Uuid
+  production_orders    production_orders @relation(fields: [production_order_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  // Factory Link
+  factory_id           String?   @db.Uuid
+  partners             partners? @relation("FactoryShopDrawings", fields: [factory_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  // Drawing Identity
+  drawing_number       String    @unique // Auto-generated: SD-2025-0001
+  drawing_name         String
+  drawing_type         String?   // "technical" | "assembly" | "detail" | "layout"
+
+  // Version Management
+  current_version      Int       @default(1)
+
+  // Status
+  status               String    @default("in_review")
+  // "draft" | "in_review" | "revision_requested" | "designer_approved" | "approved" | "rejected"
+
+  // Approval Tracking - Limn Team
+  limn_approved_by     String?   @db.Uuid
+  limn_approved_at     DateTime? @db.Timestamptz(6)
+  limn_approver        users?    @relation("LimnDrawingApprover", fields: [limn_approved_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  // Approval Tracking - Designer
+  designer_approved_by String?   @db.Uuid
+  designer_approved_at DateTime? @db.Timestamptz(6)
+  designer_approver    users?    @relation("DesignerDrawingApprover", fields: [designer_approved_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  // Final approval when BOTH limn and designer approve
+  final_approved_at    DateTime? @db.Timestamptz(6)
+
+  // Rejection tracking
+  rejected_by          String?   @db.Uuid
+  rejected_at          DateTime? @db.Timestamptz(6)
+  rejection_reason     String?
+
+  // Relationships
+  versions             shop_drawing_versions[]
+
+  // Metadata
+  notes                String?
+  tags                 String[]  @default([])
+
+  // Audit
+  created_by           String    @db.Uuid
+  creator              users     @relation("DrawingCreator", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  created_at           DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+
+  @@index([production_order_id], map: "idx_shop_drawings_production_order_id")
+  @@index([factory_id], map: "idx_shop_drawings_factory_id")
+  @@index([status], map: "idx_shop_drawings_status")
+  @@index([drawing_number], map: "idx_shop_drawings_drawing_number")
+  @@index([created_by], map: "idx_shop_drawings_created_by")
+  @@schema("public")
+}
+
+model shop_drawing_versions {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  // Parent Drawing
+  shop_drawing_id    String   @db.Uuid
+  shop_drawings      shop_drawings @relation(fields: [shop_drawing_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  // Version Identity
+  version_number     Int      // 1, 2, 3, 4...
+
+  // File Details
+  file_name          String
+  file_url           String   // Supabase Storage URL
+  file_size          BigInt
+  mime_type          String   @default("application/pdf")
+
+  // Upload Context
+  uploaded_by        String   @db.Uuid
+  uploader           users    @relation("VersionUploader", fields: [uploaded_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  uploaded_by_role   String   // "factory" | "designer" | "limn_team"
+  upload_notes       String?  // Why this version was uploaded
+
+  // Version Status
+  status             String   @default("current")
+  // "current" | "superseded" | "archived"
+
+  // Review tracking
+  review_started_at  DateTime? @db.Timestamptz(6)
+  review_completed_at DateTime? @db.Timestamptz(6)
+
+  // Relationships
+  comments           shop_drawing_comments[]
+  approvals          shop_drawing_approvals[]
+
+  // Audit
+  uploaded_at        DateTime @default(now()) @db.Timestamptz(6)
+
+  @@unique([shop_drawing_id, version_number])
+  @@index([shop_drawing_id], map: "idx_shop_drawing_versions_drawing_id")
+  @@index([uploaded_by], map: "idx_shop_drawing_versions_uploaded_by")
+  @@index([status], map: "idx_shop_drawing_versions_status")
+  @@schema("public")
+}
+
+model shop_drawing_comments {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  // Version Link
+  drawing_version_id   String    @db.Uuid
+  shop_drawing_versions shop_drawing_versions @relation(fields: [drawing_version_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  // Comment Content
+  comment_text         String    @db.Text
+  comment_type         String    // "review" | "question" | "change_request" | "approval" | "general"
+
+  // PDF Annotation Data (for in-document comments)
+  pdf_page_number      Int?
+  pdf_x_coordinate     Decimal?  @db.Decimal(10, 2)
+  pdf_y_coordinate     Decimal?  @db.Decimal(10, 2)
+  annotation_data      Json?     // Full PDF.js annotation object
+
+  // Comment Author
+  author_id            String    @db.Uuid
+  author               users     @relation("DrawingCommentAuthor", fields: [author_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  author_role          String    // "factory" | "designer" | "limn_team"
+
+  // Comment Status
+  status               String    @default("open")
+  // "open" | "addressed" | "resolved" | "dismissed"
+
+  resolved_by          String?   @db.Uuid
+  resolver             users?    @relation("DrawingCommentResolver", fields: [resolved_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  resolved_at          DateTime? @db.Timestamptz(6)
+  resolution_notes     String?
+
+  // Threading (replies to comments)
+  parent_comment_id    String?   @db.Uuid
+  parent_comment       shop_drawing_comments?  @relation("CommentThread", fields: [parent_comment_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  replies              shop_drawing_comments[] @relation("CommentThread")
+
+  // Audit
+  created_at           DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+
+  @@index([drawing_version_id], map: "idx_shop_drawing_comments_version_id")
+  @@index([author_id], map: "idx_shop_drawing_comments_author_id")
+  @@index([status], map: "idx_shop_drawing_comments_status")
+  @@index([parent_comment_id], map: "idx_shop_drawing_comments_parent_id")
+  @@schema("public")
+}
+
+model shop_drawing_approvals {
+  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  // Version Link
+  drawing_version_id   String   @db.Uuid
+  shop_drawing_versions shop_drawing_versions @relation(fields: [drawing_version_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  // Approver Identity
+  approver_id          String   @db.Uuid
+  approver             users    @relation("DrawingApprover", fields: [approver_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  approver_role        String   // "limn_team" | "designer"
+
+  // Approval Decision
+  decision             String   // "approved" | "rejected" | "changes_requested"
+  comments             String?  @db.Text
+
+  // Conditional approval (approve with minor changes)
+  is_conditional       Boolean  @default(false)
+  conditions           String?  @db.Text
+
+  // Approval timestamp
+  approved_at          DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([drawing_version_id], map: "idx_shop_drawing_approvals_version_id")
+  @@index([approver_id], map: "idx_shop_drawing_approvals_approver_id")
+  @@index([decision], map: "idx_shop_drawing_approvals_decision")
   @@schema("public")
 }

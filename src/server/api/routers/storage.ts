@@ -5,7 +5,7 @@
  */
 
 import { z } from 'zod';
-import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc/init';
+import { createTRPCRouter, publicProcedure } from '../trpc/init';
 import { TRPCError } from '@trpc/server';
 import {
   getFileCategory,
@@ -24,7 +24,7 @@ export const storageRouter = createTRPCRouter({
    * Upload file with hybrid routing
    * Note: File upload is handled via client-side upload then metadata storage
    */
-  recordUpload: protectedProcedure
+  recordUpload: publicProcedure
     .input(
       z.object({
         fileName: z.string(),
@@ -67,7 +67,7 @@ export const storageRouter = createTRPCRouter({
   /**
    * Get valid Google Drive access token (refresh if needed)
    */
-  getAccessToken: protectedProcedure.query(async ({ ctx }) => {
+  getAccessToken: publicProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id;
 
     // Get OAuth token from database
@@ -115,7 +115,7 @@ export const storageRouter = createTRPCRouter({
   /**
    * List all files for current user
    */
-  listFiles: protectedProcedure
+  listFiles: publicProcedure
     .input(
       z.object({
         projectId: z.string().optional(),
@@ -174,7 +174,7 @@ export const storageRouter = createTRPCRouter({
   /**
    * Get file by ID
    */
-  getFile: protectedProcedure
+  getFile: publicProcedure
     .input(z.object({ fileId: z.string() }))
     .query(async ({ ctx, input }) => {
       const file = await ctx.db.design_files.findUnique({
@@ -203,7 +203,7 @@ export const storageRouter = createTRPCRouter({
   /**
    * Delete file
    */
-  deleteFile: protectedProcedure
+  deleteFile: publicProcedure
     .input(z.object({ fileId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
@@ -251,7 +251,7 @@ export const storageRouter = createTRPCRouter({
   /**
    * Get file download URL
    */
-  getDownloadUrl: protectedProcedure
+  getDownloadUrl: publicProcedure
     .input(z.object({ fileId: z.string() }))
     .query(async ({ ctx, input }) => {
       const file = await ctx.db.design_files.findUnique({
@@ -286,7 +286,7 @@ export const storageRouter = createTRPCRouter({
   /**
    * Get storage statistics
    */
-  getStorageStats: protectedProcedure.query(async ({ ctx }) => {
+  getStorageStats: publicProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id;
 
     const stats = await ctx.db.design_files.groupBy({

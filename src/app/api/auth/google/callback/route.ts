@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { exchangeCodeForTokens, getUserInfo } from '@/lib/oauth/google-drive-client';
 import { encryptToken } from '@/lib/oauth/token-encryption';
-import { db } from '@/server/db';
+import { db } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   try {

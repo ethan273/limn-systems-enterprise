@@ -67,6 +67,21 @@ const nextConfig = {
 
   // Output configuration for optimal builds
   output: 'standalone',
+
+  // Webpack configuration for Node.js modules
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      // Don't bundle Node.js modules in client bundles
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+        child_process: false,
+      };
+    }
+    return config;
+  },
 };
 
 // Sentry configuration - enterprise optimized
