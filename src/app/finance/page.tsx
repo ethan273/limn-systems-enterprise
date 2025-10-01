@@ -26,10 +26,10 @@ export default function FinanceDashboard() {
 
   // API queries
   const { data: connectionStatus, isLoading: loadingConnection, refetch: refetchConnection } =
-    api.quickbooksSync.getConnectionStatus.useQuery(undefined, { enabled: !!user });
+    api.quickbooksSync.getConnectionStatus.useQuery(undefined, { enabled: !authLoading && !!user });
 
   const { data: syncStats, isLoading: loadingStats, refetch: refetchStats } =
-    api.quickbooksSync.getSyncStats.useQuery(undefined, { enabled: !!user });
+    api.quickbooksSync.getSyncStats.useQuery(undefined, { enabled: !authLoading && !!user });
 
   // Get all production invoices for manual sync
   const { data: invoicesData } = api.productionInvoices.getAll.useQuery(
@@ -37,11 +37,11 @@ export default function FinanceDashboard() {
       limit: 50,
       offset: 0,
     },
-    { enabled: !!user }
+    { enabled: !authLoading && !!user }
   );
 
   // Get all payments (via invoice payments)
-  const { data: outstandingInvoices } = api.productionInvoices.getOutstanding.useQuery({}, { enabled: !!user });
+  const { data: outstandingInvoices } = api.productionInvoices.getOutstanding.useQuery({}, { enabled: !authLoading && !!user });
 
   // Sync mutations
   const syncInvoiceMutation = api.quickbooksSync.syncInvoice.useMutation({

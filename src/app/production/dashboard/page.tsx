@@ -25,11 +25,11 @@ export default function ProductionDashboardPage() {
 
   const { data: stats } = api.productionTracking.getDashboardStats.useQuery(
     { date_range: dateRange },
-    { enabled: !!user }
+    { enabled: !authLoading && !!user }
   );
   const { data: progress } = api.productionTracking.getProductionProgress.useQuery(
     { limit: 10 },
-    { enabled: !!user }
+    { enabled: !authLoading && !!user }
   );
 
   // Show loading state while checking authentication

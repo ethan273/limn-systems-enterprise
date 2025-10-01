@@ -76,7 +76,7 @@ export default function ProductionOrderDetailPage() {
     {
       id: params.id as string,
     },
-    { enabled: !!user }
+    { enabled: !authLoading && !!user }
   );
 
   const recordPayment = api.productionInvoices.recordPayment.useMutation({

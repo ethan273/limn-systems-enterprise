@@ -29,7 +29,7 @@ export default function ProductionOrdersPage() {
     {
       status: statusFilter === "all" ? undefined : statusFilter,
     },
-    { enabled: !!user }
+    { enabled: !authLoading && !!user }
   );
 
   // Filter by search query (client-side)

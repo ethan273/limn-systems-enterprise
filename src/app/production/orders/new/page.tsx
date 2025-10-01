@@ -42,11 +42,11 @@ export default function NewProductionOrderPage() {
 
   const { data: projects } = api.projects.getAll.useQuery(
     {},
-    { enabled: !!user }
+    { enabled: !authLoading && !!user }
   );
   const { data: catalogItems } = api.items.getAll.useQuery(
     {},
-    { enabled: !!user }
+    { enabled: !authLoading && !!user }
   );
   // TODO: Add manufacturers query when partners module is implemented
   // const { data: manufacturers } = api.partners.getAll.useQuery({ type: "manufacturer" }, { enabled: !!user });
