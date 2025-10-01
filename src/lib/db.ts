@@ -1,6 +1,8 @@
 import { getSupabaseAdmin } from './supabase';
+import { PrismaClient } from '@prisma/client';
 
 const supabase = getSupabaseAdmin();
+const prisma = new PrismaClient();
 
 /**
  * HYBRID DATABASE ARCHITECTURE - PRODUCTION SOLUTION
@@ -465,6 +467,18 @@ export type TransactionCallback<T> = (_tx: DatabaseClient) => Promise<T>;
 // =====================================================
 
 export class DatabaseClient {
+
+  // =====================================================
+  // PRISMA CLIENT DELEGATION
+  // For models not yet wrapped in custom methods
+  // =====================================================
+
+  shop_drawings = prisma.shop_drawings;
+  shop_drawing_versions = prisma.shop_drawing_versions;
+  shop_drawing_comments = prisma.shop_drawing_comments;
+  shop_drawing_approvals = prisma.shop_drawing_approvals;
+  oauth_tokens = prisma.oauth_tokens;
+  design_files = prisma.design_files;
 
   // =====================================================
   // TRANSACTION SUPPORT
