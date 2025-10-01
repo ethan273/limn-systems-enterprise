@@ -582,7 +582,7 @@ model metal_options {
   type                 String
   finish               String?
   color                String?
-  code String? @unique
+  code                 String                 @unique
   price_modifier       Decimal?               @default(0) @db.Decimal(10, 2)
   active               Boolean?               @default(true)
   created_at           DateTime?              @default(now()) @db.Timestamptz(6)
@@ -1352,6 +1352,7 @@ model customers {
   shipping_quotes                                 shipping_quotes[]
   sms_opt_outs                                    sms_opt_outs[]
   webhook_endpoints                               webhook_endpoints[]
+  production_invoices                             production_invoices[]
 
   @@index([city], map: "idx_customers_city")
   @@index([company], map: "idx_customers_company")
@@ -2356,7 +2357,7 @@ model stone_options {
   id                   String                 @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   type                 String
   finish               String?
-  code String? @unique
+  code                 String                 @unique
   price_modifier       Decimal?               @default(0) @db.Decimal(10, 2)
   active               Boolean?               @default(true)
   created_at           DateTime?              @default(now()) @db.Timestamptz(6)
@@ -2453,7 +2454,7 @@ model wood_options {
   id                   String                 @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   type                 String
   finish               String?
-  code String? @unique
+  code                 String                 @unique
   price_modifier       Decimal?               @default(0) @db.Decimal(10, 2)
   active               Boolean?               @default(true)
   created_at           DateTime?              @default(now()) @db.Timestamptz(6)
@@ -2688,6 +2689,8 @@ model projects {
   orders_old                orders_old[]
   customers                 customers?   @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   tenants                   tenants?     @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  production_orders         production_orders[]
+  production_invoices       production_invoices[]
 
   @@index([created_by], map: "idx_projects_created_by")
   @@index([customer_id], map: "idx_projects_customer_id")
@@ -2704,7 +2707,7 @@ model weave_options {
   material             String
   pattern              String?
   color                String?
-  code String? @unique
+  code                 String                 @unique
   price_modifier       Decimal?               @default(0) @db.Decimal(10, 2)
   active               Boolean?               @default(true)
   created_at           DateTime?              @default(now()) @db.Timestamptz(6)
@@ -2748,7 +2751,7 @@ model fabric_options {
   in_stock             Boolean?          @default(true)
   lead_time_days       Int?              @default(14)
   supplier             String?           @db.VarChar(255)
-  sku_code String? @unique @db.VarChar(50)
+  sku_code             String?           @unique @db.VarChar(50)
   is_active            Boolean?          @default(true)
   created_at           DateTime?         @default(now()) @db.Timestamp(6)
   updated_at           DateTime?         @default(now()) @updatedAt @db.Timestamp(6)
@@ -2989,7 +2992,7 @@ model order_items {
   unit_price           Decimal?               @db.Decimal(10, 2)
   created_at           DateTime?              @default(now()) @db.Timestamptz(6)
   updated_at           DateTime?              @default(now()) @db.Timestamptz(6)
-  client_sku           String?
+  project_sku          String?
   description          String?
   specifications       Json?
   due_date             DateTime?              @db.Timestamptz(6)
@@ -3159,9 +3162,9 @@ model materials {
   parent_material_id             String?                          @db.Uuid
   hierarchy_level                Int?
   hierarchy_path                 String?
-  code String? @unique @db.VarChar
+  code                           String?                          @unique @db.VarChar
   material_collections           material_collections[]
-  material_furniture_collections material_furniture_collections[]
+  material_furniture_collections material_furniture_collections[] @relation("MaterialFurnitureCollections")
   material_categories            material_categories?             @relation(fields: [category_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   parent_material                materials?                       @relation("MaterialHierarchy", fields: [parent_material_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   child_materials                materials[]                      @relation("MaterialHierarchy")
@@ -3180,7 +3183,7 @@ model material_furniture_collections {
   furniture_collection_id String                @db.Uuid
   created_at              DateTime?             @default(now()) @db.Timestamptz(6)
   furniture_collections   furniture_collections @relation(fields: [furniture_collection_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  materials               materials             @relation(fields: [material_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  materials               materials             @relation("MaterialFurnitureCollections", fields: [material_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([material_id, furniture_collection_id], map: "material_furniture_collection_material_id_furniture_collect_key")
   @@index([material_id], map: "idx_mfc_material_id")
@@ -3453,7 +3456,7 @@ model webhook_endpoints {
 model client_projects {
   id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   client_name  String    @db.VarChar(255)
-  project_code String? @unique @db.VarChar(50)
+  project_code String    @unique @db.VarChar(50)
   project_type String?   @db.VarChar(255)
   created_at   DateTime? @default(now()) @db.Timestamp(6)
   updated_at   DateTime? @default(now()) @updatedAt @db.Timestamp(6)
@@ -3677,7 +3680,7 @@ model admin_settings {
 model shipping_carriers {
   id                    String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name                  String      @unique
-  code String? @unique
+  code                  String?     @unique
   tracking_url_template String?
   logo_url              String?
   is_active             Boolean?    @default(true)
@@ -3760,6 +3763,7 @@ model documents {
   manufacturer_projects                                   manufacturer_projects?  @relation(fields: [manufacturer_project_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   order_items                                             order_items?            @relation(fields: [order_item_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   user_profiles_documents_uploaded_by_userTouser_profiles user_profiles?          @relation("documents_uploaded_by_userTouser_profiles", fields: [uploaded_by_user], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  production_orders                                       production_orders[]
 
   @@index([category], map: "idx_documents_category")
   @@index([client_id], map: "idx_documents_client_id")
@@ -3848,6 +3852,7 @@ model manufacturers {
   manufacturer_pricing        manufacturer_pricing[]
   manufacturer_projects       manufacturer_projects[]
   shop_drawings               shop_drawings[]
+  production_orders           production_orders[]
 
   @@index([rating(sort: Desc)], map: "idx_manufacturer_rating")
   @@index([status], map: "idx_manufacturer_status")
@@ -3876,7 +3881,7 @@ model sso_login_audit {
 model design_projects {
   id                    String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   project_name          String
-  project_code String? @unique
+  project_code          String?                @unique
   designer_id           String?                @db.Uuid
   collection_id         String?                @db.Uuid
   project_type          String?
@@ -3908,7 +3913,7 @@ model design_projects {
 model carving_options {
   id                   String                 @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   style                String
-  code String? @unique
+  code                 String                 @unique
   price_modifier       Decimal?               @default(0) @db.Decimal(10, 2)
   complexity           String?                @default("standard")
   active               Boolean?               @default(true)
@@ -4511,6 +4516,7 @@ model shipments {
   shipping_carriers    shipping_carriers?   @relation(fields: [carrier_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   packing_jobs         packing_jobs?        @relation(fields: [packing_job_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   shipping_events      shipping_events[]
+  ordered_items_production ordered_items_production[]
 
   @@index([carrier_id], map: "idx_shipments_carrier_id")
   @@index([order_id], map: "idx_shipments_order_id")
@@ -4801,6 +4807,8 @@ model items {
   variation_type        String?                 @db.VarChar(50)
   furniture_type        String?                 @db.VarChar(50)
   type                  String?                 @db.VarChar(50)
+  base_sku              String?                 @unique @db.VarChar(50)
+  product_sku           String?                 @db.VarChar(100)
   furniture_dimensions  furniture_dimensions[]
   invoice_items         invoice_items[]
   item_images           item_images[]
@@ -4808,6 +4816,9 @@ model items {
   manufacturer_projects manufacturer_projects[]
   order_items           order_items[]
   product_materials     product_materials[]
+  production_orders_catalog   production_orders[] @relation("ProductionOrderCatalog")
+  production_orders_prototype production_orders[] @relation("ProductionOrderPrototype")
+  production_orders_concept   production_orders[] @relation("ProductionOrderConcept")
 
   @@index([category], map: "idx_items_category")
   @@index([collection_id], map: "idx_items_collection_id")
@@ -5250,6 +5261,9 @@ model users {
   weaving_pattern_collections                                           weaving_pattern_collections[]
   wood_finish_collections                                               wood_finish_collections[]
   wood_type_collections                                                 wood_type_collections[]
+  production_orders                                                     production_orders[]
+  production_payments                                                   production_payments[]
+  ordered_items_production                                              ordered_items_production[]
 
   @@index([instance_id])
   @@index([is_anonymous])
@@ -5958,3 +5972,221 @@ enum user_type_enum {
 
   @@schema("public")
 }
+
+// ============================================================================
+// PHASE 1: PRODUCTION ORDERS MODULE - Database Schema
+// Added: $(date +%Y-%m-%d)
+// Purpose: Production orders with payment-gated workflow
+// ============================================================================
+
+// Production Orders - Main production order tracking with payment gates
+model production_orders {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  order_number      String   @unique // Auto-generated: PO-2025-0001
+  
+  // Links to existing tables
+  project_id        String?  @db.Uuid
+  projects          projects? @relation(fields: [project_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  
+  // Product Type (90% catalog, 10% custom)
+  product_type      String   // "catalog" | "prototype" | "concept"
+  catalog_item_id   String?  @db.Uuid
+  items_catalog     items?   @relation("ProductionOrderCatalog", fields: [catalog_item_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  prototype_id      String?  @db.Uuid
+  items_prototype   items?   @relation("ProductionOrderPrototype", fields: [prototype_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  concept_id        String?  @db.Uuid
+  items_concept     items?   @relation("ProductionOrderConcept", fields: [concept_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  
+  // Order Details
+  item_name         String
+  item_description  String?
+  quantity          Int
+  unit_price        Decimal  @db.Decimal(10, 2)
+  total_cost        Decimal  @db.Decimal(10, 2) // quantity × unitPrice
+  
+  // Payment Status - CRITICAL FOR WORKFLOW GATES
+  deposit_paid      Boolean  @default(false)
+  final_payment_paid Boolean @default(false)
+  
+  // Production Status
+  status            String   @default("awaiting_deposit")
+  // Status flow:
+  // awaiting_deposit → deposit_paid → in_progress → completed → 
+  // awaiting_final_payment → final_paid → shipped → delivered
+  
+  // Dates
+  order_date        DateTime @default(now()) @db.Timestamptz(6)
+  estimated_ship_date DateTime? @db.Date
+  actual_ship_date  DateTime? @db.Date
+  
+  // Factory Assignment
+  factory_id        String?  @db.Uuid
+  manufacturers     manufacturers? @relation(fields: [factory_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  factory_notes     String?
+  
+  // Metadata
+  created_at        DateTime @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+  created_by        String?  @db.Uuid
+  users             users?   @relation(fields: [created_by], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  
+  // Relations
+  production_invoices      production_invoices[]
+  production_payments      production_payments[]
+  ordered_items_production ordered_items_production[]
+  documents                documents[]
+  
+  @@index([project_id], map: "idx_production_orders_project_id")
+  @@index([catalog_item_id], map: "idx_production_orders_catalog_item_id")
+  @@index([status], map: "idx_production_orders_status")
+  @@index([factory_id], map: "idx_production_orders_factory_id")
+  @@index([order_date], map: "idx_production_orders_order_date")
+  @@schema("public")
+}
+
+// Production Invoices - Auto-generated invoices with deposit/final workflow
+model production_invoices {
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  invoice_number        String   @unique // Auto-generated: INV-2025-0001
+  
+  // Invoice Type - CRITICAL FOR AUTO-GENERATION
+  invoice_type          String   // "deposit" | "final" | "full" | "custom"
+  
+  // Linked Records
+  production_order_id   String?  @db.Uuid
+  production_orders     production_orders? @relation(fields: [production_order_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  project_id            String?  @db.Uuid
+  projects              projects? @relation(fields: [project_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  customer_id           String?  @db.Uuid
+  customers             customers? @relation(fields: [customer_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  
+  // Amounts
+  subtotal              Decimal  @db.Decimal(10, 2)
+  tax                   Decimal  @default(0) @db.Decimal(10, 2)
+  shipping              Decimal  @default(0) @db.Decimal(10, 2)
+  total                 Decimal  @db.Decimal(10, 2)
+  amount_paid           Decimal  @default(0) @db.Decimal(10, 2)
+  amount_due            Decimal  @db.Decimal(10, 2)
+  
+  // Payment Terms - CRITICAL
+  payment_terms         String   // "50% deposit due on PO" | "50% balance + shipping at FOB"
+  due_date              DateTime? @db.Date
+  
+  // Status
+  status                String   @default("pending_payment")
+  // pending_payment → partial_payment → paid → overdue → cancelled
+  
+  // Dates
+  invoice_date          DateTime @default(now()) @db.Timestamptz(6)
+  paid_date             DateTime? @db.Timestamptz(6)
+  created_at            DateTime @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+  
+  // Relations
+  production_invoice_line_items production_invoice_line_items[]
+  production_payments           production_payments[]
+  
+  @@index([production_order_id], map: "idx_production_invoices_production_order_id")
+  @@index([project_id], map: "idx_production_invoices_project_id")
+  @@index([customer_id], map: "idx_production_invoices_customer_id")
+  @@index([status], map: "idx_production_invoices_status")
+  @@index([invoice_date], map: "idx_production_invoices_invoice_date")
+  @@schema("public")
+}
+
+// Production Invoice Line Items - Invoice details
+model production_invoice_line_items {
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  production_invoice_id String   @db.Uuid
+  production_invoices   production_invoices @relation(fields: [production_invoice_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  
+  description           String
+  quantity              Int
+  unit_price            Decimal  @db.Decimal(10, 2)
+  total                 Decimal  @db.Decimal(10, 2)
+  
+  created_at            DateTime @default(now()) @db.Timestamptz(6)
+  
+  @@index([production_invoice_id], map: "idx_production_invoice_line_items_invoice_id")
+  @@schema("public")
+}
+
+// Production Payments - Payment tracking with transaction details
+model production_payments {
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  payment_number        String   @unique // Auto-generated: PAY-2025-0001
+  
+  // Links
+  production_invoice_id String   @db.Uuid
+  production_invoices   production_invoices @relation(fields: [production_invoice_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  production_order_id   String?  @db.Uuid
+  production_orders     production_orders? @relation(fields: [production_order_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  
+  // Payment Details
+  amount                Decimal  @db.Decimal(10, 2)
+  payment_method        String   // "credit_card" | "wire_transfer" | "check" | "ach"
+  transaction_id        String?  // External transaction reference
+  
+  // Status
+  status                String   @default("completed")
+  // pending → processing → completed → failed → refunded
+  
+  // Metadata
+  payment_date          DateTime @default(now()) @db.Timestamptz(6)
+  notes                 String?
+  created_at            DateTime @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+  created_by            String?  @db.Uuid
+  users                 users?   @relation(fields: [created_by], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  
+  @@index([production_invoice_id], map: "idx_production_payments_invoice_id")
+  @@index([production_order_id], map: "idx_production_payments_order_id")
+  @@index([status], map: "idx_production_payments_status")
+  @@index([payment_date], map: "idx_production_payments_payment_date")
+  @@schema("public")
+}
+
+// Ordered Items Production - Individual unit tracking for production orders
+model ordered_items_production {
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sku                   String   @unique // Auto-generated from production order
+  
+  // Links
+  production_order_id   String   @db.Uuid
+  production_orders     production_orders @relation(fields: [production_order_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  
+  // Item Details
+  item_number           Int      // 1, 2, 3... for tracking individual units
+  serial_number         String?  // Optional manufacturer serial
+  
+  // Production Status
+  status                String   @default("pending")
+  // pending → in_production → quality_check → approved → packed → shipped → delivered
+  
+  // Quality Control
+  qc_status             String?  // "pass" | "fail" | "pending"
+  qc_notes              String?
+  qc_date               DateTime? @db.Timestamptz(6)
+  qc_by                 String?  @db.Uuid
+  users                 users?   @relation(fields: [qc_by], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  
+  // Shipment Tracking
+  shipment_id           String?  @db.Uuid
+  shipments             shipments? @relation(fields: [shipment_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  
+  // Dates
+  production_start_date DateTime? @db.Timestamptz(6)
+  production_end_date   DateTime? @db.Timestamptz(6)
+  shipped_date          DateTime? @db.Timestamptz(6)
+  delivered_date        DateTime? @db.Timestamptz(6)
+  
+  created_at            DateTime @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+  
+  @@index([production_order_id], map: "idx_ordered_items_production_order_id")
+  @@index([shipment_id], map: "idx_ordered_items_production_shipment_id")
+  @@index([status], map: "idx_ordered_items_production_status")
+  @@index([qc_status], map: "idx_ordered_items_production_qc_status")
+  @@schema("public")
+}
+
