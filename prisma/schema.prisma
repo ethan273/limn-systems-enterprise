@@ -2256,26 +2256,36 @@ model email_tracking {
 }
 
 model shipping_quotes {
-  id                  String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  order_id            String?    @db.Uuid
-  ship_from           Json
-  ship_to             Json
-  packages            Json
-  carrier_quotes      Json?      @default("[]")
-  selected_quote      Json?
-  quote_expires_at    DateTime?  @db.Timestamp(6)
-  seko_quote_response Json?
-  created_at          DateTime?  @default(now()) @db.Timestamp(6)
-  status              String?    @default("pending") @db.VarChar(50)
-  customer_id         String?    @db.Uuid
-  quote_number        String?    @db.VarChar(50)
-  customer_name       String?    @db.VarChar(255)
-  service_type        String?    @default("ground") @db.VarChar(50)
-  quoted_cost         Decimal?   @default(0) @db.Decimal(10, 2)
-  customers           customers? @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id                   String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  order_id             String?             @db.Uuid
+  production_order_id  String?             @db.Uuid
+  ship_from            Json
+  ship_to              Json
+  origin_address       Json?               @default("{}")
+  destination_address  Json?               @default("{}")
+  packages             Json
+  carrier_quotes       Json?               @default("[]")
+  quotes               Json?               @default("[]")
+  selected_quote       Json?
+  quote_expires_at     DateTime?           @db.Timestamp(6)
+  seko_quote_response  Json?
+  requested_at         DateTime?           @default(now()) @db.Timestamp(6)
+  requested_by         String?             @db.Uuid
+  created_at           DateTime?           @default(now()) @db.Timestamp(6)
+  status               String?             @default("pending") @db.VarChar(50)
+  customer_id          String?             @db.Uuid
+  quote_number         String?             @db.VarChar(50)
+  customer_name        String?             @db.VarChar(255)
+  service_type         String?             @default("ground") @db.VarChar(50)
+  quoted_cost          Decimal?            @default(0) @db.Decimal(10, 2)
+  customers            customers?          @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users                users?              @relation(fields: [requested_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  production_orders    production_orders?  @relation(fields: [production_order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([customer_id], map: "idx_shipping_quotes_customer_id")
   @@index([order_id], map: "idx_shipping_quotes_order_id")
+  @@index([production_order_id], map: "idx_shipping_quotes_production_order_id")
+  @@index([requested_by], map: "idx_shipping_quotes_requested_by")
   @@schema("public")
 }
 
@@ -2694,6 +2704,7 @@ model projects {
   tenants                   tenants?     @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   production_orders         production_orders[]
   production_invoices       production_invoices[]
+  shipments                 shipments[]
 
   @@index([created_by], map: "idx_projects_created_by")
   @@index([customer_id], map: "idx_projects_customer_id")
@@ -4493,12 +4504,18 @@ model production_stages {
 
 model shipments {
   id                   String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  shipment_number      String?              @db.VarChar(50)
   order_id             String?              @db.Uuid
   carrier_id           String?              @db.Uuid
+  carrier              String?              @db.VarChar(100)
+  service_level        String?              @db.VarChar(100)
   tracking_number      String?
   status               String?              @default("pending")
   ship_from            Json?                @default("{}")
   ship_to              Json?                @default("{}")
+  origin_address       Json?                @default("{}")
+  destination_address  Json?                @default("{}")
+  packages             Json?                @default("[]")
   shipped_date         DateTime?            @db.Timestamptz(6)
   estimated_delivery   DateTime?            @db.Date
   actual_delivery      DateTime?            @db.Timestamptz(6)
@@ -4507,10 +4524,14 @@ model shipments {
   dimensions           Json?                @default("{}")
   shipping_cost        Decimal?             @db.Decimal(10, 2)
   insurance_amount     Decimal?             @db.Decimal(10, 2)
+  label_url            String?
+  special_instructions String?
   tracking_events      Json?                @default("[]")
   last_tracking_update DateTime?            @db.Timestamptz(6)
   created_at           DateTime?            @default(now()) @db.Timestamptz(6)
   updated_at           DateTime?            @default(now()) @updatedAt @db.Timestamptz(6)
+  created_by           String?              @db.Uuid
+  project_id           String?              @db.Uuid
   seko_shipment_id     String?              @db.VarChar(100)
   last_seko_sync       DateTime?            @db.Timestamptz(6)
   priority             String?              @db.VarChar(20)
@@ -4518,12 +4539,16 @@ model shipments {
   delivery_addresses   delivery_addresses[]
   shipping_carriers    shipping_carriers?   @relation(fields: [carrier_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   packing_jobs         packing_jobs?        @relation(fields: [packing_job_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users                users?               @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  projects             projects?            @relation(fields: [project_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   shipping_events      shipping_events[]
   ordered_items_production ordered_items_production[]
 
   @@index([carrier_id], map: "idx_shipments_carrier_id")
   @@index([order_id], map: "idx_shipments_order_id")
   @@index([packing_job_id], map: "idx_shipments_packing_job_id")
+  @@index([created_by], map: "idx_shipments_created_by")
+  @@index([project_id], map: "idx_shipments_project_id")
   @@schema("public")
 }
 
@@ -5267,6 +5292,8 @@ model users {
   production_orders                                                     production_orders[]
   production_payments                                                   production_payments[]
   ordered_items_production                                              ordered_items_production[]
+  shipping_quotes                                                       shipping_quotes[]
+  shipments                                                             shipments[]
 
   @@index([instance_id])
   @@index([is_anonymous])
@@ -6039,7 +6066,8 @@ model production_orders {
   ordered_items_production ordered_items_production[]
   production_milestones    production_milestones[]
   documents                documents[]
-  
+  shipping_quotes          shipping_quotes[]
+
   @@index([project_id], map: "idx_production_orders_project_id")
   @@index([catalog_item_id], map: "idx_production_orders_catalog_item_id")
   @@index([status], map: "idx_production_orders_status")

@@ -622,6 +622,48 @@ export class DatabaseClient {
   }
 
   /**
+   * Generic findFirst operation for any table
+   * Returns the first record matching the where conditions with optional ordering
+   */
+  private async findFirstGeneric<T>(
+    tableName: string,
+    options: { where: Record<string, any>; orderBy?: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }
+  ): Promise<T | null> {
+    let query: any = supabase.from(tableName);
+
+    if (options.select) {
+      const selectFields = Object.keys(options.select).filter(key => Object.prototype.hasOwnProperty.call(options.select!, key) && options.select![key as keyof typeof options.select]);
+      query = query.select(selectFields.join(', '));
+    } else {
+      query = query.select('*');
+    }
+
+    // Apply where conditions
+    Object.entries(options.where).forEach(([key, value]) => {
+      query = query.eq(key, value);
+    });
+
+    // Apply ordering if provided
+    if (options.orderBy) {
+      Object.entries(options.orderBy).forEach(([key, value]) => {
+        query = query.order(key, { ascending: value === 'asc' });
+      });
+    }
+
+    // Limit to 1 result
+    query = query.limit(1);
+
+    const { data, error } = await query.single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null; // Not found
+      throw new Error(`Failed to fetch from ${tableName}: ${error.message}`);
+    }
+
+    return data ? this.transformDates(data) : null;
+  }
+
+  /**
    * Generic create operation for any table
    */
   private async createGeneric<T>(
@@ -1292,6 +1334,40 @@ export class DatabaseClient {
       this.deleteManyGeneric('production_milestones', options),
     count: (options?: { where?: Record<string, any> }) =>
       this.countGeneric('production_milestones', options),
+  };
+
+  // Shipping Quotes model (SEKO Integration)
+  shipping_quotes = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('shipping_quotes', options),
+    findFirst: (options: { where: Record<string, any>; orderBy?: Record<string, any>; include?: Record<string, any> }) =>
+      this.findFirstGeneric<any>('shipping_quotes', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('shipping_quotes', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('shipping_quotes', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('shipping_quotes', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('shipping_quotes', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('shipping_quotes', options),
+  };
+
+  // Shipments model (SEKO Integration)
+  shipments = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('shipments', options),
+    findFirst: (options: { where: Record<string, any>; orderBy?: Record<string, any>; include?: Record<string, any> }) =>
+      this.findFirstGeneric<any>('shipments', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('shipments', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('shipments', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('shipments', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('shipments', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('shipments', options),
   };
 
   // =====================================================

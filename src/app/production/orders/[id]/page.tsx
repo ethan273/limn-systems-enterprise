@@ -649,7 +649,7 @@ export default function ProductionOrderDetailPage() {
                 </SelectContent>
               </Select>
               <p className="text-sm text-muted-foreground mt-2">
-                Note: Changing status to "completed" will auto-generate the final invoice
+                Note: Changing status to &ldquo;completed&rdquo; will auto-generate the final invoice
               </p>
             </div>
 

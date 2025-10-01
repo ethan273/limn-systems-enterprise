@@ -14,6 +14,7 @@ import { orderItemsRouter } from './routers/order-items';
 import { productionOrdersRouter } from './routers/production-orders';
 import { productionInvoicesRouter } from './routers/production-invoices';
 import { productionTrackingRouter } from './routers/production-tracking';
+import { shippingRouter } from './routers/shipping';
 
 /**
  * Main API router
@@ -50,6 +51,9 @@ export const appRouter = createTRPCRouter({
   productionOrders: productionOrdersRouter,
   productionInvoices: productionInvoicesRouter,
   productionTracking: productionTrackingRouter,
+
+  // Shipping (SEKO Integration)
+  shipping: shippingRouter,
 });
 
 // Export type for client

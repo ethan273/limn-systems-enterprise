@@ -292,9 +292,9 @@ export default function NewProductionOrderPage() {
             <ul className="list-disc list-inside mt-2 space-y-1">
               <li>Order number will be auto-generated (PO-{new Date().getFullYear()}-XXXX)</li>
               <li>Deposit invoice (50%) will be auto-created</li>
-              <li>Status will be "Awaiting Deposit" (production blocked)</li>
+              <li>Status will be &ldquo;Awaiting Deposit&rdquo; (production blocked)</li>
               <li>Once deposit is paid, {formData.quantity} ordered items will be auto-created</li>
-              <li>Production status will change to "In Progress"</li>
+              <li>Production status will change to &ldquo;In Progress&rdquo;</li>
             </ul>
           </AlertDescription>
         </Alert>
