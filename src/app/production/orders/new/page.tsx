@@ -148,12 +148,11 @@ export default function NewProductionOrderPage() {
           <CardContent className="space-y-4">
             <div>
               <Label htmlFor="project_id">CRM Project (Optional)</Label>
-              <Select value={formData.project_id} onValueChange={(value) => setFormData({ ...formData, project_id: value })}>
+              <Select value={formData.project_id || undefined} onValueChange={(value) => setFormData({ ...formData, project_id: value })}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select project (optional)" />
+                  <SelectValue placeholder="No project selected" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No Project</SelectItem>
                   {projects?.items.map((project: any) => (
                     <SelectItem key={project.id} value={project.id}>
                       {project.name} - {project.customers?.name}
