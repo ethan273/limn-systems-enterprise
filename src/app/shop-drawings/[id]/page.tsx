@@ -438,7 +438,7 @@ export default function ShopDrawingDetailPage({ params }: PageProps) {
                     text: comment.comment_text,
                     author: {
                       id: comment.author_id,
-                      name: comment.author.email,
+                      name: comment.author.email ?? "Unknown User",
                     },
                     createdAt: new Date(comment.created_at),
                     type: comment.comment_type === "review" ? "question" :
@@ -448,14 +448,14 @@ export default function ShopDrawingDetailPage({ params }: PageProps) {
                     resolvedAt: comment.resolved_at ? new Date(comment.resolved_at) : null,
                     resolvedBy: comment.resolver ? {
                       id: comment.resolved_by ?? "",
-                      name: comment.resolver.email,
+                      name: comment.resolver.email ?? "Unknown User",
                     } : null,
                     replies: comment.replies?.map((reply) => ({
                       id: reply.id,
                       text: reply.comment_text,
                       author: {
                         id: reply.author_id,
-                        name: reply.author.email,
+                        name: reply.author.email ?? "Unknown User",
                       },
                       createdAt: new Date(reply.created_at),
                       type: "general" as const,
@@ -490,7 +490,7 @@ export default function ShopDrawingDetailPage({ params }: PageProps) {
                 uploadedAt: new Date(v.uploaded_at),
                 uploadedBy: {
                   id: v.uploaded_by,
-                  name: v.uploader.email,
+                  name: v.uploader.email ?? "Unknown User",
                 },
                 status: v.status as "current" | "superseded" | "archived",
                 notes: v.upload_notes,
@@ -578,7 +578,7 @@ export default function ShopDrawingDetailPage({ params }: PageProps) {
                   status: approvalStatus.limnApproved ? "approved" : "pending",
                   approvedBy: approvalStatus.limnApprovedBy ? {
                     id: "",
-                    name: approvalStatus.limnApprovedBy.email,
+                    name: approvalStatus.limnApprovedBy.email ?? "Unknown User",
                   } : null,
                   approvedAt: approvalStatus.limnApprovedAt ? new Date(approvalStatus.limnApprovedAt) : null,
                 },
@@ -586,7 +586,7 @@ export default function ShopDrawingDetailPage({ params }: PageProps) {
                   status: approvalStatus.designerApproved ? "approved" : "pending",
                   approvedBy: approvalStatus.designerApprovedBy ? {
                     id: "",
-                    name: approvalStatus.designerApprovedBy.email,
+                    name: approvalStatus.designerApprovedBy.email ?? "Unknown User",
                   } : null,
                   approvedAt: approvalStatus.designerApprovedAt ? new Date(approvalStatus.designerApprovedAt) : null,
                 },

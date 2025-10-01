@@ -243,10 +243,12 @@ model qc_inspections {
   packing_jobs          packing_jobs[]
   qc_checkpoints        qc_checkpoints[]
   qc_defects            qc_defects[]
-  orders                orders            @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  order_items           order_items?      @relation(fields: [order_item_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  production_items      production_items? @relation(fields: [production_item_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  qc_photos             qc_photos[]
+  orders                   orders                @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  order_items              order_items?          @relation(fields: [order_item_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  production_items         production_items?     @relation(fields: [production_item_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  prototype_production_id  String?               @db.Uuid
+  prototype_production     prototype_production? @relation(fields: [prototype_production_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  qc_photos                qc_photos[]
 
   @@index([order_id], map: "idx_qc_inspections_order_id")
   @@index([order_item_id], map: "idx_qc_inspections_order_item_id")
@@ -2616,6 +2618,8 @@ model projects {
   production_invoices       production_invoices[]
   shipments                 shipments[]
 
+  prototypes           prototypes[]        @relation("PrototypeCRMProject")
+
   @@index([created_by], map: "idx_projects_created_by")
   @@index([customer_id], map: "idx_projects_customer_id")
   @@index([status], map: "idx_projects_status")
@@ -3827,6 +3831,7 @@ model design_projects {
   designer_performance  designer_performance[]
   documents             documents[]
   mood_boards           mood_boards[]
+  prototypes            prototypes[]          @relation("PrototypeDesignProject")
 
   @@index([collection_id], map: "idx_design_projects_collection_id")
   @@index([current_stage], map: "idx_design_projects_current_stage")
@@ -4757,6 +4762,7 @@ model items {
   production_orders_catalog   production_orders[]     @relation("ProductionOrderCatalog")
   production_orders_prototype production_orders[]     @relation("ProductionOrderPrototype")
   production_orders_concept   production_orders[]     @relation("ProductionOrderConcept")
+  prototypes_based_on         prototypes[]            @relation("PrototypeBaseItem")
 
   @@index([category], map: "idx_items_category")
   @@index([collection_id], map: "idx_items_collection_id")
@@ -5214,6 +5220,23 @@ model users {
   customer_notifications                                                customer_notifications[]
   oauth_tokens                                                          oauth_tokens[]
   mood_boards                                                           mood_boards[]
+  prototypes_created                                                    prototypes[]                        @relation("PrototypeCreator")
+  prototype_production_managed                                          prototype_production[]              @relation("PrototypeProductionManager")
+  prototype_milestones_assigned                                         prototype_milestones[]              @relation("MilestoneAssignee")
+  prototype_milestones_completed                                        prototype_milestones[]              @relation("MilestoneCompleter")
+  prototype_photos_uploaded                                             prototype_photos[]                  @relation("PhotoUploader")
+  prototype_photo_comments_authored                                     prototype_photo_comments[]          @relation("PhotoCommentAuthor")
+  prototype_photo_comments_resolved                                     prototype_photo_comments[]          @relation("PhotoCommentResolver")
+  prototype_documents_uploaded                                          prototype_documents[]               @relation("DocumentUploader")
+  prototype_documents_approved                                          prototype_documents[]               @relation("DocumentApprover")
+  prototype_reviews_created                                             prototype_reviews[]                 @relation("ReviewCreator")
+  prototype_review_participants                                         prototype_review_participants[]     @relation("ReviewParticipant")
+  prototype_review_actions_assigned                                     prototype_review_actions[]          @relation("ActionAssignee")
+  prototype_review_actions_verified                                     prototype_review_actions[]          @relation("ActionVerifier")
+  prototype_feedback_submitted                                          prototype_feedback[]                @relation("FeedbackSubmitter")
+  prototype_feedback_addressed                                          prototype_feedback[]                @relation("FeedbackAddresser")
+  prototype_revisions_created                                           prototype_revisions[]               @relation("RevisionCreator")
+  prototype_revisions_approved                                          prototype_revisions[]               @relation("RevisionApprover")
 
   @@index([instance_id])
   @@index([is_anonymous])
@@ -6208,11 +6231,12 @@ model partners {
   portal_user    users?  @relation("PartnerPortalUser", fields: [portal_user_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
 
   // Relationships
-  contacts            partner_contacts[]
-  documents           partner_documents[]
-  production_orders   production_orders[]   @relation("FactoryOrders")
-  partner_performance partner_performance[]
-  shop_drawings       shop_drawings[]       @relation("FactoryShopDrawings")
+  contacts             partner_contacts[]
+  documents            partner_documents[]
+  production_orders    production_orders[]    @relation("FactoryOrders")
+  partner_performance  partner_performance[]
+  shop_drawings        shop_drawings[]        @relation("FactoryShopDrawings")
+  prototype_production prototype_production[] @relation("PrototypeFactory")
 
   // Metadata
   notes           String?
@@ -6520,7 +6544,9 @@ model shop_drawings {
   rejection_reason     String?
 
   // Relationships
-  versions             shop_drawing_versions[]
+  versions                shop_drawing_versions[]
+  prototype_production_id String?                 @db.Uuid
+  prototype_production    prototype_production?   @relation(fields: [prototype_production_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   // Metadata
   notes                String?
@@ -6657,5 +6683,555 @@ model shop_drawing_approvals {
   @@index([drawing_version_id], map: "idx_shop_drawing_approvals_version_id")
   @@index([approver_id], map: "idx_shop_drawing_approvals_approver_id")
   @@index([decision], map: "idx_shop_drawing_approvals_decision")
+  @@schema("public")
+}
+
+// ============================================================================
+// PROTOTYPING MODULE - Week 17
+// Comprehensive prototype tracking with milestone management, photo documentation,
+// factory feedback, and quality reviews
+// ============================================================================
+
+/// Prototypes - Core prototype tracking separate from production orders
+model prototypes {
+  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  prototype_number     String   @unique // Auto-generated: PROTO-2025-0001
+
+  // Basic Information
+  name                 String
+  description          String?  @db.Text
+  prototype_type       String   @default("furniture")
+  // "furniture" | "component" | "material_sample" | "finish_sample"
+
+  // Design Links
+  design_project_id    String?  @db.Uuid
+  design_projects      design_projects? @relation("PrototypeDesignProject", fields: [design_project_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  // Base Item (catalog item this prototype is based on or will become)
+  base_item_id         String?  @db.Uuid
+  base_item            items?   @relation("PrototypeBaseItem", fields: [base_item_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  // CRM Project Link (client-specific prototype)
+  crm_project_id       String?  @db.Uuid
+  crm_project          projects? @relation("PrototypeCRMProject", fields: [crm_project_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  // Status Tracking
+  status               String   @default("concept")
+  // Comprehensive workflow:
+  // "concept" → "design_review" → "design_approved" →
+  // "production_pending" → "in_production" → "assembly_complete" →
+  // "quality_review" → "client_review" → "approved" →
+  // "rejected" | "ready_for_catalog" | "archived"
+
+  // Priority and Classification
+  priority             String   @default("medium")
+  // "low" | "medium" | "high" | "urgent"
+
+  is_client_specific   Boolean  @default(false)
+  is_catalog_candidate Boolean  @default(false)
+
+  // Specifications
+  specifications       Json?    // Detailed specs (dimensions, materials, finishes)
+  target_price_usd     Decimal? @db.Decimal(10, 2)
+  target_cost_usd      Decimal? @db.Decimal(10, 2)
+
+  // Production Details
+  prototype_production prototype_production?
+
+  // Relationships
+  milestones           prototype_milestones[]
+  photos               prototype_photos[]
+  documents            prototype_documents[]
+  reviews              prototype_reviews[]
+  feedback             prototype_feedback[]
+  revisions            prototype_revisions[]
+
+  // Metadata
+  tags                 String[]
+  notes                String?  @db.Text
+  internal_notes       String?  @db.Text
+
+  // Audit
+  created_by           String   @db.Uuid
+  creator              users    @relation("PrototypeCreator", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  created_at           DateTime @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  @@index([prototype_number], map: "idx_prototypes_number")
+  @@index([status], map: "idx_prototypes_status")
+  @@index([priority], map: "idx_prototypes_priority")
+  @@index([design_project_id], map: "idx_prototypes_design_project")
+  @@index([crm_project_id], map: "idx_prototypes_crm_project")
+  @@index([base_item_id], map: "idx_prototypes_base_item")
+  @@index([created_by], map: "idx_prototypes_created_by")
+  @@schema("public")
+}
+
+/// Prototype Production - Tracks actual production process
+model prototype_production {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  prototype_id         String    @unique @db.Uuid
+  prototype            prototypes @relation(fields: [prototype_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  // Factory Assignment
+  factory_id           String?   @db.Uuid
+  factory              partners? @relation("PrototypeFactory", fields: [factory_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  // Production Manager Assignment
+  production_manager_id String?  @db.Uuid
+  production_manager   users?    @relation("PrototypeProductionManager", fields: [production_manager_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  // Status
+  status               String    @default("not_started")
+  // "not_started" → "materials_sourcing" → "in_production" →
+  // "assembly" → "finishing" → "quality_check" → "completed" → "approved"
+
+  // Timeline
+  start_date           DateTime? @db.Date
+  target_date          DateTime? @db.Date
+  estimated_completion DateTime? @db.Date
+  actual_completion    DateTime? @db.Date
+
+  // Progress Tracking
+  overall_progress     Int       @default(0) // 0-100%
+  current_phase        String?   // Current production phase
+
+  // Cost Tracking
+  estimated_cost       Decimal?  @db.Decimal(10, 2)
+  actual_cost          Decimal?  @db.Decimal(10, 2)
+  cost_notes           String?   @db.Text
+
+  // Quality Metrics
+  quality_score        Int?      // 0-100
+  defects_found        Int       @default(0)
+  rework_required      Boolean   @default(false)
+
+  // Relationships
+  shop_drawings        shop_drawings[]
+  // factory_reviews      factory_review_sessions[]  // Will be added in Week 18
+  qc_inspections       qc_inspections[]
+
+  // Metadata
+  notes                String?   @db.Text
+
+  // Audit
+  created_at           DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+
+  @@index([prototype_id], map: "idx_prototype_production_prototype")
+  @@index([factory_id], map: "idx_prototype_production_factory")
+  @@index([production_manager_id], map: "idx_prototype_production_manager")
+  @@index([status], map: "idx_prototype_production_status")
+  @@schema("public")
+}
+
+/// Prototype Milestones - Granular tracking of production phases
+model prototype_milestones {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  prototype_id         String    @db.Uuid
+  prototype            prototypes @relation(fields: [prototype_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  // Milestone Details
+  milestone_name       String
+  milestone_type       String    @default("production")
+  // "design" | "materials" | "production" | "quality" | "approval"
+
+  description          String?   @db.Text
+
+  // Sequence and Dependency
+  sequence_order       Int       // 1, 2, 3... for ordering
+  depends_on_milestone String?   @db.Uuid
+  dependency           prototype_milestones? @relation("MilestoneDependency", fields: [depends_on_milestone], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  dependent_milestones prototype_milestones[] @relation("MilestoneDependency")
+
+  // Status and Progress
+  status               String    @default("pending")
+  // "pending" | "in_progress" | "blocked" | "completed" | "skipped"
+
+  completion_percentage Int      @default(0) // 0-100%
+
+  // Timeline
+  planned_start        DateTime? @db.Date
+  planned_end          DateTime? @db.Date
+  actual_start         DateTime? @db.Date
+  actual_end           DateTime? @db.Date
+
+  // Assignment
+  assigned_to          String?   @db.Uuid
+  assignee             users?    @relation("MilestoneAssignee", fields: [assigned_to], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  // Quality Checks
+  quality_checkpoint   Boolean   @default(false)
+  quality_passed       Boolean?
+  quality_notes        String?   @db.Text
+
+  // Documentation
+  photos               prototype_photos[]
+  documents            prototype_documents[]
+
+  // Metadata
+  notes                String?   @db.Text
+  blockers             String?   @db.Text
+
+  // Audit
+  created_at           DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+  completed_at         DateTime? @db.Timestamptz(6)
+  completed_by         String?   @db.Uuid
+  completer            users?    @relation("MilestoneCompleter", fields: [completed_by], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  @@index([prototype_id], map: "idx_prototype_milestones_prototype")
+  @@index([status], map: "idx_prototype_milestones_status")
+  @@index([sequence_order], map: "idx_prototype_milestones_sequence")
+  @@index([assigned_to], map: "idx_prototype_milestones_assigned")
+  @@schema("public")
+}
+
+/// Prototype Photos - Photo documentation throughout production
+model prototype_photos {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  prototype_id         String    @db.Uuid
+  prototype            prototypes @relation(fields: [prototype_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  // Optional Milestone Link
+  milestone_id         String?   @db.Uuid
+  milestone            prototype_milestones? @relation(fields: [milestone_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  // Photo Details
+  photo_type           String    @default("progress")
+  // "progress" | "issue" | "detail" | "comparison" | "final" | "defect"
+
+  title                String?
+  description          String?   @db.Text
+
+  // File Storage
+  storage_type         String    @default("supabase")
+  // "supabase" | "google_drive"
+
+  file_url             String
+  thumbnail_url        String?
+  file_name            String
+  file_size            BigInt
+  mime_type            String
+
+  // Image Metadata
+  width                Int?
+  height               Int?
+  taken_at             DateTime? @db.Timestamptz(6)
+  camera_model         String?
+  location             String?   // Factory location, room, etc.
+
+  // Annotations and Comments
+  annotations          Json?     // Array of annotation objects {x, y, text, type}
+  comments             prototype_photo_comments[]
+
+  // Quality Flags
+  is_featured          Boolean   @default(false)
+  shows_defect         Boolean   @default(false)
+  requires_action      Boolean   @default(false)
+
+  // Audit
+  uploaded_by          String    @db.Uuid
+  uploader             users     @relation("PhotoUploader", fields: [uploaded_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  uploaded_at          DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@index([prototype_id], map: "idx_prototype_photos_prototype")
+  @@index([milestone_id], map: "idx_prototype_photos_milestone")
+  @@index([photo_type], map: "idx_prototype_photos_type")
+  @@index([uploaded_by], map: "idx_prototype_photos_uploader")
+  @@schema("public")
+}
+
+/// Prototype Photo Comments - Comments on specific photos
+model prototype_photo_comments {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  photo_id             String    @db.Uuid
+  photo                prototype_photos @relation(fields: [photo_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  // Comment Content
+  comment_text         String    @db.Text
+  comment_type         String    @default("general")
+  // "general" | "issue" | "question" | "approval" | "concern"
+
+  // Position on Photo (if pointing to specific area)
+  position_x           Decimal?  @db.Decimal(10, 2)
+  position_y           Decimal?  @db.Decimal(10, 2)
+
+  // Threading
+  parent_comment_id    String?   @db.Uuid
+  parent_comment       prototype_photo_comments?  @relation("PhotoCommentThread", fields: [parent_comment_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  replies              prototype_photo_comments[] @relation("PhotoCommentThread")
+
+  // Status
+  status               String    @default("open")
+  // "open" | "addressed" | "resolved"
+
+  resolved_at          DateTime? @db.Timestamptz(6)
+  resolved_by          String?   @db.Uuid
+  resolver             users?    @relation("PhotoCommentResolver", fields: [resolved_by], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  // Audit
+  author_id            String    @db.Uuid
+  author               users     @relation("PhotoCommentAuthor", fields: [author_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  created_at           DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+
+  @@index([photo_id], map: "idx_prototype_photo_comments_photo")
+  @@index([author_id], map: "idx_prototype_photo_comments_author")
+  @@index([status], map: "idx_prototype_photo_comments_status")
+  @@schema("public")
+}
+
+/// Prototype Documents - Technical drawings, specs, materials
+model prototype_documents {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  prototype_id         String    @db.Uuid
+  prototype            prototypes @relation(fields: [prototype_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  // Optional Milestone Link
+  milestone_id         String?   @db.Uuid
+  milestone            prototype_milestones? @relation(fields: [milestone_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  // Document Details
+  document_type        String
+  // "technical_drawing" | "material_spec" | "finish_spec" |
+  // "cost_estimate" | "timeline" | "approval" | "other"
+
+  title                String
+  description          String?   @db.Text
+  version              String?   // v1.0, v2.0, etc.
+
+  // File Storage
+  storage_type         String    @default("supabase")
+  // "supabase" | "google_drive"
+
+  file_url             String
+  file_name            String
+  file_size            BigInt
+  mime_type            String
+
+  // Document Status
+  status               String    @default("draft")
+  // "draft" | "under_review" | "approved" | "superseded" | "archived"
+
+  // Approval
+  requires_approval    Boolean   @default(false)
+  approved_by          String?   @db.Uuid
+  approver             users?    @relation("DocumentApprover", fields: [approved_by], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  approved_at          DateTime? @db.Timestamptz(6)
+
+  // Audit
+  uploaded_by          String    @db.Uuid
+  uploader             users     @relation("DocumentUploader", fields: [uploaded_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  uploaded_at          DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@index([prototype_id], map: "idx_prototype_documents_prototype")
+  @@index([milestone_id], map: "idx_prototype_documents_milestone")
+  @@index([document_type], map: "idx_prototype_documents_type")
+  @@index([status], map: "idx_prototype_documents_status")
+  @@schema("public")
+}
+
+/// Prototype Reviews - Formal review sessions (design, quality, client)
+model prototype_reviews {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  prototype_id         String    @db.Uuid
+  prototype            prototypes @relation(fields: [prototype_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  // Review Details
+  review_type          String
+  // "design_review" | "quality_review" | "client_review" | "final_approval"
+
+  review_date          DateTime  @db.Timestamptz(6)
+  location             String?   // "Factory", "Office", "Client Site"
+
+  // Review Outcome
+  status               String    @default("scheduled")
+  // "scheduled" | "in_progress" | "completed" | "cancelled"
+
+  decision             String?
+  // "approved" | "approved_with_changes" | "rejected" | "needs_revision"
+
+  summary              String?   @db.Text
+  findings             Json?     // Array of findings {type, severity, description}
+
+  // Action Items
+  action_items         prototype_review_actions[]
+
+  // Participants
+  participants         prototype_review_participants[]
+
+  // Documentation
+  meeting_notes        String?   @db.Text
+  photo_references     String[]  // Array of photo IDs
+  document_references  String[]  // Array of document IDs
+
+  // Audit
+  created_by           String    @db.Uuid
+  creator              users     @relation("ReviewCreator", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  created_at           DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+
+  @@index([prototype_id], map: "idx_prototype_reviews_prototype")
+  @@index([review_type], map: "idx_prototype_reviews_type")
+  @@index([status], map: "idx_prototype_reviews_status")
+  @@index([review_date], map: "idx_prototype_reviews_date")
+  @@schema("public")
+}
+
+/// Prototype Review Participants - Who attended reviews
+model prototype_review_participants {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  review_id            String    @db.Uuid
+  review               prototype_reviews @relation(fields: [review_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  // Participant Details
+  user_id              String?   @db.Uuid
+  user                 users?    @relation("ReviewParticipant", fields: [user_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  // External participant (not a user)
+  external_name        String?
+  external_email       String?
+  external_company     String?
+
+  role                 String    // "designer" | "factory_rep" | "client" | "quality_manager" | "project_manager"
+
+  // Attendance
+  attended             Boolean   @default(true)
+  notes                String?   @db.Text
+
+  @@index([review_id], map: "idx_prototype_review_participants_review")
+  @@index([user_id], map: "idx_prototype_review_participants_user")
+  @@schema("public")
+}
+
+/// Prototype Review Actions - Action items from reviews
+model prototype_review_actions {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  review_id            String    @db.Uuid
+  review               prototype_reviews @relation(fields: [review_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  // Action Details
+  action_type          String    @default("task")
+  // "task" | "defect_fix" | "design_change" | "material_change" | "approval_required"
+
+  title                String
+  description          String    @db.Text
+  priority             String    @default("medium")
+  // "low" | "medium" | "high" | "critical"
+
+  // Assignment
+  assigned_to          String?   @db.Uuid
+  assignee             users?    @relation("ActionAssignee", fields: [assigned_to], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  // Status
+  status               String    @default("open")
+  // "open" | "in_progress" | "blocked" | "completed" | "cancelled"
+
+  // Timeline
+  due_date             DateTime? @db.Date
+  completed_at         DateTime? @db.Timestamptz(6)
+
+  // Resolution
+  resolution_notes     String?   @db.Text
+  verified_by          String?   @db.Uuid
+  verifier             users?    @relation("ActionVerifier", fields: [verified_by], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  // Audit
+  created_at           DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+
+  @@index([review_id], map: "idx_prototype_review_actions_review")
+  @@index([assigned_to], map: "idx_prototype_review_actions_assigned")
+  @@index([status], map: "idx_prototype_review_actions_status")
+  @@schema("public")
+}
+
+/// Prototype Feedback - Ongoing feedback from stakeholders
+model prototype_feedback {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  prototype_id         String    @db.Uuid
+  prototype            prototypes @relation(fields: [prototype_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  // Feedback Details
+  feedback_type        String    @default("general")
+  // "general" | "design" | "quality" | "functionality" | "material" | "finish"
+
+  feedback_source      String
+  // "client" | "designer" | "factory" | "internal_team" | "quality_team"
+
+  title                String?
+  feedback_text        String    @db.Text
+
+  // Sentiment and Priority
+  sentiment            String?   @default("neutral")
+  // "positive" | "neutral" | "negative" | "critical"
+
+  priority             String?   @default("medium")
+  // "low" | "medium" | "high"
+
+  // Action Required
+  requires_action      Boolean   @default(false)
+  action_taken         String?   @db.Text
+
+  // Status
+  status               String    @default("new")
+  // "new" | "under_review" | "addressed" | "deferred" | "closed"
+
+  addressed_by         String?   @db.Uuid
+  addresser            users?    @relation("FeedbackAddresser", fields: [addressed_by], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  addressed_at         DateTime? @db.Timestamptz(6)
+
+  // Audit
+  submitted_by         String    @db.Uuid
+  submitter            users     @relation("FeedbackSubmitter", fields: [submitted_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  submitted_at         DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+
+  @@index([prototype_id], map: "idx_prototype_feedback_prototype")
+  @@index([feedback_type], map: "idx_prototype_feedback_type")
+  @@index([status], map: "idx_prototype_feedback_status")
+  @@schema("public")
+}
+
+/// Prototype Revisions - Track design/production revisions
+model prototype_revisions {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  prototype_id         String    @db.Uuid
+  prototype            prototypes @relation(fields: [prototype_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  // Revision Details
+  revision_number      String    // v1.0, v1.1, v2.0, etc.
+  revision_type        String
+  // "minor" | "major" | "design_change" | "material_change" | "specification_change"
+
+  title                String
+  description          String    @db.Text
+
+  // Changes
+  changes_summary      Json?     // Structured list of what changed
+  reason_for_change    String    @db.Text
+
+  // Approval
+  approved_by          String?   @db.Uuid
+  approver             users?    @relation("RevisionApprover", fields: [approved_by], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  approved_at          DateTime? @db.Timestamptz(6)
+
+  // Documentation
+  before_photos        String[]  // Array of photo IDs
+  after_photos         String[]  // Array of photo IDs
+  documents            String[]  // Array of document IDs
+
+  // Impact Assessment
+  cost_impact          Decimal?  @db.Decimal(10, 2)
+  timeline_impact_days Int?
+
+  // Audit
+  created_by           String    @db.Uuid
+  creator              users     @relation("RevisionCreator", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  created_at           DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@index([prototype_id], map: "idx_prototype_revisions_prototype")
+  @@index([revision_type], map: "idx_prototype_revisions_type")
   @@schema("public")
 }

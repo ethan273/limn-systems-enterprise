@@ -261,7 +261,7 @@ export default function ShopDrawingsPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">All Orders</SelectItem>
-                {ordersData?.orders?.map((order) => (
+                {ordersData?.items?.map((order: { id: string; order_number: string; item_name: string }) => (
                   <SelectItem key={order.id} value={order.id}>
                     {order.order_number} - {order.item_name}
                   </SelectItem>
