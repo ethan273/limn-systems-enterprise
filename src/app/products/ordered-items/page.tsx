@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,6 +35,9 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -44,15 +47,18 @@ import {
   MoreVertical,
   Edit,
   Trash2,
-  Eye,
   Filter,
   ShoppingCart,
   DollarSign,
-  Hash
+  Hash,
+  ChevronDown,
+  ChevronRight,
+  Truck
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface OrderedItem {
   id: string;
@@ -693,6 +699,7 @@ export default function OrderedItemsPage() {
   const [selectedCollection, setSelectedCollection] = useState("");
   const [selectedItem, setSelectedItem] = useState<OrderedItem | undefined>();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   // Get real data from API
   const { data: orderItemsData, isLoading, refetch } = api.orderItems.getAll.useQuery({
@@ -859,6 +866,25 @@ export default function OrderedItemsPage() {
 
   const handleDeleteItem = (item: OrderedItem) => {
     deleteOrderItemMutation.mutate({ id: item.id });
+  };
+
+  const handleStatusChange = (item: OrderedItem, newStatus: string) => {
+    updateOrderItemMutation.mutate({
+      id: item.id,
+      data: {
+        status: newStatus as 'pending' | 'in_production' | 'ready' | 'delivered' | 'cancelled',
+      },
+    });
+  };
+
+  const toggleRow = (itemId: string) => {
+    const newExpandedRows = new Set(expandedRows);
+    if (newExpandedRows.has(itemId)) {
+      newExpandedRows.delete(itemId);
+    } else {
+      newExpandedRows.add(itemId);
+    }
+    setExpandedRows(newExpandedRows);
   };
 
   const formatPrice = (price: number) => {
@@ -1039,15 +1065,37 @@ export default function OrderedItemsPage() {
                 </TableRow>
               ) : (
                 filteredItems.map((item) => (
-                <TableRow key={item.id}>
+                <React.Fragment key={item.id}>
+                <TableRow
+                  className="cursor-pointer hover:bg-gray-800/50"
+                  onClick={() => toggleRow(item.id)}
+                >
                   <TableCell>
-                    <div>
-                      <div className="font-medium">{item.product_name}</div>
-                      {item.product_sku && (
-                        <div className="text-sm text-gray-400 font-mono">
-                          {item.product_sku}
-                        </div>
-                      )}
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleRow(item.id);
+                        }}
+                      >
+                        {expandedRows.has(item.id) ? (
+                          <ChevronDown className="h-4 w-4" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4" />
+                        )}
+                      </Button>
+                      <div>
+                        <div className="font-medium">{item.product_name}</div>
+                        {item.product_sku && (
+                          <div className="text-sm text-gray-400 font-mono">
+                            {item.product_sku}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -1097,17 +1145,49 @@ export default function OrderedItemsPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => handleEditItem(item)}>
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditItem(item);
+                        }}>
                           <Edit className="mr-2 h-4 w-4" />
                           Edit
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Eye className="mr-2 h-4 w-4" />
-                          View Details
+                        <DropdownMenuSub>
+                          <DropdownMenuSubTrigger onClick={(e) => e.stopPropagation()}>
+                            <Package className="mr-2 h-4 w-4" />
+                            Change Status
+                          </DropdownMenuSubTrigger>
+                          <DropdownMenuSubContent>
+                            {statuses.map((status) => (
+                              <DropdownMenuItem
+                                key={status.value}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleStatusChange(item, status.value);
+                                }}
+                                disabled={item.status === status.value}
+                              >
+                                {status.label}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuSubContent>
+                        </DropdownMenuSub>
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          toast({
+                            title: "Generate Label",
+                            description: "Shipping label generation will be implemented soon.",
+                          });
+                        }}>
+                          <Truck className="mr-2 h-4 w-4" />
+                          Generate Label
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          onClick={() => handleDeleteItem(item)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteItem(item);
+                          }}
                           className="text-red-600"
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
@@ -1117,6 +1197,61 @@ export default function OrderedItemsPage() {
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
+
+                {/* Expanded Content */}
+                {expandedRows.has(item.id) && (
+                  <TableRow>
+                    <TableCell colSpan={10} className="p-0">
+                      <div className="p-6 bg-gray-800/30 border-t border-gray-700">
+                        <Tabs defaultValue="dimensions" className="w-full">
+                          <TabsList className="grid w-full grid-cols-3">
+                            <TabsTrigger value="dimensions">Dimensions</TabsTrigger>
+                            <TabsTrigger value="shipping">Shipping</TabsTrigger>
+                            <TabsTrigger value="images">Images</TabsTrigger>
+                          </TabsList>
+
+                          <TabsContent value="dimensions" className="mt-4">
+                            <div className="text-sm text-gray-400">
+                              Dimensions data will be displayed here
+                            </div>
+                          </TabsContent>
+
+                          <TabsContent value="shipping" className="mt-4">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                              <div>
+                                <Label className="text-xs text-gray-400">Estimated Delivery</Label>
+                                <div className="text-sm font-medium text-gray-100">
+                                  {formatDate(item.estimated_delivery)}
+                                </div>
+                              </div>
+                              <div>
+                                <Label className="text-xs text-gray-400">Actual Delivery</Label>
+                                <div className="text-sm font-medium text-gray-100">
+                                  {formatDate(item.actual_delivery)}
+                                </div>
+                              </div>
+                              <div>
+                                <Label className="text-xs text-gray-400">Status</Label>
+                                <div className="text-sm font-medium">
+                                  <Badge className={getStatusColor(item.status)}>
+                                    {statuses.find(s => s.value === item.status)?.label}
+                                  </Badge>
+                                </div>
+                              </div>
+                            </div>
+                          </TabsContent>
+
+                          <TabsContent value="images" className="mt-4">
+                            <div className="text-sm text-gray-400">
+                              Image management will be displayed here
+                            </div>
+                          </TabsContent>
+                        </Tabs>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+                </React.Fragment>
                 ))
               )}
             </TableBody>

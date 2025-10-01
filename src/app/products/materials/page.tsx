@@ -80,6 +80,8 @@ interface MaterialFormData {
   collection_ids: string[];
   material_category: string;
   hierarchy_action: string;
+  supplier?: string; // Level 1 only (brands/types)
+  color_sku?: string; // Level 3 only (colors)
 }
 
 const MATERIAL_CATEGORIES = [
@@ -223,6 +225,24 @@ export default function MaterialsPage() {
     return action.includes('collection') || action.includes('color') || action.includes('finish');
   };
 
+  const getDialogTitle = (): string => {
+    if (editingMaterial) return "Edit Material";
+    if (!formData.hierarchy_action) return "Add New Material";
+
+    const categoryName = formData.material_category.charAt(0).toUpperCase() + formData.material_category.slice(1);
+
+    if (formData.hierarchy_action === 'add_brand') return `Add ${categoryName} Brand`;
+    if (formData.hierarchy_action.includes('collection')) return `Add ${categoryName} Collection`;
+    if (formData.hierarchy_action.includes('color')) return `Add ${categoryName} Color`;
+    if (formData.hierarchy_action.includes('finish')) return `Add ${categoryName} Finish`;
+    if (formData.hierarchy_action.includes('pattern')) return `Add ${categoryName} Pattern`;
+    if (formData.hierarchy_action.includes('style')) return `Add ${categoryName} Style`;
+    if (formData.hierarchy_action.includes('type')) return `Add ${categoryName} Type`;
+    if (formData.hierarchy_action.includes('material')) return `Add ${categoryName} Material`;
+
+    return "Add New Material";
+  };
+
   const getMaterialTypeFromAction = (action: string): string => {
     const typeMap: Record<string, string> = {
       'add_brand': 'brand',
@@ -331,6 +351,11 @@ export default function MaterialsPage() {
       const hierarchyLevel = getHierarchyLevelFromAction(formData.hierarchy_action);
       const materialCode = formData.code || generateMaterialCode(materialType, formData.name);
 
+      // Auto-set category_id based on material_category if not already set
+      const categoryId = formData.category_id ||
+        materialCategories.find((cat: any) => cat.name.toLowerCase() === formData.material_category.toLowerCase())?.id ||
+        formData.category_id;
+
       if (isEditing) {
         await updateMaterialMutation.mutateAsync({
           id: editingMaterial.id,
@@ -338,7 +363,7 @@ export default function MaterialsPage() {
           code: materialCode,
           type: materialType || formData.type,
           description: formData.description || undefined,
-          category_id: formData.category_id,
+          category_id: categoryId,
           active: formData.active,
           cost_per_unit: formData.cost_per_unit || undefined,
           unit_of_measure: formData.unit_of_measure || undefined,
@@ -350,13 +375,15 @@ export default function MaterialsPage() {
           code: materialCode,
           type: materialType || formData.type,
           description: formData.description || undefined,
-          category_id: formData.category_id,
+          category_id: categoryId,
           active: formData.active,
           cost_per_unit: formData.cost_per_unit || undefined,
           unit_of_measure: formData.unit_of_measure || undefined,
           parent_material_id: formData.parent_material_id || undefined,
           hierarchy_level: hierarchyLevel,
-          collection_ids: formData.collection_ids.length > 0 ? formData.collection_ids : undefined
+          collection_ids: formData.collection_ids.length > 0 ? formData.collection_ids : undefined,
+          supplier: formData.supplier || undefined,
+          color_sku: formData.color_sku || undefined
         });
       }
 
@@ -738,7 +765,7 @@ export default function MaterialsPage() {
           <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
-                {editingMaterial ? "Edit Material" : "Add New Material"}
+                {getDialogTitle()}
               </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -785,7 +812,7 @@ export default function MaterialsPage() {
                             key={action.id}
                             type="button"
                             variant="outline"
-                            onClick={() => setFormData({ ...formData, hierarchy_action: action.id })}
+                            onClick={() => setFormData({ ...formData, hierarchy_action: action.id, hierarchy_level: action.level })}
                             className="w-full text-left justify-start h-auto py-4 px-6 hover:border-blue-500"
                           >
                             <div>
@@ -878,93 +905,97 @@ export default function MaterialsPage() {
                   )}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Basic Information */}
+                    {/* Context-Aware Form Fields */}
                     <div className="space-y-4">
-                      <h4 className="font-medium text-slate-900">Basic Information</h4>
+                      <h4 className="font-medium text-slate-900">
+                        {formData.hierarchy_level === 1 ? 'Level 1: Brand/Type Information' :
+                         formData.hierarchy_level === 2 ? 'Level 2: Collection/Finish Information' :
+                         formData.hierarchy_level === 3 ? 'Level 3: Color Information' : 'Basic Information'}
+                      </h4>
 
+                      {/* Material Name - ALL LEVELS */}
                       <div>
-                        <Label htmlFor="name">Material Name *</Label>
+                        <Label htmlFor="name">
+                          {formData.hierarchy_action === 'add_brand' ? 'Brand Name *' :
+                           formData.hierarchy_action === 'add_type' ? 'Type Name *' :
+                           formData.hierarchy_action === 'add_collection' ? 'Collection Name *' :
+                           formData.hierarchy_action === 'add_finish' ? 'Finish Name *' :
+                           formData.hierarchy_action === 'add_color' ? 'Color Name *' :
+                           formData.hierarchy_action === 'add_pattern' ? 'Pattern Name *' :
+                           formData.hierarchy_action === 'add_style' ? 'Style Name *' : 'Material Name *'}
+                        </Label>
                         <Input
                           id="name"
                           value={formData.name}
                           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                           className={formErrors.name ? 'border-red-300' : ''}
-                          placeholder="Enter material name"
+                          placeholder={
+                            formData.hierarchy_action === 'add_brand' ? 'e.g., Maharam' :
+                            formData.hierarchy_action === 'add_type' ? 'e.g., Oak, Aluminum' :
+                            formData.hierarchy_action === 'add_collection' ? 'e.g., Canvas 2' :
+                            formData.hierarchy_action === 'add_finish' ? 'e.g., Brushed, Polished' :
+                            formData.hierarchy_action === 'add_color' ? 'e.g., Navy, Charcoal' :
+                            formData.hierarchy_action === 'add_pattern' ? 'e.g., Herringbone, Basketweave' :
+                            formData.hierarchy_action === 'add_style' ? 'e.g., Floral, Geometric' : 'Enter material name'
+                          }
                         />
                         {formErrors.name && <p className="text-red-600 text-sm mt-1">{formErrors.name}</p>}
                       </div>
 
-                      <div>
-                        <Label htmlFor="code">Material Code (auto-generated if empty)</Label>
-                        <Input
-                          id="code"
-                          value={formData.code}
-                          onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                          placeholder="Auto-generated"
-                        />
-                      </div>
+                      {/* Material Code - HIDDEN (auto-generated) */}
 
-                      <div>
-                        <Label htmlFor="category">Category *</Label>
-                        <Select
-                          value={formData.category_id}
-                          onValueChange={(value) => setFormData({ ...formData, category_id: value })}
-                        >
-                          <SelectTrigger className={formErrors.category_id ? 'border-red-300' : ''}>
-                            <SelectValue placeholder="Select category" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {materialCategories.map((category: any) => (
-                              <SelectItem key={category.id} value={category.id}>
-                                {category.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        {formErrors.category_id && <p className="text-red-600 text-sm mt-1">{formErrors.category_id}</p>}
-                      </div>
+                      {/* Category - HIDDEN (auto-selected from material_category) */}
 
+                      {/* Description - ALL LEVELS */}
                       <div>
                         <Label htmlFor="description">Description</Label>
                         <Textarea
                           id="description"
                           value={formData.description}
                           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                          placeholder="Describe this material..."
+                          placeholder={
+                            formData.hierarchy_action === 'add_brand' ? 'Describe the brand...' :
+                            formData.hierarchy_action === 'add_type' ? 'Describe this material type...' :
+                            formData.hierarchy_action === 'add_collection' ? 'Describe this collection...' :
+                            formData.hierarchy_action === 'add_finish' ? 'Describe this finish...' :
+                            formData.hierarchy_action === 'add_color' ? 'Describe this color...' : 'Describe this material...'
+                          }
                           rows={3}
                         />
                       </div>
                     </div>
 
-                    {/* Pricing & Settings */}
+                    {/* Right Column - Context-Aware Fields */}
                     <div className="space-y-4">
-                      <h4 className="font-medium text-slate-900">Pricing & Settings</h4>
+                      <h4 className="font-medium text-slate-900">Additional Details</h4>
 
-                      <div>
-                        <Label htmlFor="cost_per_unit">Cost per Unit</Label>
-                        <Input
-                          id="cost_per_unit"
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={formData.cost_per_unit}
-                          onChange={(e) => setFormData({ ...formData, cost_per_unit: parseFloat(e.target.value) || 0 })}
-                          className={formErrors.cost_per_unit ? 'border-red-300' : ''}
-                          placeholder="0.00"
-                        />
-                        {formErrors.cost_per_unit && <p className="text-red-600 text-sm mt-1">{formErrors.cost_per_unit}</p>}
-                      </div>
+                      {/* LEVEL 1 ONLY: Supplier Field */}
+                      {formData.hierarchy_action && formData.hierarchy_level === 1 && (
+                        <div>
+                          <Label htmlFor="supplier">Supplier</Label>
+                          <Input
+                            id="supplier"
+                            value={formData.supplier || ''}
+                            onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
+                            placeholder="Enter supplier name"
+                          />
+                        </div>
+                      )}
 
-                      <div>
-                        <Label htmlFor="unit_of_measure">Unit of Measure</Label>
-                        <Input
-                          id="unit_of_measure"
-                          value={formData.unit_of_measure}
-                          onChange={(e) => setFormData({ ...formData, unit_of_measure: e.target.value })}
-                          placeholder="e.g., yards, pieces, sq ft"
-                        />
-                      </div>
+                      {/* LEVEL 3 ONLY: Color SKU Field */}
+                      {formData.hierarchy_action && formData.hierarchy_level === 3 && (
+                        <div>
+                          <Label htmlFor="color_sku">Color SKU</Label>
+                          <Input
+                            id="color_sku"
+                            value={formData.color_sku || ''}
+                            onChange={(e) => setFormData({ ...formData, color_sku: e.target.value })}
+                            placeholder="Enter color SKU"
+                          />
+                        </div>
+                      )}
 
+                      {/* Active Checkbox - ALL LEVELS */}
                       <div className="flex items-center space-x-2">
                         <Checkbox
                           id="active"
