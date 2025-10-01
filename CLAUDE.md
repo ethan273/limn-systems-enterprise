@@ -60,6 +60,53 @@ As we build out future enhancements, functionality, pages, and features, ALWAYS 
 
 ---
 
+## 🚨🚨🚨 CRITICAL BROWSER ERROR DEBUGGING REQUIREMENT 🚨🚨🚨
+
+**ALWAYS CHECK ACTUAL BROWSER CONSOLE ERRORS - NOT JUST COMPILE-TIME ERRORS**
+
+**MANDATORY DEBUGGING WORKFLOW:**
+
+1. **ALWAYS check browser console errors** - Not just compile-time errors
+2. **Actually debug pages** - Check actual browser errors in real-time
+3. **Fix automatically** - Don't wait for user to report issues
+4. **Check again after fixing** - Verify the fix worked in browser
+5. **Do this ALWAYS** - Every single time you make changes
+6. **Fix ALL problems without user intervention** - As much as possible
+
+**WHY THIS IS CRITICAL:**
+- Compile-time errors (ESLint, TypeScript) only catch syntax/type issues
+- Runtime errors (browser console) catch real functionality problems
+- Many errors only appear when the page actually loads in browser
+- Auth errors, API errors, React errors - all appear in browser console only
+
+**PROCESS YOU MUST FOLLOW:**
+
+```bash
+# After making ANY code changes:
+1. Check compile-time: npm run lint && npm run type-check
+2. Check browser console: Use BashOutput tool to see server logs
+3. Look for: [Error], ❌ tRPC failed, React warnings, etc.
+4. Fix ALL issues found
+5. Check browser console AGAIN to verify fixes
+6. Repeat until ZERO browser console errors
+```
+
+**WHAT TO LOOK FOR IN BROWSER CONSOLE:**
+- ❌ tRPC failed errors (API/authentication issues)
+- [Error] React errors (component/hook issues)
+- [Warning] React warnings (key issues, hook dependencies)
+- Failed to compile errors (build issues)
+- CORS errors (API configuration issues)
+- 401/403 errors (authentication/authorization issues)
+- useAuth/useContext errors (provider issues)
+
+**USER'S EXACT REQUIREMENT:**
+*"always check the actual browser console errors, not just compile-time errors. you always need to actually debug pages checking actual browser errors and fix automatically and then check again. always. i want all problems to be fixed without my intervention as much as possible. add to our critical instructions and memory. never forget"*
+
+**THIS IS MANDATORY. CHECK BROWSER CONSOLE ALWAYS. FIX RUNTIME ERRORS AUTOMATICALLY.**
+
+---
+
 ## 🚨 CRITICAL COMMUNICATION REQUIREMENT 🚨
 
 **ALWAYS END EVERY RESPONSE WITH SERVER PORT INFORMATION:**
