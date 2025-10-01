@@ -379,4 +379,77 @@ export const ordersRouter = createTRPCRouter({
       );
       return { projectSku };
     }),
+
+  // Get orders with production details, invoices, and payments
+  getWithProductionDetails: publicProcedure
+    .input(z.object({
+      limit: z.number().min(1).max(100).default(50),
+      offset: z.number().min(0).default(0),
+      status: z.string().optional(),
+      customer_id: z.string().uuid().optional(),
+      project_id: z.string().uuid().optional(),
+    }))
+    .query(async ({ ctx, input }) => {
+      const orders = await ctx.db.orders.findMany({
+        where: {
+          ...(input.status && { status: input.status }),
+          ...(input.customer_id && { customer_id: input.customer_id }),
+        },
+        include: {
+          customers: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          projects: {
+            select: {
+              id: true,
+              name: true,
+              status: true,
+            },
+          },
+          order_items: {
+            select: {
+              id: true,
+              quantity: true,
+              unit_price: true,
+              client_sku: true,
+              description: true,
+              specifications: true,
+            },
+          },
+          production_orders: {
+            select: {
+              id: true,
+              order_number: true,
+              item_name: true,
+              quantity: true,
+              total_cost: true,
+              status: true,
+              deposit_paid: true,
+              final_payment_paid: true,
+            },
+          },
+          production_invoices: {
+            include: {
+              production_invoice_line_items: true,
+              production_payments: {
+                orderBy: { payment_date: 'desc' },
+              },
+            },
+          },
+        },
+        limit: input.limit,
+        offset: input.offset,
+        orderBy: { created_at: 'desc' },
+      });
+
+      return {
+        items: orders,
+        total: orders.length,
+        hasMore: orders.length === input.limit,
+      };
+    }),
 });

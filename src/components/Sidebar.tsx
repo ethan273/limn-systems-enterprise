@@ -111,6 +111,7 @@ export default function Sidebar() {
         { label: "Prospects", href: "/crm/prospects" },
         { label: "Clients", href: "/crm/clients" },
         { label: "Projects", href: "/crm/projects" },
+        { label: "Orders", href: "/crm/orders" },
       ]
     },
     {
@@ -130,8 +131,7 @@ export default function Sidebar() {
       icon: Factory,
       items: [
         { label: "Dashboard", href: "/production/dashboard" },
-        { label: "Orders", href: "/production/orders" },
-        { label: "Create Order", href: "/production/orders/new" },
+        { label: "Production Orders", href: "/production/orders" },
       ]
     },
     {
