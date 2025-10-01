@@ -1430,6 +1430,8 @@ export class DatabaseClient {
     findMany: (options?: QueryOptions) => this.findManyGeneric<any>('partners', options),
     findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
       this.findUniqueGeneric<any>('partners', options),
+    findFirst: (options?: { where?: Record<string, any>; orderBy?: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findFirstGeneric<any>('partners', { where: options?.where || {}, orderBy: options?.orderBy, include: options?.include, select: options?.select }),
     create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
       this.createGeneric<any>('partners', options),
     update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>

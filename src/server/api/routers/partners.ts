@@ -464,4 +464,26 @@ export const partnersRouter = createTRPCRouter({
 
       return partners;
     }),
+
+  // Get partner by portal user (for factory portal)
+  getByPortalUser: protectedProcedure.query(async ({ ctx }) => {
+    const partner = await ctx.db.partners.findFirst({
+      where: {
+        portal_user_id: ctx.session.user.id,
+      },
+      include: {
+        contacts: {
+          where: { active: true },
+        },
+        _count: {
+          select: {
+            production_orders: true,
+            documents: true,
+          },
+        },
+      },
+    });
+
+    return partner;
+  }),
 });

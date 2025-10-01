@@ -427,4 +427,53 @@ export const productionOrdersRouter = createTRPCRouter({
         where: { id: input.id },
       });
     }),
+
+  // Get production orders by factory (for factory portal)
+  getByFactory: publicProcedure
+    .input(
+      z.object({
+        factoryId: z.string().uuid(),
+        status: z.string().optional(),
+        limit: z.number().min(1).max(100).optional().default(50),
+        offset: z.number().min(0).optional().default(0),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const where: Record<string, unknown> = {
+        factory_id: input.factoryId,
+      };
+
+      if (input.status && input.status !== 'all') {
+        where.status = input.status;
+      }
+
+      const [orders, total] = await Promise.all([
+        ctx.db.production_orders.findMany({
+          where,
+          take: input.limit,
+          skip: input.offset,
+          orderBy: { created_at: 'desc' },
+          select: {
+            id: true,
+            order_number: true,
+            item_name: true,
+            quantity: true,
+            total_cost: true,
+            status: true,
+            payment_status: true,
+            order_date: true,
+            estimated_ship_date: true,
+            deposit_paid: true,
+            final_payment_paid: true,
+          },
+        }),
+        ctx.db.production_orders.count({ where }),
+      ]);
+
+      return {
+        orders,
+        total,
+        hasMore: input.offset + input.limit < total,
+      };
+    }),
 });
