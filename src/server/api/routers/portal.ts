@@ -720,6 +720,48 @@ export const portalRouter = createTRPCRouter({
     }),
 
   // ============================================
+  // Documents Management
+  // ============================================
+
+  /**
+   * Get Customer Documents
+   * Returns all documents for the customer's projects
+   */
+  getCustomerDocuments: portalProcedure
+    .input(z.object({
+      documentType: z.string().optional(),
+      limit: z.number().min(1).max(100).optional().default(100),
+      offset: z.number().min(0).optional().default(0),
+    }))
+    .query(async ({ ctx, input }) => {
+      const where: any = {
+        customer_id: ctx.customerId,
+      };
+
+      if (input.documentType) {
+        where.type = input.documentType;
+      }
+
+      const [documents, total] = await Promise.all([
+        prisma.documents.findMany({
+          where,
+          orderBy: {
+            created_at: 'desc',
+          },
+          take: input.limit,
+          skip: input.offset,
+        }),
+        prisma.documents.count({ where }),
+      ]);
+
+      return {
+        documents,
+        total,
+        hasMore: input.offset + input.limit < total,
+      };
+    }),
+
+  // ============================================
   // Activity Logging
   // ============================================
 
