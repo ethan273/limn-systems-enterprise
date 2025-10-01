@@ -480,6 +480,19 @@ export class DatabaseClient {
   oauth_tokens = prisma.oauth_tokens;
   design_files = prisma.design_files;
 
+  // Prototyping Module (Phase 2 - Week 17)
+  prototypes = prisma.prototypes;
+  prototype_production = prisma.prototype_production;
+  prototype_milestones = prisma.prototype_milestones;
+  prototype_photos = prisma.prototype_photos;
+  prototype_photo_comments = prisma.prototype_photo_comments;
+  prototype_documents = prisma.prototype_documents;
+  prototype_reviews = prisma.prototype_reviews;
+  prototype_review_participants = prisma.prototype_review_participants;
+  prototype_review_actions = prisma.prototype_review_actions;
+  prototype_feedback = prisma.prototype_feedback;
+  prototype_revisions = prisma.prototype_revisions;
+
   // =====================================================
   // TRANSACTION SUPPORT
   // =====================================================
