@@ -493,6 +493,12 @@ export class DatabaseClient {
   prototype_feedback = prisma.prototype_feedback;
   prototype_revisions = prisma.prototype_revisions;
 
+  // Factory Reviews (Phase 2 - Week 18)
+  factory_review_sessions = prisma.factory_review_sessions;
+  factory_review_photos = prisma.factory_review_photos;
+  factory_review_comments = prisma.factory_review_comments;
+  factory_review_documents = prisma.factory_review_documents;
+
   // =====================================================
   // TRANSACTION SUPPORT
   // =====================================================

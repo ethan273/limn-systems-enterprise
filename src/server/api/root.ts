@@ -25,6 +25,7 @@ import { oauthRouter } from './routers/oauth';
 import { storageRouter } from './routers/storage';
 import { shopDrawingsRouter } from './routers/shop-drawings';
 import { prototypesRouter } from './routers/prototypes';
+import { factoryReviewsRouter } from './routers/factoryReviews';
 
 /**
  * Main API router
@@ -79,6 +80,9 @@ export const appRouter = createTRPCRouter({
 
   // Prototypes (Phase 2 - Week 17)
   prototypes: prototypesRouter,
+
+  // Factory Reviews (Phase 2 - Week 18)
+  factoryReviews: factoryReviewsRouter,
 
   // Shipping (SEKO Integration)
   shipping: shippingRouter,
