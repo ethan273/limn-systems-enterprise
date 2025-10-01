@@ -37,10 +37,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('id', userId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // If profile doesn't exist, that's okay - user might not have one yet
+        if (error.code === 'PGRST116') {
+          console.log('No profile found for user, using default profile');
+          setProfile(null);
+          return;
+        }
+        throw error;
+      }
       setProfile(data as UserProfile);
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error('Error fetching profile:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        code: (error as any)?.code,
+        details: (error as any)?.details,
+        hint: (error as any)?.hint,
+        error: error
+      });
       setProfile(null);
     }
   }, [supabase]);
