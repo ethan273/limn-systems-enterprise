@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,6 +45,8 @@ import {
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
+import { PhotoGallery } from "@/components/prototypes/PhotoGallery";
+import { ProgressTracker } from "@/components/prototypes/ProgressTracker";
 
 // Dynamic route configuration
 export const dynamic = 'force-dynamic';
@@ -154,7 +155,7 @@ export default function PrototypeDetailPage({ params }: PageProps) {
   });
 
   // Fetch production details
-  const { data: production } = api.prototypes.getProduction.useQuery(
+  const { data: production, refetch: refetchProduction } = api.prototypes.getProduction.useQuery(
     { prototypeId: params.id },
     { enabled: !!prototype }
   );
@@ -476,6 +477,12 @@ export default function PrototypeDetailPage({ params }: PageProps) {
         <TabsContent value="production" className="space-y-4">
           {production ? (
             <>
+              <ProgressTracker
+                prototypeId={params.id}
+                production={production}
+                onUpdate={() => refetchProduction()}
+              />
+
               <Card>
                 <CardHeader>
                   <CardTitle>Production Status</CardTitle>
@@ -708,51 +715,7 @@ export default function PrototypeDetailPage({ params }: PageProps) {
 
         {/* Photos Tab */}
         <TabsContent value="photos" className="space-y-4">
-          {photos && photos.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {photos.map((photo) => (
-                <Card key={photo.id}>
-                  <CardContent className="p-2">
-                    <div className="aspect-square bg-muted rounded-md mb-2 relative">
-                      <Image
-                        src={photo.file_url}
-                        alt={photo.description || "Prototype photo"}
-                        width={400}
-                        height={400}
-                        className="w-full h-full object-cover rounded-md"
-                      />
-                      {photo.is_featured && (
-                        <Badge className="absolute top-2 right-2">Featured</Badge>
-                      )}
-                    </div>
-                    <div className="space-y-1">
-                      <Badge variant="outline" className="text-xs">
-                        {photo.photo_type}
-                      </Badge>
-                      {photo.description && (
-                        <p className="text-xs text-muted-foreground line-clamp-2">
-                          {photo.description}
-                        </p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <Card>
-              <CardContent className="p-12">
-                <div className="text-center text-muted-foreground">
-                  <ImageIcon className="w-12 h-12 mx-auto mb-2 opacity-50" aria-hidden="true" />
-                  <p className="text-sm">No photos available</p>
-                  <Button variant="outline" className="mt-4">
-                    <Upload className="w-4 h-4 mr-2" aria-hidden="true" />
-                    Upload Photo
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          <PhotoGallery prototypeId={params.id} />
         </TabsContent>
 
         {/* Documents Tab */}
