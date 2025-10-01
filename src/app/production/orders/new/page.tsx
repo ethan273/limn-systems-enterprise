@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { toast } from "sonner";
@@ -13,9 +13,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, CheckCircle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function NewProductionOrderPage() {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [authLoading, user, router]);
   const [formData, setFormData] = useState({
     project_id: "",
     product_type: "catalog" as "catalog" | "prototype" | "concept",
@@ -31,10 +40,16 @@ export default function NewProductionOrderPage() {
     factory_notes: "",
   });
 
-  const { data: projects } = api.projects.getAll.useQuery({});
-  const { data: catalogItems } = api.items.getAll.useQuery({});
+  const { data: projects } = api.projects.getAll.useQuery(
+    {},
+    { enabled: !!user }
+  );
+  const { data: catalogItems } = api.items.getAll.useQuery(
+    {},
+    { enabled: !!user }
+  );
   // TODO: Add manufacturers query when partners module is implemented
-  // const { data: manufacturers } = api.partners.getAll.useQuery({ type: "manufacturer" });
+  // const { data: manufacturers } = api.partners.getAll.useQuery({ type: "manufacturer" }, { enabled: !!user });
 
   const createOrder = api.productionOrders.create.useMutation({
     onSuccess: (data) => {
@@ -82,6 +97,25 @@ export default function NewProductionOrderPage() {
   const totalCost = formData.quantity * formData.unit_price;
   const depositAmount = totalCost * 0.5;
   const balanceAmount = totalCost * 0.5;
+
+  // Show loading state while checking authentication
+  if (authLoading) {
+    return (
+      <div className="container mx-auto py-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render if not authenticated (will redirect)
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="container mx-auto py-6 max-w-4xl">

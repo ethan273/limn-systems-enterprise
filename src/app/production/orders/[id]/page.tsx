@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { toast } from "sonner";
@@ -17,10 +17,19 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Textarea } from "@/components/ui/textarea";
 import { DollarSign, Package, Truck, AlertCircle, CheckCircle, ArrowLeft, Settings, Trash2, Ship, Clock } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function ProductionOrderDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [authLoading, user, router]);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -63,9 +72,12 @@ export default function ProductionOrderDetailPage() {
     special_instructions: "",
   });
 
-  const { data: order, refetch } = api.productionOrders.getById.useQuery({
-    id: params.id as string,
-  });
+  const { data: order, refetch } = api.productionOrders.getById.useQuery(
+    {
+      id: params.id as string,
+    },
+    { enabled: !!user }
+  );
 
   const recordPayment = api.productionInvoices.recordPayment.useMutation({
     onSuccess: (data) => {
@@ -170,13 +182,36 @@ export default function ProductionOrderDetailPage() {
     });
   };
 
-  if (!order) return (
-    <div className="container mx-auto py-6">
-      <div className="text-center py-12">
-        <p className="text-muted-foreground">Loading...</p>
+  // Show loading state while checking authentication
+  if (authLoading) {
+    return (
+      <div className="container mx-auto py-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  // Don't render if not authenticated (will redirect)
+  if (!user) {
+    return null;
+  }
+
+  // Show loading state while fetching order
+  if (!order) {
+    return (
+      <div className="container mx-auto py-6">
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading order...</p>
+        </div>
+      </div>
+    );
+  }
 
   const depositInvoice = order.production_invoices?.find((inv: any) => inv.invoice_type === "deposit");
   const finalInvoice = order.production_invoices?.find((inv: any) => inv.invoice_type === "final");
