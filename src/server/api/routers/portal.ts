@@ -680,6 +680,45 @@ export const portalRouter = createTRPCRouter({
       };
     }),
 
+  /**
+   * Get Customer Shipments
+   * Returns all shipments for the customer's projects
+   */
+  getCustomerShipments: portalProcedure
+    .input(z.object({
+      limit: z.number().min(1).max(100).optional().default(50),
+      offset: z.number().min(0).optional().default(0),
+    }))
+    .query(async ({ ctx, input }) => {
+      const [shipments, total] = await Promise.all([
+        prisma.shipments.findMany({
+          where: {
+            projects: {
+              customer_id: ctx.customerId,
+            },
+          },
+          orderBy: {
+            created_at: 'desc',
+          },
+          take: input.limit,
+          skip: input.offset,
+        }),
+        prisma.shipments.count({
+          where: {
+            projects: {
+              customer_id: ctx.customerId,
+            },
+          },
+        }),
+      ]);
+
+      return {
+        shipments,
+        total,
+        hasMore: input.offset + input.limit < total,
+      };
+    }),
+
   // ============================================
   // Activity Logging
   // ============================================
