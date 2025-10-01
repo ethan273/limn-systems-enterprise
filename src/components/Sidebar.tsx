@@ -8,6 +8,7 @@ import {
   Users,
   Package,
   Factory,
+  DollarSign,
   ChevronDown,
   ChevronRight,
   LogOutIcon,
@@ -41,7 +42,8 @@ export default function Sidebar() {
     "Tasks": isOnTasksPage,
     "Products": pathname.startsWith('/products'),
     "CRM": pathname.startsWith('/crm'),
-    "Production": pathname.startsWith('/production')
+    "Production": pathname.startsWith('/production'),
+    "Finance": pathname.startsWith('/finance')
   });
 
   // Update expanded modules when pathname changes to keep relevant module open
@@ -51,7 +53,8 @@ export default function Sidebar() {
       "Tasks": pathname.startsWith('/tasks'),
       "Products": pathname.startsWith('/products'),
       "CRM": pathname.startsWith('/crm'),
-      "Production": pathname.startsWith('/production')
+      "Production": pathname.startsWith('/production'),
+      "Finance": pathname.startsWith('/finance')
     });
   }, [pathname]);
 
@@ -128,6 +131,13 @@ export default function Sidebar() {
       items: [
         { label: "Dashboard", href: "/production/dashboard" },
         { label: "Orders", href: "/production/orders" },
+      ]
+    },
+    {
+      label: "Finance",
+      icon: DollarSign,
+      items: [
+        { label: "Dashboard", href: "/finance" },
       ]
     }
   ];
