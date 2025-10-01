@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Textarea } from "@/components/ui/textarea";
-import { DollarSign, Package, Truck, AlertCircle, CheckCircle, ArrowLeft, Settings, Trash2 } from "lucide-react";
+import { DollarSign, Package, Truck, AlertCircle, CheckCircle, ArrowLeft, Settings, Trash2, Ship, Clock } from "lucide-react";
 import Link from "next/link";
 
 export default function ProductionOrderDetailPage() {
@@ -24,13 +24,43 @@ export default function ProductionOrderDetailPage() {
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [quoteDialogOpen, setQuoteDialogOpen] = useState(false);
+  const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<string>("");
   const [selectedStatus, setSelectedStatus] = useState<string>("");
+  const [selectedQuote, setSelectedQuote] = useState<any>(null);
+  const [quotes, setQuotes] = useState<any[]>([]);
   const [paymentForm, setPaymentForm] = useState({
     amount: 0,
     payment_method: "credit_card" as "credit_card" | "wire_transfer" | "check" | "ach",
     transaction_id: "",
     notes: "",
+  });
+  const [shippingForm, setShippingForm] = useState({
+    origin: {
+      name: "Limn Systems Factory",
+      address_line1: "",
+      city: "",
+      state: "",
+      postal_code: "",
+      country: "US",
+    },
+    destination: {
+      name: "",
+      address_line1: "",
+      city: "",
+      state: "",
+      postal_code: "",
+      country: "US",
+    },
+    packages: [{
+      length: 0,
+      width: 0,
+      height: 0,
+      weight: 0,
+      quantity: 1,
+    }],
+    special_instructions: "",
   });
 
   const { data: order, refetch } = api.productionOrders.getById.useQuery({
@@ -70,6 +100,34 @@ export default function ProductionOrderDetailPage() {
     },
   });
 
+  const getQuotes = api.shipping.getQuotes.useMutation({
+    onSuccess: (data) => {
+      toast.success(`Received ${data.quotes.length} shipping quotes!`);
+      setQuotes(data.quotes);
+      setQuoteDialogOpen(false);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to get shipping quotes");
+    },
+  });
+
+  const createShipment = api.shipping.createShipment.useMutation({
+    onSuccess: (data) => {
+      toast.success(`Shipment created! Tracking: ${data.shipment.tracking_number}`);
+      void refetch();
+      setBookingDialogOpen(false);
+      setQuotes([]);
+      setSelectedQuote(null);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to create shipment");
+    },
+  });
+
+  const { data: shipments } = api.shipping.getShipmentsByOrder.useQuery({
+    production_order_id: params.id as string,
+  });
+
   const openPaymentDialog = (invoiceId: string, amountDue: number) => {
     setSelectedInvoiceId(invoiceId);
     setPaymentForm({ ...paymentForm, amount: amountDue });
@@ -83,6 +141,32 @@ export default function ProductionOrderDetailPage() {
       payment_method: paymentForm.payment_method,
       transaction_id: paymentForm.transaction_id || undefined,
       notes: paymentForm.notes || undefined,
+    });
+  };
+
+  const handleRequestQuotes = () => {
+    getQuotes.mutate({
+      production_order_id: params.id as string,
+      origin: shippingForm.origin,
+      destination: shippingForm.destination,
+      packages: shippingForm.packages,
+    });
+  };
+
+  const handleBookShipment = () => {
+    if (!selectedQuote) {
+      toast.error("Please select a shipping quote");
+      return;
+    }
+
+    createShipment.mutate({
+      production_order_id: params.id as string,
+      origin: shippingForm.origin,
+      destination: shippingForm.destination,
+      packages: shippingForm.packages,
+      carrier: selectedQuote.carrier,
+      service_level: selectedQuote.service_level,
+      special_instructions: shippingForm.special_instructions,
     });
   };
 
@@ -497,10 +581,85 @@ export default function ProductionOrderDetailPage() {
         </TabsContent>
 
         {/* Shipments Tab */}
-        <TabsContent value="shipments">
+        <TabsContent value="shipments" className="space-y-4">
+          {/* Shipping Quotes Comparison */}
+          {quotes.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Shipping Quotes Comparison</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Select</TableHead>
+                      <TableHead>Carrier</TableHead>
+                      <TableHead>Service Level</TableHead>
+                      <TableHead>Est. Delivery</TableHead>
+                      <TableHead>Cost</TableHead>
+                      <TableHead>Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {quotes.map((quote, idx) => (
+                      <TableRow
+                        key={idx}
+                        className={selectedQuote === quote ? "bg-blue-50" : ""}
+                      >
+                        <TableCell>
+                          <input
+                            type="radio"
+                            name="quote"
+                            checked={selectedQuote === quote}
+                            onChange={() => setSelectedQuote(quote)}
+                            className="h-4 w-4"
+                          />
+                        </TableCell>
+                        <TableCell className="font-medium">{quote.carrier}</TableCell>
+                        <TableCell>{quote.service_name}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-3 w-3 text-muted-foreground" />
+                            {quote.estimated_days} days
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-mono">${quote.total_charge.toFixed(2)}</TableCell>
+                        <TableCell>
+                          {selectedQuote === quote && (
+                            <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
+                              Selected
+                            </Badge>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                <div className="flex gap-2 mt-4">
+                  <Button onClick={() => setBookingDialogOpen(true)} disabled={!selectedQuote}>
+                    <Ship className="h-4 w-4 mr-2" />
+                    Book Selected Carrier
+                  </Button>
+                  <Button variant="outline" onClick={() => setQuotes([])}>
+                    Clear Quotes
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Existing Shipments */}
           <Card>
             <CardHeader>
-              <CardTitle>Shipments</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Shipments</CardTitle>
+                {order.final_payment_paid && (
+                  <Button onClick={() => setQuoteDialogOpen(true)} size="sm">
+                    <Ship className="h-4 w-4 mr-2" />
+                    Request Shipping Quotes
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               {!order.final_payment_paid ? (
@@ -510,32 +669,44 @@ export default function ProductionOrderDetailPage() {
                     Shipment creation is blocked until final payment is received
                   </AlertDescription>
                 </Alert>
-              ) : !order.shipments || order.shipments.length === 0 ? (
+              ) : !shipments || shipments.length === 0 ? (
                 <div className="text-center py-6">
                   <p className="text-muted-foreground mb-4">No shipments created yet</p>
-                  <Button>Create Shipment</Button>
+                  <p className="text-sm text-muted-foreground">Request quotes to compare carriers and create a shipment</p>
                 </div>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead>Shipment #</TableHead>
                       <TableHead>Tracking #</TableHead>
                       <TableHead>Carrier</TableHead>
+                      <TableHead>Service Level</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Ship Date</TableHead>
+                      <TableHead>Cost</TableHead>
+                      <TableHead>Est. Delivery</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {order.shipments.map((shipment: any) => (
+                    {shipments.map((shipment: any) => (
                       <TableRow key={shipment.id}>
-                        <TableCell className="font-mono">{shipment.tracking_number}</TableCell>
-                        <TableCell>{shipment.carrier}</TableCell>
+                        <TableCell className="font-medium">{shipment.shipment_number || "—"}</TableCell>
+                        <TableCell className="font-mono">{shipment.tracking_number || "—"}</TableCell>
+                        <TableCell>{shipment.carrier || "—"}</TableCell>
+                        <TableCell>{shipment.service_level || "—"}</TableCell>
                         <TableCell>
-                          <Badge variant="outline">{shipment.status}</Badge>
+                          <Badge variant="outline" className={
+                            shipment.status === "delivered" ? "bg-green-100 text-green-800 border-green-300" :
+                            shipment.status === "in_transit" ? "bg-blue-100 text-blue-800 border-blue-300" :
+                            "bg-gray-100 text-gray-800 border-gray-300"
+                          }>
+                            {shipment.status}
+                          </Badge>
                         </TableCell>
+                        <TableCell>${Number(shipment.shipping_cost || 0).toFixed(2)}</TableCell>
                         <TableCell>
-                          {shipment.ship_date
-                            ? new Date(shipment.ship_date).toLocaleDateString()
+                          {shipment.estimated_delivery
+                            ? new Date(shipment.estimated_delivery).toLocaleDateString()
                             : "—"}
                         </TableCell>
                       </TableRow>
@@ -714,6 +885,252 @@ export default function ProductionOrderDetailPage() {
                 Cancel
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Quote Request Dialog */}
+      <Dialog open={quoteDialogOpen} onOpenChange={setQuoteDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Request Shipping Quotes</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Origin Address */}
+            <div>
+              <h3 className="font-semibold mb-2">Origin Address (Factory)</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Name</Label>
+                  <Input
+                    value={shippingForm.origin.name}
+                    onChange={(e) => setShippingForm({
+                      ...shippingForm,
+                      origin: { ...shippingForm.origin, name: e.target.value }
+                    })}
+                  />
+                </div>
+                <div>
+                  <Label>Address Line 1</Label>
+                  <Input
+                    value={shippingForm.origin.address_line1}
+                    onChange={(e) => setShippingForm({
+                      ...shippingForm,
+                      origin: { ...shippingForm.origin, address_line1: e.target.value }
+                    })}
+                  />
+                </div>
+                <div>
+                  <Label>City</Label>
+                  <Input
+                    value={shippingForm.origin.city}
+                    onChange={(e) => setShippingForm({
+                      ...shippingForm,
+                      origin: { ...shippingForm.origin, city: e.target.value }
+                    })}
+                  />
+                </div>
+                <div>
+                  <Label>State</Label>
+                  <Input
+                    value={shippingForm.origin.state}
+                    onChange={(e) => setShippingForm({
+                      ...shippingForm,
+                      origin: { ...shippingForm.origin, state: e.target.value }
+                    })}
+                  />
+                </div>
+                <div>
+                  <Label>Postal Code</Label>
+                  <Input
+                    value={shippingForm.origin.postal_code}
+                    onChange={(e) => setShippingForm({
+                      ...shippingForm,
+                      origin: { ...shippingForm.origin, postal_code: e.target.value }
+                    })}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Destination Address */}
+            <div>
+              <h3 className="font-semibold mb-2">Destination Address (Customer)</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Name</Label>
+                  <Input
+                    value={shippingForm.destination.name}
+                    onChange={(e) => setShippingForm({
+                      ...shippingForm,
+                      destination: { ...shippingForm.destination, name: e.target.value }
+                    })}
+                  />
+                </div>
+                <div>
+                  <Label>Address Line 1</Label>
+                  <Input
+                    value={shippingForm.destination.address_line1}
+                    onChange={(e) => setShippingForm({
+                      ...shippingForm,
+                      destination: { ...shippingForm.destination, address_line1: e.target.value }
+                    })}
+                  />
+                </div>
+                <div>
+                  <Label>City</Label>
+                  <Input
+                    value={shippingForm.destination.city}
+                    onChange={(e) => setShippingForm({
+                      ...shippingForm,
+                      destination: { ...shippingForm.destination, city: e.target.value }
+                    })}
+                  />
+                </div>
+                <div>
+                  <Label>State</Label>
+                  <Input
+                    value={shippingForm.destination.state}
+                    onChange={(e) => setShippingForm({
+                      ...shippingForm,
+                      destination: { ...shippingForm.destination, state: e.target.value }
+                    })}
+                  />
+                </div>
+                <div>
+                  <Label>Postal Code</Label>
+                  <Input
+                    value={shippingForm.destination.postal_code}
+                    onChange={(e) => setShippingForm({
+                      ...shippingForm,
+                      destination: { ...shippingForm.destination, postal_code: e.target.value }
+                    })}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Package Dimensions */}
+            <div>
+              <h3 className="font-semibold mb-2">Package Dimensions</h3>
+              <div className="grid grid-cols-4 gap-3">
+                <div>
+                  <Label>Length (in)</Label>
+                  <Input
+                    type="number"
+                    value={shippingForm.packages[0].length}
+                    onChange={(e) => setShippingForm({
+                      ...shippingForm,
+                      packages: [{ ...shippingForm.packages[0], length: Number(e.target.value) }]
+                    })}
+                  />
+                </div>
+                <div>
+                  <Label>Width (in)</Label>
+                  <Input
+                    type="number"
+                    value={shippingForm.packages[0].width}
+                    onChange={(e) => setShippingForm({
+                      ...shippingForm,
+                      packages: [{ ...shippingForm.packages[0], width: Number(e.target.value) }]
+                    })}
+                  />
+                </div>
+                <div>
+                  <Label>Height (in)</Label>
+                  <Input
+                    type="number"
+                    value={shippingForm.packages[0].height}
+                    onChange={(e) => setShippingForm({
+                      ...shippingForm,
+                      packages: [{ ...shippingForm.packages[0], height: Number(e.target.value) }]
+                    })}
+                  />
+                </div>
+                <div>
+                  <Label>Weight (lbs)</Label>
+                  <Input
+                    type="number"
+                    value={shippingForm.packages[0].weight}
+                    onChange={(e) => setShippingForm({
+                      ...shippingForm,
+                      packages: [{ ...shippingForm.packages[0], weight: Number(e.target.value) }]
+                    })}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button onClick={handleRequestQuotes} disabled={getQuotes.isPending}>
+                {getQuotes.isPending ? "Requesting Quotes..." : "Request Quotes"}
+              </Button>
+              <Button variant="outline" onClick={() => setQuoteDialogOpen(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Shipment Booking Confirmation Dialog */}
+      <Dialog open={bookingDialogOpen} onOpenChange={setBookingDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Shipment Booking</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {selectedQuote && (
+              <>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">Carrier:</span>
+                    <span className="text-sm">{selectedQuote.carrier}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">Service Level:</span>
+                    <span className="text-sm">{selectedQuote.service_name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">Estimated Delivery:</span>
+                    <span className="text-sm">{selectedQuote.estimated_days} days</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">Shipping Cost:</span>
+                    <span className="text-sm font-mono">${selectedQuote.total_charge.toFixed(2)}</span>
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Special Instructions (Optional)</Label>
+                  <Textarea
+                    value={shippingForm.special_instructions}
+                    onChange={(e) => setShippingForm({
+                      ...shippingForm,
+                      special_instructions: e.target.value
+                    })}
+                    placeholder="Add any special shipping instructions..."
+                    rows={3}
+                  />
+                </div>
+
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Booking this shipment will create a tracking number and generate a shipping label.
+                  </AlertDescription>
+                </Alert>
+
+                <div className="flex gap-2">
+                  <Button onClick={handleBookShipment} disabled={createShipment.isPending}>
+                    {createShipment.isPending ? "Booking..." : "Confirm Booking"}
+                  </Button>
+                  <Button variant="outline" onClick={() => setBookingDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         </DialogContent>
       </Dialog>
