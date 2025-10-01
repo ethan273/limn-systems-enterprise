@@ -131,6 +131,7 @@ export default function Sidebar() {
       items: [
         { label: "Dashboard", href: "/production/dashboard" },
         { label: "Orders", href: "/production/orders" },
+        { label: "Create Order", href: "/production/orders/new" },
       ]
     },
     {
