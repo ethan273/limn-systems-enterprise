@@ -500,6 +500,10 @@ export class DatabaseClient {
   factory_review_documents = prisma.factory_review_documents;
 
   // QC Mobile Interface (Week 19)
+  qc_inspections = prisma.qc_inspections;
+  qc_defects = prisma.qc_defects;
+  qc_photos = prisma.qc_photos;
+  qc_checkpoints = prisma.qc_checkpoints;
   qc_issue_comments = prisma.qc_issue_comments;
 
   // =====================================================
