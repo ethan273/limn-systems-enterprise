@@ -292,7 +292,7 @@ export default function CRMOrdersPage() {
                 const productionOrderCount = order.production_orders?.length || 0;
 
                 return (
-                  <Collapsible key={order.id} open={isExpanded} onOpenChange={() => toggleOrderExpansion(order.id)} asChild>
+                  <Collapsible key={order.id} open={isExpanded} onOpenChange={() => toggleOrderExpansion(order.id)}>
                     <>
                       <TableRow className="cursor-pointer hover:bg-muted/50">
                         <TableCell>

@@ -5296,6 +5296,8 @@ model users {
   ordered_items_production                                              ordered_items_production[]
   shipping_quotes                                                       shipping_quotes[]
   shipments                                                             shipments[]
+  partners_portal_user                                                  partners?                           @relation("PartnerPortalUser")
+  partner_documents                                                     partner_documents[]
 
   @@index([instance_id])
   @@index([is_anonymous])
@@ -6056,6 +6058,7 @@ model production_orders {
   // Factory Assignment
   factory_id        String?  @db.Uuid
   manufacturers     manufacturers? @relation(fields: [factory_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  partners          partners? @relation("FactoryOrders", fields: [factory_id], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "production_orders_partner_factory_id_fkey")
   factory_notes     String?
   
   // Metadata
@@ -6230,3 +6233,191 @@ model ordered_items_production {
   @@schema("public")
 }
 
+
+// ============================================
+// PHASE 2: PARTNERS MODULE
+// ============================================
+
+// Partners - Factories and Designers
+model partners {
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type                  String   // "factory" | "designer"
+  
+  // Company Information
+  company_name          String
+  business_name         String?
+  registration_number   String?
+  
+  // Contact Information
+  primary_contact       String
+  primary_email         String
+  primary_phone         String
+  website               String?
+  
+  // Address
+  address_line1         String
+  address_line2         String?
+  city                  String
+  state                 String?
+  postal_code           String
+  country               String
+  
+  // Business Details
+  specializations       String[]  // Array: ["Upholstery", "Wood Furniture"]
+  capabilities          String[]  // Array: ["Large Scale", "Custom Work"]
+  certifications        String[]  // Array: ["ISO 9001", "FSC Certified"]
+  languages             String[]  // Languages spoken
+  
+  // Capacity & Metrics
+  production_capacity   Int?      // Units per month
+  lead_time_days        Int?      // Typical lead time
+  minimum_order         Int?      // Minimum order quantity
+  
+  // Financial
+  payment_terms         String?   // "Net 30", "50% upfront"
+  currency              String    @default("USD")
+  
+  // Status
+  status                String    @default("active")
+  // active | inactive | pending_approval | suspended
+  
+  // Quality Metrics
+  quality_rating        Decimal?  @db.Decimal(3, 2) // 0.00 to 5.00
+  on_time_delivery_rate Decimal?  @db.Decimal(5, 2) // Percentage
+  defect_rate           Decimal?  @db.Decimal(5, 2) // Percentage
+  
+  // Portal Access
+  portal_enabled        Boolean   @default(false)
+  portal_user_id        String?   @unique @db.Uuid
+  portal_user           users?    @relation("PartnerPortalUser", fields: [portal_user_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  
+  // Relationships
+  contacts              partner_contacts[]
+  documents             partner_documents[]
+  production_orders     production_orders[] @relation("FactoryOrders")
+  partner_performance   partner_performance[]
+
+  // Metadata
+  notes                 String?
+  internal_rating       String?   // Internal notes on partner
+  tags                  String[]
+  
+  created_at            DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+  
+  @@index([type], map: "idx_partners_type")
+  @@index([status], map: "idx_partners_status")
+  @@index([company_name], map: "idx_partners_company_name")
+  @@schema("public")
+}
+
+// Partner Contacts - Multiple contacts per partner
+model partner_contacts {
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  partner_id            String   @db.Uuid
+  partners              partners @relation(fields: [partner_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  
+  // Contact Details
+  name                  String
+  role                  String   // "Production Manager", "Quality Lead", "Design Director"
+  email                 String
+  phone                 String?
+  mobile                String?
+  
+  // Contact Type
+  is_primary            Boolean  @default(false)
+  is_qc                 Boolean  @default(false)
+  is_production         Boolean  @default(false)
+  is_finance            Boolean  @default(false)
+  
+  // Communication Preferences
+  preferred_contact_method String? // "email" | "phone" | "whatsapp"
+  timezone              String?
+  languages             String[]
+  
+  // Status
+  active                Boolean  @default(true)
+  
+  // Metadata
+  notes                 String?
+  
+  created_at            DateTime @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+  
+  @@index([partner_id], map: "idx_partner_contacts_partner_id")
+  @@index([email], map: "idx_partner_contacts_email")
+  @@schema("public")
+}
+
+// Partner Documents - Contracts, certifications, NDAs
+model partner_documents {
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  partner_id            String   @db.Uuid
+  partners              partners @relation(fields: [partner_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  
+  // Document Details
+  document_type         String   // "contract" | "nda" | "certification" | "insurance" | "quality_report"
+  title                 String
+  description           String?
+  
+  // File Storage
+  file_url              String   // Supabase storage URL
+  file_name             String
+  file_size             BigInt
+  mime_type             String
+  
+  // Document Status
+  status                String   @default("active")
+  // active | expired | pending_renewal | archived
+  
+  // Dates
+  issue_date            DateTime? @db.Timestamptz(6)
+  expiry_date           DateTime? @db.Timestamptz(6)
+  
+  // Uploaded By
+  uploaded_by           String   @db.Uuid
+  users                 users    @relation(fields: [uploaded_by], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  
+  created_at            DateTime @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+  
+  @@index([partner_id], map: "idx_partner_documents_partner_id")
+  @@index([document_type], map: "idx_partner_documents_document_type")
+  @@index([status], map: "idx_partner_documents_status")
+  @@schema("public")
+}
+
+// Partner Performance Tracking
+model partner_performance {
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  partner_id            String   @db.Uuid
+  partners              partners @relation(fields: [partner_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  
+  // Time Period
+  period_start          DateTime @db.Timestamptz(6)
+  period_end            DateTime @db.Timestamptz(6)
+  
+  // Metrics
+  orders_completed      Int      @default(0)
+  orders_on_time        Int      @default(0)
+  total_defects         Int      @default(0)
+  average_lead_time     Int?     // Days
+  
+  // Calculated Rates
+  on_time_rate          Decimal  @db.Decimal(5, 2)
+  defect_rate           Decimal  @db.Decimal(5, 2)
+  
+  // Financial
+  total_revenue         Decimal  @db.Decimal(12, 2)
+  average_order_value   Decimal  @db.Decimal(10, 2)
+  
+  // Satisfaction
+  satisfaction_score    Decimal? @db.Decimal(3, 2) // 0.00 to 5.00
+  
+  created_at            DateTime @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+  
+  @@unique([partner_id, period_start, period_end], map: "unique_partner_performance_period")
+  @@index([partner_id], map: "idx_partner_performance_partner_id")
+  @@schema("public")
+}

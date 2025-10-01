@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createTRPCRouter, protectedProcedure } from '../trpc/init';
+import { createTRPCRouter, publicProcedure } from '../trpc/init';
 import { quickbooksClient } from '@/lib/quickbooks/client';
 import type { QuickBooksInvoice, QuickBooksPayment, QuickBooksCustomer } from '@/lib/quickbooks/client';
 
@@ -126,7 +126,7 @@ async function getDefaultItemId(ctx: any): Promise<string> {
 export const quickbooksSyncRouter = createTRPCRouter({
 
   // Check QuickBooks connection status
-  getConnectionStatus: protectedProcedure.query(async ({ ctx }) => {
+  getConnectionStatus: publicProcedure.query(async ({ ctx }) => {
     const auth = await ctx.db.quickbooks_auth.findFirst({
       where: { is_active: true },
       orderBy: { created_at: 'desc' },
@@ -152,7 +152,7 @@ export const quickbooksSyncRouter = createTRPCRouter({
   }),
 
   // Sync production invoice to QuickBooks
-  syncInvoice: protectedProcedure
+  syncInvoice: publicProcedure
     .input(z.object({
       production_invoice_id: z.string().uuid(),
     }))
@@ -300,7 +300,7 @@ export const quickbooksSyncRouter = createTRPCRouter({
     }),
 
   // Sync payment to QuickBooks
-  syncPayment: protectedProcedure
+  syncPayment: publicProcedure
     .input(z.object({
       production_payment_id: z.string().uuid(),
     }))
@@ -446,7 +446,7 @@ export const quickbooksSyncRouter = createTRPCRouter({
     }),
 
   // Get sync history for an entity
-  getSyncHistory: protectedProcedure
+  getSyncHistory: publicProcedure
     .input(z.object({
       entity_id: z.string().uuid(),
       entity_type: z.enum(['invoice', 'payment', 'customer']).optional(),
@@ -465,7 +465,7 @@ export const quickbooksSyncRouter = createTRPCRouter({
     }),
 
   // Get sync statistics
-  getSyncStats: protectedProcedure.query(async ({ ctx }) => {
+  getSyncStats: publicProcedure.query(async ({ ctx }) => {
     const [totalSyncs, completedSyncs, failedSyncs, invoiceMappings, paymentMappings] = await Promise.all([
       ctx.db.quickbooks_sync_log.count(),
       ctx.db.quickbooks_sync_log.count({ where: { status: 'completed' } }),

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createTRPCRouter, protectedProcedure } from '../trpc/init';
+import { createTRPCRouter, publicProcedure } from '../trpc/init';
 import { Prisma } from '@prisma/client';
 import { quickbooksClient } from '@/lib/quickbooks/client';
 
@@ -144,7 +144,7 @@ async function attemptQuickBooksSync(
 export const productionInvoicesRouter = createTRPCRouter({
 
   // Get all invoices with filters
-  getAll: protectedProcedure
+  getAll: publicProcedure
     .input(
       z.object({
         status: z.string().optional(),
@@ -176,7 +176,7 @@ export const productionInvoicesRouter = createTRPCRouter({
     }),
 
   // Get single invoice by ID
-  getById: protectedProcedure
+  getById: publicProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
       return ctx.db.production_invoices.findUnique({
@@ -202,7 +202,7 @@ export const productionInvoicesRouter = createTRPCRouter({
     }),
 
   // Get invoices by production order
-  getByProductionOrder: protectedProcedure
+  getByProductionOrder: publicProcedure
     .input(z.object({ production_order_id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
       return ctx.db.production_invoices.findMany({
@@ -220,7 +220,7 @@ export const productionInvoicesRouter = createTRPCRouter({
     }),
 
   // Record payment - TRIGGERS STATUS UPDATES & ORDERED ITEMS CREATION
-  recordPayment: protectedProcedure
+  recordPayment: publicProcedure
     .input(recordPaymentSchema)
     .mutation(async ({ ctx, input }) => {
       const invoice = await ctx.db.production_invoices.findUnique({
@@ -330,7 +330,7 @@ export const productionInvoicesRouter = createTRPCRouter({
     }),
 
   // Update invoice
-  update: protectedProcedure
+  update: publicProcedure
     .input(
       z.object({
         id: z.string().uuid(),
@@ -350,7 +350,7 @@ export const productionInvoicesRouter = createTRPCRouter({
     }),
 
   // Cancel invoice
-  cancel: protectedProcedure
+  cancel: publicProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       const invoice = await ctx.db.production_invoices.findUnique({
@@ -374,7 +374,7 @@ export const productionInvoicesRouter = createTRPCRouter({
     }),
 
   // Get payment history for an invoice
-  getPaymentHistory: protectedProcedure
+  getPaymentHistory: publicProcedure
     .input(z.object({ invoice_id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
       return ctx.db.production_payments.findMany({
@@ -388,7 +388,7 @@ export const productionInvoicesRouter = createTRPCRouter({
     }),
 
   // Get outstanding invoices (pending or partial payment)
-  getOutstanding: protectedProcedure
+  getOutstanding: publicProcedure
     .input(
       z.object({
         project_id: z.string().uuid().optional(),
@@ -433,7 +433,7 @@ export const productionInvoicesRouter = createTRPCRouter({
     }),
 
   // Create invoice for CRM order (covers all production orders in that order)
-  createForOrder: protectedProcedure
+  createForOrder: publicProcedure
     .input(z.object({
       order_id: z.string().uuid(),
       invoice_type: z.enum(['deposit', 'final']).default('deposit'),

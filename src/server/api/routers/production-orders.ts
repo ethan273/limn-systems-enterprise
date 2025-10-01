@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createTRPCRouter, protectedProcedure } from '../trpc/init';
+import { createTRPCRouter, publicProcedure } from '../trpc/init';
 import { Prisma } from '@prisma/client';
 
 // ============================================================================
@@ -208,7 +208,7 @@ async function createFinalInvoice(
 export const productionOrdersRouter = createTRPCRouter({
 
   // Get all production orders with filters
-  getAll: protectedProcedure
+  getAll: publicProcedure
     .input(
       z.object({
         status: z.string().optional(),
@@ -238,7 +238,7 @@ export const productionOrdersRouter = createTRPCRouter({
     }),
 
   // Get single production order by ID
-  getById: protectedProcedure
+  getById: publicProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
       return ctx.db.production_orders.findUnique({
@@ -275,7 +275,7 @@ export const productionOrdersRouter = createTRPCRouter({
     }),
 
   // Create production order - AUTO-GENERATES DEPOSIT INVOICE
-  create: protectedProcedure
+  create: publicProcedure
     .input(createProductionOrderSchema)
     .mutation(async ({ ctx, input }) => {
       const totalCost = input.unit_price * input.quantity;
@@ -317,7 +317,7 @@ export const productionOrdersRouter = createTRPCRouter({
     }),
 
   // Update production order status - TRIGGERS ORDERED ITEMS CREATION & FINAL INVOICE
-  updateStatus: protectedProcedure
+  updateStatus: publicProcedure
     .input(
       z.object({
         id: z.string().uuid(),
@@ -370,7 +370,7 @@ export const productionOrdersRouter = createTRPCRouter({
     }),
 
   // Update production order
-  update: protectedProcedure
+  update: publicProcedure
     .input(
       z.object({
         id: z.string().uuid(),
@@ -405,7 +405,7 @@ export const productionOrdersRouter = createTRPCRouter({
     }),
 
   // Delete production order
-  delete: protectedProcedure
+  delete: publicProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       // Check if order can be deleted (no payments made)

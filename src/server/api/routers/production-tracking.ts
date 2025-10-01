@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createTRPCRouter, protectedProcedure } from '../trpc/init';
+import { createTRPCRouter, publicProcedure } from '../trpc/init';
 
 // ============================================================================
 // SCHEMAS
@@ -63,7 +63,7 @@ function getTimelineStatus(order: any, milestones: any[]): string {
 export const productionTrackingRouter = createTRPCRouter({
 
   // Get dashboard statistics and KPIs
-  getDashboardStats: protectedProcedure
+  getDashboardStats: publicProcedure
     .input(z.object({
       date_range: z.enum(['7d', '30d', '90d', 'all']).default('30d'),
     }))
@@ -146,7 +146,7 @@ export const productionTrackingRouter = createTRPCRouter({
     }),
 
   // Get production progress for all orders
-  getProductionProgress: protectedProcedure
+  getProductionProgress: publicProcedure
     .input(z.object({
       status: z.string().optional(),
       timeline_status: z.enum(['on_track', 'at_risk', 'delayed']).optional(),
@@ -199,7 +199,7 @@ export const productionTrackingRouter = createTRPCRouter({
     }),
 
   // Get milestones for a specific production order
-  getMilestones: protectedProcedure
+  getMilestones: publicProcedure
     .input(z.object({
       production_order_id: z.string().uuid(),
     }))
@@ -213,7 +213,7 @@ export const productionTrackingRouter = createTRPCRouter({
     }),
 
   // Create a new milestone
-  createMilestone: protectedProcedure
+  createMilestone: publicProcedure
     .input(createMilestoneSchema)
     .mutation(async ({ ctx, input }) => {
       return ctx.db.production_milestones.create({
@@ -231,7 +231,7 @@ export const productionTrackingRouter = createTRPCRouter({
     }),
 
   // Update milestone status and progress
-  updateMilestone: protectedProcedure
+  updateMilestone: publicProcedure
     .input(updateMilestoneSchema)
     .mutation(async ({ ctx, input }) => {
       const { id, ...updateData } = input;
@@ -243,7 +243,7 @@ export const productionTrackingRouter = createTRPCRouter({
     }),
 
   // Delete milestone
-  deleteMilestone: protectedProcedure
+  deleteMilestone: publicProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       return ctx.db.production_milestones.delete({
@@ -252,7 +252,7 @@ export const productionTrackingRouter = createTRPCRouter({
     }),
 
   // Auto-create default milestones for a production order
-  createDefaultMilestones: protectedProcedure
+  createDefaultMilestones: publicProcedure
     .input(z.object({
       production_order_id: z.string().uuid(),
     }))
