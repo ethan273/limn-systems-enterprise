@@ -6,22 +6,22 @@ import { Providers } from "@/components/Providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Limn Systems Enterprise",
-  description: "Modern Enterprise Management System",
+ title: "Limn Systems Enterprise",
+ description: "Modern Enterprise Management System",
 };
 
 export default function RootLayout({
-  children,
+ children,
 }: {
-  children: React.ReactNode;
+ children: React.ReactNode;
 }) {
-  return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} bg-background text-foreground antialiased`}>
-        <Providers>
-          {children}
-        </Providers>
-      </body>
-    </html>
-  );
+ return (
+ <html lang="en" suppressHydrationWarning>
+ <body className={`${inter.className} bg-background text-foreground antialiased`}>
+ <Providers>
+ {children}
+ </Providers>
+ </body>
+ </html>
+ );
 }

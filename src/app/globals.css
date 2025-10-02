@@ -1053,14 +1053,6 @@ body {
    ============================================ */
 
 .sidebar-logo-image {
-  width: 180px;
-  height: 50px;
-  background-image: url('/images/Limn_Logo_Light_Mode.png');
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-}
-
-.dark .sidebar-logo-image {
-  background-image: url('/images/Limn_Logo_Dark_Mode.png');
+  object-fit: contain;
+  object-position: left center;
 }

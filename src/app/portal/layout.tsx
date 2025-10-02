@@ -13,276 +13,276 @@ import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
-  LayoutDashboard,
-  ShoppingCart,
-  FileText,
-  User,
-  CreditCard,
-  Truck,
-  Bell,
-  Menu,
-  X,
-  LogOut,
-  Loader2,
+ LayoutDashboard,
+ ShoppingCart,
+ FileText,
+ User,
+ CreditCard,
+ Truck,
+ Bell,
+ Menu,
+ X,
+ LogOut,
+ Loader2,
 } from 'lucide-react';
 import { api } from '@/lib/api/client';
 
 interface LayoutProps {
-  children: React.ReactNode;
+ children: React.ReactNode;
 }
 
 export default function PortalLayout({ children }: LayoutProps) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [signingOut, setSigningOut] = useState(false);
+ const router = useRouter();
+ const pathname = usePathname();
+ const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
+ const [loading, setLoading] = useState(true);
+ const [sidebarOpen, setSidebarOpen] = useState(false);
+ const [signingOut, setSigningOut] = useState(false);
 
-  // Fetch portal settings to determine navigation
-  const { data: portalSettings } = api.portal.getPortalSettings.useQuery(undefined, {
-    enabled: !!user,
-  });
+ // Fetch portal settings to determine navigation
+ const { data: portalSettings } = api.portal.getPortalSettings.useQuery(undefined, {
+ enabled: !!user,
+ });
 
-  // Fetch notification count
-  const { data: notificationData } = api.portal.getNotifications.useQuery(
-    { limit: 1, offset: 0, read: false },
-    {
-      enabled: !!user,
-      refetchInterval: 30000, // Refetch every 30 seconds
-    }
-  );
+ // Fetch notification count
+ const { data: notificationData } = api.portal.getNotifications.useQuery(
+ { limit: 1, offset: 0, read: false },
+ {
+ enabled: !!user,
+ refetchInterval: 30000, // Refetch every 30 seconds
+ }
+ );
 
-  useEffect(() => {
-    checkAuth();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+ useEffect(() => {
+ checkAuth();
+ // eslint-disable-next-line react-hooks/exhaustive-deps
+ }, []);
 
-  const checkAuth = async () => {
-    try {
-      const supabase = createClient();
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+ const checkAuth = async () => {
+ try {
+ const supabase = createClient();
+ const {
+ data: { session },
+ } = await supabase.auth.getSession();
 
-      if (!session?.user) {
-        // Not authenticated, redirect to login
-        if (pathname !== '/portal/login') {
-          router.push('/portal/login');
-        }
-        return;
-      }
+ if (!session?.user) {
+ // Not authenticated, redirect to login
+ if (pathname !== '/portal/login') {
+ router.push('/portal/login');
+ }
+ return;
+ }
 
-      // Check portal access
-      const { data: portalAccess } = await supabase
-        .from('customer_portal_access')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .eq('is_active', true)
-        .single();
+ // Check portal access
+ const { data: portalAccess } = await supabase
+ .from('customer_portal_access')
+ .select('*')
+ .eq('user_id', session.user.id)
+ .eq('is_active', true)
+ .single();
 
-      if (!portalAccess && pathname !== '/portal/login') {
-        // No portal access, redirect to login
-        await supabase.auth.signOut();
-        router.push('/portal/login');
-        return;
-      }
+ if (!portalAccess && pathname !== '/portal/login') {
+ // No portal access, redirect to login
+ await supabase.auth.signOut();
+ router.push('/portal/login');
+ return;
+ }
 
-      setUser(session.user);
-    } catch (error) {
-      console.error('Auth error:', error);
-      if (pathname !== '/portal/login') {
-        router.push('/portal/login');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+ setUser(session.user);
+ } catch (error) {
+ console.error('Auth error:', error);
+ if (pathname !== '/portal/login') {
+ router.push('/portal/login');
+ }
+ } finally {
+ setLoading(false);
+ }
+ };
 
-  const handleSignOut = async () => {
-    try {
-      setSigningOut(true);
-      const supabase = createClient();
-      await supabase.auth.signOut();
-      router.push('/portal/login');
-      router.refresh();
-    } catch (error) {
-      console.error('Sign out error:', error);
-      setSigningOut(false);
-    }
-  };
+ const handleSignOut = async () => {
+ try {
+ setSigningOut(true);
+ const supabase = createClient();
+ await supabase.auth.signOut();
+ router.push('/portal/login');
+ router.refresh();
+ } catch (error) {
+ console.error('Sign out error:', error);
+ setSigningOut(false);
+ }
+ };
 
-  // Don't show layout on login page
-  if (pathname === '/portal/login') {
-    return <>{children}</>;
-  }
+ // Don't show layout on login page
+ if (pathname === '/portal/login') {
+ return <>{children}</>;
+ }
 
-  // Loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-[#91bdbd] mx-auto mb-4" />
-          <p className="text-gray-600">Loading portal...</p>
-        </div>
-      </div>
-    );
-  }
+ // Loading state
+ if (loading) {
+ return (
+ <div className="min-h-screen card flex items-center justify-center">
+ <div className="text-center">
+ <Loader2 className="w-12 h-12 animate-spin text-[#91bdbd] mx-auto mb-4" />
+ <p className="text-secondary">Loading portal...</p>
+ </div>
+ </div>
+ );
+ }
 
-  // Not authenticated
-  if (!user) {
-    return null;
-  }
+ // Not authenticated
+ if (!user) {
+ return null;
+ }
 
-  const navigation = [
-    { name: 'Dashboard', href: '/portal', icon: LayoutDashboard, show: true },
-    { name: 'Orders', href: '/portal/orders', icon: ShoppingCart, show: true },
-    {
-      name: 'Shipping',
-      href: '/portal/shipping',
-      icon: Truck,
-      show: portalSettings?.show_shipping_info,
-    },
-    {
-      name: 'Financials',
-      href: '/portal/financials',
-      icon: CreditCard,
-      show: portalSettings?.show_financial_details,
-    },
-    { name: 'Documents', href: '/portal/documents', icon: FileText, show: true },
-    { name: 'Profile', href: '/portal/profile', icon: User, show: true },
-  ].filter((item) => item.show);
+ const navigation = [
+ { name: 'Dashboard', href: '/portal', icon: LayoutDashboard, show: true },
+ { name: 'Orders', href: '/portal/orders', icon: ShoppingCart, show: true },
+ {
+ name: 'Shipping',
+ href: '/portal/shipping',
+ icon: Truck,
+ show: portalSettings?.show_shipping_info,
+ },
+ {
+ name: 'Financials',
+ href: '/portal/financials',
+ icon: CreditCard,
+ show: portalSettings?.show_financial_details,
+ },
+ { name: 'Documents', href: '/portal/documents', icon: FileText, show: true },
+ { name: 'Profile', href: '/portal/profile', icon: User, show: true },
+ ].filter((item) => item.show);
 
-  const unreadCount = notificationData?.unreadCount || 0;
+ const unreadCount = notificationData?.unreadCount || 0;
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Mobile sidebar overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+ return (
+ <div className="min-h-screen card">
+ {/* Mobile sidebar overlay */}
+ {sidebarOpen && (
+ <div
+ className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+ onClick={() => setSidebarOpen(false)}
+ />
+ )}
 
-      {/* Sidebar */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg border-r border-gray-200 transform transition-transform duration-200 ease-in-out lg:translate-x-0 ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        <div className="flex flex-col h-full">
-          {/* Logo Header */}
-          <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
-            <div className="flex items-center">
-              <div className="w-8 h-8 bg-[#91bdbd] rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-bold">L</span>
-              </div>
-              <span className="ml-2 text-lg font-bold text-gray-900">Limn Systems</span>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSidebarOpen(false)}
-              className="lg:hidden"
-            >
-              <X className="w-5 h-5" />
-            </Button>
-          </div>
+ {/* Sidebar */}
+ <aside
+ className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg border-r border transform transition-transform duration-200 ease-in-out lg:translate-x-0 ${
+ sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+ }`}
+ >
+ <div className="flex flex-col h-full">
+ {/* Logo Header */}
+ <div className="flex items-center justify-between h-16 px-6 border-b border">
+ <div className="flex items-center">
+ <div className="w-8 h-8 bg-[#91bdbd] rounded-full flex items-center justify-center">
+ <span className="text-white text-sm font-bold">L</span>
+ </div>
+ <span className="ml-2 text-lg font-bold ">Limn Systems</span>
+ </div>
+ <Button
+ variant="ghost"
+ size="sm"
+ onClick={() => setSidebarOpen(false)}
+ className="lg:hidden"
+ >
+ <X className="w-5 h-5" />
+ </Button>
+ </div>
 
-          {/* Navigation */}
-          <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-            {navigation.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
+ {/* Navigation */}
+ <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+ {navigation.map((item) => {
+ const Icon = item.icon;
+ const isActive = pathname === item.href;
 
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${
-                    isActive
-                      ? 'bg-[#91bdbd] text-white'
-                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                  }`}
-                >
-                  <Icon className="w-5 h-5 mr-3" />
-                  {item.name}
-                </Link>
-              );
-            })}
-          </nav>
+ return (
+ <Link
+ key={item.name}
+ href={item.href}
+ onClick={() => setSidebarOpen(false)}
+ className={`flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${
+ isActive
+ ? 'bg-[#91bdbd] text-white'
+ : ' hover:card hover:'
+ }`}
+ >
+ <Icon className="w-5 h-5 mr-3" />
+ {item.name}
+ </Link>
+ );
+ })}
+ </nav>
 
-          {/* User Profile Section */}
-          <div className="border-t border-gray-200 p-4">
-            <div className="flex items-center space-x-3 mb-3">
-              <div className="w-10 h-10 bg-[#91bdbd] rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-medium">
-                  {user.email?.[0]?.toUpperCase()}
-                </span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-gray-900 truncate">{user.email}</div>
-                <div className="text-xs text-gray-500">Customer Portal</div>
-              </div>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSignOut}
-              disabled={signingOut}
-              className="w-full border-gray-300 text-gray-700 hover:bg-gray-100"
-            >
-              {signingOut ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing out...
-                </>
-              ) : (
-                <>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sign Out
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-      </aside>
+ {/* User Profile Section */}
+ <div className="border-t border p-4">
+ <div className="flex items-center space-x-3 mb-3">
+ <div className="w-10 h-10 bg-[#91bdbd] rounded-full flex items-center justify-center">
+ <span className="text-white text-sm font-medium">
+ {user.email?.[0]?.toUpperCase()}
+ </span>
+ </div>
+ <div className="flex-1 min-w-0">
+ <div className="text-sm font-medium truncate">{user.email}</div>
+ <div className="text-xs text-secondary">Customer Portal</div>
+ </div>
+ </div>
+ <Button
+ variant="outline"
+ size="sm"
+ onClick={handleSignOut}
+ disabled={signingOut}
+ className="w-full border hover:card"
+ >
+ {signingOut ? (
+ <>
+ <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+ Signing out...
+ </>
+ ) : (
+ <>
+ <LogOut className="mr-2 h-4 w-4" />
+ Sign Out
+ </>
+ )}
+ </Button>
+ </div>
+ </div>
+ </aside>
 
-      {/* Main Content */}
-      <div className="lg:pl-64">
-        {/* Top Header */}
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
-          <div className="flex items-center justify-between h-16 px-4 sm:px-6">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden"
-            >
-              <Menu className="w-6 h-6" />
-            </Button>
+ {/* Main Content */}
+ <div className="lg:pl-64">
+ {/* Top Header */}
+ <header className="bg-white border-b border sticky top-0 z-30">
+ <div className="flex items-center justify-between h-16 px-4 sm:px-6">
+ <Button
+ variant="ghost"
+ size="sm"
+ onClick={() => setSidebarOpen(true)}
+ className="lg:hidden"
+ >
+ <Menu className="w-6 h-6" />
+ </Button>
 
-            <div className="flex-1" />
+ <div className="flex-1" />
 
-            {/* Notifications */}
-            <Link href="/portal/notifications" className="relative">
-              <Button variant="ghost" size="sm" className="relative">
-                <Bell className="w-5 h-5" />
-                {unreadCount > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-red-500 text-white text-xs">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </Badge>
-                )}
-              </Button>
-            </Link>
-          </div>
-        </header>
+ {/* Notifications */}
+ <Link href="/portal/notifications" className="relative">
+ <Button variant="ghost" size="sm" className="relative">
+ <Bell className="w-5 h-5" />
+ {unreadCount > 0 && (
+ <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-red-500 text-white text-xs">
+ {unreadCount > 9 ? '9+' : unreadCount}
+ </Badge>
+ )}
+ </Button>
+ </Link>
+ </div>
+ </header>
 
-        {/* Page Content */}
-        <main className="p-4 sm:p-6 lg:p-8">{children}</main>
-      </div>
-    </div>
-  );
+ {/* Page Content */}
+ <main className="p-4 sm:p-6 lg:p-8">{children}</main>
+ </div>
+ </div>
+ );
 }

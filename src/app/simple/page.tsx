@@ -1,3 +1,3 @@
 export default function SimplePage() {
-  return <h1>Simple Page</h1>;
+ return <h1>Simple Page</h1>;
 }

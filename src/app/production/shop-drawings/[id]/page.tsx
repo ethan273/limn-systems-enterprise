@@ -10,31 +10,31 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
+ Select,
+ SelectContent,
+ SelectItem,
+ SelectTrigger,
+ SelectValue
 } from "@/components/ui/select";
 import { PDFViewer } from "@/components/shop-drawings/PDFViewer";
 import { CommentCard } from "@/components/shop-drawings/CommentCard";
 import { VersionTimeline } from "@/components/shop-drawings/VersionTimeline";
 import { ApprovalStatus } from "@/components/shop-drawings/ApprovalStatus";
 import {
-  ArrowLeft,
-  FileText,
-  Package,
-  Building2,
-  CheckCircle2,
-  XCircle,
-  Clock,
-  AlertTriangle,
-  Loader2,
-  MessageSquare,
-  ThumbsUp,
-  ThumbsDown,
-  GitCommit,
-  Activity
+ ArrowLeft,
+ FileText,
+ Package,
+ Building2,
+ CheckCircle2,
+ XCircle,
+ Clock,
+ AlertTriangle,
+ Loader2,
+ MessageSquare,
+ ThumbsUp,
+ ThumbsDown,
+ GitCommit,
+ Activity
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -44,594 +44,594 @@ import { toast } from "@/hooks/use-toast";
 export const dynamic = 'force-dynamic';
 
 interface PageProps {
-  params: {
-    id: string;
-  };
+ params: {
+ id: string;
+ };
 }
 
 // Status badge configuration
 const statusConfig: Record<string, {
-  label: string;
-  className: string;
-  icon: React.ElementType;
+ label: string;
+ className: string;
+ icon: React.ElementType;
 }> = {
-  in_review: {
-    label: "In Review",
-    className: "bg-yellow-100 text-yellow-800 border-yellow-300",
-    icon: Clock
-  },
-  designer_approved: {
-    label: "Designer Approved",
-    className: "bg-blue-100 text-blue-800 border-blue-300",
-    icon: CheckCircle2
-  },
-  approved: {
-    label: "Approved",
-    className: "bg-green-100 text-green-800 border-green-300",
-    icon: CheckCircle2
-  },
-  rejected: {
-    label: "Rejected",
-    className: "bg-red-100 text-red-800 border-red-300",
-    icon: XCircle
-  },
-  revision_requested: {
-    label: "Revision Requested",
-    className: "bg-orange-100 text-orange-800 border-orange-300",
-    icon: AlertTriangle
-  }
+ in_review: {
+ label: "In Review",
+ className: "bg-yellow-100 text-yellow-800 border-yellow-300",
+ icon: Clock
+ },
+ designer_approved: {
+ label: "Designer Approved",
+ className: "bg-blue-100 text-blue-800 border-blue-300",
+ icon: CheckCircle2
+ },
+ approved: {
+ label: "Approved",
+ className: "bg-green-100 text-green-800 border-green-300",
+ icon: CheckCircle2
+ },
+ rejected: {
+ label: "Rejected",
+ className: "bg-red-100 text-red-800 border-red-300",
+ icon: XCircle
+ },
+ revision_requested: {
+ label: "Revision Requested",
+ className: "bg-orange-100 text-orange-800 border-orange-300",
+ icon: AlertTriangle
+ }
 };
 
 export default function ShopDrawingDetailPage({ params }: PageProps) {
-  const router = useRouter();
-  const [currentPage, setCurrentPage] = useState(1);
-  const [commentText, setCommentText] = useState("");
-  const [commentType, setCommentType] = useState<"review" | "question" | "change_request" | "approval" | "general">("general");
-  const [approvalDecision, setApprovalDecision] = useState<"approved" | "rejected" | "changes_requested">("approved");
-  const [approvalComments, setApprovalComments] = useState("");
+ const router = useRouter();
+ const [currentPage, setCurrentPage] = useState(1);
+ const [commentText, setCommentText] = useState("");
+ const [commentType, setCommentType] = useState<"review" | "question" | "change_request" | "approval" | "general">("general");
+ const [approvalDecision, setApprovalDecision] = useState<"approved" | "rejected" | "changes_requested">("approved");
+ const [approvalComments, setApprovalComments] = useState("");
 
-  // Fetch drawing details
-  const { data: drawing, isLoading: drawingLoading } = api.shopDrawings.getById.useQuery({
-    id: params.id,
-  });
+ // Fetch drawing details
+ const { data: drawing, isLoading: drawingLoading } = api.shopDrawings.getById.useQuery({
+ id: params.id,
+ });
 
-  // Fetch versions
-  const { data: versions } = api.shopDrawings.getVersionHistory.useQuery({
-    shopDrawingId: params.id,
-  });
+ // Fetch versions
+ const { data: versions } = api.shopDrawings.getVersionHistory.useQuery({
+ shopDrawingId: params.id,
+ });
 
-  // Get current version ID
-  const currentVersionId = drawing?.versions?.[0]?.id ?? "";
+ // Get current version ID
+ const currentVersionId = drawing?.versions?.[0]?.id ?? "";
 
-  // Fetch comments for current version
-  const { data: comments, refetch: refetchComments } = api.shopDrawings.getComments.useQuery(
-    {
-      drawingVersionId: currentVersionId,
-    },
-    {
-      enabled: !!currentVersionId,
-    }
-  );
+ // Fetch comments for current version
+ const { data: comments, refetch: refetchComments } = api.shopDrawings.getComments.useQuery(
+ {
+ drawingVersionId: currentVersionId,
+ },
+ {
+ enabled: !!currentVersionId,
+ }
+ );
 
-  // Fetch approval status
-  const { data: approvalStatus, refetch: refetchApprovalStatus } = api.shopDrawings.getApprovalStatus.useQuery({
-    shopDrawingId: params.id,
-  });
+ // Fetch approval status
+ const { data: approvalStatus, refetch: refetchApprovalStatus } = api.shopDrawings.getApprovalStatus.useQuery({
+ shopDrawingId: params.id,
+ });
 
-  // Fetch activity log
-  const { data: activityLog } = api.shopDrawings.getActivityLog.useQuery({
-    shopDrawingId: params.id,
-  });
+ // Fetch activity log
+ const { data: activityLog } = api.shopDrawings.getActivityLog.useQuery({
+ shopDrawingId: params.id,
+ });
 
-  // Mutations
-  const addCommentMutation = api.shopDrawings.addComment.useMutation({
-    onSuccess: () => {
-      toast({
-        title: "Comment Added",
-        description: "Your comment has been added successfully.",
-      });
-      setCommentText("");
-      void refetchComments();
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to add comment",
-        variant: "destructive",
-      });
-    },
-  });
+ // Mutations
+ const addCommentMutation = api.shopDrawings.addComment.useMutation({
+ onSuccess: () => {
+ toast({
+ title: "Comment Added",
+ description: "Your comment has been added successfully.",
+ });
+ setCommentText("");
+ void refetchComments();
+ },
+ onError: (error) => {
+ toast({
+ title: "Error",
+ description: error.message || "Failed to add comment",
+ variant: "destructive",
+ });
+ },
+ });
 
-  const resolveCommentMutation = api.shopDrawings.resolveComment.useMutation({
-    onSuccess: () => {
-      toast({
-        title: "Comment Resolved",
-        description: "The comment has been marked as resolved.",
-      });
-      void refetchComments();
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to resolve comment",
-        variant: "destructive",
-      });
-    },
-  });
+ const resolveCommentMutation = api.shopDrawings.resolveComment.useMutation({
+ onSuccess: () => {
+ toast({
+ title: "Comment Resolved",
+ description: "The comment has been marked as resolved.",
+ });
+ void refetchComments();
+ },
+ onError: (error) => {
+ toast({
+ title: "Error",
+ description: error.message || "Failed to resolve comment",
+ variant: "destructive",
+ });
+ },
+ });
 
-  const approveVersionMutation = api.shopDrawings.approveVersion.useMutation({
-    onSuccess: (data) => {
-      toast({
-        title: "Approval Submitted",
-        description: data.message,
-      });
-      setApprovalComments("");
-      void refetchApprovalStatus();
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to submit approval",
-        variant: "destructive",
-      });
-    },
-  });
+ const approveVersionMutation = api.shopDrawings.approveVersion.useMutation({
+ onSuccess: (data) => {
+ toast({
+ title: "Approval Submitted",
+ description: data.message,
+ });
+ setApprovalComments("");
+ void refetchApprovalStatus();
+ },
+ onError: (error) => {
+ toast({
+ title: "Error",
+ description: error.message || "Failed to submit approval",
+ variant: "destructive",
+ });
+ },
+ });
 
-  const handleBack = () => {
-    router.push("/shop-drawings");
-  };
+ const handleBack = () => {
+ router.push("/shop-drawings");
+ };
 
-  const handleAddComment = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!commentText.trim() || !currentVersionId) return;
+ const handleAddComment = (e: React.FormEvent) => {
+ e.preventDefault();
+ if (!commentText.trim() || !currentVersionId) return;
 
-    addCommentMutation.mutate({
-      drawingVersionId: currentVersionId,
-      commentText: commentText.trim(),
-      commentType,
-    });
-  };
+ addCommentMutation.mutate({
+ drawingVersionId: currentVersionId,
+ commentText: commentText.trim(),
+ commentType,
+ });
+ };
 
-  const handleResolveComment = (commentId: string) => {
-    resolveCommentMutation.mutate({
-      commentId,
-    });
-  };
+ const handleResolveComment = (commentId: string) => {
+ resolveCommentMutation.mutate({
+ commentId,
+ });
+ };
 
-  const handleApprovalSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!currentVersionId) return;
+ const handleApprovalSubmit = (e: React.FormEvent) => {
+ e.preventDefault();
+ if (!currentVersionId) return;
 
-    approveVersionMutation.mutate({
-      drawingVersionId: currentVersionId,
-      decision: approvalDecision,
-      comments: approvalComments.trim() || undefined,
-    });
-  };
+ approveVersionMutation.mutate({
+ drawingVersionId: currentVersionId,
+ decision: approvalDecision,
+ comments: approvalComments.trim() || undefined,
+ });
+ };
 
-  if (drawingLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" aria-hidden="true" />
-        <span className="ml-3 text-muted-foreground">Loading shop drawing...</span>
-      </div>
-    );
-  }
+ if (drawingLoading) {
+ return (
+ <div className="flex items-center justify-center min-h-screen">
+ <Loader2 className="w-8 h-8 animate-spin text-primary" aria-hidden="true" />
+ <span className="ml-3 text-muted-foreground">Loading shop drawing...</span>
+ </div>
+ );
+ }
 
-  if (!drawing) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <XCircle className="w-16 h-16 text-destructive mb-4" aria-hidden="true" />
-        <h2 className="text-2xl font-bold mb-2">Shop Drawing Not Found</h2>
-        <p className="text-muted-foreground mb-4">The requested shop drawing could not be found.</p>
-        <Button onClick={handleBack}>
-          <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
-          Back to Shop Drawings
-        </Button>
-      </div>
-    );
-  }
+ if (!drawing) {
+ return (
+ <div className="flex flex-col items-center justify-center min-h-screen">
+ <XCircle className="w-16 h-16 text-destructive mb-4" aria-hidden="true" />
+ <h2 className="text-2xl font-bold mb-2">Shop Drawing Not Found</h2>
+ <p className="text-muted-foreground mb-4">The requested shop drawing could not be found.</p>
+ <Button onClick={handleBack}>
+ <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
+ Back to Shop Drawings
+ </Button>
+ </div>
+ );
+ }
 
-  const config = statusConfig[drawing.status] || statusConfig.in_review;
-  const StatusIcon = config.icon;
-  const currentVersion = drawing.versions?.[0];
-  const fileUrl = currentVersion?.file_url ?? "";
+ const config = statusConfig[drawing.status] || statusConfig.in_review;
+ const StatusIcon = config.icon;
+ const currentVersion = drawing.versions?.[0];
+ const fileUrl = currentVersion?.file_url ?? "";
 
-  return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={handleBack}>
-            <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
-            Back
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold flex items-center gap-3">
-              {drawing.drawing_number}
-              <Badge variant="outline" className={cn("text-sm", config.className)}>
-                <StatusIcon className="w-4 h-4 mr-1" aria-hidden="true" />
-                {config.label}
-              </Badge>
-            </h1>
-            <p className="text-muted-foreground">{drawing.drawing_name}</p>
-          </div>
-        </div>
-      </div>
+ return (
+ <div className="container mx-auto p-6 space-y-6">
+ {/* Header */}
+ <div className="flex items-center justify-between">
+ <div className="flex items-center gap-4">
+ <Button variant="ghost" size="sm" onClick={handleBack}>
+ <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
+ Back
+ </Button>
+ <div>
+ <h1 className="text-3xl font-bold flex items-center gap-3">
+ {drawing.drawing_number}
+ <Badge variant="outline" className={cn("text-sm", config.className)}>
+ <StatusIcon className="w-4 h-4 mr-1" aria-hidden="true" />
+ {config.label}
+ </Badge>
+ </h1>
+ <p className="text-muted-foreground">{drawing.drawing_name}</p>
+ </div>
+ </div>
+ </div>
 
-      {/* Quick Info Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Package className="w-4 h-4" aria-hidden="true" />
-              Production Order
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {drawing.production_orders ? (
-              <>
-                <div className="font-semibold">{drawing.production_orders.order_number}</div>
-                <div className="text-sm text-muted-foreground">{drawing.production_orders.item_name}</div>
-              </>
-            ) : (
-              <span className="text-muted-foreground">—</span>
-            )}
-          </CardContent>
-        </Card>
+ {/* Quick Info Cards */}
+ <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+ <Card>
+ <CardHeader className="pb-2">
+ <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+ <Package className="w-4 h-4" aria-hidden="true" />
+ Production Order
+ </CardTitle>
+ </CardHeader>
+ <CardContent>
+ {drawing.production_orders ? (
+ <>
+ <div className="font-semibold">{drawing.production_orders.order_number}</div>
+ <div className="text-sm text-muted-foreground">{drawing.production_orders.item_name}</div>
+ </>
+ ) : (
+ <span className="text-muted-foreground">—</span>
+ )}
+ </CardContent>
+ </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Building2 className="w-4 h-4" aria-hidden="true" />
-              Factory
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {drawing.partners ? (
-              <div className="font-semibold">{drawing.partners.company_name}</div>
-            ) : (
-              <span className="text-muted-foreground">—</span>
-            )}
-          </CardContent>
-        </Card>
+ <Card>
+ <CardHeader className="pb-2">
+ <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+ <Building2 className="w-4 h-4" aria-hidden="true" />
+ Factory
+ </CardTitle>
+ </CardHeader>
+ <CardContent>
+ {drawing.partners ? (
+ <div className="font-semibold">{drawing.partners.company_name}</div>
+ ) : (
+ <span className="text-muted-foreground">—</span>
+ )}
+ </CardContent>
+ </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <GitCommit className="w-4 h-4" aria-hidden="true" />
-              Current Version
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="font-semibold font-mono text-lg">v{drawing.current_version}</div>
-            {currentVersion && (
-              <div className="text-xs text-muted-foreground">
-                {format(new Date(currentVersion.uploaded_at), "MMM d, yyyy")}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+ <Card>
+ <CardHeader className="pb-2">
+ <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+ <GitCommit className="w-4 h-4" aria-hidden="true" />
+ Current Version
+ </CardTitle>
+ </CardHeader>
+ <CardContent>
+ <div className="font-semibold font-mono text-lg">v{drawing.current_version}</div>
+ {currentVersion && (
+ <div className="text-xs text-muted-foreground">
+ {format(new Date(currentVersion.uploaded_at), "MMM d, yyyy")}
+ </div>
+ )}
+ </CardContent>
+ </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
-              Approval Status
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {approvalStatus?.finalApproved ? (
-              <div className="font-semibold text-green-600">Fully Approved</div>
-            ) : approvalStatus?.limnApproved && approvalStatus?.designerApproved ? (
-              <div className="font-semibold text-green-600">Fully Approved</div>
-            ) : approvalStatus?.limnApproved || approvalStatus?.designerApproved ? (
-              <div className="font-semibold text-blue-600">Partially Approved</div>
-            ) : (
-              <div className="font-semibold text-yellow-600">Pending</div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+ <Card>
+ <CardHeader className="pb-2">
+ <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+ <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
+ Approval Status
+ </CardTitle>
+ </CardHeader>
+ <CardContent>
+ {approvalStatus?.finalApproved ? (
+ <div className="font-semibold text-green-600">Fully Approved</div>
+ ) : approvalStatus?.limnApproved && approvalStatus?.designerApproved ? (
+ <div className="font-semibold text-green-600">Fully Approved</div>
+ ) : approvalStatus?.limnApproved || approvalStatus?.designerApproved ? (
+ <div className="font-semibold text-blue-600">Partially Approved</div>
+ ) : (
+ <div className="font-semibold text-yellow-600">Pending</div>
+ )}
+ </CardContent>
+ </Card>
+ </div>
 
-      {/* Tabs */}
-      <Tabs defaultValue="pdf" className="space-y-4">
-        <TabsList className="grid grid-cols-5 w-full max-w-3xl">
-          <TabsTrigger value="pdf" className="flex items-center gap-2">
-            <FileText className="w-4 h-4" aria-hidden="true" />
-            PDF
-          </TabsTrigger>
-          <TabsTrigger value="comments" className="flex items-center gap-2">
-            <MessageSquare className="w-4 h-4" aria-hidden="true" />
-            Comments
-          </TabsTrigger>
-          <TabsTrigger value="versions" className="flex items-center gap-2">
-            <GitCommit className="w-4 h-4" aria-hidden="true" />
-            Versions
-          </TabsTrigger>
-          <TabsTrigger value="approvals" className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
-            Approvals
-          </TabsTrigger>
-          <TabsTrigger value="activity" className="flex items-center gap-2">
-            <Activity className="w-4 h-4" aria-hidden="true" />
-            Activity
-          </TabsTrigger>
-        </TabsList>
+ {/* Tabs */}
+ <Tabs defaultValue="pdf" className="space-y-4">
+ <TabsList className="grid grid-cols-5 w-full max-w-3xl">
+ <TabsTrigger value="pdf" className="flex items-center gap-2">
+ <FileText className="w-4 h-4" aria-hidden="true" />
+ PDF
+ </TabsTrigger>
+ <TabsTrigger value="comments" className="flex items-center gap-2">
+ <MessageSquare className="w-4 h-4" aria-hidden="true" />
+ Comments
+ </TabsTrigger>
+ <TabsTrigger value="versions" className="flex items-center gap-2">
+ <GitCommit className="w-4 h-4" aria-hidden="true" />
+ Versions
+ </TabsTrigger>
+ <TabsTrigger value="approvals" className="flex items-center gap-2">
+ <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
+ Approvals
+ </TabsTrigger>
+ <TabsTrigger value="activity" className="flex items-center gap-2">
+ <Activity className="w-4 h-4" aria-hidden="true" />
+ Activity
+ </TabsTrigger>
+ </TabsList>
 
-        {/* PDF Tab */}
-        <TabsContent value="pdf" className="space-y-4">
-          <Card className="h-[800px]">
-            {fileUrl ? (
-              <PDFViewer
-                fileUrl={fileUrl}
-                onPageChange={setCurrentPage}
-                initialPage={currentPage}
-              />
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-center">
-                  <FileText className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" aria-hidden="true" />
-                  <p className="text-muted-foreground">No PDF file available</p>
-                </div>
-              </div>
-            )}
-          </Card>
-        </TabsContent>
+ {/* PDF Tab */}
+ <TabsContent value="pdf" className="space-y-4">
+ <Card className="h-[800px]">
+ {fileUrl ? (
+ <PDFViewer
+ fileUrl={fileUrl}
+ onPageChange={setCurrentPage}
+ initialPage={currentPage}
+ />
+ ) : (
+ <div className="flex items-center justify-center h-full">
+ <div className="text-center">
+ <FileText className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" aria-hidden="true" />
+ <p className="text-muted-foreground">No PDF file available</p>
+ </div>
+ </div>
+ )}
+ </Card>
+ </TabsContent>
 
-        {/* Comments Tab */}
-        <TabsContent value="comments" className="space-y-4">
-          {/* Add Comment Form */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Add Comment</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleAddComment} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="comment-type">Comment Type</Label>
-                  <Select value={commentType} onValueChange={(value) => setCommentType(value as typeof commentType)}>
-                    <SelectTrigger id="comment-type">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="general">General</SelectItem>
-                      <SelectItem value="review">Review</SelectItem>
-                      <SelectItem value="question">Question</SelectItem>
-                      <SelectItem value="change_request">Change Request</SelectItem>
-                      <SelectItem value="approval">Approval</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+ {/* Comments Tab */}
+ <TabsContent value="comments" className="space-y-4">
+ {/* Add Comment Form */}
+ <Card>
+ <CardHeader>
+ <CardTitle className="text-lg">Add Comment</CardTitle>
+ </CardHeader>
+ <CardContent>
+ <form onSubmit={handleAddComment} className="space-y-4">
+ <div className="space-y-2">
+ <Label htmlFor="comment-type">Comment Type</Label>
+ <Select value={commentType} onValueChange={(value) => setCommentType(value as typeof commentType)}>
+ <SelectTrigger id="comment-type">
+ <SelectValue />
+ </SelectTrigger>
+ <SelectContent>
+ <SelectItem value="general">General</SelectItem>
+ <SelectItem value="review">Review</SelectItem>
+ <SelectItem value="question">Question</SelectItem>
+ <SelectItem value="change_request">Change Request</SelectItem>
+ <SelectItem value="approval">Approval</SelectItem>
+ </SelectContent>
+ </Select>
+ </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="comment-text">Comment</Label>
-                  <Textarea
-                    id="comment-text"
-                    placeholder="Add your comment..."
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                    rows={4}
-                  />
-                </div>
+ <div className="space-y-2">
+ <Label htmlFor="comment-text">Comment</Label>
+ <Textarea
+ id="comment-text"
+ placeholder="Add your comment..."
+ value={commentText}
+ onChange={(e) => setCommentText(e.target.value)}
+ rows={4}
+ />
+ </div>
 
-                <Button type="submit" disabled={!commentText.trim() || addCommentMutation.isPending}>
-                  {addCommentMutation.isPending ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
-                  ) : (
-                    <MessageSquare className="w-4 h-4 mr-2" aria-hidden="true" />
-                  )}
-                  Add Comment
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+ <Button type="submit" disabled={!commentText.trim() || addCommentMutation.isPending}>
+ {addCommentMutation.isPending ? (
+ <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
+ ) : (
+ <MessageSquare className="w-4 h-4 mr-2" aria-hidden="true" />
+ )}
+ Add Comment
+ </Button>
+ </form>
+ </CardContent>
+ </Card>
 
-          {/* Comments List */}
-          <div className="space-y-4">
-            {comments && comments.length > 0 ? (
-              comments.map((comment) => (
-                <CommentCard
-                  key={comment.id}
-                  comment={{
-                    id: comment.id,
-                    text: comment.comment_text,
-                    author: {
-                      id: comment.author_id,
-                      name: comment.author.email ?? "Unknown User",
-                    },
-                    createdAt: new Date(comment.created_at),
-                    type: comment.comment_type === "review" ? "question" :
-                          comment.comment_type === "change_request" ? "issue" :
-                          comment.comment_type === "approval" ? "approval" : "general",
-                    status: comment.status === "resolved" ? "resolved" : "open",
-                    resolvedAt: comment.resolved_at ? new Date(comment.resolved_at) : null,
-                    resolvedBy: comment.resolver ? {
-                      id: comment.resolved_by ?? "",
-                      name: comment.resolver.email ?? "Unknown User",
-                    } : null,
-                    replies: comment.replies?.map((reply) => ({
-                      id: reply.id,
-                      text: reply.comment_text,
-                      author: {
-                        id: reply.author_id,
-                        name: reply.author.email ?? "Unknown User",
-                      },
-                      createdAt: new Date(reply.created_at),
-                      type: "general" as const,
-                      status: reply.status === "resolved" ? "resolved" as const : "open" as const,
-                    })),
-                  }}
-                  onResolve={handleResolveComment}
-                />
-              ))
-            ) : (
-              <Card>
-                <CardContent className="p-12">
-                  <div className="text-center text-muted-foreground">
-                    <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-50" aria-hidden="true" />
-                    <p className="text-sm">No comments yet. Be the first to add one!</p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </TabsContent>
+ {/* Comments List */}
+ <div className="space-y-4">
+ {comments && comments.length > 0 ? (
+ comments.map((comment) => (
+ <CommentCard
+ key={comment.id}
+ comment={{
+ id: comment.id,
+ text: comment.comment_text,
+ author: {
+ id: comment.author_id,
+ name: comment.author.email ?? "Unknown User",
+ },
+ createdAt: new Date(comment.created_at),
+ type: comment.comment_type === "review" ? "question" :
+ comment.comment_type === "change_request" ? "issue" :
+ comment.comment_type === "approval" ? "approval" : "general",
+ status: comment.status === "resolved" ? "resolved" : "open",
+ resolvedAt: comment.resolved_at ? new Date(comment.resolved_at) : null,
+ resolvedBy: comment.resolver ? {
+ id: comment.resolved_by ?? "",
+ name: comment.resolver.email ?? "Unknown User",
+ } : null,
+ replies: comment.replies?.map((reply) => ({
+ id: reply.id,
+ text: reply.comment_text,
+ author: {
+ id: reply.author_id,
+ name: reply.author.email ?? "Unknown User",
+ },
+ createdAt: new Date(reply.created_at),
+ type: "general" as const,
+ status: reply.status === "resolved" ? "resolved" as const : "open" as const,
+ })),
+ }}
+ onResolve={handleResolveComment}
+ />
+ ))
+ ) : (
+ <Card>
+ <CardContent className="p-12">
+ <div className="text-center text-muted-foreground">
+ <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-50" aria-hidden="true" />
+ <p className="text-sm">No comments yet. Be the first to add one!</p>
+ </div>
+ </CardContent>
+ </Card>
+ )}
+ </div>
+ </TabsContent>
 
-        {/* Versions Tab */}
-        <TabsContent value="versions" className="space-y-4">
-          {versions && versions.length > 0 ? (
-            <VersionTimeline
-              versions={versions.map((v) => ({
-                id: v.id,
-                versionNumber: String(v.version_number),
-                fileName: v.file_name,
-                fileSize: Number(v.file_size),
-                uploadedAt: new Date(v.uploaded_at),
-                uploadedBy: {
-                  id: v.uploaded_by,
-                  name: v.uploader.email ?? "Unknown User",
-                },
-                status: v.status as "current" | "superseded" | "archived",
-                notes: v.upload_notes,
-              }))}
-            />
-          ) : (
-            <Card>
-              <CardContent className="p-12">
-                <div className="text-center text-muted-foreground">
-                  <GitCommit className="w-12 h-12 mx-auto mb-2 opacity-50" aria-hidden="true" />
-                  <p className="text-sm">No version history available</p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
+ {/* Versions Tab */}
+ <TabsContent value="versions" className="space-y-4">
+ {versions && versions.length > 0 ? (
+ <VersionTimeline
+ versions={versions.map((v) => ({
+ id: v.id,
+ versionNumber: String(v.version_number),
+ fileName: v.file_name,
+ fileSize: Number(v.file_size),
+ uploadedAt: new Date(v.uploaded_at),
+ uploadedBy: {
+ id: v.uploaded_by,
+ name: v.uploader.email ?? "Unknown User",
+ },
+ status: v.status as "current" | "superseded" | "archived",
+ notes: v.upload_notes,
+ }))}
+ />
+ ) : (
+ <Card>
+ <CardContent className="p-12">
+ <div className="text-center text-muted-foreground">
+ <GitCommit className="w-12 h-12 mx-auto mb-2 opacity-50" aria-hidden="true" />
+ <p className="text-sm">No version history available</p>
+ </div>
+ </CardContent>
+ </Card>
+ )}
+ </TabsContent>
 
-        {/* Approvals Tab */}
-        <TabsContent value="approvals" className="space-y-4">
-          {/* Approval Form */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Submit Approval</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleApprovalSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="approval-decision">Decision</Label>
-                  <Select value={approvalDecision} onValueChange={(value) => setApprovalDecision(value as typeof approvalDecision)}>
-                    <SelectTrigger id="approval-decision">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="approved">
-                        <div className="flex items-center gap-2">
-                          <ThumbsUp className="w-4 h-4 text-green-600" aria-hidden="true" />
-                          Approve
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="changes_requested">
-                        <div className="flex items-center gap-2">
-                          <AlertTriangle className="w-4 h-4 text-orange-600" aria-hidden="true" />
-                          Request Changes
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="rejected">
-                        <div className="flex items-center gap-2">
-                          <ThumbsDown className="w-4 h-4 text-red-600" aria-hidden="true" />
-                          Reject
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+ {/* Approvals Tab */}
+ <TabsContent value="approvals" className="space-y-4">
+ {/* Approval Form */}
+ <Card>
+ <CardHeader>
+ <CardTitle className="text-lg">Submit Approval</CardTitle>
+ </CardHeader>
+ <CardContent>
+ <form onSubmit={handleApprovalSubmit} className="space-y-4">
+ <div className="space-y-2">
+ <Label htmlFor="approval-decision">Decision</Label>
+ <Select value={approvalDecision} onValueChange={(value) => setApprovalDecision(value as typeof approvalDecision)}>
+ <SelectTrigger id="approval-decision">
+ <SelectValue />
+ </SelectTrigger>
+ <SelectContent>
+ <SelectItem value="approved">
+ <div className="flex items-center gap-2">
+ <ThumbsUp className="w-4 h-4 text-green-600" aria-hidden="true" />
+ Approve
+ </div>
+ </SelectItem>
+ <SelectItem value="changes_requested">
+ <div className="flex items-center gap-2">
+ <AlertTriangle className="w-4 h-4 text-orange-600" aria-hidden="true" />
+ Request Changes
+ </div>
+ </SelectItem>
+ <SelectItem value="rejected">
+ <div className="flex items-center gap-2">
+ <ThumbsDown className="w-4 h-4 text-red-600" aria-hidden="true" />
+ Reject
+ </div>
+ </SelectItem>
+ </SelectContent>
+ </Select>
+ </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="approval-comments">Comments (Optional)</Label>
-                  <Textarea
-                    id="approval-comments"
-                    placeholder="Add any comments or conditions..."
-                    value={approvalComments}
-                    onChange={(e) => setApprovalComments(e.target.value)}
-                    rows={3}
-                  />
-                </div>
+ <div className="space-y-2">
+ <Label htmlFor="approval-comments">Comments (Optional)</Label>
+ <Textarea
+ id="approval-comments"
+ placeholder="Add any comments or conditions..."
+ value={approvalComments}
+ onChange={(e) => setApprovalComments(e.target.value)}
+ rows={3}
+ />
+ </div>
 
-                <Button type="submit" disabled={approveVersionMutation.isPending}>
-                  {approveVersionMutation.isPending ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
-                  ) : (
-                    <CheckCircle2 className="w-4 h-4 mr-2" aria-hidden="true" />
-                  )}
-                  Submit Approval
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+ <Button type="submit" disabled={approveVersionMutation.isPending}>
+ {approveVersionMutation.isPending ? (
+ <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
+ ) : (
+ <CheckCircle2 className="w-4 h-4 mr-2" aria-hidden="true" />
+ )}
+ Submit Approval
+ </Button>
+ </form>
+ </CardContent>
+ </Card>
 
-          {/* Approval Status */}
-          {approvalStatus && (
-            <ApprovalStatus
-              drawing={{
-                id: drawing.id,
-                limnApproval: {
-                  status: approvalStatus.limnApproved ? "approved" : "pending",
-                  approvedBy: approvalStatus.limnApprovedBy ? {
-                    id: "",
-                    name: approvalStatus.limnApprovedBy.email ?? "Unknown User",
-                  } : null,
-                  approvedAt: approvalStatus.limnApprovedAt ? new Date(approvalStatus.limnApprovedAt) : null,
-                },
-                designerApproval: {
-                  status: approvalStatus.designerApproved ? "approved" : "pending",
-                  approvedBy: approvalStatus.designerApprovedBy ? {
-                    id: "",
-                    name: approvalStatus.designerApprovedBy.email ?? "Unknown User",
-                  } : null,
-                  approvedAt: approvalStatus.designerApprovedAt ? new Date(approvalStatus.designerApprovedAt) : null,
-                },
-              }}
-            />
-          )}
-        </TabsContent>
+ {/* Approval Status */}
+ {approvalStatus && (
+ <ApprovalStatus
+ drawing={{
+ id: drawing.id,
+ limnApproval: {
+ status: approvalStatus.limnApproved ? "approved" : "pending",
+ approvedBy: approvalStatus.limnApprovedBy ? {
+ id: "",
+ name: approvalStatus.limnApprovedBy.email ?? "Unknown User",
+ } : null,
+ approvedAt: approvalStatus.limnApprovedAt ? new Date(approvalStatus.limnApprovedAt) : null,
+ },
+ designerApproval: {
+ status: approvalStatus.designerApproved ? "approved" : "pending",
+ approvedBy: approvalStatus.designerApprovedBy ? {
+ id: "",
+ name: approvalStatus.designerApprovedBy.email ?? "Unknown User",
+ } : null,
+ approvedAt: approvalStatus.designerApprovedAt ? new Date(approvalStatus.designerApprovedAt) : null,
+ },
+ }}
+ />
+ )}
+ </TabsContent>
 
-        {/* Activity Tab */}
-        <TabsContent value="activity" className="space-y-4">
-          {activityLog && activityLog.length > 0 ? (
-            <div className="space-y-2">
-              {activityLog.map((activity, index) => (
-                <Card key={`activity-${index}-${activity.timestamp.toISOString()}`}>
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-4">
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Activity className="w-4 h-4 text-primary" aria-hidden="true" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <p className="font-medium">{activity.description}</p>
-                          <time className="text-sm text-muted-foreground" dateTime={activity.timestamp.toISOString()}>
-                            {format(new Date(activity.timestamp), "MMM d, yyyy h:mm a")}
-                          </time>
-                        </div>
-                        <p className="text-sm text-muted-foreground">{activity.user}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <Card>
-              <CardContent className="p-12">
-                <div className="text-center text-muted-foreground">
-                  <Activity className="w-12 h-12 mx-auto mb-2 opacity-50" aria-hidden="true" />
-                  <p className="text-sm">No activity history available</p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
+ {/* Activity Tab */}
+ <TabsContent value="activity" className="space-y-4">
+ {activityLog && activityLog.length > 0 ? (
+ <div className="space-y-2">
+ {activityLog.map((activity, index) => (
+ <Card key={`activity-${index}-${activity.timestamp.toISOString()}`}>
+ <CardContent className="p-4">
+ <div className="flex items-start gap-4">
+ <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+ <Activity className="w-4 h-4 text-primary" aria-hidden="true" />
+ </div>
+ <div className="flex-1">
+ <div className="flex items-center justify-between">
+ <p className="font-medium">{activity.description}</p>
+ <time className="text-sm text-muted-foreground" dateTime={activity.timestamp.toISOString()}>
+ {format(new Date(activity.timestamp), "MMM d, yyyy h:mm a")}
+ </time>
+ </div>
+ <p className="text-sm text-muted-foreground">{activity.user}</p>
+ </div>
+ </div>
+ </CardContent>
+ </Card>
+ ))}
+ </div>
+ ) : (
+ <Card>
+ <CardContent className="p-12">
+ <div className="text-center text-muted-foreground">
+ <Activity className="w-12 h-12 mx-auto mb-2 opacity-50" aria-hidden="true" />
+ <p className="text-sm">No activity history available</p>
+ </div>
+ </CardContent>
+ </Card>
+ )}
+ </TabsContent>
+ </Tabs>
+ </div>
+ );
 }

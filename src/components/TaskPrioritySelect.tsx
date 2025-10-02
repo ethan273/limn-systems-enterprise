@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { api } from "@/lib/api/client";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+ Select,
+ SelectContent,
+ SelectItem,
+ SelectTrigger,
+ SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -15,70 +15,70 @@ import { cn } from "@/lib/utils";
 type TaskPriority = 'low' | 'medium' | 'high';
 
 interface TaskPrioritySelectProps {
-  taskId: string;
-  currentPriority: TaskPriority;
-  onUpdate?: () => void;
+ taskId: string;
+ currentPriority: TaskPriority;
+ onUpdate?: () => void;
 }
 
 export default function TaskPrioritySelect({ taskId, currentPriority, onUpdate }: TaskPrioritySelectProps) {
-  const [isUpdating, setIsUpdating] = useState(false);
+ const [isUpdating, setIsUpdating] = useState(false);
 
-  const updatePriorityMutation = api.tasks.updatePriority.useMutation({
-    onSuccess: () => {
-      setIsUpdating(false);
-      onUpdate?.();
-    },
-    onError: (error) => {
-      setIsUpdating(false);
-      console.error('Failed to update priority:', error);
-    },
-  });
+ const updatePriorityMutation = api.tasks.updatePriority.useMutation({
+ onSuccess: () => {
+ setIsUpdating(false);
+ onUpdate?.();
+ },
+ onError: (error) => {
+ setIsUpdating(false);
+ console.error('Failed to update priority:', error);
+ },
+ });
 
-  const handlePriorityChange = (newPriority: TaskPriority) => {
-    if (newPriority === currentPriority || isUpdating) return;
-    setIsUpdating(true);
-    updatePriorityMutation.mutate({ id: taskId, priority: newPriority });
-  };
+ const handlePriorityChange = (newPriority: TaskPriority) => {
+ if (newPriority === currentPriority || isUpdating) return;
+ setIsUpdating(true);
+ updatePriorityMutation.mutate({ id: taskId, priority: newPriority });
+ };
 
-  return (
-    <Select
-      value={currentPriority}
-      onValueChange={handlePriorityChange}
-      disabled={isUpdating}
-    >
-      <SelectTrigger className="w-24 min-h-[50px] h-auto border-0 bg-transparent p-2 hover:bg-gray-700 focus:bg-gray-700 overflow-visible">
-        <SelectValue>
-          <Badge
-            variant="outline"
-            className={cn(
-              "border text-xs font-medium px-3 py-1",
-              currentPriority === 'low' && "bg-gray-500/20 text-gray-300 border-gray-500/30",
-              currentPriority === 'medium' && "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-              currentPriority === 'high' && "bg-red-500/20 text-red-400 border-red-500/30",
-              isUpdating && "opacity-50"
-            )}
-          >
-            {currentPriority.toUpperCase()}
-          </Badge>
-        </SelectValue>
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="low">
-          <Badge variant="outline" className="bg-gray-500/20 text-gray-300 border-gray-500/30 text-xs">
-            LOW
-          </Badge>
-        </SelectItem>
-        <SelectItem value="medium">
-          <Badge variant="outline" className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-xs">
-            MEDIUM
-          </Badge>
-        </SelectItem>
-        <SelectItem value="high">
-          <Badge variant="outline" className="bg-red-500/20 text-red-400 border-red-500/30 text-xs">
-            HIGH
-          </Badge>
-        </SelectItem>
-      </SelectContent>
-    </Select>
-  );
+ return (
+ <Select
+ value={currentPriority}
+ onValueChange={handlePriorityChange}
+ disabled={isUpdating}
+ >
+ <SelectTrigger className="w-24 min-h-[50px] h-auto border-0 bg-transparent p-2 hover:card focus:card overflow-visible">
+ <SelectValue>
+ <Badge
+ variant="outline"
+ className={cn(
+ "border text-xs font-medium px-3 py-1",
+ currentPriority === 'low' && "card text-tertiary border/30",
+ currentPriority === 'medium' && "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+ currentPriority === 'high' && "bg-red-500/20 text-red-400 border-red-500/30",
+ isUpdating && "opacity-50"
+ )}
+ >
+ {currentPriority.toUpperCase()}
+ </Badge>
+ </SelectValue>
+ </SelectTrigger>
+ <SelectContent>
+ <SelectItem value="low">
+ <Badge variant="outline" className="card text-tertiary border/30 text-xs">
+ LOW
+ </Badge>
+ </SelectItem>
+ <SelectItem value="medium">
+ <Badge variant="outline" className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-xs">
+ MEDIUM
+ </Badge>
+ </SelectItem>
+ <SelectItem value="high">
+ <Badge variant="outline" className="bg-red-500/20 text-red-400 border-red-500/30 text-xs">
+ HIGH
+ </Badge>
+ </SelectItem>
+ </SelectContent>
+ </Select>
+ );
 }
