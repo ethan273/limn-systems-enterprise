@@ -74,12 +74,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Generate access token for the test user
+    // For development, create a session token directly
+    // This is simpler and more reliable than magic links for testing
     const { data: sessionData, error: sessionError } = await supabase.auth.admin.generateLink({
       type: 'magiclink',
       email: testEmail,
       options: {
-        redirectTo: `${request.nextUrl.origin}/dashboard`
+        redirectTo: `${request.nextUrl.origin}/auth/callback?type=dev`
       }
     });
 
@@ -88,12 +89,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to generate session' }, { status: 500 });
     }
 
+    // Extract the token from the magic link
+    const magicLink = sessionData.properties?.action_link;
+    const tokenMatch = magicLink?.match(/token=([^&]+)/);
+    const token = tokenMatch ? tokenMatch[1] : null;
+
+    if (!token) {
+      console.error('No token found in magic link');
+      return NextResponse.json({ error: 'Failed to extract auth token' }, { status: 500 });
+    }
+
     return NextResponse.json({
       message: 'Development user authenticated',
       user_id: actualUserId,
       email: testEmail,
-      magic_link: sessionData.properties?.action_link,
-      redirect_url: `/dashboard`
+      token: token,
+      magic_link: magicLink,
+      redirect_url: `/auth/callback?token=${token}&type=dev`
     });
 
   } catch (error) {

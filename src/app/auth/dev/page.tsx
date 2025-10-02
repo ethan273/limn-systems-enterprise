@@ -33,11 +33,15 @@ export default function DevLoginPage() {
 
       setMessage('Development user authenticated! Redirecting...');
 
-      // Follow the magic link to authenticate
-      if (data.magic_link) {
+      // Use the new callback-based flow for more reliable authentication
+      if (data.redirect_url) {
+        // Redirect to our callback route which will verify the token and set session
+        window.location.href = data.redirect_url;
+      } else if (data.magic_link) {
+        // Fallback to magic link if redirect_url not provided
         window.location.href = data.magic_link;
       } else {
-        // Fallback redirect
+        // Final fallback
         setTimeout(() => {
           router.push('/dashboard');
         }, 1000);
