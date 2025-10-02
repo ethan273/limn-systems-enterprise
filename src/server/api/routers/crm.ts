@@ -21,13 +21,62 @@ const createContactSchema = z.object({
 });
 
 // Generate CRUD for contacts
-export const contactsRouter = createCrudRouter({
+const baseContactsRouter = createCrudRouter({
   name: 'Contact',
   model: 'contacts' as any,
   createSchema: createContactSchema,
   updateSchema: createContactSchema.partial(),
   searchFields: ['name', 'email', 'company'],
   defaultOrderBy: { name: 'asc' },
+});
+
+// Extend contacts router with detail page data
+export const contactsRouter = createTRPCRouter({
+  ...baseContactsRouter._def.procedures,
+
+  // Get contact by ID with all related data for detail page
+  getById: publicProcedure
+    .input(z.object({
+      id: z.string().uuid(),
+    }))
+    .query(async ({ ctx, input }) => {
+      const contact = await ctx.db.contacts.findUnique({
+        where: { id: input.id },
+      });
+
+      if (!contact) {
+        throw new Error('Contact not found');
+      }
+
+      // Get activities for this contact
+      const activities = await ctx.db.activities.findMany({
+        where: { contact_id: input.id },
+        orderBy: { created_at: 'desc' },
+        take: 50,
+      });
+
+      // Calculate analytics
+      const totalActivities = activities.length;
+      const completedActivities = activities.filter(a => a.status === 'completed').length;
+      const pendingActivities = activities.filter(a => a.status === 'pending').length;
+
+      // Get last contact date from activities
+      const lastContactActivity = activities.find(a =>
+        a.type === 'email' || a.type === 'call' || a.type === 'meeting'
+      );
+
+      return {
+        contact,
+        activities,
+        analytics: {
+          totalActivities,
+          completedActivities,
+          pendingActivities,
+          lastContactDate: lastContactActivity?.created_at || contact.last_contacted || null,
+          engagementScore: contact.score || 0,
+        },
+      };
+    }),
 });
 
 // Leads Schema (updated to match database schema)
@@ -80,13 +129,117 @@ const createCustomerSchema = z.object({
 });
 
 // Generate CRUD for customers/clients
-export const customersRouter = createCrudRouter({
+const baseCustomersRouter = createCrudRouter({
   name: 'Customer',
   model: 'customers' as any,
   createSchema: createCustomerSchema,
   updateSchema: createCustomerSchema.partial(),
   searchFields: ['name', 'email', 'company', 'company_name'],
   defaultOrderBy: { name: 'asc' },
+});
+
+// Extend customers router with detail page data
+export const customersRouter = createTRPCRouter({
+  ...baseCustomersRouter._def.procedures,
+
+  // Get customer by ID with all related data for detail page
+  getById: publicProcedure
+    .input(z.object({
+      id: z.string().uuid(),
+    }))
+    .query(async ({ ctx, input }) => {
+      const customer = await ctx.db.customers.findUnique({
+        where: { id: input.id },
+        include: {
+          orders: {
+            orderBy: { created_at: 'desc' },
+            take: 10,
+          },
+        },
+      });
+
+      if (!customer) {
+        throw new Error('Customer not found');
+      }
+
+      // Get projects for this customer
+      const projects = await ctx.db.projects.findMany({
+        where: { customer_id: input.id },
+        orderBy: { created_at: 'desc' },
+        take: 10,
+      });
+
+      // Get production orders for this customer
+      const productionOrders = await ctx.db.production_orders.findMany({
+        where: {
+          orders: {
+            customer_id: input.id,
+          },
+        },
+        include: {
+          orders: true,
+          projects: true,
+        },
+        orderBy: { created_at: 'desc' },
+        take: 10,
+      });
+
+      // Get activities for this customer
+      const activities = await ctx.db.activities.findMany({
+        where: { customer_id: input.id },
+        orderBy: { created_at: 'desc' },
+        take: 50,
+      });
+
+      // Get payments for this customer
+      const payments = await ctx.db.payments.findMany({
+        where: { customer_id: input.id },
+        orderBy: { created_at: 'desc' },
+        take: 10,
+      });
+
+      // Calculate financial analytics
+      const totalOrderValue = customer.orders.reduce((sum, order) =>
+        sum + (order.total_amount ? Number(order.total_amount) : 0), 0
+      );
+
+      const totalPaid = payments.reduce((sum, payment) =>
+        sum + (payment.amount ? Number(payment.amount) : 0), 0
+      );
+
+      const outstandingBalance = totalOrderValue - totalPaid;
+
+      // Calculate activity analytics
+      const totalActivities = activities.length;
+      const completedActivities = activities.filter(a => a.status === 'completed').length;
+
+      // Calculate customer lifetime
+      const createdDate = customer.created_at ? new Date(customer.created_at) : new Date();
+      const currentDate = new Date();
+      const daysAsCustomer = Math.floor((currentDate.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24));
+
+      return {
+        customer,
+        projects,
+        productionOrders,
+        activities,
+        payments,
+        analytics: {
+          totalOrders: customer.orders.length,
+          totalProjects: projects.length,
+          totalProductionOrders: productionOrders.length,
+          totalOrderValue,
+          totalPaid,
+          outstandingBalance,
+          lifetimeValue: totalOrderValue,
+          averageOrderValue: customer.orders.length > 0 ? totalOrderValue / customer.orders.length : 0,
+          totalActivities,
+          completedActivities,
+          daysAsCustomer,
+          lastActivityDate: customer.last_activity_date || null,
+        },
+      };
+    }),
 });
 
 // Extend leads router with conversion logic
@@ -101,6 +254,64 @@ const baseLeadsRouter = createCrudRouter({
 
 export const leadsRouter = createTRPCRouter({
   ...baseLeadsRouter._def.procedures,
+
+  // Get lead by ID with all related data for detail page
+  getById: publicProcedure
+    .input(z.object({
+      id: z.string().uuid(),
+    }))
+    .query(async ({ ctx, input }) => {
+      const lead = await ctx.db.leads.findUnique({
+        where: { id: input.id },
+      });
+
+      if (!lead) {
+        throw new Error('Lead not found');
+      }
+
+      // Get activities for this lead
+      const activities = await ctx.db.activities.findMany({
+        where: { lead_id: input.id },
+        orderBy: { created_at: 'desc' },
+        take: 50,
+      });
+
+      // Calculate analytics
+      const totalActivities = activities.length;
+      const completedActivities = activities.filter(a => a.status === 'completed').length;
+      const pendingActivities = activities.filter(a => a.status === 'pending').length;
+
+      // Calculate days in pipeline
+      const createdDate = lead.created_at ? new Date(lead.created_at) : new Date();
+      const currentDate = new Date();
+      const daysInPipeline = Math.floor((currentDate.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24));
+
+      // Get last contact date from activities
+      const lastContactActivity = activities.find(a =>
+        a.type === 'email' || a.type === 'call' || a.type === 'meeting'
+      );
+
+      // Pipeline stages in order
+      const pipelineStages = ['initial', 'qualified', 'proposal', 'negotiation', 'won', 'lost'];
+      const currentStageIndex = pipelineStages.indexOf(lead.pipeline_stage || 'initial');
+      const progress = ((currentStageIndex + 1) / pipelineStages.length) * 100;
+
+      return {
+        lead,
+        activities,
+        analytics: {
+          totalActivities,
+          completedActivities,
+          pendingActivities,
+          lastContactDate: lastContactActivity?.created_at || lead.last_contacted || null,
+          daysInPipeline,
+          leadValue: lead.lead_value ? Number(lead.lead_value) : 0,
+          pipelineProgress: Math.round(progress),
+          currentStage: lead.pipeline_stage || 'initial',
+          interestLevel: lead.interest_level || 'unknown',
+        },
+      };
+    }),
 
   // Get prospects (filtered leads)
   getProspects: publicProcedure
