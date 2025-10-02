@@ -125,6 +125,67 @@ As we build out future enhancements, functionality, pages, and features, ALWAYS 
 
 ---
 
+## 🚨🚨🚨 CRITICAL GLOBAL ERROR PATTERN FIXING REQUIREMENT 🚨🚨🚨
+
+**ALWAYS APPLY GLOBAL THINKING TO ALL ERRORS AND PROBLEMS**
+
+**MANDATORY GLOBAL FIX WORKFLOW:**
+
+Whenever you find ANY error, bug, or problem in the codebase:
+
+1. **COMPILE ALL ERRORS IN ENTIRE MODULE FIRST** - Do NOT fix immediately! Gather ALL errors/problems in the module
+2. **ANALYZE PATTERNS** - Look for patterns across all errors before fixing anything
+3. **SEARCH ENTIRE CODEBASE** - Look for identical or similar patterns globally
+4. **FIX ALL INSTANCES SIMULTANEOUSLY** - Apply fixes to ALL errors at the same time, globally
+5. **APPLY TO ALL ERROR TYPES** - Code bugs, auth issues, configuration problems, everything
+
+**CRITICAL: NEVER FIX ERRORS ONE BY ONE. COMPILE FIRST, THEN FIX GLOBALLY.**
+
+**CRITICAL EXAMPLES:**
+
+**Example 1: tRPC Session Bug (Session 05 Discovery)**
+- ❌ **WRONG:** Fix only `/api/trpc/[trpc]/route.ts` where error was found
+- ✅ **CORRECT:** Search all API routes for `session: null` patterns and fix everywhere
+
+**Example 2: Auth Issues**
+- ❌ **WRONG:** Fix authentication only in Design module where it failed
+- ✅ **CORRECT:** Check ALL modules (CRM, Production, Design, Partners, Finance, etc.) for same auth pattern
+
+**Example 3: TypeScript Errors**
+- ❌ **WRONG:** Fix type error in one component
+- ✅ **CORRECT:** Search for same type pattern across all components and fix globally
+
+**Example 4: Database Query Issues**
+- ❌ **WRONG:** Fix SQL error in one router
+- ✅ **CORRECT:** Search all routers for same query pattern and optimize globally
+
+**SEARCH COMMANDS TO USE:**
+```bash
+# Search for exact patterns
+grep -r "pattern" /path --include="*.ts" --include="*.tsx"
+
+# Search with regex
+grep -r "session:\s*null" /path -E
+
+# Use Grep tool for codebase-wide search
+Grep tool with pattern and appropriate file filters
+```
+
+**USER'S EXACT REQUIREMENTS:**
+*"sounds like this error might be in other modules too. make sure you apply global thinking to these issues and not just module specific fixes. look everywhere for patterns and fix everywhere. always. remember this. never forget it."*
+
+*"but you should apply this thinking to all errors and problems"*
+
+*"commit it to memory"*
+
+*"save it to our critical instructions"*
+
+**THIS IS A CRITICAL GLOBAL THINKING REQUIREMENT - APPLY TO EVERY SINGLE ERROR/PROBLEM YOU ENCOUNTER.**
+
+**NEVER FIX JUST ONE INSTANCE. ALWAYS FIX GLOBALLY. NO EXCEPTIONS.**
+
+---
+
 ## 🚨 CRITICAL COMMUNICATION REQUIREMENT 🚨
 
 **ALWAYS END EVERY RESPONSE WITH SERVER PORT INFORMATION:**

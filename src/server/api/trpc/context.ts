@@ -22,16 +22,16 @@ async function getSession(): Promise<Session | null> {
         },
       }
     );
-    
+
     const { data: { session }, error } = await supabase.auth.getSession();
-    
+
     if (error || !session) {
       return null;
     }
-    
+
     return session;
   } catch (error) {
-    console.error('Error getting session in tRPC context:', error);
+    console.error('[tRPC Context] Error getting session:', error);
     return null;
   }
 }

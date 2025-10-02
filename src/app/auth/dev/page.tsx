@@ -10,9 +10,11 @@ export default function DevLoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [selectedUserType, setSelectedUserType] = useState('dev');
   const router = useRouter();
 
-  const handleDevLogin = async () => {
+  const handleDevLogin = async (userType: string) => {
+    setSelectedUserType(userType);
     setLoading(true);
     setError('');
     setMessage('');
@@ -23,6 +25,7 @@ export default function DevLoginPage() {
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ userType }),
       });
 
       const data = await response.json();
@@ -31,7 +34,7 @@ export default function DevLoginPage() {
         throw new Error(data.error || 'Login failed');
       }
 
-      setMessage('Development user authenticated! Redirecting...');
+      setMessage(`${data.message || 'User authenticated'}! Redirecting...`);
 
       // Use the new callback-based flow for more reliable authentication
       if (data.redirect_url) {
@@ -105,20 +108,45 @@ export default function DevLoginPage() {
           )}
 
           <div className="space-y-6">
-            <Button
-              onClick={handleDevLogin}
-              disabled={loading}
-              className="w-full flex items-center justify-center px-4 py-3 border border-gray-600 rounded-lg shadow-sm bg-orange-600 text-sm font-medium text-white hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <div className="flex items-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                  Authenticating...
-                </div>
-              ) : (
-                'Login as Development User'
-              )}
-            </Button>
+            <div className="space-y-4">
+              <h2 className="text-sm font-medium text-gray-300">Select Test User Type:</h2>
+
+              <Button
+                onClick={() => handleDevLogin('dev')}
+                disabled={loading}
+                className="w-full flex items-center justify-center px-4 py-3 border border-gray-600 rounded-lg shadow-sm bg-blue-600 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading && selectedUserType === 'dev' ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    Authenticating...
+                  </div>
+                ) : (
+                  <div className="text-left w-full">
+                    <div className="font-semibold">Development User</div>
+                    <div className="text-xs text-blue-200">dev-user@limn.us.com - CRM & Production access</div>
+                  </div>
+                )}
+              </Button>
+
+              <Button
+                onClick={() => handleDevLogin('designer')}
+                disabled={loading}
+                className="w-full flex items-center justify-center px-4 py-3 border border-gray-600 rounded-lg shadow-sm bg-purple-600 text-sm font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading && selectedUserType === 'designer' ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    Authenticating...
+                  </div>
+                ) : (
+                  <div className="text-left w-full">
+                    <div className="font-semibold">Designer User</div>
+                    <div className="text-xs text-purple-200">designer-user@limn.us.com - Design module access</div>
+                  </div>
+                )}
+              </Button>
+            </div>
 
             <div className="bg-orange-900/20 border border-orange-600 rounded-lg p-4">
               <div className="flex">
@@ -133,8 +161,8 @@ export default function DevLoginPage() {
                   </h3>
                   <div className="mt-2 text-sm text-orange-400">
                     <p>
-                      This login creates a test user (dev-user@limn.us.com) for development and testing purposes.
-                      It bypasses normal OAuth requirements and should only be used locally.
+                      These test users bypass normal OAuth requirements and should only be used for local development and testing.
+                      Each user has different permissions to test module-specific functionality.
                     </p>
                   </div>
                 </div>

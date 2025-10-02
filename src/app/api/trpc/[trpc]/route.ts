@@ -17,7 +17,6 @@ const handler = (req: NextRequest) =>
     req,
     router: appRouter,
     createContext: () => createContext({
-      session: null, // TODO: Get session from Supabase auth
       req: req as any,
       res: undefined,
     }),

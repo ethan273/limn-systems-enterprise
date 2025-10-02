@@ -12,9 +12,44 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = getSupabaseAdmin();
 
-    // Create or get test user
-    const testEmail = 'dev-user@limn.us.com';
-    const testUserId = '550e8400-e29b-41d4-a716-446655440000'; // Same as mock user ID in TaskAttachments
+    // Get user type from request body (default to 'dev')
+    const body = await request.json().catch(() => ({}));
+    const userType = body.userType || 'dev';
+
+    // Define test users with different roles/permissions
+    const testUsers: Record<string, { email: string; userId: string; profile: any }> = {
+      dev: {
+        email: 'dev-user@limn.us.com',
+        userId: '550e8400-e29b-41d4-a716-446655440000',
+        profile: {
+          name: 'Development User',
+          first_name: 'Development',
+          last_name: 'User',
+          user_type: 'employee',
+          department: 'development',
+          job_title: 'Developer'
+        }
+      },
+      designer: {
+        email: 'designer-user@limn.us.com',
+        userId: '550e8400-e29b-41d4-a716-446655440001',
+        profile: {
+          name: 'Designer User',
+          first_name: 'Designer',
+          last_name: 'User',
+          user_type: 'employee',
+          department: 'design',
+          job_title: 'Senior Designer'
+        }
+      }
+    };
+
+    // Validate userType to prevent object injection
+    const allowedUserTypes = ['dev', 'designer'] as const;
+    const validUserType = allowedUserTypes.includes(userType as typeof allowedUserTypes[number]) ? userType : 'dev';
+    const selectedUser = testUsers[validUserType as keyof typeof testUsers];
+    const testEmail = selectedUser.email;
+    const testUserId = selectedUser.userId;
 
     // First, try to find user by email to see if one already exists
     const { data: existingUsers, error: _listUsersError } = await supabase.auth.admin.listUsers();
@@ -29,8 +64,8 @@ export async function POST(request: NextRequest) {
         email: testEmail,
         email_confirm: true,
         user_metadata: {
-          full_name: 'Development User',
-          name: 'Development User'
+          full_name: selectedUser.profile.name,
+          name: selectedUser.profile.name
         }
       });
 
@@ -57,13 +92,13 @@ export async function POST(request: NextRequest) {
         .insert({
           id: actualUserId,
           email: testEmail,
-          name: 'Development User',
-          first_name: 'Development',
-          last_name: 'User',
-          user_type: 'employee',
+          name: selectedUser.profile.name,
+          first_name: selectedUser.profile.first_name,
+          last_name: selectedUser.profile.last_name,
+          user_type: selectedUser.profile.user_type,
           is_active: true,
-          department: 'development',
-          job_title: 'Developer',
+          department: selectedUser.profile.department,
+          job_title: selectedUser.profile.job_title,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         } as any);
@@ -100,12 +135,13 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
-      message: 'Development user authenticated',
+      message: `${selectedUser.profile.name} authenticated`,
       user_id: actualUserId,
+      user_type: userType,
       email: testEmail,
       token: token,
       magic_link: magicLink,
-      redirect_url: `/auth/callback?token=${token}&type=dev`
+      redirect_url: `/auth/callback?token=${token}&type=${userType}`
     });
 
   } catch (error) {
