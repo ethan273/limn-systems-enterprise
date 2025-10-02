@@ -19,7 +19,9 @@ import {
  XIcon,
  Palette,
  Building2,
- Shield
+ Shield,
+ TruckIcon,
+ FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api/client";
@@ -69,8 +71,10 @@ export default function Sidebar() {
  "Design": pathname.startsWith('/design'),
  "Products": pathname.startsWith('/products'),
  "Production": pathname.startsWith('/production'),
- "Finance": pathname.startsWith('/finance'),
- "Admin": pathname.startsWith('/admin')
+ "Shipping": pathname.startsWith('/shipping'),
+ "Finance": pathname.startsWith('/finance') || pathname.startsWith('/financials'),
+ "Admin": pathname.startsWith('/admin'),
+ "Documents": pathname.startsWith('/documents')
  });
  }, [pathname]);
 
@@ -166,6 +170,17 @@ export default function Sidebar() {
  { label: "Factory Reviews", href: "/production/factory-reviews" },
  { label: "QC Inspections", href: "/production/qc" },
  { label: "Packing & Shipping", href: "/production/packing" },
+ { label: "Ordered Items", href: "/production/ordered-items" },
+ { label: "Shipments", href: "/production/shipments" },
+ ]
+ },
+ {
+ label: "Shipping",
+ icon: TruckIcon,
+ items: [
+ { label: "Dashboard", href: "/shipping" },
+ { label: "Shipments", href: "/shipping/shipments" },
+ { label: "Tracking", href: "/shipping/tracking" },
  ]
  },
  {
@@ -173,6 +188,15 @@ export default function Sidebar() {
  icon: DollarSign,
  items: [
  { label: "Dashboard", href: "/finance" },
+ { label: "Invoices", href: "/financials/invoices" },
+ { label: "Payments", href: "/financials/payments" },
+ ]
+ },
+ {
+ label: "Documents",
+ icon: FileText,
+ items: [
+ { label: "All Documents", href: "/documents" },
  ]
  },
  {

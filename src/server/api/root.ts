@@ -28,6 +28,9 @@ import { prototypesRouter } from './routers/prototypes';
 import { factoryReviewsRouter } from './routers/factoryReviews';
 import { qcRouter } from './routers/qc';
 import { packingRouter } from './routers/packing';
+import { orderedItemsProductionRouter } from './routers/ordered-items-production';
+import { invoicesRouter } from './routers/invoices';
+import { paymentsRouter } from './routers/payments';
 
 /**
  * Main API router
@@ -64,6 +67,7 @@ export const appRouter = createTRPCRouter({
   productionOrders: productionOrdersRouter,
   productionInvoices: productionInvoicesRouter,
   productionTracking: productionTrackingRouter,
+  orderedItemsProduction: orderedItemsProductionRouter,
 
   // Partners (Phase 2)
   partners: partnersRouter,
@@ -97,6 +101,10 @@ export const appRouter = createTRPCRouter({
 
   // QuickBooks Integration
   quickbooksSync: quickbooksSyncRouter,
+
+  // Financials (General Accounting)
+  invoices: invoicesRouter,
+  payments: paymentsRouter,
 
   // Customer Portal (Phase 3)
   portal: portalRouter,
