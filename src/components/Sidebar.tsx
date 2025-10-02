@@ -38,7 +38,6 @@ interface NavModule {
 export default function Sidebar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
-  // Keep Tasks expanded if we're on any Tasks page
   const isOnTasksPage = pathname.startsWith('/tasks');
 
   const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({
@@ -53,7 +52,6 @@ export default function Sidebar() {
     "Admin": pathname.startsWith('/admin')
   });
 
-  // Update expanded modules when pathname changes to keep relevant module open
   useEffect(() => {
     setExpandedModules({
       "Dashboards": pathname === '/dashboard' || pathname.startsWith('/dashboards'),
@@ -68,16 +66,13 @@ export default function Sidebar() {
     });
   }, [pathname]);
 
-  // Current user ID - in production this would come from session
   const currentUserId = "f146d819-3eed-43e3-80af-835915a5cc14";
 
-  // Get all tasks count
   const { data: allTasksData } = api.tasks.getAllTasks.useQuery({
     limit: 1,
     offset: 0,
   });
 
-  // Get my tasks count
   const { data: myTasksData } = api.tasks.getMyTasks.useQuery({
     user_id: currentUserId,
     limit: 1,
@@ -85,11 +80,9 @@ export default function Sidebar() {
     includeWatching: false,
   });
 
-  // Calculate counts with safety checks
   const allTasksCount = allTasksData?.total || 0;
   const myTasksCount = myTasksData?.total || 0;
 
-  // Dynamic navigation modules with real data
   const navigationModules: NavModule[] = [
     {
       label: "Dashboards",
@@ -191,24 +184,13 @@ export default function Sidebar() {
   };
 
   const isItemActive = (href: string) => {
-    // Exact match or nested route (e.g., /production/orders matches /production/orders/123)
-    // But avoid false positives like /tasks matching /tasks/my
     if (href === pathname) return true;
-
-    // For nested routes, check if pathname starts with href + '/'
-    // This handles detail pages like /production/orders/[id]
     if (pathname.startsWith(href + '/')) {
-      // Extra check: make sure we're not matching a sibling route
-      // e.g., /tasks shouldn't match /tasks/my, but /production/orders should match /production/orders/123
       const pathSegments = pathname.split('/').filter(Boolean);
       const hrefSegments = href.split('/').filter(Boolean);
-
-      // If href has same number of segments or more, it's not a nested route
       if (hrefSegments.length >= pathSegments.length) return false;
-
       return true;
     }
-
     return false;
   };
 
@@ -221,7 +203,7 @@ export default function Sidebar() {
       {/* Mobile Menu Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-gray-800 rounded-lg text-white"
+        className="mobile-menu-button"
         aria-label={isOpen ? "Close navigation menu" : "Open navigation menu"}
         aria-expanded={isOpen}
       >
@@ -235,62 +217,55 @@ export default function Sidebar() {
       {/* Overlay for mobile */}
       {isOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-40"
+          className="mobile-overlay"
           onClick={() => setIsOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <aside
-        className={cn(
-          "fixed left-0 top-0 h-full w-64 bg-gray-900 border-r border-gray-800 z-40 transition-transform duration-200",
-          isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-        )}
-      >
+      <aside className={cn("sidebar", !isOpen && "sidebar-hidden")}>
         {/* Logo */}
-        <div className="p-6 border-b border-gray-800">
-          <div className="flex items-center justify-between mb-2">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
+        <div className="sidebar-logo-section">
+          <div className="sidebar-logo-container">
+            <h1 className="sidebar-logo-text">
               Limn Systems
             </h1>
             <ThemeToggle />
           </div>
-          <p className="text-xs text-gray-500 mt-1">Enterprise Dashboard</p>
+          <p className="sidebar-subtitle">Enterprise Dashboard</p>
         </div>
 
         {/* Navigation */}
-        <nav className="p-4 space-y-2 overflow-y-auto h-[calc(100vh-200px)]">
+        <nav className="sidebar-nav space-y-2">
           {navigationModules.map((module) => {
             const Icon = module.icon;
             const isModuleExpanded = expandedModules[module.label];
             const moduleActive = isModuleActive(module);
 
             return (
-              <div key={module.label} className="space-y-1">
+              <div key={module.label} className="nav-module">
                 {/* Module Header */}
                 <button
                   onClick={() => toggleModule(module.label)}
                   className={cn(
-                    "w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200 group",
-                    moduleActive
-                      ? "bg-blue-500/10 text-blue-400 border-l-2 border-blue-500"
-                      : "text-gray-300 hover:text-white hover:bg-gray-800"
+                    "nav-module-header",
+                    moduleActive ? "nav-module-header-active" : "nav-module-header-inactive"
                   )}
                 >
-                  <div className="flex items-center gap-3">
-                    <Icon className="w-5 h-5" />
-                    <span className="font-semibold">{module.label}</span>
+                  <div className="nav-module-icon-text">
+                    <Icon className="nav-module-icon" />
+                    <span className="nav-module-label">{module.label}</span>
                   </div>
                   {isModuleExpanded ? (
-                    <ChevronDown className="w-4 h-4 transition-transform duration-200" />
+                    <ChevronDown className="nav-module-chevron" />
                   ) : (
-                    <ChevronRight className="w-4 h-4 transition-transform duration-200" />
+                    <ChevronRight className="nav-module-chevron" />
                   )}
                 </button>
 
                 {/* Sub-navigation */}
                 {isModuleExpanded && (
-                  <div className="ml-4 space-y-1 border-l border-gray-700 pl-3">
+                  <div className="nav-subnav space-y-1">
                     {module.items.map((item) => {
                       const isActive = isItemActive(item.href);
 
@@ -299,20 +274,16 @@ export default function Sidebar() {
                           key={item.href}
                           href={item.href}
                           className={cn(
-                            "flex items-center justify-between px-3 py-2 rounded-md transition-all duration-200 text-sm",
-                            isActive
-                              ? "bg-blue-500/10 text-blue-400 border-l-2 border-blue-500 font-medium"
-                              : "text-gray-400 hover:text-gray-200 hover:bg-gray-800/50"
+                            "nav-subitem",
+                            isActive ? "nav-subitem-active" : "nav-subitem-inactive"
                           )}
                           onClick={() => setIsOpen(false)}
                         >
                           <span>{item.label}</span>
                           {item.badge && (
                             <span className={cn(
-                              "text-xs px-2 py-0.5 rounded-full",
-                              isActive
-                                ? "bg-blue-500/20 text-blue-300"
-                                : "bg-gray-700 text-gray-300"
+                              "nav-badge",
+                              isActive ? "nav-badge-active" : "nav-badge-inactive"
                             )}>
                               {item.badge}
                             </span>
@@ -328,16 +299,16 @@ export default function Sidebar() {
         </nav>
 
         {/* User Section */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-800">
-          <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors cursor-pointer">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-blue-600 flex items-center justify-center text-sm font-bold">
+        <div className="sidebar-user-section">
+          <div className="user-profile">
+            <div className="user-avatar">
               JD
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium">John Doe</p>
-              <p className="text-xs text-gray-500">john@example.com</p>
+            <div className="user-info">
+              <p className="user-name">John Doe</p>
+              <p className="user-email">john@example.com</p>
             </div>
-            <LogOutIcon className="w-4 h-4 text-gray-500" />
+            <LogOutIcon className="user-logout-icon" />
           </div>
         </div>
       </aside>

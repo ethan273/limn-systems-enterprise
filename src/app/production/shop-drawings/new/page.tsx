@@ -30,7 +30,7 @@ import { toast } from "@/hooks/use-toast";
 export default function NewShopDrawingPage() {
   const router = useRouter();
   const [productionOrderId, setProductionOrderId] = useState("");
-  const [factoryId, setFactoryId] = useState("");
+  const [factoryId, setFactoryId] = useState("none");
   const [drawingName, setDrawingName] = useState("");
   const [drawingType, setDrawingType] = useState("");
   const [notes, setNotes] = useState("");
@@ -173,7 +173,7 @@ export default function NewShopDrawingPage() {
       // Create shop drawing
       createDrawingMutation.mutate({
         productionOrderId,
-        factoryId: factoryId || undefined,
+        factoryId: factoryId === "none" ? undefined : factoryId,
         drawingName: drawingName.trim(),
         drawingType: drawingType.trim() || undefined,
         fileName: file.name,
@@ -258,7 +258,7 @@ export default function NewShopDrawingPage() {
                     <SelectValue placeholder="Select factory" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No Factory</SelectItem>
+                    <SelectItem value="none">No Factory</SelectItem>
                     {factoriesData?.partners?.map((factory) => (
                       <SelectItem key={factory.id} value={factory.id}>
                         {factory.company_name}

@@ -7,15 +7,11 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100">
+    <div className="app-layout">
       <Sidebar />
-      
-      {/* Main Content Area */}
-      <div className="lg:ml-64">
+      <div className="main-content-wrapper">
         <Header />
-        
-        {/* Page Content */}
-        <main className="min-h-[calc(100vh-4rem)]">
+        <main className="main-content">
           {children}
         </main>
       </div>

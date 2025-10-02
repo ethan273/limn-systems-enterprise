@@ -23,7 +23,7 @@ export default function NewDesignBriefPage() {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    design_project_id: "",
+    design_project_id: "none",
     target_market: "",
     price_point_min: "",
     price_point_max: "",
@@ -76,7 +76,7 @@ export default function NewDesignBriefPage() {
       const result = await createBriefMutation.mutateAsync({
         title: formData.title,
         description: formData.description || undefined,
-        design_project_id: formData.design_project_id || undefined,
+        design_project_id: formData.design_project_id === "none" ? undefined : formData.design_project_id,
         target_market: formData.target_market || undefined,
         price_point_min: formData.price_point_min ? parseFloat(formData.price_point_min) : undefined,
         price_point_max: formData.price_point_max ? parseFloat(formData.price_point_max) : undefined,
@@ -173,7 +173,7 @@ export default function NewDesignBriefPage() {
                   <SelectValue placeholder="Select project..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No project</SelectItem>
+                  <SelectItem value="none">No project</SelectItem>
                   {projectsData?.projects?.map((project: any) => (
                     <SelectItem key={project.id} value={project.id}>
                       {project.project_name} ({project.project_code})

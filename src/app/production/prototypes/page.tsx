@@ -114,21 +114,21 @@ const priorityConfig: Record<string, {
 export default function PrototypesPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
-  const [priorityFilter, setPriorityFilter] = useState<string>("");
-  const [typeFilter, setTypeFilter] = useState<string>("");
-  const [designProjectFilter, setDesignProjectFilter] = useState<string>("");
-  const [crmProjectFilter, setCrmProjectFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [designProjectFilter, setDesignProjectFilter] = useState<string>("all");
+  const [crmProjectFilter, setCrmProjectFilter] = useState<string>("all");
   const [page, setPage] = useState(0);
   const limit = 20;
 
   // Fetch prototypes with filters
   const { data, isLoading, error } = api.prototypes.getAll.useQuery({
-    status: statusFilter || undefined,
-    priority: priorityFilter || undefined,
-    prototypeType: typeFilter || undefined,
-    designProjectId: designProjectFilter || undefined,
-    crmProjectId: crmProjectFilter || undefined,
+    status: statusFilter === "all" ? undefined : statusFilter,
+    priority: priorityFilter === "all" ? undefined : priorityFilter,
+    prototypeType: typeFilter === "all" ? undefined : typeFilter,
+    designProjectId: designProjectFilter === "all" ? undefined : designProjectFilter,
+    crmProjectId: crmProjectFilter === "all" ? undefined : crmProjectFilter,
     search: searchQuery || undefined,
     limit,
     offset: page * limit,
@@ -331,7 +331,7 @@ export default function PrototypesPage() {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="concept">Concept</SelectItem>
                 <SelectItem value="design_review">Design Review</SelectItem>
                 <SelectItem value="design_approved">Design Approved</SelectItem>
@@ -353,7 +353,7 @@ export default function PrototypesPage() {
                 <SelectValue placeholder="Priority" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Priorities</SelectItem>
+                <SelectItem value="all">All Priorities</SelectItem>
                 <SelectItem value="low">Low</SelectItem>
                 <SelectItem value="medium">Medium</SelectItem>
                 <SelectItem value="high">High</SelectItem>
@@ -366,7 +366,7 @@ export default function PrototypesPage() {
                 <SelectValue placeholder="Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Types</SelectItem>
+                <SelectItem value="all">All Types</SelectItem>
                 <SelectItem value="furniture">Furniture</SelectItem>
                 <SelectItem value="accessory">Accessory</SelectItem>
                 <SelectItem value="lighting">Lighting</SelectItem>
@@ -381,7 +381,7 @@ export default function PrototypesPage() {
                 <SelectValue placeholder="Design Project" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Design Projects</SelectItem>
+                <SelectItem value="all">All Design Projects</SelectItem>
                 {designProjectsData?.projects?.map((project: { id: string; project_name: string }) => (
                   <SelectItem key={project.id} value={project.id}>
                     {project.project_name}
@@ -396,7 +396,7 @@ export default function PrototypesPage() {
                 <SelectValue placeholder="CRM Project" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All CRM Projects</SelectItem>
+                <SelectItem value="all">All CRM Projects</SelectItem>
                 {crmProjectsData?.items?.map((project: { id: string; name: string }) => (
                   <SelectItem key={project.id} value={project.id}>
                     {project.name}

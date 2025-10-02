@@ -68,17 +68,17 @@ const statusConfig: Record<string, {
 export default function ShopDrawingsPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
-  const [orderFilter, setOrderFilter] = useState<string>("");
-  const [factoryFilter, setFactoryFilter] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [orderFilter, setOrderFilter] = useState<string>("all");
+  const [factoryFilter, setFactoryFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [page, setPage] = useState(0);
   const limit = 20;
 
   // Fetch shop drawings with filters
-  const { data, isLoading, error } = api.shopDrawings.getAll.useQuery({
-    productionOrderId: orderFilter || undefined,
-    factoryId: factoryFilter || undefined,
-    status: statusFilter || undefined,
+  const { data, isLoading, error} = api.shopDrawings.getAll.useQuery({
+    productionOrderId: orderFilter === "all" ? undefined : orderFilter,
+    factoryId: factoryFilter === "all" ? undefined : factoryFilter,
+    status: statusFilter === "all" ? undefined : statusFilter,
     search: searchQuery || undefined,
     limit,
     offset: page * limit,
@@ -139,9 +139,9 @@ export default function ShopDrawingsPage() {
 
   const handleClearFilters = () => {
     setSearchQuery("");
-    setOrderFilter("");
-    setFactoryFilter("");
-    setStatusFilter("");
+    setOrderFilter("all");
+    setFactoryFilter("all");
+    setStatusFilter("all");
     setPage(0);
   };
 
@@ -260,7 +260,7 @@ export default function ShopDrawingsPage() {
                 <SelectValue placeholder="Production Order" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Orders</SelectItem>
+                <SelectItem value="all">All Orders</SelectItem>
                 {ordersData?.items?.map((order: { id: string; order_number: string; item_name: string }) => (
                   <SelectItem key={order.id} value={order.id}>
                     {order.order_number} - {order.item_name}
@@ -275,7 +275,7 @@ export default function ShopDrawingsPage() {
                 <SelectValue placeholder="Factory" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Factories</SelectItem>
+                <SelectItem value="all">All Factories</SelectItem>
                 {factoriesData?.partners?.map((factory) => (
                   <SelectItem key={factory.id} value={factory.id}>
                     {factory.company_name}
@@ -290,7 +290,7 @@ export default function ShopDrawingsPage() {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="in_review">In Review</SelectItem>
                 <SelectItem value="designer_approved">Designer Approved</SelectItem>
                 <SelectItem value="approved">Approved</SelectItem>

@@ -32,9 +32,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function NewPrototypePage() {
   const router = useRouter();
-  const [designProjectId, setDesignProjectId] = useState("");
-  const [crmProjectId, setCrmProjectId] = useState("");
-  const [baseItemId, setBaseItemId] = useState("");
+  const [designProjectId, setDesignProjectId] = useState("none");
+  const [crmProjectId, setCrmProjectId] = useState("none");
+  const [baseItemId, setBaseItemId] = useState("none");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [prototypeType, setPrototypeType] = useState("");
@@ -122,9 +122,9 @@ export default function NewPrototypePage() {
 
     // Create prototype
     createPrototypeMutation.mutate({
-      designProjectId: designProjectId || undefined,
-      crmProjectId: crmProjectId || undefined,
-      baseItemId: baseItemId || undefined,
+      designProjectId: designProjectId === "none" ? undefined : designProjectId,
+      crmProjectId: crmProjectId === "none" ? undefined : crmProjectId,
+      baseItemId: baseItemId === "none" ? undefined : baseItemId,
       name: name.trim(),
       description: description.trim() || undefined,
       prototypeType,
@@ -192,7 +192,7 @@ export default function NewPrototypePage() {
                     <SelectValue placeholder="Select design project" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No Design Project</SelectItem>
+                    <SelectItem value="none">No Design Project</SelectItem>
                     {designProjectsData?.projects?.map((project: { id: string; project_name: string }) => (
                       <SelectItem key={project.id} value={project.id}>
                         {project.project_name}
@@ -217,7 +217,7 @@ export default function NewPrototypePage() {
                     <SelectValue placeholder="Select CRM project" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No CRM Project</SelectItem>
+                    <SelectItem value="none">No CRM Project</SelectItem>
                     {crmProjectsData?.items?.map((project: { id: string; name: string }) => (
                       <SelectItem key={project.id} value={project.id}>
                         {project.name}
@@ -242,7 +242,7 @@ export default function NewPrototypePage() {
                     <SelectValue placeholder="Select base item from catalog" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No Base Item</SelectItem>
+                    <SelectItem value="none">No Base Item</SelectItem>
                     {itemsData?.items?.map((item: { id: string; name: string; sku_full: string | null }) => (
                       <SelectItem key={item.id} value={item.id}>
                         {item.name} {item.sku_full ? `(${item.sku_full})` : ''}

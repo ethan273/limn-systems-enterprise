@@ -1,7 +1,7 @@
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 
-export default function CRMLayout({
+export default function DesignLayout({
   children,
 }: {
   children: React.ReactNode;
