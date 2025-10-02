@@ -36,7 +36,7 @@ export default function LoginPage() {
  <h1 className="text-3xl font-bold text-primary">
  Welcome to Limn Systems
  </h1>
- <p className="text-secondary mt-2">
+ <p className="text-muted-foreground mt-2">
  Please select your account type to continue
  </p>
  </div>

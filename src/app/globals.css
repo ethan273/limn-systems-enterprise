@@ -51,7 +51,7 @@ body {
     --secondary: 220 13% 91%;
     --secondary-foreground: 222 47% 11%;
     --muted: 220 13% 91%;
-    --muted-foreground: 215 16% 35%;
+    --muted-foreground: 215 16% 55%;
     --accent: 220 13% 91%;
     --accent-foreground: 222 47% 11%;
     --destructive: 0 84.2% 60.2%;
@@ -78,7 +78,7 @@ body {
     --secondary: 217 19% 16%;
     --secondary-foreground: 213 31% 91%;
     --muted: 217 19% 16%;
-    --muted-foreground: 213 13% 65%;
+    --muted-foreground: 213 13% 78%;
     --accent: 217 19% 16%;
     --accent-foreground: 213 31% 91%;
     --destructive: 0 62% 50%;
