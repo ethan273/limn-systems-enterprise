@@ -7,8 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronRight, Search, Package, DollarSign, FileText, AlertCircle } from "lucide-react";
+import { ExpandableTableRowWithTrigger } from "@/components/ui/expandable-table-row";
+import { Search, Package, DollarSign, FileText, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
@@ -17,7 +17,6 @@ import { useToast } from "@/hooks/use-toast";
 export default function CRMOrdersPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
@@ -53,18 +52,6 @@ export default function CRMOrdersPage() {
       order.projects?.name?.toLowerCase().includes(query)
     );
   });
-
-  const toggleOrderExpansion = (orderId: string) => {
-    setExpandedOrders(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(orderId)) {
-        newSet.delete(orderId);
-      } else {
-        newSet.add(orderId);
-      }
-      return newSet;
-    });
-  };
 
   const handleGenerateInvoice = async (orderId: string, invoiceType: 'deposit' | 'final') => {
     try {
@@ -287,48 +274,16 @@ export default function CRMOrdersPage() {
               </TableRow>
             ) : (
               filteredOrders?.map((order: any) => {
-                const isExpanded = expandedOrders.has(order.id);
                 const itemCount = order.order_items?.length || 0;
                 const productionOrderCount = order.production_orders?.length || 0;
 
                 return (
-                  <Collapsible key={order.id} open={isExpanded} onOpenChange={() => toggleOrderExpansion(order.id)}>
-                    <>
-                      <TableRow className="cursor-pointer hover:bg-muted/50">
-                        <TableCell>
-                          <CollapsibleTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                              {isExpanded ? (
-                                <ChevronDown className="h-4 w-4" />
-                              ) : (
-                                <ChevronRight className="h-4 w-4" />
-                              )}
-                            </Button>
-                          </CollapsibleTrigger>
-                        </TableCell>
-                        <TableCell>
-                          <span className="font-medium text-blue-600">{order.order_number}</span>
-                        </TableCell>
-                        <TableCell>{order.customers?.name || "—"}</TableCell>
-                        <TableCell>{order.projects?.name || "—"}</TableCell>
-                        <TableCell>
-                          <span className="font-medium">{itemCount} item{itemCount !== 1 ? 's' : ''}</span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="font-medium">${Number(order.total_amount || 0).toFixed(2)}</span>
-                        </TableCell>
-                        <TableCell>{getPaymentStatusBadge(order.production_invoices)}</TableCell>
-                        <TableCell>{getStatusBadge(order.status)}</TableCell>
-                        <TableCell>
-                          {order.created_at ? new Date(order.created_at).toLocaleDateString() : "—"}
-                        </TableCell>
-                      </TableRow>
-
-                      {/* Expanded Content - Order Details */}
-                      <TableRow>
-                        <TableCell colSpan={9} className="p-0">
-                          <CollapsibleContent>
-                            <div className="px-6 py-4 bg-muted/20 border-t space-y-6">
+                  <ExpandableTableRowWithTrigger
+                    key={order.id}
+                    id={order.id}
+                    colSpan={9}
+                    expandedContent={
+                      <div className="space-y-6">
 
                               {/* Order Items */}
                               <div>
@@ -482,11 +437,25 @@ export default function CRMOrdersPage() {
                               </div>
 
                             </div>
-                          </CollapsibleContent>
-                        </TableCell>
-                      </TableRow>
-                    </>
-                  </Collapsible>
+                    }
+                  >
+                    <TableCell>
+                      <span className="font-medium text-blue-600">{order.order_number}</span>
+                    </TableCell>
+                    <TableCell>{order.customers?.name || "—"}</TableCell>
+                    <TableCell>{order.projects?.name || "—"}</TableCell>
+                    <TableCell>
+                      <span className="font-medium">{itemCount} item{itemCount !== 1 ? 's' : ''}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-medium">${Number(order.total_amount || 0).toFixed(2)}</span>
+                    </TableCell>
+                    <TableCell>{getPaymentStatusBadge(order.production_invoices)}</TableCell>
+                    <TableCell>{getStatusBadge(order.status)}</TableCell>
+                    <TableCell>
+                      {order.created_at ? new Date(order.created_at).toLocaleDateString() : "—"}
+                    </TableCell>
+                  </ExpandableTableRowWithTrigger>
                 );
               })
             )}
