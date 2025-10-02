@@ -442,10 +442,11 @@ export default function LeadsPage() {
 
   // Filter leads based on search and filters
   const filteredLeads = leadsData?.items?.filter(lead => {
+    const searchLower = search.toLowerCase();
     const matchesSearch = !search ||
-      lead.name.toLowerCase().includes(search.toLowerCase()) ||
-      lead.email.toLowerCase().includes(search.toLowerCase()) ||
-      lead.company.toLowerCase().includes(search.toLowerCase());
+      (lead.name && lead.name.toLowerCase().includes(searchLower)) ||
+      (lead.email && lead.email.toLowerCase().includes(searchLower)) ||
+      (lead.company && lead.company.toLowerCase().includes(searchLower));
 
     const matchesStatus = statusFilter === 'all' || lead.status === statusFilter;
     const matchesProspect = prospectFilter === 'all' || lead.prospect_status === prospectFilter;
