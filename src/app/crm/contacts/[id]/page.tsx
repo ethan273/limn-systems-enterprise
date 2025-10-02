@@ -282,7 +282,7 @@ export default function ContactDetailPage() {
                 </div>
               ) : (
                 <div className="activity-timeline">
-                  {activities.map((activity) => (
+                  {activities.map((activity: any) => (
                     <div key={activity.id} className="activity-timeline-item">
                       <div className="activity-timeline-icon">
                         {activity.status === "completed" ? (
