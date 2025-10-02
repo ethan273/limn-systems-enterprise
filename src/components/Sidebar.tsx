@@ -47,7 +47,7 @@ export default function Sidebar() {
     "Partners": pathname.startsWith('/partners'),
     "Design": pathname.startsWith('/design'),
     "Products": pathname.startsWith('/products'),
-    "Production": pathname.startsWith('/production'),
+    "Production": pathname.startsWith('/production') || pathname.startsWith('/shop-drawings') || pathname.startsWith('/prototypes') || pathname.startsWith('/factory-reviews') || pathname.startsWith('/qc') || pathname.startsWith('/packing'),
     "Finance": pathname.startsWith('/finance'),
     "Admin": pathname.startsWith('/admin')
   });
@@ -61,7 +61,7 @@ export default function Sidebar() {
       "Partners": pathname.startsWith('/partners'),
       "Design": pathname.startsWith('/design'),
       "Products": pathname.startsWith('/products'),
-      "Production": pathname.startsWith('/production'),
+      "Production": pathname.startsWith('/production') || pathname.startsWith('/shop-drawings') || pathname.startsWith('/prototypes') || pathname.startsWith('/factory-reviews') || pathname.startsWith('/qc') || pathname.startsWith('/packing'),
       "Finance": pathname.startsWith('/finance'),
       "Admin": pathname.startsWith('/admin')
     });
@@ -159,6 +159,11 @@ export default function Sidebar() {
       items: [
         { label: "Dashboard", href: "/production/dashboard" },
         { label: "Production Orders", href: "/production/orders" },
+        { label: "Shop Drawings", href: "/shop-drawings" },
+        { label: "Prototypes", href: "/prototypes" },
+        { label: "Factory Reviews", href: "/factory-reviews" },
+        { label: "QC Inspections", href: "/qc" },
+        { label: "Packing & Shipping", href: "/packing" },
       ]
     },
     {
