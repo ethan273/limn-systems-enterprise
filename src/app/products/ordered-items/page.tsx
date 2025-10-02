@@ -756,12 +756,12 @@ export default function OrderedItemsPage() {
     { value: "pending", label: "Pending", color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200" },
     { value: "in_production", label: "In Production", color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" },
     { value: "ready", label: "Ready", color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" },
-    { value: "delivered", label: "Delivered", color: "bg-gray-100 text-gray-800 dark:card dark:text-primary" },
+    { value: "delivered", label: "Delivered", color: "badge-neutral" },
     { value: "cancelled", label: "Cancelled", color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" },
   ];
 
   const getStatusColor = (status: string) => {
-    return statuses.find(s => s.value === status)?.color || "bg-gray-100 text-gray-800";
+    return statuses.find(s => s.value === status)?.color || "badge-neutral";
   };
 
   const handleCreateItem = () => {

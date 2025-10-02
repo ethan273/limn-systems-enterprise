@@ -88,7 +88,7 @@ const statusConfig: Record<string, {
   },
   archived: {
     label: "Archived",
-    className: "bg-gray-100 text-gray-800 border-gray-300"
+    className: "badge-neutral"
   }
 };
 

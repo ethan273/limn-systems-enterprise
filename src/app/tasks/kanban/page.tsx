@@ -37,7 +37,7 @@ const statusConfig = {
     title: "To Do",
     icon: AlertTriangle,
     color: "bg-gray-500/20 border-gray-500/20",
-    textColor: "text-gray-400"
+    textColor: "text-muted-foreground"
   },
   in_progress: {
     title: "In Progress",
@@ -116,7 +116,7 @@ export default function TasksKanbanPage() {
     return (
       <div className="p-6">
         <div className="flex items-center justify-center h-64">
-          <div className="text-gray-400">Loading tasks...</div>
+          <div className="text-muted-foreground">Loading tasks...</div>
         </div>
       </div>
     );

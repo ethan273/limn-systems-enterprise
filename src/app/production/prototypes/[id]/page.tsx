@@ -120,7 +120,7 @@ const statusConfig: Record<string, {
   },
   archived: {
     label: "Archived",
-    className: "bg-gray-100 text-gray-800 border-gray-300",
+    className: "badge-neutral",
     icon: Package
   }
 };
@@ -643,7 +643,7 @@ export default function PrototypeDetailPage({ params }: PageProps) {
                           milestone.status === 'completed' && "bg-green-100 text-green-800 border-green-300",
                           milestone.status === 'in_progress' && "bg-blue-100 text-blue-800 border-blue-300",
                           milestone.status === 'blocked' && "bg-red-100 text-red-800 border-red-300",
-                          milestone.status === 'pending' && "bg-gray-100 text-gray-800 border-gray-300"
+                          milestone.status === 'pending' && "badge-neutral"
                         )}
                       >
                         {milestone.status}

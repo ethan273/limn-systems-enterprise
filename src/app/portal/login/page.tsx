@@ -74,7 +74,7 @@ export default function PortalLoginPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#91bdbd] mb-4">
             <Lock className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Customer Portal</h1>
+          <h1 className="text-3xl font-bold">Customer Portal</h1>
           <p className=" mt-2">Sign in to access your orders and documents</p>
         </div>
 

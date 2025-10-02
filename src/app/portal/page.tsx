@@ -49,7 +49,7 @@ export default function PortalDashboard() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <h1 className="text-3xl font-bold">Dashboard</h1>
         <p className=" mt-2">Welcome back! Here is an overview of your account.</p>
       </div>
 
@@ -63,7 +63,7 @@ export default function PortalDashboard() {
               <ShoppingCart className="w-4 h-4 text-secondary" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-gray-900">{stats?.activeOrders || 0}</div>
+              <div className="text-3xl font-bold">{stats?.activeOrders || 0}</div>
               <p className="text-xs text-tertiary mt-1">Orders in progress</p>
             </CardContent>
           </Card>
@@ -77,7 +77,7 @@ export default function PortalDashboard() {
               <CreditCard className="w-4 h-4 text-secondary" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-gray-900">{stats?.pendingPayments || 0}</div>
+              <div className="text-3xl font-bold">{stats?.pendingPayments || 0}</div>
               <p className="text-xs text-tertiary mt-1">Invoices to pay</p>
             </CardContent>
           </Card>
@@ -91,7 +91,7 @@ export default function PortalDashboard() {
               <Truck className="w-4 h-4 text-secondary" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-gray-900">{stats?.recentShipments || 0}</div>
+              <div className="text-3xl font-bold">{stats?.recentShipments || 0}</div>
               <p className="text-xs text-tertiary mt-1">Last 30 days</p>
             </CardContent>
           </Card>
@@ -105,7 +105,7 @@ export default function PortalDashboard() {
               <FileText className="w-4 h-4 text-secondary" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-gray-900">{stats?.documentsCount || 0}</div>
+              <div className="text-3xl font-bold">{stats?.documentsCount || 0}</div>
               <p className="text-xs text-tertiary mt-1">Available files</p>
             </CardContent>
           </Card>
@@ -177,7 +177,7 @@ export default function PortalDashboard() {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2">
-                      <p className="text-sm font-medium text-gray-900">{notification.title}</p>
+                      <p className="text-sm font-medium">{notification.title}</p>
                       {!notification.read && (
                         <Badge className="bg-blue-500 text-white text-xs">New</Badge>
                       )}

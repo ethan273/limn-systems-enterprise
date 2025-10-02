@@ -444,7 +444,7 @@ export default function CollectionsPage() {
                       <div className="flex items-center space-x-3">
                         <Badge
                           variant={collection.is_active !== false ? "default" : "secondary"}
-                          className={collection.is_active !== false ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}
+                          className={collection.is_active !== false ? "bg-green-100 text-green-800" : "badge-neutral"}
                         >
                           {collection.is_active !== false ? "Active" : "Inactive"}
                         </Badge>

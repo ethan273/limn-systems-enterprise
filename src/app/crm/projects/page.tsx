@@ -1489,7 +1489,7 @@ export default function ProjectsPage() {
   ];
 
   const priorities = [
-    { value: "low", label: "Low", color: "bg-gray-100 text-gray-800 dark:card dark:text-primary" },
+    { value: "low", label: "Low", color: "badge-neutral" },
     { value: "medium", label: "Medium", color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" },
     { value: "high", label: "High", color: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200" },
     { value: "urgent", label: "Urgent", color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" },
@@ -1500,7 +1500,7 @@ export default function ProjectsPage() {
   };
 
   const getPriorityColor = (priority: string) => {
-    return priorities.find(p => p.value === priority)?.color || "bg-gray-100 text-gray-800";
+    return priorities.find(p => p.value === priority)?.color || "badge-neutral";
   };
 
   const handleCreateProject = () => {

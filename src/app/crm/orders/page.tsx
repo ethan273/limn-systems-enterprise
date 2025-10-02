@@ -80,7 +80,7 @@ export default function CRMOrdersPage() {
     let info: { label: string; variant: string; className: string };
     switch (status) {
       case 'draft':
-        info = { label: "Draft", variant: "outline", className: "bg-gray-100 text-gray-800 border-gray-300" };
+        info = { label: "Draft", variant: "outline", className: "badge-neutral" };
         break;
       case 'pending':
         info = { label: "Pending", variant: "outline", className: "bg-yellow-100 text-yellow-800 border-yellow-300" };
@@ -107,14 +107,14 @@ export default function CRMOrdersPage() {
         info = { label: "Cancelled", variant: "outline", className: "bg-red-100 text-red-800 border-red-300" };
         break;
       default:
-        info = { label: "Unknown", variant: "outline", className: "bg-gray-100 text-gray-800 border-gray-300" };
+        info = { label: "Unknown", variant: "outline", className: "badge-neutral" };
     }
     return <Badge variant={info.variant as any} className={info.className}>{info.label}</Badge>;
   };
 
   const getPaymentStatusBadge = (invoices: any[]) => {
     if (!invoices || invoices.length === 0) {
-      return <Badge variant="outline" className="bg-gray-100 text-gray-800 border-gray-300">No Invoice</Badge>;
+      return <Badge variant="outline" className="badge-neutral">No Invoice</Badge>;
     }
 
     const depositInvoice = invoices.find((inv: any) => inv.invoice_type === 'deposit');

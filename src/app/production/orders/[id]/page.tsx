@@ -689,7 +689,7 @@ export default function ProductionOrderDetailPage() {
                               job.packing_status === "shipped" ? "bg-purple-100 text-purple-800 border-purple-300" :
                               job.packing_status === "packed" ? "bg-green-100 text-green-800 border-green-300" :
                               job.packing_status === "in_progress" ? "bg-blue-100 text-blue-800 border-blue-300" :
-                              "bg-gray-100 text-gray-800 border-gray-300"
+                              "badge-neutral"
                             }>
                               {job.packing_status.replace(/_/g, " ").toUpperCase()}
                             </Badge>
@@ -831,7 +831,7 @@ export default function ProductionOrderDetailPage() {
                           <Badge variant="outline" className={
                             shipment.status === "delivered" ? "bg-green-100 text-green-800 border-green-300" :
                             shipment.status === "in_transit" ? "bg-blue-100 text-blue-800 border-blue-300" :
-                            "bg-gray-100 text-gray-800 border-gray-300"
+                            "badge-neutral"
                           }>
                             {shipment.status}
                           </Badge>

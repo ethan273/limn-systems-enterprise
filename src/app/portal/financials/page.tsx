@@ -41,7 +41,7 @@ export const dynamic = 'force-dynamic';
 const invoiceStatusConfig: Record<string, { label: string; className: string; icon: React.ReactNode }> = {
   draft: {
     label: "Draft",
-    className: "bg-gray-100 text-gray-800 border-gray-300",
+    className: "badge-neutral",
     icon: <FileText className="w-3 h-3" aria-hidden="true" />,
   },
   sent: {
@@ -71,7 +71,7 @@ const invoiceStatusConfig: Record<string, { label: string; className: string; ic
   },
   cancelled: {
     label: "Cancelled",
-    className: "bg-gray-100 text-gray-800 border-gray-300",
+    className: "badge-neutral",
     icon: <FileText className="w-3 h-3" aria-hidden="true" />,
   },
 };
@@ -91,7 +91,7 @@ const invoiceTypeConfig: Record<string, { label: string; className: string }> = 
   },
   custom: {
     label: "Custom",
-    className: "bg-gray-100 text-gray-800 border-gray-300",
+    className: "badge-neutral",
   },
 };
 

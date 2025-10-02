@@ -36,7 +36,7 @@ export const dynamic = 'force-dynamic';
 const shipmentStatusConfig: Record<string, { label: string; className: string; icon: React.ReactNode }> = {
   pending: {
     label: "Pending",
-    className: "bg-gray-100 text-gray-800 border-gray-300",
+    className: "badge-neutral",
     icon: <Clock className="w-3 h-3" aria-hidden="true" />,
   },
   picked_up: {

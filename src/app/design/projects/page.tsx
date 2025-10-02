@@ -46,34 +46,34 @@ export default function DesignProjectsPage() {
   const getStageBadge = (stage: string) => {
     switch (stage) {
       case 'brief_creation':
-        return <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">Brief Creation</Badge>;
+        return <Badge variant="outline" className="badge-primary">Brief Creation</Badge>;
       case 'concept':
-        return <Badge variant="outline" className="bg-purple-100 text-purple-800 border-purple-300">Concept</Badge>;
+        return <Badge variant="outline" className="badge-primary">Concept</Badge>;
       case 'draft':
-        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">Draft</Badge>;
+        return <Badge variant="outline" className="badge-warning">Draft</Badge>;
       case 'revision':
-        return <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-300">Revision</Badge>;
+        return <Badge variant="outline" className="badge-warning">Revision</Badge>;
       case 'final':
-        return <Badge variant="outline" className="bg-teal-100 text-teal-800 border-teal-300">Final</Badge>;
+        return <Badge variant="outline" className="badge-success">Final</Badge>;
       case 'approved':
-        return <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">Approved</Badge>;
+        return <Badge variant="outline" className="badge-success">Approved</Badge>;
       default:
-        return <Badge variant="outline" className="bg-gray-100 text-gray-800 border-gray-300">{stage}</Badge>;
+        return <Badge variant="outline" className="badge-neutral">{stage}</Badge>;
     }
   };
 
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
       case 'low':
-        return <Badge variant="outline" className="bg-gray-100 text-gray-800 border-gray-300">Low</Badge>;
+        return <Badge variant="outline" className="badge-neutral">Low</Badge>;
       case 'normal':
-        return <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">Normal</Badge>;
+        return <Badge variant="outline" className="badge-primary">Normal</Badge>;
       case 'high':
-        return <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-300">High</Badge>;
+        return <Badge variant="outline" className="badge-warning">High</Badge>;
       case 'urgent':
-        return <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">Urgent</Badge>;
+        return <Badge variant="outline" className="badge-error">Urgent</Badge>;
       default:
-        return <Badge variant="outline" className="bg-gray-100 text-gray-800 border-gray-300">{priority}</Badge>;
+        return <Badge variant="outline" className="badge-neutral">{priority}</Badge>;
     }
   };
 

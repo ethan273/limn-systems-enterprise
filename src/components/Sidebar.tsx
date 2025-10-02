@@ -227,9 +227,11 @@ export default function Sidebar() {
         {/* Logo */}
         <div className="sidebar-logo-section">
           <div className="sidebar-logo-container">
-            <h1 className="sidebar-logo-text">
-              Limn Systems
-            </h1>
+            <div
+              className="sidebar-logo-image"
+              role="img"
+              aria-label="Limn Systems"
+            />
             <ThemeToggle />
           </div>
           <p className="sidebar-subtitle">Enterprise Dashboard</p>

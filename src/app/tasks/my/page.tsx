@@ -150,7 +150,7 @@ export default function MyTasksPage() {
   const getStatusIcon = (status: TaskStatus) => {
     switch (status) {
       case 'todo':
-        return <AlertCircle className="h-4 w-4 text-gray-400" />;
+        return <AlertCircle className="h-4 w-4 text-muted-foreground" />;
       case 'in_progress':
         return <Clock className="h-4 w-4 text-blue-400" />;
       case 'completed':
@@ -162,7 +162,7 @@ export default function MyTasksPage() {
 
   const _getStatusBadge = (status: TaskStatus) => {
     const colors = {
-      todo: 'bg-gray-500/20 text-gray-400 border-gray-500/20',
+      todo: 'status-todo',
       in_progress: 'bg-blue-500/20 text-blue-400 border-blue-500/20',
       completed: 'bg-green-500/20 text-green-400 border-green-500/20',
       cancelled: 'bg-red-500/20 text-red-400 border-red-500/20',

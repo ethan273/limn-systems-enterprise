@@ -71,7 +71,7 @@ const documentTypeConfig: Record<string, { label: string; icon: React.ReactNode;
   other: {
     label: "Other",
     icon: <File className="w-4 h-4" aria-hidden="true" />,
-    className: "bg-gray-100 text-gray-800 border-gray-300",
+    className: "badge-neutral",
   },
 };
 

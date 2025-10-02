@@ -114,15 +114,15 @@ export default function DesignBriefDetailPage({ params }: { params: { id: string
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Status</span>
                   {isApproved ? (
-                    <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
+                    <Badge variant="outline" className="badge-success">
                       Approved
                     </Badge>
                   ) : hasProject ? (
-                    <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">
+                    <Badge variant="outline" className="badge-warning">
                       Submitted
                     </Badge>
                   ) : (
-                    <Badge variant="outline" className="bg-gray-100 text-gray-800 border-gray-300">
+                    <Badge variant="outline" className="badge-neutral">
                       Draft
                     </Badge>
                   )}

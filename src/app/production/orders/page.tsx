@@ -87,7 +87,7 @@ export default function ProductionOrdersPage() {
         info = { label: "Delivered", variant: "outline", className: "bg-emerald-100 text-emerald-800 border-emerald-300" };
         break;
       default:
-        info = { label: "Unknown", variant: "outline", className: "bg-gray-100 text-gray-800 border-gray-300" };
+        info = { label: "Unknown", variant: "outline", className: "badge-neutral" };
     }
     return <Badge variant={info.variant as any} className={info.className}>{info.label}</Badge>;
   };

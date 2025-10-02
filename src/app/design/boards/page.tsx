@@ -41,15 +41,15 @@ export default function MoodBoardsPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'draft':
-        return <Badge variant="outline" className="bg-gray-100 text-gray-800 border-gray-300">Draft</Badge>;
+        return <Badge variant="outline" className="badge-neutral">Draft</Badge>;
       case 'active':
-        return <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">Active</Badge>;
+        return <Badge variant="outline" className="badge-primary">Active</Badge>;
       case 'approved':
-        return <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">Approved</Badge>;
+        return <Badge variant="outline" className="badge-success">Approved</Badge>;
       case 'archived':
-        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">Archived</Badge>;
+        return <Badge variant="outline" className="badge-warning">Archived</Badge>;
       default:
-        return <Badge variant="outline" className="bg-gray-100 text-gray-800 border-gray-300">{status}</Badge>;
+        return <Badge variant="outline" className="badge-neutral">{status}</Badge>;
     }
   };
 
