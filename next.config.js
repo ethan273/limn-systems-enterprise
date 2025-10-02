@@ -47,63 +47,83 @@ const nextConfig = {
 
   // Headers for security and performance
   async headers() {
+    const isDevelopment = process.env.NODE_ENV === 'development';
+
+    // Base headers for all environments
+    const baseHeaders = [
+      // Prevent clickjacking
+      {
+        key: 'X-Frame-Options',
+        value: 'DENY',
+      },
+      // Prevent MIME type sniffing
+      {
+        key: 'X-Content-Type-Options',
+        value: 'nosniff',
+      },
+      // Referrer policy
+      {
+        key: 'Referrer-Policy',
+        value: 'strict-origin-when-cross-origin',
+      },
+      // Permissions Policy
+      {
+        key: 'Permissions-Policy',
+        value: 'camera=(), microphone=(), geolocation=()',
+      },
+    ];
+
+    // Production-only strict security headers
+    const productionHeaders = [
+      // Strict Transport Security (HSTS) - production only
+      {
+        key: 'Strict-Transport-Security',
+        value: 'max-age=31536000; includeSubDomains',
+      },
+      // Cross-Origin Policies - production only
+      {
+        key: 'Cross-Origin-Embedder-Policy',
+        value: 'credentialless',
+      },
+      {
+        key: 'Cross-Origin-Opener-Policy',
+        value: 'same-origin',
+      },
+    ];
+
+    // Content Security Policy - different for dev/prod
+    const cspDirectives = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-eval' 'unsafe-inline'", // tRPC requires unsafe-eval
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com", // Tailwind + Google Fonts
+      "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com", // Explicit style-src-elem for external stylesheets
+      "img-src 'self' data: blob: https://gwqkbjymbarkufwvdmar.supabase.co",
+      "font-src 'self' https://fonts.gstatic.com", // Google Fonts
+      "connect-src 'self' https://gwqkbjymbarkufwvdmar.supabase.co wss://gwqkbjymbarkufwvdmar.supabase.co https://*.ingest.us.sentry.io", // Supabase + Sentry
+      "worker-src 'self' blob:", // Web Workers
+      "frame-src 'none'",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'none'",
+    ];
+
+    // Only upgrade to HTTPS in production (this was breaking local dev!)
+    if (!isDevelopment) {
+      cspDirectives.push("upgrade-insecure-requests");
+    }
+
+    const cspHeader = {
+      key: 'Content-Security-Policy',
+      value: cspDirectives.join('; '),
+    };
+
     return [
       {
         source: '/(.*)',
-        headers: [
-          // Prevent clickjacking
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
-          // Prevent MIME type sniffing
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          // Referrer policy
-          {
-            key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin',
-          },
-          // Strict Transport Security (HSTS)
-          {
-            key: 'Strict-Transport-Security',
-            value: 'max-age=31536000; includeSubDomains',
-          },
-          // Permissions Policy
-          {
-            key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()',
-          },
-          // Cross-Origin Policies
-          {
-            key: 'Cross-Origin-Embedder-Policy',
-            value: 'credentialless',
-          },
-          {
-            key: 'Cross-Origin-Opener-Policy',
-            value: 'same-origin',
-          },
-          // Content Security Policy
-          {
-            key: 'Content-Security-Policy',
-            value: [
-              "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline'", // tRPC requires unsafe-eval
-              "style-src 'self' 'unsafe-inline'", // Tailwind requires unsafe-inline
-              "img-src 'self' data: blob: https://gwqkbjymbarkufwvdmar.supabase.co",
-              "font-src 'self'",
-              "connect-src 'self' https://gwqkbjymbarkufwvdmar.supabase.co wss://gwqkbjymbarkufwvdmar.supabase.co",
-              "frame-src 'none'",
-              "object-src 'none'",
-              "base-uri 'self'",
-              "form-action 'self'",
-              "frame-ancestors 'none'",
-              "upgrade-insecure-requests",
-            ].join('; '),
-          },
-        ],
+        headers: isDevelopment
+          ? [...baseHeaders, cspHeader]
+          : [...baseHeaders, ...productionHeaders, cspHeader],
       },
     ];
   },
@@ -111,20 +131,9 @@ const nextConfig = {
   // Output configuration for optimal builds
   output: 'standalone',
 
-  // Webpack configuration for Node.js modules
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      // Don't bundle Node.js modules in client bundles
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        net: false,
-        tls: false,
-        child_process: false,
-      };
-    }
-    return config;
-  },
+  // Disable webpack configuration when using Turbopack
+  // Turbopack handles module resolution automatically and more efficiently
+  webpack: undefined,
 };
 
 // Sentry configuration - enterprise optimized

@@ -65,6 +65,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Add timeout to prevent infinite loading (5 seconds)
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (loading) {
+        console.warn('Auth initialization timeout after 5s - proceeding without authentication');
+        setLoading(false);
+      }
+    }, 5000);
+
+    return () => clearTimeout(timeout);
+  }, [loading]);
+
   useEffect(() => {
     // Initialize Supabase client on mount
     try {
