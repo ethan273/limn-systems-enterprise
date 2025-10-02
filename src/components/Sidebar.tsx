@@ -21,6 +21,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { api } from "@/lib/api/client";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface NavSubItem {
   label: string;
@@ -47,7 +48,7 @@ export default function Sidebar() {
     "Partners": pathname.startsWith('/partners'),
     "Design": pathname.startsWith('/design'),
     "Products": pathname.startsWith('/products'),
-    "Production": pathname.startsWith('/production') || pathname.startsWith('/shop-drawings') || pathname.startsWith('/prototypes') || pathname.startsWith('/factory-reviews') || pathname.startsWith('/qc') || pathname.startsWith('/packing'),
+    "Production": pathname.startsWith('/production'),
     "Finance": pathname.startsWith('/finance'),
     "Admin": pathname.startsWith('/admin')
   });
@@ -61,7 +62,7 @@ export default function Sidebar() {
       "Partners": pathname.startsWith('/partners'),
       "Design": pathname.startsWith('/design'),
       "Products": pathname.startsWith('/products'),
-      "Production": pathname.startsWith('/production') || pathname.startsWith('/shop-drawings') || pathname.startsWith('/prototypes') || pathname.startsWith('/factory-reviews') || pathname.startsWith('/qc') || pathname.startsWith('/packing'),
+      "Production": pathname.startsWith('/production'),
       "Finance": pathname.startsWith('/finance'),
       "Admin": pathname.startsWith('/admin')
     });
@@ -159,11 +160,11 @@ export default function Sidebar() {
       items: [
         { label: "Dashboard", href: "/production/dashboard" },
         { label: "Production Orders", href: "/production/orders" },
-        { label: "Shop Drawings", href: "/shop-drawings" },
-        { label: "Prototypes", href: "/prototypes" },
-        { label: "Factory Reviews", href: "/factory-reviews" },
-        { label: "QC Inspections", href: "/qc" },
-        { label: "Packing & Shipping", href: "/packing" },
+        { label: "Shop Drawings", href: "/production/shop-drawings" },
+        { label: "Prototypes", href: "/production/prototypes" },
+        { label: "Factory Reviews", href: "/production/factory-reviews" },
+        { label: "QC Inspections", href: "/production/qc" },
+        { label: "Packing & Shipping", href: "/production/packing" },
       ]
     },
     {
@@ -190,8 +191,25 @@ export default function Sidebar() {
   };
 
   const isItemActive = (href: string) => {
-    // Use exact matching for navigation items to avoid conflicts between /tasks and /tasks/my
-    return href === pathname;
+    // Exact match or nested route (e.g., /production/orders matches /production/orders/123)
+    // But avoid false positives like /tasks matching /tasks/my
+    if (href === pathname) return true;
+
+    // For nested routes, check if pathname starts with href + '/'
+    // This handles detail pages like /production/orders/[id]
+    if (pathname.startsWith(href + '/')) {
+      // Extra check: make sure we're not matching a sibling route
+      // e.g., /tasks shouldn't match /tasks/my, but /production/orders should match /production/orders/123
+      const pathSegments = pathname.split('/').filter(Boolean);
+      const hrefSegments = href.split('/').filter(Boolean);
+
+      // If href has same number of segments or more, it's not a nested route
+      if (hrefSegments.length >= pathSegments.length) return false;
+
+      return true;
+    }
+
+    return false;
   };
 
   const isModuleActive = (module: NavModule) => {
@@ -204,11 +222,13 @@ export default function Sidebar() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-gray-800 rounded-lg text-white"
+        aria-label={isOpen ? "Close navigation menu" : "Open navigation menu"}
+        aria-expanded={isOpen}
       >
         {isOpen ? (
-          <XIcon className="w-6 h-6" />
+          <XIcon className="w-6 h-6" aria-hidden="true" />
         ) : (
-          <MenuIcon className="w-6 h-6" />
+          <MenuIcon className="w-6 h-6" aria-hidden="true" />
         )}
       </button>
 
@@ -229,9 +249,12 @@ export default function Sidebar() {
       >
         {/* Logo */}
         <div className="p-6 border-b border-gray-800">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
-            Limn Systems
-          </h1>
+          <div className="flex items-center justify-between mb-2">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
+              Limn Systems
+            </h1>
+            <ThemeToggle />
+          </div>
           <p className="text-xs text-gray-500 mt-1">Enterprise Dashboard</p>
         </div>
 

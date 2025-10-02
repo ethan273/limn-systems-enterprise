@@ -3,7 +3,9 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 import { TRPCProvider } from "@/lib/api/client";
 import { AuthProvider } from "@/lib/auth/AuthProvider";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { Toaster } from "sonner";
+import { CommandPalette } from "@/components/ui/command-palette";
 
 interface AppContextType {
   sidebarOpen: boolean;
@@ -16,14 +18,17 @@ export function Providers({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
-    <TRPCProvider>
-      <AuthProvider>
-        <AppContext.Provider value={{ sidebarOpen, setSidebarOpen }}>
-          {children}
-          <Toaster richColors position="top-right" />
-        </AppContext.Provider>
-      </AuthProvider>
-    </TRPCProvider>
+    <ThemeProvider>
+      <TRPCProvider>
+        <AuthProvider>
+          <AppContext.Provider value={{ sidebarOpen, setSidebarOpen }}>
+            {children}
+            <Toaster richColors position="top-right" />
+            <CommandPalette />
+          </AppContext.Provider>
+        </AuthProvider>
+      </TRPCProvider>
+    </ThemeProvider>
   );
 }
 
