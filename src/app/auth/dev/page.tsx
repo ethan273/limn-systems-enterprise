@@ -72,11 +72,11 @@ export default function DevLoginPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="bg-gray-800 border border-gray-700 shadow-lg rounded-lg px-8 py-10">
+        <div className="card border shadow-lg rounded-lg px-8 py-10">
           <div className="mb-8">
             <Link
               href="/login"
-              className="inline-flex items-center text-sm text-gray-400 hover:text-gray-200 mb-6"
+              className="inline-flex items-center text-sm text-secondary hover:text-primary mb-6"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to login options
@@ -89,7 +89,7 @@ export default function DevLoginPage() {
               <h1 className="text-3xl font-bold text-white">
                 Development Login
               </h1>
-              <p className="text-gray-400 mt-2">
+              <p className="text-secondary mt-2">
                 Testing & Development Only
               </p>
             </div>
@@ -109,12 +109,12 @@ export default function DevLoginPage() {
 
           <div className="space-y-6">
             <div className="space-y-4">
-              <h2 className="text-sm font-medium text-gray-300">Select Test User Type:</h2>
+              <h2 className="text-sm font-medium text-secondary">Select Test User Type:</h2>
 
               <Button
                 onClick={() => handleDevLogin('dev')}
                 disabled={loading}
-                className="w-full flex items-center justify-center px-4 py-3 border border-gray-600 rounded-lg shadow-sm bg-blue-600 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center px-4 py-3 border  rounded-lg shadow-sm bg-blue-600 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading && selectedUserType === 'dev' ? (
                   <div className="flex items-center">
@@ -132,7 +132,7 @@ export default function DevLoginPage() {
               <Button
                 onClick={() => handleDevLogin('designer')}
                 disabled={loading}
-                className="w-full flex items-center justify-center px-4 py-3 border border-gray-600 rounded-lg shadow-sm bg-purple-600 text-sm font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center px-4 py-3 border  rounded-lg shadow-sm bg-purple-600 text-sm font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading && selectedUserType === 'designer' ? (
                   <div className="flex items-center">

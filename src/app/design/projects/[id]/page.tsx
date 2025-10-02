@@ -142,7 +142,7 @@ export default function DesignProjectDetailPage({ params }: { params: { id: stri
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="w-full bg-gray-200 rounded-full h-3 dark:bg-gray-700">
+                <div className="w-full bg-gray-200 rounded-full h-3 dark:list-item">
                   <div
                     className="bg-blue-600 h-3 rounded-full transition-all"
                     style={{ width: `${getStageProgress(project.current_stage)}%` }}
@@ -247,11 +247,11 @@ export default function DesignProjectDetailPage({ params }: { params: { id: stri
                       }`}
                     >
                       <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                        isCompleted ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'
+                        isCompleted ? 'bg-green-500 text-white' : 'bg-gray-300 '
                       }`}>
                         {isCompleted ? '✓' : index + 1}
                       </div>
-                      <span className={`font-medium ${isCompleted ? 'text-green-700' : 'text-gray-600'}`}>
+                      <span className={`font-medium ${isCompleted ? 'text-green-700' : ''}`}>
                         {stage.label}
                       </span>
                     </div>

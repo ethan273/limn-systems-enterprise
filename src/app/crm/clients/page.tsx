@@ -324,10 +324,10 @@ export default function ClientsPage() {
   const getStatusColor = (status: CustomerStatus) => {
     switch (status) {
       case 'active': return 'bg-green-500/10 text-green-400 border-green-500/20';
-      case 'inactive': return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
+      case 'inactive': return 'bg-gray-500/10 text-secondary border-gray-500/20';
       case 'pending': return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
       case 'suspended': return 'bg-red-500/10 text-red-400 border-red-500/20';
-      default: return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
+      default: return 'bg-gray-500/10 text-secondary border-gray-500/20';
     }
   };
 
@@ -336,7 +336,7 @@ export default function ClientsPage() {
       case 'individual': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
       case 'business': return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
       case 'enterprise': return 'bg-orange-500/10 text-orange-400 border-orange-500/20';
-      default: return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
+      default: return 'bg-gray-500/10 text-secondary border-gray-500/20';
     }
   };
 
@@ -344,7 +344,7 @@ export default function ClientsPage() {
     return (
       <div className="p-6">
         <div className="flex items-center justify-center h-64">
-          <div className="text-gray-400">Loading clients...</div>
+          <div className="page-subtitle">Loading clients...</div>
         </div>
       </div>
     );
@@ -355,8 +355,8 @@ export default function ClientsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">Clients</h1>
-          <p className="text-gray-400">Manage your customer relationships and accounts</p>
+          <h1 className="page-title">Clients</h1>
+          <p className="page-subtitle">Manage your customer relationships and accounts</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm">
@@ -709,46 +709,46 @@ export default function ClientsPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <div className="bg-gray-800/50 rounded-lg border border-gray-700 p-4">
+        <div className="bg-card/50 rounded-lg border p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-400">Total Clients</p>
-              <p className="text-2xl font-bold text-white">{stats.total}</p>
+              <p className="text-sm page-subtitle">Total Clients</p>
+              <p className="page-title">{stats.total}</p>
             </div>
             <Users className="w-8 h-8 text-blue-400" />
           </div>
         </div>
-        <div className="bg-gray-800/50 rounded-lg border border-gray-700 p-4">
+        <div className="bg-card/50 rounded-lg border p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-400">Active</p>
+              <p className="text-sm page-subtitle">Active</p>
               <p className="text-2xl font-bold text-green-400">{stats.active}</p>
             </div>
             <CheckCircle className="w-8 h-8 text-green-400" />
           </div>
         </div>
-        <div className="bg-gray-800/50 rounded-lg border border-gray-700 p-4">
+        <div className="bg-card/50 rounded-lg border p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-400">Total Value</p>
+              <p className="text-sm page-subtitle">Total Value</p>
               <p className="text-2xl font-bold text-yellow-400">${stats.totalValue.toLocaleString()}</p>
             </div>
             <DollarSign className="w-8 h-8 text-yellow-400" />
           </div>
         </div>
-        <div className="bg-gray-800/50 rounded-lg border border-gray-700 p-4">
+        <div className="bg-card/50 rounded-lg border p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-400">Avg Value</p>
+              <p className="text-sm page-subtitle">Avg Value</p>
               <p className="text-2xl font-bold text-purple-400">${stats.averageValue.toLocaleString()}</p>
             </div>
             <TrendingUp className="w-8 h-8 text-purple-400" />
           </div>
         </div>
-        <div className="bg-gray-800/50 rounded-lg border border-gray-700 p-4">
+        <div className="bg-card/50 rounded-lg border p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-400">Portal Access</p>
+              <p className="text-sm page-subtitle">Portal Access</p>
               <p className="text-2xl font-bold text-orange-400">{stats.withPortalAccess}</p>
             </div>
             <ExternalLink className="w-8 h-8 text-orange-400" />
@@ -757,11 +757,11 @@ export default function ClientsPage() {
       </div>
 
       {/* Filters and Search */}
-      <div className="bg-gray-800/50 rounded-lg border border-gray-700 p-4 filters-section">
+      <div className="bg-card/50 rounded-lg border p-4 filters-section">
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center flex-1">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary w-4 h-4" />
               <Input
                 placeholder="Search clients..."
                 value={searchTerm}
@@ -820,8 +820,8 @@ export default function ClientsPage() {
       </div>
 
       {/* Clients List */}
-      <div className="bg-gray-800/50 rounded-lg border border-gray-700">
-        <div className="p-4 border-b border-gray-700">
+      <div className="bg-card/50 rounded-lg border">
+        <div className="p-4 border-b">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-white">
               Clients ({filteredAndSortedCustomers.length})
@@ -831,16 +831,16 @@ export default function ClientsPage() {
                 checked={selectedCustomers.length === filteredAndSortedCustomers.length && filteredAndSortedCustomers.length > 0}
                 onCheckedChange={handleSelectAll}
               />
-              <span className="text-sm text-gray-400">Select All</span>
+              <span className="text-sm page-subtitle">Select All</span>
             </div>
           </div>
         </div>
 
         {filteredAndSortedCustomers.length === 0 ? (
           <div className="p-8 text-center">
-            <Building2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <Building2 className="w-12 h-12 text-secondary mx-auto mb-4" />
             <h3 className="text-lg font-medium text-white mb-2">No clients found</h3>
-            <p className="text-gray-400 mb-4">Get started by adding your first client.</p>
+            <p className="text-secondary mb-4">Get started by adding your first client.</p>
             <Button onClick={() => setShowCreateDialog(true)}>
               <Plus className="w-4 h-4 mr-2" />
               Add First Client
@@ -849,7 +849,7 @@ export default function ClientsPage() {
         ) : (
           <Accordion type="single" collapsible value={expandedCustomer || ''} onValueChange={setExpandedCustomer}>
             {filteredAndSortedCustomers.map((customer) => (
-              <AccordionItem key={customer.id} value={customer.id} className="border-gray-700">
+              <AccordionItem key={customer.id} value={customer.id} className="border-primary">
                 <div className="flex items-center space-x-4 p-4">
                   <Checkbox
                     checked={selectedCustomers.includes(customer.id)}
@@ -861,7 +861,7 @@ export default function ClientsPage() {
                       <div className="flex items-center space-x-4">
                         <div className="text-left">
                           <div className="font-medium text-white">{customer.name}</div>
-                          <div className="text-sm text-gray-400">
+                          <div className="text-sm page-subtitle">
                             {customer.company && (
                               <span className="flex items-center">
                                 <Building2 className="w-3 h-3 mr-1" />
@@ -935,11 +935,11 @@ export default function ClientsPage() {
                       <TabsContent value="details" className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <Label className="text-sm text-gray-400">Industry</Label>
+                            <Label className="text-sm page-subtitle">Industry</Label>
                             <p className="text-white">{customer.industry || 'Not specified'}</p>
                           </div>
                           <div>
-                            <Label className="text-sm text-gray-400">Website</Label>
+                            <Label className="text-sm page-subtitle">Website</Label>
                             <p className="text-white">
                               {customer.website ? (
                                 <a href={customer.website} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
@@ -952,11 +952,11 @@ export default function ClientsPage() {
                           </div>
                         </div>
                         <div>
-                          <Label className="text-sm text-gray-400">Notes</Label>
+                          <Label className="text-sm page-subtitle">Notes</Label>
                           <p className="text-white">{customer.notes || 'No notes'}</p>
                         </div>
                         <div>
-                          <Label className="text-sm text-gray-400">Tags</Label>
+                          <Label className="text-sm page-subtitle">Tags</Label>
                           <div className="flex flex-wrap gap-2 mt-1">
                             {customer.tags && customer.tags.length > 0 ? (
                               customer.tags.map((tag: string, index: number) => (
@@ -966,7 +966,7 @@ export default function ClientsPage() {
                                 </Badge>
                               ))
                             ) : (
-                              <p className="text-gray-400">No tags</p>
+                              <p className="page-subtitle">No tags</p>
                             )}
                           </div>
                         </div>
@@ -974,11 +974,11 @@ export default function ClientsPage() {
                       <TabsContent value="contact" className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <Label className="text-sm text-gray-400">Email</Label>
+                            <Label className="text-sm page-subtitle">Email</Label>
                             <p className="text-white flex items-center">
                               {customer.email ? (
                                 <>
-                                  <Mail className="w-4 h-4 mr-2 text-gray-400" />
+                                  <Mail className="w-4 h-4 mr-2 text-secondary" />
                                   <a href={`mailto:${customer.email}`} className="text-blue-400 hover:underline">
                                     {customer.email}
                                   </a>
@@ -989,11 +989,11 @@ export default function ClientsPage() {
                             </p>
                           </div>
                           <div>
-                            <Label className="text-sm text-gray-400">Phone</Label>
+                            <Label className="text-sm page-subtitle">Phone</Label>
                             <p className="text-white flex items-center">
                               {customer.phone ? (
                                 <>
-                                  <Phone className="w-4 h-4 mr-2 text-gray-400" />
+                                  <Phone className="w-4 h-4 mr-2 text-secondary" />
                                   <a href={`tel:${customer.phone}`} className="text-blue-400 hover:underline">
                                     {customer.phone}
                                   </a>
@@ -1005,7 +1005,7 @@ export default function ClientsPage() {
                           </div>
                         </div>
                         <div>
-                          <Label className="text-sm text-gray-400">Address</Label>
+                          <Label className="text-sm page-subtitle">Address</Label>
                           <p className="text-white">
                             {[customer.address, customer.city, customer.state, customer.postal_code, customer.country]
                               .filter(Boolean)
@@ -1013,7 +1013,7 @@ export default function ClientsPage() {
                           </p>
                         </div>
                         <div>
-                          <Label className="text-sm text-gray-400">Communication Preferences</Label>
+                          <Label className="text-sm page-subtitle">Communication Preferences</Label>
                           <div className="flex flex-wrap gap-2 mt-1">
                             {customer.communication_preferences ? (
                               Object.entries(customer.communication_preferences as Record<string, boolean>).map(([method, enabled]: [string, boolean]) => (
@@ -1024,7 +1024,7 @@ export default function ClientsPage() {
                                 )
                               ))
                             ) : (
-                              <p className="text-gray-400">Not specified</p>
+                              <p className="page-subtitle">Not specified</p>
                             )}
                           </div>
                         </div>
@@ -1032,24 +1032,24 @@ export default function ClientsPage() {
                       <TabsContent value="billing" className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <Label className="text-sm text-gray-400">Credit Limit</Label>
+                            <Label className="text-sm page-subtitle">Credit Limit</Label>
                             <p className="text-white flex items-center">
-                              <DollarSign className="w-4 h-4 mr-1 text-gray-400" />
+                              <DollarSign className="w-4 h-4 mr-1 text-secondary" />
                               {customer.credit_limit ? `$${customer.credit_limit.toLocaleString()}` : 'Not set'}
                             </p>
                           </div>
                           <div>
-                            <Label className="text-sm text-gray-400">Payment Terms</Label>
+                            <Label className="text-sm page-subtitle">Payment Terms</Label>
                             <p className="text-white">{customer.payment_terms || 'Not specified'}</p>
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <Label className="text-sm text-gray-400">Tax ID</Label>
+                            <Label className="text-sm page-subtitle">Tax ID</Label>
                             <p className="text-white">{customer.tax_id || 'Not provided'}</p>
                           </div>
                           <div>
-                            <Label className="text-sm text-gray-400">Lifetime Value</Label>
+                            <Label className="text-sm page-subtitle">Lifetime Value</Label>
                             <p className="text-green-400 font-medium flex items-center">
                               <TrendingUp className="w-4 h-4 mr-1" />
                               {customer.lifetime_value ? `$${customer.lifetime_value.toLocaleString()}` : '$0'}
@@ -1057,7 +1057,7 @@ export default function ClientsPage() {
                           </div>
                         </div>
                         <div>
-                          <Label className="text-sm text-gray-400">Billing Address</Label>
+                          <Label className="text-sm page-subtitle">Billing Address</Label>
                           <p className="text-white">
                             {[customer.billing_address, customer.billing_city, customer.billing_state, customer.billing_postal_code, customer.billing_country]
                               .filter(Boolean)
@@ -1068,33 +1068,33 @@ export default function ClientsPage() {
                       <TabsContent value="activity" className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <Label className="text-sm text-gray-400">Created</Label>
+                            <Label className="text-sm page-subtitle">Created</Label>
                             <p className="text-white flex items-center">
-                              <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+                              <Calendar className="w-4 h-4 mr-2 text-secondary" />
                               {customer.created_at ? format(new Date(customer.created_at), 'PPP') : 'Unknown'}
                             </p>
                           </div>
                           <div>
-                            <Label className="text-sm text-gray-400">Last Activity</Label>
+                            <Label className="text-sm page-subtitle">Last Activity</Label>
                             <p className="text-white flex items-center">
-                              <Clock className="w-4 h-4 mr-2 text-gray-400" />
+                              <Clock className="w-4 h-4 mr-2 text-secondary" />
                               {customer.last_activity_date ? format(new Date(customer.last_activity_date), 'PPP') : 'No recent activity'}
                             </p>
                           </div>
                         </div>
                         <div>
-                          <Label className="text-sm text-gray-400">Last Activity Type</Label>
+                          <Label className="text-sm page-subtitle">Last Activity Type</Label>
                           <p className="text-white">{customer.last_activity_type || 'No activity recorded'}</p>
                         </div>
-                        <div className="bg-gray-700/30 rounded-lg p-4">
+                        <div className="bg-list-item/30 rounded-lg p-4">
                           <h4 className="text-sm font-medium text-white mb-2">Recent Activity</h4>
-                          <p className="text-sm text-gray-400">Activity tracking integration coming soon...</p>
+                          <p className="text-sm page-subtitle">Activity tracking integration coming soon...</p>
                         </div>
                       </TabsContent>
                       <TabsContent value="portal" className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <Label className="text-sm text-gray-400">Portal Access</Label>
+                            <Label className="text-sm page-subtitle">Portal Access</Label>
                             <p className="text-white flex items-center">
                               {customer.portal_access ? (
                                 <>
@@ -1103,23 +1103,23 @@ export default function ClientsPage() {
                                 </>
                               ) : (
                                 <>
-                                  <AlertCircle className="w-4 h-4 mr-2 text-gray-400" />
-                                  <span className="text-gray-400">Disabled</span>
+                                  <AlertCircle className="w-4 h-4 mr-2 text-secondary" />
+                                  <span className="page-subtitle">Disabled</span>
                                 </>
                               )}
                             </p>
                           </div>
                           {customer.portal_access && customer.portal_username && (
                             <div>
-                              <Label className="text-sm text-gray-400">Portal Username</Label>
+                              <Label className="text-sm page-subtitle">Portal Username</Label>
                               <p className="text-white">{customer.portal_username}</p>
                             </div>
                           )}
                         </div>
                         {customer.portal_access && (
-                          <div className="bg-gray-700/30 rounded-lg p-4">
+                          <div className="bg-list-item/30 rounded-lg p-4">
                             <h4 className="text-sm font-medium text-white mb-2">Portal Features</h4>
-                            <ul className="text-sm text-gray-400 space-y-1">
+                            <ul className="text-sm text-secondary space-y-1">
                               <li>• View account information</li>
                               <li>• Download invoices and statements</li>
                               <li>• Submit support requests</li>

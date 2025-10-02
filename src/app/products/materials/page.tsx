@@ -574,37 +574,37 @@ export default function MaterialsPage() {
             return (
               <TableRow key={`materials-table-${index}-${material.id}`}>
                 <TableCell>
-                  <div className="font-medium text-gray-100">{material.name}</div>
+                  <div className="font-medium text-primary">{material.name}</div>
                   {material.description && (
-                    <div className="text-sm text-gray-400 mt-1">{material.description}</div>
+                    <div className="text-sm text-secondary mt-1">{material.description}</div>
                   )}
                 </TableCell>
                 <TableCell>
-                  <div className="text-sm text-gray-300 font-mono">{material.code || "—"}</div>
+                  <div className="text-sm text-secondary font-mono">{material.code || "—"}</div>
                 </TableCell>
                 <TableCell>
-                  <div className="text-sm text-gray-300">{material.type || "—"}</div>
+                  <div className="text-sm text-secondary">{material.type || "—"}</div>
                 </TableCell>
                 <TableCell>
-                  <div className="text-sm text-gray-300">
+                  <div className="text-sm text-secondary">
                     {material.hierarchy_path ? (
-                      <span className="text-xs bg-gray-800 px-2 py-1 rounded">{material.hierarchy_path}</span>
+                      <span className="text-xs card px-2 py-1 rounded">{material.hierarchy_path}</span>
                     ) : material.parent_material ? (
-                      <span className="text-xs bg-gray-800 px-2 py-1 rounded">
+                      <span className="text-xs card px-2 py-1 rounded">
                         {material.parent_material.name} &gt; {material.name}
                       </span>
                     ) : (
-                      <span className="text-gray-500">Top Level</span>
+                      <span className="text-tertiary">Top Level</span>
                     )}
                   </div>
                 </TableCell>
                 <TableCell>
-                  <div className="text-sm text-gray-100">
+                  <div className="text-sm text-primary">
                     {material.cost_per_unit ? formatCurrency(material.cost_per_unit) : "—"}
                   </div>
                 </TableCell>
                 <TableCell>
-                  <div className="text-sm text-gray-300">{material.unit_of_measure || "—"}</div>
+                  <div className="text-sm text-secondary">{material.unit_of_measure || "—"}</div>
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap gap-1">
@@ -615,7 +615,7 @@ export default function MaterialsPage() {
                         </Badge>
                       ))
                     ) : (
-                      <Badge variant="outline" className="text-xs text-gray-400 border-gray-600">
+                      <Badge variant="outline" className="text-xs text-secondary ">
                         All Collections
                       </Badge>
                     )}
@@ -624,13 +624,13 @@ export default function MaterialsPage() {
                 <TableCell>
                   <Badge
                     variant={material.active !== false ? "default" : "secondary"}
-                    className={material.active !== false ? "bg-green-600 text-green-100" : "bg-gray-600 text-gray-300"}
+                    className={material.active !== false ? "bg-green-600 text-green-100" : " text-secondary"}
                   >
                     {material.active !== false ? "Active" : "Inactive"}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <div className="text-sm text-gray-400">
+                  <div className="text-sm page-subtitle">
                     {formatDate(material.created_at)}
                   </div>
                 </TableCell>
@@ -649,7 +649,7 @@ export default function MaterialsPage() {
                       variant="outline"
                       onClick={() => handleDelete(material)}
                       disabled={!!actionLoading || hasChildren}
-                      className={hasChildren ? "text-gray-400 cursor-not-allowed" : "text-red-600 hover:text-red-700 hover:bg-red-50"}
+                      className={hasChildren ? "text-secondary cursor-not-allowed" : "text-red-600 hover:text-red-700 hover:bg-red-50"}
                       title={hasChildren ? "Cannot delete material with children" : "Delete material"}
                     >
                       {actionLoading === `delete-${material.id}` ? (
@@ -676,12 +676,12 @@ export default function MaterialsPage() {
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
             Materials
           </h1>
-          <p className="text-gray-400 mt-2 text-lg">Manage your material inventory and specifications</p>
+          <p className="text-secondary mt-2 text-lg">Manage your material inventory and specifications</p>
           <div className="flex items-center space-x-4 mt-4">
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-tertiary">
               <span className="font-medium">{materials.length}</span> total materials
             </div>
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-tertiary">
               <span className="font-medium">{getSubcategoryFilteredMaterials().length}</span> in current subcategory
             </div>
           </div>
@@ -691,7 +691,7 @@ export default function MaterialsPage() {
             onClick={() => refetchMaterials()}
             disabled={materialsLoading}
             variant="outline"
-            className="border-gray-600 hover:border-gray-500"
+            className=" hover:border-gray-500"
           >
             {materialsLoading ? "Refreshing..." : "Refresh"}
           </Button>
@@ -710,7 +710,7 @@ export default function MaterialsPage() {
       </div>
 
       {/* Main Category Navigation */}
-      <Card className="bg-gradient-to-r from-gray-900 to-gray-800 border-gray-700 shadow-lg">
+      <Card className="bg-gradient-to-r from-gray-900 to-gray-800 shadow-lg">
         <CardContent className="p-6">
           <div className="flex space-x-2 overflow-x-auto pb-2">
             {MATERIAL_CATEGORIES.map((category) => (
@@ -724,7 +724,7 @@ export default function MaterialsPage() {
                 className={`whitespace-nowrap px-6 py-3 text-sm font-medium transition-all duration-200 ${
                   activeCategory === category.id
                     ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md border-transparent"
-                    : "border-gray-600 text-gray-300 hover:border-gray-500 hover:bg-gray-800"
+                    : " text-secondary hover:border-gray-500 hover:card"
                 }`}
               >
                 {category.name}
@@ -736,7 +736,7 @@ export default function MaterialsPage() {
 
       {/* Subcategory Navigation */}
       {activeCategoryData && (
-        <Card className="bg-gray-900/50 border-gray-700 backdrop-blur-sm">
+        <Card className="bg-card/50 backdrop-blur-sm">
           <CardContent className="p-4">
             <div className="flex space-x-2 overflow-x-auto pb-1">
               {activeCategoryData.subcategories.map((subcategory) => (
@@ -747,7 +747,7 @@ export default function MaterialsPage() {
                   className={`whitespace-nowrap px-4 py-2 text-sm transition-all duration-200 ${
                     activeSubcategory === subcategory.id
                       ? "bg-blue-600 text-white shadow-sm"
-                      : "border-gray-600 text-gray-400 hover:border-gray-500 hover:text-gray-300"
+                      : " text-secondary hover:border-gray-500 hover:text-secondary"
                   }`}
                   size="sm"
                 >
@@ -817,7 +817,7 @@ export default function MaterialsPage() {
                           >
                             <div>
                               <div className="font-medium">{action.label}</div>
-                              <div className="text-sm text-gray-500">Hierarchy Level: {action.level}</div>
+                              <div className="text-sm text-tertiary">Hierarchy Level: {action.level}</div>
                             </div>
                           </Button>
                         ))}
@@ -1041,7 +1041,7 @@ export default function MaterialsPage() {
                             />
                             <Label
                               htmlFor={`collection-${collection.id}`}
-                              className={`text-sm ${!canSelect ? 'text-gray-400' : ''}`}
+                              className={`text-sm ${!canSelect ? 'text-secondary' : ''}`}
                             >
                               {collection.name}
                               {collection.prefix && (
@@ -1092,15 +1092,15 @@ export default function MaterialsPage() {
       )}
 
       {/* Materials Table */}
-      <Card className="bg-gradient-to-b from-gray-900 to-gray-900/95 border-gray-700 shadow-xl">
-        <CardHeader className="border-b border-gray-700/50">
-          <CardTitle className="text-xl font-semibold text-gray-100 flex items-center justify-between">
+      <Card className="bg-gradient-to-b from-gray-900 to-gray-900/95 shadow-xl">
+        <CardHeader className="border-b/50">
+          <CardTitle className="text-xl font-semibold text-primary flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-2 h-6 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
               <span>
                 {activeCategoryData?.name} - {activeCategoryData?.subcategories.find(sub => sub.id === activeSubcategory)?.name}
               </span>
-              <Badge variant="secondary" className="bg-gray-700 text-gray-300">
+              <Badge variant="secondary" className="list-item text-secondary">
                 {getSubcategoryFilteredMaterials().length} {getSubcategoryFilteredMaterials().length === 1 ? 'item' : 'items'}
               </Badge>
             </div>
@@ -1110,16 +1110,16 @@ export default function MaterialsPage() {
           {materialsLoading ? (
             <div className="text-center py-16">
               <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mb-6"></div>
-              <div className="text-gray-400 text-lg">Loading materials...</div>
-              <div className="text-gray-500 text-sm mt-2">Fetching material inventory</div>
+              <div className="text-secondary text-lg">Loading materials...</div>
+              <div className="text-tertiary text-sm mt-2">Fetching material inventory</div>
             </div>
           ) : getSubcategoryFilteredMaterials().length === 0 ? (
             <div className="text-center py-16">
-              <div className="w-24 h-24 mx-auto mb-6 bg-gray-800 rounded-full flex items-center justify-center">
-                <div className="text-gray-500 text-3xl">📦</div>
+              <div className="w-24 h-24 mx-auto mb-6 card rounded-full flex items-center justify-center">
+                <div className="text-tertiary text-3xl">📦</div>
               </div>
-              <div className="text-gray-400 mb-4 text-lg">No materials found for this category</div>
-              <div className="text-gray-500 text-sm mb-6">Start by adding your first material to this category</div>
+              <div className="text-secondary mb-4 text-lg">No materials found for this category</div>
+              <div className="text-tertiary text-sm mb-6">Start by adding your first material to this category</div>
               <Button
                 onClick={() => setShowCreateForm(true)}
                 className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"

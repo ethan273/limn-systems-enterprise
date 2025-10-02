@@ -1100,9 +1100,9 @@ function OrderCreationDialog({
 
             {orderItems.length === 0 ? (
               <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 text-center">
-                <Package className="h-8 w-8 mx-auto text-gray-400 mb-2" />
-                <p className="text-sm text-gray-500">No items added yet</p>
-                <p className="text-xs text-gray-400">Fill out the form and click &ldquo;Add Item&rdquo;</p>
+                <Package className="h-8 w-8 mx-auto text-secondary mb-2" />
+                <p className="text-sm text-tertiary">No items added yet</p>
+                <p className="text-xs page-subtitle">Fill out the form and click &ldquo;Add Item&rdquo;</p>
               </div>
             ) : (
               <div className="space-y-2 max-h-96 overflow-y-auto">
@@ -1489,7 +1489,7 @@ export default function ProjectsPage() {
   ];
 
   const priorities = [
-    { value: "low", label: "Low", color: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200" },
+    { value: "low", label: "Low", color: "bg-gray-100 text-gray-800 dark:card dark:text-primary" },
     { value: "medium", label: "Medium", color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" },
     { value: "high", label: "High", color: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200" },
     { value: "urgent", label: "Urgent", color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" },
@@ -1980,7 +1980,7 @@ export default function ProjectsPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <div className="w-16 bg-gray-200 rounded-full h-2 dark:bg-gray-700">
+                        <div className="w-16 bg-gray-200 rounded-full h-2 dark:list-item">
                           <div
                             className="bg-blue-600 h-2 rounded-full transition-all"
                             style={{ width: `${project.completion_percentage}%` }}

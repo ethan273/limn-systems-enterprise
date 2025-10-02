@@ -131,7 +131,7 @@ export default function QCInspectionsPage() {
             <Clock className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-600">{stats.pending}</div>
+            <div className="text-2xl font-bold ">{stats.pending}</div>
           </CardContent>
         </Card>
 

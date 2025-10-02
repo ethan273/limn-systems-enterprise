@@ -75,7 +75,7 @@ export default function PortalLoginPage() {
             <Lock className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900">Customer Portal</h1>
-          <p className="text-gray-600 mt-2">Sign in to access your orders and documents</p>
+          <p className=" mt-2">Sign in to access your orders and documents</p>
         </div>
 
         {/* Login Form */}
@@ -90,7 +90,7 @@ export default function PortalLoginPage() {
             <div className="space-y-2">
               <Label htmlFor="email">Email Address</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-secondary" />
                 <Input
                   id="email"
                   type="email"
@@ -107,7 +107,7 @@ export default function PortalLoginPage() {
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-secondary" />
                 <Input
                   id="password"
                   type="password"
@@ -147,12 +147,12 @@ export default function PortalLoginPage() {
           )}
 
           {/* Footer Links */}
-          <div className="mt-6 text-center text-sm text-gray-600">
+          <div className="mt-6 text-center text-sm ">
             <a href="/portal/forgot-password" className="text-[#91bdbd] hover:underline">
               Forgot your password?
             </a>
           </div>
-          <div className="mt-2 text-center text-sm text-gray-600">
+          <div className="mt-2 text-center text-sm ">
             Need help?{' '}
             <a href="mailto:support@limnsystems.com" className="text-[#91bdbd] hover:underline">
               Contact Support
@@ -161,7 +161,7 @@ export default function PortalLoginPage() {
         </div>
 
         {/* Footer */}
-        <div className="mt-8 text-center text-sm text-gray-500">
+        <div className="mt-8 text-center text-sm text-tertiary">
           © {new Date().getFullYear()} Limn Systems. All rights reserved.
         </div>
       </div>

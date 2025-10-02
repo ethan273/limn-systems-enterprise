@@ -244,7 +244,7 @@ export default function MyTasksPage() {
 
         return (
           <Collapsible key={task.id} open={isExpanded} onOpenChange={() => toggleTaskExpanded(task.id)}>
-            <div className="border border-gray-700 rounded-lg bg-gray-800/50 hover:bg-gray-700/30 transition-colors">
+            <div className="list-item">
               {/* Main Task Row */}
               <CollapsibleTrigger asChild>
                 <div className="p-4 cursor-pointer">
@@ -266,9 +266,9 @@ export default function MyTasksPage() {
                       {/* Expand Icon */}
                       <div className="flex-shrink-0">
                         {isExpanded ? (
-                          <ChevronUp className="h-4 w-4 text-gray-400" />
+                          <ChevronUp className="h-4 w-4" />
                         ) : (
-                          <ChevronDown className="h-4 w-4 text-gray-400" />
+                          <ChevronDown className="h-4 w-4" />
                         )}
                       </div>
 
@@ -283,7 +283,7 @@ export default function MyTasksPage() {
                               )}
                               {/* Assigned Users - moved next to title for prominence */}
                               <div className="flex items-center gap-2 flex-shrink-0">
-                                <Users className="h-4 w-4 text-gray-400" />
+                                <Users className="h-4 w-4" />
                                 {assignedUsers.length > 0 ? (
                                   <div className="flex items-center gap-1">
                                     <div className="flex -space-x-1">
@@ -295,9 +295,9 @@ export default function MyTasksPage() {
                                             user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
                                         ) : "?";
                                         return (
-                                          <Avatar key={userId} className="h-6 w-6 border border-gray-600">
+                                          <Avatar key={userId} className="h-6 w-6">
                                             <AvatarImage src={user?.avatar_url || undefined} />
-                                            <AvatarFallback className="text-xs bg-gray-600">
+                                            <AvatarFallback className="text-xs">
                                               {initials}
                                             </AvatarFallback>
                                           </Avatar>
@@ -305,11 +305,11 @@ export default function MyTasksPage() {
                                       })}
                                     </div>
                                     {assignedUsers.length > 3 && (
-                                      <span className="text-xs text-gray-500">+{assignedUsers.length - 3}</span>
+                                      <span className="text-xs">+{assignedUsers.length - 3}</span>
                                     )}
                                   </div>
                                 ) : (
-                                  <span className="text-gray-500 text-sm">Unassigned</span>
+                                  <span className="text-sm">Unassigned</span>
                                 )}
                               </div>
                             </div>
@@ -342,11 +342,11 @@ export default function MyTasksPage() {
 
                         {/* Bottom Row - Project, Time Tracking */}
                         <div className="flex items-center justify-between gap-4">
-                          <div className="flex items-center gap-4 text-sm text-gray-400">
+                          <div className="flex items-center gap-4 text-sm">
                             {/* Project */}
                             <div className="flex items-center gap-2">
                               <FolderOpen className="h-4 w-4" />
-                              <span className="text-gray-500">
+                              <span>
                                 {task.project_id ? "Project Name" : "No project"}
                               </span>
                             </div>
@@ -362,7 +362,7 @@ export default function MyTasksPage() {
                           </div>
 
                           {/* Dates and Actions */}
-                          <div className="flex items-center gap-4 text-sm text-gray-400">
+                          <div className="flex items-center gap-4 text-sm">
                             {task.due_date && (
                               <div className="flex items-center gap-1">
                                 <Calendar className="h-4 w-4" />
@@ -379,10 +379,9 @@ export default function MyTasksPage() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="hover:bg-gray-600"
                                   onClick={(e) => e.stopPropagation()}
                                 >
-                                  <MoreVertical className="h-4 w-4 text-gray-400" />
+                                  <MoreVertical className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
@@ -418,12 +417,12 @@ export default function MyTasksPage() {
                         {task.tags && task.tags.length > 0 && (
                           <div className="flex gap-1 flex-wrap">
                             {task.tags.slice(0, 5).map((tag: any, index: number) => (
-                              <Badge key={index} variant="outline" className="text-xs text-tertiary border-gray-600">
+                              <Badge key={index} variant="outline" className="text-xs">
                                 {tag}
                               </Badge>
                             ))}
                             {task.tags.length > 5 && (
-                              <Badge variant="outline" className="text-xs text-tertiary border-gray-600">
+                              <Badge variant="outline" className="text-xs">
                                 +{task.tags.length - 5} more
                               </Badge>
                             )}
@@ -437,8 +436,8 @@ export default function MyTasksPage() {
 
               {/* Expandable Content */}
               <CollapsibleContent>
-                <Separator className="bg-gray-700" />
-                <div className="p-4 pt-6 bg-gray-800/80">
+                <Separator />
+                <div className="p-4 pt-6">
                   {/* Primary content grid */}
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
                     {/* Attachments */}
@@ -491,12 +490,12 @@ export default function MyTasksPage() {
       })}
 
       {(activeTab === "created" ? tasksData?.tasks : tasksData?.tasks)?.length === 0 && (
-        <div className="text-center py-12 text-gray-400">
+        <div className="empty-state">
           <div className="mb-4">
-            <Search className="h-12 w-12 mx-auto text-gray-600" />
+            <Search className="h-12 w-12 mx-auto" />
           </div>
-          <h3 className="text-lg font-medium mb-2">No tasks found</h3>
-          <p className="text-sm">
+          <h3 className="empty-state-title">No tasks found</h3>
+          <p className="empty-state-description">
             {activeTab === "assigned" && "No tasks assigned to you."}
             {activeTab === "watching" && "No tasks you're watching."}
             {activeTab === "created" && "No tasks created by you."}
@@ -511,8 +510,8 @@ export default function MyTasksPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">My Tasks</h1>
-          <p className="text-gray-400">
+          <h1 className="page-title">My Tasks</h1>
+          <p className="page-subtitle">
             Personal task dashboard and assignment overview
           </p>
         </div>
@@ -537,38 +536,38 @@ export default function MyTasksPage() {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-gray-800 border-gray-700">
+        <Card className="stat-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-300">Assigned Tasks</CardTitle>
+            <CardTitle className="text-sm font-medium">Assigned Tasks</CardTitle>
             <CheckSquare className="h-4 w-4 text-blue-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">{assignedTodo}</div>
-            <p className="text-xs text-gray-400 mt-1">
+            <div className="text-2xl font-bold">{assignedTodo}</div>
+            <p className="text-xs mt-1">
               Active tasks assigned to you
             </p>
           </CardContent>
         </Card>
-        <Card className="bg-gray-800 border-gray-700">
+        <Card className="stat-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-300">Watching</CardTitle>
+            <CardTitle className="text-sm font-medium">Watching</CardTitle>
             <Eye className="h-4 w-4 text-green-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">{watchingActive}</div>
-            <p className="text-xs text-gray-400 mt-1">
+            <div className="text-2xl font-bold">{watchingActive}</div>
+            <p className="text-xs mt-1">
               Tasks you&apos;re following
             </p>
           </CardContent>
         </Card>
-        <Card className="bg-gray-800 border-gray-700">
+        <Card className="stat-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-300">Created</CardTitle>
+            <CardTitle className="text-sm font-medium">Created</CardTitle>
             <AlertCircle className="h-4 w-4 text-purple-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">{createdActive}</div>
-            <p className="text-xs text-gray-400 mt-1">
+            <div className="text-2xl font-bold">{createdActive}</div>
+            <p className="text-xs mt-1">
               Tasks you&apos;ve created
             </p>
           </CardContent>
@@ -576,7 +575,7 @@ export default function MyTasksPage() {
       </div>
 
       {/* Filters */}
-      <Card className="bg-gray-800 border-gray-700">
+      <Card className="filters-section">
         <CardContent className="pt-6">
           <div className="flex items-center gap-4">
             <Select value={statusFilter} onValueChange={(value: TaskStatus | 'all') => setStatusFilter(value)}>
@@ -607,7 +606,7 @@ export default function MyTasksPage() {
       </Card>
 
       {/* Tasks Tabs */}
-      <Card className="bg-gray-800 border-gray-700">
+      <Card className="card">
         <CardContent className="pt-6">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-3">
@@ -641,14 +640,14 @@ export default function MyTasksPage() {
           {/* Loading State */}
           {isLoading && (
             <div className="text-center py-8">
-              <div className="text-gray-400">Loading your tasks...</div>
+              <div>Loading your tasks...</div>
             </div>
           )}
 
           {/* Pagination */}
           {tasksData && tasksData.total > limit && (
             <div className="flex items-center justify-between mt-6">
-              <div className="text-sm text-gray-400">
+              <div className="text-sm">
                 Showing {page * limit + 1} to {Math.min((page + 1) * limit, tasksData.total)} of {tasksData.total} tasks
               </div>
               <div className="flex gap-2">

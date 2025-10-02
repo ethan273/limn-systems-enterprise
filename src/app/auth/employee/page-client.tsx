@@ -102,11 +102,11 @@ export default function EmployeeLoginPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="bg-gray-800 border border-gray-700 shadow-lg rounded-lg px-8 py-10">
+        <div className="card border shadow-lg rounded-lg px-8 py-10">
           <div className="mb-8">
             <Link
               href="/login"
-              className="inline-flex items-center text-sm text-gray-400 hover:text-gray-200 mb-6"
+              className="inline-flex items-center text-sm text-secondary hover:text-primary mb-6"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to login options
@@ -119,7 +119,7 @@ export default function EmployeeLoginPage() {
               <h1 className="text-3xl font-bold text-white">
                 Employee Login
               </h1>
-              <p className="text-gray-400 mt-2">
+              <p className="text-secondary mt-2">
                 Sign in with your @limn.us.com Google account
               </p>
             </div>
@@ -145,7 +145,7 @@ export default function EmployeeLoginPage() {
             <Button
               onClick={handleGoogleSignIn}
               disabled={loading}
-              className="w-full flex items-center justify-center px-4 py-3 border border-gray-600 rounded-lg shadow-sm bg-gray-700 text-sm font-medium text-gray-200 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center px-4 py-3 border  rounded-lg shadow-sm list-item text-sm font-medium text-primary hover: focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <div className="flex items-center">
@@ -180,10 +180,10 @@ export default function EmployeeLoginPage() {
             <div className="text-center">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-600" />
+                  <div className="w-full border-t " />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-gray-800 text-gray-500">
+                  <span className="px-2 card text-tertiary">
                     Employee access only
                   </span>
                 </div>
@@ -212,8 +212,8 @@ export default function EmployeeLoginPage() {
             </div>
           </div>
 
-          <div className="mt-8 pt-6 border-t border-gray-600">
-            <p className="text-xs text-gray-500 text-center">
+          <div className="mt-8 pt-6 border-t ">
+            <p className="text-xs text-tertiary text-center">
               Having trouble signing in?{' '}
               <a
                 href="mailto:it@limnsystems.com"

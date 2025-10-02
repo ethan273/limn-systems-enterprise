@@ -756,7 +756,7 @@ export default function OrderedItemsPage() {
     { value: "pending", label: "Pending", color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200" },
     { value: "in_production", label: "In Production", color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" },
     { value: "ready", label: "Ready", color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" },
-    { value: "delivered", label: "Delivered", color: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200" },
+    { value: "delivered", label: "Delivered", color: "bg-gray-100 text-gray-800 dark:card dark:text-primary" },
     { value: "cancelled", label: "Cancelled", color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" },
   ];
 
@@ -918,8 +918,8 @@ export default function OrderedItemsPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-4xl font-bold text-gray-100">Ordered</h1>
-          <p className="text-gray-400 mt-1">
+          <h1 className="text-4xl font-bold text-primary">Ordered</h1>
+          <p className="text-secondary mt-1">
             Track and manage individual ordered items with material specifications
           </p>
         </div>
@@ -931,42 +931,42 @@ export default function OrderedItemsPage() {
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card className="bg-gray-900 border-gray-700">
+        <Card className="card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-100">Total Items</CardTitle>
-            <Hash className="h-4 w-4 text-gray-400" />
+            <CardTitle className="text-sm font-medium text-primary">Total Items</CardTitle>
+            <Hash className="h-4 w-4 text-secondary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-100">{filteredItems.length}</div>
+            <div className="text-2xl font-bold text-primary">{filteredItems.length}</div>
           </CardContent>
         </Card>
-        <Card className="bg-gray-900 border-gray-700">
+        <Card className="card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-100">Total Value</CardTitle>
-            <DollarSign className="h-4 w-4 text-gray-400" />
+            <CardTitle className="text-sm font-medium text-primary">Total Value</CardTitle>
+            <DollarSign className="h-4 w-4 text-secondary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-100">{formatPrice(getTotalValue())}</div>
+            <div className="text-2xl font-bold text-primary">{formatPrice(getTotalValue())}</div>
           </CardContent>
         </Card>
-        <Card className="bg-gray-900 border-gray-700">
+        <Card className="card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-100">In Production</CardTitle>
-            <Package className="h-4 w-4 text-gray-400" />
+            <CardTitle className="text-sm font-medium text-primary">In Production</CardTitle>
+            <Package className="h-4 w-4 text-secondary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-100">
+            <div className="text-2xl font-bold text-primary">
               {filteredItems.filter(item => item.status === 'in_production').length}
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-gray-900 border-gray-700">
+        <Card className="card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-100">Ready</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-gray-400" />
+            <CardTitle className="text-sm font-medium text-primary">Ready</CardTitle>
+            <ShoppingCart className="h-4 w-4 text-secondary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-100">
+            <div className="text-2xl font-bold text-primary">
               {filteredItems.filter(item => item.status === 'ready').length}
             </div>
           </CardContent>
@@ -977,12 +977,12 @@ export default function OrderedItemsPage() {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center filters-section">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary" />
             <Input
               placeholder="Search items..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-64 bg-gray-800 border-gray-600 text-gray-100"
+              className="pl-10 w-64 card  text-primary"
             />
           </div>
 
@@ -1023,14 +1023,14 @@ export default function OrderedItemsPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="text-sm text-gray-400">
+          <div className="text-sm page-subtitle">
             {filteredItems.length} items • {formatPrice(getTotalValue())}
           </div>
         </div>
       </div>
 
       {/* Ordered Table */}
-      <Card className="bg-gray-900 border-gray-700">
+      <Card className="card">
         <div className="p-6">
           <Table>
             <TableHeader>
@@ -1053,13 +1053,13 @@ export default function OrderedItemsPage() {
                   <TableCell colSpan={10} className="text-center py-8">
                     <div className="flex items-center justify-center">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400"></div>
-                      <span className="ml-2 text-gray-400">Loading order items...</span>
+                      <span className="ml-2 page-subtitle">Loading order items...</span>
                     </div>
                   </TableCell>
                 </TableRow>
               ) : filteredItems.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={10} className="text-center py-8 text-gray-400">
+                  <TableCell colSpan={10} className="text-center py-8 page-subtitle">
                     No order items found
                   </TableCell>
                 </TableRow>
@@ -1067,7 +1067,7 @@ export default function OrderedItemsPage() {
                 filteredItems.map((item) => (
                 <React.Fragment key={item.id}>
                 <TableRow
-                  className="cursor-pointer hover:bg-gray-800/50"
+                  className="cursor-pointer hover:card/50"
                   onClick={() => toggleRow(item.id)}
                 >
                   <TableCell>
@@ -1091,7 +1091,7 @@ export default function OrderedItemsPage() {
                       <div>
                         <div className="font-medium">{item.product_name}</div>
                         {item.product_sku && (
-                          <div className="text-sm text-gray-400 font-mono">
+                          <div className="text-sm text-secondary font-mono">
                             {item.product_sku}
                           </div>
                         )}
@@ -1100,7 +1100,7 @@ export default function OrderedItemsPage() {
                   </TableCell>
                   <TableCell>
                     <div className="font-mono text-sm">{item.order_id}</div>
-                    <div className="text-xs text-gray-400">
+                    <div className="text-xs page-subtitle">
                       {formatDate(item.order_date)}
                     </div>
                   </TableCell>
@@ -1108,7 +1108,7 @@ export default function OrderedItemsPage() {
                     <div>
                       <div className="font-medium">{item.customer_name}</div>
                       {item.customer_company && (
-                        <div className="text-sm text-gray-400">
+                        <div className="text-sm page-subtitle">
                           {item.customer_company}
                         </div>
                       )}
@@ -1118,7 +1118,7 @@ export default function OrderedItemsPage() {
                     {item.collection_name ? (
                       <Badge variant="outline">{item.collection_name}</Badge>
                     ) : (
-                      <span className="text-gray-400">No collection</span>
+                      <span className="page-subtitle">No collection</span>
                     )}
                   </TableCell>
                   <TableCell>{item.quantity}</TableCell>
@@ -1202,7 +1202,7 @@ export default function OrderedItemsPage() {
                 {expandedRows.has(item.id) && (
                   <TableRow>
                     <TableCell colSpan={10} className="p-0">
-                      <div className="p-6 bg-gray-800/30 border-t border-gray-700">
+                      <div className="p-6 card/30 border-t">
                         <Tabs defaultValue="dimensions" className="w-full">
                           <TabsList className="grid w-full grid-cols-3">
                             <TabsTrigger value="dimensions">Dimensions</TabsTrigger>
@@ -1211,7 +1211,7 @@ export default function OrderedItemsPage() {
                           </TabsList>
 
                           <TabsContent value="dimensions" className="mt-4">
-                            <div className="text-sm text-gray-400">
+                            <div className="text-sm page-subtitle">
                               Dimensions data will be displayed here
                             </div>
                           </TabsContent>
@@ -1219,19 +1219,19 @@ export default function OrderedItemsPage() {
                           <TabsContent value="shipping" className="mt-4">
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                               <div>
-                                <Label className="text-xs text-gray-400">Estimated Delivery</Label>
-                                <div className="text-sm font-medium text-gray-100">
+                                <Label className="text-xs page-subtitle">Estimated Delivery</Label>
+                                <div className="text-sm font-medium text-primary">
                                   {formatDate(item.estimated_delivery)}
                                 </div>
                               </div>
                               <div>
-                                <Label className="text-xs text-gray-400">Actual Delivery</Label>
-                                <div className="text-sm font-medium text-gray-100">
+                                <Label className="text-xs page-subtitle">Actual Delivery</Label>
+                                <div className="text-sm font-medium text-primary">
                                   {formatDate(item.actual_delivery)}
                                 </div>
                               </div>
                               <div>
-                                <Label className="text-xs text-gray-400">Status</Label>
+                                <Label className="text-xs page-subtitle">Status</Label>
                                 <div className="text-sm font-medium">
                                   <Badge className={getStatusColor(item.status)}>
                                     {statuses.find(s => s.value === item.status)?.label}
@@ -1242,7 +1242,7 @@ export default function OrderedItemsPage() {
                           </TabsContent>
 
                           <TabsContent value="images" className="mt-4">
-                            <div className="text-sm text-gray-400">
+                            <div className="text-sm page-subtitle">
                               Image management will be displayed here
                             </div>
                           </TabsContent>
@@ -1261,9 +1261,9 @@ export default function OrderedItemsPage() {
 
       {filteredItems.length === 0 && (
         <div className="mt-12 text-center">
-          <ShoppingCart className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-4 text-lg font-medium text-gray-100">No ordered items found</h3>
-          <p className="mt-2 text-gray-400">
+          <ShoppingCart className="mx-auto h-12 w-12 text-secondary" />
+          <h3 className="mt-4 text-lg font-medium text-primary">No ordered items found</h3>
+          <p className="mt-2 page-subtitle">
             {searchTerm || selectedStatus || selectedCollection
               ? "Try adjusting your search criteria."
               : "Get started by creating your first ordered item."}

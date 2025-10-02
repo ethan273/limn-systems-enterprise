@@ -271,8 +271,8 @@ export default function CollectionsPage() {
     <div className="p-6 space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold text-gray-100">Collections</h1>
-          <p className="text-gray-400 mt-1">Manage product collections and their properties</p>
+          <h1 className="text-4xl font-bold text-primary">Collections</h1>
+          <p className="text-secondary mt-1">Manage product collections and their properties</p>
         </div>
         <div className="flex space-x-2">
           <Button onClick={() => fetchCollections()} disabled={loading} variant="outline">
@@ -301,9 +301,9 @@ export default function CollectionsPage() {
 
       {/* Create/Edit Form */}
       {showCreateForm && (
-        <Card className="bg-gray-900 border-gray-700">
+        <Card className="card">
           <CardHeader>
-            <CardTitle className="text-gray-100">
+            <CardTitle className="text-primary">
               {editingCollection ? "Edit Collection" : "Create New Collection"}
             </CardTitle>
           </CardHeader>
@@ -312,10 +312,10 @@ export default function CollectionsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Basic Information */}
                 <div className="space-y-4">
-                  <h3 className="font-medium text-gray-100">Basic Information</h3>
+                  <h3 className="font-medium text-primary">Basic Information</h3>
 
                   <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-100 mb-1">
+                    <label htmlFor="name" className="block text-sm font-medium text-primary mb-1">
                       Collection Name *
                     </label>
                     <input
@@ -323,8 +323,8 @@ export default function CollectionsPage() {
                       type="text"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className={`w-full px-3 py-2 bg-gray-800 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-100 ${
-                        formErrors.name ? 'border-red-500' : 'border-gray-600'
+                      className={`w-full px-3 py-2 card border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-primary ${
+                        formErrors.name ? 'border-red-500' : ''
                       }`}
                       placeholder="e.g., Pacifica Collection"
                     />
@@ -334,7 +334,7 @@ export default function CollectionsPage() {
                   </div>
 
                   <div>
-                    <label htmlFor="description" className="block text-sm font-medium text-gray-100 mb-1">
+                    <label htmlFor="description" className="block text-sm font-medium text-primary mb-1">
                       Description
                     </label>
                     <textarea
@@ -342,7 +342,7 @@ export default function CollectionsPage() {
                       rows={3}
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-100"
+                      className="w-full px-3 py-2 card border  rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-primary"
                       placeholder="Describe this collection..."
                     />
                   </div>
@@ -350,7 +350,7 @@ export default function CollectionsPage() {
 
                 {/* Settings */}
                 <div className="space-y-4">
-                  <h3 className="font-medium text-gray-100">Settings</h3>
+                  <h3 className="font-medium text-primary">Settings</h3>
 
                   <div className="flex items-center space-x-2">
                     <input
@@ -358,9 +358,9 @@ export default function CollectionsPage() {
                       type="checkbox"
                       checked={formData.is_active}
                       onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                      className="h-4 w-4 text-primary focus:ring-primary border-gray-600 bg-gray-800 rounded"
+                      className="h-4 w-4 text-primary focus:ring-primary  card rounded"
                     />
-                    <label htmlFor="is_active" className="text-sm font-medium text-gray-100">
+                    <label htmlFor="is_active" className="text-sm font-medium text-primary">
                       Active Collection
                     </label>
                   </div>
@@ -368,7 +368,7 @@ export default function CollectionsPage() {
               </div>
 
               {/* Form Actions */}
-              <div className="flex justify-end space-x-4 pt-6 border-t border-gray-700">
+              <div className="flex justify-end space-x-4 pt-6 border-t">
                 <Button
                   type="button"
                   variant="outline"
@@ -398,19 +398,19 @@ export default function CollectionsPage() {
       )}
 
       {/* Collections Table */}
-      <Card className="bg-gray-900 border-gray-700">
+      <Card className="card">
         <CardHeader>
-          <CardTitle className="text-gray-100">All Collections ({collections.length})</CardTitle>
+          <CardTitle className="text-primary">All Collections ({collections.length})</CardTitle>
         </CardHeader>
         <CardContent className="p-6">
           {loading ? (
             <div className="text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
-              <div className="text-gray-400">Loading collections...</div>
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 mb-4"></div>
+              <div className="page-subtitle">Loading collections...</div>
             </div>
           ) : collections.length === 0 ? (
             <div className="text-center py-12">
-              <div className="text-gray-400 mb-4">No collections found</div>
+              <div className="text-secondary mb-4">No collections found</div>
               <Button onClick={() => {
                 resetForm();
                 setShowCreateForm(true);
@@ -424,14 +424,14 @@ export default function CollectionsPage() {
                 <AccordionItem
                   key={`collections-accordion-${index}-${collection.id || "no-id"}`}
                   value={collection.id}
-                  className="border border-gray-700 rounded-lg bg-gray-800"
+                  className="border rounded-lg card"
                 >
                   <AccordionTrigger className="px-6 py-4 hover:no-underline">
                     <div className="flex items-center justify-between w-full">
                       <div className="flex items-center space-x-4">
                         <div className="text-left">
-                          <div className="font-medium text-gray-100">{collection.name}</div>
-                          <div className="text-sm text-gray-400 mt-1">
+                          <div className="font-medium text-primary">{collection.name}</div>
+                          <div className="text-sm text-secondary mt-1">
                             {collection.description || "No description provided"}
                           </div>
                         </div>
@@ -448,7 +448,7 @@ export default function CollectionsPage() {
                         >
                           {collection.is_active !== false ? "Active" : "Inactive"}
                         </Badge>
-                        <div className="text-sm text-gray-400">
+                        <div className="text-sm page-subtitle">
                           {formatDate(collection.created_at)}
                         </div>
                       </div>
@@ -458,51 +458,51 @@ export default function CollectionsPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
                       {/* Collection Details */}
                       <div className="space-y-3">
-                        <h4 className="font-medium text-gray-100 flex items-center gap-2">
+                        <h4 className="font-medium text-primary flex items-center gap-2">
                           <Package className="h-4 w-4" />
                           Collection Details
                         </h4>
                         <div className="space-y-2 text-sm">
                           <div className="flex justify-between">
-                            <span className="text-gray-400">Prefix:</span>
-                            <span className="font-mono text-gray-100">{collection.prefix || "—"}</span>
+                            <span className="page-subtitle">Prefix:</span>
+                            <span className="font-mono text-primary">{collection.prefix || "—"}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-400">Display Order:</span>
-                            <span className="text-gray-100">{collection.display_order || "—"}</span>
+                            <span className="page-subtitle">Display Order:</span>
+                            <span className="text-primary">{collection.display_order || "—"}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-400">Designer:</span>
-                            <span className="text-gray-100">{collection.designer || "—"}</span>
+                            <span className="page-subtitle">Designer:</span>
+                            <span className="text-primary">{collection.designer || "—"}</span>
                           </div>
                         </div>
                       </div>
 
                       {/* Statistics */}
                       <div className="space-y-3">
-                        <h4 className="font-medium text-gray-100 flex items-center gap-2">
+                        <h4 className="font-medium text-primary flex items-center gap-2">
                           <Users className="h-4 w-4" />
                           Statistics
                         </h4>
                         <div className="space-y-2 text-sm">
                           <div className="flex justify-between">
-                            <span className="text-gray-400">Items Count:</span>
-                            <Badge variant="outline" className="border-gray-600 text-gray-300">0 items</Badge>
+                            <span className="page-subtitle">Items Count:</span>
+                            <Badge variant="outline" className=" text-secondary">0 items</Badge>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-400">Materials Tagged:</span>
-                            <Badge variant="outline" className="border-gray-600 text-gray-300">0 materials</Badge>
+                            <span className="page-subtitle">Materials Tagged:</span>
+                            <Badge variant="outline" className=" text-secondary">0 materials</Badge>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-400">Active Orders:</span>
-                            <Badge variant="outline" className="border-gray-600 text-gray-300">0 orders</Badge>
+                            <span className="page-subtitle">Active Orders:</span>
+                            <Badge variant="outline" className=" text-secondary">0 orders</Badge>
                           </div>
                         </div>
                       </div>
 
                       {/* Variations */}
                       <div className="space-y-3">
-                        <h4 className="font-medium text-gray-100 flex items-center gap-2">
+                        <h4 className="font-medium text-primary flex items-center gap-2">
                           <Settings className="h-4 w-4" />
                           Variation Types
                         </h4>
@@ -510,13 +510,13 @@ export default function CollectionsPage() {
                           {collection.variation_types && collection.variation_types.length > 0 ? (
                             <div className="flex flex-wrap gap-1">
                               {collection.variation_types.map((type: string, idx: number) => (
-                                <Badge key={idx} variant="outline" className="border-gray-600 text-gray-300 text-xs">
+                                <Badge key={idx} variant="outline" className=" text-secondary text-xs">
                                   {type}
                                 </Badge>
                               ))}
                             </div>
                           ) : (
-                            <div className="text-sm text-gray-400">No variation types defined</div>
+                            <div className="text-sm page-subtitle">No variation types defined</div>
                           )}
                           <Dialog open={variationDialogOpen} onOpenChange={setVariationDialogOpen}>
                             <DialogTrigger asChild>
@@ -524,26 +524,26 @@ export default function CollectionsPage() {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleManageVariations(collection)}
-                                className="w-full mt-2 text-xs border-gray-600 text-gray-300 hover:bg-gray-700"
+                                className="w-full mt-2 text-xs  text-secondary hover:list-item"
                               >
                                 <Settings className="h-3 w-3 mr-1" />
                                 Manage Variations
                               </Button>
                             </DialogTrigger>
-                            <DialogContent className="bg-gray-900 border-gray-700 text-gray-100">
+                            <DialogContent className="card text-primary">
                               <DialogHeader>
-                                <DialogTitle className="text-gray-100">
+                                <DialogTitle className="text-primary">
                                   Manage Variation Types - {managingVariations?.name}
                                 </DialogTitle>
                               </DialogHeader>
                               <div className="space-y-4">
                                 <div className="space-y-2">
-                                  <label className="text-sm font-medium text-gray-100">Current Variation Types:</label>
+                                  <label className="text-sm font-medium text-primary">Current Variation Types:</label>
                                   {managingVariations?.variation_types && managingVariations.variation_types.length > 0 ? (
                                     <div className="flex flex-wrap gap-2">
                                       {managingVariations.variation_types.map((type, idx) => (
-                                        <div key={idx} className="flex items-center bg-gray-800 border border-gray-600 rounded-md px-2 py-1">
-                                          <span className="text-sm text-gray-100">{type}</span>
+                                        <div key={idx} className="flex items-center card border  rounded-md px-2 py-1">
+                                          <span className="text-sm text-primary">{type}</span>
                                           <button
                                             onClick={() => handleRemoveVariationType(type)}
                                             className="ml-2 text-red-400 hover:text-red-300"
@@ -554,17 +554,17 @@ export default function CollectionsPage() {
                                       ))}
                                     </div>
                                   ) : (
-                                    <div className="text-sm text-gray-400">No variation types defined</div>
+                                    <div className="text-sm page-subtitle">No variation types defined</div>
                                   )}
                                 </div>
                                 <div className="space-y-2">
-                                  <label className="text-sm font-medium text-gray-100">Add New Variation Type:</label>
+                                  <label className="text-sm font-medium text-primary">Add New Variation Type:</label>
                                   <div className="flex gap-2">
                                     <Input
                                       value={newVariationType}
                                       onChange={(e) => setNewVariationType(e.target.value)}
                                       placeholder="e.g., Standard, Deep, Custom"
-                                      className="bg-gray-800 border-gray-600 text-gray-100"
+                                      className="card  text-primary"
                                       onKeyDown={(e) => {
                                         if (e.key === 'Enter') {
                                           e.preventDefault();
@@ -581,7 +581,7 @@ export default function CollectionsPage() {
                                     </Button>
                                   </div>
                                 </div>
-                                <div className="text-xs text-gray-400">
+                                <div className="text-xs page-subtitle">
                                   Variation types help categorize different versions of items within this collection (e.g., Standard vs Deep seating, different sizes, etc.)
                                 </div>
                               </div>
@@ -594,8 +594,8 @@ export default function CollectionsPage() {
                     {/* Description */}
                     {collection.description && (
                       <div className="mb-6">
-                        <h4 className="font-medium text-gray-100 mb-2">Description</h4>
-                        <p className="text-sm text-gray-300 bg-gray-800 border border-gray-700 rounded-md p-3">
+                        <h4 className="font-medium text-primary mb-2">Description</h4>
+                        <p className="text-sm text-secondary card border rounded-md p-3">
                           {collection.description}
                         </p>
                       </div>
@@ -604,8 +604,8 @@ export default function CollectionsPage() {
                     {/* Image */}
                     {collection.image_url && (
                       <div className="mb-6">
-                        <h4 className="font-medium text-gray-100 mb-2">Collection Image</h4>
-                        <div className="relative w-32 h-32 rounded-md overflow-hidden bg-gray-800 border border-gray-700">
+                        <h4 className="font-medium text-primary mb-2">Collection Image</h4>
+                        <div className="relative w-32 h-32 rounded-md overflow-hidden card border">
                           <Image
                             src={collection.image_url}
                             alt={collection.name}
@@ -618,26 +618,26 @@ export default function CollectionsPage() {
 
                     {/* Timeline */}
                     <div className="mb-6">
-                      <h4 className="font-medium text-gray-100 flex items-center gap-2 mb-3">
+                      <h4 className="font-medium text-primary flex items-center gap-2 mb-3">
                         <Calendar className="h-4 w-4" />
                         Timeline
                       </h4>
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Created:</span>
-                          <span className="text-gray-100">{formatDate(collection.created_at)}</span>
+                          <span className="page-subtitle">Created:</span>
+                          <span className="text-primary">{formatDate(collection.created_at)}</span>
                         </div>
                         {collection.updated_at && (
                           <div className="flex justify-between">
-                            <span className="text-gray-400">Updated:</span>
-                            <span className="text-gray-100">{formatDate(collection.updated_at)}</span>
+                            <span className="page-subtitle">Updated:</span>
+                            <span className="text-primary">{formatDate(collection.updated_at)}</span>
                           </div>
                         )}
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Status:</span>
+                          <span className="page-subtitle">Status:</span>
                           <Badge
                             variant={collection.is_active !== false ? "default" : "secondary"}
-                            className={collection.is_active !== false ? "bg-green-600 text-green-100" : "bg-gray-600 text-gray-300"}
+                            className={collection.is_active !== false ? "bg-green-600 text-green-100" : " text-secondary"}
                           >
                             {collection.is_active !== false ? "Active" : "Inactive"}
                           </Badge>
@@ -646,7 +646,7 @@ export default function CollectionsPage() {
                     </div>
 
                     {/* Actions */}
-                    <div className="flex justify-end space-x-2 pt-4 border-t border-gray-700">
+                    <div className="flex justify-end space-x-2 pt-4 border-t">
                       <Button
                         size="sm"
                         variant="outline"

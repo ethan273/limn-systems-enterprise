@@ -195,7 +195,7 @@ export default function MoodBoardsPage() {
                       ))}
                     </div>
                   ) : (
-                    <ImageIcon className="h-12 w-12 text-gray-400" />
+                    <ImageIcon className="h-12 w-12 text-secondary" />
                   )}
                 </div>
               </Link>

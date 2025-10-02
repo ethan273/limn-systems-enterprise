@@ -184,7 +184,7 @@ export default function MoodBoardDetailPage({ params }: { params: { id: string }
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <ImageIcon className="h-12 w-12 text-gray-400" />
+                        <ImageIcon className="h-12 w-12 text-secondary" />
                       )}
                     </div>
                   ))}

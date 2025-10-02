@@ -298,10 +298,10 @@ export default function ContactsPage() {
                 New Contact
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-gray-800 border-gray-700 text-white">
+            <DialogContent className="card text-white">
               <DialogHeader>
                 <DialogTitle>Create New Contact</DialogTitle>
-                <DialogDescription className="text-gray-400">
+                <DialogDescription className="page-subtitle">
                   Add a new contact to your CRM system.
                 </DialogDescription>
               </DialogHeader>
@@ -314,7 +314,7 @@ export default function ContactsPage() {
                     id="name"
                     value={newContact.name}
                     onChange={(e) => setNewContact(prev => ({ ...prev, name: e.target.value }))}
-                    className="col-span-3 bg-gray-700 border-gray-600"
+                    className="col-span-3 list-item "
                     placeholder="Full name"
                   />
                 </div>
@@ -327,7 +327,7 @@ export default function ContactsPage() {
                     type="email"
                     value={newContact.email}
                     onChange={(e) => setNewContact(prev => ({ ...prev, email: e.target.value }))}
-                    className="col-span-3 bg-gray-700 border-gray-600"
+                    className="col-span-3 list-item "
                     placeholder="email@example.com"
                   />
                 </div>
@@ -339,7 +339,7 @@ export default function ContactsPage() {
                     id="phone"
                     value={newContact.phone}
                     onChange={(e) => setNewContact(prev => ({ ...prev, phone: e.target.value }))}
-                    className="col-span-3 bg-gray-700 border-gray-600"
+                    className="col-span-3 list-item "
                     placeholder="+1 (555) 123-4567"
                   />
                 </div>
@@ -351,7 +351,7 @@ export default function ContactsPage() {
                     id="company"
                     value={newContact.company}
                     onChange={(e) => setNewContact(prev => ({ ...prev, company: e.target.value }))}
-                    className="col-span-3 bg-gray-700 border-gray-600"
+                    className="col-span-3 list-item "
                     placeholder="Company name"
                   />
                 </div>
@@ -363,7 +363,7 @@ export default function ContactsPage() {
                     id="position"
                     value={newContact.position}
                     onChange={(e) => setNewContact(prev => ({ ...prev, position: e.target.value }))}
-                    className="col-span-3 bg-gray-700 border-gray-600"
+                    className="col-span-3 list-item "
                     placeholder="Job title"
                   />
                 </div>
@@ -375,7 +375,7 @@ export default function ContactsPage() {
                     id="notes"
                     value={newContact.notes}
                     onChange={(e) => setNewContact(prev => ({ ...prev, notes: e.target.value }))}
-                    className="col-span-3 bg-gray-700 border-gray-600"
+                    className="col-span-3 list-item "
                     placeholder="Additional notes..."
                     rows={3}
                   />
@@ -396,10 +396,10 @@ export default function ContactsPage() {
 
           {/* Edit Contact Dialog */}
           <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-            <DialogContent className="bg-gray-800 border-gray-700 text-white">
+            <DialogContent className="card text-white">
               <DialogHeader>
                 <DialogTitle>Edit Contact</DialogTitle>
-                <DialogDescription className="text-gray-400">
+                <DialogDescription className="page-subtitle">
                   Update contact information.
                 </DialogDescription>
               </DialogHeader>
@@ -412,7 +412,7 @@ export default function ContactsPage() {
                     id="edit-name"
                     value={editContact.name}
                     onChange={(e) => setEditContact(prev => ({ ...prev, name: e.target.value }))}
-                    className="col-span-3 bg-gray-700 border-gray-600"
+                    className="col-span-3 list-item "
                     placeholder="Full name"
                   />
                 </div>
@@ -425,7 +425,7 @@ export default function ContactsPage() {
                     type="email"
                     value={editContact.email}
                     onChange={(e) => setEditContact(prev => ({ ...prev, email: e.target.value }))}
-                    className="col-span-3 bg-gray-700 border-gray-600"
+                    className="col-span-3 list-item "
                     placeholder="email@example.com"
                   />
                 </div>
@@ -437,7 +437,7 @@ export default function ContactsPage() {
                     id="edit-phone"
                     value={editContact.phone}
                     onChange={(e) => setEditContact(prev => ({ ...prev, phone: e.target.value }))}
-                    className="col-span-3 bg-gray-700 border-gray-600"
+                    className="col-span-3 list-item "
                     placeholder="+1 (555) 123-4567"
                   />
                 </div>
@@ -449,7 +449,7 @@ export default function ContactsPage() {
                     id="edit-company"
                     value={editContact.company}
                     onChange={(e) => setEditContact(prev => ({ ...prev, company: e.target.value }))}
-                    className="col-span-3 bg-gray-700 border-gray-600"
+                    className="col-span-3 list-item "
                     placeholder="Company name"
                   />
                 </div>
@@ -461,7 +461,7 @@ export default function ContactsPage() {
                     id="edit-position"
                     value={editContact.position}
                     onChange={(e) => setEditContact(prev => ({ ...prev, position: e.target.value }))}
-                    className="col-span-3 bg-gray-700 border-gray-600"
+                    className="col-span-3 list-item "
                     placeholder="Job title"
                   />
                 </div>
@@ -473,7 +473,7 @@ export default function ContactsPage() {
                     id="edit-notes"
                     value={editContact.notes}
                     onChange={(e) => setEditContact(prev => ({ ...prev, notes: e.target.value }))}
-                    className="col-span-3 bg-gray-700 border-gray-600"
+                    className="col-span-3 list-item "
                     placeholder="Additional notes..."
                     rows={3}
                   />
@@ -495,7 +495,7 @@ export default function ContactsPage() {
       </div>
 
       {/* Filters */}
-      <Card className="bg-gray-800/50 border-gray-700">
+      <Card className="card">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg text-primary">Filters</CardTitle>
         </CardHeader>
@@ -503,21 +503,21 @@ export default function ContactsPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {/* Search */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondary" />
               <Input
                 placeholder="Search contacts..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 bg-gray-700 border-gray-600"
+                className="pl-10 list-item "
               />
             </div>
 
             {/* Company Filter */}
             <Select value={companyFilter} onValueChange={setCompanyFilter}>
-              <SelectTrigger className="bg-gray-700 border-gray-600">
+              <SelectTrigger className="list-item ">
                 <SelectValue placeholder="Company" />
               </SelectTrigger>
-              <SelectContent className="bg-gray-800 border-gray-700">
+              <SelectContent className="card">
                 <SelectItem value="all">All Contacts</SelectItem>
                 <SelectItem value="with_company">With Company</SelectItem>
                 <SelectItem value="no_company">No Company</SelectItem>
@@ -528,7 +528,7 @@ export default function ContactsPage() {
             <Button
               variant="outline"
               onClick={clearFilters}
-              className="border-gray-600 hover:bg-gray-700"
+              className=" hover:list-item"
             >
               <Filter className="h-4 w-4 mr-2" />
               Clear
@@ -538,7 +538,7 @@ export default function ContactsPage() {
       </Card>
 
       {/* Contacts List */}
-      <Card className="bg-gray-800/50 border-gray-700">
+      <Card className="card">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg text-primary">
             Contacts ({filteredContacts.length})
@@ -547,14 +547,14 @@ export default function ContactsPage() {
         <CardContent>
           <div className="space-y-2">
             {isLoading ? (
-              <div className="text-center py-12 text-gray-400">
+              <div className="text-center py-12 page-subtitle">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
                 <p>Loading contacts...</p>
               </div>
             ) : filteredContacts.length === 0 ? (
-              <div className="text-center py-12 text-gray-400">
+              <div className="text-center py-12 page-subtitle">
                 <div className="mb-4">
-                  <User className="h-12 w-12 mx-auto text-gray-600" />
+                  <User className="h-12 w-12 mx-auto " />
                 </div>
                 <h3 className="text-lg font-medium mb-2">No contacts found</h3>
                 <p className="text-sm">Try adjusting your filters or create a new contact to get started.</p>
@@ -569,7 +569,7 @@ export default function ContactsPage() {
                     <div className={`rounded-lg border transition-colors ${
                       isExpanded
                         ? 'border-blue-500/50 bg-blue-500/5'
-                        : 'border-gray-700 hover:border-gray-600 bg-gray-800/30'
+                        : 'hover: card/30'
                     }`}>
                       <CollapsibleTrigger
                         className="w-full p-4 text-left"
@@ -582,18 +582,18 @@ export default function ContactsPage() {
                               e.stopPropagation();
                               handleContactSelection(contact.id, !isSelected);
                             }}
-                            className="p-1 h-auto hover:bg-gray-600 rounded cursor-pointer flex items-center justify-center"
+                            className="p-1 h-auto hover: rounded cursor-pointer flex items-center justify-center"
                           >
                             {isSelected ? (
                               <CheckSquare className="h-4 w-4 text-blue-400" />
                             ) : (
-                              <Square className="h-4 w-4 text-gray-400" />
+                              <Square className="h-4 w-4 text-secondary" />
                             )}
                           </div>
 
                           {/* Contact Avatar */}
-                          <Avatar className="h-10 w-10 border border-gray-600">
-                            <AvatarFallback className="bg-gray-600 text-white">
+                          <Avatar className="h-10 w-10 border ">
+                            <AvatarFallback className=" text-white">
                               {getInitials(contact.name)}
                             </AvatarFallback>
                           </Avatar>
@@ -601,9 +601,9 @@ export default function ContactsPage() {
                           {/* Expand Icon */}
                           <div className="flex-shrink-0">
                             {isExpanded ? (
-                              <ChevronUp className="h-4 w-4 text-gray-400" />
+                              <ChevronUp className="h-4 w-4 text-secondary" />
                             ) : (
-                              <ChevronDown className="h-4 w-4 text-gray-400" />
+                              <ChevronDown className="h-4 w-4 text-secondary" />
                             )}
                           </div>
 
@@ -619,7 +619,7 @@ export default function ContactsPage() {
                                     </Badge>
                                   )}
                                 </div>
-                                <div className="flex items-center gap-4 text-sm text-gray-400">
+                                <div className="flex items-center gap-4 text-sm page-subtitle">
                                   {contact.email && (
                                     <div className="flex items-center gap-1">
                                       <Mail className="h-3 w-3" />
@@ -638,12 +638,12 @@ export default function ContactsPage() {
                               {/* Company Info */}
                               <div className="flex items-center gap-2 flex-shrink-0">
                                 {contact.company ? (
-                                  <div className="flex items-center gap-1 text-sm text-gray-400">
+                                  <div className="flex items-center gap-1 text-sm page-subtitle">
                                     <Building className="h-4 w-4" />
                                     <span>{contact.company}</span>
                                   </div>
                                 ) : (
-                                  <span className="text-sm text-gray-500">No company</span>
+                                  <span className="text-sm text-tertiary">No company</span>
                                 )}
                               </div>
                             </div>
@@ -652,13 +652,13 @@ export default function ContactsPage() {
                             {contact.tags && contact.tags.length > 0 && (
                               <div className="flex gap-1 flex-wrap">
                                 {contact.tags.slice(0, 3).map((tag: string, index: number) => (
-                                  <Badge key={index} variant="outline" className="text-xs text-tertiary border-gray-600">
+                                  <Badge key={index} variant="outline" className="text-xs text-tertiary ">
                                     <Tag className="h-3 w-3 mr-1" />
                                     {tag}
                                   </Badge>
                                 ))}
                                 {contact.tags.length > 3 && (
-                                  <Badge variant="outline" className="text-xs text-tertiary border-gray-600">
+                                  <Badge variant="outline" className="text-xs text-tertiary ">
                                     +{contact.tags.length - 3} more
                                   </Badge>
                                 )}
@@ -669,22 +669,22 @@ export default function ContactsPage() {
                           {/* Actions */}
                           <div className="flex items-center gap-2">
                             {contact.created_at && (
-                              <div className="text-xs text-gray-500">
+                              <div className="text-xs text-tertiary">
                                 {formatDistanceToNow(new Date(contact.created_at), { addSuffix: true })}
                               </div>
                             )}
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <div
-                                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-gray-600 h-9 px-3 cursor-pointer"
+                                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover: h-9 px-3 cursor-pointer"
                                   onClick={(e) => e.stopPropagation()}
                                 >
-                                  <MoreVertical className="h-4 w-4 text-gray-400" />
+                                  <MoreVertical className="h-4 w-4 text-secondary" />
                                 </div>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
+                              <DropdownMenuContent align="end" className="card">
                                 <DropdownMenuItem
-                                  className="text-sm hover:bg-gray-700"
+                                  className="text-sm hover:list-item"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleEditContact(contact);
@@ -694,7 +694,7 @@ export default function ContactsPage() {
                                   Edit Contact
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
-                                  className="text-sm hover:bg-gray-700"
+                                  className="text-sm hover:list-item"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleSendEmail(contact);
@@ -721,8 +721,8 @@ export default function ContactsPage() {
 
                       {/* Expandable Content */}
                       <CollapsibleContent>
-                        <Separator className="bg-gray-700" />
-                        <div className="p-4 pt-6 bg-gray-800/80">
+                        <Separator />
+                        <div className="p-4 pt-6 card-content">
                           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             {/* Contact Details */}
                             <div className="space-y-4">
@@ -730,25 +730,25 @@ export default function ContactsPage() {
                               <div className="space-y-3">
                                 {contact.email && (
                                   <div className="flex items-center gap-3">
-                                    <Mail className="h-4 w-4 text-gray-400" />
+                                    <Mail className="h-4 w-4 text-secondary" />
                                     <span className="text-sm">{contact.email}</span>
                                   </div>
                                 )}
                                 {contact.phone && (
                                   <div className="flex items-center gap-3">
-                                    <Phone className="h-4 w-4 text-gray-400" />
+                                    <Phone className="h-4 w-4 text-secondary" />
                                     <span className="text-sm">{contact.phone}</span>
                                   </div>
                                 )}
                                 {contact.company && (
                                   <div className="flex items-center gap-3">
-                                    <Building className="h-4 w-4 text-gray-400" />
+                                    <Building className="h-4 w-4 text-secondary" />
                                     <span className="text-sm">{contact.company}</span>
                                   </div>
                                 )}
                                 {contact.position && (
                                   <div className="flex items-center gap-3">
-                                    <User className="h-4 w-4 text-gray-400" />
+                                    <User className="h-4 w-4 text-secondary" />
                                     <span className="text-sm">{contact.position}</span>
                                   </div>
                                 )}
@@ -759,15 +759,15 @@ export default function ContactsPage() {
                             <div className="space-y-4">
                               <h4 className="font-medium text-primary">Notes & Activity</h4>
                               {contact.notes ? (
-                                <div className="p-3 bg-gray-700/50 rounded-lg border border-gray-600">
-                                  <p className="text-sm text-gray-300">{contact.notes}</p>
+                                <div className="p-3 list-item/50 rounded-lg border ">
+                                  <p className="text-sm text-secondary">{contact.notes}</p>
                                 </div>
                               ) : (
-                                <p className="text-sm text-gray-500">No notes available</p>
+                                <p className="text-sm text-tertiary">No notes available</p>
                               )}
 
                               {/* Placeholder for future activity feed */}
-                              <div className="text-xs text-gray-500">
+                              <div className="text-xs text-tertiary">
                                 Activity tracking coming soon...
                               </div>
                             </div>
@@ -783,8 +783,8 @@ export default function ContactsPage() {
 
           {/* Pagination */}
           {contactsData && contactsData.total > limit && (
-            <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-700">
-              <div className="text-sm text-gray-400">
+            <div className="flex items-center justify-between mt-6 pt-4 border-t">
+              <div className="text-sm page-subtitle">
                 Showing {page * limit + 1} to {Math.min((page + 1) * limit, contactsData.total)} of {contactsData.total} contacts
               </div>
               <div className="flex gap-2">
@@ -793,7 +793,7 @@ export default function ContactsPage() {
                   size="sm"
                   onClick={() => setPage(Math.max(0, page - 1))}
                   disabled={page === 0}
-                  className="border-gray-600 hover:bg-gray-700"
+                  className=" hover:list-item"
                 >
                   Previous
                 </Button>
@@ -802,7 +802,7 @@ export default function ContactsPage() {
                   size="sm"
                   onClick={() => setPage(page + 1)}
                   disabled={!contactsData.hasMore}
-                  className="border-gray-600 hover:bg-gray-700"
+                  className=" hover:list-item"
                 >
                   Next
                 </Button>

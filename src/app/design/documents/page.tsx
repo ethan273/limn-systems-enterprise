@@ -267,7 +267,7 @@ function DesignDocumentsContent() {
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="p-4 border border-gray-800 rounded-lg bg-gray-900/50">
+        <div className="p-4 border  rounded-lg card/50">
           <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
             <FileText className="h-4 w-4" />
             <span>Total Documents</span>
@@ -277,7 +277,7 @@ function DesignDocumentsContent() {
             {formatFileSize(stats?.total.size || 0)}
           </div>
         </div>
-        <div className="p-4 border border-gray-800 rounded-lg bg-gray-900/50">
+        <div className="p-4 border  rounded-lg card/50">
           <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
             <HardDrive className="h-4 w-4" />
             <span>Supabase</span>
@@ -287,7 +287,7 @@ function DesignDocumentsContent() {
             {formatFileSize(stats?.supabase.size || 0)}
           </div>
         </div>
-        <div className="p-4 border border-gray-800 rounded-lg bg-gray-900/50">
+        <div className="p-4 border  rounded-lg card/50">
           <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
             <Cloud className="h-4 w-4" />
             <span>Google Drive</span>
@@ -297,7 +297,7 @@ function DesignDocumentsContent() {
             {formatFileSize(stats?.googleDrive.size || 0)}
           </div>
         </div>
-        <div className="p-4 border border-gray-800 rounded-lg bg-gray-900/50">
+        <div className="p-4 border  rounded-lg card/50">
           <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
             <FileText className="h-4 w-4" />
             <span>Average Size</span>
@@ -311,7 +311,7 @@ function DesignDocumentsContent() {
       </div>
 
       {/* Documents Table */}
-      <div className="rounded-md border border-gray-800">
+      <div className="rounded-md border ">
         <Table>
           <TableHeader>
             <TableRow>

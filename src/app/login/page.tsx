@@ -28,7 +28,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
       <div className="w-full max-w-lg">
-        <div className="bg-gray-800 border border-gray-700 shadow-lg rounded-lg px-8 py-10">
+        <div className="card border shadow-lg rounded-lg px-8 py-10">
           <div className="mb-8 text-center">
             <div className="mb-6 flex justify-center">
               <div className="text-3xl font-bold text-white">LIMN</div>
@@ -36,7 +36,7 @@ export default function LoginPage() {
             <h1 className="text-3xl font-bold text-white">
               Welcome to Limn Systems
             </h1>
-            <p className="text-gray-400 mt-2">
+            <p className="text-secondary mt-2">
               Please select your account type to continue
             </p>
           </div>
@@ -45,7 +45,7 @@ export default function LoginPage() {
             {/* Employee Login */}
             <button
               onClick={() => handleUserTypeSelection('employee')}
-              className="w-full p-6 bg-gray-800 border-2 border-gray-600 rounded-lg hover:border-blue-500 hover:bg-gray-700 transition-all group"
+              className="w-full p-6 card border-2  rounded-lg hover:border-blue-500 hover:list-item transition-all group"
             >
               <div className="flex items-center space-x-4">
                 <div className="flex-shrink-0">
@@ -57,7 +57,7 @@ export default function LoginPage() {
                   <h3 className="text-lg font-semibold text-white">
                     Employee Login
                   </h3>
-                  <p className="text-sm text-gray-400">
+                  <p className="text-sm page-subtitle">
                     Sign in with your @limn.us.com Google account
                   </p>
                 </div>
@@ -67,7 +67,7 @@ export default function LoginPage() {
             {/* Contractor Login */}
             <button
               onClick={() => handleUserTypeSelection('contractor')}
-              className="w-full p-6 bg-gray-800 border-2 border-gray-600 rounded-lg hover:border-green-500 hover:bg-gray-700 transition-all group"
+              className="w-full p-6 card border-2  rounded-lg hover:border-green-500 hover:list-item transition-all group"
             >
               <div className="flex items-center space-x-4">
                 <div className="flex-shrink-0">
@@ -79,7 +79,7 @@ export default function LoginPage() {
                   <h3 className="text-lg font-semibold text-white">
                     Partner Login
                   </h3>
-                  <p className="text-sm text-gray-400">
+                  <p className="text-sm page-subtitle">
                     Sign in with your contractor account credentials
                   </p>
                 </div>
@@ -89,7 +89,7 @@ export default function LoginPage() {
             {/* Customer Portal */}
             <button
               onClick={() => handleUserTypeSelection('customer')}
-              className="w-full p-6 bg-gray-800 border-2 border-gray-600 rounded-lg hover:border-purple-500 hover:bg-gray-700 transition-all group"
+              className="w-full p-6 card border-2  rounded-lg hover:border-purple-500 hover:list-item transition-all group"
             >
               <div className="flex items-center space-x-4">
                 <div className="flex-shrink-0">
@@ -101,7 +101,7 @@ export default function LoginPage() {
                   <h3 className="text-lg font-semibold text-white">
                     Client Portal
                   </h3>
-                  <p className="text-sm text-gray-400">
+                  <p className="text-sm page-subtitle">
                     Access your project dashboard and orders
                   </p>
                 </div>
@@ -112,7 +112,7 @@ export default function LoginPage() {
             {process.env.NODE_ENV === 'development' && (
               <button
                 onClick={() => handleUserTypeSelection('dev')}
-                className="w-full p-6 bg-gray-800 border-2 border-gray-600 rounded-lg hover:border-orange-500 hover:bg-gray-700 transition-all group"
+                className="w-full p-6 card border-2  rounded-lg hover:border-orange-500 hover:list-item transition-all group"
               >
                 <div className="flex items-center space-x-4">
                   <div className="flex-shrink-0">
@@ -126,7 +126,7 @@ export default function LoginPage() {
                     <h3 className="text-lg font-semibold text-white">
                       Development Login
                     </h3>
-                    <p className="text-sm text-gray-400">
+                    <p className="text-sm page-subtitle">
                       Testing & development access (dev mode only)
                     </p>
                   </div>
@@ -135,8 +135,8 @@ export default function LoginPage() {
             )}
           </div>
 
-          <div className="mt-8 pt-6 border-t border-gray-600">
-            <p className="text-xs text-gray-500 text-center">
+          <div className="mt-8 pt-6 border-t ">
+            <p className="text-xs text-tertiary text-center">
               Need help accessing your account?{' '}
               <a
                 href="mailto:support@limnsystems.com"

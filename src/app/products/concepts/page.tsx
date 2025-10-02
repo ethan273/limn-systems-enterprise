@@ -506,7 +506,7 @@ function ItemDialog({
                     className={formData.type === 'Production Ready' ? 'bg-gray-100 cursor-not-allowed' : ''}
                   />
                   {formData.type === 'Production Ready' && (
-                    <p className="text-xs text-gray-500 mt-1">Change to Prototype to edit</p>
+                    <p className="text-xs text-tertiary mt-1">Change to Prototype to edit</p>
                   )}
                 </div>
 
@@ -526,7 +526,7 @@ function ItemDialog({
                     disabled={formData.type === 'Production Ready'}
                     className={formData.type === 'Production Ready' ? 'bg-gray-100 cursor-not-allowed' : 'bg-blue-50'}
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-tertiary mt-1">
                     {formData.type === 'Production Ready'
                       ? 'Change to Prototype to edit'
                       : '✨ Auto-generated from name + collection + variation'}
@@ -543,7 +543,7 @@ function ItemDialog({
                     disabled={formData.type === 'Production Ready'}
                     className={formData.type === 'Production Ready' ? 'bg-gray-100 cursor-not-allowed' : ''}
                   />
-                  <p className="text-xs text-gray-500 mt-1">Included in Base SKU (e.g., IN-SOFA-DEEP-001)</p>
+                  <p className="text-xs text-tertiary mt-1">Included in Base SKU (e.g., IN-SOFA-DEEP-001)</p>
                 </div>
 
                 <div>
@@ -1273,9 +1273,9 @@ function ItemDialog({
               {item?.id ? (
                 <ConceptImageManager itemId={item.id} />
               ) : (
-                <div className="border-2 border-dashed border-gray-700 rounded-lg p-8 text-center">
-                  <p className="text-gray-400 mb-2">Save the concept first to upload images</p>
-                  <p className="text-sm text-gray-500">Images can be added after creating the concept</p>
+                <div className="border-2 border-dashed rounded-lg p-8 text-center">
+                  <p className="text-secondary mb-2">Save the concept first to upload images</p>
+                  <p className="text-sm text-tertiary">Images can be added after creating the concept</p>
                 </div>
               )}
             </TabsContent>
@@ -1297,9 +1297,9 @@ function ItemDialog({
 
             <TabsContent value="history" className="space-y-4">
               <div className="space-y-4">
-                <div className="rounded-lg border border-gray-700 bg-gray-800/50 p-4">
-                  <h4 className="text-sm font-semibold mb-3 text-gray-200">Product Development Timeline</h4>
-                  <p className="text-sm text-gray-400 mb-4">
+                <div className="rounded-lg border card/50 p-4">
+                  <h4 className="text-sm font-semibold mb-3 text-primary">Product Development Timeline</h4>
+                  <p className="text-sm text-secondary mb-4">
                     Track the journey from concept to production-ready item
                   </p>
 
@@ -1309,7 +1309,7 @@ function ItemDialog({
                         <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full bg-blue-500"></div>
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-gray-200">Current Stage</span>
+                            <span className="text-sm font-medium text-primary">Current Stage</span>
                             <span className={`text-xs px-2 py-1 rounded ${
                               item.type === 'Concept' ? 'bg-blue-600 text-blue-100' :
                               item.type === 'Prototype' ? 'bg-orange-600 text-orange-100' :
@@ -1318,7 +1318,7 @@ function ItemDialog({
                               {item.type}
                             </span>
                           </div>
-                          <p className="text-xs text-gray-400 mt-1">
+                          <p className="text-xs text-secondary mt-1">
                             {item.type === 'Concept' && 'Initial design phase - no materials selected yet'}
                             {item.type === 'Prototype' && 'Testing phase - materials selected for prototyping'}
                             {item.type === 'Production Ready' && 'Vetted and approved for customer orders'}
@@ -1327,10 +1327,10 @@ function ItemDialog({
                       </div>
 
                       <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full bg-gray-600"></div>
+                        <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full "></div>
                         <div className="flex-1">
-                          <span className="text-sm font-medium text-gray-200">Created</span>
-                          <p className="text-xs text-gray-400 mt-1">
+                          <span className="text-sm font-medium text-primary">Created</span>
+                          <p className="text-xs text-secondary mt-1">
                             {item.created_at ? new Date(item.created_at).toLocaleDateString('en-US', {
                               year: 'numeric',
                               month: 'long',
@@ -1344,10 +1344,10 @@ function ItemDialog({
 
                       {item.updated_at && item.updated_at !== item.created_at && (
                         <div className="flex items-start gap-3">
-                          <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full bg-gray-600"></div>
+                          <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full "></div>
                           <div className="flex-1">
-                            <span className="text-sm font-medium text-gray-200">Last Updated</span>
-                            <p className="text-xs text-gray-400 mt-1">
+                            <span className="text-sm font-medium text-primary">Last Updated</span>
+                            <p className="text-xs text-secondary mt-1">
                               {new Date(item.updated_at).toLocaleDateString('en-US', {
                                 year: 'numeric',
                                 month: 'long',
@@ -1360,15 +1360,15 @@ function ItemDialog({
                         </div>
                       )}
 
-                      <div className="mt-4 pt-4 border-t border-gray-700">
-                        <p className="text-xs text-gray-500">
+                      <div className="mt-4 pt-4 border-t">
+                        <p className="text-xs text-tertiary">
                           Future enhancement: Detailed status change history will be tracked here (Concept → Prototype → Production Ready transitions with dates and users)
                         </p>
                       </div>
                     </div>
                   ) : (
                     <div className="text-center py-6">
-                      <p className="text-sm text-gray-400">
+                      <p className="text-sm page-subtitle">
                         History tracking will begin once this item is created
                       </p>
                     </div>
@@ -1413,7 +1413,7 @@ function FurnitureDimensionsDisplay({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="text-gray-400">Loading dimensions...</div>
+        <div className="page-subtitle">Loading dimensions...</div>
       </div>
     );
   }
@@ -1579,8 +1579,8 @@ export default function ConceptsPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-4xl font-bold text-gray-100">Concepts</h1>
-          <p className="text-gray-400 mt-1">
+          <h1 className="text-4xl font-bold text-primary">Concepts</h1>
+          <p className="text-secondary mt-1">
             Manage conceptual designs and early-stage product ideas
           </p>
         </div>
@@ -1600,12 +1600,12 @@ export default function ConceptsPage() {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center filters-section">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary" />
             <Input
               placeholder="Search concepts..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-64 bg-gray-800 border-gray-600 text-gray-100"
+              className="pl-10 w-64 card  text-primary"
             />
           </div>
 
@@ -1631,23 +1631,23 @@ export default function ConceptsPage() {
           )}
         </div>
 
-        <div className="text-sm text-gray-400">
+        <div className="text-sm page-subtitle">
           {filteredItems.length} concepts
         </div>
       </div>
 
       {/* Loading State */}
       {itemsLoading && (
-        <Card className="bg-gray-900 border-gray-700">
+        <Card className="card">
           <div className="p-6 text-center">
-            <div className="text-gray-400">Loading concepts...</div>
+            <div className="page-subtitle">Loading concepts...</div>
           </div>
         </Card>
       )}
 
       {/* Error State */}
       {itemsError && (
-        <Card className="bg-gray-900 border-gray-700">
+        <Card className="card">
           <div className="p-6 text-center">
             <div className="text-red-400">Error loading concepts: {itemsError.message}</div>
             <Button
@@ -1663,7 +1663,7 @@ export default function ConceptsPage() {
 
       {/* Items Table */}
       {!itemsLoading && !itemsError && (
-        <Card className="bg-gray-900 border-gray-700">
+        <Card className="card">
           <div className="p-6">
             <Table>
               <TableHeader>
@@ -1681,7 +1681,7 @@ export default function ConceptsPage() {
                 {filteredItems.map((item) => (
                 <React.Fragment key={item.id}>
                   <TableRow
-                    className="cursor-pointer hover:bg-gray-800/50"
+                    className="cursor-pointer hover:card/50"
                     onClick={() => toggleRowExpansion(item.id)}
                   >
                     <TableCell>
@@ -1694,7 +1694,7 @@ export default function ConceptsPage() {
                         <div>
                           <div className="font-medium">{item.name}</div>
                           {item.description && (
-                            <div className="text-sm text-gray-400 max-w-xs truncate">
+                            <div className="text-sm text-secondary max-w-xs truncate">
                               {item.description}
                             </div>
                           )}
@@ -1713,7 +1713,7 @@ export default function ConceptsPage() {
                           {item.furniture_type.replace('_', ' ')}
                         </Badge>
                       ) : (
-                        <span className="text-gray-500 text-sm">Not specified</span>
+                        <span className="text-tertiary text-sm">Not specified</span>
                       )}
                     </TableCell>
                     <TableCell>
@@ -1724,7 +1724,7 @@ export default function ConceptsPage() {
                     <TableCell>
                       <Badge
                         variant={item.is_active ? "default" : "secondary"}
-                        className={item.is_active ? "bg-green-600 text-green-100" : "bg-gray-600 text-gray-300"}
+                        className={item.is_active ? "bg-green-600 text-green-100" : " text-secondary"}
                       >
                         {item.is_active ? "Active" : "Inactive"}
                       </Badge>
@@ -1763,7 +1763,7 @@ export default function ConceptsPage() {
                   {expandedRows.has(item.id) && (
                     <TableRow>
                       <TableCell colSpan={7} className="p-0">
-                        <div className="p-6 bg-gray-800/30 border-t border-gray-700">
+                        <div className="p-6 card/30 border-t">
                           <Tabs defaultValue="dimensions" className="w-full">
                             <TabsList className="grid w-full grid-cols-5">
                               <TabsTrigger value="dimensions">Dimensions</TabsTrigger>
@@ -1785,19 +1785,19 @@ export default function ConceptsPage() {
                               ) : (
                                 <div className="space-y-6">
                                   <div>
-                                    <h4 className="text-sm font-semibold mb-2 text-gray-200">Overall Dimensions ({item.dimension_units})</h4>
+                                    <h4 className="text-sm font-semibold mb-2 text-primary">Overall Dimensions ({item.dimension_units})</h4>
                                     <div className="grid grid-cols-3 gap-4">
                                       <div>
-                                        <Label className="text-xs text-gray-400">Width</Label>
-                                        <div className="text-sm font-medium text-gray-100">{item.width}&quot;</div>
+                                        <Label className="text-xs page-subtitle">Width</Label>
+                                        <div className="text-sm font-medium text-primary">{item.width}&quot;</div>
                                       </div>
                                       <div>
-                                        <Label className="text-xs text-gray-400">Depth</Label>
-                                        <div className="text-sm font-medium text-gray-100">{item.depth}&quot;</div>
+                                        <Label className="text-xs page-subtitle">Depth</Label>
+                                        <div className="text-sm font-medium text-primary">{item.depth}&quot;</div>
                                       </div>
                                       <div>
-                                        <Label className="text-xs text-gray-400">Height</Label>
-                                        <div className="text-sm font-medium text-gray-100">{item.height}&quot;</div>
+                                        <Label className="text-xs page-subtitle">Height</Label>
+                                        <div className="text-sm font-medium text-primary">{item.height}&quot;</div>
                                       </div>
                                     </div>
                                   </div>
@@ -1808,11 +1808,11 @@ export default function ConceptsPage() {
                             <TabsContent value="materials" className="mt-4">
                               <div className="space-y-4">
                                 <div>
-                                  <Label className="text-xs text-gray-400">Primary Material</Label>
-                                  <div className="text-sm font-medium text-gray-100">{item.primary_material}</div>
+                                  <Label className="text-xs page-subtitle">Primary Material</Label>
+                                  <div className="text-sm font-medium text-primary">{item.primary_material}</div>
                                 </div>
                                 <div>
-                                  <Label className="text-xs text-gray-400">Secondary Materials</Label>
+                                  <Label className="text-xs page-subtitle">Secondary Materials</Label>
                                   <div className="text-sm">
                                     {item.secondary_materials?.map((material: string, index: number) => (
                                       <Badge key={index} variant="outline" className="mr-1 mb-1">
@@ -1831,7 +1831,7 @@ export default function ConceptsPage() {
                             <TabsContent value="variations" className="mt-4">
                               <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                  <Label className="text-xs text-gray-400">Size Variants</Label>
+                                  <Label className="text-xs page-subtitle">Size Variants</Label>
                                   <div className="text-sm">
                                     {item.size_variants?.map((variant: string, index: number) => (
                                       <Badge key={index} variant="outline" className="mr-1 mb-1">
@@ -1841,7 +1841,7 @@ export default function ConceptsPage() {
                                   </div>
                                 </div>
                                 <div>
-                                  <Label className="text-sm text-gray-400">Configuration Options</Label>
+                                  <Label className="text-sm page-subtitle">Configuration Options</Label>
                                   <div className="text-sm">
                                     {item.configuration_options?.map((option: string, index: number) => (
                                       <Badge key={index} variant="outline" className="mr-1 mb-1">
@@ -1856,11 +1856,11 @@ export default function ConceptsPage() {
                             <TabsContent value="notes" className="mt-4">
                               <div className="space-y-4">
                                 <div>
-                                  <Label className="text-sm text-gray-400">Description</Label>
-                                  <div className="text-sm text-gray-300">{item.description || 'No description available'}</div>
+                                  <Label className="text-sm page-subtitle">Description</Label>
+                                  <div className="text-sm text-secondary">{item.description || 'No description available'}</div>
                                 </div>
                                 <div>
-                                  <Label className="text-sm text-gray-400">Development Stage</Label>
+                                  <Label className="text-sm page-subtitle">Development Stage</Label>
                                   <div className="text-sm">
                                     <Badge variant="outline" className="bg-blue-900 text-blue-200 border-blue-700">
                                       Early Concept
@@ -1885,9 +1885,9 @@ export default function ConceptsPage() {
       {/* Empty State */}
       {!itemsLoading && !itemsError && filteredItems.length === 0 && (
         <div className="mt-12 text-center">
-          <Package className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-4 text-lg font-medium text-gray-100">No concepts found</h3>
-          <p className="mt-2 text-gray-400">
+          <Package className="mx-auto h-12 w-12 text-secondary" />
+          <h3 className="mt-4 text-lg font-medium text-primary">No concepts found</h3>
+          <p className="mt-2 page-subtitle">
             {searchTerm || selectedCollection !== "all"
               ? "Try adjusting your search criteria."
               : "No concepts have been created yet."

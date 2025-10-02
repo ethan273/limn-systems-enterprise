@@ -156,12 +156,12 @@ export default function TasksKanbanPage() {
           const StatusIcon = config.icon;
 
           return (
-            <Card key={status} className="bg-gray-800 border-gray-700 flex flex-col">
+            <Card key={status} className="card flex flex-col">
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center justify-between text-sm">
+                <CardTitle className="card-title flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
                     <StatusIcon className={`h-4 w-4 ${config.textColor}`} />
-                    <span className="text-gray-300">{config.title}</span>
+                    <span>{config.title}</span>
                     <Badge variant="outline" className="text-xs">
                       {tasks.length}
                     </Badge>
@@ -177,7 +177,7 @@ export default function TasksKanbanPage() {
                     return (
                       <div
                         key={task.id}
-                        className="bg-gray-700/30 border border-gray-600/50 rounded-lg p-3 hover:bg-gray-700/50 transition-colors cursor-pointer group"
+                        className="list-item p-3 cursor-pointer group"
                         draggable
                         onDragStart={(e) => {
                           e.dataTransfer.setData('taskId', task.id);
@@ -241,21 +241,21 @@ export default function TasksKanbanPage() {
                           {/* Assigned Users */}
                           {assignedUsers.length > 0 && (
                             <div className="flex items-center gap-2">
-                              <Users className="h-3 w-3 text-gray-400" />
+                              <Users className="h-3 w-3" />
                               <div className="flex -space-x-1">
                                 {assignedUsers.slice(0, 3).map((userId) => {
                                   const user = users[userId as keyof typeof users] || { name: "Unknown", initials: "?", avatar: null };
                                   return (
-                                    <Avatar key={userId} className="h-5 w-5 border border-gray-600">
+                                    <Avatar key={userId} className="h-5 w-5">
                                       <AvatarImage src={user.avatar || ""} />
-                                      <AvatarFallback className="text-xs bg-gray-600">
+                                      <AvatarFallback className="text-xs">
                                         {user.initials}
                                       </AvatarFallback>
                                     </Avatar>
                                   );
                                 })}
                                 {assignedUsers.length > 3 && (
-                                  <div className="h-5 w-5 rounded-full bg-gray-600 border border-gray-500 flex items-center justify-center text-xs text-gray-300">
+                                  <div className="h-5 w-5 rounded-full flex items-center justify-center text-xs">
                                     +{assignedUsers.length - 3}
                                   </div>
                                 )}
@@ -265,7 +265,7 @@ export default function TasksKanbanPage() {
 
                           {/* Due Date */}
                           {task.due_date && (
-                            <div className="flex items-center gap-1 text-xs text-gray-400">
+                            <div className="flex items-center gap-1 text-xs">
                               <Calendar className="h-3 w-3" />
                               <span>
                                 {formatDistanceToNow(new Date(task.due_date), { addSuffix: true })}
@@ -277,12 +277,12 @@ export default function TasksKanbanPage() {
                           {task.tags && task.tags.length > 0 && (
                             <div className="flex gap-1 flex-wrap">
                               {task.tags.slice(0, 2).map((tag, index) => (
-                                <Badge key={index} variant="outline" className="text-xs text-tertiary border-gray-600">
+                                <Badge key={index} variant="outline" className="text-xs">
                                   {tag}
                                 </Badge>
                               ))}
                               {task.tags.length > 2 && (
-                                <Badge variant="outline" className="text-xs text-tertiary border-gray-600">
+                                <Badge variant="outline" className="text-xs">
                                   +{task.tags.length - 2}
                                 </Badge>
                               )}
@@ -295,7 +295,7 @@ export default function TasksKanbanPage() {
 
                   {/* Drop Zone */}
                   <div
-                    className="border-2 border-dashed border-gray-600 rounded-lg p-4 text-center text-gray-500 text-sm opacity-0 transition-opacity hover:opacity-100"
+                    className="border-2 border-dashed rounded-lg p-4 text-center text-sm opacity-0 transition-opacity hover:opacity-100"
                     onDragOver={(e) => {
                       e.preventDefault();
                       e.currentTarget.classList.add('opacity-100', 'border-blue-400');
@@ -330,11 +330,11 @@ export default function TasksKanbanPage() {
         {Object.entries(tasksByStatus).map(([status, tasks]) => {
           const config = statusConfig[status as TaskStatus];
           return (
-            <div key={status} className="bg-gray-800/50 rounded-lg p-3 text-center">
+            <div key={status} className="stat-card p-3 text-center">
               <div className={`text-lg font-bold ${config.textColor}`}>
                 {tasks.length}
               </div>
-              <div className="text-sm text-gray-400">
+              <div className="text-sm">
                 {config.title}
               </div>
             </div>

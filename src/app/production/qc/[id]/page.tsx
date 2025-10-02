@@ -329,7 +329,7 @@ export default function QCInspectionDetailPage() {
                   <p className="text-sm text-muted-foreground">Minor</p>
                 </div>
                 <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
-                  <p className="text-2xl font-bold text-gray-600">{defectStats.cosmetic}</p>
+                  <p className="text-2xl font-bold ">{defectStats.cosmetic}</p>
                   <p className="text-sm text-muted-foreground">Cosmetic</p>
                 </div>
               </div>

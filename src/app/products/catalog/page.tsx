@@ -619,7 +619,7 @@ function ItemDialog({
                     className={formData.type === 'Production Ready' ? 'bg-gray-100 cursor-not-allowed' : ''}
                   />
                   {formData.type === 'Production Ready' && (
-                    <p className="text-xs text-gray-500 mt-1">Change to Prototype to edit</p>
+                    <p className="text-xs text-tertiary mt-1">Change to Prototype to edit</p>
                   )}
                 </div>
 
@@ -639,7 +639,7 @@ function ItemDialog({
                     disabled={formData.type === 'Production Ready'}
                     className={formData.type === 'Production Ready' ? 'bg-gray-100 cursor-not-allowed' : 'bg-blue-50'}
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-tertiary mt-1">
                     {formData.type === 'Production Ready'
                       ? 'Change to Prototype to edit'
                       : '✨ Auto-generated from name + collection + variation'}
@@ -656,7 +656,7 @@ function ItemDialog({
                     disabled={formData.type === 'Production Ready'}
                     className={formData.type === 'Production Ready' ? 'bg-gray-100 cursor-not-allowed' : ''}
                   />
-                  <p className="text-xs text-gray-500 mt-1">Included in Base SKU (e.g., IN-SOFA-DEEP-001)</p>
+                  <p className="text-xs text-tertiary mt-1">Included in Base SKU (e.g., IN-SOFA-DEEP-001)</p>
                 </div>
 
                 <div>
@@ -2299,9 +2299,9 @@ function ItemDialog({
               {item?.id ? (
                 <CatalogImageManager itemId={item.id} />
               ) : (
-                <div className="border-2 border-dashed border-gray-700 rounded-lg p-8 text-center">
-                  <p className="text-gray-400 mb-2">Save the catalog item first to upload images</p>
-                  <p className="text-sm text-gray-500">Images can be added after creating the item</p>
+                <div className="border-2 border-dashed rounded-lg p-8 text-center">
+                  <p className="text-secondary mb-2">Save the catalog item first to upload images</p>
+                  <p className="text-sm text-tertiary">Images can be added after creating the item</p>
                 </div>
               )}
             </TabsContent>
@@ -2332,9 +2332,9 @@ function ItemDialog({
 
             <TabsContent value="history" className="space-y-4">
               <div className="space-y-4">
-                <div className="rounded-lg border border-gray-700 bg-gray-800/50 p-4">
-                  <h4 className="text-sm font-semibold mb-3 text-gray-200">Product Development Timeline</h4>
-                  <p className="text-sm text-gray-400 mb-4">
+                <div className="rounded-lg border card/50 p-4">
+                  <h4 className="text-sm font-semibold mb-3 text-primary">Product Development Timeline</h4>
+                  <p className="text-sm text-secondary mb-4">
                     Track the journey from concept to production-ready item
                   </p>
 
@@ -2344,7 +2344,7 @@ function ItemDialog({
                         <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full bg-blue-500"></div>
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-gray-200">Current Stage</span>
+                            <span className="text-sm font-medium text-primary">Current Stage</span>
                             <span className={`text-xs px-2 py-1 rounded ${
                               item.type === 'Concept' ? 'bg-blue-600 text-blue-100' :
                               item.type === 'Prototype' ? 'bg-orange-600 text-orange-100' :
@@ -2353,7 +2353,7 @@ function ItemDialog({
                               {item.type}
                             </span>
                           </div>
-                          <p className="text-xs text-gray-400 mt-1">
+                          <p className="text-xs text-secondary mt-1">
                             {item.type === 'Concept' && 'Initial design phase - no materials selected yet'}
                             {item.type === 'Prototype' && 'Testing phase - materials selected for prototyping'}
                             {item.type === 'Production Ready' && 'Vetted and approved for customer orders'}
@@ -2362,10 +2362,10 @@ function ItemDialog({
                       </div>
 
                       <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full bg-gray-600"></div>
+                        <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full "></div>
                         <div className="flex-1">
-                          <span className="text-sm font-medium text-gray-200">Created</span>
-                          <p className="text-xs text-gray-400 mt-1">
+                          <span className="text-sm font-medium text-primary">Created</span>
+                          <p className="text-xs text-secondary mt-1">
                             {item.created_at ? new Date(item.created_at).toLocaleDateString('en-US', {
                               year: 'numeric',
                               month: 'long',
@@ -2379,10 +2379,10 @@ function ItemDialog({
 
                       {item.updated_at && item.updated_at !== item.created_at && (
                         <div className="flex items-start gap-3">
-                          <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full bg-gray-600"></div>
+                          <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full "></div>
                           <div className="flex-1">
-                            <span className="text-sm font-medium text-gray-200">Last Updated</span>
-                            <p className="text-xs text-gray-400 mt-1">
+                            <span className="text-sm font-medium text-primary">Last Updated</span>
+                            <p className="text-xs text-secondary mt-1">
                               {new Date(item.updated_at).toLocaleDateString('en-US', {
                                 year: 'numeric',
                                 month: 'long',
@@ -2395,15 +2395,15 @@ function ItemDialog({
                         </div>
                       )}
 
-                      <div className="mt-4 pt-4 border-t border-gray-700">
-                        <p className="text-xs text-gray-500">
+                      <div className="mt-4 pt-4 border-t">
+                        <p className="text-xs text-tertiary">
                           Future enhancement: Detailed status change history will be tracked here (Concept → Prototype → Production Ready transitions with dates and users)
                         </p>
                       </div>
                     </div>
                   ) : (
                     <div className="text-center py-6">
-                      <p className="text-sm text-gray-400">
+                      <p className="text-sm page-subtitle">
                         History tracking will begin once this item is created
                       </p>
                     </div>
@@ -2448,7 +2448,7 @@ function FurnitureDimensionsDisplay({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="text-gray-400">Loading dimensions...</div>
+        <div className="page-subtitle">Loading dimensions...</div>
       </div>
     );
   }
@@ -2592,8 +2592,8 @@ export default function CatalogPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-4xl font-bold text-gray-100">Catalog Items</h1>
-          <p className="text-gray-400 mt-1">
+          <h1 className="text-4xl font-bold text-primary">Catalog Items</h1>
+          <p className="text-secondary mt-1">
             Production-ready items available for customer orders
           </p>
         </div>
@@ -2613,12 +2613,12 @@ export default function CatalogPage() {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center filters-section">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary" />
             <Input
               placeholder="Search items..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-64 bg-gray-800 border-gray-600 text-gray-100"
+              className="pl-10 w-64 card  text-primary"
             />
           </div>
 
@@ -2644,13 +2644,13 @@ export default function CatalogPage() {
           )}
         </div>
 
-        <div className="text-sm text-gray-400">
+        <div className="text-sm page-subtitle">
           {filteredItems.length} items
         </div>
       </div>
 
       {/* Items Table */}
-      <Card className="bg-gray-900 border-gray-700">
+      <Card className="card">
         <div className="p-6">
           <Table>
             <TableHeader>
@@ -2670,7 +2670,7 @@ export default function CatalogPage() {
               {filteredItems.map((item) => (
                 <React.Fragment key={item.id}>
                   <TableRow
-                    className="cursor-pointer hover:bg-gray-800/50"
+                    className="cursor-pointer hover:card/50"
                     onClick={() => toggleRowExpansion(item.id)}
                   >
                     <TableCell>
@@ -2683,7 +2683,7 @@ export default function CatalogPage() {
                         <div>
                           <div className="font-medium">{item.name}</div>
                           {item.description && (
-                            <div className="text-sm text-gray-400 max-w-xs truncate">
+                            <div className="text-sm text-secondary max-w-xs truncate">
                               {item.description}
                             </div>
                           )}
@@ -2702,7 +2702,7 @@ export default function CatalogPage() {
                           {item.furniture_type.replace('_', ' ')}
                         </Badge>
                       ) : (
-                        <span className="text-gray-500 text-sm">Not specified</span>
+                        <span className="text-tertiary text-sm">Not specified</span>
                       )}
                     </TableCell>
                     <TableCell>
@@ -2715,8 +2715,8 @@ export default function CatalogPage() {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        <div className="text-gray-100">Available: {item.available_quantity}</div>
-                        <div className="text-xs text-gray-400">
+                        <div className="text-primary">Available: {item.available_quantity}</div>
+                        <div className="text-xs page-subtitle">
                           Total: {item.stock_quantity}
                         </div>
                       </div>
@@ -2724,7 +2724,7 @@ export default function CatalogPage() {
                     <TableCell>
                       <Badge
                         variant={item.is_active ? "default" : "secondary"}
-                        className={item.is_active ? "bg-green-600 text-green-100" : "bg-gray-600 text-gray-300"}
+                        className={item.is_active ? "bg-green-600 text-green-100" : " text-secondary"}
                       >
                         {item.is_active ? "Active" : "Inactive"}
                       </Badge>
@@ -2763,7 +2763,7 @@ export default function CatalogPage() {
                   {expandedRows.has(item.id) && (
                     <TableRow>
                       <TableCell colSpan={7} className="p-0">
-                        <div className="p-6 bg-gray-800/30 border-t border-gray-700">
+                        <div className="p-6 card/30 border-t">
                           <Tabs defaultValue="inventory" className="w-full">
                             <TabsList className="grid w-full grid-cols-6">
                               <TabsTrigger value="inventory">Inventory</TabsTrigger>
@@ -2777,35 +2777,35 @@ export default function CatalogPage() {
                             <TabsContent value="inventory" className="mt-4">
                               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <div>
-                                  <Label className="text-xs text-gray-400">Stock Quantity</Label>
-                                  <div className="text-sm font-medium text-gray-100">{item.stock_quantity}</div>
+                                  <Label className="text-xs page-subtitle">Stock Quantity</Label>
+                                  <div className="text-sm font-medium text-primary">{item.stock_quantity}</div>
                                 </div>
                                 <div>
-                                  <Label className="text-xs text-gray-400">Available</Label>
-                                  <div className="text-sm font-medium text-gray-100">{item.available_quantity}</div>
+                                  <Label className="text-xs page-subtitle">Available</Label>
+                                  <div className="text-sm font-medium text-primary">{item.available_quantity}</div>
                                 </div>
                                 <div>
-                                  <Label className="text-xs text-gray-400">Reserved</Label>
-                                  <div className="text-sm font-medium text-gray-100">{item.reserved_quantity}</div>
+                                  <Label className="text-xs page-subtitle">Reserved</Label>
+                                  <div className="text-sm font-medium text-primary">{item.reserved_quantity}</div>
                                 </div>
                                 <div>
-                                  <Label className="text-xs text-gray-400">Reorder Point</Label>
-                                  <div className="text-sm font-medium text-gray-100">{item.reorder_point}</div>
+                                  <Label className="text-xs page-subtitle">Reorder Point</Label>
+                                  <div className="text-sm font-medium text-primary">{item.reorder_point}</div>
                                 </div>
                                 <div>
-                                  <Label className="text-xs text-gray-400">Supplier</Label>
-                                  <div className="text-sm font-medium text-gray-100">{item.supplier}</div>
+                                  <Label className="text-xs page-subtitle">Supplier</Label>
+                                  <div className="text-sm font-medium text-primary">{item.supplier}</div>
                                 </div>
                                 <div>
-                                  <Label className="text-xs text-gray-400">Supplier SKU</Label>
-                                  <div className="text-sm font-medium font-mono text-gray-100">{item.supplier_sku}</div>
+                                  <Label className="text-xs page-subtitle">Supplier SKU</Label>
+                                  <div className="text-sm font-medium font-mono text-primary">{item.supplier_sku}</div>
                                 </div>
                                 <div>
-                                  <Label className="text-xs text-gray-400">Unit Cost</Label>
-                                  <div className="text-sm font-medium text-gray-100">${item.unit_cost ? item.unit_cost.toFixed(2) : '0.00'}</div>
+                                  <Label className="text-xs page-subtitle">Unit Cost</Label>
+                                  <div className="text-sm font-medium text-primary">${item.unit_cost ? item.unit_cost.toFixed(2) : '0.00'}</div>
                                 </div>
                                 <div>
-                                  <Label className="text-xs text-gray-400">Stock Status</Label>
+                                  <Label className="text-xs page-subtitle">Stock Status</Label>
                                   <Badge variant="outline" className="text-xs">
                                     {item.stock_status ? item.stock_status.replace('_', ' ').toUpperCase() : 'N/A'}
                                   </Badge>
@@ -2825,46 +2825,46 @@ export default function CatalogPage() {
                               ) : (
                                 <div className="space-y-6">
                                   <div>
-                                    <h4 className="text-sm font-semibold mb-2 text-gray-200">Overall Dimensions ({item.dimension_units})</h4>
+                                    <h4 className="text-sm font-semibold mb-2 text-primary">Overall Dimensions ({item.dimension_units})</h4>
                                     <div className="grid grid-cols-3 gap-4">
                                       <div>
-                                        <Label className="text-xs text-gray-400">Width</Label>
-                                        <div className="text-sm font-medium text-gray-100">{item.width}&quot;</div>
+                                        <Label className="text-xs page-subtitle">Width</Label>
+                                        <div className="text-sm font-medium text-primary">{item.width}&quot;</div>
                                       </div>
                                       <div>
-                                        <Label className="text-xs text-gray-400">Depth</Label>
-                                        <div className="text-sm font-medium text-gray-100">{item.depth}&quot;</div>
+                                        <Label className="text-xs page-subtitle">Depth</Label>
+                                        <div className="text-sm font-medium text-primary">{item.depth}&quot;</div>
                                       </div>
                                       <div>
-                                        <Label className="text-xs text-gray-400">Height</Label>
-                                        <div className="text-sm font-medium text-gray-100">{item.height}&quot;</div>
+                                        <Label className="text-xs page-subtitle">Height</Label>
+                                        <div className="text-sm font-medium text-primary">{item.height}&quot;</div>
                                       </div>
                                     </div>
                                   </div>
 
                                   {item.seat_height && (
                                     <div>
-                                      <h4 className="text-sm font-semibold mb-2 text-gray-200">Seating Dimensions</h4>
+                                      <h4 className="text-sm font-semibold mb-2 text-primary">Seating Dimensions</h4>
                                       <div className="grid grid-cols-5 gap-4">
                                         <div>
-                                          <Label className="text-xs text-gray-400">Seat Height</Label>
-                                          <div className="text-sm font-medium text-gray-100">{item.seat_height}&quot;</div>
+                                          <Label className="text-xs page-subtitle">Seat Height</Label>
+                                          <div className="text-sm font-medium text-primary">{item.seat_height}&quot;</div>
                                         </div>
                                         <div>
-                                          <Label className="text-xs text-gray-400">Seat Depth</Label>
-                                          <div className="text-sm font-medium text-gray-100">{item.seat_depth}&quot;</div>
+                                          <Label className="text-xs page-subtitle">Seat Depth</Label>
+                                          <div className="text-sm font-medium text-primary">{item.seat_depth}&quot;</div>
                                         </div>
                                         <div>
-                                          <Label className="text-xs text-gray-400">Seat Width</Label>
-                                          <div className="text-sm font-medium text-gray-100">{item.seat_width}&quot;</div>
+                                          <Label className="text-xs page-subtitle">Seat Width</Label>
+                                          <div className="text-sm font-medium text-primary">{item.seat_width}&quot;</div>
                                         </div>
                                         <div>
-                                          <Label className="text-xs text-gray-400">Arm Height</Label>
-                                          <div className="text-sm font-medium text-gray-100">{item.arm_height}&quot;</div>
+                                          <Label className="text-xs page-subtitle">Arm Height</Label>
+                                          <div className="text-sm font-medium text-primary">{item.arm_height}&quot;</div>
                                         </div>
                                         <div>
-                                          <Label className="text-xs text-gray-400">Back Height</Label>
-                                          <div className="text-sm font-medium text-gray-100">{item.back_height}&quot;</div>
+                                          <Label className="text-xs page-subtitle">Back Height</Label>
+                                          <div className="text-sm font-medium text-primary">{item.back_height}&quot;</div>
                                         </div>
                                       </div>
                                     </div>
@@ -2876,28 +2876,28 @@ export default function CatalogPage() {
                             <TabsContent value="shipping" className="mt-4">
                               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <div>
-                                  <Label className="text-xs text-gray-400">Boxed Width</Label>
-                                  <div className="text-sm font-medium text-gray-100">{item.boxed_width}&quot;</div>
+                                  <Label className="text-xs page-subtitle">Boxed Width</Label>
+                                  <div className="text-sm font-medium text-primary">{item.boxed_width}&quot;</div>
                                 </div>
                                 <div>
-                                  <Label className="text-xs text-gray-400">Boxed Depth</Label>
-                                  <div className="text-sm font-medium text-gray-100">{item.boxed_depth}&quot;</div>
+                                  <Label className="text-xs page-subtitle">Boxed Depth</Label>
+                                  <div className="text-sm font-medium text-primary">{item.boxed_depth}&quot;</div>
                                 </div>
                                 <div>
-                                  <Label className="text-xs text-gray-400">Boxed Height</Label>
-                                  <div className="text-sm font-medium text-gray-100">{item.boxed_height}&quot;</div>
+                                  <Label className="text-xs page-subtitle">Boxed Height</Label>
+                                  <div className="text-sm font-medium text-primary">{item.boxed_height}&quot;</div>
                                 </div>
                                 <div>
-                                  <Label className="text-xs text-gray-400">Weight</Label>
-                                  <div className="text-sm font-medium text-gray-100">{item.weight_lbs} lbs</div>
+                                  <Label className="text-xs page-subtitle">Weight</Label>
+                                  <div className="text-sm font-medium text-primary">{item.weight_lbs} lbs</div>
                                 </div>
                                 <div>
-                                  <Label className="text-xs text-gray-400">Number of Boxes</Label>
-                                  <div className="text-sm font-medium text-gray-100">{item.num_boxes}</div>
+                                  <Label className="text-xs page-subtitle">Number of Boxes</Label>
+                                  <div className="text-sm font-medium text-primary">{item.num_boxes}</div>
                                 </div>
                                 <div>
-                                  <Label className="text-xs text-gray-400">Assembly Required</Label>
-                                  <div className="text-sm font-medium text-gray-100">
+                                  <Label className="text-xs page-subtitle">Assembly Required</Label>
+                                  <div className="text-sm font-medium text-primary">
                                     {item.assembly_required ? "Yes" : "No"}
                                   </div>
                                 </div>
@@ -2907,12 +2907,12 @@ export default function CatalogPage() {
                             <TabsContent value="materials" className="mt-4">
                               <div className="space-y-4">
                                 <div>
-                                  <Label className="text-xs text-gray-400">Primary Material</Label>
-                                  <div className="text-sm font-medium text-gray-100">{item.primary_material}</div>
+                                  <Label className="text-xs page-subtitle">Primary Material</Label>
+                                  <div className="text-sm font-medium text-primary">{item.primary_material}</div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
-                                    <Label className="text-xs text-gray-400">Secondary Materials</Label>
+                                    <Label className="text-xs page-subtitle">Secondary Materials</Label>
                                     <div className="text-sm">
                                       {item.secondary_materials && Array.isArray(item.secondary_materials) && item.secondary_materials.length > 0 ? (
                                         item.secondary_materials.map((material: string, index: number) => (
@@ -2921,12 +2921,12 @@ export default function CatalogPage() {
                                           </Badge>
                                         ))
                                       ) : (
-                                        <span className="text-gray-500">No secondary materials specified</span>
+                                        <span className="text-tertiary">No secondary materials specified</span>
                                       )}
                                     </div>
                                   </div>
                                   <div>
-                                    <Label className="text-xs text-gray-400">Available Finishes</Label>
+                                    <Label className="text-xs page-subtitle">Available Finishes</Label>
                                     <div className="text-sm">
                                       {item.available_finishes && Array.isArray(item.available_finishes) && item.available_finishes.length > 0 ? (
                                         item.available_finishes.map((finish: string, index: number) => (
@@ -2935,7 +2935,7 @@ export default function CatalogPage() {
                                           </Badge>
                                         ))
                                       ) : (
-                                        <span className="text-gray-500">No finishes specified</span>
+                                        <span className="text-tertiary">No finishes specified</span>
                                       )}
                                     </div>
                                   </div>
@@ -2950,7 +2950,7 @@ export default function CatalogPage() {
                             <TabsContent value="variations" className="mt-4">
                               <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                  <Label className="text-xs text-gray-400">Size Variants</Label>
+                                  <Label className="text-xs page-subtitle">Size Variants</Label>
                                   <div className="text-sm">
                                     {item.size_variants && Array.isArray(item.size_variants) && item.size_variants.length > 0 ? (
                                       item.size_variants.map((variant: string, index: number) => (
@@ -2959,12 +2959,12 @@ export default function CatalogPage() {
                                         </Badge>
                                       ))
                                     ) : (
-                                      <span className="text-gray-500">No size variants specified</span>
+                                      <span className="text-tertiary">No size variants specified</span>
                                     )}
                                   </div>
                                 </div>
                                 <div>
-                                  <Label className="text-xs text-gray-400">Configuration Options</Label>
+                                  <Label className="text-xs page-subtitle">Configuration Options</Label>
                                   <div className="text-sm">
                                     {item.configuration_options && Array.isArray(item.configuration_options) && item.configuration_options.length > 0 ? (
                                       item.configuration_options.map((option: string, index: number) => (
@@ -2973,7 +2973,7 @@ export default function CatalogPage() {
                                         </Badge>
                                       ))
                                     ) : (
-                                      <span className="text-gray-500">No configuration options specified</span>
+                                      <span className="text-tertiary">No configuration options specified</span>
                                     )}
                                   </div>
                                 </div>
@@ -2994,9 +2994,9 @@ export default function CatalogPage() {
       {/* Empty State */}
       {filteredItems.length === 0 && (
         <div className="mt-12 text-center">
-          <Package className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-4 text-lg font-medium text-gray-100">No production-ready items found</h3>
-          <p className="mt-2 text-gray-400">
+          <Package className="mx-auto h-12 w-12 text-secondary" />
+          <h3 className="mt-4 text-lg font-medium text-primary">No production-ready items found</h3>
+          <p className="mt-2 page-subtitle">
             {searchTerm || selectedCollection !== "all"
               ? "Try adjusting your search criteria."
               : "No production-ready catalog items have been created yet."

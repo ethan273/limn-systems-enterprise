@@ -28,23 +28,23 @@ export default function ProductionError({
 
   return (
     <div className="min-h-screen bg-gray-950 flex items-center justify-center p-6">
-      <div className="max-w-md w-full bg-gray-900 rounded-lg border border-gray-800 p-8 text-center">
+      <div className="max-w-md w-full card rounded-lg border  p-8 text-center">
         <div className="flex justify-center mb-6">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10">
             <AlertTriangle className="h-8 w-8 text-red-500" aria-hidden="true" />
           </div>
         </div>
 
-        <h2 className="text-2xl font-bold text-gray-100 mb-3">
+        <h2 className="text-2xl font-bold text-primary mb-3">
           Something went wrong in Production
         </h2>
 
-        <p className="text-gray-400 mb-6">
+        <p className="text-secondary mb-6">
           An error occurred while loading the production module. This has been logged and we&apos;re working on it.
         </p>
 
         {process.env.NODE_ENV === 'development' && (
-          <div className="mb-6 p-4 bg-gray-800 rounded-lg text-left">
+          <div className="mb-6 p-4 card rounded-lg text-left">
             <p className="text-xs font-mono text-red-400 break-all">
               {error.message}
             </p>
@@ -70,7 +70,7 @@ export default function ProductionError({
         </div>
 
         {error.digest && (
-          <p className="mt-6 text-xs text-gray-500">
+          <p className="mt-6 text-xs text-tertiary">
             Error ID: {error.digest}
           </p>
         )}

@@ -39,7 +39,7 @@ export default function PortalDashboard() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin text-[#91bdbd] mx-auto mb-4" />
-          <p className="text-gray-600">Loading dashboard...</p>
+          <p className="">Loading dashboard...</p>
         </div>
       </div>
     );
@@ -50,7 +50,7 @@ export default function PortalDashboard() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-2">Welcome back! Here is an overview of your account.</p>
+        <p className=" mt-2">Welcome back! Here is an overview of your account.</p>
       </div>
 
       {/* Stats Cards */}
@@ -59,12 +59,12 @@ export default function PortalDashboard() {
         <Link href="/portal/orders">
           <Card className="hover:shadow-lg transition-shadow cursor-pointer">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Active Orders</CardTitle>
-              <ShoppingCart className="w-4 h-4 text-gray-400" />
+              <CardTitle className="text-sm font-medium ">Active Orders</CardTitle>
+              <ShoppingCart className="w-4 h-4 text-secondary" />
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-gray-900">{stats?.activeOrders || 0}</div>
-              <p className="text-xs text-gray-500 mt-1">Orders in progress</p>
+              <p className="text-xs text-tertiary mt-1">Orders in progress</p>
             </CardContent>
           </Card>
         </Link>
@@ -73,12 +73,12 @@ export default function PortalDashboard() {
         <Link href="/portal/financials">
           <Card className="hover:shadow-lg transition-shadow cursor-pointer">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Pending Payments</CardTitle>
-              <CreditCard className="w-4 h-4 text-gray-400" />
+              <CardTitle className="text-sm font-medium ">Pending Payments</CardTitle>
+              <CreditCard className="w-4 h-4 text-secondary" />
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-gray-900">{stats?.pendingPayments || 0}</div>
-              <p className="text-xs text-gray-500 mt-1">Invoices to pay</p>
+              <p className="text-xs text-tertiary mt-1">Invoices to pay</p>
             </CardContent>
           </Card>
         </Link>
@@ -87,12 +87,12 @@ export default function PortalDashboard() {
         <Link href="/portal/shipping">
           <Card className="hover:shadow-lg transition-shadow cursor-pointer">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Recent Shipments</CardTitle>
-              <Truck className="w-4 h-4 text-gray-400" />
+              <CardTitle className="text-sm font-medium ">Recent Shipments</CardTitle>
+              <Truck className="w-4 h-4 text-secondary" />
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-gray-900">{stats?.recentShipments || 0}</div>
-              <p className="text-xs text-gray-500 mt-1">Last 30 days</p>
+              <p className="text-xs text-tertiary mt-1">Last 30 days</p>
             </CardContent>
           </Card>
         </Link>
@@ -101,12 +101,12 @@ export default function PortalDashboard() {
         <Link href="/portal/documents">
           <Card className="hover:shadow-lg transition-shadow cursor-pointer">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Documents</CardTitle>
-              <FileText className="w-4 h-4 text-gray-400" />
+              <CardTitle className="text-sm font-medium ">Documents</CardTitle>
+              <FileText className="w-4 h-4 text-secondary" />
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-gray-900">{stats?.documentsCount || 0}</div>
-              <p className="text-xs text-gray-500 mt-1">Available files</p>
+              <p className="text-xs text-tertiary mt-1">Available files</p>
             </CardContent>
           </Card>
         </Link>
@@ -116,7 +116,7 @@ export default function PortalDashboard() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Bell className="w-5 h-5 text-gray-400" />
+            <Bell className="w-5 h-5 text-secondary" />
             <CardTitle>Recent Notifications</CardTitle>
           </div>
           <Link href="/portal/notifications">
@@ -132,8 +132,8 @@ export default function PortalDashboard() {
               <Loader2 className="w-6 h-6 animate-spin text-[#91bdbd]" />
             </div>
           ) : notificationData?.notifications.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <Bell className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+            <div className="text-center py-8 text-tertiary">
+              <Bell className="w-12 h-12 mx-auto mb-4 text-secondary" />
               <p>No notifications yet</p>
             </div>
           ) : (
@@ -171,7 +171,7 @@ export default function PortalDashboard() {
                     ) : notification.type === 'shipment_update' ? (
                       <Truck className="w-5 h-5 text-purple-600" />
                     ) : (
-                      <FileText className="w-5 h-5 text-gray-600" />
+                      <FileText className="w-5 h-5 " />
                     )}
                   </div>
 
@@ -182,10 +182,10 @@ export default function PortalDashboard() {
                         <Badge className="bg-blue-500 text-white text-xs">New</Badge>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
+                    <p className="text-sm  mt-1">{notification.message}</p>
                     <div className="flex items-center space-x-2 mt-2">
-                      <Clock className="w-3 h-3 text-gray-400" />
-                      <p className="text-xs text-gray-500">
+                      <Clock className="w-3 h-3 text-secondary" />
+                      <p className="text-xs text-tertiary">
                         {new Date(notification.created_at).toLocaleString()}
                       </p>
                     </div>
@@ -219,7 +219,7 @@ export default function PortalDashboard() {
                   <ShoppingCart className="w-5 h-5 text-[#91bdbd]" />
                   <div className="text-left">
                     <div className="font-medium">View Orders</div>
-                    <div className="text-xs text-gray-500">Track your order status</div>
+                    <div className="text-xs text-tertiary">Track your order status</div>
                   </div>
                 </div>
               </Button>
@@ -231,7 +231,7 @@ export default function PortalDashboard() {
                   <CreditCard className="w-5 h-5 text-[#91bdbd]" />
                   <div className="text-left">
                     <div className="font-medium">Pay Invoice</div>
-                    <div className="text-xs text-gray-500">View and pay invoices</div>
+                    <div className="text-xs text-tertiary">View and pay invoices</div>
                   </div>
                 </div>
               </Button>
@@ -243,7 +243,7 @@ export default function PortalDashboard() {
                   <FileText className="w-5 h-5 text-[#91bdbd]" />
                   <div className="text-left">
                     <div className="font-medium">View Documents</div>
-                    <div className="text-xs text-gray-500">Access your files</div>
+                    <div className="text-xs text-tertiary">Access your files</div>
                   </div>
                 </div>
               </Button>

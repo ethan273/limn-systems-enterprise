@@ -7,7 +7,7 @@ export default function Home() {
         <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
           Limn Systems
         </h1>
-        <p className="text-xl text-gray-400 mb-8">
+        <p className="text-xl text-secondary mb-8">
           Enterprise Management Platform
         </p>
         <Link
