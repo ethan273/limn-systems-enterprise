@@ -571,6 +571,159 @@ export const itemsRouter = createTRPCRouter({
         }, {} as Record<string, any[]>),
       };
     }),
+
+  // Get catalog item with full details for detail page
+  getCatalogItemById: publicProcedure
+    .input(z.object({ itemId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const item = await ctx.db.items.findUnique({
+        where: { id: input.itemId },
+        include: {
+          collections: {
+            select: {
+              id: true,
+              name: true,
+              prefix: true,
+              description: true,
+            },
+          },
+          furniture_dimensions: true,
+          item_images: {
+            orderBy: [{ is_primary: 'desc' }, { sort_order: 'asc' }],
+          },
+          order_items: {
+            select: {
+              id: true,
+              full_sku: true,
+              specifications: true,
+              quantity: true,
+              unit_price: true,
+              created_at: true,
+            },
+            orderBy: { created_at: 'desc' },
+          },
+        },
+      });
+
+      if (!item) {
+        throw new Error('Catalog item not found');
+      }
+
+      return item;
+    }),
+
+  // Get sales analytics for a catalog item
+  getSalesAnalytics: publicProcedure
+    .input(z.object({
+      itemId: z.string().uuid(),
+      dateFrom: z.date().optional(),
+      dateTo: z.date().optional(),
+    }))
+    .query(async ({ ctx, input }) => {
+      // Build date filter
+      const dateFilter: any = {};
+      if (input.dateFrom) {
+        dateFilter.gte = input.dateFrom;
+      }
+      if (input.dateTo) {
+        dateFilter.lte = input.dateTo;
+      }
+
+      // Get all order items for this catalog item
+      const orderItems = await (ctx.db as any).order_items.findMany({
+        where: {
+          item_id: input.itemId,
+          ...(Object.keys(dateFilter).length > 0 && { created_at: dateFilter }),
+        },
+        select: {
+          id: true,
+          quantity: true,
+          unit_price: true,
+          created_at: true,
+          order_id: true,
+        },
+      });
+
+      // Calculate statistics
+      const totalUnits = orderItems.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0);
+      const totalRevenue = orderItems.reduce((sum: number, item: any) => {
+        const price = item.unit_price ? Number(item.unit_price) : 0;
+        const qty = item.quantity || 0;
+        return sum + (price * qty);
+      }, 0);
+      const orderCount = new Set(orderItems.filter((item: any) => item.order_id).map((item: any) => item.order_id)).size;
+      const avgOrderValue = orderCount > 0 ? totalRevenue / orderCount : 0;
+
+      return {
+        totalUnits,
+        totalRevenue,
+        orderCount,
+        avgOrderValue,
+        dateRange: {
+          from: input.dateFrom,
+          to: input.dateTo,
+        },
+      };
+    }),
+
+  // Get popular material combinations for a catalog item
+  getPopularMaterials: publicProcedure
+    .input(z.object({
+      itemId: z.string().uuid(),
+      limit: z.number().min(1).max(50).default(10),
+    }))
+    .query(async ({ ctx, input }) => {
+      // Get all order items with specifications
+      const orderItems = await (ctx.db as any).order_items.findMany({
+        where: { item_id: input.itemId },
+        select: {
+          id: true,
+          full_sku: true,
+          specifications: true,
+          quantity: true,
+        },
+      });
+
+      // Group by full_sku and material combinations
+      const combinations = new Map<string, {
+        full_sku: string | null;
+        count: number;
+        totalUnits: number;
+        materials: any;
+      }>();
+
+      for (const item of orderItems) {
+        const key = item.full_sku || 'no-sku';
+        const existing = combinations.get(key);
+
+        if (existing) {
+          existing.count += 1;
+          existing.totalUnits += item.quantity || 0;
+        } else {
+          const specs = item.specifications as any;
+          combinations.set(key, {
+            full_sku: item.full_sku,
+            count: 1,
+            totalUnits: item.quantity || 0,
+            materials: specs?.materials || {},
+          });
+        }
+      }
+
+      // Convert to array and sort by count
+      const sorted = Array.from(combinations.values())
+        .sort((a, b) => b.count - a.count)
+        .slice(0, input.limit);
+
+      // Calculate percentages
+      const total = orderItems.length;
+      const results = sorted.map(combo => ({
+        ...combo,
+        percentage: total > 0 ? Math.round((combo.count / total) * 100) : 0,
+      }));
+
+      return results;
+    }),
 });
 
 export const materialsRouter = baseMaterialsRouter;

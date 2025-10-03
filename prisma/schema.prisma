@@ -2907,6 +2907,7 @@ model order_items {
   created_at           DateTime?              @default(now()) @db.Timestamptz(6)
   updated_at           DateTime?              @default(now()) @db.Timestamptz(6)
   project_sku          String?
+  full_sku             String?                @db.VarChar(200)
   description          String?
   specifications       Json?
   due_date             DateTime?              @db.Timestamptz(6)

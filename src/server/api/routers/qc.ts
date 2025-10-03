@@ -725,4 +725,88 @@ export const qcRouter = createTRPCRouter({
         },
       };
     }),
+
+  // ============================================================================
+  // CATALOG ITEM QC OPERATIONS
+  // ============================================================================
+
+  /**
+   * Get QC inspections for a catalog item
+   * Links: catalog item → order_items → qc_inspections
+   */
+  getInspectionsByCatalogItem: publicProcedure
+    .input(
+      z.object({
+        itemId: z.string().uuid(),
+        limit: z.number().min(1).max(50).default(5),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      // First get all order items for this catalog item
+      const orderItems = await (ctx.db as any).order_items.findMany({
+        where: { item_id: input.itemId },
+        select: { id: true },
+      });
+
+      const orderItemIds = orderItems.map((oi: any) => oi.id);
+
+      if (orderItemIds.length === 0) {
+        // No orders yet for this catalog item
+        return {
+          inspections: [],
+          summary: {
+            totalInspections: 0,
+            passRate: 0,
+            avgDefects: 0,
+            lastInspectionDate: null,
+          },
+        };
+      }
+
+      // Get all inspections for these order items
+      const allInspections = await ctx.db.qc_inspections.findMany({
+        where: {
+          order_item_id: { in: orderItemIds },
+        },
+        include: {
+          order_items: {
+            select: {
+              id: true,
+              full_sku: true,
+              description: true,
+            },
+          },
+          _count: {
+            select: {
+              qc_defects: true,
+            },
+          },
+        },
+        orderBy: {
+          created_at: 'desc',
+        },
+      });
+
+      // Calculate summary statistics
+      const totalInspections = allInspections.length;
+      const passedInspections = allInspections.filter((i) => i.status === 'passed').length;
+      const passRate = totalInspections > 0 ? Math.round((passedInspections / totalInspections) * 100) : 0;
+      const totalDefects = allInspections.reduce((sum, i) => sum + (i._count.qc_defects || 0), 0);
+      const avgDefects = totalInspections > 0 ? Math.round((totalDefects / totalInspections) * 100) / 100 : 0;
+      const lastInspectionDate =
+        allInspections.length > 0 ? allInspections[0].created_at : null;
+
+      // Return recent inspections (limited)
+      const recentInspections = allInspections.slice(0, input.limit);
+
+      return {
+        inspections: recentInspections,
+        summary: {
+          totalInspections,
+          passRate,
+          avgDefects,
+          lastInspectionDate,
+        },
+      };
+    }),
 });

@@ -3,6 +3,7 @@ import { createCrudRouter } from '../utils/crud-generator';
 import { createTRPCRouter, publicProcedure } from '../trpc/init';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { generateProjectSku } from '@/lib/utils/project-sku-generator';
+import { generateFullSku } from '@/lib/utils/full-sku-generator';
 
 // Order Schema
 const createOrderSchema = z.object({
@@ -258,11 +259,17 @@ export const ordersRouter = createTRPCRouter({
       const createdItems: any[] = [];
 
       for (const item of input.order_items) {
+        // Generate Full SKU from base SKU + material selections
+        const fullSku = generateFullSku(item.base_sku, {
+          materials: item.material_selections,
+        });
+
         const orderItemData = {
           order_id: order.id,
           quantity: item.quantity,
           unit_price: item.unit_price,
           client_sku: item.project_sku, // Use project SKU as client SKU
+          full_sku: fullSku, // Store Full SKU for manufacturing and analytics
           description: item.product_name,
           specifications: {
             product_sku: item.product_sku,
