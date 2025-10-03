@@ -2,6 +2,7 @@
 
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
+import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,16 +33,26 @@ export default function ConceptDetailPage({ params }: PageProps) {
   const conceptId = resolvedParams.id;
   const [activeTab, setActiveTab] = useState("overview");
 
-  // TODO: Replace with actual tRPC query when available
-  // For now, using mock data since concepts router doesn't exist yet
-  const isLoading = false;
-  const concept = null; // Will be replaced with actual API call
+  // Query concept data
+  const { data: concept, isLoading, refetch } = api.products.getConceptById.useQuery(
+    { id: conceptId },
+    { enabled: !!conceptId }
+  );
 
-  // Mock media data (will be replaced with actual tRPC query)
-  const mockMedia: any[] = [];
+  // Query media data
+  const { data: media = [], refetch: refetchMedia } = api.documents.getByEntity.useQuery(
+    {
+      entityType: "concept",
+      entityId: conceptId,
+    },
+    {
+      enabled: !!conceptId,
+    }
+  );
 
   const handleMediaRefresh = () => {
-    // Will trigger refetch when API is available
+    void refetch();
+    void refetchMedia();
   };
 
   if (isLoading) {

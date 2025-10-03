@@ -36,11 +36,20 @@ export default function CollectionDetailPage({ params }: PageProps) {
   const { data: collections, isLoading, refetch } = api.products.getAllCollections.useQuery();
   const collection = collections?.find((c: any) => c.id === collectionId);
 
-  // Mock media data (will be replaced with actual tRPC query)
-  const mockMedia: any[] = [];
+  // Query media data
+  const { data: media = [], refetch: refetchMedia } = api.documents.getByEntity.useQuery(
+    {
+      entityType: "collection",
+      entityId: collectionId,
+    },
+    {
+      enabled: !!collectionId,
+    }
+  );
 
   const handleMediaRefresh = () => {
     void refetch();
+    void refetchMedia();
   };
 
   if (isLoading) {
@@ -122,7 +131,7 @@ export default function CollectionDetailPage({ params }: PageProps) {
           </TabsTrigger>
           <TabsTrigger value="media">
             <ImageIcon className="icon-xs mr-2" />
-            Media ({mockMedia.length})
+            Media ({media.length})
           </TabsTrigger>
           <TabsTrigger value="materials">
             <Layers className="icon-xs mr-2" />
@@ -170,7 +179,7 @@ export default function CollectionDetailPage({ params }: PageProps) {
                 <ImageIcon className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{mockMedia.length}</div>
+                <div className="text-2xl font-bold">{media.length}</div>
                 <p className="text-xs text-muted-foreground mt-1">Images and documents</p>
               </CardContent>
             </Card>
@@ -297,7 +306,7 @@ export default function CollectionDetailPage({ params }: PageProps) {
             <MediaGallery
               entityType="collection"
               entityId={collectionId}
-              media={mockMedia}
+              media={media}
               onRefresh={handleMediaRefresh}
             />
           </div>
