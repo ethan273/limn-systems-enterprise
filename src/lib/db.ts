@@ -1153,44 +1153,6 @@ export class DatabaseClient {
       this.countGeneric('items', options),
   };
 
-  // Collections model (for catalog)
-  collections = {
-    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('collections', options),
-    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
-      this.findUniqueGeneric<any>('collections', options),
-    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
-      this.createGeneric<any>('collections', options),
-    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
-      this.updateGeneric<any>('collections', options),
-    delete: (options: { where: Record<string, any> }) =>
-      this.deleteGeneric('collections', options),
-    createMany: (options: { data: Record<string, any>[] }) =>
-      this.createManyGeneric('collections', options),
-    deleteMany: (options: { where: Record<string, any> }) =>
-      this.deleteManyGeneric('collections', options),
-    count: (options?: { where?: Record<string, any> }) =>
-      this.countGeneric('collections', options),
-  };
-
-  // Materials model (for catalog)
-  materials = {
-    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('materials', options),
-    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
-      this.findUniqueGeneric<any>('materials', options),
-    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
-      this.createGeneric<any>('materials', options),
-    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
-      this.updateGeneric<any>('materials', options),
-    delete: (options: { where: Record<string, any> }) =>
-      this.deleteGeneric('materials', options),
-    createMany: (options: { data: Record<string, any>[] }) =>
-      this.createManyGeneric('materials', options),
-    deleteMany: (options: { where: Record<string, any> }) =>
-      this.deleteManyGeneric('materials', options),
-    count: (options?: { where?: Record<string, any> }) =>
-      this.countGeneric('materials', options),
-  };
-
   // Material Categories model
   material_categories = {
     findMany: (options?: QueryOptions) => this.findManyGeneric<any>('material_categories', options),
@@ -1208,25 +1170,6 @@ export class DatabaseClient {
       this.deleteManyGeneric('material_categories', options),
     count: (options?: { where?: Record<string, any> }) =>
       this.countGeneric('material_categories', options),
-  };
-
-  // Material Collections Junction model
-  material_collections = {
-    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('material_collections', options),
-    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
-      this.findUniqueGeneric<any>('material_collections', options),
-    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
-      this.createGeneric<any>('material_collections', options),
-    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
-      this.updateGeneric<any>('material_collections', options),
-    delete: (options: { where: Record<string, any> }) =>
-      this.deleteGeneric('material_collections', options),
-    createMany: (options: { data: Record<string, any>[] }) =>
-      this.createManyGeneric('material_collections', options),
-    deleteMany: (options: { where: Record<string, any> }) =>
-      this.deleteManyGeneric('material_collections', options),
-    count: (options?: { where?: Record<string, any> }) =>
-      this.countGeneric('material_collections', options),
   };
 
   // Furniture Dimensions model
@@ -1266,44 +1209,6 @@ export class DatabaseClient {
       this.deleteManyGeneric('item_images', options),
     count: (options?: { where?: Record<string, any> }) =>
       this.countGeneric('item_images', options),
-  };
-
-  // Fabric Brands model (for materials management)
-  fabric_brands = {
-    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('fabric_brands', options),
-    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
-      this.findUniqueGeneric<any>('fabric_brands', options),
-    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
-      this.createGeneric<any>('fabric_brands', options),
-    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
-      this.updateGeneric<any>('fabric_brands', options),
-    delete: (options: { where: Record<string, any> }) =>
-      this.deleteGeneric('fabric_brands', options),
-    createMany: (options: { data: Record<string, any>[] }) =>
-      this.createManyGeneric('fabric_brands', options),
-    deleteMany: (options: { where: Record<string, any> }) =>
-      this.deleteManyGeneric('fabric_brands', options),
-    count: (options?: { where?: Record<string, any> }) =>
-      this.countGeneric('fabric_brands', options),
-  };
-
-  // Fabric Brand Collections junction table (for assignments)
-  fabric_brand_collections = {
-    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('fabric_brand_collections', options),
-    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
-      this.findUniqueGeneric<any>('fabric_brand_collections', options),
-    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
-      this.createGeneric<any>('fabric_brand_collections', options),
-    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
-      this.updateGeneric<any>('fabric_brand_collections', options),
-    delete: (options: { where: Record<string, any> }) =>
-      this.deleteGeneric('fabric_brand_collections', options),
-    createMany: (options: { data: Record<string, any>[] }) =>
-      this.createManyGeneric('fabric_brand_collections', options),
-    deleteMany: (options: { where: Record<string, any> }) =>
-      this.deleteManyGeneric('fabric_brand_collections', options),
-    count: (options?: { where?: Record<string, any> }) =>
-      this.countGeneric('fabric_brand_collections', options),
   };
 
   // =====================================================
