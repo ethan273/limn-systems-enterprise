@@ -1,11 +1,10 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../trpc/init";
-import { prisma } from "@/lib/prisma";
 
 // Auto-generate unique collection prefix
-const generateUniquePrefix = async (collectionName: string): Promise<string> => {
+const generateUniquePrefix = async (db: any, collectionName: string): Promise<string> => {
   // Get all existing prefixes
-  const existingCollections = await prisma.furniture_collections.findMany({
+  const existingCollections = await db.collections.findMany({
     select: { prefix: true },
   });
   const existingPrefixes = existingCollections
@@ -59,8 +58,8 @@ const generateUniquePrefix = async (collectionName: string): Promise<string> => 
 
 export const productsRouter = createTRPCRouter({
   // Collection Management
-  getAllCollections: publicProcedure.query(async () => {
-    const collections = await prisma.furniture_collections.findMany({
+  getAllCollections: publicProcedure.query(async ({ ctx }) => {
+    const collections = await (ctx.db as any).collections.findMany({
       orderBy: { name: "asc" },
     });
 
@@ -88,11 +87,11 @@ export const productsRouter = createTRPCRouter({
         description: z.string().optional(),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       // Auto-generate unique prefix
-      const autoPrefix = await generateUniquePrefix(input.name);
+      const autoPrefix = await generateUniquePrefix(ctx.db, input.name);
 
-      return await prisma.furniture_collections.create({
+      return await (ctx.db as any).collections.create({
         data: {
           name: input.name,
           description: input.description,
@@ -110,8 +109,8 @@ export const productsRouter = createTRPCRouter({
         description: z.string().optional(),
       })
     )
-    .mutation(async ({ input }) => {
-      return await prisma.furniture_collections.update({
+    .mutation(async ({ ctx, input }) => {
+      return await (ctx.db as any).collections.update({
         where: { id: input.id },
         data: {
           name: input.name,
@@ -123,15 +122,15 @@ export const productsRouter = createTRPCRouter({
   // Delete Collection
   deleteCollection: publicProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(async ({ input }) => {
-      return await prisma.furniture_collections.delete({
+    .mutation(async ({ ctx, input }) => {
+      return await (ctx.db as any).collections.delete({
         where: { id: input.id },
       });
     }),
 
   // Fabric Brand Management
-  getAllFabricBrands: publicProcedure.query(async () => {
-    return await prisma.fabric_brands.findMany({
+  getAllFabricBrands: publicProcedure.query(async ({ ctx }) => {
+    return await (ctx.db as any).fabric_brands.findMany({
       where: { active: true },
       orderBy: { name: "asc" },
     });
@@ -139,8 +138,8 @@ export const productsRouter = createTRPCRouter({
 
   getCollectionsForFabricBrand: publicProcedure
     .input(z.object({ fabricBrandId: z.string() }))
-    .query(async ({ input }) => {
-      const assignments = await prisma.fabric_brand_collections.findMany({
+    .query(async ({ ctx, input }) => {
+      const assignments = await (ctx.db as any).fabric_brand_collections.findMany({
         where: { fabric_brand_id: input.fabricBrandId },
         include: {
           collections: true,
@@ -154,8 +153,8 @@ export const productsRouter = createTRPCRouter({
       fabricBrandId: z.string(),
       collectionId: z.string(),
     }))
-    .mutation(async ({ input }) => {
-      return await prisma.fabric_brand_collections.create({
+    .mutation(async ({ ctx, input }) => {
+      return await (ctx.db as any).fabric_brand_collections.create({
         data: {
           fabric_brand_id: input.fabricBrandId,
           collection_id: input.collectionId,
@@ -168,8 +167,8 @@ export const productsRouter = createTRPCRouter({
       fabricBrandId: z.string(),
       collectionId: z.string(),
     }))
-    .mutation(async ({ input }) => {
-      return await prisma.fabric_brand_collections.deleteMany({
+    .mutation(async ({ ctx, input }) => {
+      return await (ctx.db as any).fabric_brand_collections.deleteMany({
         where: {
           fabric_brand_id: input.fabricBrandId,
           collection_id: input.collectionId,
@@ -178,20 +177,20 @@ export const productsRouter = createTRPCRouter({
     }),
 
   // Material Categories Management
-  getMaterialCategories: publicProcedure.query(async () => {
-    return await prisma.material_categories.findMany({
+  getMaterialCategories: publicProcedure.query(async ({ ctx }) => {
+    return await (ctx.db as any).material_categories.findMany({
       where: { active: true },
       orderBy: { sort_order: "asc" },
     });
   }),
 
   // Materials Management
-  getAllMaterials: publicProcedure.query(async () => {
-    const materials = await prisma.materials.findMany({
+  getAllMaterials: publicProcedure.query(async ({ ctx }) => {
+    const materials = await (ctx.db as any).materials.findMany({
       where: { active: true },
       include: {
         material_categories: true,
-        parent_material: {
+        materials: {
           select: {
             id: true,
             name: true,
@@ -199,16 +198,16 @@ export const productsRouter = createTRPCRouter({
             type: true,
           },
         },
-        child_materials: {
+        other_materials: {
           select: {
             id: true,
             name: true,
             type: true,
           },
         },
-        material_furniture_collections: {
+        material_collections: {
           include: {
-            furniture_collections: {
+            collections: {
               select: {
                 id: true,
                 name: true,
@@ -224,11 +223,11 @@ export const productsRouter = createTRPCRouter({
       ],
     });
 
-    return materials.map((material: { material_furniture_collections: { furniture_collections: unknown }[] }) => ({
+    return materials.map((material: { material_collections?: { collections: unknown }[] }) => ({
       ...material,
-      collections: material.material_furniture_collections.map(
-        (mc: { furniture_collections: unknown }) => mc.furniture_collections
-      ),
+      collections: material.material_collections?.map(
+        (mc: { collections: unknown }) => mc.collections
+      ) || [],
     }));
   }),
 
@@ -250,12 +249,12 @@ export const productsRouter = createTRPCRouter({
         color_sku: z.string().optional(),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       const { collection_ids, parent_material_id, ...materialData } = input;
 
       // Validate parent and collection inheritance
       if (parent_material_id) {
-        const parent = await prisma.materials.findUnique({
+        const parent = await (ctx.db as any).materials.findUnique({
           where: { id: parent_material_id },
           include: {
             material_collections: true,
@@ -282,7 +281,7 @@ export const productsRouter = createTRPCRouter({
       // Generate hierarchy path
       let hierarchy_path = materialData.name;
       if (parent_material_id) {
-        const parent = await prisma.materials.findUnique({
+        const parent = await (ctx.db as any).materials.findUnique({
           where: { id: parent_material_id },
           include: { material_collections: false },
         });
@@ -292,7 +291,7 @@ export const productsRouter = createTRPCRouter({
       }
 
       // Create material
-      const material = await prisma.materials.create({
+      const material = await (ctx.db as any).materials.create({
         data: {
           ...materialData,
           parent_material_id,
@@ -333,13 +332,13 @@ export const productsRouter = createTRPCRouter({
         // Note: parent_material_id is immutable, not included
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       const { id, collection_ids, name, ...updateData } = input;
 
-      const existingMaterial = await prisma.materials.findUnique({
+      const existingMaterial = await (ctx.db as any).materials.findUnique({
         where: { id },
         include: {
-          parent_material: {
+          materials: {
             include: {
               material_collections: true,
             },
@@ -352,8 +351,8 @@ export const productsRouter = createTRPCRouter({
       }
 
       // Validate collection inheritance
-      if (collection_ids && existingMaterial.parent_material) {
-        const parentCollectionIds = existingMaterial.parent_material.material_collections.map(
+      if (collection_ids && existingMaterial.materials) {
+        const parentCollectionIds = existingMaterial.materials.material_collections.map(
           (mc: { collection_id: string }) => mc.collection_id
         );
 
@@ -368,14 +367,14 @@ export const productsRouter = createTRPCRouter({
       // Calculate new hierarchy_path if name changed
       let hierarchy_path = existingMaterial.hierarchy_path;
       if (name !== existingMaterial.name) {
-        if (existingMaterial.parent_material?.hierarchy_path) {
-          hierarchy_path = `${existingMaterial.parent_material.hierarchy_path}/${name}`;
+        if (existingMaterial.materials?.hierarchy_path) {
+          hierarchy_path = `${existingMaterial.materials.hierarchy_path}/${name}`;
         } else {
           hierarchy_path = name;
         }
       }
 
-      return await prisma.materials.update({
+      return await (ctx.db as any).materials.update({
         where: { id },
         data: {
           ...updateData,
@@ -395,14 +394,14 @@ export const productsRouter = createTRPCRouter({
 
   deleteMaterial: publicProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       // Check for child materials
-      const childCount = await prisma.materials.count({
+      const childCount = await (ctx.db as any).materials.count({
         where: { parent_material_id: input.id },
       });
 
       if (childCount > 0) {
-        const children = await prisma.materials.findMany({
+        const children = await (ctx.db as any).materials.findMany({
           where: { parent_material_id: input.id },
           select: { name: true, type: true },
         });
@@ -412,7 +411,7 @@ export const productsRouter = createTRPCRouter({
         );
       }
 
-      return await prisma.materials.delete({
+      return await (ctx.db as any).materials.delete({
         where: { id: input.id },
       });
     }),
@@ -422,8 +421,8 @@ export const productsRouter = createTRPCRouter({
       parentId: z.string(),
       includeInactive: z.boolean().optional().default(false),
     }))
-    .query(async ({ input }) => {
-      return await prisma.materials.findMany({
+    .query(async ({ ctx, input }) => {
+      return await (ctx.db as any).materials.findMany({
         where: {
           parent_material_id: input.parentId,
           ...(input.includeInactive ? {} : { active: true }),
@@ -446,25 +445,25 @@ export const productsRouter = createTRPCRouter({
       materialType: z.string().optional(),
       hierarchyLevel: z.number().optional(),
     }))
-    .query(async ({ input }) => {
-      const materials = await prisma.materials.findMany({
+    .query(async ({ ctx, input }) => {
+      const materials = await (ctx.db as any).materials.findMany({
         where: {
           active: true,
           ...(input.materialType && { type: input.materialType }),
           ...(input.hierarchyLevel && { hierarchy_level: input.hierarchyLevel }),
           OR: [
             {
-              material_furniture_collections: {
+              material_collections: {
                 some: { furniture_collection_id: input.collectionId },
               },
             },
             {
-              material_furniture_collections: { none: {} },
+              material_collections: { none: {} },
             },
           ],
         },
         include: {
-          parent_material: {
+          materials: {
             select: {
               id: true,
               name: true,
@@ -473,9 +472,9 @@ export const productsRouter = createTRPCRouter({
             },
           },
           material_categories: true,
-          material_furniture_collections: {
+          material_collections: {
             include: {
-              furniture_collections: true,
+              collections: true,
             },
           },
         },
@@ -485,11 +484,11 @@ export const productsRouter = createTRPCRouter({
         ],
       });
 
-      return materials.map((material: { material_furniture_collections: { furniture_collections: unknown }[] }) => ({
+      return materials.map((material: { material_collections?: { collections: unknown }[] }) => ({
         ...material,
-        collections: material.material_furniture_collections.map(
-          (mc: { furniture_collections: unknown }) => mc.furniture_collections
-        ),
+        collections: material.material_collections?.map(
+          (mc: { collections: unknown }) => mc.collections
+        ) || [],
       }));
     }),
 
@@ -499,8 +498,8 @@ export const productsRouter = createTRPCRouter({
       materialId: z.string(),
       collectionId: z.string(),
     }))
-    .mutation(async ({ input }) => {
-      return await prisma.material_collections.create({
+    .mutation(async ({ ctx, input }) => {
+      return await (ctx.db as any).material_collections.create({
         data: {
           material_id: input.materialId,
           collection_id: input.collectionId,
@@ -513,8 +512,8 @@ export const productsRouter = createTRPCRouter({
       materialId: z.string(),
       collectionId: z.string(),
     }))
-    .mutation(async ({ input }) => {
-      return await prisma.material_collections.deleteMany({
+    .mutation(async ({ ctx, input }) => {
+      return await (ctx.db as any).material_collections.deleteMany({
         where: {
           material_id: input.materialId,
           collection_id: input.collectionId,
@@ -525,8 +524,8 @@ export const productsRouter = createTRPCRouter({
   // Filtered Material Queries (for Order Creation)
   getFilteredFabricBrands: publicProcedure
     .input(z.object({ collection_id: z.string() }))
-    .query(async ({ input }) => {
-      const brands = await prisma.fabric_brand_collections.findMany({
+    .query(async ({ ctx, input }) => {
+      const brands = await (ctx.db as any).fabric_brand_collections.findMany({
         where: { collection_id: input.collection_id },
         include: {
           fabric_brands: true,
@@ -537,9 +536,9 @@ export const productsRouter = createTRPCRouter({
 
   getFilteredWoodTypes: publicProcedure
     .input(z.object({ collection_id: z.string() }))
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
       // Get materials that are assigned to this collection and are wood type
-      const materials = await prisma.material_collections.findMany({
+      const materials = await (ctx.db as any).material_collections.findMany({
         where: {
           collection_id: input.collection_id,
         },
@@ -562,9 +561,9 @@ export const productsRouter = createTRPCRouter({
 
   getFilteredMetalTypes: publicProcedure
     .input(z.object({ collection_id: z.string() }))
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
       // Get materials that are assigned to this collection and are metal type
-      const materials = await prisma.material_collections.findMany({
+      const materials = await (ctx.db as any).material_collections.findMany({
         where: {
           collection_id: input.collection_id,
         },

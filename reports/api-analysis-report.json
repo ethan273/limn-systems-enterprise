@@ -1,0 +1,1623 @@
+{
+  "timestamp": "2025-10-03T15:37:02.771Z",
+  "totalRouters": 30,
+  "totalProcedures": 311,
+  "routers": [
+    {
+      "file": "auth.ts",
+      "procedures": 2,
+      "publicProcedures": 2,
+      "protectedProcedures": 0
+    },
+    {
+      "file": "catalog.ts",
+      "procedures": 17,
+      "publicProcedures": 17,
+      "protectedProcedures": 0
+    },
+    {
+      "file": "clients.ts",
+      "procedures": 2,
+      "publicProcedures": 2,
+      "protectedProcedures": 0
+    },
+    {
+      "file": "crm.ts",
+      "procedures": 7,
+      "publicProcedures": 7,
+      "protectedProcedures": 0
+    },
+    {
+      "file": "design-briefs.ts",
+      "procedures": 6,
+      "publicProcedures": 0,
+      "protectedProcedures": 6
+    },
+    {
+      "file": "design-projects-router.ts",
+      "procedures": 6,
+      "publicProcedures": 0,
+      "protectedProcedures": 6
+    },
+    {
+      "file": "factoryReviews.ts",
+      "procedures": 12,
+      "publicProcedures": 12,
+      "protectedProcedures": 0
+    },
+    {
+      "file": "invoices.ts",
+      "procedures": 9,
+      "publicProcedures": 0,
+      "protectedProcedures": 9
+    },
+    {
+      "file": "mood-boards.ts",
+      "procedures": 9,
+      "publicProcedures": 1,
+      "protectedProcedures": 8
+    },
+    {
+      "file": "oauth.ts",
+      "procedures": 5,
+      "publicProcedures": 5,
+      "protectedProcedures": 0
+    },
+    {
+      "file": "order-items.ts",
+      "procedures": 5,
+      "publicProcedures": 5,
+      "protectedProcedures": 0
+    },
+    {
+      "file": "ordered-items-production.ts",
+      "procedures": 8,
+      "publicProcedures": 0,
+      "protectedProcedures": 8
+    },
+    {
+      "file": "orders.ts",
+      "procedures": 7,
+      "publicProcedures": 7,
+      "protectedProcedures": 0
+    },
+    {
+      "file": "packing.ts",
+      "procedures": 10,
+      "publicProcedures": 10,
+      "protectedProcedures": 0
+    },
+    {
+      "file": "partners.ts",
+      "procedures": 14,
+      "publicProcedures": 0,
+      "protectedProcedures": 14
+    },
+    {
+      "file": "payments.ts",
+      "procedures": 10,
+      "publicProcedures": 0,
+      "protectedProcedures": 10
+    },
+    {
+      "file": "portal.ts",
+      "procedures": 0,
+      "publicProcedures": 0,
+      "protectedProcedures": 0
+    },
+    {
+      "file": "production-invoices.ts",
+      "procedures": 9,
+      "publicProcedures": 9,
+      "protectedProcedures": 0
+    },
+    {
+      "file": "production-orders.ts",
+      "procedures": 7,
+      "publicProcedures": 7,
+      "protectedProcedures": 0
+    },
+    {
+      "file": "production-tracking.ts",
+      "procedures": 7,
+      "publicProcedures": 7,
+      "protectedProcedures": 0
+    },
+    {
+      "file": "products.ts",
+      "procedures": 20,
+      "publicProcedures": 20,
+      "protectedProcedures": 0
+    },
+    {
+      "file": "projects.ts",
+      "procedures": 4,
+      "publicProcedures": 4,
+      "protectedProcedures": 0
+    },
+    {
+      "file": "prototypes.ts",
+      "procedures": 61,
+      "publicProcedures": 61,
+      "protectedProcedures": 0
+    },
+    {
+      "file": "qc.ts",
+      "procedures": 18,
+      "publicProcedures": 18,
+      "protectedProcedures": 0
+    },
+    {
+      "file": "quickbooks-sync.ts",
+      "procedures": 5,
+      "publicProcedures": 5,
+      "protectedProcedures": 0
+    },
+    {
+      "file": "shipping.ts",
+      "procedures": 7,
+      "publicProcedures": 0,
+      "protectedProcedures": 7
+    },
+    {
+      "file": "shop-drawings.ts",
+      "procedures": 11,
+      "publicProcedures": 11,
+      "protectedProcedures": 0
+    },
+    {
+      "file": "storage.ts",
+      "procedures": 7,
+      "publicProcedures": 7,
+      "protectedProcedures": 0
+    },
+    {
+      "file": "tasks.ts",
+      "procedures": 23,
+      "publicProcedures": 23,
+      "protectedProcedures": 0
+    },
+    {
+      "file": "users.ts",
+      "procedures": 3,
+      "publicProcedures": 3,
+      "protectedProcedures": 0
+    }
+  ],
+  "missingAuth": [
+    {
+      "file": "orders.ts",
+      "procedure": "createWithAutoProject",
+      "line": 110
+    },
+    {
+      "file": "orders.ts",
+      "procedure": "getFullDetails",
+      "line": 173
+    },
+    {
+      "file": "orders.ts",
+      "procedure": "createWithItems",
+      "line": 216
+    },
+    {
+      "file": "orders.ts",
+      "procedure": "updateStatus",
+      "line": 307
+    },
+    {
+      "file": "orders.ts",
+      "procedure": "generateProjectSku",
+      "line": 375
+    },
+    {
+      "file": "orders.ts",
+      "procedure": "getWithProductionDetails",
+      "line": 391
+    },
+    {
+      "file": "production-invoices.ts",
+      "procedure": "getAll",
+      "line": 147
+    },
+    {
+      "file": "production-invoices.ts",
+      "procedure": "getById",
+      "line": 179
+    },
+    {
+      "file": "production-invoices.ts",
+      "procedure": "getByProductionOrder",
+      "line": 205
+    },
+    {
+      "file": "production-invoices.ts",
+      "procedure": "recordPayment",
+      "line": 223
+    },
+    {
+      "file": "production-invoices.ts",
+      "procedure": "update",
+      "line": 333
+    },
+    {
+      "file": "production-invoices.ts",
+      "procedure": "cancel",
+      "line": 353
+    },
+    {
+      "file": "production-invoices.ts",
+      "procedure": "getPaymentHistory",
+      "line": 377
+    },
+    {
+      "file": "production-invoices.ts",
+      "procedure": "getOutstanding",
+      "line": 391
+    },
+    {
+      "file": "production-invoices.ts",
+      "procedure": "createForOrder",
+      "line": 436
+    },
+    {
+      "file": "production-orders.ts",
+      "procedure": "getAll",
+      "line": 211
+    },
+    {
+      "file": "production-orders.ts",
+      "procedure": "getById",
+      "line": 241
+    },
+    {
+      "file": "production-orders.ts",
+      "procedure": "create",
+      "line": 278
+    },
+    {
+      "file": "production-orders.ts",
+      "procedure": "updateStatus",
+      "line": 320
+    },
+    {
+      "file": "production-orders.ts",
+      "procedure": "update",
+      "line": 373
+    },
+    {
+      "file": "production-orders.ts",
+      "procedure": "delete",
+      "line": 408
+    },
+    {
+      "file": "production-orders.ts",
+      "procedure": "getByFactory",
+      "line": 432
+    },
+    {
+      "file": "production-tracking.ts",
+      "procedure": "getDashboardStats",
+      "line": 66
+    },
+    {
+      "file": "production-tracking.ts",
+      "procedure": "getProductionProgress",
+      "line": 149
+    },
+    {
+      "file": "production-tracking.ts",
+      "procedure": "getMilestones",
+      "line": 202
+    },
+    {
+      "file": "production-tracking.ts",
+      "procedure": "createMilestone",
+      "line": 216
+    },
+    {
+      "file": "production-tracking.ts",
+      "procedure": "updateMilestone",
+      "line": 234
+    },
+    {
+      "file": "production-tracking.ts",
+      "procedure": "deleteMilestone",
+      "line": 246
+    },
+    {
+      "file": "production-tracking.ts",
+      "procedure": "createDefaultMilestones",
+      "line": 255
+    },
+    {
+      "file": "qc.ts",
+      "procedure": "getAllInspections",
+      "line": 20
+    },
+    {
+      "file": "qc.ts",
+      "procedure": "getInspectionById",
+      "line": 96
+    },
+    {
+      "file": "qc.ts",
+      "procedure": "createInspection",
+      "line": 170
+    },
+    {
+      "file": "qc.ts",
+      "procedure": "updateInspectionStatus",
+      "line": 220
+    },
+    {
+      "file": "qc.ts",
+      "procedure": "getDefects",
+      "line": 252
+    },
+    {
+      "file": "qc.ts",
+      "procedure": "addDefect",
+      "line": 307
+    },
+    {
+      "file": "qc.ts",
+      "procedure": "updateDefect",
+      "line": 340
+    },
+    {
+      "file": "qc.ts",
+      "procedure": "getPhotos",
+      "line": 371
+    },
+    {
+      "file": "qc.ts",
+      "procedure": "uploadPhoto",
+      "line": 404
+    },
+    {
+      "file": "qc.ts",
+      "procedure": "deletePhoto",
+      "line": 450
+    },
+    {
+      "file": "qc.ts",
+      "procedure": "getComments",
+      "line": 470
+    },
+    {
+      "file": "qc.ts",
+      "procedure": "addComment",
+      "line": 495
+    },
+    {
+      "file": "qc.ts",
+      "procedure": "deleteComment",
+      "line": 543
+    },
+    {
+      "file": "qc.ts",
+      "procedure": "getCheckpoints",
+      "line": 563
+    },
+    {
+      "file": "qc.ts",
+      "procedure": "addCheckpoint",
+      "line": 581
+    },
+    {
+      "file": "qc.ts",
+      "procedure": "updateCheckpoint",
+      "line": 621
+    },
+    {
+      "file": "qc.ts",
+      "procedure": "getInspectionStats",
+      "line": 653
+    },
+    {
+      "file": "qc.ts",
+      "procedure": "getInspectionsByCatalogItem",
+      "line": 737
+    }
+  ],
+  "dangerousQueries": [
+    {
+      "file": "auth.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 221,
+      "severity": "medium"
+    },
+    {
+      "file": "catalog.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 366,
+      "severity": "medium"
+    },
+    {
+      "file": "catalog.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 469,
+      "severity": "medium"
+    },
+    {
+      "file": "catalog.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 558,
+      "severity": "medium"
+    },
+    {
+      "file": "catalog.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 633,
+      "severity": "medium"
+    },
+    {
+      "file": "catalog.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 677,
+      "severity": "medium"
+    },
+    {
+      "file": "crm.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 53,
+      "severity": "medium"
+    },
+    {
+      "file": "crm.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 170,
+      "severity": "medium"
+    },
+    {
+      "file": "crm.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 192,
+      "severity": "medium"
+    },
+    {
+      "file": "crm.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 199,
+      "severity": "medium"
+    },
+    {
+      "file": "crm.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 277,
+      "severity": "medium"
+    },
+    {
+      "file": "design-briefs.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 25,
+      "severity": "medium"
+    },
+    {
+      "file": "design-briefs.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 35,
+      "severity": "medium"
+    },
+    {
+      "file": "design-projects-router.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 25,
+      "severity": "medium"
+    },
+    {
+      "file": "invoices.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 246,
+      "severity": "medium"
+    },
+    {
+      "file": "packing.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 310,
+      "severity": "medium"
+    },
+    {
+      "file": "partners.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 393,
+      "severity": "medium"
+    },
+    {
+      "file": "partners.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 453,
+      "severity": "medium"
+    },
+    {
+      "file": "portal.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 31,
+      "severity": "medium"
+    },
+    {
+      "file": "portal.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 49,
+      "severity": "medium"
+    },
+    {
+      "file": "portal.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 93,
+      "severity": "medium"
+    },
+    {
+      "file": "portal.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 111,
+      "severity": "medium"
+    },
+    {
+      "file": "portal.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 144,
+      "severity": "medium"
+    },
+    {
+      "file": "portal.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 250,
+      "severity": "medium"
+    },
+    {
+      "file": "portal.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 283,
+      "severity": "medium"
+    },
+    {
+      "file": "portal.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 311,
+      "severity": "medium"
+    },
+    {
+      "file": "portal.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 361,
+      "severity": "medium"
+    },
+    {
+      "file": "portal.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 448,
+      "severity": "medium"
+    },
+    {
+      "file": "portal.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 474,
+      "severity": "medium"
+    },
+    {
+      "file": "portal.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 566,
+      "severity": "medium"
+    },
+    {
+      "file": "portal.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 609,
+      "severity": "medium"
+    },
+    {
+      "file": "portal.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 634,
+      "severity": "medium"
+    },
+    {
+      "file": "portal.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 652,
+      "severity": "medium"
+    },
+    {
+      "file": "portal.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 694,
+      "severity": "medium"
+    },
+    {
+      "file": "portal.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 746,
+      "severity": "medium"
+    },
+    {
+      "file": "production-invoices.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 159,
+      "severity": "medium"
+    },
+    {
+      "file": "production-invoices.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 380,
+      "severity": "medium"
+    },
+    {
+      "file": "production-orders.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 222,
+      "severity": "medium"
+    },
+    {
+      "file": "production-orders.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 451,
+      "severity": "medium"
+    },
+    {
+      "file": "production-tracking.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 207,
+      "severity": "medium"
+    },
+    {
+      "file": "products.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 8,
+      "severity": "medium"
+    },
+    {
+      "file": "products.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 8,
+      "severity": "medium"
+    },
+    {
+      "file": "products.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 63,
+      "severity": "medium"
+    },
+    {
+      "file": "products.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 63,
+      "severity": "medium"
+    },
+    {
+      "file": "products.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 95,
+      "severity": "medium"
+    },
+    {
+      "file": "products.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 114,
+      "severity": "medium"
+    },
+    {
+      "file": "products.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 127,
+      "severity": "medium"
+    },
+    {
+      "file": "products.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 134,
+      "severity": "medium"
+    },
+    {
+      "file": "products.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 134,
+      "severity": "medium"
+    },
+    {
+      "file": "products.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 143,
+      "severity": "medium"
+    },
+    {
+      "file": "products.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 158,
+      "severity": "medium"
+    },
+    {
+      "file": "products.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 172,
+      "severity": "medium"
+    },
+    {
+      "file": "products.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 182,
+      "severity": "medium"
+    },
+    {
+      "file": "products.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 182,
+      "severity": "medium"
+    },
+    {
+      "file": "products.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 190,
+      "severity": "medium"
+    },
+    {
+      "file": "products.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 258,
+      "severity": "medium"
+    },
+    {
+      "file": "products.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 285,
+      "severity": "medium"
+    },
+    {
+      "file": "products.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 295,
+      "severity": "medium"
+    },
+    {
+      "file": "products.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 339,
+      "severity": "medium"
+    },
+    {
+      "file": "products.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 378,
+      "severity": "medium"
+    },
+    {
+      "file": "products.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 400,
+      "severity": "medium"
+    },
+    {
+      "file": "products.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 405,
+      "severity": "medium"
+    },
+    {
+      "file": "products.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 405,
+      "severity": "medium"
+    },
+    {
+      "file": "products.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 415,
+      "severity": "medium"
+    },
+    {
+      "file": "products.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 426,
+      "severity": "medium"
+    },
+    {
+      "file": "products.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 450,
+      "severity": "medium"
+    },
+    {
+      "file": "products.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 450,
+      "severity": "medium"
+    },
+    {
+      "file": "products.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 503,
+      "severity": "medium"
+    },
+    {
+      "file": "products.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 517,
+      "severity": "medium"
+    },
+    {
+      "file": "products.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 529,
+      "severity": "medium"
+    },
+    {
+      "file": "products.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 542,
+      "severity": "medium"
+    },
+    {
+      "file": "products.ts",
+      "issue": "Missing error handling for database operation",
+      "line": 567,
+      "severity": "medium"
+    },
+    {
+      "file": "qc.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 391,
+      "severity": "medium"
+    },
+    {
+      "file": "qc.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 566,
+      "severity": "medium"
+    },
+    {
+      "file": "qc.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 746,
+      "severity": "medium"
+    },
+    {
+      "file": "quickbooks-sync.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 455,
+      "severity": "medium"
+    },
+    {
+      "file": "shipping.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 195,
+      "severity": "medium"
+    },
+    {
+      "file": "shop-drawings.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 520,
+      "severity": "medium"
+    },
+    {
+      "file": "tasks.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 106,
+      "severity": "medium"
+    },
+    {
+      "file": "users.ts",
+      "issue": "Potential N+1 query: findMany without include",
+      "line": 14,
+      "severity": "medium"
+    }
+  ],
+  "missingValidation": [
+    {
+      "file": "catalog.ts",
+      "procedure": "create",
+      "line": 261
+    },
+    {
+      "file": "catalog.ts",
+      "procedure": "updateFurnitureDimensions",
+      "line": 432
+    },
+    {
+      "file": "catalog.ts",
+      "procedure": "addItemImage",
+      "line": 475
+    },
+    {
+      "file": "design-briefs.ts",
+      "procedure": "getAll",
+      "line": 12
+    },
+    {
+      "file": "design-briefs.ts",
+      "procedure": "create",
+      "line": 121
+    },
+    {
+      "file": "design-briefs.ts",
+      "procedure": "update",
+      "line": 158
+    },
+    {
+      "file": "design-briefs.ts",
+      "procedure": "approve",
+      "line": 189
+    },
+    {
+      "file": "design-projects-router.ts",
+      "procedure": "getAll",
+      "line": 12
+    },
+    {
+      "file": "design-projects-router.ts",
+      "procedure": "create",
+      "line": 104
+    },
+    {
+      "file": "design-projects-router.ts",
+      "procedure": "update",
+      "line": 133
+    },
+    {
+      "file": "design-projects-router.ts",
+      "procedure": "updateProgress",
+      "line": 162
+    },
+    {
+      "file": "factoryReviews.ts",
+      "procedure": "getAllSessions",
+      "line": 20
+    },
+    {
+      "file": "factoryReviews.ts",
+      "procedure": "createSession",
+      "line": 191
+    },
+    {
+      "file": "factoryReviews.ts",
+      "procedure": "updateSession",
+      "line": 245
+    },
+    {
+      "file": "factoryReviews.ts",
+      "procedure": "getPhotos",
+      "line": 291
+    },
+    {
+      "file": "factoryReviews.ts",
+      "procedure": "uploadPhoto",
+      "line": 339
+    },
+    {
+      "file": "factoryReviews.ts",
+      "procedure": "getComments",
+      "line": 408
+    },
+    {
+      "file": "factoryReviews.ts",
+      "procedure": "addComment",
+      "line": 467
+    },
+    {
+      "file": "factoryReviews.ts",
+      "procedure": "getActionItems",
+      "line": 553
+    },
+    {
+      "file": "factoryReviews.ts",
+      "procedure": "uploadDocument",
+      "line": 611
+    },
+    {
+      "file": "invoices.ts",
+      "procedure": "getAll",
+      "line": 20
+    },
+    {
+      "file": "invoices.ts",
+      "procedure": "create",
+      "line": 322
+    },
+    {
+      "file": "invoices.ts",
+      "procedure": "addLineItem",
+      "line": 376
+    },
+    {
+      "file": "invoices.ts",
+      "procedure": "updateLineItem",
+      "line": 426
+    },
+    {
+      "file": "invoices.ts",
+      "procedure": "getStats",
+      "line": 538
+    },
+    {
+      "file": "mood-boards.ts",
+      "procedure": "getAll",
+      "line": 13
+    },
+    {
+      "file": "mood-boards.ts",
+      "procedure": "create",
+      "line": 136
+    },
+    {
+      "file": "mood-boards.ts",
+      "procedure": "update",
+      "line": 182
+    },
+    {
+      "file": "mood-boards.ts",
+      "procedure": "updateLayout",
+      "line": 211
+    },
+    {
+      "file": "mood-boards.ts",
+      "procedure": "generateShareLink",
+      "line": 232
+    },
+    {
+      "file": "oauth.ts",
+      "procedure": "refreshToken",
+      "line": 77
+    },
+    {
+      "file": "oauth.ts",
+      "procedure": "disconnect",
+      "line": 137
+    },
+    {
+      "file": "order-items.ts",
+      "procedure": "create",
+      "line": 89
+    },
+    {
+      "file": "ordered-items-production.ts",
+      "procedure": "getAll",
+      "line": 20
+    },
+    {
+      "file": "ordered-items-production.ts",
+      "procedure": "updateQC",
+      "line": 188
+    },
+    {
+      "file": "ordered-items-production.ts",
+      "procedure": "updateStatus",
+      "line": 225
+    },
+    {
+      "file": "ordered-items-production.ts",
+      "procedure": "assignToShipment",
+      "line": 263
+    },
+    {
+      "file": "ordered-items-production.ts",
+      "procedure": "bulkUpdateQC",
+      "line": 297
+    },
+    {
+      "file": "ordered-items-production.ts",
+      "procedure": "getQCStats",
+      "line": 330
+    },
+    {
+      "file": "packing.ts",
+      "procedure": "getAllJobs",
+      "line": 20
+    },
+    {
+      "file": "packing.ts",
+      "procedure": "createJob",
+      "line": 132
+    },
+    {
+      "file": "packing.ts",
+      "procedure": "updateJobStatus",
+      "line": 169
+    },
+    {
+      "file": "packing.ts",
+      "procedure": "autoGenerateFromOrder",
+      "line": 211
+    },
+    {
+      "file": "packing.ts",
+      "procedure": "addBox",
+      "line": 325
+    },
+    {
+      "file": "packing.ts",
+      "procedure": "updateBox",
+      "line": 372
+    },
+    {
+      "file": "packing.ts",
+      "procedure": "getPackingStats",
+      "line": 452
+    },
+    {
+      "file": "partners.ts",
+      "procedure": "getAll",
+      "line": 111
+    },
+    {
+      "file": "partners.ts",
+      "procedure": "create",
+      "line": 238
+    },
+    {
+      "file": "partners.ts",
+      "procedure": "update",
+      "line": 252
+    },
+    {
+      "file": "partners.ts",
+      "procedure": "create",
+      "line": 303
+    },
+    {
+      "file": "partners.ts",
+      "procedure": "update",
+      "line": 313
+    },
+    {
+      "file": "partners.ts",
+      "procedure": "create",
+      "line": 342
+    },
+    {
+      "file": "partners.ts",
+      "procedure": "update",
+      "line": 355
+    },
+    {
+      "file": "partners.ts",
+      "procedure": "getPerformanceStats",
+      "line": 382
+    },
+    {
+      "file": "partners.ts",
+      "procedure": "getForSelection",
+      "line": 438
+    },
+    {
+      "file": "payments.ts",
+      "procedure": "getAll",
+      "line": 20
+    },
+    {
+      "file": "payments.ts",
+      "procedure": "getUnallocated",
+      "line": 234
+    },
+    {
+      "file": "payments.ts",
+      "procedure": "create",
+      "line": 293
+    },
+    {
+      "file": "payments.ts",
+      "procedure": "allocateToInvoice",
+      "line": 362
+    },
+    {
+      "file": "payments.ts",
+      "procedure": "update",
+      "line": 472
+    },
+    {
+      "file": "payments.ts",
+      "procedure": "getStats",
+      "line": 597
+    },
+    {
+      "file": "production-invoices.ts",
+      "procedure": "getAll",
+      "line": 147
+    },
+    {
+      "file": "production-invoices.ts",
+      "procedure": "recordPayment",
+      "line": 223
+    },
+    {
+      "file": "production-invoices.ts",
+      "procedure": "update",
+      "line": 333
+    },
+    {
+      "file": "production-invoices.ts",
+      "procedure": "getOutstanding",
+      "line": 391
+    },
+    {
+      "file": "production-orders.ts",
+      "procedure": "getAll",
+      "line": 211
+    },
+    {
+      "file": "production-orders.ts",
+      "procedure": "create",
+      "line": 278
+    },
+    {
+      "file": "production-orders.ts",
+      "procedure": "updateStatus",
+      "line": 320
+    },
+    {
+      "file": "production-orders.ts",
+      "procedure": "update",
+      "line": 373
+    },
+    {
+      "file": "production-orders.ts",
+      "procedure": "getByFactory",
+      "line": 432
+    },
+    {
+      "file": "production-tracking.ts",
+      "procedure": "createMilestone",
+      "line": 216
+    },
+    {
+      "file": "production-tracking.ts",
+      "procedure": "updateMilestone",
+      "line": 234
+    },
+    {
+      "file": "products.ts",
+      "procedure": "createCollection",
+      "line": 84
+    },
+    {
+      "file": "products.ts",
+      "procedure": "updateCollection",
+      "line": 105
+    },
+    {
+      "file": "products.ts",
+      "procedure": "createMaterial",
+      "line": 235
+    },
+    {
+      "file": "products.ts",
+      "procedure": "updateMaterial",
+      "line": 320
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "getAll",
+      "line": 20
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "create",
+      "line": 260
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "update",
+      "line": 342
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "updateStatus",
+      "line": 406
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "search",
+      "line": 446
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "getRecent",
+      "line": 521
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "createProduction",
+      "line": 594
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "updateProduction",
+      "line": 630
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "updateProgress",
+      "line": 682
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "assignFactory",
+      "line": 708
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "assignManager",
+      "line": 734
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "createMilestone",
+      "line": 858
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "updateMilestone",
+      "line": 903
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "updateMilestoneStatus",
+      "line": 959
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "updateMilestoneProgress",
+      "line": 1013
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "reorderMilestones",
+      "line": 1055
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "getPhotos",
+      "line": 1090
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "uploadPhoto",
+      "line": 1212
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "updatePhoto",
+      "line": 1273
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "addPhotoAnnotation",
+      "line": 1328
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "setFeaturedPhoto",
+      "line": 1372
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "getPhotoComments",
+      "line": 1413
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "addPhotoComment",
+      "line": 1467
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "getDocuments",
+      "line": 1569
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "uploadDocument",
+      "line": 1663
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "updateDocument",
+      "line": 1717
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "getReviews",
+      "line": 1803
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "createReview",
+      "line": 1914
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "updateReview",
+      "line": 1960
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "addReviewParticipant",
+      "line": 2000
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "getReviewActions",
+      "line": 2057
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "createReviewAction",
+      "line": 2098
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "updateReviewAction",
+      "line": 2134
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "updateActionStatus",
+      "line": 2174
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "assignAction",
+      "line": 2208
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "getFeedback",
+      "line": 2238
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "submitFeedback",
+      "line": 2284
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "updateFeedback",
+      "line": 2332
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "addressFeedback",
+      "line": 2370
+    },
+    {
+      "file": "prototypes.ts",
+      "procedure": "createRevision",
+      "line": 2460
+    },
+    {
+      "file": "qc.ts",
+      "procedure": "getAllInspections",
+      "line": 20
+    },
+    {
+      "file": "qc.ts",
+      "procedure": "createInspection",
+      "line": 170
+    },
+    {
+      "file": "qc.ts",
+      "procedure": "updateInspectionStatus",
+      "line": 220
+    },
+    {
+      "file": "qc.ts",
+      "procedure": "getDefects",
+      "line": 252
+    },
+    {
+      "file": "qc.ts",
+      "procedure": "addDefect",
+      "line": 307
+    },
+    {
+      "file": "qc.ts",
+      "procedure": "updateDefect",
+      "line": 340
+    },
+    {
+      "file": "qc.ts",
+      "procedure": "getPhotos",
+      "line": 371
+    },
+    {
+      "file": "qc.ts",
+      "procedure": "uploadPhoto",
+      "line": 404
+    },
+    {
+      "file": "qc.ts",
+      "procedure": "addComment",
+      "line": 495
+    },
+    {
+      "file": "qc.ts",
+      "procedure": "addCheckpoint",
+      "line": 581
+    },
+    {
+      "file": "qc.ts",
+      "procedure": "updateCheckpoint",
+      "line": 621
+    },
+    {
+      "file": "qc.ts",
+      "procedure": "getInspectionStats",
+      "line": 653
+    },
+    {
+      "file": "qc.ts",
+      "procedure": "getInspectionsByCatalogItem",
+      "line": 737
+    },
+    {
+      "file": "shipping.ts",
+      "procedure": "getQuotes",
+      "line": 72
+    },
+    {
+      "file": "shipping.ts",
+      "procedure": "createShipment",
+      "line": 143
+    },
+    {
+      "file": "shop-drawings.ts",
+      "procedure": "getAll",
+      "line": 16
+    },
+    {
+      "file": "shop-drawings.ts",
+      "procedure": "create",
+      "line": 187
+    },
+    {
+      "file": "shop-drawings.ts",
+      "procedure": "uploadVersion",
+      "line": 279
+    },
+    {
+      "file": "shop-drawings.ts",
+      "procedure": "addComment",
+      "line": 370
+    },
+    {
+      "file": "shop-drawings.ts",
+      "procedure": "resolveComment",
+      "line": 426
+    },
+    {
+      "file": "shop-drawings.ts",
+      "procedure": "approveVersion",
+      "line": 463
+    },
+    {
+      "file": "shop-drawings.ts",
+      "procedure": "getComments",
+      "line": 637
+    },
+    {
+      "file": "storage.ts",
+      "procedure": "recordUpload",
+      "line": 73
+    },
+    {
+      "file": "storage.ts",
+      "procedure": "listFiles",
+      "line": 176
+    },
+    {
+      "file": "tasks.ts",
+      "procedure": "addAttachment",
+      "line": 255
+    },
+    {
+      "file": "tasks.ts",
+      "procedure": "addActivity",
+      "line": 312
+    },
+    {
+      "file": "tasks.ts",
+      "procedure": "addEntityLink",
+      "line": 340
+    }
+  ]
+}

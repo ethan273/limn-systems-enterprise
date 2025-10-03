@@ -1,681 +1,462 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/hooks/use-toast";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Package, Users, Calendar, Settings, Plus, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/hooks/use-toast";
+import { Search, Plus, MoreVertical, Eye, Edit, Trash, Package } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 
 interface Collection {
- id: string;
- name: string;
- prefix?: string;
- description?: string;
- image_url?: string;
- display_order?: number;
- is_active?: boolean;
- designer?: string;
- variation_types?: string[];
- created_at: string;
- updated_at?: string;
-}
-
-interface CollectionFormData {
- name: string;
- prefix: string;
- description: string;
- image_url: string;
- display_order: number;
- is_active: boolean;
- designer: string;
+  id: string;
+  name: string;
+  prefix?: string;
+  description?: string;
+  designer?: string;
+  display_order?: number;
+  is_active?: boolean;
+  created_at: string;
+  updated_at?: string;
 }
 
 export default function CollectionsPage() {
- const [error, setError] = useState("");
- const [showCreateForm, setShowCreateForm] = useState(false);
- const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
- const [formData, setFormData] = useState<CollectionFormData>({
- name: "",
- prefix: "",
- description: "",
- image_url: "",
- display_order: 1,
- is_active: true,
- designer: ""
- });
- const [actionLoading, setActionLoading] = useState<string | null>(null);
- const [formErrors, setFormErrors] = useState<Record<string, string>>({});
- const [managingVariations, setManagingVariations] = useState<Collection | null>(null);
- const [newVariationType, setNewVariationType] = useState("");
- const [variationDialogOpen, setVariationDialogOpen] = useState(false);
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+  });
 
- // Use tRPC API instead of manual fetch
- const { data: collections = [], isLoading: loading, refetch: fetchCollections } = api.products.getAllCollections.useQuery();
- const createCollectionMutation = api.products.createCollection.useMutation();
- const updateCollectionMutation = api.products.updateCollection.useMutation();
- const deleteCollectionMutation = api.products.deleteCollection.useMutation();
+  // Query collections
+  const { data: collections = [], isLoading, refetch } = api.products.getAllCollections.useQuery();
 
- const validateForm = () => {
- const errors: Record<string, string> = {};
+  // Mutations
+  const createMutation = api.products.createCollection.useMutation();
+  const updateMutation = api.products.updateCollection.useMutation();
+  const deleteMutation = api.products.deleteCollection.useMutation();
 
- if (!(formData.name || "").trim()) {
- errors.name = "Collection name is required";
- }
+  // Filter collections by search query
+  const filteredCollections = collections.filter((collection: Collection) => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      collection.name.toLowerCase().includes(query) ||
+      collection.prefix?.toLowerCase().includes(query) ||
+      collection.description?.toLowerCase().includes(query)
+    );
+  });
 
- if (!(formData.prefix || "").trim()) {
- errors.prefix = "Prefix is required";
- } else if ((formData.prefix || []).length !== 2) {
- errors.prefix = "Prefix must be exactly 2 characters";
- } else if (!/^[A-Z]{2}$/.test(formData.prefix)) {
- errors.prefix = "Prefix must be 2 uppercase letters";
- }
+  const handleCreate = async () => {
+    if (!formData.name.trim()) {
+      toast({
+        title: "Error",
+        description: "Collection name is required",
+        variant: "destructive",
+      });
+      return;
+    }
 
- // Check for duplicate prefix
- const existingPrefixes = collections
- .filter((c: any) => c.id !== editingCollection?.id)
- .map((c: any) => c.prefix?.toUpperCase()).filter(Boolean);
+    try {
+      await createMutation.mutateAsync({
+        name: formData.name,
+        description: formData.description || undefined,
+      });
 
- if (existingPrefixes.includes((formData.prefix || "").toUpperCase())) {
- errors.prefix = "This prefix is already in use";
- }
+      toast({
+        title: "Success",
+        description: "Collection created successfully",
+      });
 
- if (formData.display_order < 1) {
- errors.display_order = "Display order must be at least 1";
- }
+      setShowCreateDialog(false);
+      setFormData({ name: "", description: "" });
+      await refetch();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create collection",
+        variant: "destructive",
+      });
+    }
+  };
 
- setFormErrors(errors);
- return Object.keys(errors).length === 0;
- };
+  const handleEdit = (collection: Collection) => {
+    setEditingCollection(collection);
+    setFormData({
+      name: collection.name,
+      description: collection.description || "",
+    });
+    setShowEditDialog(true);
+  };
 
- const handleSubmit = async (e: React.FormEvent) => {
- e.preventDefault();
+  const handleUpdate = async () => {
+    if (!editingCollection || !formData.name.trim()) {
+      toast({
+        title: "Error",
+        description: "Collection name is required",
+        variant: "destructive",
+      });
+      return;
+    }
 
- if (!validateForm()) {
- return;
- }
+    try {
+      await updateMutation.mutateAsync({
+        id: editingCollection.id,
+        name: formData.name,
+        description: formData.description || undefined,
+      });
 
- const isEditing = !!editingCollection;
- setActionLoading(isEditing ? "update" : "create");
+      toast({
+        title: "Success",
+        description: "Collection updated successfully",
+      });
 
- try {
- if (isEditing) {
- await updateCollectionMutation.mutateAsync({
- id: editingCollection.id,
- name: formData.name,
- description: formData.description || undefined,
- });
- } else {
- await createCollectionMutation.mutateAsync({
- name: formData.name,
- description: formData.description || undefined,
- });
- }
+      setShowEditDialog(false);
+      setEditingCollection(null);
+      setFormData({ name: "", description: "" });
+      await refetch();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update collection",
+        variant: "destructive",
+      });
+    }
+  };
 
- toast({
- title: "Success",
- description: `Collection ${isEditing ? "updated" : "created"} successfully!`,
- });
- setShowCreateForm(false);
- setEditingCollection(null);
- resetForm();
- await fetchCollections();
- setError("");
- } catch (err) {
- const errorMessage = `Failed to ${isEditing ? "update" : "create"} collection`;
- setError(errorMessage);
- toast({
- title: "Error",
- description: errorMessage,
- variant: "destructive",
- });
- } finally {
- setActionLoading(null);
- }
- };
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to delete the collection "${name}"?`)) {
+      return;
+    }
 
- const handleEdit = (collection: any) => {
- setEditingCollection(collection);
- setFormData({
- name: collection.name,
- prefix: collection.prefix || "",
- description: collection.description || "",
- image_url: collection.image_url || "",
- display_order: collection.display_order || 1,
- is_active: collection.is_active !== false,
- designer: collection.designer || ""
- });
- setFormErrors({});
- setShowCreateForm(true);
- setError("");
- };
+    try {
+      await deleteMutation.mutateAsync({ id });
 
- const handleDelete = async (collection: any) => {
- if (!confirm(`Are you sure you want to delete "${collection.name}"? This action cannot be undone.`)) {
- return;
- }
+      toast({
+        title: "Success",
+        description: "Collection deleted successfully",
+      });
 
- setActionLoading(`delete-${collection.id}`);
+      await refetch();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete collection",
+        variant: "destructive",
+      });
+    }
+  };
 
- try {
- await deleteCollectionMutation.mutateAsync({ id: collection.id });
+  return (
+    <div className="page-container">
+      {/* Header */}
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Collections</h1>
+          <p className="page-subtitle">Manage product collections and their properties</p>
+        </div>
+        <Button onClick={() => setShowCreateDialog(true)}>
+          <Plus className="icon-sm" />
+          New Collection
+        </Button>
+      </div>
 
- toast({
- title: "Success",
- description: "Collection deleted successfully!",
- });
- await fetchCollections();
- setError("");
- } catch (err) {
- const errorMessage = "Failed to delete collection";
- setError(errorMessage);
- toast({
- title: "Error",
- description: errorMessage,
- variant: "destructive",
- });
- } finally {
- setActionLoading(null);
- }
- };
+      {/* Filters */}
+      <div className="filters-section">
+        <div className="relative flex-1">
+          <Search className="search-icon" />
+          <Input
+            placeholder="Search collections by name, prefix, or description..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="search-input"
+          />
+        </div>
+      </div>
 
- const resetForm = () => {
- setFormData({
- name: "",
- prefix: "",
- description: "",
- image_url: "",
- display_order: Math.max(1, collections.length + 1),
- is_active: true,
- designer: ""
- });
- setFormErrors({});
- };
+      {/* Stats Cards */}
+      <div className="stats-grid">
+        <div className="stat-card">
+          <div className="stat-card-content">
+            <div className="stat-card-header">
+              <span className="stat-card-label">Total Collections</span>
+              <Package className="stat-card-icon" />
+            </div>
+            <div className="stat-card-value">{collections.length}</div>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-card-content">
+            <div className="stat-card-header">
+              <span className="stat-card-label">Active</span>
+              <Package className="stat-card-icon" />
+            </div>
+            <div className="stat-card-value">
+              {collections.filter((c: Collection) => c.is_active !== false).length}
+            </div>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-card-content">
+            <div className="stat-card-header">
+              <span className="stat-card-label">Inactive</span>
+              <Package className="stat-card-icon" />
+            </div>
+            <div className="stat-card-value">
+              {collections.filter((c: Collection) => c.is_active === false).length}
+            </div>
+          </div>
+        </div>
+      </div>
 
- const handleCancel = () => {
- setShowCreateForm(false);
- setEditingCollection(null);
- resetForm();
- setError("");
- };
+      {/* Collections Table */}
+      <div className="data-table-container">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Prefix</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead>Designer</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Created</TableHead>
+              <TableHead className="w-[60px]"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8">
+                  <div className="loading-spinner" />
+                  <p className="page-subtitle mt-2">Loading collections...</p>
+                </TableCell>
+              </TableRow>
+            ) : filteredCollections.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8">
+                  <p className="page-subtitle">
+                    {searchQuery ? "No collections found matching your search" : "No collections found"}
+                  </p>
+                  {!searchQuery && (
+                    <Button
+                      onClick={() => setShowCreateDialog(true)}
+                      variant="outline"
+                      className="mt-4"
+                    >
+                      <Plus className="icon-sm" />
+                      Create First Collection
+                    </Button>
+                  )}
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredCollections.map((collection: Collection) => (
+                <TableRow
+                  key={collection.id}
+                  className="data-table-row"
+                  onClick={() => router.push(`/products/collections/${collection.id}`)}
+                >
+                  <TableCell className="data-table-cell-primary">
+                    <div className="flex items-center gap-3">
+                      <div className="data-table-avatar">
+                        <Package className="icon-sm" />
+                      </div>
+                      <span className="font-medium">{collection.name}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="data-table-cell">
+                    {collection.prefix ? (
+                      <Badge variant="secondary" className="font-mono">
+                        {collection.prefix}
+                      </Badge>
+                    ) : (
+                      <span className="text-muted">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="data-table-cell">
+                    <span className="line-clamp-1">
+                      {collection.description || <span className="text-muted">—</span>}
+                    </span>
+                  </TableCell>
+                  <TableCell className="data-table-cell">
+                    {collection.designer || <span className="text-muted">—</span>}
+                  </TableCell>
+                  <TableCell className="data-table-cell">
+                    <Badge
+                      variant="outline"
+                      className={
+                        collection.is_active !== false
+                          ? "status-active"
+                          : "status-inactive"
+                      }
+                    >
+                      {collection.is_active !== false ? "Active" : "Inactive"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="data-table-cell">
+                    {formatDistanceToNow(new Date(collection.created_at), { addSuffix: true })}
+                  </TableCell>
+                  <TableCell className="data-table-cell-actions">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                        <Button variant="ghost" size="sm" className="btn-icon">
+                          <MoreVertical className="icon-sm" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="card">
+                        <DropdownMenuItem
+                          className="dropdown-item"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/products/collections/${collection.id}`);
+                          }}
+                        >
+                          <Eye className="icon-sm" />
+                          View Details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="dropdown-item"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEdit(collection);
+                          }}
+                        >
+                          <Edit className="icon-sm" />
+                          Edit Collection
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="dropdown-item-danger"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(collection.id, collection.name);
+                          }}
+                        >
+                          <Trash className="icon-sm" />
+                          Delete Collection
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
- const formatDate = (dateString: string) => {
- return new Date(dateString).toLocaleDateString("en-US", {
- year: "numeric",
- month: "short",
- day: "numeric",
- hour: "2-digit",
- minute: "2-digit"
- });
- };
+      {/* Create Dialog */}
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent className="card">
+          <DialogHeader>
+            <DialogTitle>Create New Collection</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="name">Collection Name *</Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="e.g., Pacifica Collection"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Describe this collection..."
+                rows={3}
+                className="mt-1"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowCreateDialog(false);
+                setFormData({ name: "", description: "" });
+              }}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleCreate} disabled={createMutation.isPending}>
+              {createMutation.isPending ? "Creating..." : "Create Collection"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
- const handleManageVariations = (collection: any) => {
- setManagingVariations(collection);
- setVariationDialogOpen(true);
- setNewVariationType("");
- };
-
- const handleAddVariationType = () => {
- if (!newVariationType.trim() || !managingVariations) return;
-
- const currentTypes = managingVariations.variation_types || [];
- if (currentTypes.includes(newVariationType.trim())) {
- toast({
- title: "Error",
- description: "This variation type already exists",
- variant: "destructive",
- });
- return;
- }
-
- const updatedTypes = [...currentTypes, newVariationType.trim()];
- updateCollectionVariations(managingVariations.id, updatedTypes);
- setNewVariationType("");
- };
-
- const handleRemoveVariationType = (typeToRemove: string) => {
- if (!managingVariations) return;
-
- const updatedTypes = (managingVariations.variation_types || []).filter(type => type !== typeToRemove);
- updateCollectionVariations(managingVariations.id, updatedTypes);
- };
-
- const updateCollectionVariations = async (collectionId: string, variationTypes: string[]) => {
- try {
- // Note: This will need a new API endpoint to update variation_types
- // For now, we'll update the local state
- setManagingVariations(prev => prev ? { ...prev, variation_types: variationTypes } : null);
-
- toast({
- title: "Success",
- description: "Variation types updated successfully",
- });
-
- // Refresh collections to get updated data
- await fetchCollections();
- } catch (err) {
- toast({
- title: "Error",
- description: "Failed to update variation types",
- variant: "destructive",
- });
- }
- };
-
- return (
- <div className="p-6 space-y-8">
- <div className="flex items-center justify-between">
- <div>
- <h1 className="text-4xl font-bold text-primary">Collections</h1>
- <p className="text-secondary mt-1">Manage product collections and their properties</p>
- </div>
- <div className="flex space-x-2">
- <Button onClick={() => fetchCollections()} disabled={loading} variant="outline">
- {loading ? "Refreshing..." : "Refresh"}
- </Button>
- <Button
- onClick={() => {
- resetForm();
- setShowCreateForm(true);
- setError("");
- }}
- disabled={showCreateForm}
- >
- New Collection
- </Button>
- </div>
- </div>
-
- {error && (
- <div className="bg-red-900/20 border border-red-500 rounded-md p-4">
- <div className="text-red-300 text-sm">
- <strong>Error:</strong> {error}
- </div>
- </div>
- )}
-
- {/* Create/Edit Form */}
- {showCreateForm && (
- <Card className="card">
- <CardHeader>
- <CardTitle className="text-primary">
- {editingCollection ? "Edit Collection" : "Create New Collection"}
- </CardTitle>
- </CardHeader>
- <CardContent className="p-6">
- <form onSubmit={handleSubmit} className="space-y-8">
- <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
- {/* Basic Information */}
- <div className="space-y-4">
- <h3 className="font-medium text-primary">Basic Information</h3>
-
- <div>
- <label htmlFor="name" className="block text-sm font-medium text-primary mb-1">
- Collection Name *
- </label>
- <input
- id="name"
- type="text"
- value={formData.name}
- onChange={(e) => setFormData({ ...formData, name: e.target.value })}
- className={`w-full px-3 py-2 card border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-primary ${
- formErrors.name ? 'border-red-500' : ''
- }`}
- placeholder="e.g., Pacifica Collection"
- />
- {formErrors.name && (
- <div className="text-red-400 text-sm mt-1">{formErrors.name}</div>
- )}
- </div>
-
- <div>
- <label htmlFor="description" className="block text-sm font-medium text-primary mb-1">
- Description
- </label>
- <textarea
- id="description"
- rows={3}
- value={formData.description}
- onChange={(e) => setFormData({ ...formData, description: e.target.value })}
- className="w-full px-3 py-2 card border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-primary"
- placeholder="Describe this collection..."
- />
- </div>
- </div>
-
- {/* Settings */}
- <div className="space-y-4">
- <h3 className="font-medium text-primary">Settings</h3>
-
- <div className="flex items-center space-x-2">
- <input
- id="is_active"
- type="checkbox"
- checked={formData.is_active}
- onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
- className="h-4 w-4 text-primary focus:ring-primary card rounded"
- />
- <label htmlFor="is_active" className="text-sm font-medium text-primary">
- Active Collection
- </label>
- </div>
- </div>
- </div>
-
- {/* Form Actions */}
- <div className="flex justify-end space-x-4 pt-6 border-t">
- <Button
- type="button"
- variant="outline"
- onClick={handleCancel}
- disabled={!!actionLoading}
- >
- Cancel
- </Button>
- <Button
- type="submit"
- disabled={!!actionLoading}
- className="min-w-[120px]"
- >
- {actionLoading === "create" || actionLoading === "update" ? (
- <div className="flex items-center space-x-2">
- <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
- <span>{editingCollection ? "Updating..." : "Creating..."}</span>
- </div>
- ) : (
- editingCollection ? "Update Collection" : "Create Collection"
- )}
- </Button>
- </div>
- </form>
- </CardContent>
- </Card>
- )}
-
- {/* Collections Table */}
- <Card className="card">
- <CardHeader>
- <CardTitle className="text-primary">All Collections ({collections.length})</CardTitle>
- </CardHeader>
- <CardContent className="p-6">
- {loading ? (
- <div className="text-center py-12">
- <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 mb-4"></div>
- <div className="page-subtitle">Loading collections...</div>
- </div>
- ) : collections.length === 0 ? (
- <div className="text-center py-12">
- <div className="text-secondary mb-4">No collections found</div>
- <Button onClick={() => {
- resetForm();
- setShowCreateForm(true);
- }}>
- Create First Collection
- </Button>
- </div>
- ) : (
- <Accordion type="multiple" className="space-y-2">
- {collections.map((collection: any, index: number) => (
- <AccordionItem
- key={`collections-accordion-${index}-${collection.id || "no-id"}`}
- value={collection.id}
- className="border rounded-lg card"
- >
- <AccordionTrigger className="px-6 py-4 hover:no-underline">
- <div className="flex items-center justify-between w-full">
- <div className="flex items-center space-x-4">
- <div className="text-left">
- <div className="font-medium text-primary">{collection.name}</div>
- <div className="text-sm text-secondary mt-1">
- {collection.description || "No description provided"}
- </div>
- </div>
- {collection.prefix && (
- <Badge variant="secondary" className="font-mono">
- {collection.prefix}
- </Badge>
- )}
- </div>
- <div className="flex items-center space-x-3">
- <Badge
- variant={collection.is_active !== false ? "default" : "secondary"}
- className={collection.is_active !== false ? "bg-green-100 text-green-800" : "badge-neutral"}
- >
- {collection.is_active !== false ? "Active" : "Inactive"}
- </Badge>
- <div className="text-sm page-subtitle">
- {formatDate(collection.created_at)}
- </div>
- </div>
- </div>
- </AccordionTrigger>
- <AccordionContent className="px-6 pb-4">
- <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
- {/* Collection Details */}
- <div className="space-y-3">
- <h4 className="font-medium text-primary flex items-center gap-2">
- <Package className="h-4 w-4" />
- Collection Details
- </h4>
- <div className="space-y-2 text-sm">
- <div className="flex justify-between">
- <span className="page-subtitle">Prefix:</span>
- <span className="font-mono text-primary">{collection.prefix || "—"}</span>
- </div>
- <div className="flex justify-between">
- <span className="page-subtitle">Display Order:</span>
- <span className="text-primary">{collection.display_order || "—"}</span>
- </div>
- <div className="flex justify-between">
- <span className="page-subtitle">Designer:</span>
- <span className="text-primary">{collection.designer || "—"}</span>
- </div>
- </div>
- </div>
-
- {/* Statistics */}
- <div className="space-y-3">
- <h4 className="font-medium text-primary flex items-center gap-2">
- <Users className="h-4 w-4" />
- Statistics
- </h4>
- <div className="space-y-2 text-sm">
- <div className="flex justify-between">
- <span className="page-subtitle">Items Count:</span>
- <Badge variant="outline" className=" text-secondary">0 items</Badge>
- </div>
- <div className="flex justify-between">
- <span className="page-subtitle">Materials Tagged:</span>
- <Badge variant="outline" className=" text-secondary">0 materials</Badge>
- </div>
- <div className="flex justify-between">
- <span className="page-subtitle">Active Orders:</span>
- <Badge variant="outline" className=" text-secondary">0 orders</Badge>
- </div>
- </div>
- </div>
-
- {/* Variations */}
- <div className="space-y-3">
- <h4 className="font-medium text-primary flex items-center gap-2">
- <Settings className="h-4 w-4" />
- Variation Types
- </h4>
- <div className="space-y-2">
- {collection.variation_types && collection.variation_types.length > 0 ? (
- <div className="flex flex-wrap gap-1">
- {collection.variation_types.map((type: string, idx: number) => (
- <Badge key={idx} variant="outline" className=" text-secondary text-xs">
- {type}
- </Badge>
- ))}
- </div>
- ) : (
- <div className="text-sm page-subtitle">No variation types defined</div>
- )}
- <Dialog open={variationDialogOpen} onOpenChange={setVariationDialogOpen}>
- <DialogTrigger asChild>
- <Button
- size="sm"
- variant="outline"
- onClick={() => handleManageVariations(collection)}
- className="w-full mt-2 text-xs text-secondary hover:card"
- >
- <Settings className="h-3 w-3 mr-1" />
- Manage Variations
- </Button>
- </DialogTrigger>
- <DialogContent className="card text-primary">
- <DialogHeader>
- <DialogTitle className="text-primary">
- Manage Variation Types - {managingVariations?.name}
- </DialogTitle>
- </DialogHeader>
- <div className="space-y-4">
- <div className="space-y-2">
- <label className="text-sm font-medium text-primary">Current Variation Types:</label>
- {managingVariations?.variation_types && managingVariations.variation_types.length > 0 ? (
- <div className="flex flex-wrap gap-2">
- {managingVariations.variation_types.map((type, idx) => (
- <div key={idx} className="flex items-center card border rounded-md px-2 py-1">
- <span className="text-sm text-primary">{type}</span>
- <button
- onClick={() => handleRemoveVariationType(type)}
- className="ml-2 text-red-400 hover:text-red-300"
- >
- <X className="h-3 w-3" />
- </button>
- </div>
- ))}
- </div>
- ) : (
- <div className="text-sm page-subtitle">No variation types defined</div>
- )}
- </div>
- <div className="space-y-2">
- <label className="text-sm font-medium text-primary">Add New Variation Type:</label>
- <div className="flex gap-2">
- <Input
- value={newVariationType}
- onChange={(e) => setNewVariationType(e.target.value)}
- placeholder="e.g., Standard, Deep, Custom"
- className="card text-primary"
- onKeyDown={(e) => {
- if (e.key === 'Enter') {
- e.preventDefault();
- handleAddVariationType();
- }
- }}
- />
- <Button
- onClick={handleAddVariationType}
- disabled={!newVariationType.trim()}
- size="sm"
- >
- <Plus className="h-4 w-4" />
- </Button>
- </div>
- </div>
- <div className="text-xs page-subtitle">
- Variation types help categorize different versions of items within this collection (e.g., Standard vs Deep seating, different sizes, etc.)
- </div>
- </div>
- </DialogContent>
- </Dialog>
- </div>
- </div>
- </div>
-
- {/* Description */}
- {collection.description && (
- <div className="mb-6">
- <h4 className="font-medium text-primary mb-2">Description</h4>
- <p className="text-sm text-secondary card border rounded-md p-3">
- {collection.description}
- </p>
- </div>
- )}
-
- {/* Image */}
- {collection.image_url && (
- <div className="mb-6">
- <h4 className="font-medium text-primary mb-2">Collection Image</h4>
- <div className="relative w-32 h-32 rounded-md overflow-hidden card border">
- <Image
- src={collection.image_url}
- alt={collection.name}
- fill
- className="object-cover"
- />
- </div>
- </div>
- )}
-
- {/* Timeline */}
- <div className="mb-6">
- <h4 className="font-medium text-primary flex items-center gap-2 mb-3">
- <Calendar className="h-4 w-4" />
- Timeline
- </h4>
- <div className="grid grid-cols-2 gap-4 text-sm">
- <div className="flex justify-between">
- <span className="page-subtitle">Created:</span>
- <span className="text-primary">{formatDate(collection.created_at)}</span>
- </div>
- {collection.updated_at && (
- <div className="flex justify-between">
- <span className="page-subtitle">Updated:</span>
- <span className="text-primary">{formatDate(collection.updated_at)}</span>
- </div>
- )}
- <div className="flex justify-between">
- <span className="page-subtitle">Status:</span>
- <Badge
- variant={collection.is_active !== false ? "default" : "secondary"}
- className={collection.is_active !== false ? "bg-green-600 text-green-100" : " text-secondary"}
- >
- {collection.is_active !== false ? "Active" : "Inactive"}
- </Badge>
- </div>
- </div>
- </div>
-
- {/* Actions */}
- <div className="flex justify-end space-x-2 pt-4 border-t">
- <Button
- size="sm"
- variant="outline"
- onClick={() => handleEdit(collection)}
- disabled={!!actionLoading}
- >
- Edit Collection
- </Button>
- <Button
- size="sm"
- variant="outline"
- onClick={() => handleDelete(collection)}
- disabled={!!actionLoading}
- className="text-red-600 hover:text-red-700 hover:bg-red-50"
- >
- {actionLoading === `delete-${collection.id}` ? (
- <div className="inline-block animate-spin rounded-full h-3 w-3 border-b-2 border-red-600"></div>
- ) : (
- "Delete Collection"
- )}
- </Button>
- </div>
- </AccordionContent>
- </AccordionItem>
- ))}
- </Accordion>
- )}
- </CardContent>
- </Card>
- </div>
- );
+      {/* Edit Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="card">
+          <DialogHeader>
+            <DialogTitle>Edit Collection</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="edit-name">Collection Name *</Label>
+              <Input
+                id="edit-name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="e.g., Pacifica Collection"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-description">Description</Label>
+              <Textarea
+                id="edit-description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Describe this collection..."
+                rows={3}
+                className="mt-1"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowEditDialog(false);
+                setEditingCollection(null);
+                setFormData({ name: "", description: "" });
+              }}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleUpdate} disabled={updateMutation.isPending}>
+              {updateMutation.isPending ? "Updating..." : "Update Collection"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
 }

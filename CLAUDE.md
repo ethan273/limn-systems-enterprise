@@ -610,6 +610,52 @@ At the end of every response, ALWAYS include:
 
 ---
 
+## 🚨 CRITICAL PLAYWRIGHT/CHROMIUM SETUP REQUIREMENT 🚨
+
+**PLAYWRIGHT CHROMIUM VERSION MISMATCH FIX - PERMANENT SOLUTION**
+
+**THE PROBLEM:**
+The MCP Playwright server expects a specific Chromium version (e.g., chromium-1179), but `npx playwright install` installs the latest version (e.g., chromium-1193), causing this error:
+```
+Failed to initialize browser: browserType.launch: Executable doesn't exist at /Users/eko3/Library/Caches/ms-playwright/chromium-1179/chrome-mac/Chromium.app/Contents/MacOS/Chromium
+```
+
+**THE PERMANENT FIX:**
+Create a symlink from the expected version to the installed version:
+
+```bash
+# Step 1: Find the installed Chromium version
+ls -la /Users/eko3/Library/Caches/ms-playwright/ | grep chromium
+
+# Step 2: Identify version mismatch (e.g., expects 1179, have 1193)
+# Look for error message showing expected version
+
+# Step 3: Create symlink from expected version to installed version
+cd /Users/eko3/Library/Caches/ms-playwright
+ln -sf chromium-1193 chromium-1179
+
+# Step 4: Verify symlink created
+ls -la /Users/eko3/Library/Caches/ms-playwright/ | grep chromium
+# Should show: chromium-1179 -> chromium-1193
+```
+
+**WHY THIS WORKS:**
+- The MCP Playwright tool is compiled with a specific Chromium version
+- The symlink redirects the expected version path to the actual installed version
+- This is a zero-cost solution that doesn't require modifying MCP server code
+
+**WHEN TO APPLY THIS FIX:**
+- After `npx playwright install chromium` if you see version mismatch errors
+- When MCP Playwright tool returns "Executable doesn't exist" errors
+- After upgrading Playwright package version
+
+**USER'S EXACT REQUIREMENT:**
+*"When you figure out how you get Chromium working, remember it. Add it to our memory. Add it to our critical instructions and to our ClaudeMD file."*
+
+**THIS IS A CRITICAL REQUIREMENT - NEVER FORGET THIS FIX.**
+
+---
+
 ## 🚨 CRITICAL DEVELOPMENT SERVER WORKFLOW 🚨
 
 **CLEAN DEVELOPMENT SERVER MANAGEMENT - MANDATORY PROCESS**

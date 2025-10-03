@@ -1,0 +1,27 @@
+<testsuites id="" name="" tests="3" failures="0" skipped="0" errors="0" time="7.969718000000001">
+<testsuite name="sample.spec.ts" timestamp="2025-10-03T15:40:19.803Z" hostname="chromium-desktop" tests="3" failures="0" skipped="0" time="11.031" errors="0">
+<testcase name="Sample Test - Homepage › Homepage loads successfully" classname="sample.spec.ts" time="4.154">
+<system-out>
+<![CDATA[🧪 Testing homepage load...
+📸 Screenshot saved: /Users/eko3/limn-systems-enterprise/screenshots/sample/homepage-load-2025-10-03T15-40-26-644Z.png
+✅ Homepage test complete
+]]>
+</system-out>
+</testcase>
+<testcase name="Sample Test - Homepage › Page title is present" classname="sample.spec.ts" time="3.396">
+<system-out>
+<![CDATA[✅ Page title: "Limn Systems Enterprise"
+]]>
+</system-out>
+</testcase>
+<testcase name="Sample Test - Homepage › Basic navigation elements exist" classname="sample.spec.ts" time="3.481">
+<system-out>
+<![CDATA[Sidebar exists: false
+Header exists: false
+📸 Screenshot saved: /Users/eko3/limn-systems-enterprise/screenshots/sample/navigation-elements-2025-10-03T15-40-26-681Z.png
+✅ Navigation elements test complete
+]]>
+</system-out>
+</testcase>
+</testsuite>
+</testsuites>

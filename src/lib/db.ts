@@ -510,6 +510,16 @@ export class DatabaseClient {
   packing_jobs = prisma.packing_jobs;
   packing_boxes = prisma.packing_boxes;
 
+  // Products Module
+  collections = prisma.collections;
+  concepts = prisma.concepts;
+  materials = prisma.materials;
+  material_categories = prisma.material_categories;
+  material_collections = prisma.material_collections;
+  material_furniture_collections = prisma.material_furniture_collections;
+  fabric_brands = prisma.fabric_brands;
+  fabric_brand_collections = prisma.fabric_brand_collections;
+
   // =====================================================
   // TRANSACTION SUPPORT
   // =====================================================

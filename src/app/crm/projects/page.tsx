@@ -1897,7 +1897,7 @@ export default function ProjectsPage() {
  </div>
 
  {/* Projects Table */}
- <div className="mt-6">
+ <div className="mt-6 rounded-md border">
  <Table>
  <TableHeader>
  <TableRow>
