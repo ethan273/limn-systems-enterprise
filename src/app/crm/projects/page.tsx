@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { generateProductSku } from "@/lib/utils/product-sku-generator";
 import { Button } from "@/components/ui/button";
@@ -45,15 +46,12 @@ import {
  Target,
  CheckCircle2,
  Clock,
- AlertCircle,
- ChevronDown,
- ChevronRight
+ AlertCircle
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 
 interface Project {
  id: string;
@@ -1426,6 +1424,7 @@ function ProjectDialog({
 }
 
 export default function ProjectsPage() {
+ const router = useRouter();
  const [searchTerm, setSearchTerm] = useState("");
  const [selectedStatus, setSelectedStatus] = useState("");
  const [selectedPriority, setSelectedPriority] = useState("");
@@ -1433,7 +1432,6 @@ export default function ProjectsPage() {
  const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
  const [orderCreationProjectId, setOrderCreationProjectId] = useState<string>("");
  const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
- const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
  // Query all materials at parent level for SKU generation in handleSaveOrder
  const { data: allMaterialsForSKU } = api.products.getAllMaterials.useQuery();
@@ -1778,16 +1776,6 @@ export default function ProjectsPage() {
  setSelectedPriority("");
  };
 
- const toggleRowExpansion = (projectId: string) => {
- const newExpandedRows = new Set(expandedRows);
- if (newExpandedRows.has(projectId)) {
- newExpandedRows.delete(projectId);
- } else {
- newExpandedRows.add(projectId);
- }
- setExpandedRows(newExpandedRows);
- };
-
  const getTotalBudget = () => {
  return filteredProjects.reduce((sum, project) => sum + (project.budget || 0), 0);
  };
@@ -1913,7 +1901,6 @@ export default function ProjectsPage() {
  <Table>
  <TableHeader>
  <TableRow>
- <TableHead className="w-12"></TableHead>
  <TableHead>Project</TableHead>
  <TableHead>Client</TableHead>
  <TableHead>Status</TableHead>
@@ -1928,25 +1915,13 @@ export default function ProjectsPage() {
  {filteredProjects.map((project) => {
  const statusInfo = getStatusInfo(project.status);
  const StatusIcon = statusInfo.icon;
- const isExpanded = expandedRows.has(project.id);
 
  return (
- <React.Fragment key={project.id}>
- <TableRow className="cursor-pointer hover:bg-muted/50">
- <TableCell>
- <Button
- variant="ghost"
- size="sm"
- onClick={() => toggleRowExpansion(project.id)}
- className="h-8 w-8 p-0"
+ <TableRow
+ key={project.id}
+ className="cursor-pointer hover:bg-muted/50"
+ onClick={() => router.push(`/design/projects/${project.id}`)}
  >
- {isExpanded ? (
- <ChevronDown className="h-4 w-4" />
- ) : (
- <ChevronRight className="h-4 w-4" />
- )}
- </Button>
- </TableCell>
  <TableCell>
  <div className="space-y-1">
  <div className="font-medium">{project.name}</div>
@@ -2007,27 +1982,27 @@ export default function ProjectsPage() {
  </TableCell>
  <TableCell className="text-right">
  <DropdownMenu>
- <DropdownMenuTrigger asChild>
+ <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
  <Button variant="ghost" size="sm">
  <MoreVertical className="h-4 w-4" />
  </Button>
  </DropdownMenuTrigger>
  <DropdownMenuContent align="end">
  <DropdownMenuLabel>Actions</DropdownMenuLabel>
- <DropdownMenuItem onClick={() => handleCreateOrder(project.id)}>
+ <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleCreateOrder(project.id); }}>
  <Plus className="mr-2 h-4 w-4" />
  Create Order
  </DropdownMenuItem>
- <DropdownMenuItem onClick={() => handleEditProject(project)}>
+ <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEditProject(project); }}>
  <Edit className="mr-2 h-4 w-4" />
  Edit
  </DropdownMenuItem>
- <DropdownMenuItem>
+ <DropdownMenuItem onClick={(e) => { e.stopPropagation(); router.push(`/design/projects/${project.id}`); }}>
  <Eye className="mr-2 h-4 w-4" />
  View Details
  </DropdownMenuItem>
  <DropdownMenuSeparator />
- <DropdownMenuItem className="text-red-600">
+ <DropdownMenuItem className="text-red-600" onClick={(e) => e.stopPropagation()}>
  <Trash2 className="mr-2 h-4 w-4" />
  Delete
  </DropdownMenuItem>
@@ -2036,72 +2011,6 @@ export default function ProjectsPage() {
  </TableCell>
  </TableRow>
 
- {/* Expandable Content */}
- <TableRow>
- <TableCell colSpan={9} className="p-0">
- <Collapsible open={isExpanded}>
- <CollapsibleContent>
- <div className="px-6 py-4 bg-muted/20 border-t">
- <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
- {/* Manager Information */}
- {project.manager_name && (
- <div className="space-y-2">
- <h4 className="font-medium text-sm">Project Manager</h4>
- <div className="flex items-center gap-2">
- <Building2 className="h-4 w-4 text-muted-foreground" />
- <span className="text-sm">{project.manager_name}</span>
- </div>
- </div>
- )}
-
- {/* Ordered Items Summary */}
- <div className="space-y-2">
- <h4 className="font-medium text-sm">Ordered Items</h4>
- <div className="flex items-center gap-2">
- <Package className="h-4 w-4 text-muted-foreground" />
- <span className="text-sm">
- {project.ordered_items_count} items · {formatPrice(project.ordered_items_value)}
- </span>
- </div>
- </div>
-
- {/* Quick Actions */}
- <div className="space-y-2">
- <h4 className="font-medium text-sm">Quick Actions</h4>
- <div className="flex gap-2">
- <Button
- variant="outline"
- size="sm"
- onClick={() => handleCreateOrder(project.id)}
- >
- <Plus className="mr-1 h-3 w-3" />
- Add Order Item
- </Button>
- <Button
- variant="outline"
- size="sm"
- onClick={() => handleEditProject(project)}
- >
- <Edit className="mr-1 h-3 w-3" />
- Edit Project
- </Button>
- </div>
- </div>
- </div>
-
- {/* Additional Project Details */}
- {project.description && (
- <div className="mt-4 pt-4 border-t">
- <h4 className="font-medium text-sm mb-2">Description</h4>
- <p className="text-sm text-muted-foreground">{project.description}</p>
- </div>
- )}
- </div>
- </CollapsibleContent>
- </Collapsible>
- </TableCell>
- </TableRow>
- </React.Fragment>
  );
  })}
  </TableBody>
