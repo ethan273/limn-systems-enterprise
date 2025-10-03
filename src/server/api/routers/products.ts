@@ -583,4 +583,318 @@ export const productsRouter = createTRPCRouter({
 
       return metalMaterials;
     }),
+
+  // Concepts Management
+  getAllConcepts: publicProcedure.query(async ({ ctx }) => {
+    const concepts = await (ctx.db as any).concepts.findMany({
+      orderBy: { created_at: "desc" },
+      include: {
+        designers: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        collections: {
+          select: {
+            id: true,
+            name: true,
+            prefix: true,
+          },
+        },
+      },
+    });
+    return concepts;
+  }),
+
+  getConceptById: publicProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const concept = await (ctx.db as any).concepts.findUnique({
+        where: { id: input.id },
+        include: {
+          designers: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          collections: {
+            select: {
+              id: true,
+              name: true,
+              prefix: true,
+            },
+          },
+          prototypes: {
+            select: {
+              id: true,
+              name: true,
+              prototype_number: true,
+              status: true,
+            },
+          },
+          documents: {
+            orderBy: { created_at: 'desc' },
+            select: {
+              id: true,
+              name: true,
+              type: true,
+              size: true,
+              url: true,
+              media_type: true,
+              is_primary_image: true,
+              created_at: true,
+            },
+          },
+        },
+      });
+      return concept;
+    }),
+
+  createConcept: publicProcedure
+    .input(
+      z.object({
+        name: z.string().min(1),
+        concept_number: z.string().optional(),
+        description: z.string().optional(),
+        designer_id: z.string().uuid().optional(),
+        collection_id: z.string().uuid().optional(),
+        status: z.string().optional(),
+        priority: z.string().optional(),
+        target_price: z.number().optional(),
+        estimated_cost: z.number().optional(),
+        tags: z.array(z.string()).optional(),
+        notes: z.string().optional(),
+        specifications: z.any().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.session?.user?.id) {
+        throw new Error('User must be logged in');
+      }
+
+      return await (ctx.db as any).concepts.create({
+        data: {
+          ...input,
+          created_by: ctx.session.user.id,
+        },
+      });
+    }),
+
+  updateConcept: publicProcedure
+    .input(
+      z.object({
+        id: z.string().uuid(),
+        name: z.string().min(1).optional(),
+        concept_number: z.string().optional(),
+        description: z.string().optional(),
+        designer_id: z.string().uuid().optional(),
+        collection_id: z.string().uuid().optional(),
+        status: z.string().optional(),
+        priority: z.string().optional(),
+        target_price: z.number().optional(),
+        estimated_cost: z.number().optional(),
+        tags: z.array(z.string()).optional(),
+        notes: z.string().optional(),
+        specifications: z.any().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { id, ...updateData } = input;
+      return await (ctx.db as any).concepts.update({
+        where: { id },
+        data: updateData,
+      });
+    }),
+
+  deleteConcept: publicProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      return await (ctx.db as any).concepts.delete({
+        where: { id: input.id },
+      });
+    }),
+
+  // Prototypes Management
+  getAllPrototypes: publicProcedure.query(async ({ ctx }) => {
+    const prototypes = await (ctx.db as any).prototypes.findMany({
+      orderBy: { created_at: "desc" },
+      include: {
+        designers: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        manufacturers: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        collections: {
+          select: {
+            id: true,
+            name: true,
+            prefix: true,
+          },
+        },
+        concepts: {
+          select: {
+            id: true,
+            name: true,
+            concept_number: true,
+          },
+        },
+      },
+    });
+    return prototypes;
+  }),
+
+  getPrototypeById: publicProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const prototype = await (ctx.db as any).prototypes.findUnique({
+        where: { id: input.id },
+        include: {
+          designers: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          manufacturers: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          collections: {
+            select: {
+              id: true,
+              name: true,
+              prefix: true,
+            },
+          },
+          concepts: {
+            select: {
+              id: true,
+              name: true,
+              concept_number: true,
+            },
+          },
+          prototype_feedback: {
+            orderBy: { created_at: 'desc' },
+            select: {
+              id: true,
+              feedback_text: true,
+              feedback_type: true,
+              created_at: true,
+            },
+          },
+          prototype_milestones: {
+            orderBy: { target_date: 'asc' },
+            select: {
+              id: true,
+              milestone_name: true,
+              status: true,
+              target_date: true,
+              completed_date: true,
+            },
+          },
+          prototype_documents: {
+            include: {
+              documents: {
+                select: {
+                  id: true,
+                  name: true,
+                  type: true,
+                  size: true,
+                  url: true,
+                  media_type: true,
+                  is_primary_image: true,
+                  created_at: true,
+                },
+              },
+            },
+          },
+        },
+      });
+      return prototype;
+    }),
+
+  createPrototype: publicProcedure
+    .input(
+      z.object({
+        name: z.string().min(1),
+        prototype_number: z.string(),
+        description: z.string().optional(),
+        prototype_type: z.string().optional(),
+        designer_id: z.string().uuid().optional(),
+        manufacturer_id: z.string().uuid().optional(),
+        collection_id: z.string().uuid().optional(),
+        concept_id: z.string().uuid().optional(),
+        status: z.string().optional(),
+        priority: z.string().optional(),
+        is_client_specific: z.boolean().optional(),
+        is_catalog_candidate: z.boolean().optional(),
+        target_price_usd: z.number().optional(),
+        target_cost_usd: z.number().optional(),
+        tags: z.array(z.string()).optional(),
+        notes: z.string().optional(),
+        specifications: z.any().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.session?.user?.id) {
+        throw new Error('User must be logged in');
+      }
+
+      return await (ctx.db as any).prototypes.create({
+        data: {
+          ...input,
+          created_by: ctx.session.user.id,
+        },
+      });
+    }),
+
+  updatePrototype: publicProcedure
+    .input(
+      z.object({
+        id: z.string().uuid(),
+        name: z.string().min(1).optional(),
+        prototype_number: z.string().optional(),
+        description: z.string().optional(),
+        prototype_type: z.string().optional(),
+        designer_id: z.string().uuid().optional(),
+        manufacturer_id: z.string().uuid().optional(),
+        collection_id: z.string().uuid().optional(),
+        concept_id: z.string().uuid().optional(),
+        status: z.string().optional(),
+        priority: z.string().optional(),
+        is_client_specific: z.boolean().optional(),
+        is_catalog_candidate: z.boolean().optional(),
+        target_price_usd: z.number().optional(),
+        target_cost_usd: z.number().optional(),
+        tags: z.array(z.string()).optional(),
+        notes: z.string().optional(),
+        specifications: z.any().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { id, ...updateData } = input;
+      return await (ctx.db as any).prototypes.update({
+        where: { id },
+        data: updateData,
+      });
+    }),
+
+  deletePrototype: publicProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      return await (ctx.db as any).prototypes.delete({
+        where: { id: input.id },
+      });
+    }),
 });

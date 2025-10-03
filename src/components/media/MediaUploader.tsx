@@ -73,8 +73,9 @@ export function MediaUploader({
   const removeFile = (index: number) => {
     setFiles((prev) => {
       const newFiles = [...prev];
-      if (newFiles[index]?.preview) {
-        URL.revokeObjectURL(newFiles[index].preview);
+      const fileToRemove = newFiles[index];
+      if (fileToRemove?.preview) {
+        URL.revokeObjectURL(fileToRemove.preview);
       }
       newFiles.splice(index, 1);
       return newFiles;
@@ -84,7 +85,10 @@ export function MediaUploader({
   const updateFileMetadata = (index: number, updates: Partial<MediaFile>) => {
     setFiles((prev) => {
       const newFiles = [...prev];
-      newFiles[index] = { ...newFiles[index], ...updates };
+      const currentFile = newFiles[index];
+      if (currentFile) {
+        newFiles[index] = { ...currentFile, ...updates };
+      }
       return newFiles;
     });
   };

@@ -1,0 +1,373 @@
+/**
+ * Documents tRPC Router
+ *
+ * Media management for Products module entities:
+ * - Collections, Concepts, Prototypes, Catalog Items, Production Orders
+ * - Hybrid storage (Supabase <50MB, Google Drive >50MB)
+ * - File metadata, media types, usage flags
+ */
+
+import { z } from 'zod';
+import { createTRPCRouter, publicProcedure } from '../trpc/init';
+import { TRPCError } from '@trpc/server';
+
+// Entity type validation
+const entityTypeEnum = z.enum([
+  'collection',
+  'concept',
+  'prototype',
+  'catalog_item',
+  'production_order',
+]);
+
+// Media type validation
+const mediaTypeEnum = z.enum([
+  'isometric',
+  'line_drawing',
+  'rendering',
+  'photo',
+  '3d_model',
+  'technical_drawing',
+  'other',
+]);
+
+export const documentsRouter = createTRPCRouter({
+  /**
+   * Get all documents for a specific entity
+   */
+  getByEntity: publicProcedure
+    .input(
+      z.object({
+        entityType: entityTypeEnum,
+        entityId: z.string().uuid(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const whereClause: any = {};
+
+      // Map entity type to correct database field
+      switch (input.entityType) {
+        case 'collection':
+          whereClause.collection_id = input.entityId;
+          break;
+        case 'concept':
+          whereClause.concept_id = input.entityId;
+          break;
+        case 'prototype':
+          whereClause.prototype_id = input.entityId;
+          break;
+        case 'catalog_item':
+          whereClause.catalog_item_id = input.entityId;
+          break;
+        case 'production_order':
+          whereClause.production_order_id = input.entityId;
+          break;
+      }
+
+      const documents = await ctx.db.documents.findMany({
+        where: whereClause,
+        orderBy: [
+          { display_order: 'asc' },
+          { created_at: 'desc' },
+        ],
+        select: {
+          id: true,
+          name: true,
+          original_name: true,
+          type: true,
+          size: true,
+          url: true,
+          download_url: true,
+          google_drive_url: true,
+          google_drive_id: true,
+          storage_type: true,
+          media_type: true,
+          use_for_packaging: true,
+          use_for_labeling: true,
+          use_for_marketing: true,
+          is_primary_image: true,
+          display_order: true,
+          created_at: true,
+          updated_at: true,
+          uploaded_by_user: true,
+        },
+      });
+
+      return documents;
+    }),
+
+  /**
+   * Record file upload metadata
+   * Note: Actual file upload happens client-side, this stores metadata
+   */
+  recordUpload: publicProcedure
+    .input(
+      z.object({
+        // Entity linking
+        entityType: entityTypeEnum,
+        entityId: z.string().uuid(),
+
+        // File info
+        fileName: z.string(),
+        originalName: z.string(),
+        fileSize: z.number(),
+        fileType: z.string(),
+
+        // Storage info
+        storageType: z.enum(['supabase', 'google_drive']),
+        url: z.string().optional(),
+        downloadUrl: z.string().optional(),
+        googleDriveId: z.string().optional(),
+        googleDriveUrl: z.string().optional(),
+        storageBucket: z.string().optional(),
+
+        // Media metadata
+        mediaType: mediaTypeEnum.optional(),
+        useForPackaging: z.boolean().default(false),
+        useForLabeling: z.boolean().default(false),
+        useForMarketing: z.boolean().default(false),
+        isPrimaryImage: z.boolean().default(false),
+        displayOrder: z.number().default(0),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.session?.user?.id) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'User must be logged in',
+        });
+      }
+
+      // Build document data with entity-specific field
+      const documentData: any = {
+        name: input.fileName,
+        original_name: input.originalName,
+        type: input.fileType,
+        size: input.fileSize,
+        storage_type: input.storageType,
+        url: input.url || null,
+        download_url: input.downloadUrl || null,
+        google_drive_id: input.googleDriveId || null,
+        google_drive_url: input.googleDriveUrl || null,
+        storage_bucket: input.storageBucket || null,
+        media_type: input.mediaType || null,
+        use_for_packaging: input.useForPackaging,
+        use_for_labeling: input.useForLabeling,
+        use_for_marketing: input.useForMarketing,
+        is_primary_image: input.isPrimaryImage,
+        display_order: input.displayOrder,
+        uploaded_by_user: ctx.session.user.id,
+        status: 'active',
+      };
+
+      // Set entity-specific foreign key
+      switch (input.entityType) {
+        case 'collection':
+          documentData.collection_id = input.entityId;
+          break;
+        case 'concept':
+          documentData.concept_id = input.entityId;
+          break;
+        case 'prototype':
+          documentData.prototype_id = input.entityId;
+          break;
+        case 'catalog_item':
+          documentData.catalog_item_id = input.entityId;
+          break;
+        case 'production_order':
+          documentData.production_order_id = input.entityId;
+          break;
+      }
+
+      const document = await ctx.db.documents.create({
+        data: documentData,
+      });
+
+      return {
+        success: true,
+        documentId: document.id,
+        storageType: input.storageType,
+      };
+    }),
+
+  /**
+   * Update document metadata
+   */
+  updateMetadata: publicProcedure
+    .input(
+      z.object({
+        id: z.string().uuid(),
+        mediaType: mediaTypeEnum.optional(),
+        useForPackaging: z.boolean().optional(),
+        useForLabeling: z.boolean().optional(),
+        useForMarketing: z.boolean().optional(),
+        isPrimaryImage: z.boolean().optional(),
+        displayOrder: z.number().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.session?.user?.id) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'User must be logged in',
+        });
+      }
+
+      const updateData: any = {};
+
+      if (input.mediaType !== undefined) updateData.media_type = input.mediaType;
+      if (input.useForPackaging !== undefined) updateData.use_for_packaging = input.useForPackaging;
+      if (input.useForLabeling !== undefined) updateData.use_for_labeling = input.useForLabeling;
+      if (input.useForMarketing !== undefined) updateData.use_for_marketing = input.useForMarketing;
+      if (input.isPrimaryImage !== undefined) updateData.is_primary_image = input.isPrimaryImage;
+      if (input.displayOrder !== undefined) updateData.display_order = input.displayOrder;
+
+      const document = await ctx.db.documents.update({
+        where: { id: input.id },
+        data: updateData,
+      });
+
+      return {
+        success: true,
+        document,
+      };
+    }),
+
+  /**
+   * Delete document
+   */
+  delete: publicProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.session?.user?.id) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'User must be logged in',
+        });
+      }
+
+      // Get document to verify ownership and get storage info
+      const document = await ctx.db.documents.findUnique({
+        where: { id: input.id },
+      });
+
+      if (!document) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Document not found',
+        });
+      }
+
+      // TODO: Delete from storage (Supabase or Google Drive)
+      // This will be implemented when storage service is integrated
+
+      // Delete from database
+      await ctx.db.documents.delete({
+        where: { id: input.id },
+      });
+
+      return {
+        success: true,
+        message: 'Document deleted successfully',
+      };
+    }),
+
+  /**
+   * Get document by ID
+   */
+  getById: publicProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const document = await ctx.db.documents.findUnique({
+        where: { id: input.id },
+        select: {
+          id: true,
+          name: true,
+          original_name: true,
+          type: true,
+          size: true,
+          url: true,
+          download_url: true,
+          google_drive_url: true,
+          google_drive_id: true,
+          storage_type: true,
+          media_type: true,
+          use_for_packaging: true,
+          use_for_labeling: true,
+          use_for_marketing: true,
+          is_primary_image: true,
+          display_order: true,
+          created_at: true,
+          updated_at: true,
+          uploaded_by_user: true,
+        },
+      });
+
+      if (!document) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Document not found',
+        });
+      }
+
+      return document;
+    }),
+
+  /**
+   * Set primary image for entity
+   * Unsets previous primary image and sets new one
+   */
+  setPrimaryImage: publicProcedure
+    .input(
+      z.object({
+        documentId: z.string().uuid(),
+        entityType: entityTypeEnum,
+        entityId: z.string().uuid(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.session?.user?.id) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'User must be logged in',
+        });
+      }
+
+      // Build where clause for entity
+      const whereClause: any = {};
+      switch (input.entityType) {
+        case 'collection':
+          whereClause.collection_id = input.entityId;
+          break;
+        case 'concept':
+          whereClause.concept_id = input.entityId;
+          break;
+        case 'prototype':
+          whereClause.prototype_id = input.entityId;
+          break;
+        case 'catalog_item':
+          whereClause.catalog_item_id = input.entityId;
+          break;
+        case 'production_order':
+          whereClause.production_order_id = input.entityId;
+          break;
+      }
+
+      // Unset all primary images for this entity
+      await ctx.db.documents.updateMany({
+        where: whereClause,
+        data: { is_primary_image: false },
+      });
+
+      // Set new primary image
+      await ctx.db.documents.update({
+        where: { id: input.documentId },
+        data: { is_primary_image: true },
+      });
+
+      return {
+        success: true,
+        message: 'Primary image updated',
+      };
+    }),
+});

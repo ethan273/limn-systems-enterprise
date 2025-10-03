@@ -31,6 +31,7 @@ import { packingRouter } from './routers/packing';
 import { orderedItemsProductionRouter } from './routers/ordered-items-production';
 import { invoicesRouter } from './routers/invoices';
 import { paymentsRouter } from './routers/payments';
+import { documentsRouter } from './routers/documents';
 
 /**
  * Main API router
@@ -105,6 +106,9 @@ export const appRouter = createTRPCRouter({
   // Financials (General Accounting)
   invoices: invoicesRouter,
   payments: paymentsRouter,
+
+  // Documents & Media (Phase 4)
+  documents: documentsRouter,
 
   // Customer Portal (Phase 3)
   portal: portalRouter,
