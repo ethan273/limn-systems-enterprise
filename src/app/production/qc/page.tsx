@@ -253,7 +253,7 @@ export default function QCInspectionsPage() {
  </p>
  {inspection.prototype_production && (
  <p className="text-sm text-muted-foreground">
- {inspection.prototype_production.prototype?.prototype_number}
+ {inspection.prototype_production.prototypes?.prototype_number}
  </p>
  )}
  {inspection.batch_id && (

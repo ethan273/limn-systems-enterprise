@@ -21,7 +21,7 @@ async function main() {
         base_sku: null, // Only items without base_sku
       },
       include: {
-        furniture_collections: {
+        collections: {
           select: {
             id: true,
             name: true,
@@ -44,7 +44,7 @@ async function main() {
     // Process each item
     for (const item of items) {
       try {
-        if (!item.furniture_collections?.prefix) {
+        if (!item.collections?.prefix) {
           console.warn(`⚠️  Skipping "${item.name}" - no collection prefix`);
           errorCount++;
           errors.push({
@@ -57,7 +57,7 @@ async function main() {
 
         // Generate base SKU
         const baseSku = await generateBaseSku(
-          item.furniture_collections.prefix,
+          item.collections.prefix,
           item.name,
           item.variation_type
         );
@@ -68,7 +68,7 @@ async function main() {
           data: { base_sku: baseSku },
         });
 
-        console.log(`✅ ${item.furniture_collections.name} - "${item.name}" → ${baseSku}`);
+        console.log(`✅ ${item.collections.name} - "${item.name}" → ${baseSku}`);
         successCount++;
       } catch (error) {
         console.error(`❌ Error processing "${item.name}":`, error);

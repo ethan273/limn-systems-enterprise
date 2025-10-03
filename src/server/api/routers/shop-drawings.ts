@@ -61,12 +61,12 @@ export const shopDrawingsRouter = createTRPCRouter({
                 company_name: true,
               },
             },
-            creator: {
+            users_shop_drawings_created_byTousers: {
               select: {
                 email: true,
               },
             },
-            versions: {
+            shop_drawing_versions: {
               orderBy: {
                 version_number: 'desc',
               },
@@ -112,36 +112,36 @@ export const shopDrawingsRouter = createTRPCRouter({
               primary_email: true,
             },
           },
-          creator: {
+          users_shop_drawings_created_byTousers: {
             select: {
               email: true,
             },
           },
-          limn_approver: {
+          users_shop_drawings_limn_approved_byTousers: {
             select: {
               email: true,
             },
           },
-          designer_approver: {
+          users_shop_drawings_designer_approved_byTousers: {
             select: {
               email: true,
             },
           },
-          versions: {
+          shop_drawing_versions: {
             include: {
-              uploader: {
+              users: {
                 select: {
                   email: true,
                 },
               },
-              comments: {
+              shop_drawing_comments: {
                 include: {
-                  author: {
+                  users_shop_drawing_comments_author_idTousers: {
                     select: {
                       email: true,
                     },
                   },
-                  resolver: {
+                  users_shop_drawing_comments_resolved_byTousers: {
                     select: {
                       email: true,
                     },
@@ -151,9 +151,9 @@ export const shopDrawingsRouter = createTRPCRouter({
                   created_at: 'desc',
                 },
               },
-              approvals: {
+              shop_drawing_approvals: {
                 include: {
-                  approver: {
+                  users: {
                     select: {
                       email: true,
                     },
@@ -405,7 +405,7 @@ export const shopDrawingsRouter = createTRPCRouter({
           parent_comment_id: input.parentCommentId,
         },
         include: {
-          author: {
+          users_shop_drawing_comments_author_idTousers: {
             select: {
               email: true,
             },
@@ -599,18 +599,18 @@ export const shopDrawingsRouter = createTRPCRouter({
       const versions = await ctx.db.shop_drawing_versions.findMany({
         where: { shop_drawing_id: input.shopDrawingId },
         include: {
-          uploader: {
+          users: {
             select: {
               email: true,
             },
           },
-          comments: {
+          shop_drawing_comments: {
             select: {
               id: true,
               status: true,
             },
           },
-          approvals: {
+          shop_drawing_approvals: {
             select: {
               id: true,
               decision: true,
@@ -625,9 +625,9 @@ export const shopDrawingsRouter = createTRPCRouter({
 
       return versions.map((v) => ({
         ...v,
-        commentCount: v.comments.length,
-        openCommentCount: v.comments.filter((c) => c.status === 'open').length,
-        approvalCount: v.approvals.length,
+        commentCount: v.shop_drawing_comments.length,
+        openCommentCount: v.shop_drawing_comments.filter((c) => c.status === 'open').length,
+        approvalCount: v.shop_drawing_approvals.length,
       }));
     }),
 
@@ -661,19 +661,19 @@ export const shopDrawingsRouter = createTRPCRouter({
           parent_comment_id: null, // Only get top-level comments
         },
         include: {
-          author: {
+          users_shop_drawing_comments_author_idTousers: {
             select: {
               email: true,
             },
           },
-          resolver: {
+          users_shop_drawing_comments_resolved_byTousers: {
             select: {
               email: true,
             },
           },
-          replies: {
+          shop_drawing_comments: {
             include: {
-              author: {
+              users_shop_drawing_comments_author_idTousers: {
                 select: {
                   email: true,
                 },
@@ -701,21 +701,21 @@ export const shopDrawingsRouter = createTRPCRouter({
       const drawing = await ctx.db.shop_drawings.findUnique({
         where: { id: input.shopDrawingId },
         include: {
-          limn_approver: {
+          users_shop_drawings_limn_approved_byTousers: {
             select: {
               email: true,
             },
           },
-          designer_approver: {
+          users_shop_drawings_designer_approved_byTousers: {
             select: {
               email: true,
             },
           },
-          versions: {
+          shop_drawing_versions: {
             include: {
-              approvals: {
+              shop_drawing_approvals: {
                 include: {
-                  approver: {
+                  users: {
                     select: {
                       email: true,
                     },
@@ -741,16 +741,16 @@ export const shopDrawingsRouter = createTRPCRouter({
         });
       }
 
-      const currentVersion = drawing.versions[0];
-      const approvals = currentVersion?.approvals || [];
+      const currentVersion = drawing.shop_drawing_versions[0];
+      const approvals = currentVersion?.shop_drawing_approvals || [];
 
       return {
         status: drawing.status,
         limnApproved: !!drawing.limn_approved_at,
-        limnApprovedBy: drawing.limn_approver,
+        limnApprovedBy: drawing.users_shop_drawings_limn_approved_byTousers,
         limnApprovedAt: drawing.limn_approved_at,
         designerApproved: !!drawing.designer_approved_at,
-        designerApprovedBy: drawing.designer_approver,
+        designerApprovedBy: drawing.users_shop_drawings_designer_approved_byTousers,
         designerApprovedAt: drawing.designer_approved_at,
         finalApproved: !!drawing.final_approved_at,
         finalApprovedAt: drawing.final_approved_at,
@@ -769,30 +769,30 @@ export const shopDrawingsRouter = createTRPCRouter({
       const drawing = await ctx.db.shop_drawings.findUnique({
         where: { id: input.shopDrawingId },
         include: {
-          creator: {
+          users_shop_drawings_created_byTousers: {
             select: {
               email: true,
             },
           },
-          versions: {
+          shop_drawing_versions: {
             include: {
-              uploader: {
+              users: {
                 select: {
                   email: true,
                 },
               },
-              comments: {
+              shop_drawing_comments: {
                 include: {
-                  author: {
+                  users_shop_drawing_comments_author_idTousers: {
                     select: {
                       email: true,
                     },
                   },
                 },
               },
-              approvals: {
+              shop_drawing_approvals: {
                 include: {
-                  approver: {
+                  users: {
                     select: {
                       email: true,
                     },
@@ -818,37 +818,37 @@ export const shopDrawingsRouter = createTRPCRouter({
       activities.push({
         type: 'drawing_created',
         timestamp: drawing.created_at,
-        user: drawing.creator.email,
+        user: drawing.users_shop_drawings_created_byTousers.email,
         description: `Created drawing ${drawing.drawing_number}`,
       });
 
       // Version uploads
-      drawing.versions.forEach((version) => {
+      drawing.shop_drawing_versions.forEach((version) => {
         activities.push({
           type: 'version_uploaded',
           timestamp: version.uploaded_at,
-          user: version.uploader.email,
+          user: version.users.email,
           description: `Uploaded version ${version.version_number}`,
           versionNumber: version.version_number,
         });
 
         // Comments on this version
-        version.comments.forEach((comment) => {
+        version.shop_drawing_comments.forEach((comment) => {
           activities.push({
             type: 'comment_added',
             timestamp: comment.created_at,
-            user: comment.author.email,
+            user: comment.users_shop_drawing_comments_author_idTousers.email,
             description: `Added ${comment.comment_type} comment`,
             versionNumber: version.version_number,
           });
         });
 
         // Approvals on this version
-        version.approvals.forEach((approval) => {
+        version.shop_drawing_approvals.forEach((approval) => {
           activities.push({
             type: 'approval_given',
             timestamp: approval.approved_at,
-            user: approval.approver.email,
+            user: approval.users.email,
             description: `${approval.decision === 'approved' ? 'Approved' : approval.decision === 'rejected' ? 'Rejected' : 'Requested changes for'} version ${version.version_number}`,
             versionNumber: version.version_number,
             decision: approval.decision,

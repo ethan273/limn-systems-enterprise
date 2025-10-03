@@ -254,7 +254,7 @@ export default function QCInspectionDetailPage() {
  </p>
  {inspection.prototype_production?.prototype?.prototype_number && (
  <p className="text-sm text-muted-foreground">
- {inspection.prototype_production.prototype.prototype_number}
+ {inspection.prototype_production.prototypes.prototype_number}
  </p>
  )}
  </div>

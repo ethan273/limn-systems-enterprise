@@ -17,7 +17,7 @@ async function main() {
 
   // Step 1: Get existing furniture collections
   console.log('📦 Step 1: Fetching furniture collections...');
-  const furnitureCollections = await prisma.furniture_collections.findMany({
+  const furnitureCollections = await prisma.collections.findMany({
     where: { name: { in: ['UKIAH', 'RAGUSA', 'ST HELENA', 'INYO'] } },
     select: { id: true, name: true, prefix: true },
   });
@@ -27,7 +27,7 @@ async function main() {
   }
 
   console.log(`   ✓ Found ${furnitureCollections.length} furniture collections`);
-  furnitureCollections.forEach(fc => console.log(`     - ${fc.name} (${fc.prefix})`));
+  furnitureCollections.forEach((fc: { name: string; prefix: string | null }) => console.log(`     - ${fc.name} (${fc.prefix})`));
 
   // Step 2: Get material categories
   console.log('\n📋 Step 2: Fetching material categories...');
@@ -48,10 +48,10 @@ async function main() {
   console.log('\n🧵 Step 3: Creating Fabric materials (3-level hierarchy)...');
 
   // Sunbrella brand - Available in UKIAH and RAGUSA only
-  const ukiahId = furnitureCollections.find(fc => fc.name === 'UKIAH')?.id;
-  const ragusaId = furnitureCollections.find(fc => fc.name === 'RAGUSA')?.id;
-  const stHelenaId = furnitureCollections.find(fc => fc.name === 'ST HELENA')?.id;
-  const inyoId = furnitureCollections.find(fc => fc.name === 'INYO')?.id;
+  const ukiahId = furnitureCollections.find((fc: { name: string }) => fc.name === 'UKIAH')?.id;
+  const ragusaId = furnitureCollections.find((fc: { name: string }) => fc.name === 'RAGUSA')?.id;
+  const stHelenaId = furnitureCollections.find((fc: { name: string }) => fc.name === 'ST HELENA')?.id;
+  const inyoId = furnitureCollections.find((fc: { name: string }) => fc.name === 'INYO')?.id;
 
   const sunbrellaBrand = await prisma.materials.create({
     data: {

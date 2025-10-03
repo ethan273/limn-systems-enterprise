@@ -75,7 +75,7 @@ export const prototypesRouter = createTRPCRouter({
                 name: true,
               },
             },
-            base_item: {
+            base_items: {
               select: {
                 name: true,
                 sku_full: true,
@@ -124,7 +124,7 @@ export const prototypesRouter = createTRPCRouter({
               customer_id: true,
             },
           },
-          base_item: {
+          base_items: {
             select: {
               name: true,
               sku_full: true,
@@ -192,7 +192,7 @@ export const prototypesRouter = createTRPCRouter({
         include: {
           design_projects: true,
           crm_project: true,
-          base_item: true,
+          base_items: true,
           prototype_production: {
             include: {
               factory: true,

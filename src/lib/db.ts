@@ -1153,24 +1153,6 @@ export class DatabaseClient {
       this.countGeneric('items', options),
   };
 
-  // Material Categories model
-  material_categories = {
-    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('material_categories', options),
-    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
-      this.findUniqueGeneric<any>('material_categories', options),
-    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
-      this.createGeneric<any>('material_categories', options),
-    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
-      this.updateGeneric<any>('material_categories', options),
-    delete: (options: { where: Record<string, any> }) =>
-      this.deleteGeneric('material_categories', options),
-    createMany: (options: { data: Record<string, any>[] }) =>
-      this.createManyGeneric('material_categories', options),
-    deleteMany: (options: { where: Record<string, any> }) =>
-      this.deleteManyGeneric('material_categories', options),
-    count: (options?: { where?: Record<string, any> }) =>
-      this.countGeneric('material_categories', options),
-  };
 
   // Furniture Dimensions model
   furniture_dimensions = {
