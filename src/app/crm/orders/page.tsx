@@ -101,7 +101,7 @@ export default function CRMOrdersPage() {
  info = { label: "Delivered", variant: "outline", className: "bg-emerald-100 text-emerald-800 border-emerald-300" };
  break;
  case 'completed':
- info = { label: "Completed", variant: "outline", className: "bg-green-600 text-white border-green-700" };
+ info = { label: "Completed", variant: "outline", className: "bg-green-600 text-foreground border-green-700" };
  break;
  case 'cancelled':
  info = { label: "Cancelled", variant: "outline", className: "bg-red-100 text-red-800 border-red-300" };

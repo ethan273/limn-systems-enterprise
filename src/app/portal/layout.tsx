@@ -167,7 +167,7 @@ export default function PortalLayout({ children }: LayoutProps) {
 
  {/* Sidebar */}
  <aside
- className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg border-r border transform transition-transform duration-200 ease-in-out lg:translate-x-0 ${
+ className={`fixed inset-y-0 left-0 z-50 w-64 bg-card shadow-lg border-r border transform transition-transform duration-200 ease-in-out lg:translate-x-0 ${
  sidebarOpen ? 'translate-x-0' : '-translate-x-full'
  }`}
  >
@@ -176,7 +176,7 @@ export default function PortalLayout({ children }: LayoutProps) {
  <div className="flex items-center justify-between h-16 px-6 border-b border">
  <div className="flex items-center">
  <div className="w-8 h-8 bg-[#91bdbd] rounded-full flex items-center justify-center">
- <span className="text-white text-sm font-bold">L</span>
+ <span className="text-foreground text-sm font-bold">L</span>
  </div>
  <span className="ml-2 text-lg font-bold ">Limn Systems</span>
  </div>
@@ -203,7 +203,7 @@ export default function PortalLayout({ children }: LayoutProps) {
  onClick={() => setSidebarOpen(false)}
  className={`flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${
  isActive
- ? 'bg-[#91bdbd] text-white'
+ ? 'bg-[#91bdbd] text-foreground'
  : ' hover:card hover:'
  }`}
  >
@@ -218,7 +218,7 @@ export default function PortalLayout({ children }: LayoutProps) {
  <div className="border-t border p-4">
  <div className="flex items-center space-x-3 mb-3">
  <div className="w-10 h-10 bg-[#91bdbd] rounded-full flex items-center justify-center">
- <span className="text-white text-sm font-medium">
+ <span className="text-foreground text-sm font-medium">
  {user.email?.[0]?.toUpperCase()}
  </span>
  </div>
@@ -253,7 +253,7 @@ export default function PortalLayout({ children }: LayoutProps) {
  {/* Main Content */}
  <div className="lg:pl-64">
  {/* Top Header */}
- <header className="bg-white border-b border sticky top-0 z-30">
+ <header className="bg-card border-b border sticky top-0 z-30">
  <div className="flex items-center justify-between h-16 px-4 sm:px-6">
  <Button
  variant="ghost"
@@ -271,7 +271,7 @@ export default function PortalLayout({ children }: LayoutProps) {
  <Button variant="ghost" size="sm" className="relative">
  <Bell className="w-5 h-5" />
  {unreadCount > 0 && (
- <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-red-500 text-white text-xs">
+ <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-red-500 text-foreground text-xs">
  {unreadCount > 9 ? '9+' : unreadCount}
  </Badge>
  )}

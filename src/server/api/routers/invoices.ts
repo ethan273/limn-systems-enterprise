@@ -117,17 +117,17 @@ export const invoicesRouter = createTRPCRouter({
       // Calculate totals and payment status for each invoice
       const invoicesWithTotals = items.map((invoice) => {
         const subtotal = invoice.invoice_items.reduce(
-          (sum, item) => sum + Number(item.line_total || 0),
+          (sum: number, item: any) => sum + Number(item.line_total || 0),
           0
         );
         const totalTax = invoice.invoice_items.reduce(
-          (sum, item) => sum + Number(item.tax_amount || 0),
+          (sum: number, item: any) => sum + Number(item.tax_amount || 0),
           0
         );
         const total = subtotal + totalTax;
 
         const totalPaid = invoice.payment_allocations.reduce(
-          (sum, allocation) => sum + Number(allocation.allocated_amount),
+          (sum: number, allocation: any) => sum + Number(allocation.allocated_amount),
           0
         );
 
@@ -209,17 +209,17 @@ export const invoicesRouter = createTRPCRouter({
 
       // Calculate totals
       const subtotal = invoice.invoice_items.reduce(
-        (sum, item) => sum + Number(item.line_total || 0),
+        (sum: number, item: any) => sum + Number(item.line_total || 0),
         0
       );
       const totalTax = invoice.invoice_items.reduce(
-        (sum, item) => sum + Number(item.tax_amount || 0),
+        (sum: number, item: any) => sum + Number(item.tax_amount || 0),
         0
       );
       const total = subtotal + totalTax;
 
       const totalPaid = invoice.payment_allocations.reduce(
-        (sum, allocation) => sum + Number(allocation.allocated_amount),
+        (sum: number, allocation: any) => sum + Number(allocation.allocated_amount),
         0
       );
 
@@ -283,17 +283,17 @@ export const invoicesRouter = createTRPCRouter({
       // Calculate totals for each invoice
       return invoices.map((invoice) => {
         const subtotal = invoice.invoice_items.reduce(
-          (sum, item) => sum + Number(item.line_total || 0),
+          (sum: number, item: any) => sum + Number(item.line_total || 0),
           0
         );
         const totalTax = invoice.invoice_items.reduce(
-          (sum, item) => sum + Number(item.tax_amount || 0),
+          (sum: number, item: any) => sum + Number(item.tax_amount || 0),
           0
         );
         const total = subtotal + totalTax;
 
         const totalPaid = invoice.payment_allocations.reduce(
-          (sum, allocation) => sum + Number(allocation.allocated_amount),
+          (sum: number, allocation: any) => sum + Number(allocation.allocated_amount),
           0
         );
 
@@ -588,11 +588,11 @@ export const invoicesRouter = createTRPCRouter({
 
       invoices.forEach((invoice) => {
         const total = invoice.invoice_items.reduce(
-          (sum, item) => sum + Number(item.line_total || 0) + Number(item.tax_amount || 0),
+          (sum: number, item: any) => sum + Number(item.line_total || 0) + Number(item.tax_amount || 0),
           0
         );
         const paid = invoice.payment_allocations.reduce(
-          (sum, allocation) => sum + Number(allocation.allocated_amount),
+          (sum: number, allocation: any) => sum + Number(allocation.allocated_amount),
           0
         );
         const balance = total - paid;

@@ -122,7 +122,7 @@ function UserSelectorDialog({
  <select
  value={departmentFilter}
  onChange={(e) => setDepartmentFilter(e.target.value)}
- className="px-3 py-2 rounded-md border border card text-white"
+ className="px-3 py-2 rounded-md border border card text-foreground"
  >
  <option value="all">All Departments</option>
  {departments.map((dept) => (
@@ -175,13 +175,13 @@ function UserSelectorDialog({
  disabled={Boolean(isDisabled)}
  />
  <Avatar className="w-10 h-10">
- <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium">
+ <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-foreground font-medium">
  {user.name.charAt(0).toUpperCase()}
  </div>
  </Avatar>
  <div className="flex-1 min-w-0">
  <div className="flex items-center gap-2">
- <p className="font-medium text-white truncate">{user.name}</p>
+ <p className="font-medium text-foreground truncate">{user.name}</p>
  {user.department && (
  <Badge variant="outline" className="text-xs">
  {user.department}
@@ -293,12 +293,12 @@ export function CRMAssignmentSelector({
  className="flex items-center gap-2 card/50 rounded-lg px-3 py-2 border border"
  >
  <Avatar className="w-6 h-6">
- <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-medium">
+ <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-foreground text-xs font-medium">
  {user.name.charAt(0).toUpperCase()}
  </div>
  </Avatar>
  <div className="flex flex-col min-w-0">
- <span className="text-sm font-medium text-white truncate">
+ <span className="text-sm font-medium text-foreground truncate">
  {user.name}
  </span>
  {showUserDetails && user.job_title && (

@@ -237,7 +237,7 @@ export const ordersRouter = createTRPCRouter({
       const orderNumber = `ORD-${(orderCount + 1).toString().padStart(6, '0')}`;
 
       // Calculate total amount
-      const totalAmount = input.order_items.reduce((sum, item) => sum + item.total_price, 0);
+      const totalAmount = input.order_items.reduce((sum: number, item) => sum + item.total_price, 0);
 
       // Create the order
       const order = await ctx.db.orders.create({

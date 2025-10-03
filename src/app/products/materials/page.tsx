@@ -723,7 +723,7 @@ export default function MaterialsPage() {
  }}
  className={`whitespace-nowrap px-6 py-3 text-sm font-medium transition-all duration-200 ${
  activeCategory === category.id
- ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md border-transparent"
+ ? "bg-gradient-to-r from-blue-500 to-purple-600 text-foreground shadow-md border-transparent"
  : " text-secondary hover:border hover:card"
  }`}
  >
@@ -746,7 +746,7 @@ export default function MaterialsPage() {
  onClick={() => setActiveSubcategory(subcategory.id)}
  className={`whitespace-nowrap px-4 py-2 text-sm transition-all duration-200 ${
  activeSubcategory === subcategory.id
- ? "bg-blue-600 text-white shadow-sm"
+ ? "bg-blue-600 text-foreground shadow-sm"
  : " text-secondary hover:border hover:text-secondary"
  }`}
  size="sm"

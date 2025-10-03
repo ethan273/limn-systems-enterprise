@@ -173,7 +173,7 @@ export default function TaskAssignedUsers({ taskId, assignedUsers = [], onUpdate
  <div className="flex items-center gap-3">
  <Avatar className="h-8 w-8">
  <AvatarImage src={user.avatar_url || undefined} />
- <AvatarFallback className={`text-xs font-medium text-white ${getUserColor(user.id)}`}>
+ <AvatarFallback className={`text-xs font-medium text-foreground ${getUserColor(user.id)}`}>
  {getUserInitials(user)}
  </AvatarFallback>
  </Avatar>
@@ -223,7 +223,7 @@ export default function TaskAssignedUsers({ taskId, assignedUsers = [], onUpdate
  <div className="flex items-center gap-3 flex-1 min-w-0">
  <Avatar className="h-8 w-8">
  <AvatarImage src={user.avatar_url || undefined} />
- <AvatarFallback className={`text-xs font-medium text-white ${getUserColor(user.id)}`}>
+ <AvatarFallback className={`text-xs font-medium text-foreground ${getUserColor(user.id)}`}>
  {getUserInitials(user)}
  </AvatarFallback>
  </Avatar>

@@ -302,7 +302,7 @@ export default function TaskCreateForm({ onSuccess, onCancel }: TaskCreateFormPr
  .map((user) => (
  <SelectItem key={user.id} value={user.id}>
  <div className="flex items-center gap-2">
- <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-xs font-medium text-white">
+ <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-xs font-medium text-foreground">
  {user.name.split(' ').map(n => n[0]).join('')}
  </div>
  <div className="flex flex-col">
@@ -320,7 +320,7 @@ export default function TaskCreateForm({ onSuccess, onCancel }: TaskCreateFormPr
  const user = availableUsers.find(u => u.id === userId);
  return (
  <Badge key={userId} variant="secondary" className="flex items-center gap-2 pr-2">
- <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center text-xs font-medium text-white">
+ <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center text-xs font-medium text-foreground">
  {user ? user.name.split(' ').map(n => n[0]).join('') : '?'}
  </div>
  <span className="text-sm">{user ? user.name : 'Unknown'}</span>

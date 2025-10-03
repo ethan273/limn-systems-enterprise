@@ -350,7 +350,7 @@ export function CRMActivityFeed({
  <div className={`space-y-4 ${className}`}>
  {/* Header */}
  <div className="flex items-center justify-between">
- <h3 className="text-lg font-medium text-white">Activity Feed</h3>
+ <h3 className="text-lg font-medium text-foreground">Activity Feed</h3>
  {showAddButton && onActivityAdd && currentUserId && (
  <Button size="sm" onClick={() => setIsAddDialogOpen(true)}>
  <Plus className="w-4 h-4 mr-2" />
@@ -408,7 +408,7 @@ export function CRMActivityFeed({
  {sortedActivities.length === 0 ? (
  <div className="text-center py-8">
  <MessageSquare className="w-12 h-12 text-tertiary mx-auto mb-4" />
- <h4 className="text-lg font-medium text-white mb-2">No activities found</h4>
+ <h4 className="text-lg font-medium text-foreground mb-2">No activities found</h4>
  <p className="text-tertiary mb-4">
  {searchTerm || filterType !== 'all' || filterStatus !== 'all'
  ? 'Try adjusting your filters'
@@ -442,7 +442,7 @@ export function CRMActivityFeed({
  <div className="flex-1 min-w-0">
  <div className="flex items-start justify-between gap-2">
  <div className="flex-1 min-w-0">
- <h4 className="font-medium text-white truncate">{activity.title}</h4>
+ <h4 className="font-medium text-foreground truncate">{activity.title}</h4>
  <div className="flex items-center gap-2 mt-1">
  <Badge className={getStatusColor(activityStatus)}>
  {activityStatus === 'overdue' ? 'Overdue' : activity.status}

@@ -324,7 +324,7 @@ export function CRMTagsManager({
  variant="ghost"
  size="sm"
  onClick={copyTagsToClipboard}
- className="h-6 px-2 text-xs text-tertiary hover:text-white"
+ className="h-6 px-2 text-xs text-tertiary hover:text-foreground"
  >
  <Copy className="w-3 h-3 mr-1" />
  Copy

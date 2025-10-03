@@ -242,11 +242,11 @@ function CreateTaskDialog({
  onChange={() => toggleUserAssignment(user.id)}
  />
  <Avatar className="w-6 h-6">
- <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-medium">
+ <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-foreground text-xs font-medium">
  {user.name.charAt(0).toUpperCase()}
  </div>
  </Avatar>
- <label htmlFor={`user-${user.id}`} className="text-sm text-white cursor-pointer flex-1">
+ <label htmlFor={`user-${user.id}`} className="text-sm text-foreground cursor-pointer flex-1">
  {user.name}
  </label>
  </div>
@@ -380,7 +380,7 @@ export function CRMTaskIntegration({
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-2">
  <CheckSquare className="w-5 h-5 text-tertiary" />
- <h3 className="text-lg font-medium text-white">Related Tasks</h3>
+ <h3 className="text-lg font-medium text-foreground">Related Tasks</h3>
  <Badge variant="outline" className="text-xs">
  {relatedTasks.length}
  </Badge>
@@ -418,7 +418,7 @@ export function CRMTaskIntegration({
  {relatedTasks.length === 0 ? (
  <div className="text-center py-8">
  <CheckSquare className="w-12 h-12 text-tertiary mx-auto mb-4" />
- <h4 className="text-lg font-medium text-white mb-2">No related tasks</h4>
+ <h4 className="text-lg font-medium text-foreground mb-2">No related tasks</h4>
  <p className="text-tertiary mb-4">Create or link tasks to track work for this {entityType}.</p>
  <Button onClick={() => setIsCreateDialogOpen(true)}>
  <Plus className="w-4 h-4 mr-2" />
@@ -526,7 +526,7 @@ function TaskCard({
  <div className="flex-1 min-w-0">
  <div className="flex items-center gap-2">
  <h4 className={`font-medium truncate ${
- task.status === 'completed' ? 'text-tertiary line-through' : 'text-white'
+ task.status === 'completed' ? 'text-tertiary line-through' : 'text-foreground'
  }`}>
  {task.title}
  </h4>

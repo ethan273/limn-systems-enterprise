@@ -73,13 +73,13 @@ export default function TaskStatusSelect({ taskId, currentStatus, onUpdate }: Ta
  onValueChange={handleStatusChange}
  disabled={isUpdating}
  >
- <SelectTrigger className="w-32 min-h-[50px] h-auto border-0 bg-transparent p-2 hover:card focus:card overflow-visible">
+ <SelectTrigger className="w-32 h-8 border-0 bg-transparent p-0 hover:card focus:card overflow-visible">
  <SelectValue>
  <Badge
  variant="outline"
  className={cn(
- "border text-xs font-medium flex items-center gap-1 px-2 py-1",
- currentStatus === 'todo' && "card text-tertiary border/20",
+ "border text-xs font-medium flex items-center gap-1 px-2 py-0.5 h-6",
+ currentStatus === 'todo' && "bg-gray-500/20 text-gray-400 border-gray-500/20",
  currentStatus === 'in_progress' && "bg-blue-500/20 text-blue-400 border-blue-500/20",
  currentStatus === 'completed' && "bg-green-500/20 text-green-400 border-green-500/20",
  currentStatus === 'cancelled' && "bg-red-500/20 text-red-400 border-red-500/20",

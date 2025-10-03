@@ -31,16 +31,16 @@ export default function DashboardPage() {
  return (
  <div className="p-6 max-w-7xl mx-auto">
  <div className="mb-8">
- <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
- <p className="text-gray-400">Welcome to Limn Systems Enterprise</p>
+ <h1 className="text-3xl font-bold text-foreground mb-2">Dashboard</h1>
+ <p className="text-muted-foreground">Welcome to Limn Systems Enterprise</p>
  </div>
 
  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
  {/* Pending Approvals Card - Only show if there are pending requests */}
  {(adminStats?.stats?.pending ?? 0) > 0 && (
- <Card className="bg-gray-800 border-gray-700">
+ <Card className="bg-card border-border">
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium text-gray-400">
+ <CardTitle className="text-sm font-medium text-muted-foreground">
  Pending Approvals
  </CardTitle>
  <UserPlus className="h-4 w-4 text-orange-500" />
@@ -54,7 +54,7 @@ export default function DashboardPage() {
  Urgent
  </Badge>
  </div>
- <p className="text-xs text-gray-500 mb-3">
+ <p className="text-xs text-muted-foreground mb-3">
  Access requests awaiting review
  </p>
  <Link href="/admin/approvals">
@@ -68,116 +68,116 @@ export default function DashboardPage() {
  )}
 
  {/* Total Users Card */}
- <Card className="bg-gray-800 border-gray-700">
+ <Card className="bg-card border-border">
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium text-gray-400">
+ <CardTitle className="text-sm font-medium text-muted-foreground">
  Total Users
  </CardTitle>
  <Users className="h-4 w-4 text-blue-500" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-white">
+ <div className="text-2xl font-bold text-foreground">
  {adminStats?.stats ? adminStats.stats.approved : 0}
  </div>
- <p className="text-xs text-gray-500">
+ <p className="text-xs text-muted-foreground">
  Approved system users
  </p>
  </CardContent>
  </Card>
 
  {/* Approval Rate Card */}
- <Card className="bg-gray-800 border-gray-700">
+ <Card className="bg-card border-border">
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium text-gray-400">
+ <CardTitle className="text-sm font-medium text-muted-foreground">
  Approval Rate
  </CardTitle>
  <CheckCircle className="h-4 w-4 text-green-500" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-white">
+ <div className="text-2xl font-bold text-foreground">
  {adminStats?.stats?.approvalRate || 0}%
  </div>
- <p className="text-xs text-gray-500">
+ <p className="text-xs text-muted-foreground">
  Request approval success rate
  </p>
  </CardContent>
  </Card>
 
  {/* Orders Card */}
- <Card className="bg-gray-800 border-gray-700">
+ <Card className="bg-card border-border">
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium text-gray-400">
+ <CardTitle className="text-sm font-medium text-muted-foreground">
  Active Orders
  </CardTitle>
  <ShoppingCart className="h-4 w-4 text-purple-500" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-white">24</div>
- <p className="text-xs text-gray-500">
+ <div className="text-2xl font-bold text-foreground">24</div>
+ <p className="text-xs text-muted-foreground">
  In production and shipping
  </p>
  </CardContent>
  </Card>
 
  {/* Revenue Card */}
- <Card className="bg-gray-800 border-gray-700">
+ <Card className="bg-card border-border">
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium text-gray-400">
+ <CardTitle className="text-sm font-medium text-muted-foreground">
  Monthly Revenue
  </CardTitle>
  <TrendingUp className="h-4 w-4 text-green-500" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-white">$45,231</div>
- <p className="text-xs text-gray-500">
+ <div className="text-2xl font-bold text-foreground">$45,231</div>
+ <p className="text-xs text-muted-foreground">
  +12% from last month
  </p>
  </CardContent>
  </Card>
 
  {/* Production Card */}
- <Card className="bg-gray-800 border-gray-700">
+ <Card className="bg-card border-border">
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium text-gray-400">
+ <CardTitle className="text-sm font-medium text-muted-foreground">
  In Production
  </CardTitle>
  <Package className="h-4 w-4 text-yellow-500" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-white">18</div>
- <p className="text-xs text-gray-500">
+ <div className="text-2xl font-bold text-foreground">18</div>
+ <p className="text-xs text-muted-foreground">
  Items being manufactured
  </p>
  </CardContent>
  </Card>
 
  {/* Customers Card */}
- <Card className="bg-gray-800 border-gray-700">
+ <Card className="bg-card border-border">
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium text-gray-400">
+ <CardTitle className="text-sm font-medium text-muted-foreground">
  Active Customers
  </CardTitle>
  <Building2 className="h-4 w-4 text-cyan-500" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-white">89</div>
- <p className="text-xs text-gray-500">
+ <div className="text-2xl font-bold text-foreground">89</div>
+ <p className="text-xs text-muted-foreground">
  With active projects
  </p>
  </CardContent>
  </Card>
 
  {/* Projects Card */}
- <Card className="bg-gray-800 border-gray-700">
+ <Card className="bg-card border-border">
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium text-gray-400">
+ <CardTitle className="text-sm font-medium text-muted-foreground">
  Active Projects
  </CardTitle>
  <Calendar className="h-4 w-4 text-indigo-500" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-white">32</div>
- <p className="text-xs text-gray-500">
+ <div className="text-2xl font-bold text-foreground">32</div>
+ <p className="text-xs text-muted-foreground">
  In various stages
  </p>
  </CardContent>
@@ -187,15 +187,15 @@ export default function DashboardPage() {
  {/* Recent Activity Section */}
  {adminStats?.recentRequests && adminStats.recentRequests.length > 0 && (
  <div className="mt-8">
- <Card className="bg-gray-800 border-gray-700">
+ <Card className="bg-card border-border">
  <CardHeader>
- <CardTitle className="text-white">Recent Access Requests</CardTitle>
- <p className="text-gray-400 text-sm">Latest user access requests</p>
+ <CardTitle className="text-foreground">Recent Access Requests</CardTitle>
+ <p className="text-muted-foreground text-sm">Latest user access requests</p>
  </CardHeader>
  <CardContent>
  <div className="space-y-4">
  {adminStats.recentRequests.slice(0, 5).map((request: any) => (
- <div key={request.id} className="flex items-center justify-between p-3 bg-gray-700/50 rounded-lg">
+ <div key={request.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
  <div className="flex items-center gap-3">
  <Badge
  className={
@@ -209,20 +209,20 @@ export default function DashboardPage() {
  {request.status}
  </Badge>
  <div>
- <p className="text-white font-medium">{request.email}</p>
- <p className="text-gray-400 text-sm">{request.company_name}</p>
+ <p className="text-foreground font-medium">{request.email}</p>
+ <p className="text-muted-foreground text-sm">{request.company_name}</p>
  </div>
  </div>
- <div className="text-gray-400 text-sm">
+ <div className="text-muted-foreground text-sm">
  {new Date(request.requested_at).toLocaleDateString()}
  </div>
  </div>
  ))}
  </div>
  {adminStats.recentRequests.length > 5 && (
- <div className="mt-4 pt-4 border-t border-gray-700">
+ <div className="mt-4 pt-4 border-t border-border">
  <Link href="/admin/approvals">
- <Button variant="outline" className="w-full border-gray-600 text-gray-300 hover:bg-gray-700">
+ <Button variant="outline" className="w-full border-gray-600 text-muted-foreground hover:bg-muted">
  View All Requests
  </Button>
  </Link>
@@ -235,10 +235,10 @@ export default function DashboardPage() {
 
  {/* Quick Actions */}
  <div className="mt-8">
- <Card className="bg-gray-800 border-gray-700">
+ <Card className="bg-card border-border">
  <CardHeader>
- <CardTitle className="text-white">Quick Actions</CardTitle>
- <p className="text-gray-400 text-sm">Common administrative tasks</p>
+ <CardTitle className="text-foreground">Quick Actions</CardTitle>
+ <p className="text-muted-foreground text-sm">Common administrative tasks</p>
  </CardHeader>
  <CardContent>
  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -248,15 +248,15 @@ export default function DashboardPage() {
  Manage Access
  </Button>
  </Link>
- <Button className="w-full bg-gray-700 hover:bg-gray-600">
+ <Button className="w-full bg-muted hover:bg-gray-600">
  <ShoppingCart className="w-4 h-4 mr-2" />
  View Orders
  </Button>
- <Button className="w-full bg-gray-700 hover:bg-gray-600">
+ <Button className="w-full bg-muted hover:bg-gray-600">
  <Package className="w-4 h-4 mr-2" />
  Production
  </Button>
- <Button className="w-full bg-gray-700 hover:bg-gray-600">
+ <Button className="w-full bg-muted hover:bg-gray-600">
  <BarChart className="w-4 h-4 mr-2" />
  Reports
  </Button>

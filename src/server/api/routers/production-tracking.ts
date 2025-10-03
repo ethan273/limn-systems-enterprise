@@ -31,7 +31,7 @@ const updateMilestoneSchema = z.object({
 function calculateOrderProgress(milestones: any[]): number {
   if (!milestones || milestones.length === 0) return 0;
 
-  const totalProgress = milestones.reduce((sum, m) => sum + (m.completion_percentage || 0), 0);
+  const totalProgress = milestones.reduce((sum: number, m) => sum + (m.completion_percentage || 0), 0);
   return Math.round(totalProgress / milestones.length);
 }
 
@@ -99,10 +99,10 @@ export const productionTrackingRouter = createTRPCRouter({
       const awaitingFinalPayment = orders.filter(o => o.status === 'awaiting_final_payment').length;
 
       // Calculate revenue
-      const totalRevenue = orders.reduce((sum, o) => sum + Number(o.total_cost), 0);
+      const totalRevenue = orders.reduce((sum: number, o) => sum + Number(o.total_cost), 0);
       const paidRevenue = orders
         .filter(o => o.final_payment_paid)
-        .reduce((sum, o) => sum + Number(o.total_cost), 0);
+        .reduce((sum: number, o) => sum + Number(o.total_cost), 0);
       const pendingRevenue = totalRevenue - paidRevenue;
 
       // Status distribution

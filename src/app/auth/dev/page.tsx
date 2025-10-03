@@ -114,7 +114,7 @@ export default function DevLoginPage() {
  <Button
  onClick={() => handleDevLogin('dev')}
  disabled={loading}
- className="w-full flex items-center justify-center px-4 py-3 border rounded-lg shadow-sm bg-blue-600 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+ className="w-full flex items-center justify-center px-4 py-3 border rounded-lg shadow-sm bg-blue-600 text-sm font-medium text-foreground hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
  >
  {loading && selectedUserType === 'dev' ? (
  <div className="flex items-center">
@@ -132,7 +132,7 @@ export default function DevLoginPage() {
  <Button
  onClick={() => handleDevLogin('designer')}
  disabled={loading}
- className="w-full flex items-center justify-center px-4 py-3 border rounded-lg shadow-sm bg-purple-600 text-sm font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+ className="w-full flex items-center justify-center px-4 py-3 border rounded-lg shadow-sm bg-purple-600 text-sm font-medium text-foreground hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
  >
  {loading && selectedUserType === 'designer' ? (
  <div className="flex items-center">

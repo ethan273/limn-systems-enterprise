@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
+import type { orders } from "@prisma/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -78,7 +79,8 @@ export default function CustomerDetailPage() {
     );
   }
 
-  const { customer, projects, productionOrders, activities, payments, analytics } = data;
+  const { customer: customerData, projects, productionOrders, activities, payments, analytics } = data;
+  const customer = customerData as any; // Cast to any due to db wrapper losing Prisma type information
 
   return (
     <div className="page-container">
@@ -141,16 +143,16 @@ export default function CustomerDetailPage() {
                     {customer.phone}
                   </a>
                 )}
-                {(customer.city || customer.state) && (
+                {(customer.billing_city || customer.billing_state) && (
                   <span className="detail-meta-item">
                     <MapPin className="icon-sm" aria-hidden="true" />
-                    {[customer.city, customer.state].filter(Boolean).join(", ")}
+                    {[customer.billing_city, customer.billing_state].filter(Boolean).join(", ")}
                   </span>
                 )}
               </div>
               {customer.tags && customer.tags.length > 0 && (
                 <div className="tag-list">
-                  {customer.tags.map((tag, idx) => (
+                  {customer.tags.map((tag: string, idx: number) => (
                     <Badge key={idx} variant="outline" className="badge-neutral">
                       {tag}
                     </Badge>
@@ -228,7 +230,7 @@ export default function CustomerDetailPage() {
           </TabsTrigger>
           <TabsTrigger value="orders" className="tabs-trigger">
             <ShoppingCart className="icon-sm" aria-hidden="true" />
-            Orders ({customer.orders.length})
+            Orders ({customer.orders?.length || 0})
           </TabsTrigger>
           <TabsTrigger value="production" className="tabs-trigger">
             <Package className="icon-sm" aria-hidden="true" />
@@ -328,12 +330,7 @@ export default function CustomerDetailPage() {
                     <p className="text-muted">No billing address on file</p>
                   )}
                 </div>
-                {!customer.shipping_same_as_billing && (
-                  <div className="address-section">
-                    <h4 className="address-section-title">Shipping Address</h4>
-                    <p className="text-muted">Separate shipping address (if configured)</p>
-                  </div>
-                )}
+                {/* Shipping addresses stored in separate customer_shipping_addresses table */}
               </CardContent>
             </Card>
           </div>
@@ -428,7 +425,7 @@ export default function CustomerDetailPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {projects.map((project) => (
+                      {projects.map((project: any) => (
                         <TableRow
                           key={project.id}
                           className="table-row-clickable"
@@ -442,7 +439,7 @@ export default function CustomerDetailPage() {
                           </TableCell>
                           <TableCell>{project.budget ? `$${Number(project.budget).toLocaleString()}` : "—"}</TableCell>
                           <TableCell>{project.start_date || "—"}</TableCell>
-                          <TableCell>{project.actual_completion_date || project.estimated_completion_date || "—"}</TableCell>
+                          <TableCell>{(project.actual_completion_date ? format(new Date(project.actual_completion_date), "PP") : (project.estimated_completion_date ? format(new Date(project.estimated_completion_date), "PP") : "Pending")) || "—"}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -460,7 +457,7 @@ export default function CustomerDetailPage() {
               <CardTitle>Orders</CardTitle>
             </CardHeader>
             <CardContent className="card-content-compact">
-              {customer.orders.length === 0 ? (
+              {!customer.orders || customer.orders.length === 0 ? (
                 <div className="empty-state">
                   <ShoppingCart className="empty-state-icon" aria-hidden="true" />
                   <h3 className="empty-state-title">No Orders</h3>
@@ -480,7 +477,7 @@ export default function CustomerDetailPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {customer.orders.map((order) => (
+                      {customer.orders.map((order: orders) => (
                         <TableRow
                           key={order.id}
                           className="table-row-clickable"

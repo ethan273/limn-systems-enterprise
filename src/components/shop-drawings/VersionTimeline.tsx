@@ -120,7 +120,7 @@ export function VersionTimeline({ versions, onVersionClick }: VersionTimelinePro
  version.status === "archived" && "card border"
  )}>
  <StatusIcon
- className="w-4 h-4 text-white"
+ className="w-4 h-4 text-foreground"
  aria-hidden="true"
  />
  </div>

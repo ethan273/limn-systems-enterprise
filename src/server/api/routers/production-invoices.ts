@@ -456,7 +456,7 @@ export const productionInvoicesRouter = createTRPCRouter({
       }
 
       // Calculate total cost from all production orders
-      const totalCost = productionOrders.reduce((sum, po) => sum + Number(po.total_cost), 0);
+      const totalCost = productionOrders.reduce((sum: number, po) => sum + Number(po.total_cost), 0);
 
       // Get project and customer info from first production order
       const firstPO = productionOrders[0];

@@ -233,7 +233,7 @@ function NotificationCenter({
  return (
  <div className="w-full max-w-md">
  <div className="flex items-center justify-between p-4 border-b border">
- <h3 className="text-lg font-semibold text-white">Notifications</h3>
+ <h3 className="text-lg font-semibold text-foreground">Notifications</h3>
  <div className="flex items-center gap-2">
  {selectedIds.length > 0 && (
  <>
@@ -268,7 +268,7 @@ function NotificationCenter({
  {filteredNotifications.length === 0 ? (
  <div className="text-center py-8">
  <Bell className="w-12 h-12 text-tertiary mx-auto mb-4" />
- <h4 className="text-lg font-medium text-white mb-2">No notifications</h4>
+ <h4 className="text-lg font-medium text-foreground mb-2">No notifications</h4>
  <p className="text-tertiary">You&apos;re all caught up!</p>
  </div>
  ) : (
@@ -305,7 +305,7 @@ function NotificationCenter({
  <div className="flex items-start justify-between gap-2">
  <div className="flex-1 min-w-0">
  <div className="flex items-center gap-2">
- <h4 className={`text-sm ${notification.status === 'unread' ? 'font-semibold text-white' : 'font-medium text-tertiary'} truncate`}>
+ <h4 className={`text-sm ${notification.status === 'unread' ? 'font-semibold text-foreground' : 'font-medium text-tertiary'} truncate`}>
  {notification.title}
  </h4>
  <Badge className={getPriorityColor(notification.priority)}>
@@ -422,7 +422,7 @@ export function CRMNotifications({
  <Bell className="w-5 h-5" />
  )}
  {unreadCount > 0 && (
- <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-red-500 text-white">
+ <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-red-500 text-foreground">
  {unreadCount > 99 ? '99+' : unreadCount}
  </Badge>
  )}
@@ -461,11 +461,11 @@ export function CRMNotifications({
  className="bg-red-900/90 border border-red-500/50 rounded-lg p-4 max-w-sm shadow-lg backdrop-blur-sm"
  >
  <div className="flex items-start gap-3">
- <div className="flex-shrink-0 w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white">
+ <div className="flex-shrink-0 w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-foreground">
  <Icon className="w-4 h-4" />
  </div>
  <div className="flex-1 min-w-0">
- <h4 className="font-semibold text-white text-sm">{notification.title}</h4>
+ <h4 className="font-semibold text-foreground text-sm">{notification.title}</h4>
  <p className="text-red-200 text-xs mt-1">{notification.message}</p>
  <div className="flex items-center gap-2 mt-2">
  {notification.action_label && (

@@ -81,7 +81,6 @@ export default function ProductionShipmentsPage() {
   const { data, isLoading } = api.shipping.getAllShipments.useQuery(
     {
       status: statusFilter === "all" ? undefined : statusFilter,
-      search: searchQuery || undefined,
       limit: 100,
       offset: 0,
     },

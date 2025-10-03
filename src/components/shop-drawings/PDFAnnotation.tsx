@@ -107,11 +107,11 @@ function AnnotationMarker({
  )}
  aria-label={`Annotation ${index + 1}: ${annotation.commentType} by ${annotation.author.name}`}
  >
- <Icon className="w-4 h-4 text-white" aria-hidden="true" />
+ <Icon className="w-4 h-4 text-foreground" aria-hidden="true" />
  <Badge
  className={cn(
  "absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center",
- "bg-white border border"
+ "bg-card border border"
  )}
  >
  {index + 1}
@@ -123,7 +123,7 @@ function AnnotationMarker({
  <div
  className={cn(
  "absolute left-1/2 -translate-x-1/2 top-full mt-2",
- "card text-white text-xs rounded px-2 py-1",
+ "card text-foreground text-xs rounded px-2 py-1",
  "whitespace-nowrap shadow-lg z-20 pointer-events-none",
  "max-w-xs"
  )}
@@ -279,13 +279,13 @@ export function PDFAnnotation({
 
  {/* Add mode hint */}
  {isAddingAnnotation && (
- <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 card/90 text-white px-4 py-2 rounded-lg shadow-lg text-sm">
+ <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 card/90 text-foreground px-4 py-2 rounded-lg shadow-lg text-sm">
  Click anywhere on the PDF to add a comment
  <Button
  variant="ghost"
  size="sm"
  onClick={handleCancelAdd}
- className="ml-2 h-6 px-2 text-white hover:bg-white/20"
+ className="ml-2 h-6 px-2 text-foreground hover:bg-card/20"
  aria-label="Cancel adding annotation"
  >
  <X className="w-3 h-3" aria-hidden="true" />

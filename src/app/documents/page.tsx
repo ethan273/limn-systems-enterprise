@@ -39,11 +39,10 @@ export const dynamic = 'force-dynamic';
 export default function DocumentsPage() {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
-  const [storageFilter, setStorageFilter] = useState<string>("all");
+  const [storageFilter, setStorageFilter] = useState<"all" | "google_drive" | "supabase">("all");
 
   const { data, isLoading } = api.storage.listFiles.useQuery(
     {
-      search: searchQuery || undefined,
       storageType: storageFilter === "all" ? undefined : storageFilter,
       limit: 100,
       offset: 0,
@@ -54,7 +53,7 @@ export default function DocumentsPage() {
   );
 
   const { data: statsData } = api.storage.getStorageStats.useQuery(
-    {},
+    undefined,
     {
       enabled: !!user,
     }
@@ -62,18 +61,29 @@ export default function DocumentsPage() {
 
   const documents = data?.files || [];
   const stats = statsData || {
-    totalFiles: 0,
-    totalSize: 0,
-    byStorageType: {},
-    byFileType: {},
+    total: {
+      files: 0,
+      size: 0,
+    },
+    supabase: {
+      files: 0,
+      size: 0,
+    },
+    googleDrive: {
+      files: 0,
+      size: 0,
+    },
   };
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return "0 Bytes";
     const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
+    const sizes: readonly string[] = ["Bytes", "KB", "MB", "GB"] as const;
+    const i = Math.min(Math.max(Math.floor(Math.log(bytes) / Math.log(k)), 0), sizes.length - 1);
+    // Safely access array with validated index - security warning is false positive
+    // eslint-disable-next-line security/detect-object-injection
+    const sizeLabel = i >= 0 && i < sizes.length ? sizes[i] : "Bytes";
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizeLabel;
   };
 
   return (
@@ -97,7 +107,7 @@ export default function DocumentsPage() {
             <CardTitle className="card-title-sm">Total Documents</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value">{stats.totalFiles}</div>
+            <div className="stat-value">{stats.total.files}</div>
             <p className="stat-label">All storage types</p>
           </CardContent>
         </Card>
@@ -107,7 +117,7 @@ export default function DocumentsPage() {
             <CardTitle className="card-title-sm">Total Storage</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value text-blue-600">{formatFileSize(stats.totalSize)}</div>
+            <div className="stat-value text-blue-600">{formatFileSize(stats.total.size)}</div>
             <p className="stat-label">Across all files</p>
           </CardContent>
         </Card>
@@ -118,7 +128,7 @@ export default function DocumentsPage() {
           </CardHeader>
           <CardContent>
             <div className="stat-value text-green-600">
-              {stats.byStorageType?.google_drive || 0}
+              {stats.googleDrive.files}
             </div>
             <p className="stat-label">Documents</p>
           </CardContent>
@@ -130,7 +140,7 @@ export default function DocumentsPage() {
           </CardHeader>
           <CardContent>
             <div className="stat-value text-purple-600">
-              {stats.byStorageType?.supabase || 0}
+              {stats.supabase.files}
             </div>
             <p className="stat-label">Documents</p>
           </CardContent>
@@ -150,7 +160,7 @@ export default function DocumentsPage() {
               />
             </div>
 
-            <Select value={storageFilter} onValueChange={setStorageFilter}>
+            <Select value={storageFilter} onValueChange={(value) => setStorageFilter(value as "all" | "google_drive" | "supabase")}>
               <SelectTrigger className="filter-select">
                 <SelectValue placeholder="Storage Type" />
               </SelectTrigger>

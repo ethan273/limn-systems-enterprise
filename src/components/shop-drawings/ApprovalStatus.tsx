@@ -117,7 +117,7 @@ function ApprovalCard({
  )}
 
  {approval.notes && (
- <div className="text-xs bg-white/60 p-2 rounded border border-border">
+ <div className="text-xs bg-card/60 p-2 rounded border border-border">
  <p className="font-medium mb-1">Notes:</p>
  <p className="text-muted-foreground whitespace-pre-wrap">
  {approval.notes}

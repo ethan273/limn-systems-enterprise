@@ -41,7 +41,7 @@ import {
  Eye,
  Filter,
  DollarSign,
- Building2,
+ 
  ClipboardList,
  Target,
  CheckCircle2,

@@ -150,7 +150,7 @@ export default function PortalDashboard() {
  <div
  key={notification.id}
  className={`flex items-start space-x-3 p-4 rounded-lg border ${
- notification.read ? 'bg-white border' : 'bg-blue-50 border-blue-200'
+ notification.read ? 'bg-card border' : 'bg-blue-50 border-blue-200'
  }`}
  >
  <div
@@ -179,7 +179,7 @@ export default function PortalDashboard() {
  <div className="flex items-center space-x-2">
  <p className="text-sm font-medium">{notification.title}</p>
  {!notification.read && (
- <Badge className="bg-blue-500 text-white text-xs">New</Badge>
+ <Badge className="bg-blue-500 text-foreground text-xs">New</Badge>
  )}
  </div>
  <p className="text-sm mt-1">{notification.message}</p>
@@ -253,18 +253,18 @@ export default function PortalDashboard() {
  </Card>
 
  {/* Support */}
- <Card className="bg-gradient-to-r from-[#91bdbd] to-[#7da9a9] text-white">
+ <Card className="bg-gradient-to-r from-[#91bdbd] to-[#7da9a9] text-foreground">
  <CardContent className="p-6">
  <div className="flex items-center justify-between">
  <div>
  <h3 className="text-lg font-semibold mb-2">Need Help?</h3>
- <p className="text-sm text-white/90">
+ <p className="text-sm text-foreground/90">
  Our support team is here to assist you with any questions.
  </p>
  </div>
  <Button
  variant="secondary"
- className="bg-white text-[#91bdbd] hover:card"
+ className="bg-card text-[#91bdbd] hover:card"
  onClick={() => (window.location.href = 'mailto:support@limnsystems.com')}
  >
  Contact Support

@@ -14,18 +14,18 @@
  * to ensure proper contrast ratios
  */
 export const ACCESSIBLE_TEXT_COLORS = {
-  // Primary text (on bg-gray-950 or bg-gray-900)
-  primary: 'text-gray-100', // 13.2:1 ratio ✅
+  // Primary text (on bg-gray-950 or bg-background)
+  primary: 'text-foreground', // 13.2:1 ratio ✅
 
-  // Secondary text (on bg-gray-950 or bg-gray-900)
-  secondary: 'text-gray-300', // 7.8:1 ratio ✅
+  // Secondary text (on bg-gray-950 or bg-background)
+  secondary: 'text-muted-foreground', // 7.8:1 ratio ✅
 
-  // Muted text (on bg-gray-950 or bg-gray-900)
-  muted: 'text-gray-400', // 5.7:1 ratio ✅
+  // Muted text (on bg-gray-950 or bg-background)
+  muted: 'text-muted-foreground', // 5.7:1 ratio ✅
 
   // Avoid these (insufficient contrast):
-  // text-gray-500 on bg-gray-800 = 3.2:1 ❌
-  // text-gray-400 on bg-gray-700 = 3.8:1 ❌
+  // text-muted-foreground on bg-card = 3.2:1 ❌
+  // text-muted-foreground on bg-muted = 3.8:1 ❌
 } as const;
 
 /**
@@ -56,7 +56,7 @@ export const STATUS_COLORS = {
   },
   neutral: {
     bg: 'bg-gray-500/20',
-    text: 'text-gray-300', // 7.8:1 on dark ✅
+    text: 'text-muted-foreground', // 7.8:1 on dark ✅
     border: 'border-gray-500/30',
   },
 } as const;

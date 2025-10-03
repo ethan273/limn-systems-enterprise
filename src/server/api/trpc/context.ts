@@ -48,13 +48,14 @@ interface CreateContextOptions {
  */
 export async function createContext(opts: CreateNextContextOptions | CreateContextOptions) {
   // Get session from Supabase if not provided
-  const session = 'session' in opts && opts.session !== undefined 
-    ? opts.session 
+  const session = 'session' in opts && opts.session !== undefined
+    ? opts.session
     : await getSession();
-  
+
   return {
     db, // Our hybrid database client
     session,
+    user: session?.user ?? null, // Extract user from session for convenience
     req: 'req' in opts ? opts.req : undefined,
     res: 'res' in opts ? opts.res : undefined,
   };

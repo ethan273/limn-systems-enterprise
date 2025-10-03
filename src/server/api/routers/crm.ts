@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { createCrudRouter } from '../utils/crud-generator';
 import { createTRPCRouter, publicProcedure } from '../trpc/init';
+import type { orders } from '@prisma/client';
 
 // Contacts Schema (updated to match database schema)
 const createContactSchema = z.object({
@@ -148,7 +149,7 @@ export const customersRouter = createTRPCRouter({
       id: z.string().uuid(),
     }))
     .query(async ({ ctx, input }) => {
-      const customer = await ctx.db.customers.findUnique({
+      const customerData = await ctx.db.customers.findUnique({
         where: { id: input.id },
         include: {
           orders: {
@@ -158,9 +159,12 @@ export const customersRouter = createTRPCRouter({
         },
       });
 
-      if (!customer) {
+      if (!customerData) {
         throw new Error('Customer not found');
       }
+
+      // Cast to any due to db wrapper losing Prisma type information
+      const customer: any = customerData;
 
       // Get projects for this customer
       const projects = await ctx.db.projects.findMany({
@@ -199,11 +203,11 @@ export const customersRouter = createTRPCRouter({
       });
 
       // Calculate financial analytics
-      const totalOrderValue = customer.orders.reduce((sum, order) =>
+      const totalOrderValue = customer.orders.reduce((sum: number, order: orders) =>
         sum + (order.total_amount ? Number(order.total_amount) : 0), 0
       );
 
-      const totalPaid = payments.reduce((sum, payment) =>
+      const totalPaid = payments.reduce((sum: number, payment) =>
         sum + (payment.amount ? Number(payment.amount) : 0), 0
       );
 

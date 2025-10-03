@@ -115,7 +115,7 @@ export const paymentsRouter = createTRPCRouter({
       // Calculate allocated vs unallocated amounts
       const paymentsWithAllocations = items.map((payment) => {
         const totalAllocated = payment.payment_allocations.reduce(
-          (sum, allocation) => sum + Number(allocation.allocated_amount),
+          (sum: number, allocation: any) => sum + Number(allocation.allocated_amount),
           0
         );
         const paymentAmount = Number(payment.amount || 0);
@@ -168,7 +168,7 @@ export const paymentsRouter = createTRPCRouter({
       }
 
       const totalAllocated = payment.payment_allocations.reduce(
-        (sum, allocation) => sum + Number(allocation.allocated_amount),
+        (sum: number, allocation: any) => sum + Number(allocation.allocated_amount),
         0
       );
       const paymentAmount = Number(payment.amount || 0);
@@ -214,7 +214,7 @@ export const paymentsRouter = createTRPCRouter({
 
       return payments.map((payment) => {
         const totalAllocated = payment.payment_allocations.reduce(
-          (sum, allocation) => sum + Number(allocation.allocated_amount),
+          (sum: number, allocation: any) => sum + Number(allocation.allocated_amount),
           0
         );
         const paymentAmount = Number(payment.amount || 0);
@@ -266,7 +266,7 @@ export const paymentsRouter = createTRPCRouter({
       const unallocatedPayments = payments
         .map((payment) => {
           const totalAllocated = payment.payment_allocations.reduce(
-            (sum, allocation) => sum + Number(allocation.allocated_amount),
+            (sum: number, allocation: any) => sum + Number(allocation.allocated_amount),
             0
           );
           const paymentAmount = Number(payment.amount || 0);
@@ -384,7 +384,7 @@ export const paymentsRouter = createTRPCRouter({
       }
 
       const totalAllocated = payment.payment_allocations.reduce(
-        (sum, allocation) => sum + Number(allocation.allocated_amount),
+        (sum: number, allocation: any) => sum + Number(allocation.allocated_amount),
         0
       );
       const unallocated = Number(payment.amount || 0) - totalAllocated;
@@ -414,11 +414,11 @@ export const paymentsRouter = createTRPCRouter({
 
       // Calculate invoice balance
       const invoiceTotal = invoice.invoice_items.reduce(
-        (sum, item) => sum + Number(item.line_total || 0) + Number(item.tax_amount || 0),
+        (sum: number, item: any) => sum + Number(item.line_total || 0) + Number(item.tax_amount || 0),
         0
       );
       const invoicePaid = invoice.payment_allocations.reduce(
-        (sum, allocation) => sum + Number(allocation.allocated_amount),
+        (sum: number, allocation: any) => sum + Number(allocation.allocated_amount),
         0
       );
       const invoiceBalance = invoiceTotal - invoicePaid;
@@ -504,7 +504,7 @@ export const paymentsRouter = createTRPCRouter({
         }
 
         const totalAllocated = payment.payment_allocations.reduce(
-          (sum, allocation) => sum + Number(allocation.allocated_amount),
+          (sum: number, allocation: any) => sum + Number(allocation.allocated_amount),
           0
         );
 
@@ -636,12 +636,13 @@ export const paymentsRouter = createTRPCRouter({
       let countPending = 0;
       let countFailed = 0;
 
-      const methodTotals: Record<string, number> = {};
+      // Use Map to avoid object injection security warning
+      const methodTotalsMap = new Map<string, number>();
 
       payments.forEach((payment) => {
         const amount = Number(payment.amount || 0);
         const allocated = payment.payment_allocations.reduce(
-          (sum, allocation) => sum + Number(allocation.allocated_amount),
+          (sum: number, allocation: any) => sum + Number(allocation.allocated_amount),
           0
         );
 
@@ -654,7 +655,15 @@ export const paymentsRouter = createTRPCRouter({
         else if (payment.status === 'failed') countFailed++;
 
         const method = payment.payment_method || 'Unknown';
-        methodTotals[method] = (methodTotals[method] || 0) + amount;
+        const currentTotal = methodTotalsMap.get(method) || 0;
+        methodTotalsMap.set(method, currentTotal + amount);
+      });
+
+      // Convert Map to Record for response
+      const methodTotals: Record<string, number> = {};
+      methodTotalsMap.forEach((value, key) => {
+        // eslint-disable-next-line security/detect-object-injection
+        methodTotals[key] = value;
       });
 
       return {

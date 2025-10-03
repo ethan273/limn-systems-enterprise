@@ -46,15 +46,15 @@ export default function TaskPrioritySelect({ taskId, currentPriority, onUpdate }
  onValueChange={handlePriorityChange}
  disabled={isUpdating}
  >
- <SelectTrigger className="w-24 min-h-[50px] h-auto border-0 bg-transparent p-2 hover:card focus:card overflow-visible">
+ <SelectTrigger className="w-24 h-8 border-0 bg-transparent p-0 hover:card focus:card overflow-visible">
  <SelectValue>
  <Badge
  variant="outline"
  className={cn(
- "border text-xs font-medium px-3 py-1",
- currentPriority === 'low' && "card text-tertiary border/30",
- currentPriority === 'medium' && "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
- currentPriority === 'high' && "bg-red-500/20 text-red-400 border-red-500/30",
+ "border text-xs font-medium px-2 py-0.5 h-6",
+ currentPriority === 'low' && "bg-gray-500/20 text-gray-400 border-gray-500/20",
+ currentPriority === 'medium' && "bg-yellow-500/20 text-yellow-400 border-yellow-500/20",
+ currentPriority === 'high' && "bg-red-500/20 text-red-400 border-red-500/20",
  isUpdating && "opacity-50"
  )}
  >
@@ -69,12 +69,12 @@ export default function TaskPrioritySelect({ taskId, currentPriority, onUpdate }
  </Badge>
  </SelectItem>
  <SelectItem value="medium">
- <Badge variant="outline" className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-xs">
+ <Badge variant="outline" className="bg-yellow-500/20 text-yellow-400 border-yellow-500/20 text-xs">
  MEDIUM
  </Badge>
  </SelectItem>
  <SelectItem value="high">
- <Badge variant="outline" className="bg-red-500/20 text-red-400 border-red-500/30 text-xs">
+ <Badge variant="outline" className="bg-red-500/20 text-red-400 border-red-500/20 text-xs">
  HIGH
  </Badge>
  </SelectItem>

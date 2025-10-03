@@ -247,7 +247,7 @@ export default function DesignProjectDetailPage({ params }: { params: { id: stri
  }`}
  >
  <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
- isCompleted ? 'bg-green-500 text-white' : 'border '
+ isCompleted ? 'bg-green-500 text-foreground' : 'border '
  }`}>
  {isCompleted ? '✓' : index + 1}
  </div>

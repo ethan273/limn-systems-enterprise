@@ -60,7 +60,7 @@ export function AdminApprovalPanel() {
  case 'denied':
  return 'bg-red-500/10 text-red-500'
  default:
- return 'card text-gray-500'
+ return 'card text-muted-foreground'
  }
  }
 

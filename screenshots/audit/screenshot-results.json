@@ -1,0 +1,1666 @@
+[
+  {
+    "page": "/login",
+    "theme": "light",
+    "success": true,
+    "consoleErrors": [
+      "%c << query #3 %cshipping.getShipmentsByOrder%c %O \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n   \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: bold; \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: normal; {input: Object, result: TRPCClientError: UNAUTHORIZED\n    at TRPCClientError.from (http://localhost:3000/_next/static/chunk…, elapsedMs: 418, context: Object}",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/ordered-items",
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/light/login.png"
+  },
+  {
+    "page": "/auth/employee",
+    "theme": "light",
+    "success": true,
+    "consoleErrors": [
+      "%c << query #3 %cshipping.getShipmentsByOrder%c %O \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n   \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: bold; \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: normal; {input: Object, result: TRPCClientError: UNAUTHORIZED\n    at TRPCClientError.from (http://localhost:3000/_next/static/chunk…, elapsedMs: 418, context: Object}",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/ordered-items",
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/light/auth-employee.png"
+  },
+  {
+    "page": "/auth/contractor",
+    "theme": "light",
+    "success": true,
+    "consoleErrors": [
+      "%c << query #3 %cshipping.getShipmentsByOrder%c %O \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n   \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: bold; \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: normal; {input: Object, result: TRPCClientError: UNAUTHORIZED\n    at TRPCClientError.from (http://localhost:3000/_next/static/chunk…, elapsedMs: 418, context: Object}",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/ordered-items",
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/light/auth-contractor.png"
+  },
+  {
+    "page": "/auth/customer",
+    "theme": "light",
+    "success": true,
+    "consoleErrors": [
+      "%c << query #3 %cshipping.getShipmentsByOrder%c %O \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n   \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: bold; \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: normal; {input: Object, result: TRPCClientError: UNAUTHORIZED\n    at TRPCClientError.from (http://localhost:3000/_next/static/chunk…, elapsedMs: 418, context: Object}",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/ordered-items",
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/light/auth-customer.png"
+  },
+  {
+    "page": "/auth/dev",
+    "theme": "light",
+    "success": true,
+    "consoleErrors": [
+      "%c << query #3 %cshipping.getShipmentsByOrder%c %O \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n   \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: bold; \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: normal; {input: Object, result: TRPCClientError: UNAUTHORIZED\n    at TRPCClientError.from (http://localhost:3000/_next/static/chunk…, elapsedMs: 418, context: Object}",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/ordered-items",
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/light/auth-dev.png"
+  },
+  {
+    "page": "/dashboard",
+    "theme": "light",
+    "success": true,
+    "consoleErrors": [
+      "%c << query #3 %cshipping.getShipmentsByOrder%c %O \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n   \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: bold; \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: normal; {input: Object, result: TRPCClientError: UNAUTHORIZED\n    at TRPCClientError.from (http://localhost:3000/_next/static/chunk…, elapsedMs: 418, context: Object}",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/ordered-items",
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/light/dashboard.png"
+  },
+  {
+    "page": "/crm/projects",
+    "theme": "light",
+    "success": true,
+    "consoleErrors": [
+      "%c << query #3 %cshipping.getShipmentsByOrder%c %O \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n   \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: bold; \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: normal; {input: Object, result: TRPCClientError: UNAUTHORIZED\n    at TRPCClientError.from (http://localhost:3000/_next/static/chunk…, elapsedMs: 418, context: Object}",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/ordered-items",
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/light/crm-projects.png"
+  },
+  {
+    "page": "/crm/clients",
+    "theme": "light",
+    "success": true,
+    "consoleErrors": [
+      "%c << query #3 %cshipping.getShipmentsByOrder%c %O \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n   \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: bold; \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: normal; {input: Object, result: TRPCClientError: UNAUTHORIZED\n    at TRPCClientError.from (http://localhost:3000/_next/static/chunk…, elapsedMs: 418, context: Object}",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/ordered-items",
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/light/crm-clients.png"
+  },
+  {
+    "page": "/products/materials",
+    "theme": "light",
+    "success": true,
+    "consoleErrors": [
+      "%c << query #3 %cshipping.getShipmentsByOrder%c %O \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n   \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: bold; \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: normal; {input: Object, result: TRPCClientError: UNAUTHORIZED\n    at TRPCClientError.from (http://localhost:3000/_next/static/chunk…, elapsedMs: 418, context: Object}",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/ordered-items",
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/light/products-materials.png"
+  },
+  {
+    "page": "/products/catalog",
+    "theme": "light",
+    "success": true,
+    "consoleErrors": [
+      "%c << query #3 %cshipping.getShipmentsByOrder%c %O \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n   \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: bold; \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: normal; {input: Object, result: TRPCClientError: UNAUTHORIZED\n    at TRPCClientError.from (http://localhost:3000/_next/static/chunk…, elapsedMs: 418, context: Object}",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/ordered-items",
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/light/products-catalog.png"
+  },
+  {
+    "page": "/products/prototypes",
+    "theme": "light",
+    "success": true,
+    "consoleErrors": [
+      "%c << query #3 %cshipping.getShipmentsByOrder%c %O \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n   \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: bold; \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: normal; {input: Object, result: TRPCClientError: UNAUTHORIZED\n    at TRPCClientError.from (http://localhost:3000/_next/static/chunk…, elapsedMs: 418, context: Object}",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/ordered-items",
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/light/products-prototypes.png"
+  },
+  {
+    "page": "/products/concepts",
+    "theme": "light",
+    "success": true,
+    "consoleErrors": [
+      "%c << query #3 %cshipping.getShipmentsByOrder%c %O \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n   \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: bold; \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: normal; {input: Object, result: TRPCClientError: UNAUTHORIZED\n    at TRPCClientError.from (http://localhost:3000/_next/static/chunk…, elapsedMs: 418, context: Object}",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/ordered-items",
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/light/products-concepts.png"
+  },
+  {
+    "page": "/products/ordered-items",
+    "theme": "light",
+    "success": true,
+    "consoleErrors": [
+      "%c << query #3 %cshipping.getShipmentsByOrder%c %O \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n   \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: bold; \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: normal; {input: Object, result: TRPCClientError: UNAUTHORIZED\n    at TRPCClientError.from (http://localhost:3000/_next/static/chunk…, elapsedMs: 418, context: Object}",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/ordered-items",
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/light/products-ordered-items.png"
+  },
+  {
+    "page": "/production/orders",
+    "theme": "light",
+    "success": true,
+    "consoleErrors": [
+      "%c << query #3 %cshipping.getShipmentsByOrder%c %O \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n   \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: bold; \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: normal; {input: Object, result: TRPCClientError: UNAUTHORIZED\n    at TRPCClientError.from (http://localhost:3000/_next/static/chunk…, elapsedMs: 418, context: Object}",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/ordered-items",
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/light/production-orders.png"
+  },
+  {
+    "page": "/production/orders/new",
+    "theme": "light",
+    "success": true,
+    "consoleErrors": [
+      "%c << query #3 %cshipping.getShipmentsByOrder%c %O \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n   \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: bold; \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: normal; {input: Object, result: TRPCClientError: UNAUTHORIZED\n    at TRPCClientError.from (http://localhost:3000/_next/static/chunk…, elapsedMs: 418, context: Object}",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/ordered-items",
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/light/production-orders-new.png"
+  },
+  {
+    "page": "/production/ordered-items",
+    "theme": "light",
+    "success": true,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/ordered-items",
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/light/production-ordered-items.png"
+  },
+  {
+    "page": "/production/qc",
+    "theme": "light",
+    "success": true,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/light/production-qc.png"
+  },
+  {
+    "page": "/production/shipments",
+    "theme": "light",
+    "success": true,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/light/production-shipments.png"
+  },
+  {
+    "page": "/tasks",
+    "theme": "light",
+    "success": true,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/light/tasks.png"
+  },
+  {
+    "page": "/tasks/my",
+    "theme": "light",
+    "success": true,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/light/tasks-my.png"
+  },
+  {
+    "page": "/shipping",
+    "theme": "light",
+    "success": true,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/light/shipping.png"
+  },
+  {
+    "page": "/shipping/shipments",
+    "theme": "light",
+    "success": true,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/light/shipping-shipments.png"
+  },
+  {
+    "page": "/shipping/tracking",
+    "theme": "light",
+    "success": true,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/light/shipping-tracking.png"
+  },
+  {
+    "page": "/financials/invoices",
+    "theme": "light",
+    "success": true,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/light/financials-invoices.png"
+  },
+  {
+    "page": "/financials/payments",
+    "theme": "light",
+    "success": true,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/light/financials-payments.png"
+  },
+  {
+    "page": "/documents",
+    "theme": "light",
+    "success": true,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/light/documents.png"
+  },
+  {
+    "page": "/login",
+    "theme": "dark",
+    "success": true,
+    "consoleErrors": [
+      "%c << query #3 %cshipping.getShipmentsByOrder%c %O \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n   \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: bold; \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: normal; {input: Object, result: TRPCClientError: UNAUTHORIZED\n    at TRPCClientError.from (http://localhost:3000/_next/static/chunk…, elapsedMs: 459, context: Object}",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/ordered-items",
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/dark/login.png"
+  },
+  {
+    "page": "/auth/employee",
+    "theme": "dark",
+    "success": true,
+    "consoleErrors": [
+      "%c << query #3 %cshipping.getShipmentsByOrder%c %O \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n   \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: bold; \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: normal; {input: Object, result: TRPCClientError: UNAUTHORIZED\n    at TRPCClientError.from (http://localhost:3000/_next/static/chunk…, elapsedMs: 459, context: Object}",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/ordered-items",
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/dark/auth-employee.png"
+  },
+  {
+    "page": "/auth/contractor",
+    "theme": "dark",
+    "success": true,
+    "consoleErrors": [
+      "%c << query #3 %cshipping.getShipmentsByOrder%c %O \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n   \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: bold; \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: normal; {input: Object, result: TRPCClientError: UNAUTHORIZED\n    at TRPCClientError.from (http://localhost:3000/_next/static/chunk…, elapsedMs: 459, context: Object}",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/ordered-items",
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/dark/auth-contractor.png"
+  },
+  {
+    "page": "/auth/customer",
+    "theme": "dark",
+    "success": true,
+    "consoleErrors": [
+      "%c << query #3 %cshipping.getShipmentsByOrder%c %O \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n   \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: bold; \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: normal; {input: Object, result: TRPCClientError: UNAUTHORIZED\n    at TRPCClientError.from (http://localhost:3000/_next/static/chunk…, elapsedMs: 459, context: Object}",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/ordered-items",
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/dark/auth-customer.png"
+  },
+  {
+    "page": "/auth/dev",
+    "theme": "dark",
+    "success": true,
+    "consoleErrors": [
+      "%c << query #3 %cshipping.getShipmentsByOrder%c %O \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n   \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: bold; \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: normal; {input: Object, result: TRPCClientError: UNAUTHORIZED\n    at TRPCClientError.from (http://localhost:3000/_next/static/chunk…, elapsedMs: 459, context: Object}",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/ordered-items",
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/dark/auth-dev.png"
+  },
+  {
+    "page": "/dashboard",
+    "theme": "dark",
+    "success": true,
+    "consoleErrors": [
+      "%c << query #3 %cshipping.getShipmentsByOrder%c %O \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n   \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: bold; \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: normal; {input: Object, result: TRPCClientError: UNAUTHORIZED\n    at TRPCClientError.from (http://localhost:3000/_next/static/chunk…, elapsedMs: 459, context: Object}",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/ordered-items",
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/dark/dashboard.png"
+  },
+  {
+    "page": "/crm/projects",
+    "theme": "dark",
+    "success": true,
+    "consoleErrors": [
+      "%c << query #3 %cshipping.getShipmentsByOrder%c %O \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n   \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: bold; \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: normal; {input: Object, result: TRPCClientError: UNAUTHORIZED\n    at TRPCClientError.from (http://localhost:3000/_next/static/chunk…, elapsedMs: 459, context: Object}",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/ordered-items",
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/dark/crm-projects.png"
+  },
+  {
+    "page": "/crm/clients",
+    "theme": "dark",
+    "success": true,
+    "consoleErrors": [
+      "%c << query #3 %cshipping.getShipmentsByOrder%c %O \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n   \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: bold; \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: normal; {input: Object, result: TRPCClientError: UNAUTHORIZED\n    at TRPCClientError.from (http://localhost:3000/_next/static/chunk…, elapsedMs: 459, context: Object}",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/ordered-items",
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/dark/crm-clients.png"
+  },
+  {
+    "page": "/products/materials",
+    "theme": "dark",
+    "success": true,
+    "consoleErrors": [
+      "%c << query #3 %cshipping.getShipmentsByOrder%c %O \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n   \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: bold; \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: normal; {input: Object, result: TRPCClientError: UNAUTHORIZED\n    at TRPCClientError.from (http://localhost:3000/_next/static/chunk…, elapsedMs: 459, context: Object}",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/ordered-items",
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/dark/products-materials.png"
+  },
+  {
+    "page": "/products/catalog",
+    "theme": "dark",
+    "success": true,
+    "consoleErrors": [
+      "%c << query #3 %cshipping.getShipmentsByOrder%c %O \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n   \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: bold; \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: normal; {input: Object, result: TRPCClientError: UNAUTHORIZED\n    at TRPCClientError.from (http://localhost:3000/_next/static/chunk…, elapsedMs: 459, context: Object}",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/ordered-items",
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/dark/products-catalog.png"
+  },
+  {
+    "page": "/products/prototypes",
+    "theme": "dark",
+    "success": true,
+    "consoleErrors": [
+      "%c << query #3 %cshipping.getShipmentsByOrder%c %O \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n   \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: bold; \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: normal; {input: Object, result: TRPCClientError: UNAUTHORIZED\n    at TRPCClientError.from (http://localhost:3000/_next/static/chunk…, elapsedMs: 459, context: Object}",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/ordered-items",
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/dark/products-prototypes.png"
+  },
+  {
+    "page": "/products/concepts",
+    "theme": "dark",
+    "success": true,
+    "consoleErrors": [
+      "%c << query #3 %cshipping.getShipmentsByOrder%c %O \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n   \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: bold; \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: normal; {input: Object, result: TRPCClientError: UNAUTHORIZED\n    at TRPCClientError.from (http://localhost:3000/_next/static/chunk…, elapsedMs: 459, context: Object}",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/ordered-items",
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/dark/products-concepts.png"
+  },
+  {
+    "page": "/products/ordered-items",
+    "theme": "dark",
+    "success": true,
+    "consoleErrors": [
+      "%c << query #3 %cshipping.getShipmentsByOrder%c %O \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n   \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: bold; \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: normal; {input: Object, result: TRPCClientError: UNAUTHORIZED\n    at TRPCClientError.from (http://localhost:3000/_next/static/chunk…, elapsedMs: 459, context: Object}",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/ordered-items",
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/dark/products-ordered-items.png"
+  },
+  {
+    "page": "/production/orders",
+    "theme": "dark",
+    "success": true,
+    "consoleErrors": [
+      "%c << query #3 %cshipping.getShipmentsByOrder%c %O \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n   \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: bold; \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: normal; {input: Object, result: TRPCClientError: UNAUTHORIZED\n    at TRPCClientError.from (http://localhost:3000/_next/static/chunk…, elapsedMs: 459, context: Object}",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/ordered-items",
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/dark/production-orders.png"
+  },
+  {
+    "page": "/production/orders/new",
+    "theme": "dark",
+    "success": true,
+    "consoleErrors": [
+      "%c << query #3 %cshipping.getShipmentsByOrder%c %O \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n   \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: bold; \n    background-color: #3fb0d8;\n    color: white;\n    padding: 2px;\n  ; font-weight: normal; {input: Object, result: TRPCClientError: UNAUTHORIZED\n    at TRPCClientError.from (http://localhost:3000/_next/static/chunk…, elapsedMs: 459, context: Object}",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/ordered-items",
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/dark/production-orders-new.png"
+  },
+  {
+    "page": "/production/ordered-items",
+    "theme": "dark",
+    "success": true,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/ordered-items",
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/dark/production-ordered-items.png"
+  },
+  {
+    "page": "/production/qc",
+    "theme": "dark",
+    "success": true,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/dark/production-qc.png"
+  },
+  {
+    "page": "/production/shipments",
+    "theme": "dark",
+    "success": true,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/production/shipments",
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/dark/production-shipments.png"
+  },
+  {
+    "page": "/tasks",
+    "theme": "dark",
+    "success": true,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/dark/tasks.png"
+  },
+  {
+    "page": "/tasks/my",
+    "theme": "dark",
+    "success": true,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [
+      "Image with src \"/images/Limn_Logo_Light_Mode.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio."
+    ],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/dark/tasks-my.png"
+  },
+  {
+    "page": "/shipping",
+    "theme": "dark",
+    "success": true,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/shipping",
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/dark/shipping.png"
+  },
+  {
+    "page": "/shipping/shipments",
+    "theme": "dark",
+    "success": true,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/shipping/shipments",
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/dark/shipping-shipments.png"
+  },
+  {
+    "page": "/shipping/tracking",
+    "theme": "dark",
+    "success": true,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/shipping/tracking",
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/dark/shipping-tracking.png"
+  },
+  {
+    "page": "/financials/invoices",
+    "theme": "dark",
+    "success": true,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/financials/invoices",
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/dark/financials-invoices.png"
+  },
+  {
+    "page": "/financials/payments",
+    "theme": "dark",
+    "success": true,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/financials/payments",
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/dark/financials-payments.png"
+  },
+  {
+    "page": "/documents",
+    "theme": "dark",
+    "success": true,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "consoleWarnings": [],
+    "networkErrors": [
+      "404 Not Found - http://localhost:3000/documents"
+    ],
+    "screenshot": "/Users/eko3/limn-systems-enterprise/screenshots/audit/dark/documents.png"
+  }
+]

@@ -849,6 +849,31 @@ export class DatabaseClient {
     return { count: (data as unknown as any[])?.length || 0 };
   }
 
+  private async updateManyGeneric(
+    tableName: string,
+    options: { where: Record<string, any>; data: Record<string, any> }
+  ): Promise<{ count: number }> {
+    // @ts-ignore - Supabase type system doesn't allow generic updates
+    let query: any = supabase.from(tableName).update(options.data);
+
+    // Apply where conditions
+    Object.entries(options.where).forEach(([key, value]) => {
+      if (typeof value === 'object' && 'in' in value) {
+        query = query.in(key, value.in);
+      } else {
+        query = query.eq(key, value);
+      }
+    });
+
+    const { data, error } = await query.select('id');
+
+    if (error) {
+      throw new Error(`Failed to update many in ${tableName}: ${error.message}`);
+    }
+
+    return { count: (data as unknown as any[])?.length || 0 };
+  }
+
   /**
    * Generic count operation for any table
    */
@@ -1342,6 +1367,97 @@ export class DatabaseClient {
       this.countGeneric('production_payments', options),
   };
 
+  // Payments model (for CRM and general payments)
+  payments = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('payments', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('payments', options),
+    findFirst: (options?: QueryOptions) => {
+      const modifiedOptions = { ...options, take: 1 };
+      return this.findManyGeneric<any>('payments', modifiedOptions).then(results => results[0] || null);
+    },
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('payments', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('payments', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('payments', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('payments', options),
+  };
+
+  // Invoices model
+  invoices = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('invoices', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('invoices', options),
+    findFirst: (options?: QueryOptions) => {
+      const modifiedOptions = { ...options, take: 1 };
+      return this.findManyGeneric<any>('invoices', modifiedOptions).then(results => results[0] || null);
+    },
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('invoices', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('invoices', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('invoices', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('invoices', options),
+  };
+
+  // Invoice Items model (line items on invoices)
+  invoice_items = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('invoice_items', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('invoice_items', options),
+    findFirst: (options?: QueryOptions) => {
+      const modifiedOptions = { ...options, take: 1 };
+      return this.findManyGeneric<any>('invoice_items', modifiedOptions).then(results => results[0] || null);
+    },
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('invoice_items', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('invoice_items', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('invoice_items', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('invoice_items', options),
+  };
+
+  // Payment Allocations model (links payments to invoices)
+  payment_allocations = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('payment_allocations', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('payment_allocations', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('payment_allocations', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('payment_allocations', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('payment_allocations', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('payment_allocations', options),
+  };
+
+  // Activities model (for CRM activity tracking)
+  activities = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('activities', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('activities', options),
+    findFirst: (options?: QueryOptions) => {
+      const modifiedOptions = { ...options, take: 1 };
+      return this.findManyGeneric<any>('activities', modifiedOptions).then(results => results[0] || null);
+    },
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('activities', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('activities', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('activities', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('activities', options),
+  };
+
   // Ordered Items Production model
   ordered_items_production = {
     findMany: (options?: QueryOptions) => this.findManyGeneric<any>('ordered_items_production', options),
@@ -1351,6 +1467,8 @@ export class DatabaseClient {
       this.createGeneric<any>('ordered_items_production', options),
     update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
       this.updateGeneric<any>('ordered_items_production', options),
+    updateMany: (options: { where: Record<string, any>; data: Record<string, any> }) =>
+      this.updateManyGeneric('ordered_items_production', options),
     delete: (options: { where: Record<string, any> }) =>
       this.deleteGeneric('ordered_items_production', options),
     createMany: (options: { data: Record<string, any>[] }) =>

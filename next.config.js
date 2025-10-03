@@ -21,7 +21,20 @@ const nextConfig = {
 
   // Image optimization
   images: {
-    domains: ['localhost', 'via.placeholder.com', 'gwqkbjymbarkufwvdmar.supabase.co'],
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
+      {
+        protocol: 'https',
+        hostname: 'via.placeholder.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'gwqkbjymbarkufwvdmar.supabase.co',
+      },
+    ],
   },
 
   // Production optimizations

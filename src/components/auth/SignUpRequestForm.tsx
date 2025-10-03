@@ -81,7 +81,7 @@ export default function SignUpRequestForm() {
  <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
  <div className="space-y-4">
  {/* Personal Information */}
- <div className="bg-white p-6 rounded-lg shadow-sm border border">
+ <div className="bg-card p-6 rounded-lg shadow-sm border border">
  <h3 className="text-lg font-medium mb-4 flex items-center">
  <User className="mr-2 h-5 w-5 text-indigo-500" />
  Personal Information

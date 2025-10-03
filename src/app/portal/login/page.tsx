@@ -72,14 +72,14 @@ export default function PortalLoginPage() {
  {/* Logo/Brand */}
  <div className="text-center mb-8">
  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#91bdbd] mb-4">
- <Lock className="w-8 h-8 text-white" />
+ <Lock className="w-8 h-8 text-foreground" />
  </div>
  <h1 className="text-3xl font-bold">Customer Portal</h1>
  <p className=" mt-2">Sign in to access your orders and documents</p>
  </div>
 
  {/* Login Form */}
- <div className="bg-white rounded-lg shadow-xl p-8">
+ <div className="bg-card rounded-lg shadow-xl p-8">
  <form onSubmit={handleLogin} className="space-y-6">
  {error && (
  <Alert variant="destructive">
@@ -124,7 +124,7 @@ export default function PortalLoginPage() {
  <Button
  type="submit"
  disabled={loading}
- className="w-full bg-[#91bdbd] hover:bg-[#7da9a9] text-white"
+ className="w-full bg-[#91bdbd] hover:bg-[#7da9a9] text-foreground"
  >
  {loading ? (
  <>
