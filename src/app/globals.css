@@ -2226,3 +2226,88 @@ body {
   color: hsl(var(--muted-foreground));
   line-height: 1.5;
 }
+
+/* =====================================================
+ * DETAIL PAGE COMPONENTS
+ * Shared styles for detail/show pages across modules
+ * ===================================================== */
+
+/* Detail Section Container */
+.detail-section {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  padding: 1.5rem;
+}
+
+/* Detail Section Header */
+.detail-section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.detail-section-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: hsl(var(--primary));
+}
+
+.detail-section-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+/* Detail Grid - 2 Column Layout */
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Detail Field */
+.detail-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.detail-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.detail-value {
+  font-size: 1rem;
+  color: hsl(var(--foreground));
+  line-height: 1.5;
+}
+
+.detail-value .text-muted {
+  color: hsl(var(--muted-foreground));
+  font-style: italic;
+}
+
+/* Column Span Utilities */
+.col-span-2 {
+  grid-column: span 2;
+}
+
+@media (max-width: 768px) {
+  .col-span-2 {
+    grid-column: span 1;
+  }
+}

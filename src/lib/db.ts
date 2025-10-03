@@ -519,6 +519,7 @@ export class DatabaseClient {
   material_furniture_collections = prisma.material_furniture_collections;
   fabric_brands = prisma.fabric_brands;
   fabric_brand_collections = prisma.fabric_brand_collections;
+  documents = prisma.documents;
 
   // =====================================================
   // TRANSACTION SUPPORT
