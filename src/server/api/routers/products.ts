@@ -61,20 +61,45 @@ export const productsRouter = createTRPCRouter({
   getAllCollections: publicProcedure.query(async ({ ctx }) => {
     const collections = await (ctx.db as any).collections.findMany({
       orderBy: { name: "asc" },
+      include: {
+        material_collections: {
+          include: {
+            materials: {
+              select: {
+                type: true,
+              },
+            },
+          },
+        },
+      },
     });
 
-    // Return collections with mock material counts for now
-    const collectionsWithCounts = collections.map((collection: any) => ({
-      ...collection,
-      material_counts: {
+    // Calculate real material counts by type
+    const collectionsWithCounts = collections.map((collection: any) => {
+      const materialCounts = {
         fabrics: 0,
         woods: 0,
         metals: 0,
         stones: 0,
         weaving: 0,
         carving: 0,
-      },
-    }));
+      };
+
+      collection.material_collections?.forEach((mc: any) => {
+        const type = mc.materials?.type?.toLowerCase();
+        if (type === "fabric") materialCounts.fabrics++;
+        else if (type === "wood") materialCounts.woods++;
+        else if (type === "metal") materialCounts.metals++;
+        else if (type === "stone") materialCounts.stones++;
+        else if (type === "weaving") materialCounts.weaving++;
+        else if (type === "carving") materialCounts.carving++;
+      });
+
+      return {
+        ...collection,
+        material_counts: materialCounts,
+      };
+    });
 
     return collectionsWithCounts;
   }),

@@ -2,6 +2,7 @@
 
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
+import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,15 +34,26 @@ export default function PrototypeDetailPage({ params }: PageProps) {
   const prototypeId = resolvedParams.id;
   const [activeTab, setActiveTab] = useState("overview");
 
-  // TODO: Replace with actual tRPC query when available
-  const isLoading = false;
-  const prototype = null;
+  // Query prototype data
+  const { data: prototype, isLoading, refetch } = api.products.getPrototypeById.useQuery(
+    { id: prototypeId },
+    { enabled: !!prototypeId }
+  );
 
-  // Mock media data
-  const mockMedia: any[] = [];
+  // Query media data
+  const { data: media = [], refetch: refetchMedia } = api.documents.getByEntity.useQuery(
+    {
+      entityType: "prototype",
+      entityId: prototypeId,
+    },
+    {
+      enabled: !!prototypeId,
+    }
+  );
 
   const handleMediaRefresh = () => {
-    // Will trigger refetch when API is available
+    void refetch();
+    void refetchMedia();
   };
 
   if (isLoading) {
@@ -75,37 +87,6 @@ export default function PrototypeDetailPage({ params }: PageProps) {
     );
   }
 
-  // Mock prototype data
-  const mockPrototype = {
-    id: prototypeId,
-    name: "Sample Prototype",
-    prototype_number: "PROTO-2024-001",
-    description: "Physical prototype for concept testing",
-    prototype_type: "furniture",
-    status: "in_review",
-    priority: "high",
-    is_client_specific: false,
-    is_catalog_candidate: true,
-    designer: "John Designer",
-    manufacturer: "ABC Manufacturing",
-    collection: "INYO",
-    concept: "CON-2024-001",
-    target_price_usd: 1200.00,
-    target_cost_usd: 800.00,
-    tags: ["prototype", "testing", "furniture"],
-    specifications: {
-      dimensions: { width: 60, depth: 30, height: 75 },
-      materials: ["Oak", "Steel"],
-      finish: "Natural oil",
-      weight: "45 lbs",
-    },
-    notes: "Initial prototype completed, awaiting client feedback",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    feedback_count: 0,
-    milestone_count: 0,
-  };
-
   return (
     <div className="page-container">
       {/* Header */}
@@ -120,11 +101,11 @@ export default function PrototypeDetailPage({ params }: PageProps) {
             <ArrowLeft className="icon-sm" />
           </Button>
           <div>
-            <h1 className="page-title">{mockPrototype.name}</h1>
+            <h1 className="page-title">{prototype.name}</h1>
             <div className="page-subtitle">
-              {mockPrototype.prototype_number && (
+              {prototype.prototype_number && (
                 <Badge variant="secondary" className="font-mono mr-2">
-                  {mockPrototype.prototype_number}
+                  {prototype.prototype_number}
                 </Badge>
               )}
               Prototype Details
@@ -135,28 +116,28 @@ export default function PrototypeDetailPage({ params }: PageProps) {
           <Badge
             variant="outline"
             className={
-              mockPrototype.status === "concept"
+              prototype.status === "concept"
                 ? "status-todo"
-                : mockPrototype.status === "approved"
+                : prototype.status === "approved"
                 ? "status-completed"
                 : "status-in-progress"
             }
           >
-            {mockPrototype.status}
+            {prototype.status}
           </Badge>
           <Badge
             variant="outline"
             className={
-              mockPrototype.priority === "high"
+              prototype.priority === "high"
                 ? "priority-high"
-                : mockPrototype.priority === "medium"
+                : prototype.priority === "medium"
                 ? "priority-medium"
                 : "priority-low"
             }
           >
-            {mockPrototype.priority} priority
+            {prototype.priority} priority
           </Badge>
-          {mockPrototype.is_catalog_candidate && (
+          {prototype.is_catalog_candidate && (
             <Badge variant="outline" className="badge-neutral">
               Catalog Candidate
             </Badge>
@@ -181,15 +162,15 @@ export default function PrototypeDetailPage({ params }: PageProps) {
           </TabsTrigger>
           <TabsTrigger value="media">
             <ImageIcon className="icon-xs mr-2" />
-            Media ({mockMedia.length})
+            Media ({media.length})
           </TabsTrigger>
           <TabsTrigger value="feedback">
             <MessageSquare className="icon-xs mr-2" />
-            Feedback ({mockPrototype.feedback_count})
+            Feedback ({prototype.feedback_count})
           </TabsTrigger>
           <TabsTrigger value="milestones">
             <CheckCircle className="icon-xs mr-2" />
-            Milestones ({mockPrototype.milestone_count})
+            Milestones ({prototype.milestone_count})
           </TabsTrigger>
         </TabsList>
 
@@ -204,7 +185,7 @@ export default function PrototypeDetailPage({ params }: PageProps) {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  ${mockPrototype.target_price_usd?.toFixed(2) || "—"}
+                  ${prototype.target_price_usd?.toFixed(2) || "—"}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">Estimated retail</p>
               </CardContent>
@@ -217,7 +198,7 @@ export default function PrototypeDetailPage({ params }: PageProps) {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  ${mockPrototype.target_cost_usd?.toFixed(2) || "—"}
+                  ${prototype.target_cost_usd?.toFixed(2) || "—"}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">Manufacturing cost</p>
               </CardContent>
@@ -229,7 +210,7 @@ export default function PrototypeDetailPage({ params }: PageProps) {
                 <MessageSquare className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{mockPrototype.feedback_count}</div>
+                <div className="text-2xl font-bold">{prototype.feedback_count}</div>
                 <p className="text-xs text-muted-foreground mt-1">Client feedback items</p>
               </CardContent>
             </Card>
@@ -244,14 +225,14 @@ export default function PrototypeDetailPage({ params }: PageProps) {
             <div className="detail-grid">
               <div className="detail-field">
                 <label className="detail-label">Prototype Name</label>
-                <p className="detail-value">{mockPrototype.name}</p>
+                <p className="detail-value">{prototype.name}</p>
               </div>
               <div className="detail-field">
                 <label className="detail-label">Prototype Number</label>
                 <div className="detail-value">
-                  {mockPrototype.prototype_number ? (
+                  {prototype.prototype_number ? (
                     <Badge variant="secondary" className="font-mono">
-                      {mockPrototype.prototype_number}
+                      {prototype.prototype_number}
                     </Badge>
                   ) : (
                     <span className="text-muted">—</span>
@@ -260,30 +241,30 @@ export default function PrototypeDetailPage({ params }: PageProps) {
               </div>
               <div className="detail-field">
                 <label className="detail-label">Type</label>
-                <p className="detail-value">{mockPrototype.prototype_type}</p>
+                <p className="detail-value">{prototype.prototype_type}</p>
               </div>
               <div className="detail-field">
                 <label className="detail-label">Designer</label>
                 <p className="detail-value">
-                  {mockPrototype.designer || <span className="text-muted">—</span>}
+                  {prototype.designer || <span className="text-muted">—</span>}
                 </p>
               </div>
               <div className="detail-field">
                 <label className="detail-label">Manufacturer</label>
                 <p className="detail-value">
-                  {mockPrototype.manufacturer || <span className="text-muted">—</span>}
+                  {prototype.manufacturer || <span className="text-muted">—</span>}
                 </p>
               </div>
               <div className="detail-field">
                 <label className="detail-label">Collection</label>
                 <p className="detail-value">
-                  {mockPrototype.collection || <span className="text-muted">—</span>}
+                  {prototype.collection || <span className="text-muted">—</span>}
                 </p>
               </div>
               <div className="detail-field">
                 <label className="detail-label">Concept</label>
                 <p className="detail-value">
-                  {mockPrototype.concept || <span className="text-muted">—</span>}
+                  {prototype.concept || <span className="text-muted">—</span>}
                 </p>
               </div>
               <div className="detail-field">
@@ -292,14 +273,14 @@ export default function PrototypeDetailPage({ params }: PageProps) {
                   <Badge
                     variant="outline"
                     className={
-                      mockPrototype.status === "concept"
+                      prototype.status === "concept"
                         ? "status-todo"
-                        : mockPrototype.status === "approved"
+                        : prototype.status === "approved"
                         ? "status-completed"
                         : "status-in-progress"
                     }
                   >
-                    {mockPrototype.status}
+                    {prototype.status}
                   </Badge>
                 </div>
               </div>
@@ -309,35 +290,35 @@ export default function PrototypeDetailPage({ params }: PageProps) {
                   <Badge
                     variant="outline"
                     className={
-                      mockPrototype.priority === "high"
+                      prototype.priority === "high"
                         ? "priority-high"
-                        : mockPrototype.priority === "medium"
+                        : prototype.priority === "medium"
                         ? "priority-medium"
                         : "priority-low"
                     }
                   >
-                    {mockPrototype.priority}
+                    {prototype.priority}
                   </Badge>
                 </div>
               </div>
               <div className="detail-field col-span-2">
                 <label className="detail-label">Description</label>
                 <p className="detail-value">
-                  {mockPrototype.description || <span className="text-muted">No description provided</span>}
+                  {prototype.description || <span className="text-muted">No description provided</span>}
                 </p>
               </div>
             </div>
           </div>
 
           {/* Tags */}
-          {mockPrototype.tags && mockPrototype.tags.length > 0 && (
+          {prototype.tags && prototype.tags.length > 0 && (
             <div className="detail-section">
               <div className="detail-section-header">
                 <Tag className="detail-section-icon" />
                 <h2 className="detail-section-title">Tags</h2>
               </div>
               <div className="flex flex-wrap gap-2">
-                {mockPrototype.tags.map((tag: string, idx: number) => (
+                {prototype.tags.map((tag: string, idx: number) => (
                   <Badge key={idx} variant="outline" className="badge-neutral">
                     {tag}
                   </Badge>
@@ -347,13 +328,13 @@ export default function PrototypeDetailPage({ params }: PageProps) {
           )}
 
           {/* Notes */}
-          {mockPrototype.notes && (
+          {prototype.notes && (
             <div className="detail-section">
               <div className="detail-section-header">
                 <FileText className="detail-section-icon" />
                 <h2 className="detail-section-title">Notes</h2>
               </div>
-              <p className="detail-value">{mockPrototype.notes}</p>
+              <p className="detail-value">{prototype.notes}</p>
             </div>
           )}
 
@@ -367,20 +348,20 @@ export default function PrototypeDetailPage({ params }: PageProps) {
               <div className="detail-field">
                 <label className="detail-label">Created</label>
                 <p className="detail-value">
-                  {formatDistanceToNow(new Date(mockPrototype.created_at), { addSuffix: true })}
+                  {formatDistanceToNow(new Date(prototype.created_at), { addSuffix: true })}
                 </p>
               </div>
-              {mockPrototype.updated_at && (
+              {prototype.updated_at && (
                 <div className="detail-field">
                   <label className="detail-label">Last Updated</label>
                   <p className="detail-value">
-                    {formatDistanceToNow(new Date(mockPrototype.updated_at), { addSuffix: true })}
+                    {formatDistanceToNow(new Date(prototype.updated_at), { addSuffix: true })}
                   </p>
                 </div>
               )}
               <div className="detail-field">
                 <label className="detail-label">Prototype ID</label>
-                <p className="detail-value font-mono text-xs text-muted">{mockPrototype.id}</p>
+                <p className="detail-value font-mono text-xs text-muted">{prototype.id}</p>
               </div>
             </div>
           </div>
@@ -393,9 +374,9 @@ export default function PrototypeDetailPage({ params }: PageProps) {
               <Settings className="detail-section-icon" />
               <h2 className="detail-section-title">Specifications</h2>
             </div>
-            {mockPrototype.specifications ? (
+            {prototype.specifications ? (
               <div className="detail-grid">
-                {Object.entries(mockPrototype.specifications).map(([key, value]) => (
+                {Object.entries(prototype.specifications).map(([key, value]) => (
                   <div key={key} className="detail-field col-span-2">
                     <label className="detail-label">{key}</label>
                     <p className="detail-value">
@@ -440,7 +421,7 @@ export default function PrototypeDetailPage({ params }: PageProps) {
             <MediaGallery
               entityType="prototype"
               entityId={prototypeId}
-              media={mockMedia}
+              media={media}
               onRefresh={handleMediaRefresh}
             />
           </div>

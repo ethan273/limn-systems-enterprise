@@ -86,30 +86,6 @@ export default function ConceptDetailPage({ params }: PageProps) {
     );
   }
 
-  // Mock concept data for demonstration
-  const mockConcept = {
-    id: conceptId,
-    name: "Sample Concept",
-    concept_number: "CON-2024-001",
-    description: "Innovative furniture concept with modern design",
-    status: "concept",
-    priority: "high",
-    designer: "John Designer",
-    collection: "INYO",
-    target_price: 1200.00,
-    estimated_cost: 800.00,
-    tags: ["modern", "sustainable", "minimalist"],
-    specifications: {
-      dimensions: { width: 60, depth: 30, height: 75 },
-      materials: ["Oak", "Steel"],
-      finish: "Natural oil",
-    },
-    notes: "Customer feedback positive on initial sketches",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    prototypes_count: 0,
-  };
-
   return (
     <div className="page-container">
       {/* Header */}
@@ -124,11 +100,11 @@ export default function ConceptDetailPage({ params }: PageProps) {
             <ArrowLeft className="icon-sm" />
           </Button>
           <div>
-            <h1 className="page-title">{mockConcept.name}</h1>
+            <h1 className="page-title">{concept.name}</h1>
             <div className="page-subtitle">
-              {mockConcept.concept_number && (
+              {concept.concept_number && (
                 <Badge variant="secondary" className="font-mono mr-2">
-                  {mockConcept.concept_number}
+                  {concept.concept_number}
                 </Badge>
               )}
               Concept Details
@@ -139,26 +115,26 @@ export default function ConceptDetailPage({ params }: PageProps) {
           <Badge
             variant="outline"
             className={
-              mockConcept.status === "concept"
+              concept.status === "concept"
                 ? "status-todo"
-                : mockConcept.status === "approved"
+                : concept.status === "approved"
                 ? "status-completed"
                 : "status-in-progress"
             }
           >
-            {mockConcept.status}
+            {concept.status}
           </Badge>
           <Badge
             variant="outline"
             className={
-              mockConcept.priority === "high"
+              concept.priority === "high"
                 ? "priority-high"
-                : mockConcept.priority === "medium"
+                : concept.priority === "medium"
                 ? "priority-medium"
                 : "priority-low"
             }
           >
-            {mockConcept.priority} priority
+            {concept.priority} priority
           </Badge>
           <Button onClick={() => router.push(`/products/concepts/${conceptId}/edit`)}>
             <Edit className="icon-sm" />
@@ -180,11 +156,11 @@ export default function ConceptDetailPage({ params }: PageProps) {
           </TabsTrigger>
           <TabsTrigger value="media">
             <ImageIcon className="icon-xs mr-2" />
-            Media ({mockMedia.length})
+            Media ({media.length})
           </TabsTrigger>
           <TabsTrigger value="prototypes">
             <Package className="icon-xs mr-2" />
-            Prototypes ({mockConcept.prototypes_count})
+            Prototypes ({concept.prototypes?.length || 0})
           </TabsTrigger>
         </TabsList>
 
@@ -199,7 +175,7 @@ export default function ConceptDetailPage({ params }: PageProps) {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  ${mockConcept.target_price?.toFixed(2) || "—"}
+                  ${concept.target_price?.toFixed(2) || "—"}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">Estimated retail</p>
               </CardContent>
@@ -212,7 +188,7 @@ export default function ConceptDetailPage({ params }: PageProps) {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  ${mockConcept.estimated_cost?.toFixed(2) || "—"}
+                  ${concept.estimated_cost?.toFixed(2) || "—"}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">Manufacturing cost</p>
               </CardContent>
@@ -224,7 +200,7 @@ export default function ConceptDetailPage({ params }: PageProps) {
                 <Package className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{mockConcept.prototypes_count}</div>
+                <div className="text-2xl font-bold">{concept.prototypes_count}</div>
                 <p className="text-xs text-muted-foreground mt-1">Physical prototypes</p>
               </CardContent>
             </Card>
@@ -239,14 +215,14 @@ export default function ConceptDetailPage({ params }: PageProps) {
             <div className="detail-grid">
               <div className="detail-field">
                 <label className="detail-label">Concept Name</label>
-                <p className="detail-value">{mockConcept.name}</p>
+                <p className="detail-value">{concept.name}</p>
               </div>
               <div className="detail-field">
                 <label className="detail-label">Concept Number</label>
                 <div className="detail-value">
-                  {mockConcept.concept_number ? (
+                  {concept.concept_number ? (
                     <Badge variant="secondary" className="font-mono">
-                      {mockConcept.concept_number}
+                      {concept.concept_number}
                     </Badge>
                   ) : (
                     <span className="text-muted">—</span>
@@ -256,13 +232,13 @@ export default function ConceptDetailPage({ params }: PageProps) {
               <div className="detail-field">
                 <label className="detail-label">Designer</label>
                 <p className="detail-value">
-                  {mockConcept.designer || <span className="text-muted">—</span>}
+                  {concept.designer || <span className="text-muted">—</span>}
                 </p>
               </div>
               <div className="detail-field">
                 <label className="detail-label">Collection</label>
                 <p className="detail-value">
-                  {mockConcept.collection || <span className="text-muted">—</span>}
+                  {concept.collection || <span className="text-muted">—</span>}
                 </p>
               </div>
               <div className="detail-field">
@@ -271,14 +247,14 @@ export default function ConceptDetailPage({ params }: PageProps) {
                   <Badge
                     variant="outline"
                     className={
-                      mockConcept.status === "concept"
+                      concept.status === "concept"
                         ? "status-todo"
-                        : mockConcept.status === "approved"
+                        : concept.status === "approved"
                         ? "status-completed"
                         : "status-in-progress"
                     }
                   >
-                    {mockConcept.status}
+                    {concept.status}
                   </Badge>
                 </div>
               </div>
@@ -288,35 +264,35 @@ export default function ConceptDetailPage({ params }: PageProps) {
                   <Badge
                     variant="outline"
                     className={
-                      mockConcept.priority === "high"
+                      concept.priority === "high"
                         ? "priority-high"
-                        : mockConcept.priority === "medium"
+                        : concept.priority === "medium"
                         ? "priority-medium"
                         : "priority-low"
                     }
                   >
-                    {mockConcept.priority}
+                    {concept.priority}
                   </Badge>
                 </div>
               </div>
               <div className="detail-field col-span-2">
                 <label className="detail-label">Description</label>
                 <p className="detail-value">
-                  {mockConcept.description || <span className="text-muted">No description provided</span>}
+                  {concept.description || <span className="text-muted">No description provided</span>}
                 </p>
               </div>
             </div>
           </div>
 
           {/* Tags */}
-          {mockConcept.tags && mockConcept.tags.length > 0 && (
+          {concept.tags && concept.tags.length > 0 && (
             <div className="detail-section">
               <div className="detail-section-header">
                 <Tag className="detail-section-icon" />
                 <h2 className="detail-section-title">Tags</h2>
               </div>
               <div className="flex flex-wrap gap-2">
-                {mockConcept.tags.map((tag: string, idx: number) => (
+                {concept.tags.map((tag: string, idx: number) => (
                   <Badge key={idx} variant="outline" className="badge-neutral">
                     {tag}
                   </Badge>
@@ -326,13 +302,13 @@ export default function ConceptDetailPage({ params }: PageProps) {
           )}
 
           {/* Notes */}
-          {mockConcept.notes && (
+          {concept.notes && (
             <div className="detail-section">
               <div className="detail-section-header">
                 <FileText className="detail-section-icon" />
                 <h2 className="detail-section-title">Notes</h2>
               </div>
-              <p className="detail-value">{mockConcept.notes}</p>
+              <p className="detail-value">{concept.notes}</p>
             </div>
           )}
 
@@ -346,20 +322,20 @@ export default function ConceptDetailPage({ params }: PageProps) {
               <div className="detail-field">
                 <label className="detail-label">Created</label>
                 <p className="detail-value">
-                  {formatDistanceToNow(new Date(mockConcept.created_at), { addSuffix: true })}
+                  {formatDistanceToNow(new Date(concept.created_at), { addSuffix: true })}
                 </p>
               </div>
-              {mockConcept.updated_at && (
+              {concept.updated_at && (
                 <div className="detail-field">
                   <label className="detail-label">Last Updated</label>
                   <p className="detail-value">
-                    {formatDistanceToNow(new Date(mockConcept.updated_at), { addSuffix: true })}
+                    {formatDistanceToNow(new Date(concept.updated_at), { addSuffix: true })}
                   </p>
                 </div>
               )}
               <div className="detail-field">
                 <label className="detail-label">Concept ID</label>
-                <p className="detail-value font-mono text-xs text-muted">{mockConcept.id}</p>
+                <p className="detail-value font-mono text-xs text-muted">{concept.id}</p>
               </div>
             </div>
           </div>
@@ -372,9 +348,9 @@ export default function ConceptDetailPage({ params }: PageProps) {
               <Settings className="detail-section-icon" />
               <h2 className="detail-section-title">Specifications</h2>
             </div>
-            {mockConcept.specifications ? (
+            {concept.specifications ? (
               <div className="detail-grid">
-                {Object.entries(mockConcept.specifications).map(([key, value]) => (
+                {Object.entries(concept.specifications).map(([key, value]) => (
                   <div key={key} className="detail-field col-span-2">
                     <label className="detail-label">{key}</label>
                     <p className="detail-value">
@@ -419,7 +395,7 @@ export default function ConceptDetailPage({ params }: PageProps) {
             <MediaGallery
               entityType="concept"
               entityId={conceptId}
-              media={mockMedia}
+              media={media}
               onRefresh={handleMediaRefresh}
             />
           </div>
