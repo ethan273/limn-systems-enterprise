@@ -73,7 +73,7 @@ export default function PrototypesPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="stats-grid">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="stat-card">
           <div className="stat-card-content">
             <div className="stat-card-header">

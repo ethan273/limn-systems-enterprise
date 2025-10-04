@@ -171,7 +171,7 @@ export default function CustomerDetailPage() {
       </Card>
 
       {/* Financial Stats Cards */}
-      <div className="stats-grid">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="card-header-sm">
             <CardTitle className="card-title-sm">Lifetime Value</CardTitle>
@@ -248,7 +248,7 @@ export default function CustomerDetailPage() {
 
         {/* Overview Tab */}
         <TabsContent value="overview">
-          <div className="tab-content-grid">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Customer Details */}
             <Card>
               <CardHeader>

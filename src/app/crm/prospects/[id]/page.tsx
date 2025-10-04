@@ -221,7 +221,7 @@ export default function ProspectDetailPage() {
       </Card>
 
       {/* Stats Cards */}
-      <div className="stats-grid">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="card-header-sm">
             <CardTitle className="card-title-sm">Prospect Value</CardTitle>
@@ -284,7 +284,7 @@ export default function ProspectDetailPage() {
 
         {/* Overview Tab */}
         <TabsContent value="overview">
-          <div className="tab-content-grid">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Prospect Details */}
             <Card>
               <CardHeader>

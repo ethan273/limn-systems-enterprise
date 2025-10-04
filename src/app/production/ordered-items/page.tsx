@@ -141,7 +141,7 @@ export default function OrderedItemsProductionPage() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="stats-grid">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="card-header-sm">
             <CardTitle className="card-title-sm">Total Units</CardTitle>

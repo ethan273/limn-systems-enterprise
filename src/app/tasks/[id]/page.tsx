@@ -193,7 +193,7 @@ export default function TaskDetailPage() {
       </Card>
 
       {/* Stats Cards */}
-      <div className="stats-grid">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="card-header-sm">
             <CardTitle className="card-title-sm">Attachments</CardTitle>
@@ -270,7 +270,7 @@ export default function TaskDetailPage() {
 
         {/* Overview Tab */}
         <TabsContent value="overview">
-          <div className="tab-content-grid">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Task Details */}
             <Card>
               <CardHeader>
@@ -433,7 +433,7 @@ export default function TaskDetailPage() {
 
         {/* Details Tab */}
         <TabsContent value="details">
-          <div className="tab-content-grid">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Time Tracking */}
             <Card>
               <CardHeader>
