@@ -350,4 +350,301 @@ export const dashboardsRouter = createTRPCRouter({
       return priorityOrder[a.priority as keyof typeof priorityOrder] - priorityOrder[b.priority as keyof typeof priorityOrder];
     });
   }),
+
+  // ==================== ANALYTICS DASHBOARD ====================
+
+  /**
+   * Get comprehensive analytics across all business modules
+   */
+  getAnalytics: publicProcedure
+    .input(z.object({
+      dateRange: z.enum(['7d', '30d', '90d', 'year', 'all']).default('30d'),
+    }).optional())
+    .query(async ({ ctx, input }) => {
+      const now = new Date();
+      let startDate: Date | null = null;
+
+      // Calculate date range
+      if (input?.dateRange && input.dateRange !== 'all') {
+        const days = input.dateRange === '7d' ? 7 : input.dateRange === '30d' ? 30 : input.dateRange === '90d' ? 90 : 365;
+        startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+      }
+
+      // Build where clause for date filtering
+      const dateWhere = startDate ? { created_at: { gte: startDate } } : {};
+
+      // Fetch data from multiple modules
+      const [
+        orders,
+        allOrders,
+        products,
+        customers,
+        projects,
+        tasks,
+        orderedItems,
+        productionOrders,
+        shipments,
+      ] = await Promise.all([
+        ctx.db.orders.findMany({ where: dateWhere }),
+        ctx.db.orders.findMany(),
+        ctx.db.products.findMany(),
+        ctx.db.customers.findMany({ where: dateWhere }),
+        ctx.db.projects.findMany({ where: dateWhere }),
+        ctx.db.tasks.findMany({ where: dateWhere }),
+        ctx.db.order_items.findMany(),
+        ctx.db.production_orders.findMany({ where: dateWhere }),
+        ctx.db.shipments.findMany({ where: dateWhere }),
+      ]);
+
+      // Calculate revenue metrics
+      const totalRevenue = orders.reduce((sum, order) => {
+        return sum + (order.total ? Number(order.total) : 0);
+      }, 0);
+
+      const previousPeriodStart = startDate ? new Date(startDate.getTime() - (now.getTime() - startDate.getTime())) : null;
+      const previousOrders = previousPeriodStart
+        ? await ctx.db.orders.findMany({
+            where: {
+              created_at: {
+                gte: previousPeriodStart,
+                lt: startDate!,
+              },
+            },
+          })
+        : [];
+
+      const previousRevenue = previousOrders.reduce((sum, order) => {
+        return sum + (order.total ? Number(order.total) : 0);
+      }, 0);
+
+      const revenueGrowth = previousRevenue > 0
+        ? ((totalRevenue - previousRevenue) / previousRevenue) * 100
+        : totalRevenue > 0 ? 100 : 0;
+
+      // Calculate average order value
+      const avgOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0;
+
+      // Revenue by month (last 12 months)
+      const revenueByMonth = Array.from({ length: 12 }, (_, i) => {
+        const date = new Date(now.getFullYear(), now.getMonth() - (11 - i), 1);
+        const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
+        const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+
+        const monthOrders = allOrders.filter(o => {
+          if (!o.created_at) return false;
+          const orderDate = new Date(o.created_at);
+          return orderDate >= monthStart && orderDate <= monthEnd;
+        });
+
+        const monthRevenue = monthOrders.reduce((sum, o) => sum + (o.total ? Number(o.total) : 0), 0);
+
+        return {
+          month: date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+          revenue: monthRevenue,
+          orders: monthOrders.length,
+        };
+      });
+
+      // Customer growth
+      const customerGrowth = previousOrders.length > 0
+        ? ((customers.length - previousOrders.length) / previousOrders.length) * 100
+        : customers.length > 0 ? 100 : 0;
+
+      // Order status distribution
+      const orderStatusCounts = orders.reduce((acc, order) => {
+        const status = order.status || 'unknown';
+        acc[status] = (acc[status] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      // Product performance (top 10 products by revenue)
+      const productRevenue = orderedItems.reduce((acc, item) => {
+        const productId = item.product_id;
+        const revenue = item.unit_price ? Number(item.unit_price) * (item.quantity || 0) : 0;
+        if (!acc[productId]) {
+          acc[productId] = { revenue: 0, quantity: 0 };
+        }
+        acc[productId].revenue += revenue;
+        acc[productId].quantity += item.quantity || 0;
+        return acc;
+      }, {} as Record<string, { revenue: number; quantity: number }>);
+
+      const topProducts = Object.entries(productRevenue)
+        .sort(([, a], [, b]) => b.revenue - a.revenue)
+        .slice(0, 10)
+        .map(([productId, data]) => {
+          const product = products.find(p => p.id === productId);
+          return {
+            id: productId,
+            name: product?.name || 'Unknown Product',
+            sku: product?.sku || 'N/A',
+            revenue: data.revenue,
+            quantity: data.quantity,
+          };
+        });
+
+      // Tasks completion rate
+      const completedTasks = tasks.filter(t => t.status === 'completed').length;
+      const taskCompletionRate = tasks.length > 0 ? (completedTasks / tasks.length) * 100 : 0;
+
+      // Production metrics
+      const productionCompletedStatuses = ['completed', 'shipped', 'delivered'];
+      const completedProduction = productionOrders.filter(p => productionCompletedStatuses.includes(p.status || '')).length;
+      const productionCompletionRate = productionOrders.length > 0 ? (completedProduction / productionOrders.length) * 100 : 0;
+
+      // Shipping metrics
+      const deliveredShipments = shipments.filter(s => s.status === 'delivered').length;
+      const onTimeDeliveryRate = shipments.length > 0 ? (deliveredShipments / shipments.length) * 100 : 0;
+
+      return {
+        summary: {
+          totalRevenue,
+          revenueGrowth,
+          totalOrders: orders.length,
+          avgOrderValue,
+          totalCustomers: customers.length,
+          customerGrowth,
+          totalProducts: products.length,
+          activeProjects: projects.filter(p => p.status === 'active' || p.status === 'in_progress').length,
+        },
+        revenueByMonth,
+        orderStatusDistribution: Object.entries(orderStatusCounts).map(([status, count]) => ({
+          status,
+          count,
+          percentage: (count / orders.length) * 100,
+        })),
+        topProducts,
+        performance: {
+          taskCompletionRate,
+          productionCompletionRate,
+          onTimeDeliveryRate,
+        },
+      };
+    }),
+
+  /**
+   * Get AI-powered insights for Analytics Dashboard
+   */
+  getAnalyticsInsights: publicProcedure.query(async ({ ctx }) => {
+    const insights: any[] = [];
+
+    // Get recent orders for trend analysis
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+
+    const [recentOrders, previousOrders, customers, products, tasks] = await Promise.all([
+      ctx.db.orders.findMany({
+        where: { created_at: { gte: thirtyDaysAgo } },
+      }),
+      ctx.db.orders.findMany({
+        where: {
+          created_at: {
+            gte: sixtyDaysAgo,
+            lt: thirtyDaysAgo,
+          },
+        },
+      }),
+      ctx.db.customers.findMany(),
+      ctx.db.products.findMany(),
+      ctx.db.tasks.findMany({
+        where: {
+          status: { not: 'completed' },
+          due_date: { lt: now },
+        },
+      }),
+    ]);
+
+    // Insight 1: Revenue trends
+    const recentRevenue = recentOrders.reduce((sum, o) => sum + (o.total ? Number(o.total) : 0), 0);
+    const previousRevenue = previousOrders.reduce((sum, o) => sum + (o.total ? Number(o.total) : 0), 0);
+    const revenueChange = previousRevenue > 0 ? ((recentRevenue - previousRevenue) / previousRevenue) * 100 : 0;
+
+    if (revenueChange > 10) {
+      insights.push({
+        type: 'success',
+        title: `Revenue up ${revenueChange.toFixed(1)}% this month`,
+        description: `Your business generated $${recentRevenue.toLocaleString()} in the last 30 days, up from $${previousRevenue.toLocaleString()} in the previous period.`,
+        action: 'View Revenue Report',
+        actionLink: '/dashboards/analytics?view=revenue',
+        priority: 'low',
+      });
+    } else if (revenueChange < -10) {
+      insights.push({
+        type: 'warning',
+        title: `Revenue down ${Math.abs(revenueChange).toFixed(1)}% this month`,
+        description: `Revenue has decreased from $${previousRevenue.toLocaleString()} to $${recentRevenue.toLocaleString()}. Review sales pipeline and customer engagement.`,
+        action: 'Analyze Revenue Decline',
+        actionLink: '/dashboards/analytics?view=revenue',
+        priority: 'high',
+      });
+    }
+
+    // Insight 2: Customer growth
+    const newCustomers = customers.filter(c => {
+      if (!c.created_at) return false;
+      return new Date(c.created_at) >= thirtyDaysAgo;
+    }).length;
+
+    if (newCustomers > 10) {
+      insights.push({
+        type: 'success',
+        title: `${newCustomers} new customers this month`,
+        description: `Customer acquisition is strong. Focus on retention and upselling opportunities.`,
+        action: 'View New Customers',
+        actionLink: '/crm/customers?filter=new',
+        priority: 'low',
+      });
+    }
+
+    // Insight 3: Low inventory warnings
+    const lowStockProducts = products.filter(p => {
+      const stockLevel = p.stock_level ? Number(p.stock_level) : 0;
+      const minStock = p.min_stock_level ? Number(p.min_stock_level) : 0;
+      return minStock > 0 && stockLevel < minStock;
+    });
+
+    if (lowStockProducts.length > 0) {
+      insights.push({
+        type: 'warning',
+        title: `${lowStockProducts.length} products below minimum stock`,
+        description: `Review and reorder inventory to prevent stockouts and lost sales.`,
+        action: 'View Low Stock Products',
+        actionLink: '/products/catalog?filter=low_stock',
+        priority: 'high',
+      });
+    }
+
+    // Insight 4: Overdue tasks
+    if (tasks.length > 5) {
+      insights.push({
+        type: 'warning',
+        title: `${tasks.length} overdue tasks`,
+        description: `Multiple tasks are past their due date. Review team workload and prioritize completion.`,
+        action: 'View Overdue Tasks',
+        actionLink: '/tasks?filter=overdue',
+        priority: 'medium',
+      });
+    }
+
+    // Insight 5: Order fulfillment performance
+    const pendingOrders = recentOrders.filter(o => o.status === 'pending' || o.status === 'processing');
+    const avgFulfillmentDays = 3; // This would be calculated from actual data
+
+    if (pendingOrders.length > 20) {
+      insights.push({
+        type: 'info',
+        title: `${pendingOrders.length} orders pending fulfillment`,
+        description: `Average fulfillment time is ${avgFulfillmentDays} days. Monitor production capacity to meet demand.`,
+        action: 'View Pending Orders',
+        actionLink: '/orders?status=pending',
+        priority: 'medium',
+      });
+    }
+
+    return insights.sort((a, b) => {
+      const priorityOrder = { high: 0, medium: 1, low: 2 };
+      return priorityOrder[a.priority as keyof typeof priorityOrder] - priorityOrder[b.priority as keyof typeof priorityOrder];
+    });
+  }),
 });
