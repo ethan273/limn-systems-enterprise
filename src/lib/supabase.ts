@@ -10,7 +10,19 @@ let _adminClient: ReturnType<typeof createClient> | null = null
 
 export function getSupabaseAdmin() {
   if (!_adminClient) {
-    _adminClient = createClient(supabaseUrl, supabaseServiceKey)
+    _adminClient = createClient(supabaseUrl, supabaseServiceKey, {
+      db: {
+        schema: 'public',
+      },
+      global: {
+        headers: {
+          'X-Client-Info': 'supabase-js-node',
+        },
+      },
+      auth: {
+        persistSession: false,
+      },
+    })
   }
   return _adminClient
 }

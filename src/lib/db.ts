@@ -511,6 +511,8 @@ export class DatabaseClient {
   packing_boxes = prisma.packing_boxes;
 
   // Products Module
+  products = prisma.products;
+  order_items = prisma.order_items;
   collections = prisma.collections;
   concepts = prisma.concepts;
   materials = prisma.materials;
@@ -626,22 +628,26 @@ export class DatabaseClient {
           query = query.order(field, { ascending: direction === 'asc' });
         });
       }
-    } else {
-      // Default ordering
-      query = query.order('created_at', { ascending: false });
     }
+    // NOTE: Removed default ordering by created_at to avoid Supabase timezone bugs
+    // If ordering is needed, explicitly pass orderBy parameter
 
     // Apply pagination
     if (finalLimit) {
       query = query.range(finalOffset, finalOffset + finalLimit - 1);
     }
 
+    // Debug: Log the exact query being executed
+    console.log(`[DB DEBUG] Fetching from ${tableName} with where:`, JSON.stringify(where, null, 2));
+
     const { data, error } = await query;
 
     if (error) {
+      console.error(`[DB ERROR] Failed to fetch from ${tableName}:`, error);
       throw new Error(`Failed to fetch from ${tableName}: ${error.message}`);
     }
 
+    console.log(`[DB DEBUG] Successfully fetched ${data?.length || 0} records from ${tableName}`);
     return (data || []).map((item: any) => this.transformDates(item));
   }
 
