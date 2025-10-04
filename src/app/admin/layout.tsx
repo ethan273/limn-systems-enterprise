@@ -1,9 +1,20 @@
-import { AppLayout } from "@/components/layout/AppLayout";
+import Sidebar from "@/components/Sidebar";
+import Header from "@/components/Header";
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <AppLayout>{children}</AppLayout>;
+  return (
+    <div className="app-layout">
+      <Sidebar />
+      <div className="main-content-wrapper">
+        <Header />
+        <main className="main-content">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
 }

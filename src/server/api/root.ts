@@ -32,12 +32,16 @@ import { orderedItemsProductionRouter } from './routers/ordered-items-production
 import { invoicesRouter } from './routers/invoices';
 import { paymentsRouter } from './routers/payments';
 import { documentsRouter } from './routers/documents';
+import { dashboardsRouter } from './routers/dashboards';
 
 /**
  * Main API router
  * All routers are combined here and exposed through tRPC
  */
 export const appRouter = createTRPCRouter({
+  // Dashboards & Analytics
+  dashboards: dashboardsRouter,
+
   // Authentication & Access Control
   auth: authRouter,
 
