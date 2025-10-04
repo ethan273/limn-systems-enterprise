@@ -236,7 +236,7 @@ export default function TasksPage() {
       </div>
 
       {/* Task Status Overview */}
-      <div className="stats-grid-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {tasksByStatus.map((status) => {
           const StatusIcon = status.icon;
           return (
@@ -262,26 +262,26 @@ export default function TasksPage() {
       </div>
 
       {/* Filters */}
-      <Card className="filters-section">
-        <CardHeader className="card-header-sm">
-          <CardTitle className="card-title-sm">Filters</CardTitle>
+      <Card>
+        <CardHeader>
+          <CardTitle>Filter Tasks</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="filters-grid">
+        <CardContent className="card-content-compact">
+          <div className="filters-section">
             {/* Search */}
-            <div className="filter-search">
-              <Search className="filter-search-icon" aria-hidden="true" />
+            <div className="search-input-wrapper">
+              <Search className="search-icon" aria-hidden="true" />
               <Input
                 placeholder="Search tasks..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="filter-search-input"
+                className="search-input"
               />
             </div>
 
             {/* Status Filter */}
             <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as TaskStatus | 'all')}>
-              <SelectTrigger>
+              <SelectTrigger className="filter-select">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -296,7 +296,7 @@ export default function TasksPage() {
 
             {/* Priority Filter */}
             <Select value={priorityFilter} onValueChange={(value) => setPriorityFilter(value as TaskPriority | 'all')}>
-              <SelectTrigger>
+              <SelectTrigger className="filter-select">
                 <SelectValue placeholder="Priority" />
               </SelectTrigger>
               <SelectContent>
@@ -309,7 +309,7 @@ export default function TasksPage() {
 
             {/* Department Filter */}
             <Select value={departmentFilter} onValueChange={(value) => setDepartmentFilter(value as TaskDepartment | 'all')}>
-              <SelectTrigger>
+              <SelectTrigger className="filter-select">
                 <SelectValue placeholder="Department" />
               </SelectTrigger>
               <SelectContent>
@@ -325,7 +325,7 @@ export default function TasksPage() {
             <Button
               variant="outline"
               onClick={clearFilters}
-              className="btn-secondary"
+              className="filter-select"
             >
               <Filter className="icon-sm" aria-hidden="true" />
               Clear
@@ -339,7 +339,7 @@ export default function TasksPage() {
         <CardHeader>
           <CardTitle>Tasks ({filteredTasks.length})</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="card-content-compact">
           {isLoading ? (
             <div className="loading-state">Loading tasks...</div>
           ) : filteredTasks.length === 0 ? (
@@ -351,7 +351,8 @@ export default function TasksPage() {
               </p>
             </div>
           ) : (
-            <Table>
+            <div className="table-container">
+              <Table>
               <TableHeader>
                 <TableRow className="data-table-header-row">
                   <TableHead className="data-table-header">Task</TableHead>
@@ -488,6 +489,7 @@ export default function TasksPage() {
                 })}
               </TableBody>
             </Table>
+            </div>
           )}
 
           {/* Pagination */}

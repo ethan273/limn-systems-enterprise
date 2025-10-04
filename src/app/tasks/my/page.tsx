@@ -281,20 +281,21 @@ export default function MyTasksPage() {
     }
 
     return (
-      <Table>
-        <TableHeader>
-          <TableRow className="data-table-header-row">
-            <TableHead className="data-table-header">Task</TableHead>
-            <TableHead className="data-table-header">Status</TableHead>
-            <TableHead className="data-table-header">Priority</TableHead>
-            <TableHead className="data-table-header">Department</TableHead>
-            <TableHead className="data-table-header">Assigned To</TableHead>
-            <TableHead className="data-table-header">Project</TableHead>
-            <TableHead className="data-table-header">Due Date</TableHead>
-            <TableHead className="data-table-header-actions">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
+      <div className="table-container">
+        <Table>
+          <TableHeader>
+            <TableRow className="data-table-header-row">
+              <TableHead className="data-table-header">Task</TableHead>
+              <TableHead className="data-table-header">Status</TableHead>
+              <TableHead className="data-table-header">Priority</TableHead>
+              <TableHead className="data-table-header">Department</TableHead>
+              <TableHead className="data-table-header">Assigned To</TableHead>
+              <TableHead className="data-table-header">Project</TableHead>
+              <TableHead className="data-table-header">Due Date</TableHead>
+              <TableHead className="data-table-header-actions">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
           {filteredTasks.map((task: any) => {
             const statusConfig = getStatusConfig(task.status);
             const assignedUsers = task.assigned_to || [];
@@ -441,8 +442,9 @@ export default function MyTasksPage() {
               </TableRow>
             );
           })}
-        </TableBody>
-      </Table>
+          </TableBody>
+        </Table>
+      </div>
     );
   };
 
@@ -474,7 +476,7 @@ export default function MyTasksPage() {
       </div>
 
       {/* Quick Stats */}
-      <div className="stats-grid-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="stat-card-content">
             <div className="stat-card-header">
@@ -529,26 +531,26 @@ export default function MyTasksPage() {
       </div>
 
       {/* Filters */}
-      <Card className="filters-section">
-        <CardHeader className="card-header-sm">
-          <CardTitle className="card-title-sm">Filters</CardTitle>
+      <Card>
+        <CardHeader>
+          <CardTitle>Filter Tasks</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="filters-grid">
+        <CardContent className="card-content-compact">
+          <div className="filters-section">
             {/* Search */}
-            <div className="filter-search">
-              <Search className="filter-search-icon" aria-hidden="true" />
+            <div className="search-input-wrapper">
+              <Search className="search-icon" aria-hidden="true" />
               <Input
                 placeholder="Search tasks..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="filter-search-input"
+                className="search-input"
               />
             </div>
 
             {/* Status Filter */}
             <Select value={statusFilter} onValueChange={(value: TaskStatus | 'all') => setStatusFilter(value)}>
-              <SelectTrigger>
+              <SelectTrigger className="filter-select">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -563,7 +565,7 @@ export default function MyTasksPage() {
 
             {/* Sort By */}
             <Select value={sortBy} onValueChange={(value: 'created_at' | 'due_date' | 'priority') => setSortBy(value)}>
-              <SelectTrigger>
+              <SelectTrigger className="filter-select">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
               <SelectContent>

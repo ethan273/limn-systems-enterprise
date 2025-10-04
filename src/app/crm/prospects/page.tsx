@@ -193,7 +193,7 @@ export default function ProspectsPage() {
       </div>
 
       {/* Prospect Status Overview */}
-      <div className="stats-grid-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {prospectsByStatus.map((status) => (
           <Card key={status.value}>
             <CardContent className="stat-card-content">
@@ -220,26 +220,26 @@ export default function ProspectsPage() {
       </div>
 
       {/* Filters */}
-      <Card className="filters-section">
-        <CardHeader className="card-header-sm">
-          <CardTitle className="card-title-sm">Filters</CardTitle>
+      <Card>
+        <CardHeader>
+          <CardTitle>Filter Prospects</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="filters-grid">
+        <CardContent className="card-content-compact">
+          <div className="filters-section">
             {/* Search */}
-            <div className="filter-search">
-              <Search className="filter-search-icon" aria-hidden="true" />
+            <div className="search-input-wrapper">
+              <Search className="search-icon" aria-hidden="true" />
               <Input
                 placeholder="Search prospects..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="filter-search-input"
+                className="search-input"
               />
             </div>
 
             {/* Prospect Status Filter */}
             <Select value={prospectFilter} onValueChange={(value) => setProspectFilter(value as ProspectStatus | 'all')}>
-              <SelectTrigger>
+              <SelectTrigger className="filter-select">
                 <SelectValue placeholder="Prospect Status" />
               </SelectTrigger>
               <SelectContent>
@@ -254,7 +254,7 @@ export default function ProspectsPage() {
 
             {/* Lead Status Filter */}
             <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as LeadStatus | 'all')}>
-              <SelectTrigger>
+              <SelectTrigger className="filter-select">
                 <SelectValue placeholder="Lead Status" />
               </SelectTrigger>
               <SelectContent>
@@ -285,7 +285,7 @@ export default function ProspectsPage() {
         <CardHeader>
           <CardTitle>Prospects ({sortedProspects.length}) - Sorted by Priority</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="card-content-compact">
           {isLoading ? (
             <div className="loading-state">Loading prospects...</div>
           ) : sortedProspects.length === 0 ? (
@@ -297,7 +297,8 @@ export default function ProspectsPage() {
               </p>
             </div>
           ) : (
-            <Table>
+            <div className="table-container">
+              <Table>
               <TableHeader>
                 <TableRow className="data-table-header-row">
                   <TableHead className="data-table-header">Priority</TableHead>
@@ -401,7 +402,8 @@ export default function ProspectsPage() {
                   );
                 })}
               </TableBody>
-            </Table>
+              </Table>
+            </div>
           )}
 
           {/* Pagination */}
