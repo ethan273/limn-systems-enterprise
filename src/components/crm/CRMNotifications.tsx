@@ -137,36 +137,36 @@ function getNotificationIcon(type: CRMNotificationType) {
 }
 
 function getNotificationColor(type: CRMNotificationType, priority: NotificationPriority) {
- if (priority === 'urgent') return 'text-red-400';
- if (priority === 'high') return 'text-orange-400';
+ if (priority === 'urgent') return 'text-destructive';
+ if (priority === 'high') return 'text-warning';
 
  switch (type) {
- case 'follow_up_due': return 'text-yellow-400';
- case 'meeting_reminder': return 'text-blue-400';
- case 'deal_stage_change': return 'text-green-400';
- case 'lead_assignment': return 'text-purple-400';
- case 'customer_milestone': return 'text-indigo-400';
- case 'payment_due': return 'text-yellow-400';
- case 'contract_expiry': return 'text-orange-400';
- case 'activity_overdue': return 'text-red-400';
- case 'lead_score_change': return 'text-cyan-400';
- case 'opportunity_won': return 'text-green-400';
- case 'opportunity_lost': return 'text-red-400';
- case 'birthday': return 'text-pink-400';
- case 'anniversary': return 'text-violet-400';
- case 'renewal_reminder': return 'text-blue-400';
- case 'hot_lead': return 'text-orange-400';
- case 'system_alert': return 'text-yellow-400';
- case 'team_update': return 'text-green-400';
+ case 'follow_up_due': return 'text-warning';
+ case 'meeting_reminder': return 'text-info';
+ case 'deal_stage_change': return 'text-success';
+ case 'lead_assignment': return 'text-primary';
+ case 'customer_milestone': return 'text-primary';
+ case 'payment_due': return 'text-warning';
+ case 'contract_expiry': return 'text-warning';
+ case 'activity_overdue': return 'text-destructive';
+ case 'lead_score_change': return 'text-info';
+ case 'opportunity_won': return 'text-success';
+ case 'opportunity_lost': return 'text-destructive';
+ case 'birthday': return 'text-muted';
+ case 'anniversary': return 'text-primary';
+ case 'renewal_reminder': return 'text-info';
+ case 'hot_lead': return 'text-warning';
+ case 'system_alert': return 'text-warning';
+ case 'team_update': return 'text-success';
  default: return 'text-tertiary';
  }
 }
 
 function getPriorityColor(priority: NotificationPriority) {
  switch (priority) {
- case 'urgent': return 'bg-red-500/10 text-red-400 border-red-500/20';
- case 'high': return 'bg-orange-500/10 text-orange-400 border-orange-500/20';
- case 'medium': return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
+ case 'urgent': return 'bg-destructive/10 text-destructive border-destructive/20';
+ case 'high': return 'bg-warning/10 text-warning border-warning/20';
+ case 'medium': return 'bg-warning/10 text-warning border-warning/20';
  case 'low': return 'card text-tertiary border/20';
  default: return 'card text-tertiary border/20';
  }
@@ -282,9 +282,9 @@ function NotificationCenter({
  key={notification.id}
  className={`flex items-start gap-3 p-3 hover:card/50 cursor-pointer transition-colors ${
  notification.status === 'unread'
- ? 'card/30 border-l-2 border-blue-500'
+ ? 'card/30 border-l-2 border-info'
  : ''
- } ${isSelected ? 'bg-blue-500/10' : ''}`}
+ } ${isSelected ? 'bg-info/10' : ''}`}
  onClick={() => handleNotificationClick(notification)}
  >
  <input
@@ -349,7 +349,7 @@ function NotificationCenter({
  {onNotificationDismiss && (
  <DropdownMenuItem
  onClick={() => onNotificationDismiss(notification.id)}
- className="text-red-400"
+ className="text-destructive"
  >
  <Trash2 className="w-4 h-4 mr-2" />
  Dismiss
@@ -422,7 +422,7 @@ export function CRMNotifications({
  <Bell className="w-5 h-5" />
  )}
  {unreadCount > 0 && (
- <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-red-500 text-foreground">
+ <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-destructive text-foreground">
  {unreadCount > 99 ? '99+' : unreadCount}
  </Badge>
  )}
@@ -458,21 +458,21 @@ export function CRMNotifications({
  return (
  <div
  key={notification.id}
- className="bg-red-900/90 border border-red-500/50 rounded-lg p-4 max-w-sm shadow-lg backdrop-blur-sm"
+ className="bg-destructive/90 border border-destructive/50 rounded-lg p-4 max-w-sm shadow-lg backdrop-blur-sm"
  >
  <div className="flex items-start gap-3">
- <div className="flex-shrink-0 w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-foreground">
+ <div className="flex-shrink-0 w-8 h-8 rounded-full bg-destructive flex items-center justify-center text-foreground">
  <Icon className="w-4 h-4" />
  </div>
  <div className="flex-1 min-w-0">
  <h4 className="font-semibold text-foreground text-sm">{notification.title}</h4>
- <p className="text-red-200 text-xs mt-1">{notification.message}</p>
+ <p className="text-destructive text-xs mt-1">{notification.message}</p>
  <div className="flex items-center gap-2 mt-2">
  {notification.action_label && (
  <Button
  size="sm"
  variant="outline"
- className="h-6 px-2 text-xs border-red-400 text-red-400 hover:bg-red-500/20"
+ className="h-6 px-2 text-xs border-destructive text-destructive hover:bg-destructive/20"
  onClick={() => onNotificationAction?.(notification)}
  >
  {notification.action_label}
@@ -481,7 +481,7 @@ export function CRMNotifications({
  <Button
  size="sm"
  variant="ghost"
- className="h-6 w-6 p-0 text-red-400 hover:bg-red-500/20"
+ className="h-6 w-6 p-0 text-destructive hover:bg-destructive/20"
  onClick={() => onNotificationDismiss?.(notification.id)}
  >
  <X className="w-3 h-3" />

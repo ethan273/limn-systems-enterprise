@@ -263,28 +263,28 @@ function getActivityIcon(type: ActivityType) {
 
 function getActivityColor(type: ActivityType) {
  switch (type) {
- case 'call': return 'text-blue-400';
- case 'email': return 'text-purple-400';
- case 'meeting': return 'text-green-400';
+ case 'call': return 'text-info';
+ case 'email': return 'text-primary';
+ case 'meeting': return 'text-success';
  case 'note': return 'text-tertiary';
- case 'task': return 'text-orange-400';
- case 'deal': return 'text-yellow-400';
- case 'proposal': return 'text-indigo-400';
- case 'follow_up': return 'text-pink-400';
- case 'demo': return 'text-emerald-400';
- case 'contract': return 'text-violet-400';
- case 'payment': return 'text-green-400';
- case 'status_change': return 'text-cyan-400';
+ case 'task': return 'text-warning';
+ case 'deal': return 'text-warning';
+ case 'proposal': return 'text-primary';
+ case 'follow_up': return 'text-muted';
+ case 'demo': return 'text-success';
+ case 'contract': return 'text-primary';
+ case 'payment': return 'text-success';
+ case 'status_change': return 'text-info';
  default: return 'text-tertiary';
  }
 }
 
 function getStatusColor(status: ActivityStatus) {
  switch (status) {
- case 'completed': return 'bg-green-500/10 text-green-400 border-green-500/20';
- case 'pending': return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
- case 'cancelled': return 'bg-red-500/10 text-red-400 border-red-500/20';
- case 'overdue': return 'bg-red-500/10 text-red-400 border-red-500/20';
+ case 'completed': return 'bg-success/10 text-success border-success/20';
+ case 'pending': return 'bg-warning/10 text-warning border-warning/20';
+ case 'cancelled': return 'bg-destructive/10 text-destructive border-destructive/20';
+ case 'overdue': return 'bg-destructive/10 text-destructive border-destructive/20';
  default: return 'card text-tertiary border/20';
  }
 }
@@ -484,7 +484,7 @@ export function CRMActivityFeed({
  {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
  </div>
  {activity.due_date && (
- <div className={`flex items-center gap-1 ${isOverdue ? 'text-red-400' : ''}`}>
+ <div className={`flex items-center gap-1 ${isOverdue ? 'text-destructive' : ''}`}>
  <Calendar className="w-3 h-3" />
  Due {format(new Date(activity.due_date), 'MMM d, HH:mm')}
  </div>

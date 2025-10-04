@@ -41,12 +41,12 @@ const statusConfig: Record<string, { label: string; className: string; icon: Rea
  },
  passed: {
  label: "Passed",
- className: "bg-green-100 text-green-800 border-green-300",
+ className: "bg-success text-success border-success",
  icon: <CheckCircle2 className="w-3 h-3" aria-hidden="true" />,
  },
  failed: {
  label: "Failed",
- className: "bg-red-100 text-red-800 border-red-300",
+ className: "bg-destructive text-destructive border-destructive",
  icon: <XCircle className="w-3 h-3" aria-hidden="true" />,
  },
 };
@@ -156,11 +156,11 @@ export function QCCheckpointsList({ inspectionId, onUpdate }: QCCheckpointsListP
  <p className="text-sm text-muted-foreground">Pending</p>
  </div>
  <div>
- <p className="text-2xl font-bold text-green-600">{stats.passed}</p>
+ <p className="text-2xl font-bold text-success">{stats.passed}</p>
  <p className="text-sm text-muted-foreground">Passed</p>
  </div>
  <div>
- <p className="text-2xl font-bold text-red-600">{stats.failed}</p>
+ <p className="text-2xl font-bold text-destructive">{stats.failed}</p>
  <p className="text-sm text-muted-foreground">Failed</p>
  </div>
  </div>

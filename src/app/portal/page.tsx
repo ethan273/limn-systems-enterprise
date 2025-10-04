@@ -150,26 +150,26 @@ export default function PortalDashboard() {
  <div
  key={notification.id}
  className={`flex items-start space-x-3 p-4 rounded-lg border ${
- notification.read ? 'bg-card border' : 'bg-blue-50 border-blue-200'
+ notification.read ? 'bg-card border' : 'btn-primary border-primary'
  }`}
  >
  <div
  className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
  notification.type === 'order_update'
- ? 'bg-blue-100'
+ ? 'bg-info-muted'
  : notification.type === 'payment_received'
- ? 'bg-green-100'
+ ? 'bg-success-muted'
  : notification.type === 'shipment_update'
- ? 'bg-purple-100'
+ ? 'bg-primary-muted'
  : 'card'
  }`}
  >
  {notification.type === 'order_update' ? (
- <ShoppingCart className="w-5 h-5 text-blue-600" />
+ <ShoppingCart className="w-5 h-5 text-info" />
  ) : notification.type === 'payment_received' ? (
- <CheckCircle className="w-5 h-5 text-green-600" />
+ <CheckCircle className="w-5 h-5 text-success" />
  ) : notification.type === 'shipment_update' ? (
- <Truck className="w-5 h-5 text-purple-600" />
+ <Truck className="w-5 h-5 text-secondary" />
  ) : (
  <FileText className="w-5 h-5 " />
  )}
@@ -179,7 +179,7 @@ export default function PortalDashboard() {
  <div className="flex items-center space-x-2">
  <p className="text-sm font-medium">{notification.title}</p>
  {!notification.read && (
- <Badge className="bg-blue-500 text-foreground text-xs">New</Badge>
+ <Badge className="btn-primary text-foreground text-xs">New</Badge>
  )}
  </div>
  <p className="text-sm mt-1">{notification.message}</p>

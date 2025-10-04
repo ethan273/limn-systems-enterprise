@@ -240,19 +240,27 @@ export default function TasksPage() {
         {tasksByStatus.map((status) => {
           const StatusIcon = status.icon;
           return (
-            <Card key={status.value}>
-              <CardContent className="stat-card-content">
-                <div className="stat-card-header">
-                  <StatusIcon className={`stat-card-icon ${status.className}`} aria-hidden="true" />
-                  <div>
-                    <h3 className="stat-card-title">{status.label}</h3>
-                    <p className="stat-card-description">{status.description}</p>
+            <Card key={status.value} className="card">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${
+                    status.value === 'todo' ? 'bg-warning-muted/20' :
+                    status.value === 'in_progress' ? 'bg-info-muted/20' :
+                    status.value === 'completed' ? 'bg-success-muted/20' :
+                    'bg-destructive-muted/20'
+                  }`}>
+                    <StatusIcon className={`h-5 w-5 ${
+                      status.value === 'todo' ? 'text-warning' :
+                      status.value === 'in_progress' ? 'text-info' :
+                      status.value === 'completed' ? 'text-success' :
+                      'text-destructive'
+                    }`} aria-hidden="true" />
                   </div>
-                </div>
-                <div className="stat-card-stats">
-                  <div className="stat-card-stat">
-                    <span className="text-2xl font-bold">{status.count}</span>
-                    <span className="text-sm">tasks</span>
+                  <div>
+                    <p className="text-sm page-subtitle">{status.label}</p>
+                    <p className="text-xl font-bold text-primary">
+                      {status.count}<span className="text-sm font-normal text-secondary ml-1">tasks</span>
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -335,24 +343,20 @@ export default function TasksPage() {
       </Card>
 
       {/* Tasks Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Tasks ({filteredTasks.length})</CardTitle>
-        </CardHeader>
-        <CardContent className="card-content-compact">
-          {isLoading ? (
-            <div className="loading-state">Loading tasks...</div>
-          ) : filteredTasks.length === 0 ? (
-            <div className="empty-state">
-              <Search className="empty-state-icon" aria-hidden="true" />
-              <h3 className="empty-state-title">No tasks found</h3>
-              <p className="empty-state-description">
-                Try adjusting your filters or create a new task to get started.
-              </p>
-            </div>
-          ) : (
-            <div className="table-container">
-              <Table>
+      {isLoading ? (
+        <div className="loading-state">Loading tasks...</div>
+      ) : filteredTasks.length === 0 ? (
+        <div className="empty-state">
+          <Search className="empty-state-icon" aria-hidden="true" />
+          <h3 className="empty-state-title">No tasks found</h3>
+          <p className="empty-state-description">
+            Try adjusting your filters or create a new task to get started.
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="data-table-container">
+            <Table>
               <TableHeader>
                 <TableRow className="data-table-header-row">
                   <TableHead className="data-table-header">Task</TableHead>
@@ -489,8 +493,7 @@ export default function TasksPage() {
                 })}
               </TableBody>
             </Table>
-            </div>
-          )}
+          </div>
 
           {/* Pagination */}
           {tasksData && tasksData.total > limit && (
@@ -520,8 +523,8 @@ export default function TasksPage() {
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </>
+      )}
     </div>
   );
 }

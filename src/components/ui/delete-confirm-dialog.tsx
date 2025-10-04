@@ -73,8 +73,8 @@ export function DeleteConfirmDialog({
  <AlertDialogContent>
  <AlertDialogHeader>
  <div className="flex items-center gap-3">
- <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/10">
- <AlertTriangle className="h-5 w-5 text-red-500" aria-hidden="true" />
+ <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
+ <AlertTriangle className="h-5 w-5 text-destructive" aria-hidden="true" />
  </div>
  <AlertDialogTitle>{title}</AlertDialogTitle>
  </div>
@@ -85,7 +85,7 @@ export function DeleteConfirmDialog({
  {itemName}
  </p>
  )}
- <p className="text-red-400">
+ <p className="text-destructive">
  This action cannot be undone. This will permanently delete the data from the database.
  </p>
  </AlertDialogDescription>
@@ -100,7 +100,7 @@ export function DeleteConfirmDialog({
  void onConfirm();
  }}
  disabled={isDeleting}
- className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+ className="bg-destructive hover:bg-destructive focus:ring-red-600"
  >
  {isDeleting ? "Deleting..." : "Delete"}
  </AlertDialogAction>

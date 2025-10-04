@@ -53,25 +53,25 @@ export default function ProductionOrdersPage() {
     let info: { label: string; variant: string; className: string };
     switch (status) {
       case 'awaiting_deposit':
-        info = { label: "Awaiting Deposit", variant: "outline", className: "bg-yellow-100 text-yellow-800 border-yellow-300" };
+        info = { label: "Awaiting Deposit", variant: "outline", className: "bg-warning-muted text-warning border-warning" };
         break;
       case 'in_progress':
-        info = { label: "In Progress", variant: "outline", className: "bg-blue-100 text-blue-800 border-blue-300" };
+        info = { label: "In Progress", variant: "outline", className: "bg-info-muted text-info border-info" };
         break;
       case 'completed':
-        info = { label: "Completed", variant: "outline", className: "bg-purple-100 text-purple-800 border-purple-300" };
+        info = { label: "Completed", variant: "outline", className: "bg-primary-muted text-primary border-primary" };
         break;
       case 'awaiting_final_payment':
-        info = { label: "Awaiting Final Payment", variant: "outline", className: "bg-orange-100 text-orange-800 border-orange-300" };
+        info = { label: "Awaiting Final Payment", variant: "outline", className: "bg-orange-100 text-warning border-orange-300" };
         break;
       case 'final_paid':
-        info = { label: "Ready to Ship", variant: "outline", className: "bg-green-100 text-green-800 border-green-300" };
+        info = { label: "Ready to Ship", variant: "outline", className: "bg-success-muted text-success border-success" };
         break;
       case 'shipped':
-        info = { label: "Shipped", variant: "outline", className: "bg-teal-100 text-teal-800 border-teal-300" };
+        info = { label: "Shipped", variant: "outline", className: "bg-success text-success border-success" };
         break;
       case 'delivered':
-        info = { label: "Delivered", variant: "outline", className: "bg-emerald-100 text-emerald-800 border-emerald-300" };
+        info = { label: "Delivered", variant: "outline", className: "bg-success text-success border-success" };
         break;
       default:
         info = { label: "Unknown", variant: "outline", className: "badge-neutral" };
@@ -81,12 +81,12 @@ export default function ProductionOrdersPage() {
 
   const getPaymentStatusBadge = (depositPaid: boolean, finalPaymentPaid: boolean) => {
     if (!depositPaid) {
-      return <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">No Deposit</Badge>;
+      return <Badge variant="outline" className="bg-destructive-muted text-destructive border-destructive">No Deposit</Badge>;
     }
     if (depositPaid && !finalPaymentPaid) {
-      return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">Deposit Paid</Badge>;
+      return <Badge variant="outline" className="bg-warning-muted text-warning border-warning">Deposit Paid</Badge>;
     }
-    return <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">Fully Paid</Badge>;
+    return <Badge variant="outline" className="bg-success-muted text-success border-success">Fully Paid</Badge>;
   };
 
   // Show loading state while checking authentication
@@ -116,7 +116,7 @@ export default function ProductionOrdersPage() {
           <h1 className="text-3xl font-bold">Production Orders</h1>
           <p className="text-muted-foreground">
             View production orders with auto-generated invoices and payment tracking. To create orders, go to{" "}
-            <Link href="/crm/projects" className="text-blue-600 hover:underline font-medium">
+            <Link href="/crm/projects" className="text-info hover:underline font-medium">
               CRM → Projects
             </Link>
           </p>
@@ -223,7 +223,7 @@ export default function ProductionOrdersPage() {
                     <p className="text-muted-foreground">No production orders found</p>
                     <p className="text-sm text-muted-foreground">
                       Create orders from{" "}
-                      <Link href="/crm/projects" className="text-blue-600 hover:underline">
+                      <Link href="/crm/projects" className="text-info hover:underline">
                         Projects
                       </Link>
                     </p>
@@ -238,7 +238,7 @@ export default function ProductionOrdersPage() {
                   onClick={() => router.push(`/production/orders/${order.id}`)}
                 >
                   <TableCell>
-                    <span className="font-medium text-blue-600">
+                    <span className="font-medium text-info">
                       {order.order_number}
                     </span>
                   </TableCell>

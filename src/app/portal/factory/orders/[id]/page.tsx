@@ -163,9 +163,9 @@ export default function FactoryOrderDetailPage({ params }: FactoryOrderDetailPag
  )}
 
  {order.status === 'deposit_paid' && (
- <Alert className="border-green-500 bg-green-50">
- <CheckCircle className="h-4 w-4 text-green-600" />
- <AlertDescription className="text-green-800">
+ <Alert className="border-success bg-success-muted">
+ <CheckCircle className="h-4 w-4 text-success" />
+ <AlertDescription className="text-success">
  <strong>Ready to Start Production</strong>
  <br />
  Deposit has been paid. You can begin production on this order.

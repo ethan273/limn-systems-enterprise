@@ -45,26 +45,26 @@ const approvalStatusConfig: Record<ApprovalStatusType, {
  pending: {
  label: "Pending Review",
  icon: Clock,
- className: "text-yellow-800 border-yellow-300",
- bgClassName: "bg-yellow-50"
+ className: "text-warning border-warning",
+ bgClassName: "bg-warning"
  },
  approved: {
  label: "Approved",
  icon: CheckCircle2,
- className: "text-green-800 border-green-300",
- bgClassName: "bg-green-50"
+ className: "text-success border-success",
+ bgClassName: "bg-success"
  },
  rejected: {
  label: "Rejected",
  icon: XCircle,
- className: "text-red-800 border-red-300",
- bgClassName: "bg-red-50"
+ className: "text-destructive border-destructive",
+ bgClassName: "bg-destructive"
  },
  changes_requested: {
  label: "Changes Requested",
  icon: AlertTriangle,
- className: "text-orange-800 border-orange-300",
- bgClassName: "bg-orange-50"
+ className: "text-warning border-warning",
+ bgClassName: "bg-warning"
  }
 }
 
@@ -143,18 +143,18 @@ export function ApprovalStatus({ drawing }: ApprovalStatusProps) {
  {/* Overall status banner */}
  <Card className={cn(
  "border-2",
- bothApproved && "border-green-500 bg-green-50",
- anyRejected && "border-red-500 bg-red-50",
- !bothApproved && !anyRejected && "border-yellow-500 bg-yellow-50"
+ bothApproved && "border-success bg-success",
+ anyRejected && "border-destructive bg-destructive",
+ !bothApproved && !anyRejected && "border-warning bg-warning"
  )}>
  <CardContent className="pt-4 pb-4">
  <div className="flex items-center gap-3">
  {bothApproved && (
  <>
- <CheckCircle2 className="w-6 h-6 text-green-600" aria-hidden="true" />
+ <CheckCircle2 className="w-6 h-6 text-success" aria-hidden="true" />
  <div>
- <p className="font-semibold text-green-900">Fully Approved</p>
- <p className="text-xs text-green-700">
+ <p className="font-semibold text-success">Fully Approved</p>
+ <p className="text-xs text-success">
  Both Limn team and Designer have approved this drawing
  </p>
  </div>
@@ -162,10 +162,10 @@ export function ApprovalStatus({ drawing }: ApprovalStatusProps) {
  )}
  {anyRejected && (
  <>
- <XCircle className="w-6 h-6 text-red-600" aria-hidden="true" />
+ <XCircle className="w-6 h-6 text-destructive" aria-hidden="true" />
  <div>
- <p className="font-semibold text-red-900">Approval Required</p>
- <p className="text-xs text-red-700">
+ <p className="font-semibold text-destructive">Approval Required</p>
+ <p className="text-xs text-destructive">
  One or more parties have rejected or requested changes
  </p>
  </div>
@@ -173,10 +173,10 @@ export function ApprovalStatus({ drawing }: ApprovalStatusProps) {
  )}
  {!bothApproved && !anyRejected && (
  <>
- <Clock className="w-6 h-6 text-yellow-600" aria-hidden="true" />
+ <Clock className="w-6 h-6 text-warning" aria-hidden="true" />
  <div>
- <p className="font-semibold text-yellow-900">Pending Approval</p>
- <p className="text-xs text-yellow-700">
+ <p className="font-semibold text-warning">Pending Approval</p>
+ <p className="text-xs text-warning">
  Awaiting approval from one or more parties
  </p>
  </div>
@@ -192,13 +192,13 @@ export function ApprovalStatus({ drawing }: ApprovalStatusProps) {
  title="Limn Team"
  icon={Building2}
  approval={drawing.limnApproval}
- iconColor="text-blue-600"
+ iconColor="text-info"
  />
  <ApprovalCard
  title="Designer"
  icon={Palette}
  approval={drawing.designerApproval}
- iconColor="text-purple-600"
+ iconColor="text-primary"
  />
  </div>
  </div>

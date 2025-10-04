@@ -130,14 +130,14 @@ export default function EmployeeLoginPage() {
  </div>
 
  {error && (
- <div className="mb-6 p-4 bg-red-900/20 border border-red-600 rounded-lg">
+ <div className="mb-6 p-4 alert-error border  rounded-lg">
  <div className="flex items-start">
- <AlertCircle className="w-5 h-5 text-red-400 mt-0.5 mr-3 flex-shrink-0" />
+ <AlertCircle className="w-5 h-5 text-destructive mt-0.5 mr-3 flex-shrink-0" />
  <div>
- <h3 className="text-sm font-medium text-red-300">
+ <h3 className="text-sm font-medium text-destructive">
  Authentication Error
  </h3>
- <p className="text-sm text-red-400 mt-1">
+ <p className="text-sm text-destructive mt-1">
  {error}
  </p>
  </div>
@@ -149,7 +149,7 @@ export default function EmployeeLoginPage() {
  <Button
  onClick={handleGoogleSignIn}
  disabled={loading}
- className="w-full flex items-center justify-center px-4 py-3 border rounded-lg shadow-sm card text-sm font-medium text-primary hover: focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+ className="w-full flex items-center justify-center px-4 py-3 border rounded-lg shadow-sm card text-sm font-medium text-primary hover: focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
  >
  {loading ? (
  <div className="flex items-center">
@@ -194,18 +194,18 @@ export default function EmployeeLoginPage() {
  </div>
  </div>
 
- <div className="bg-blue-900/20 border border-blue-600 rounded-lg p-4">
+ <div className="bg-info-muted/20 border border-primary rounded-lg p-4">
  <div className="flex">
  <div className="flex-shrink-0">
- <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+ <svg className="h-5 w-5 text-info" viewBox="0 0 20 20" fill="currentColor">
  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
  </svg>
  </div>
  <div className="ml-3">
- <h3 className="text-sm font-medium text-blue-300">
+ <h3 className="text-sm font-medium text-info">
  Employee Access Required
  </h3>
- <div className="mt-2 text-sm text-blue-400">
+ <div className="mt-2 text-sm text-info">
  <p>
  This login is restricted to Limn Systems employees with @limn.us.com email addresses.
  If you&apos;re a contractor or customer, please use the appropriate login option.
@@ -221,7 +221,7 @@ export default function EmployeeLoginPage() {
  Having trouble signing in?{' '}
  <a
  href="mailto:it@limnsystems.com"
- className="text-blue-400 hover:text-blue-300 font-medium"
+ className="text-info hover:text-info font-medium"
  >
  Contact IT Support
  </a>

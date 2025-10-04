@@ -60,13 +60,13 @@ interface ProgressTrackerProps {
 
 const statusOptions = [
  { value: "not_started", label: "Not Started", color: "card " },
- { value: "materials_sourcing", label: "Materials Sourcing", color: "bg-yellow-100 text-yellow-800" },
- { value: "in_production", label: "In Production", color: "bg-blue-100 text-blue-800" },
- { value: "assembly", label: "Assembly", color: "bg-purple-100 text-purple-800" },
- { value: "finishing", label: "Finishing", color: "bg-indigo-100 text-indigo-800" },
- { value: "quality_check", label: "Quality Check", color: "bg-orange-100 text-orange-800" },
- { value: "completed", label: "Completed", color: "bg-green-100 text-green-800" },
- { value: "approved", label: "Approved", color: "bg-emerald-100 text-emerald-800" },
+ { value: "materials_sourcing", label: "Materials Sourcing", color: "bg-warning text-warning" },
+ { value: "in_production", label: "In Production", color: "bg-info text-info" },
+ { value: "assembly", label: "Assembly", color: "bg-primary text-primary" },
+ { value: "finishing", label: "Finishing", color: "bg-primary text-primary" },
+ { value: "quality_check", label: "Quality Check", color: "bg-warning text-warning" },
+ { value: "completed", label: "Completed", color: "bg-success text-success" },
+ { value: "approved", label: "Approved", color: "bg-success text-success" },
 ];
 
 export function ProgressTracker({
@@ -357,7 +357,7 @@ export function ProgressTracker({
  {production?.defects_found && production.defects_found > 0 && (
  <div>
  <Label className="text-muted-foreground">Defects Found</Label>
- <p className="font-medium text-lg mt-1 text-orange-600">
+ <p className="font-medium text-lg mt-1 text-warning">
  {production?.defects_found}
  </p>
  </div>

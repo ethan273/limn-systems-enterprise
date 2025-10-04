@@ -102,7 +102,7 @@ export function DimensionInput({
  <div className="flex items-center justify-between">
  <Label htmlFor={label} className="text-sm font-medium ">
  {label}
- {required && <span className="text-red-400 ml-1">*</span>}
+ {required && <span className="text-destructive ml-1">*</span>}
  </Label>
  <Button
  type="button"
@@ -127,7 +127,7 @@ export function DimensionInput({
  placeholder={placeholder || `Enter ${label.toLowerCase()} in ${activeUnit === 'inches' ? 'inches' : 'centimeters'}`}
  disabled={disabled}
  className={`
- ${!isValid || error ? 'border-red-500 focus:border-red-500' : ''}
+ ${!isValid || error ? 'border-destructive focus:border-destructive' : ''}
  ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
  `}
  />
@@ -151,7 +151,7 @@ export function DimensionInput({
 
  {/* Validation Error */}
  {(!isValid || error) && (
- <p className="text-xs text-red-400">
+ <p className="text-xs text-destructive">
  {validationError || error}
  </p>
  )}

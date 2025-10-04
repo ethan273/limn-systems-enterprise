@@ -53,34 +53,34 @@ export const dynamic = 'force-dynamic';
 const statusConfig: Record<string, { label: string; className: string }> = {
  scheduled: {
  label: "Scheduled",
- className: "bg-yellow-100 text-yellow-800 border-yellow-300",
+ className: "bg-warning-muted text-warning border-warning",
  },
  in_progress: {
  label: "In Progress",
- className: "bg-blue-100 text-blue-800 border-blue-300",
+ className: "bg-info-muted text-info border-info",
  },
  completed: {
  label: "Completed",
- className: "bg-green-100 text-green-800 border-green-300",
+ className: "bg-success-muted text-success border-success",
  },
 };
 
 const severityConfig: Record<string, { label: string; className: string }> = {
  critical: {
  label: "Critical",
- className: "bg-red-100 text-red-800 border-red-300",
+ className: "bg-destructive-muted text-destructive border-destructive",
  },
  major: {
  label: "Major",
- className: "bg-orange-100 text-orange-800 border-orange-300",
+ className: "bg-warning-muted text-warning border-warning",
  },
  minor: {
  label: "Minor",
- className: "bg-yellow-100 text-yellow-800 border-yellow-300",
+ className: "bg-warning-muted text-warning border-warning",
  },
  observation: {
  label: "Observation",
- className: "bg-blue-100 text-blue-800 border-blue-300",
+ className: "bg-info-muted text-info border-info",
  },
 };
 
@@ -372,7 +372,7 @@ export default function FactoryReviewDetailPage() {
  <AlertCircle className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-orange-600">
+ <div className="text-2xl font-bold text-warning">
  {unresolvedActions.length}
  </div>
  </CardContent>
@@ -600,7 +600,7 @@ export default function FactoryReviewDetailPage() {
  {comment.author_role.replace("_", " ")}
  </Badge>
  {comment.is_action_item && (
- <Badge variant="outline" className="text-xs bg-orange-100 text-orange-800">
+ <Badge variant="outline" className="text-xs bg-warning-muted text-warning border-warning">
  Action Item
  </Badge>
  )}
@@ -652,7 +652,7 @@ export default function FactoryReviewDetailPage() {
  <div className="flex items-start justify-between">
  <div className="flex-1">
  <div className="flex items-center gap-2 mb-2">
- <AlertCircle className="w-4 h-4 text-orange-600" aria-hidden="true" />
+ <AlertCircle className="w-4 h-4 text-warning" aria-hidden="true" />
  <p className="font-medium">Action Item</p>
  {action.due_date && (
  <Badge variant="outline" className="text-xs">

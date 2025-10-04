@@ -320,7 +320,7 @@ export default function TaskDetailPage() {
                     <dt className="detail-list-label">Due Date</dt>
                     <dd className="detail-list-value">
                       {task.due_date ? (
-                        <span className={isOverdue ? "text-red-400" : ""}>
+                        <span className={isOverdue ? "text-destructive" : ""}>
                           <Calendar className="icon-xs inline" aria-hidden="true" />
                           {format(task.due_date instanceof Date ? task.due_date : parseISO(task.due_date), "MMM d, yyyy")}
                           {isOverdue && task.status !== 'completed' && task.status !== 'cancelled' && " (Overdue)"}

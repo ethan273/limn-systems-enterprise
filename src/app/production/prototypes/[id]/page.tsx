@@ -65,57 +65,57 @@ const statusConfig: Record<string, {
 }> = {
  concept: {
  label: "Concept",
- className: "bg-purple-100 text-purple-800 border-purple-300",
+ className: "bg-primary-muted text-primary border-primary",
  icon: Lightbulb
  },
  design_review: {
  label: "Design Review",
- className: "bg-yellow-100 text-yellow-800 border-yellow-300",
+ className: "bg-warning-muted text-warning border-warning",
  icon: Clock
  },
  design_approved: {
  label: "Design Approved",
- className: "bg-blue-100 text-blue-800 border-blue-300",
+ className: "bg-info-muted text-info border-info",
  icon: CheckCircle2
  },
  production_pending: {
  label: "Production Pending",
- className: "bg-orange-100 text-orange-800 border-orange-300",
+ className: "bg-orange-100 text-warning border-orange-300",
  icon: Clock
  },
  in_production: {
  label: "In Production",
- className: "bg-blue-100 text-blue-800 border-blue-300",
+ className: "bg-info-muted text-info border-info",
  icon: Activity
  },
  assembly_complete: {
  label: "Assembly Complete",
- className: "bg-indigo-100 text-indigo-800 border-indigo-300",
+ className: "bg-primary text-primary border-primary",
  icon: CheckCircle2
  },
  quality_review: {
  label: "Quality Review",
- className: "bg-yellow-100 text-yellow-800 border-yellow-300",
+ className: "bg-warning-muted text-warning border-warning",
  icon: AlertTriangle
  },
  client_review: {
  label: "Client Review",
- className: "bg-yellow-100 text-yellow-800 border-yellow-300",
+ className: "bg-warning-muted text-warning border-warning",
  icon: MessageSquare
  },
  approved: {
  label: "Approved",
- className: "bg-green-100 text-green-800 border-green-300",
+ className: "bg-success-muted text-success border-success",
  icon: CheckCircle2
  },
  rejected: {
  label: "Rejected",
- className: "bg-red-100 text-red-800 border-red-300",
+ className: "bg-destructive-muted text-destructive border-destructive",
  icon: XCircle
  },
  ready_for_catalog: {
  label: "Ready for Catalog",
- className: "bg-emerald-100 text-emerald-800 border-emerald-300",
+ className: "bg-success text-success border-success",
  icon: Award
  },
  archived: {
@@ -132,15 +132,15 @@ const priorityConfig: Record<string, {
 }> = {
  low: {
  label: "Low",
- className: "bg-green-100 text-green-800 border-green-300"
+ className: "bg-success-muted text-success border-success"
  },
  medium: {
  label: "Medium",
- className: "bg-yellow-100 text-yellow-800 border-yellow-300"
+ className: "bg-warning-muted text-warning border-warning"
  },
  high: {
  label: "High",
- className: "bg-red-100 text-red-800 border-red-300"
+ className: "bg-destructive-muted text-destructive border-destructive"
  }
 };
 
@@ -416,7 +416,7 @@ export default function PrototypeDetailPage({ params }: PageProps) {
  <Badge variant="outline">Client Specific</Badge>
  )}
  {prototype.is_catalog_candidate && (
- <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
+ <Badge variant="outline" className="bg-success-muted text-success border-success">
  Catalog Candidate
  </Badge>
  )}
@@ -640,9 +640,9 @@ export default function PrototypeDetailPage({ params }: PageProps) {
  <Badge
  variant="outline"
  className={cn(
- milestone.status === 'completed' && "bg-green-100 text-green-800 border-green-300",
- milestone.status === 'in_progress' && "bg-blue-100 text-blue-800 border-blue-300",
- milestone.status === 'blocked' && "bg-red-100 text-red-800 border-red-300",
+ milestone.status === 'completed' && "bg-success-muted text-success border-success",
+ milestone.status === 'in_progress' && "bg-info-muted text-info border-info",
+ milestone.status === 'blocked' && "bg-destructive-muted text-destructive border-destructive",
  milestone.status === 'pending' && "badge-neutral"
  )}
  >
@@ -739,8 +739,8 @@ export default function PrototypeDetailPage({ params }: PageProps) {
  variant="outline"
  className={cn(
  "text-xs",
- doc.status === 'approved' && "bg-green-100 text-green-800 border-green-300",
- doc.status === 'under_review' && "bg-yellow-100 text-yellow-800 border-yellow-300"
+ doc.status === 'approved' && "bg-success-muted text-success border-success",
+ doc.status === 'under_review' && "bg-warning-muted text-warning border-warning"
  )}
  >
  {doc.status}
@@ -788,9 +788,9 @@ export default function PrototypeDetailPage({ params }: PageProps) {
  <Badge
  variant="outline"
  className={cn(
- review.status === 'completed' && "bg-green-100 text-green-800 border-green-300",
- review.status === 'in_progress' && "bg-blue-100 text-blue-800 border-blue-300",
- review.status === 'scheduled' && "bg-yellow-100 text-yellow-800 border-yellow-300"
+ review.status === 'completed' && "bg-success-muted text-success border-success",
+ review.status === 'in_progress' && "bg-info-muted text-info border-info",
+ review.status === 'scheduled' && "bg-warning-muted text-warning border-warning"
  )}
  >
  {review.status}
@@ -804,7 +804,7 @@ export default function PrototypeDetailPage({ params }: PageProps) {
  </div>
  {review.status === 'completed' && (
  <div className="flex items-center gap-2 text-sm">
- <CheckCircle2 className="w-4 h-4 text-green-600" aria-hidden="true" />
+ <CheckCircle2 className="w-4 h-4 text-success" aria-hidden="true" />
  <span>Completed</span>
  </div>
  )}
@@ -899,9 +899,9 @@ export default function PrototypeDetailPage({ params }: PageProps) {
  variant="outline"
  className={cn(
  "text-xs",
- item.sentiment === 'positive' && "bg-green-100 text-green-800 border-green-300",
- item.sentiment === 'negative' && "bg-red-100 text-red-800 border-red-300",
- item.sentiment === 'critical' && "bg-red-100 text-red-800 border-red-300"
+ item.sentiment === 'positive' && "bg-success-muted text-success border-success",
+ item.sentiment === 'negative' && "bg-destructive-muted text-destructive border-destructive",
+ item.sentiment === 'critical' && "bg-destructive-muted text-destructive border-destructive"
  )}
  >
  {item.sentiment}
@@ -950,9 +950,9 @@ export default function PrototypeDetailPage({ params }: PageProps) {
  <Badge
  variant="outline"
  className={cn(
- revision.approved_at && "bg-green-100 text-green-800 border-green-300",
- !revision.approved_at && "bg-yellow-100 text-yellow-800 border-yellow-300",
- false && "bg-red-100 text-red-800 border-red-300"
+ revision.approved_at && "bg-success-muted text-success border-success",
+ !revision.approved_at && "bg-warning-muted text-warning border-warning",
+ false && "bg-destructive-muted text-destructive border-destructive"
  )}
  >
  {revision.approved_at ? "Approved" : "Pending"}

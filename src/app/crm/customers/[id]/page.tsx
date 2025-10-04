@@ -399,12 +399,7 @@ export default function CustomerDetailPage() {
 
         {/* Projects Tab */}
         <TabsContent value="projects">
-          <Card>
-            <CardHeader>
-              <CardTitle>Projects</CardTitle>
-            </CardHeader>
-            <CardContent className="card-content-compact">
-              {projects.length === 0 ? (
+          {projects.length === 0 ? (
                 <div className="empty-state">
                   <Briefcase className="empty-state-icon" aria-hidden="true" />
                   <h3 className="empty-state-title">No Projects</h3>
@@ -413,7 +408,7 @@ export default function CustomerDetailPage() {
                   </p>
                 </div>
               ) : (
-                <div className="table-container">
+        <div className="data-table-container">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -446,18 +441,12 @@ export default function CustomerDetailPage() {
                   </Table>
                 </div>
               )}
-            </CardContent>
-          </Card>
+
         </TabsContent>
 
         {/* Orders Tab */}
         <TabsContent value="orders">
-          <Card>
-            <CardHeader>
-              <CardTitle>Orders</CardTitle>
-            </CardHeader>
-            <CardContent className="card-content-compact">
-              {!customer.orders || customer.orders.length === 0 ? (
+          {!customer.orders || customer.orders.length === 0 ? (
                 <div className="empty-state">
                   <ShoppingCart className="empty-state-icon" aria-hidden="true" />
                   <h3 className="empty-state-title">No Orders</h3>
@@ -466,7 +455,7 @@ export default function CustomerDetailPage() {
                   </p>
                 </div>
               ) : (
-                <div className="table-container">
+        <div className="data-table-container">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -501,18 +490,12 @@ export default function CustomerDetailPage() {
                   </Table>
                 </div>
               )}
-            </CardContent>
-          </Card>
+
         </TabsContent>
 
         {/* Production Orders Tab */}
         <TabsContent value="production">
-          <Card>
-            <CardHeader>
-              <CardTitle>Production Orders</CardTitle>
-            </CardHeader>
-            <CardContent className="card-content-compact">
-              {productionOrders.length === 0 ? (
+          {productionOrders.length === 0 ? (
                 <div className="empty-state">
                   <Package className="empty-state-icon" aria-hidden="true" />
                   <h3 className="empty-state-title">No Production Orders</h3>
@@ -521,7 +504,7 @@ export default function CustomerDetailPage() {
                   </p>
                 </div>
               ) : (
-                <div className="table-container">
+        <div className="data-table-container">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -554,18 +537,12 @@ export default function CustomerDetailPage() {
                   </Table>
                 </div>
               )}
-            </CardContent>
-          </Card>
+
         </TabsContent>
 
         {/* Payments Tab */}
         <TabsContent value="payments">
-          <Card>
-            <CardHeader>
-              <CardTitle>Payment History</CardTitle>
-            </CardHeader>
-            <CardContent className="card-content-compact">
-              {payments.length === 0 ? (
+          {payments.length === 0 ? (
                 <div className="empty-state">
                   <CreditCard className="empty-state-icon" aria-hidden="true" />
                   <h3 className="empty-state-title">No Payments</h3>
@@ -574,7 +551,7 @@ export default function CustomerDetailPage() {
                   </p>
                 </div>
               ) : (
-                <div className="table-container">
+        <div className="data-table-container">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -618,8 +595,7 @@ export default function CustomerDetailPage() {
                   </Table>
                 </div>
               )}
-            </CardContent>
-          </Card>
+
         </TabsContent>
 
         {/* Activities Tab */}

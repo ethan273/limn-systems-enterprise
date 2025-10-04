@@ -316,7 +316,7 @@ export function ImageManager({
 
  {/* Primary Badge */}
  {image.is_primary && (
- <Badge className="absolute top-2 left-2 bg-blue-600 text-blue-100">
+ <Badge className="absolute top-2 left-2 bg-info text-info">
  Primary
  </Badge>
  )}
@@ -432,7 +432,7 @@ export function ImageManager({
  </div>
  <div className="w-full card rounded-full h-2">
  <div
- className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+ className="bg-info h-2 rounded-full transition-all duration-300"
  style={{ width: `${progress}%` }}
  />
  </div>
@@ -525,7 +525,7 @@ export function ImageManager({
  </AlertDialogHeader>
  <AlertDialogFooter>
  <AlertDialogCancel>Cancel</AlertDialogCancel>
- <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+ <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive">
  Delete
  </AlertDialogAction>
  </AlertDialogFooter>

@@ -43,14 +43,14 @@ export default function DashboardPage() {
  <CardTitle className="text-sm font-medium text-muted-foreground">
  Pending Approvals
  </CardTitle>
- <UserPlus className="h-4 w-4 text-orange-500" />
+ <UserPlus className="h-4 w-4 text-warning" />
  </CardHeader>
  <CardContent>
  <div className="flex items-center justify-between">
- <div className="text-2xl font-bold text-orange-400">
+ <div className="text-2xl font-bold text-warning">
  {adminStats?.stats?.pending ?? 0}
  </div>
- <Badge className="bg-orange-500/20 text-orange-400">
+ <Badge className="bg-warning-muted text-warning border-warning">
  Urgent
  </Badge>
  </div>
@@ -58,7 +58,7 @@ export default function DashboardPage() {
  Access requests awaiting review
  </p>
  <Link href="/admin/approvals">
- <Button size="sm" className="w-full bg-orange-600 hover:bg-orange-700">
+ <Button size="sm" className="w-full btn-warning">
  <Clock className="w-4 h-4 mr-2" />
  Review Requests
  </Button>
@@ -73,7 +73,7 @@ export default function DashboardPage() {
  <CardTitle className="text-sm font-medium text-muted-foreground">
  Total Users
  </CardTitle>
- <Users className="h-4 w-4 text-blue-500" />
+ <Users className="h-4 w-4 text-info" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold text-foreground">
@@ -91,7 +91,7 @@ export default function DashboardPage() {
  <CardTitle className="text-sm font-medium text-muted-foreground">
  Approval Rate
  </CardTitle>
- <CheckCircle className="h-4 w-4 text-green-500" />
+ <CheckCircle className="h-4 w-4 text-success" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold text-foreground">
@@ -109,7 +109,7 @@ export default function DashboardPage() {
  <CardTitle className="text-sm font-medium text-muted-foreground">
  Active Orders
  </CardTitle>
- <ShoppingCart className="h-4 w-4 text-purple-500" />
+ <ShoppingCart className="h-4 w-4 text-primary" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold text-foreground">24</div>
@@ -125,7 +125,7 @@ export default function DashboardPage() {
  <CardTitle className="text-sm font-medium text-muted-foreground">
  Monthly Revenue
  </CardTitle>
- <TrendingUp className="h-4 w-4 text-green-500" />
+ <TrendingUp className="h-4 w-4 text-success" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold text-foreground">$45,231</div>
@@ -141,7 +141,7 @@ export default function DashboardPage() {
  <CardTitle className="text-sm font-medium text-muted-foreground">
  In Production
  </CardTitle>
- <Package className="h-4 w-4 text-yellow-500" />
+ <Package className="h-4 w-4 text-warning" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold text-foreground">18</div>
@@ -157,7 +157,7 @@ export default function DashboardPage() {
  <CardTitle className="text-sm font-medium text-muted-foreground">
  Active Customers
  </CardTitle>
- <Building2 className="h-4 w-4 text-cyan-500" />
+ <Building2 className="h-4 w-4 text-info" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold text-foreground">89</div>
@@ -173,7 +173,7 @@ export default function DashboardPage() {
  <CardTitle className="text-sm font-medium text-muted-foreground">
  Active Projects
  </CardTitle>
- <Calendar className="h-4 w-4 text-indigo-500" />
+ <Calendar className="h-4 w-4 text-primary" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold text-foreground">32</div>
@@ -200,10 +200,10 @@ export default function DashboardPage() {
  <Badge
  className={
  request.status === 'pending'
- ? 'bg-yellow-500/20 text-yellow-400'
+ ? 'bg-warning-muted text-warning border-warning'
  : request.status === 'approved'
- ? 'bg-green-500/20 text-green-400'
- : 'bg-red-500/20 text-red-400'
+ ? 'bg-success-muted text-success border-success'
+ : 'bg-destructive-muted text-destructive border-destructive'
  }
  >
  {request.status}
@@ -222,7 +222,7 @@ export default function DashboardPage() {
  {adminStats.recentRequests.length > 5 && (
  <div className="mt-4 pt-4 border-t border-border">
  <Link href="/admin/approvals">
- <Button variant="outline" className="w-full border-gray-600 text-muted-foreground hover:bg-muted">
+ <Button variant="outline" className="w-full ">
  View All Requests
  </Button>
  </Link>
@@ -243,20 +243,20 @@ export default function DashboardPage() {
  <CardContent>
  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
  <Link href="/admin/approvals">
- <Button className="w-full bg-blue-600 hover:bg-blue-700">
+ <Button className="w-full btn-info">
  <UserPlus className="w-4 h-4 mr-2" />
  Manage Access
  </Button>
  </Link>
- <Button className="w-full bg-muted hover:bg-gray-600">
+ <Button className="w-full btn-secondary">
  <ShoppingCart className="w-4 h-4 mr-2" />
  View Orders
  </Button>
- <Button className="w-full bg-muted hover:bg-gray-600">
+ <Button className="w-full btn-secondary">
  <Package className="w-4 h-4 mr-2" />
  Production
  </Button>
- <Button className="w-full bg-muted hover:bg-gray-600">
+ <Button className="w-full btn-secondary">
  <BarChart className="w-4 h-4 mr-2" />
  Reports
  </Button>

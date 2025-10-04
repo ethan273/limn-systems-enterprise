@@ -45,12 +45,12 @@ export default function LoginPage() {
  {/* Employee Login */}
  <button
  onClick={() => handleUserTypeSelection('employee')}
- className="w-full p-6 card border-2 rounded-lg hover:border-blue-500 hover:card transition-all group"
+ className="w-full p-6 card border-2 rounded-lg hover:border-primary hover:card transition-all group"
  >
  <div className="flex items-center space-x-4">
  <div className="flex-shrink-0">
- <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center group-hover:bg-blue-500/30 transition-colors">
- <Building className="w-6 h-6 text-blue-400" />
+ <div className="w-12 h-12 bg-info-muted/20 rounded-lg flex items-center justify-center group-hover:bg-info-muted/30 transition-colors">
+ <Building className="w-6 h-6 text-info" />
  </div>
  </div>
  <div className="text-left">
@@ -67,12 +67,12 @@ export default function LoginPage() {
  {/* Contractor Login */}
  <button
  onClick={() => handleUserTypeSelection('contractor')}
- className="w-full p-6 card border-2 rounded-lg hover:border-green-500 hover:card transition-all group"
+ className="w-full p-6 card border-2 rounded-lg hover:border-success hover:card transition-all group"
  >
  <div className="flex items-center space-x-4">
  <div className="flex-shrink-0">
- <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center group-hover:bg-green-500/30 transition-colors">
- <Users className="w-6 h-6 text-green-400" />
+ <div className="w-12 h-12 bg-success-muted/20 rounded-lg flex items-center justify-center group-hover:bg-success-muted/30 transition-colors">
+ <Users className="w-6 h-6 text-success" />
  </div>
  </div>
  <div className="text-left">
@@ -89,12 +89,12 @@ export default function LoginPage() {
  {/* Customer Portal */}
  <button
  onClick={() => handleUserTypeSelection('customer')}
- className="w-full p-6 card border-2 rounded-lg hover:border-purple-500 hover:card transition-all group"
+ className="w-full p-6 card border-2 rounded-lg hover:border-secondary hover:card transition-all group"
  >
  <div className="flex items-center space-x-4">
  <div className="flex-shrink-0">
- <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center group-hover:bg-purple-500/30 transition-colors">
- <ShoppingCart className="w-6 h-6 text-purple-400" />
+ <div className="w-12 h-12 bg-primary-muted/20 rounded-lg flex items-center justify-center group-hover:bg-primary-muted/30 transition-colors">
+ <ShoppingCart className="w-6 h-6 text-secondary" />
  </div>
  </div>
  <div className="text-left">
@@ -112,12 +112,12 @@ export default function LoginPage() {
  {process.env.NODE_ENV === 'development' && (
  <button
  onClick={() => handleUserTypeSelection('dev')}
- className="w-full p-6 card border-2 rounded-lg hover:border-orange-500 hover:card transition-all group"
+ className="w-full p-6 card border-2 rounded-lg hover:border-warning hover:card transition-all group"
  >
  <div className="flex items-center space-x-4">
  <div className="flex-shrink-0">
- <div className="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center group-hover:bg-orange-500/30 transition-colors">
- <svg className="w-6 h-6 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+ <div className="w-12 h-12 bg-warning-muted/20 rounded-lg flex items-center justify-center group-hover:bg-warning-muted/30 transition-colors">
+ <svg className="w-6 h-6 text-warning" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
  </svg>
  </div>
@@ -140,7 +140,7 @@ export default function LoginPage() {
  Need help accessing your account?{' '}
  <a
  href="mailto:support@limnsystems.com"
- className="text-blue-400 hover:text-blue-300 font-medium"
+ className="text-info hover:text-info font-medium"
  >
  Contact Support
  </a>

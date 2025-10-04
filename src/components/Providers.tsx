@@ -6,6 +6,8 @@ import { AuthProvider } from "@/lib/auth/AuthProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { Toaster } from "sonner";
 import { CommandPalette } from "@/components/ui/command-palette";
+import { NetworkStatus } from "@/components/NetworkStatus";
+import { InstallPrompt } from "@/components/InstallPrompt";
 
 interface AppContextType {
  sidebarOpen: boolean;
@@ -25,6 +27,8 @@ export function Providers({ children }: { children: ReactNode }) {
  {children}
  <Toaster richColors position="top-right" />
  <CommandPalette />
+ <NetworkStatus />
+ <InstallPrompt />
  </AppContext.Provider>
  </AuthProvider>
  </TRPCProvider>

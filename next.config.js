@@ -1,4 +1,72 @@
 const { withSentryConfig } = require('@sentry/nextjs');
+const withPWA = require('next-pwa')({
+  dest: 'public',
+  register: true,
+  skipWaiting: true,
+  disable: process.env.NODE_ENV === 'development',
+  buildExcludes: [/middleware-manifest\.json$/],
+  runtimeCaching: [
+    // Supabase API calls
+    {
+      urlPattern: /^https:\/\/gwqkbjymbarkufwvdmar\.supabase\.co\/.*/i,
+      handler: 'NetworkFirst',
+      options: {
+        cacheName: 'supabase-api-cache',
+        expiration: {
+          maxEntries: 50,
+          maxAgeSeconds: 24 * 60 * 60 // 24 hours
+        },
+        networkTimeoutSeconds: 10,
+        cacheableResponse: {
+          statuses: [0, 200]
+        }
+      }
+    },
+    // Static assets (images, fonts)
+    {
+      urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/i,
+      handler: 'CacheFirst',
+      options: {
+        cacheName: 'static-image-cache',
+        expiration: {
+          maxEntries: 100,
+          maxAgeSeconds: 30 * 24 * 60 * 60 // 30 days
+        }
+      }
+    },
+    // Font files
+    {
+      urlPattern: /\.(?:woff|woff2|ttf|otf|eot)$/i,
+      handler: 'CacheFirst',
+      options: {
+        cacheName: 'font-cache',
+        expiration: {
+          maxEntries: 10,
+          maxAgeSeconds: 365 * 24 * 60 * 60 // 1 year
+        }
+      }
+    },
+    // All other requests
+    {
+      urlPattern: /^https?.*/,
+      handler: 'NetworkFirst',
+      options: {
+        cacheName: 'https-cache',
+        networkTimeoutSeconds: 15,
+        expiration: {
+          maxEntries: 150,
+          maxAgeSeconds: 7 * 24 * 60 * 60 // 7 days
+        },
+        cacheableResponse: {
+          statuses: [0, 200]
+        }
+      }
+    }
+  ],
+  fallbacks: {
+    document: '/offline'
+  }
+});
 
 // Suppress Node.js url.parse() deprecation warnings from dependencies
 const originalEmit = process.emit;
@@ -181,5 +249,12 @@ const sentryWebpackPluginOptions = {
   },
 };
 
-// Export configuration without Sentry in development to prevent instrumentation conflicts
-module.exports = nextConfig;
+// Wrap with PWA in production only
+const configWithPWA = process.env.NODE_ENV === 'production' 
+  ? withPWA(nextConfig)
+  : nextConfig;
+
+// Export configuration with or without Sentry based on environment
+module.exports = process.env.NODE_ENV === 'development' 
+  ? configWithPWA
+  : withSentryConfig(configWithPWA, sentryWebpackPluginOptions);

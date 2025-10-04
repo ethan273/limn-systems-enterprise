@@ -172,7 +172,7 @@ export default function ProspectDetailPage() {
                   </Badge>
                 )}
                 <div className="flex items-center gap-1">
-                  <Star className={`icon-sm ${priority >= 5 ? 'text-yellow-400' : 'text-muted-foreground'}`} aria-hidden="true" />
+                  <Star className={`icon-sm ${priority >= 5 ? 'text-warning' : 'text-muted-foreground'}`} aria-hidden="true" />
                   <span className="text-sm">Priority: {priority}/10</span>
                 </div>
               </div>
@@ -358,7 +358,7 @@ export default function ProspectDetailPage() {
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Priority Score:</span>
                       <div className="flex items-center gap-1">
-                        <Star className={`icon-sm ${priority >= 5 ? 'text-yellow-400' : 'text-muted-foreground'}`} aria-hidden="true" />
+                        <Star className={`icon-sm ${priority >= 5 ? 'text-warning' : 'text-muted-foreground'}`} aria-hidden="true" />
                         <span className="font-semibold">{priority}/10</span>
                       </div>
                     </div>

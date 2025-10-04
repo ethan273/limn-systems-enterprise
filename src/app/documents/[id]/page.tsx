@@ -23,22 +23,22 @@ export const dynamic = 'force-dynamic';
 const documentTypeConfig: Record<string, { label: string; className: string; icon: React.ReactNode }> = {
   invoice: {
     label: "Invoice",
-    className: "bg-blue-100 text-blue-800 border-blue-300",
+    className: "bg-info-muted text-info border-info",
     icon: <FileText className="w-4 h-4" aria-hidden="true" />,
   },
   contract: {
     label: "Contract",
-    className: "bg-purple-100 text-purple-800 border-purple-300",
+    className: "bg-primary-muted text-primary border-primary",
     icon: <File className="w-4 h-4" aria-hidden="true" />,
   },
   drawing: {
     label: "Drawing",
-    className: "bg-green-100 text-green-800 border-green-300",
+    className: "bg-success-muted text-success border-success",
     icon: <File className="w-4 h-4" aria-hidden="true" />,
   },
   photo: {
     label: "Photo",
-    className: "bg-yellow-100 text-yellow-800 border-yellow-300",
+    className: "bg-warning-muted text-warning border-warning",
     icon: <File className="w-4 h-4" aria-hidden="true" />,
   },
   other: {

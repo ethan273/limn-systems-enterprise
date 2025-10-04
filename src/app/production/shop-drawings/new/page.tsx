@@ -305,7 +305,7 @@ export default function NewShopDrawingPage() {
  {file ? (
  <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-muted/50">
  <div className="flex items-center gap-3">
- <CheckCircle2 className="w-5 h-5 text-green-600" aria-hidden="true" />
+ <CheckCircle2 className="w-5 h-5 text-success" aria-hidden="true" />
  <div>
  <p className="font-medium">{file.name}</p>
  <p className="text-sm text-muted-foreground">

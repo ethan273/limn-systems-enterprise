@@ -31,15 +31,15 @@ export const dynamic = 'force-dynamic';
 const pipelineStages = [
   { value: "initial", label: "Initial Contact", color: "badge-neutral" },
   { value: "qualified", label: "Qualified", color: "status-pending" },
-  { value: "proposal", label: "Proposal Sent", color: "bg-blue-100 text-blue-800 border-blue-300" },
-  { value: "negotiation", label: "Negotiation", color: "bg-purple-100 text-purple-800 border-purple-300" },
+  { value: "proposal", label: "Proposal Sent", color: "bg-info-muted text-info border-info" },
+  { value: "negotiation", label: "Negotiation", color: "bg-primary-muted text-primary border-primary" },
   { value: "won", label: "Won", color: "status-completed" },
   { value: "lost", label: "Lost", color: "status-cancelled" },
 ];
 
 const interestLevels: Record<string, { label: string; className: string }> = {
   low: { label: "Low Interest", className: "badge-neutral" },
-  medium: { label: "Medium Interest", className: "bg-yellow-100 text-yellow-800 border-yellow-300" },
+  medium: { label: "Medium Interest", className: "bg-warning-muted text-warning border-warning" },
   high: { label: "High Interest", className: "status-completed" },
   unknown: { label: "Unknown", className: "badge-neutral" },
 };

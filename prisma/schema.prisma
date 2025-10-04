@@ -928,6 +928,7 @@ model collection_activities {
   @@schema("public")
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model collections {
   id                             String                           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
@@ -1897,6 +1898,7 @@ model document_templates {
   @@schema("public")
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model documents {
   id                                                      String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -1973,15 +1975,15 @@ model documents {
   prototypes                                              prototypes?             @relation(fields: [prototype_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_documents_prototypes")
   production_orders                                       production_orders[]
 
+  @@index([catalog_item_id], map: "idx_documents_catalog_item_id")
+  @@index([concept_id], map: "idx_documents_concept_id")
   @@index([customer_id], map: "idx_documents_customer_id")
   @@index([designer_id], map: "idx_documents_designer_id")
   @@index([manufacturer_id], map: "idx_documents_manufacturer_id")
-  @@index([storage_type], map: "idx_documents_storage_type")
-  @@index([catalog_item_id], map: "idx_documents_catalog_item_id")
-  @@index([concept_id], map: "idx_documents_concept_id")
   @@index([media_type], map: "idx_documents_media_type")
   @@index([production_order_id], map: "idx_documents_production_order_id")
   @@index([prototype_id], map: "idx_documents_prototype_id")
+  @@index([storage_type], map: "idx_documents_storage_type")
   @@schema("public")
 }
 
@@ -2583,6 +2585,54 @@ model invoice_items {
   @@schema("public")
 }
 
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model invoice_templates {
+  id                     String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                   String
+  template_type          String
+  is_default             Boolean?   @default(false)
+  company_logo_url       String?
+  company_name           String?    @default("Limn Systems")
+  company_address        String?
+  company_city_state_zip String?
+  company_phone          String?
+  company_email          String?
+  company_website        String?
+  font_family            String?    @default("Roboto")
+  font_size_base         Int?       @default(10)
+  font_size_heading      Int?       @default(24)
+  font_size_subheading   Int?       @default(14)
+  color_primary          String?    @default("#2563eb")
+  color_secondary        String?    @default("#64748b")
+  color_text             String?    @default("#0f172a")
+  color_border           String?    @default("#e2e8f0")
+  color_background       String?    @default("#ffffff")
+  show_company_logo      Boolean?   @default(true)
+  show_payment_terms     Boolean?   @default(true)
+  show_bank_details      Boolean?   @default(false)
+  show_notes_section     Boolean?   @default(true)
+  show_tax_summary       Boolean?   @default(true)
+  default_payment_terms  String?    @default("Net 30")
+  bank_name              String?
+  bank_account_number    String?
+  bank_routing_number    String?
+  bank_swift_code        String?
+  footer_text            String?
+  notes_text             String?
+  created_at             DateTime?  @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime?  @default(now()) @db.Timestamptz(6)
+  created_by             String?    @db.Uuid
+  users                  users?     @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  invoices               invoices[]
+
+  @@index([template_type], map: "idx_invoice_templates_type")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model invoices {
   id                       String                     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
@@ -4341,7 +4391,7 @@ model production_orders {
   users                                          users?                     @relation(fields: [created_by], references: [id], onUpdate: NoAction)
   manufacturers                                  manufacturers?             @relation(fields: [factory_id], references: [id], onUpdate: NoAction)
   orders                                         orders?                    @relation(fields: [order_id], references: [id], onUpdate: NoAction)
-  factory                                        partners?                  @relation(fields: [factory_id], references: [id], onUpdate: NoAction, map: "production_orders_partner_factory_id_fkey")
+  partners                                       partners?                  @relation(fields: [factory_id], references: [id], onUpdate: NoAction, map: "production_orders_partner_factory_id_fkey")
   projects                                       projects?                  @relation(fields: [project_id], references: [id], onUpdate: NoAction)
   items_production_orders_prototype_idToitems    items?                     @relation("production_orders_prototype_idToitems", fields: [prototype_id], references: [id], onUpdate: NoAction)
   production_payments                            production_payments[]
@@ -4888,6 +4938,7 @@ model prototype_revisions {
   @@schema("public")
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model prototypes {
   id                   String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -4933,16 +4984,16 @@ model prototypes {
   design_projects      design_projects?       @relation(fields: [design_project_id], references: [id], onUpdate: NoAction)
 
   @@index([base_item_id], map: "idx_prototypes_base_item")
+  @@index([collection_id], map: "idx_prototypes_collection_id")
+  @@index([concept_id], map: "idx_prototypes_concept_id")
   @@index([created_by], map: "idx_prototypes_created_by")
   @@index([crm_project_id], map: "idx_prototypes_crm_project")
   @@index([design_project_id], map: "idx_prototypes_design_project")
+  @@index([designer_id], map: "idx_prototypes_designer_id")
+  @@index([manufacturer_id], map: "idx_prototypes_manufacturer_id")
   @@index([prototype_number], map: "idx_prototypes_number")
   @@index([priority], map: "idx_prototypes_priority")
   @@index([status], map: "idx_prototypes_status")
-  @@index([collection_id], map: "idx_prototypes_collection_id")
-  @@index([concept_id], map: "idx_prototypes_concept_id")
-  @@index([designer_id], map: "idx_prototypes_designer_id")
-  @@index([manufacturer_id], map: "idx_prototypes_manufacturer_id")
   @@schema("public")
 }
 
@@ -6925,52 +6976,6 @@ model workflows {
   @@index([category], map: "idx_workflows_category")
   @@index([department_id], map: "idx_workflows_department")
   @@index([trigger_type], map: "idx_workflows_trigger_type")
-  @@schema("public")
-}
-
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model invoice_templates {
-  id                     String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name                   String
-  template_type          String
-  is_default             Boolean?   @default(false)
-  company_logo_url       String?
-  company_name           String?    @default("Limn Systems")
-  company_address        String?
-  company_city_state_zip String?
-  company_phone          String?
-  company_email          String?
-  company_website        String?
-  font_family            String?    @default("Roboto")
-  font_size_base         Int?       @default(10)
-  font_size_heading      Int?       @default(24)
-  font_size_subheading   Int?       @default(14)
-  color_primary          String?    @default("#2563eb")
-  color_secondary        String?    @default("#64748b")
-  color_text             String?    @default("#0f172a")
-  color_border           String?    @default("#e2e8f0")
-  color_background       String?    @default("#ffffff")
-  show_company_logo      Boolean?   @default(true)
-  show_payment_terms     Boolean?   @default(true)
-  show_bank_details      Boolean?   @default(false)
-  show_notes_section     Boolean?   @default(true)
-  show_tax_summary       Boolean?   @default(true)
-  default_payment_terms  String?    @default("Net 30")
-  bank_name              String?
-  bank_account_number    String?
-  bank_routing_number    String?
-  bank_swift_code        String?
-  footer_text            String?
-  notes_text             String?
-  created_at             DateTime?  @default(now()) @db.Timestamptz(6)
-  updated_at             DateTime?  @default(now()) @db.Timestamptz(6)
-  created_by             String?    @db.Uuid
-  users                  users?     @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  invoices               invoices[]
-
-  @@index([template_type], map: "idx_invoice_templates_type")
   @@schema("public")
 }
 

@@ -42,15 +42,15 @@ export const dynamic = 'force-dynamic';
 const statusConfig: Record<string, { label: string; className: string }> = {
  scheduled: {
  label: "Scheduled",
- className: "bg-yellow-100 text-yellow-800 border-yellow-300",
+ className: "bg-warning-muted text-warning border-warning",
  },
  in_progress: {
  label: "In Progress",
- className: "bg-blue-100 text-blue-800 border-blue-300",
+ className: "bg-info-muted text-info border-info",
  },
  completed: {
  label: "Completed",
- className: "bg-green-100 text-green-800 border-green-300",
+ className: "bg-success-muted text-success border-success",
  },
 };
 
@@ -118,7 +118,7 @@ export default function FactoryReviewsPage() {
  <Calendar className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-yellow-600">{stats.scheduled}</div>
+ <div className="text-2xl font-bold text-warning">{stats.scheduled}</div>
  </CardContent>
  </Card>
 
@@ -128,7 +128,7 @@ export default function FactoryReviewsPage() {
  <Users className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-blue-600">{stats.inProgress}</div>
+ <div className="text-2xl font-bold text-info">{stats.inProgress}</div>
  </CardContent>
  </Card>
 
@@ -138,7 +138,7 @@ export default function FactoryReviewsPage() {
  <FileText className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-green-600">{stats.completed}</div>
+ <div className="text-2xl font-bold text-success">{stats.completed}</div>
  </CardContent>
  </Card>
  </div>

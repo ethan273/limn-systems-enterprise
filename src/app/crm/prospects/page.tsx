@@ -34,8 +34,6 @@ import {
   MoreVertical,
   Building,
   Mail,
-  DollarSign,
-  Users,
   Thermometer,
   Eye,
   Edit,
@@ -194,29 +192,31 @@ export default function ProspectsPage() {
 
       {/* Prospect Status Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {prospectsByStatus.map((status) => (
-          <Card key={status.value}>
-            <CardContent className="stat-card-content">
-              <div className="stat-card-header">
-                <Thermometer className={`stat-card-icon ${status.className}`} aria-hidden="true" />
-                <div>
-                  <h3 className="stat-card-title">{status.label} Prospects</h3>
-                  <p className="stat-card-description">{status.description}</p>
+        {prospectsByStatus.map((status) => {
+          const bgColor = status.value === 'hot' ? 'bg-destructive-muted/20' : status.value === 'warm' ? 'bg-warning-muted/20' : 'bg-info-muted/20';
+          const iconColor = status.value === 'hot' ? 'text-destructive' : status.value === 'warm' ? 'text-warning' : 'text-info';
+
+          return (
+            <Card key={status.value} className="card">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${bgColor}`}>
+                    <Thermometer className={`h-5 w-5 ${iconColor}`} aria-hidden="true" />
+                  </div>
+                  <div>
+                    <p className="text-sm page-subtitle">{status.label} Prospects</p>
+                    <p className="text-xl font-bold text-primary">
+                      {status.count}<span className="text-sm font-normal text-secondary ml-1">prospects</span>
+                    </p>
+                    <p className="text-sm text-secondary mt-1">
+                      ${status.totalValue.toLocaleString()} total value
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div className="stat-card-stats">
-                <div className="stat-card-stat">
-                  <Users className="icon-xs" aria-hidden="true" />
-                  <span>{status.count} prospects</span>
-                </div>
-                <div className="stat-card-stat">
-                  <DollarSign className="icon-xs" aria-hidden="true" />
-                  <span>${status.totalValue.toLocaleString()}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Filters */}
@@ -281,12 +281,7 @@ export default function ProspectsPage() {
       </Card>
 
       {/* Prospects Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Prospects ({sortedProspects.length}) - Sorted by Priority</CardTitle>
-        </CardHeader>
-        <CardContent className="card-content-compact">
-          {isLoading ? (
+      {isLoading ? (
             <div className="loading-state">Loading prospects...</div>
           ) : sortedProspects.length === 0 ? (
             <div className="empty-state">
@@ -297,7 +292,7 @@ export default function ProspectsPage() {
               </p>
             </div>
           ) : (
-            <div className="table-container">
+        <div className="data-table-container">
               <Table>
               <TableHeader>
                 <TableRow className="data-table-header-row">
@@ -324,7 +319,7 @@ export default function ProspectsPage() {
                     >
                       <TableCell className="data-table-cell">
                         <div className="flex items-center gap-1">
-                          <Star className={`icon-sm ${priority >= 5 ? 'text-yellow-400' : 'text-muted-foreground'}`} aria-hidden="true" />
+                          <Star className={`icon-sm ${priority >= 5 ? 'text-warning' : 'text-muted-foreground'}`} aria-hidden="true" />
                           <span className="font-mono text-sm">{priority}</span>
                         </div>
                       </TableCell>
@@ -406,36 +401,34 @@ export default function ProspectsPage() {
             </div>
           )}
 
-          {/* Pagination */}
-          {prospectsData && prospectsData.total > limit && (
-            <div className="pagination">
-              <div className="pagination-info">
-                Showing {page * limit + 1} to {Math.min((page + 1) * limit, prospectsData.total)} of {prospectsData.total} prospects
-              </div>
-              <div className="pagination-buttons">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage(Math.max(0, page - 1))}
-                  disabled={page === 0}
-                  className="btn-secondary"
-                >
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage(page + 1)}
-                  disabled={!prospectsData.hasMore}
-                  className="btn-secondary"
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Pagination */}
+      {prospectsData && prospectsData.total > limit && (
+        <div className="pagination">
+          <div className="pagination-info">
+            Showing {page * limit + 1} to {Math.min((page + 1) * limit, prospectsData.total)} of {prospectsData.total} prospects
+          </div>
+          <div className="pagination-buttons">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage(Math.max(0, page - 1))}
+              disabled={page === 0}
+              className="btn-secondary"
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage(page + 1)}
+              disabled={!prospectsData.hasMore}
+              className="btn-secondary"
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

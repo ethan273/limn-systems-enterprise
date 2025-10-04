@@ -8,7 +8,7 @@
  */
 
 import { useState, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/lib/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,8 +33,6 @@ import {
  Trash2,
  AlertCircle,
  CheckCircle,
- Link2,
- X,
 } from "lucide-react";
 import { api } from "@/lib/api/client";
 import { FileUploader } from "@/components/design/FileUploader";
@@ -52,11 +50,9 @@ function DesignDocumentsContent() {
 
  const { user, loading: authLoading } = useAuthContext();
  const router = useRouter();
- const searchParams = useSearchParams();
 
- // Get OAuth connection status
- const { data: connectionStatus } = api.oauth.getConnectionStatus.useQuery();
- const { data: authUrl } = api.oauth.getAuthUrl.useQuery();
+ // Get Google Drive service account status
+ const { data: driveStatus } = api.storage.getDriveStatus.useQuery();
 
  // Get files list
  const {
@@ -80,29 +76,6 @@ function DesignDocumentsContent() {
  },
  });
 
- // Disconnect OAuth mutation
- const disconnectOAuth = api.oauth.disconnect.useMutation({
- onSuccess: () => {
- window.location.reload();
- },
- });
-
- // Check for OAuth callback messages
- useEffect(() => {
- const success = searchParams.get('success');
- const error = searchParams.get('error');
-
- if (success === 'google_connected') {
- // Show success message
- console.log('Google Drive connected successfully');
- }
-
- if (error) {
- // Show error message
- console.error('OAuth error:', error);
- }
- }, [searchParams]);
-
  useEffect(() => {
  if (!authLoading && !user) {
  router.push("/login");
@@ -117,32 +90,18 @@ function DesignDocumentsContent() {
  await deleteFile.mutateAsync({ fileId });
  };
 
- const handleConnectGoogleDrive = () => {
- if (authUrl?.url) {
- window.location.href = authUrl.url;
- }
- };
-
- const handleDisconnect = async () => {
- if (!confirm('Are you sure you want to disconnect Google Drive?')) {
- return;
- }
-
- await disconnectOAuth.mutateAsync();
- };
-
  const getStorageBadge = (storageType: string) => {
  switch (storageType) {
  case 'supabase':
  return (
- <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20">
+ <Badge variant="outline" className="badge-info">
  <HardDrive className="mr-1 h-3 w-3" />
  Supabase
  </Badge>
  );
  case 'google_drive':
  return (
- <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/20">
+ <Badge variant="outline" className="badge-active">
  <Cloud className="mr-1 h-3 w-3" />
  Google Drive
  </Badge>
@@ -188,41 +147,30 @@ function DesignDocumentsContent() {
  </Button>
  </div>
 
- {/* Google Drive Connection Status */}
- {connectionStatus && !connectionStatus.connected && (
+ {/* Google Drive Status - Service Account */}
+ {driveStatus && !driveStatus.connected && (
  <Alert>
  <AlertCircle className="h-4 w-4" />
- <AlertDescription className="flex items-center justify-between">
+ <AlertDescription>
  <span>
- Connect Google Drive to upload files ≥50MB
+ Google Drive not configured. Service account setup required for files ≥50MB.
+ {driveStatus.errors && driveStatus.errors.length > 0 && (
+ <span className="block text-xs mt-1 text-muted-foreground">
+ {driveStatus.errors.join(', ')}
  </span>
- <Button
- size="sm"
- variant="outline"
- onClick={handleConnectGoogleDrive}
- >
- <Link2 className="mr-2 h-4 w-4" />
- Connect Google Drive
- </Button>
+ )}
+ </span>
  </AlertDescription>
  </Alert>
  )}
 
- {connectionStatus && connectionStatus.connected && (
+ {driveStatus && driveStatus.connected && (
  <Alert>
  <CheckCircle className="h-4 w-4" />
- <AlertDescription className="flex items-center justify-between">
+ <AlertDescription>
  <span>
- Google Drive connected
+ Google Drive connected via service account - ready for large file uploads
  </span>
- <Button
- size="sm"
- variant="outline"
- onClick={handleDisconnect}
- >
- <X className="mr-2 h-4 w-4" />
- Disconnect
- </Button>
  </AlertDescription>
  </Alert>
  )}

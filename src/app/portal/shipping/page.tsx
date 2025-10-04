@@ -41,27 +41,27 @@ const shipmentStatusConfig: Record<string, { label: string; className: string; i
  },
  picked_up: {
  label: "Picked Up",
- className: "bg-blue-100 text-blue-800 border-blue-300",
+ className: "btn-primary text-info border-primary",
  icon: <Package className="w-3 h-3" aria-hidden="true" />,
  },
  in_transit: {
  label: "In Transit",
- className: "bg-blue-100 text-blue-800 border-blue-300",
+ className: "btn-primary text-info border-primary",
  icon: <Truck className="w-3 h-3" aria-hidden="true" />,
  },
  out_for_delivery: {
  label: "Out for Delivery",
- className: "bg-purple-100 text-purple-800 border-purple-300",
+ className: "btn-secondary text-secondary border-secondary",
  icon: <Truck className="w-3 h-3" aria-hidden="true" />,
  },
  delivered: {
  label: "Delivered",
- className: "bg-green-100 text-green-800 border-green-300",
+ className: "bg-success-muted text-success border-success",
  icon: <CheckCircle2 className="w-3 h-3" aria-hidden="true" />,
  },
  exception: {
  label: "Exception",
- className: "bg-red-100 text-red-800 border-red-300",
+ className: "bg-destructive-muted text-destructive border-destructive",
  icon: <Clock className="w-3 h-3" aria-hidden="true" />,
  },
 };
@@ -296,7 +296,7 @@ export default function ShippingTrackingPage() {
  <div className="flex flex-col items-center">
  <div className={cn(
  "w-3 h-3 rounded-full",
- index === 0 ? "bg-blue-600" : "border"
+ index === 0 ? "bg-info-muted" : "border"
  )} />
  {index < (trackingData.trackingEvents as any[]).length - 1 && (
  <div className="w-0.5 h-full card mt-1" />

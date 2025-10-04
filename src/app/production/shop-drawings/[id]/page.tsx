@@ -57,27 +57,27 @@ const statusConfig: Record<string, {
 }> = {
  in_review: {
  label: "In Review",
- className: "bg-yellow-100 text-yellow-800 border-yellow-300",
+ className: "bg-warning-muted text-warning border-warning",
  icon: Clock
  },
  designer_approved: {
  label: "Designer Approved",
- className: "bg-blue-100 text-blue-800 border-blue-300",
+ className: "bg-info-muted text-info border-info",
  icon: CheckCircle2
  },
  approved: {
  label: "Approved",
- className: "bg-green-100 text-green-800 border-green-300",
+ className: "bg-success-muted text-success border-success",
  icon: CheckCircle2
  },
  rejected: {
  label: "Rejected",
- className: "bg-red-100 text-red-800 border-red-300",
+ className: "bg-destructive-muted text-destructive border-destructive",
  icon: XCircle
  },
  revision_requested: {
  label: "Revision Requested",
- className: "bg-orange-100 text-orange-800 border-orange-300",
+ className: "bg-orange-100 text-warning border-orange-300",
  icon: AlertTriangle
  }
 };
@@ -322,13 +322,13 @@ export default function ShopDrawingDetailPage({ params }: PageProps) {
  </CardHeader>
  <CardContent>
  {approvalStatus?.finalApproved ? (
- <div className="font-semibold text-green-600">Fully Approved</div>
+ <div className="font-semibold text-success">Fully Approved</div>
  ) : approvalStatus?.limnApproved && approvalStatus?.designerApproved ? (
- <div className="font-semibold text-green-600">Fully Approved</div>
+ <div className="font-semibold text-success">Fully Approved</div>
  ) : approvalStatus?.limnApproved || approvalStatus?.designerApproved ? (
- <div className="font-semibold text-blue-600">Partially Approved</div>
+ <div className="font-semibold text-info">Partially Approved</div>
  ) : (
- <div className="font-semibold text-yellow-600">Pending</div>
+ <div className="font-semibold text-warning">Pending</div>
  )}
  </CardContent>
  </Card>
@@ -526,19 +526,19 @@ export default function ShopDrawingDetailPage({ params }: PageProps) {
  <SelectContent>
  <SelectItem value="approved">
  <div className="flex items-center gap-2">
- <ThumbsUp className="w-4 h-4 text-green-600" aria-hidden="true" />
+ <ThumbsUp className="w-4 h-4 text-success" aria-hidden="true" />
  Approve
  </div>
  </SelectItem>
  <SelectItem value="changes_requested">
  <div className="flex items-center gap-2">
- <AlertTriangle className="w-4 h-4 text-orange-600" aria-hidden="true" />
+ <AlertTriangle className="w-4 h-4 text-warning" aria-hidden="true" />
  Request Changes
  </div>
  </SelectItem>
  <SelectItem value="rejected">
  <div className="flex items-center gap-2">
- <ThumbsDown className="w-4 h-4 text-red-600" aria-hidden="true" />
+ <ThumbsDown className="w-4 h-4 text-destructive" aria-hidden="true" />
  Reject
  </div>
  </SelectItem>

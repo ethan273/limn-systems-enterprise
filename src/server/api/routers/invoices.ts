@@ -63,27 +63,24 @@ export const invoicesRouter = createTRPCRouter({
         ctx.db.invoices.findMany({
           where,
           include: {
+            customers: {
+              select: {
+                name: true,
+                company_name: true,
+                email: true,
+              },
+            },
+            projects: {
+              select: {
+                project_name: true,
+              },
+            },
             invoice_items: {
               include: {
                 items: true,
                 order_items: {
                   include: {
-                    orders: {
-                      include: {
-                        customers: {
-                          select: {
-                            name: true,
-                            company_name: true,
-                            email: true,
-                          },
-                        },
-                        projects: {
-                          select: {
-                            project_name: true,
-                          },
-                        },
-                      },
-                    },
+                    orders: true,
                   },
                 },
               },
@@ -135,11 +132,6 @@ export const invoicesRouter = createTRPCRouter({
         const status =
           balance <= 0 ? 'paid' : totalPaid > 0 ? 'partial' : 'pending';
 
-        // Get customer info from first invoice item
-        const firstOrderItem = invoice.invoice_items[0]?.order_items;
-        const customer = firstOrderItem?.orders?.customers;
-        const project = firstOrderItem?.orders?.projects;
-
         return {
           ...invoice,
           subtotal,
@@ -148,8 +140,8 @@ export const invoicesRouter = createTRPCRouter({
           totalPaid,
           balance,
           status,
-          customer,
-          project,
+          customer: invoice.customers,
+          project: invoice.projects,
         };
       });
 
@@ -170,17 +162,14 @@ export const invoicesRouter = createTRPCRouter({
       const invoice = await ctx.db.invoices.findUnique({
         where: { id: input.id },
         include: {
+          customers: true,
+          projects: true,
           invoice_items: {
             include: {
               items: true,
               order_items: {
                 include: {
-                  orders: {
-                    include: {
-                      customers: true,
-                      projects: true,
-                    },
-                  },
+                  orders: true,
                 },
               },
             },
@@ -245,26 +234,16 @@ export const invoicesRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const invoices = await ctx.db.invoices.findMany({
         where: {
-          invoice_items: {
-            some: {
-              order_items: {
-                orders: {
-                  customer_id: input.customerId,
-                },
-              },
-            },
-          },
+          customer_id: input.customerId,
         },
         include: {
+          customers: true,
+          projects: true,
           invoice_items: {
             include: {
               order_items: {
                 include: {
-                  orders: {
-                    include: {
-                      projects: true,
-                    },
-                  },
+                  orders: true,
                 },
               },
             },
@@ -547,15 +526,7 @@ export const invoicesRouter = createTRPCRouter({
       const where: any = {};
 
       if (input.customerId) {
-        where.invoice_items = {
-          some: {
-            order_items: {
-              orders: {
-                customer_id: input.customerId,
-              },
-            },
-          },
-        };
+        where.customer_id = input.customerId;
       }
 
       if (input.dateFrom) {

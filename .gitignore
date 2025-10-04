@@ -5,6 +5,13 @@
 
 # Testing
 /coverage
+.vitest/
+test-results/
+playwright-report/
+tests/reports/
+*.coverage
+chromatic-build/
+.chromatic/
 
 # Next.js
 /.next/
@@ -26,6 +33,7 @@ yarn-error.log*
 .env
 .env.local
 .env.development.local
+.env.test
 .env.test.local
 .env.production.local
 

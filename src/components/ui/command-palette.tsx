@@ -311,13 +311,13 @@ export function CommandPalette() {
  className={cn(
  "w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors",
  isSelected
- ? "bg-blue-500/10 border-l-2 border-blue-500"
+ ? "bg-info/10 border-l-2 border-info"
  : "hover:card/50 border-l-2 border-transparent"
  )}
  >
  <div className={cn(
  "flex h-8 w-8 items-center justify-center rounded-md",
- isSelected ? "bg-blue-500/20" : "card"
+ isSelected ? "bg-info/20" : "card"
  )}>
  <Icon className="h-4 w-4 text-tertiary" aria-hidden="true" />
  </div>
@@ -340,7 +340,7 @@ export function CommandPalette() {
  </div>
 
  {isSelected && (
- <ArrowRight className="h-4 w-4 text-blue-400 flex-shrink-0" aria-hidden="true" />
+ <ArrowRight className="h-4 w-4 text-info flex-shrink-0" aria-hidden="true" />
  )}
  </button>
  );

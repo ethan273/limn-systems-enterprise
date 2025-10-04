@@ -210,7 +210,7 @@ export function FurnitureDimensionsForm({
  <div className="space-y-4">
  <div>
  <label className="text-sm font-medium mb-2 block">
- Furniture Type <span className="text-red-400">*</span>
+ Furniture Type <span className="text-destructive">*</span>
  </label>
  <Select value={furnitureType} onValueChange={handleFurnitureTypeChange} disabled={disabled}>
  <SelectTrigger>
@@ -263,7 +263,7 @@ export function FurnitureDimensionsForm({
  {/* Furniture Type Selector */}
  <div>
  <label className="text-sm font-medium mb-2 block">
- Furniture Type <span className="text-red-400">*</span>
+ Furniture Type <span className="text-destructive">*</span>
  </label>
  <Select value={furnitureType} onValueChange={handleFurnitureTypeChange} disabled={disabled}>
  <SelectTrigger>
@@ -284,9 +284,9 @@ export function FurnitureDimensionsForm({
 
  {/* Validation Status */}
  {validationResult.errors.length > 0 && (
- <div className="flex items-start gap-2 p-3 bg-red-900/20 border border-red-700 rounded-lg">
- <AlertTriangle className="h-4 w-4 text-red-400 mt-0.5 flex-shrink-0" />
- <div className="text-sm text-red-200">
+ <div className="flex items-start gap-2 p-3 bg-destructive/20 border border-destructive rounded-lg">
+ <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
+ <div className="text-sm text-destructive">
  <p className="font-medium mb-1">Validation Errors:</p>
  <ul className="list-disc list-inside space-y-1">
  {validationResult.errors.map((error, index) => (
@@ -298,9 +298,9 @@ export function FurnitureDimensionsForm({
  )}
 
  {validationResult.warnings.length > 0 && (
- <div className="flex items-start gap-2 p-3 bg-yellow-900/20 border border-yellow-700 rounded-lg">
- <AlertTriangle className="h-4 w-4 text-yellow-400 mt-0.5 flex-shrink-0" />
- <div className="text-sm text-yellow-200">
+ <div className="flex items-start gap-2 p-3 bg-warning/20 border border-warning rounded-lg">
+ <AlertTriangle className="h-4 w-4 text-warning mt-0.5 flex-shrink-0" />
+ <div className="text-sm text-warning">
  <p className="font-medium mb-1">Warnings:</p>
  <ul className="list-disc list-inside space-y-1">
  {validationResult.warnings.map((warning, index) => (
@@ -312,9 +312,9 @@ export function FurnitureDimensionsForm({
  )}
 
  {validationResult.valid && validationResult.errors.length === 0 && Object.keys(dimensions).length > 0 && (
- <div className="flex items-center gap-2 p-3 bg-green-900/20 border border-green-700 rounded-lg">
- <CheckCircle className="h-4 w-4 text-green-400" />
- <span className="text-sm text-green-200">All dimensions are valid</span>
+ <div className="flex items-center gap-2 p-3 bg-success/20 border border-success rounded-lg">
+ <CheckCircle className="h-4 w-4 text-success" />
+ <span className="text-sm text-success">All dimensions are valid</span>
  </div>
  )}
 
@@ -367,7 +367,7 @@ export function FurnitureDimensionsForm({
  type="button"
  onClick={handleSave}
  disabled={disabled || isSaving || !validationResult.valid}
- className="bg-blue-600 hover:bg-blue-700"
+ className="bg-info hover:bg-info"
  >
  {isSaving ? 'Saving...' : 'Save Dimensions'}
  </Button>

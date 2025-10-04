@@ -111,21 +111,21 @@ export default function TaskNotifications({ onNotificationClick }: TaskNotificat
  const getNotificationIcon = (type: NotificationType) => {
  switch (type) {
  case 'task_assigned':
- return <User className="h-4 w-4 text-blue-400" />;
+ return <User className="h-4 w-4 text-info" />;
  case 'task_completed':
- return <CheckCircle2 className="h-4 w-4 text-green-400" />;
+ return <CheckCircle2 className="h-4 w-4 text-success" />;
  case 'task_commented':
- return <MessageSquare className="h-4 w-4 text-cyan-400" />;
+ return <MessageSquare className="h-4 w-4 text-info" />;
  case 'task_due_soon':
- return <Clock className="h-4 w-4 text-yellow-400" />;
+ return <Clock className="h-4 w-4 text-warning" />;
  case 'task_overdue':
- return <AlertTriangle className="h-4 w-4 text-red-400" />;
+ return <AlertTriangle className="h-4 w-4 text-destructive" />;
  case 'task_status_changed':
- return <FileText className="h-4 w-4 text-purple-400" />;
+ return <FileText className="h-4 w-4 text-primary" />;
  case 'task_mentioned':
- return <Users className="h-4 w-4 text-pink-400" />;
+ return <Users className="h-4 w-4 text-muted" />;
  case 'task_priority_changed':
- return <Star className="h-4 w-4 text-orange-400" />;
+ return <Star className="h-4 w-4 text-warning" />;
  default:
  return <Bell className="h-4 w-4 text-tertiary" />;
  }
@@ -134,21 +134,21 @@ export default function TaskNotifications({ onNotificationClick }: TaskNotificat
  const getNotificationColor = (type: NotificationType) => {
  switch (type) {
  case 'task_assigned':
- return 'border-blue-500/30 bg-blue-500/5';
+ return 'border-info/30 bg-info/5';
  case 'task_completed':
- return 'border-green-500/30 bg-green-500/5';
+ return 'border-success/30 bg-success/5';
  case 'task_commented':
- return 'border-cyan-500/30 bg-cyan-500/5';
+ return 'border-info/30 bg-info/5';
  case 'task_due_soon':
- return 'border-yellow-500/30 bg-yellow-500/5';
+ return 'border-warning/30 bg-warning/5';
  case 'task_overdue':
- return 'border-red-500/30 bg-red-500/5';
+ return 'border-destructive/30 bg-destructive/5';
  case 'task_status_changed':
- return 'border-purple-500/30 bg-purple-500/5';
+ return 'border-primary/30 bg-primary/5';
  case 'task_mentioned':
- return 'border-pink-500/30 bg-pink-500/5';
+ return 'border-muted/30 bg-muted/5';
  case 'task_priority_changed':
- return 'border-orange-500/30 bg-orange-500/5';
+ return 'border-warning/30 bg-warning/5';
  default:
  return 'border/30 card';
  }
@@ -303,7 +303,7 @@ export default function TaskNotifications({ onNotificationClick }: TaskNotificat
  <DropdownMenuItem
  onClick={clearAllNotifications}
  disabled={notifications.length === 0}
- className="text-red-400"
+ className="text-destructive"
  >
  <Trash2 className="h-4 w-4 mr-2" />
  Clear all
@@ -360,7 +360,7 @@ export default function TaskNotifications({ onNotificationClick }: TaskNotificat
  {formatDistanceToNow(notification.createdAt, { addSuffix: true })}
  </span>
  {notification.isImportant && (
- <Badge variant="outline" className="text-xs text-yellow-400 border-yellow-400/30">
+ <Badge variant="outline" className="text-xs text-warning border-warning/30">
  Important
  </Badge>
  )}
@@ -369,7 +369,7 @@ export default function TaskNotifications({ onNotificationClick }: TaskNotificat
 
  <div className="flex items-center gap-1">
  {!notification.isRead && (
- <div className="w-2 h-2 bg-blue-500 rounded-full" />
+ <div className="w-2 h-2 bg-info rounded-full" />
  )}
 
  <DropdownMenu>
@@ -414,7 +414,7 @@ export default function TaskNotifications({ onNotificationClick }: TaskNotificat
  e.stopPropagation();
  deleteNotification(notification.id);
  }}
- className="text-red-400"
+ className="text-destructive"
  >
  <Trash2 className="h-4 w-4 mr-2" />
  Delete

@@ -163,7 +163,7 @@ export function ImageUpload({
  "w-full aspect-video rounded-lg border-2 border-dashed",
  "transition-colors cursor-pointer",
  isDragging
- ? "border-blue-500 bg-blue-500/10"
+ ? "border-info bg-info/10"
  : "border card/50 hover:card",
  (disabled || isUploading) && "opacity-50 cursor-not-allowed"
  )}
@@ -180,7 +180,7 @@ export function ImageUpload({
  ) : (
  <div className="flex flex-col items-center gap-2 p-6 text-center">
  {isDragging ? (
- <Upload className="h-8 w-8 text-blue-500" />
+ <Upload className="h-8 w-8 text-info" />
  ) : (
  <ImageIcon className="h-8 w-8 text-tertiary" />
  )}
@@ -198,7 +198,7 @@ export function ImageUpload({
  )}
 
  {error && (
- <p className="text-sm text-red-500">{error}</p>
+ <p className="text-sm text-destructive">{error}</p>
  )}
  </div>
  );

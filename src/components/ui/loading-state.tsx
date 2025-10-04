@@ -19,7 +19,7 @@ export function PageLoading() {
  return (
  <div className="flex items-center justify-center min-h-[400px]">
  <div className="flex flex-col items-center gap-3">
- <Loader2 className="h-8 w-8 animate-spin text-blue-500" aria-hidden="true" />
+ <Loader2 className="h-8 w-8 animate-spin text-info" aria-hidden="true" />
  <p className="text-sm text-tertiary">Loading...</p>
  </div>
  </div>

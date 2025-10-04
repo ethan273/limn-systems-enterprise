@@ -116,21 +116,21 @@ export default function TaskEntityLinks({ taskId, onUpdate }: TaskEntityLinksPro
  const getEntityIcon = (entityType: EntityType) => {
  switch (entityType) {
  case 'client':
- return <User className="h-4 w-4 text-blue-400" />;
+ return <User className="h-4 w-4 text-info" />;
  case 'project':
- return <FolderOpen className="h-4 w-4 text-green-400" />;
+ return <FolderOpen className="h-4 w-4 text-success" />;
  case 'order':
- return <ShoppingCart className="h-4 w-4 text-purple-400" />;
+ return <ShoppingCart className="h-4 w-4 text-primary" />;
  case 'collection':
- return <Package className="h-4 w-4 text-yellow-400" />;
+ return <Package className="h-4 w-4 text-warning" />;
  case 'item':
- return <Package className="h-4 w-4 text-cyan-400" />;
+ return <Package className="h-4 w-4 text-info" />;
  case 'designer':
- return <Palette className="h-4 w-4 text-pink-400" />;
+ return <Palette className="h-4 w-4 text-muted" />;
  case 'manufacturer':
- return <Factory className="h-4 w-4 text-orange-400" />;
+ return <Factory className="h-4 w-4 text-warning" />;
  case 'partner':
- return <Users className="h-4 w-4 text-indigo-400" />;
+ return <Users className="h-4 w-4 text-primary" />;
  default:
  return <Link className="h-4 w-4 text-tertiary" />;
  }
@@ -139,21 +139,21 @@ export default function TaskEntityLinks({ taskId, onUpdate }: TaskEntityLinksPro
  const getEntityColor = (entityType: EntityType) => {
  switch (entityType) {
  case 'client':
- return 'border-blue-400/30 bg-blue-400/10 text-blue-400';
+ return 'border-info/30 bg-info/10 text-info';
  case 'project':
- return 'border-green-400/30 bg-green-400/10 text-green-400';
+ return 'border-success/30 bg-success/10 text-success';
  case 'order':
- return 'border-purple-400/30 bg-purple-400/10 text-purple-400';
+ return 'border-primary/30 bg-primary/10 text-primary';
  case 'collection':
- return 'border-yellow-400/30 bg-yellow-400/10 text-yellow-400';
+ return 'border-warning/30 bg-warning/10 text-warning';
  case 'item':
- return 'border-cyan-400/30 bg-cyan-400/10 text-cyan-400';
+ return 'border-info/30 bg-info/10 text-info';
  case 'designer':
- return 'border-pink-400/30 bg-pink-400/10 text-pink-400';
+ return 'border-muted/30 bg-muted/10 text-muted';
  case 'manufacturer':
- return 'border-orange-400/30 bg-orange-400/10 text-orange-400';
+ return 'border-warning/30 bg-warning/10 text-warning';
  case 'partner':
- return 'border-indigo-400/30 bg-indigo-400/10 text-indigo-400';
+ return 'border-primary/30 bg-primary/10 text-primary';
  default:
  return 'border/30 card text-tertiary';
  }
@@ -164,9 +164,9 @@ export default function TaskEntityLinks({ taskId, onUpdate }: TaskEntityLinksPro
  case 'related':
  return 'card text-tertiary border/20';
  case 'blocks':
- return 'bg-red-500/20 text-red-400 border-red-500/20';
+ return 'bg-destructive/20 text-destructive border-destructive/20';
  case 'depends_on':
- return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/20';
+ return 'bg-warning/20 text-warning border-warning/20';
  default:
  return 'card text-tertiary border/20';
  }
@@ -332,7 +332,7 @@ export default function TaskEntityLinks({ taskId, onUpdate }: TaskEntityLinksPro
  View Details
  </DropdownMenuItem>
  <DropdownMenuItem
- className="text-red-400"
+ className="text-destructive"
  onClick={() => handleRemoveEntityLink(link.id)}
  disabled={removeEntityLinkMutation.isPending}
  >

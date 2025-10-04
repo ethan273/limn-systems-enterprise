@@ -281,7 +281,7 @@ export default function MyTasksPage() {
     }
 
     return (
-      <div className="table-container">
+      <div className="data-table-container">
         <Table>
           <TableHeader>
             <TableRow className="data-table-header-row">
@@ -318,7 +318,7 @@ export default function MyTasksPage() {
                       )}
                     </div>
                     {overdueFlag && (
-                      <AlertTriangle className="h-4 w-4 text-red-400 flex-shrink-0" aria-hidden="true" />
+                      <AlertTriangle className="h-4 w-4 text-destructive flex-shrink-0" aria-hidden="true" />
                     )}
                   </div>
                 </TableCell>
@@ -382,7 +382,7 @@ export default function MyTasksPage() {
                       <Calendar className="icon-xs" aria-hidden="true" />
                       <span className={cn(
                         "text-sm",
-                        overdueFlag ? "text-red-400" : ""
+                        overdueFlag ? "text-destructive" : ""
                       )}>
                         {formatDistanceToNow(task.due_date instanceof Date ? task.due_date : parseISO(task.due_date), { addSuffix: true })}
                       </span>
@@ -477,53 +477,47 @@ export default function MyTasksPage() {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="stat-card-content">
-            <div className="stat-card-header">
-              <CheckSquare className="stat-card-icon status-in-progress" aria-hidden="true" />
-              <div>
-                <h3 className="stat-card-title">Assigned Tasks</h3>
-                <p className="stat-card-description">Active tasks assigned to you</p>
+        <Card className="card">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-info-muted/20 rounded-lg">
+                <CheckSquare className="h-5 w-5 text-info" aria-hidden="true" />
               </div>
-            </div>
-            <div className="stat-card-stats">
-              <div className="stat-card-stat">
-                <span className="text-2xl font-bold">{assignedTodo}</span>
-                <span className="text-sm">tasks</span>
+              <div>
+                <p className="text-sm page-subtitle">Assigned Tasks</p>
+                <p className="text-xl font-bold text-primary">
+                  {assignedTodo}<span className="text-sm font-normal text-secondary ml-1">tasks</span>
+                </p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="stat-card-content">
-            <div className="stat-card-header">
-              <Eye className="stat-card-icon status-completed" aria-hidden="true" />
-              <div>
-                <h3 className="stat-card-title">Watching</h3>
-                <p className="stat-card-description">Tasks you&apos;re following</p>
+        <Card className="card">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-success-muted/20 rounded-lg">
+                <Eye className="h-5 w-5 text-success" aria-hidden="true" />
               </div>
-            </div>
-            <div className="stat-card-stats">
-              <div className="stat-card-stat">
-                <span className="text-2xl font-bold">{watchingActive}</span>
-                <span className="text-sm">tasks</span>
+              <div>
+                <p className="text-sm page-subtitle">Watching</p>
+                <p className="text-xl font-bold text-primary">
+                  {watchingActive}<span className="text-sm font-normal text-secondary ml-1">tasks</span>
+                </p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="stat-card-content">
-            <div className="stat-card-header">
-              <AlertCircle className="stat-card-icon priority-medium" aria-hidden="true" />
-              <div>
-                <h3 className="stat-card-title">Created</h3>
-                <p className="stat-card-description">Tasks you&apos;ve created</p>
+        <Card className="card">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary-muted/20 rounded-lg">
+                <AlertCircle className="h-5 w-5 text-primary" aria-hidden="true" />
               </div>
-            </div>
-            <div className="stat-card-stats">
-              <div className="stat-card-stat">
-                <span className="text-2xl font-bold">{createdActive}</span>
-                <span className="text-sm">tasks</span>
+              <div>
+                <p className="text-sm page-subtitle">Created</p>
+                <p className="text-xl font-bold text-primary">
+                  {createdActive}<span className="text-sm font-normal text-secondary ml-1">tasks</span>
+                </p>
               </div>
             </div>
           </CardContent>
@@ -589,9 +583,7 @@ export default function MyTasksPage() {
       </Card>
 
       {/* Tasks Tabs */}
-      <Card>
-        <CardContent className="pt-6">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="assigned" className="flex items-center gap-2">
                 <CheckSquare className="h-4 w-4" />
@@ -618,38 +610,36 @@ export default function MyTasksPage() {
             <TabsContent value="created" className="mt-6">
               {renderTasksTable()}
             </TabsContent>
-          </Tabs>
 
-          {/* Pagination */}
-          {tasksData && tasksData.total > limit && (
-            <div className="pagination mt-6">
-              <div className="pagination-info">
-                Showing {page * limit + 1} to {Math.min((page + 1) * limit, tasksData.total)} of {tasksData.total} tasks
+            {/* Pagination */}
+            {tasksData && tasksData.total > limit && (
+              <div className="pagination mt-6">
+                <div className="pagination-info">
+                  Showing {page * limit + 1} to {Math.min((page + 1) * limit, tasksData.total)} of {tasksData.total} tasks
+                </div>
+                <div className="pagination-buttons">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage(Math.max(0, page - 1))}
+                    disabled={page === 0}
+                    className="btn-secondary"
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage(page + 1)}
+                    disabled={!tasksData.hasMore}
+                    className="btn-secondary"
+                  >
+                    Next
+                  </Button>
+                </div>
               </div>
-              <div className="pagination-buttons">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage(Math.max(0, page - 1))}
-                  disabled={page === 0}
-                  className="btn-secondary"
-                >
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage(page + 1)}
-                  disabled={!tasksData.hasMore}
-                  className="btn-secondary"
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            )}
+          </Tabs>
     </div>
   );
 }

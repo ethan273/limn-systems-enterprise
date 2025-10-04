@@ -46,27 +46,27 @@ const annotationTypeConfig: Record<CommentType, {
 }> = {
  general: {
  icon: MessageCircle,
- color: "text-blue-600",
- bgColor: "bg-blue-500",
- borderColor: "border-blue-600"
+ color: "text-info",
+ bgColor: "bg-info",
+ borderColor: "border-info"
  },
  question: {
  icon: HelpCircle,
- color: "text-purple-600",
- bgColor: "bg-purple-500",
- borderColor: "border-purple-600"
+ color: "text-primary",
+ bgColor: "bg-primary",
+ borderColor: "border-primary"
  },
  issue: {
  icon: AlertCircle,
- color: "text-red-600",
- bgColor: "bg-red-500",
- borderColor: "border-red-600"
+ color: "text-destructive",
+ bgColor: "bg-destructive",
+ borderColor: "border-destructive"
  },
  approval: {
  icon: ThumbsUp,
- color: "text-green-600",
- bgColor: "bg-green-500",
- borderColor: "border-green-600"
+ color: "text-success",
+ bgColor: "bg-success",
+ borderColor: "border-success"
  }
 }
 
@@ -244,7 +244,7 @@ export function PDFAnnotation({
  ref={containerRef}
  className={cn(
  "absolute inset-0 w-full h-full",
- isAddingAnnotation && "cursor-crosshair bg-blue-500/5"
+ isAddingAnnotation && "cursor-crosshair bg-info/5"
  )}
  onClick={handleContainerClick}
  role="region"
@@ -268,7 +268,7 @@ export function PDFAnnotation({
  {/* Temporary annotation position */}
  {tempAnnotationPos && (
  <div
- className="absolute w-8 h-8 rounded-full bg-blue-500/50 border-2 border-blue-600 transform -translate-x-1/2 -translate-y-1/2 animate-pulse"
+ className="absolute w-8 h-8 rounded-full bg-info/50 border-2 border-info transform -translate-x-1/2 -translate-y-1/2 animate-pulse"
  style={{
  left: `${tempAnnotationPos.x}%`,
  top: `${tempAnnotationPos.y}%`

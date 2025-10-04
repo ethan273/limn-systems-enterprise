@@ -39,42 +39,42 @@ export const dynamic = 'force-dynamic';
 const statusConfig: Record<string, { label: string; className: string; icon: React.ReactNode }> = {
  awaiting_deposit: {
  label: "Awaiting Deposit",
- className: "bg-yellow-100 text-yellow-800 border-yellow-300",
+ className: "bg-warning-muted text-warning border-warning",
  icon: <Clock className="w-3 h-3" aria-hidden="true" />,
  },
  deposit_paid: {
  label: "Deposit Paid",
- className: "bg-blue-100 text-blue-800 border-blue-300",
+ className: "btn-primary text-info border-primary",
  icon: <DollarSign className="w-3 h-3" aria-hidden="true" />,
  },
  in_progress: {
  label: "In Production",
- className: "bg-blue-100 text-blue-800 border-blue-300",
+ className: "btn-primary text-info border-primary",
  icon: <Package className="w-3 h-3" aria-hidden="true" />,
  },
  completed: {
  label: "Completed",
- className: "bg-green-100 text-green-800 border-green-300",
+ className: "bg-success-muted text-success border-success",
  icon: <CheckCircle2 className="w-3 h-3" aria-hidden="true" />,
  },
  awaiting_final_payment: {
  label: "Awaiting Final Payment",
- className: "bg-yellow-100 text-yellow-800 border-yellow-300",
+ className: "bg-warning-muted text-warning border-warning",
  icon: <Clock className="w-3 h-3" aria-hidden="true" />,
  },
  final_paid: {
  label: "Final Payment Received",
- className: "bg-green-100 text-green-800 border-green-300",
+ className: "bg-success-muted text-success border-success",
  icon: <DollarSign className="w-3 h-3" aria-hidden="true" />,
  },
  shipped: {
  label: "Shipped",
- className: "bg-purple-100 text-purple-800 border-purple-300",
+ className: "btn-secondary text-secondary border-secondary",
  icon: <Truck className="w-3 h-3" aria-hidden="true" />,
  },
  delivered: {
  label: "Delivered",
- className: "bg-green-100 text-green-800 border-green-300",
+ className: "bg-success-muted text-success border-success",
  icon: <CheckCircle2 className="w-3 h-3" aria-hidden="true" />,
  },
 };
@@ -141,7 +141,7 @@ export default function CustomerOrdersPage() {
  <Clock className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-yellow-600">{stats.awaitingDeposit}</div>
+ <div className="text-2xl font-bold text-warning">{stats.awaitingDeposit}</div>
  </CardContent>
  </Card>
 
@@ -151,7 +151,7 @@ export default function CustomerOrdersPage() {
  <Package className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-blue-600">{stats.inProduction}</div>
+ <div className="text-2xl font-bold text-info">{stats.inProduction}</div>
  </CardContent>
  </Card>
 
@@ -161,7 +161,7 @@ export default function CustomerOrdersPage() {
  <Truck className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-purple-600">{stats.shipped}</div>
+ <div className="text-2xl font-bold text-secondary">{stats.shipped}</div>
  </CardContent>
  </Card>
 
@@ -171,7 +171,7 @@ export default function CustomerOrdersPage() {
  <CheckCircle2 className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-green-600">{stats.delivered}</div>
+ <div className="text-2xl font-bold text-success">{stats.delivered}</div>
  </CardContent>
  </Card>
  </div>
@@ -292,8 +292,8 @@ export default function CustomerOrdersPage() {
  className={cn(
  "text-xs",
  depositInvoice.status === "paid"
- ? "bg-green-100 text-green-800 border-green-300"
- : "bg-yellow-100 text-yellow-800 border-yellow-300"
+ ? "bg-success-muted text-success border-success"
+ : "bg-warning-muted text-warning border-warning"
  )}
  >
  Deposit: {depositInvoice.status === "paid" ? "Paid" : "Pending"}
@@ -305,8 +305,8 @@ export default function CustomerOrdersPage() {
  className={cn(
  "text-xs",
  finalInvoice.status === "paid"
- ? "bg-green-100 text-green-800 border-green-300"
- : "bg-yellow-100 text-yellow-800 border-yellow-300"
+ ? "bg-success-muted text-success border-success"
+ : "bg-warning-muted text-warning border-warning"
  )}
  >
  Final: {finalInvoice.status === "paid" ? "Paid" : "Pending"}

@@ -1,0 +1,2 @@
+psql:/Users/eko3/limn-systems-enterprise/scripts/check-table-counts.sql:14: ERROR:  relation "public._documentstoproduction_orders" does not exist
+CONTEXT:  SQL statement "SELECT COUNT(*) AS cnt FROM public.rls_policy_dashboard"

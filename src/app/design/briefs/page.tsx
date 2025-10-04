@@ -205,7 +205,7 @@ export default function DesignBriefsPage() {
  filteredBriefs.map((brief: any) => (
  <TableRow key={brief.id}>
  <TableCell>
- <Link href={`/design/briefs/${brief.id}`} className="font-medium text-blue-600 hover:underline">
+ <Link href={`/design/briefs/${brief.id}`} className="font-medium text-info hover:underline">
  {brief.title}
  </Link>
  {brief.description && (

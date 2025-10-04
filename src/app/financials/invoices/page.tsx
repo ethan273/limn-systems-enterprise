@@ -34,7 +34,7 @@ export const dynamic = 'force-dynamic';
 
 const statusConfig: Record<string, { label: string; className: string }> = {
   pending: { label: "Pending", className: "badge-neutral" },
-  partial: { label: "Partial", className: "bg-yellow-100 text-yellow-800 border-yellow-300" },
+  partial: { label: "Partial", className: "bg-warning-muted text-warning border-warning" },
   paid: { label: "Paid", className: "status-completed" },
   overdue: { label: "Overdue", className: "status-cancelled" },
 };
@@ -102,7 +102,7 @@ export default function InvoicesPage() {
             <CardTitle className="card-title-sm">Total Paid</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value text-green-600">${stats.totalPaid.toLocaleString()}</div>
+            <div className="stat-value text-success">${stats.totalPaid.toLocaleString()}</div>
             <p className="stat-label">{stats.countPaid} paid</p>
           </CardContent>
         </Card>
@@ -112,7 +112,7 @@ export default function InvoicesPage() {
             <CardTitle className="card-title-sm">Outstanding</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value text-yellow-600">${stats.totalOutstanding.toLocaleString()}</div>
+            <div className="stat-value text-warning">${stats.totalOutstanding.toLocaleString()}</div>
             <p className="stat-label">{stats.countPending + stats.countPartial} pending</p>
           </CardContent>
         </Card>
@@ -122,7 +122,7 @@ export default function InvoicesPage() {
             <CardTitle className="card-title-sm">Collection Rate</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value text-blue-600">
+            <div className="stat-value text-info">
               {stats.totalInvoiced > 0
                 ? Math.round((stats.totalPaid / stats.totalInvoiced) * 100)
                 : 0}%
@@ -164,12 +164,7 @@ export default function InvoicesPage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Invoices ({invoices.length})</CardTitle>
-        </CardHeader>
-        <CardContent className="card-content-compact">
-          {isLoading ? (
+      {isLoading ? (
             <div className="loading-state">Loading invoices...</div>
           ) : invoices.length === 0 ? (
             <div className="empty-state">
@@ -180,7 +175,7 @@ export default function InvoicesPage() {
               </p>
             </div>
           ) : (
-            <div className="table-container">
+        <div className="data-table-container">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -236,7 +231,7 @@ export default function InvoicesPage() {
                         <TableCell className="font-medium">
                           ${invoice.total?.toLocaleString() || "0.00"}
                         </TableCell>
-                        <TableCell className="text-green-600">
+                        <TableCell className="text-success">
                           ${invoice.totalPaid?.toLocaleString() || "0.00"}
                         </TableCell>
                         <TableCell className="font-medium">
@@ -254,8 +249,7 @@ export default function InvoicesPage() {
               </Table>
             </div>
           )}
-        </CardContent>
-      </Card>
+
     </div>
   );
 }

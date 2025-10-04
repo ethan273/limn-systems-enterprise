@@ -267,17 +267,17 @@ export default function ProductionOrderDetailPage() {
  variant="outline"
  size="sm"
  onClick={() => setDeleteDialogOpen(true)}
- className="text-red-600 hover:text-red-700 hover:bg-red-50"
+ className="text-destructive hover:text-destructive hover:bg-destructive-muted"
  >
  <Trash2 className="h-4 w-4 mr-2" />
  Delete
  </Button>
  <Badge variant="outline" className={
- order.status === "awaiting_deposit" ? "bg-yellow-100 text-yellow-800 border-yellow-300" :
- order.status === "in_progress" ? "bg-blue-100 text-blue-800 border-blue-300" :
- order.status === "completed" ? "bg-purple-100 text-purple-800 border-purple-300" :
- order.status === "awaiting_final_payment" ? "bg-orange-100 text-orange-800 border-orange-300" :
- order.status === "final_paid" ? "bg-green-100 text-green-800 border-green-300" : ""
+ order.status === "awaiting_deposit" ? "bg-warning-muted text-warning border-warning" :
+ order.status === "in_progress" ? "bg-info-muted text-info border-info" :
+ order.status === "completed" ? "bg-primary-muted text-primary border-primary" :
+ order.status === "awaiting_final_payment" ? "bg-warning-muted text-warning border-warning" :
+ order.status === "final_paid" ? "bg-success-muted text-success border-success" : ""
  }>
  {order.status.replace(/_/g, " ").toUpperCase()}
  </Badge>
@@ -287,27 +287,27 @@ export default function ProductionOrderDetailPage() {
 
  {/* Payment Status Alerts */}
  {!order.deposit_paid && depositInvoice && (
- <Alert className="mb-6 border-yellow-500 bg-yellow-50">
- <AlertCircle className="h-4 w-4 text-yellow-600" />
- <AlertDescription className="text-yellow-800">
+ <Alert className="mb-6 border-warning bg-warning-muted">
+ <AlertCircle className="h-4 w-4 text-warning" />
+ <AlertDescription className="text-warning">
  <strong>Production Blocked:</strong> Awaiting 50% deposit payment of ${Number(depositInvoice.amount_due).toFixed(2)}
  </AlertDescription>
  </Alert>
  )}
 
  {order.deposit_paid && !order.final_payment_paid && order.status === "awaiting_final_payment" && finalInvoice && (
- <Alert className="mb-6 border-orange-500 bg-orange-50">
- <AlertCircle className="h-4 w-4 text-orange-600" />
- <AlertDescription className="text-orange-800">
+ <Alert className="mb-6 border-warning bg-warning-muted">
+ <AlertCircle className="h-4 w-4 text-warning" />
+ <AlertDescription className="text-warning">
  <strong>Shipping Blocked:</strong> Awaiting final payment of ${Number(finalInvoice.amount_due).toFixed(2)}
  </AlertDescription>
  </Alert>
  )}
 
  {order.final_payment_paid && (
- <Alert className="mb-6 border-green-500 bg-green-50">
- <CheckCircle className="h-4 w-4 text-green-600" />
- <AlertDescription className="text-green-800">
+ <Alert className="mb-6 border-success bg-success-muted">
+ <CheckCircle className="h-4 w-4 text-success" />
+ <AlertDescription className="text-success">
  <strong>Fully Paid:</strong> Order is ready for shipment
  </AlertDescription>
  </Alert>
@@ -417,7 +417,7 @@ export default function ProductionOrderDetailPage() {
  <div className="flex items-center justify-between">
  <CardTitle>Deposit Invoice (50%)</CardTitle>
  <Badge variant={depositInvoice.status === "paid" ? "default" : "outline"} className={
- depositInvoice.status === "paid" ? "bg-green-500" : "bg-yellow-100 text-yellow-800 border-yellow-300"
+ depositInvoice.status === "paid" ? "bg-success-muted" : "bg-warning-muted text-warning border-warning"
  }>
  {depositInvoice.status.replace(/_/g, " ").toUpperCase()}
  </Badge>
@@ -439,7 +439,7 @@ export default function ProductionOrderDetailPage() {
  </div>
  <div>
  <p className="text-sm font-medium text-muted-foreground">Amount Due</p>
- <p className="text-lg font-bold text-red-600">${Number(depositInvoice.amount_due).toFixed(2)}</p>
+ <p className="text-lg font-bold text-destructive">${Number(depositInvoice.amount_due).toFixed(2)}</p>
  </div>
  </div>
 
@@ -491,7 +491,7 @@ export default function ProductionOrderDetailPage() {
  <div className="flex items-center justify-between">
  <CardTitle>Final Invoice (50% + Shipping)</CardTitle>
  <Badge variant={finalInvoice.status === "paid" ? "default" : "outline"} className={
- finalInvoice.status === "paid" ? "bg-green-500" : "bg-orange-100 text-orange-800 border-orange-300"
+ finalInvoice.status === "paid" ? "bg-success-muted" : "bg-warning-muted text-warning border-warning"
  }>
  {finalInvoice.status.replace(/_/g, " ").toUpperCase()}
  </Badge>
@@ -521,7 +521,7 @@ export default function ProductionOrderDetailPage() {
  </div>
  <div>
  <p className="text-sm font-medium text-muted-foreground">Amount Due</p>
- <p className="text-lg font-bold text-red-600">${Number(finalInvoice.amount_due).toFixed(2)}</p>
+ <p className="text-lg font-bold text-destructive">${Number(finalInvoice.amount_due).toFixed(2)}</p>
  </div>
  </div>
 
@@ -614,7 +614,7 @@ export default function ProductionOrderDetailPage() {
  <TableCell>
  {item.qc_status ? (
  <Badge variant={item.qc_status === "pass" ? "default" : "destructive"} className={
- item.qc_status === "pass" ? "bg-green-500" : ""
+ item.qc_status === "pass" ? "bg-success-muted" : ""
  }>
  {item.qc_status.toUpperCase()}
  </Badge>
@@ -686,9 +686,9 @@ export default function ProductionOrderDetailPage() {
  </TableCell>
  <TableCell>
  <Badge variant="outline" className={
- job.packing_status === "shipped" ? "bg-purple-100 text-purple-800 border-purple-300" :
- job.packing_status === "packed" ? "bg-green-100 text-green-800 border-green-300" :
- job.packing_status === "in_progress" ? "bg-blue-100 text-blue-800 border-blue-300" :
+ job.packing_status === "shipped" ? "bg-primary-muted text-primary border-primary" :
+ job.packing_status === "packed" ? "bg-success-muted text-success border-success" :
+ job.packing_status === "in_progress" ? "bg-info-muted text-info border-info" :
  "badge-neutral"
  }>
  {job.packing_status.replace(/_/g, " ").toUpperCase()}
@@ -737,7 +737,7 @@ export default function ProductionOrderDetailPage() {
  {quotes.map((quote, idx) => (
  <TableRow
  key={idx}
- className={selectedQuote === quote ? "bg-blue-50" : ""}
+ className={selectedQuote === quote ? "bg-info-muted" : ""}
  >
  <TableCell>
  <input
@@ -759,7 +759,7 @@ export default function ProductionOrderDetailPage() {
  <TableCell className="font-mono">${quote.total_charge.toFixed(2)}</TableCell>
  <TableCell>
  {selectedQuote === quote && (
- <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
+ <Badge variant="outline" className="bg-info-muted text-info border-info">
  Selected
  </Badge>
  )}
@@ -829,8 +829,8 @@ export default function ProductionOrderDetailPage() {
  <TableCell>{shipment.service_level || "—"}</TableCell>
  <TableCell>
  <Badge variant="outline" className={
- shipment.status === "delivered" ? "bg-green-100 text-green-800 border-green-300" :
- shipment.status === "in_transit" ? "bg-blue-100 text-blue-800 border-blue-300" :
+ shipment.status === "delivered" ? "bg-success-muted text-success border-success" :
+ shipment.status === "in_transit" ? "bg-info-muted text-info border-info" :
  "badge-neutral"
  }>
  {shipment.status}

@@ -201,7 +201,7 @@ export default function DesignerPortalPage() {
  <div className="grid gap-4 md:grid-cols-3">
  <div>
  <p className="text-sm text-muted-foreground">On-Time Delivery</p>
- <p className="text-2xl font-bold text-green-600">
+ <p className="text-2xl font-bold text-success">
  {performance.summary.onTimePercentage}%
  </p>
  <p className="text-xs text-muted-foreground">
@@ -210,7 +210,7 @@ export default function DesignerPortalPage() {
  </div>
  <div>
  <p className="text-sm text-muted-foreground">Quality Rate</p>
- <p className="text-2xl font-bold text-blue-600">
+ <p className="text-2xl font-bold text-info">
  {100 - performance.summary.defectPercentage}%
  </p>
  <p className="text-xs text-muted-foreground">
@@ -291,13 +291,13 @@ export default function DesignerPortalPage() {
  </div>
  )}
  {project.status === 'awaiting_deposit' && (
- <div className="flex items-center gap-1 text-yellow-600">
+ <div className="flex items-center gap-1 text-warning">
  <AlertCircle className="h-4 w-4" />
  <span>Waiting for customer deposit</span>
  </div>
  )}
  {project.status === 'awaiting_final_payment' && (
- <div className="flex items-center gap-1 text-yellow-600">
+ <div className="flex items-center gap-1 text-warning">
  <AlertCircle className="h-4 w-4" />
  <span>Waiting for final payment before shipping</span>
  </div>

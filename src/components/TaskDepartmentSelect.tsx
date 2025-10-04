@@ -56,10 +56,10 @@ export default function TaskDepartmentSelect({ taskId, currentDepartment, onUpda
             variant="outline"
             className={cn(
               "border text-xs font-medium px-2 py-0.5 h-6",
-              currentDepartment === 'admin' && "bg-purple-500/20 text-purple-400 border-purple-500/20",
-              currentDepartment === 'production' && "bg-orange-500/20 text-orange-400 border-orange-500/20",
-              currentDepartment === 'design' && "bg-pink-500/20 text-pink-400 border-pink-500/20",
-              currentDepartment === 'sales' && "bg-green-500/20 text-green-400 border-green-500/20",
+              currentDepartment === 'admin' && "bg-primary/20 text-primary border-primary/20",
+              currentDepartment === 'production' && "bg-warning/20 text-warning border-warning/20",
+              currentDepartment === 'design' && "bg-muted/20 text-muted border-muted/20",
+              currentDepartment === 'sales' && "bg-success/20 text-success border-success/20",
               isUpdating && "opacity-50"
             )}
           >
@@ -69,22 +69,22 @@ export default function TaskDepartmentSelect({ taskId, currentDepartment, onUpda
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="admin">
-          <Badge variant="outline" className="bg-purple-500/20 text-purple-400 border-purple-500/20 text-xs">
+          <Badge variant="outline" className="bg-primary/20 text-primary border-primary/20 text-xs">
             Admin
           </Badge>
         </SelectItem>
         <SelectItem value="production">
-          <Badge variant="outline" className="bg-orange-500/20 text-orange-400 border-orange-500/20 text-xs">
+          <Badge variant="outline" className="bg-warning/20 text-warning border-warning/20 text-xs">
             Production
           </Badge>
         </SelectItem>
         <SelectItem value="design">
-          <Badge variant="outline" className="bg-pink-500/20 text-pink-400 border-pink-500/20 text-xs">
+          <Badge variant="outline" className="bg-muted/20 text-muted border-muted/20 text-xs">
             Design
           </Badge>
         </SelectItem>
         <SelectItem value="sales">
-          <Badge variant="outline" className="bg-green-500/20 text-green-400 border-green-500/20 text-xs">
+          <Badge variant="outline" className="bg-success/20 text-success border-success/20 text-xs">
             Sales
           </Badge>
         </SelectItem>

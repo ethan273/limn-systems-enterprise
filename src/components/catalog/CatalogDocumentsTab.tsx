@@ -196,96 +196,94 @@ export default function CatalogDocumentsTab({ itemId: _itemId }: CatalogDocument
       </div>
 
       {/* Documents Table */}
-      <Card className="documents-table-card">
-        <CardHeader>
-          <CardTitle>Document Library</CardTitle>
-          <CardDescription>
+      <div className="data-table-container">
+        <div className="data-table-header">
+          <h3 className="data-table-title">Document Library</h3>
+          <p className="data-table-description">
             {filteredDocuments?.length || 0} document(s) found
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {filteredDocuments && filteredDocuments.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>File Name</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Storage</TableHead>
-                  <TableHead>Size</TableHead>
-                  <TableHead>Uploaded</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+          </p>
+        </div>
+        {filteredDocuments && filteredDocuments.length > 0 ? (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>File Name</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Storage</TableHead>
+                <TableHead>Size</TableHead>
+                <TableHead>Uploaded</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredDocuments.map((doc: any) => (
+                <TableRow key={doc.id}>
+                  <TableCell className="flex items-center gap-2">
+                    {getDocumentIcon(doc.document_type)}
+                    <span className="font-medium">{doc.file_name}</span>
+                  </TableCell>
+                  <TableCell>
+                    {doc.document_type ? (
+                      <Badge variant="outline">{doc.document_type}</Badge>
+                    ) : (
+                      "-"
+                    )}
+                  </TableCell>
+                  <TableCell>{getStorageBadge(doc.storage_location)}</TableCell>
+                  <TableCell>
+                    {doc.file_size
+                      ? `${(doc.file_size / 1024 / 1024).toFixed(2)} MB`
+                      : "-"}
+                  </TableCell>
+                  <TableCell>
+                    {doc.created_at
+                      ? new Date(doc.created_at).toLocaleDateString()
+                      : "-"}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDownload(doc)}
+                      >
+                        <Download className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive"
+                        onClick={() => {
+                          setDocumentToDelete(doc);
+                          setDeleteDialogOpen(true);
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredDocuments.map((doc: any) => (
-                  <TableRow key={doc.id}>
-                    <TableCell className="flex items-center gap-2">
-                      {getDocumentIcon(doc.document_type)}
-                      <span className="font-medium">{doc.file_name}</span>
-                    </TableCell>
-                    <TableCell>
-                      {doc.document_type ? (
-                        <Badge variant="outline">{doc.document_type}</Badge>
-                      ) : (
-                        "-"
-                      )}
-                    </TableCell>
-                    <TableCell>{getStorageBadge(doc.storage_location)}</TableCell>
-                    <TableCell>
-                      {doc.file_size
-                        ? `${(doc.file_size / 1024 / 1024).toFixed(2)} MB`
-                        : "-"}
-                    </TableCell>
-                    <TableCell>
-                      {doc.created_at
-                        ? new Date(doc.created_at).toLocaleDateString()
-                        : "-"}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDownload(doc)}
-                        >
-                          <Download className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-destructive"
-                          onClick={() => {
-                            setDocumentToDelete(doc);
-                            setDeleteDialogOpen(true);
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <div className="empty-state">
-              <AlertCircle className="empty-state-icon" />
-              <p className="empty-state-text">No documents found</p>
-              <p className="empty-state-subtext">
-                {searchQuery || selectedType
-                  ? "Try adjusting your search or filter"
-                  : "Upload documents to get started"}
-              </p>
-              {!searchQuery && !selectedType && (
-                <Button className="mt-4" size="sm">
-                  <Upload className="w-4 h-4 mr-2" />
-                  Upload First Document
-                </Button>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              ))}
+            </TableBody>
+          </Table>
+        ) : (
+          <div className="empty-state">
+            <AlertCircle className="empty-state-icon" />
+            <p className="empty-state-text">No documents found</p>
+            <p className="empty-state-subtext">
+              {searchQuery || selectedType
+                ? "Try adjusting your search or filter"
+                : "Upload documents to get started"}
+            </p>
+            {!searchQuery && !selectedType && (
+              <Button className="mt-4" size="sm">
+                <Upload className="w-4 h-4 mr-2" />
+                Upload First Document
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

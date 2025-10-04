@@ -238,19 +238,19 @@ export default function TaskAttachments({ taskId, onUpdate }: TaskAttachmentsPro
  if (!mimeType) {
  const ext = fileName.split('.').pop()?.toLowerCase();
  if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext || '')) {
- return <ImageIcon className="h-4 w-4 text-blue-400" />;
+ return <ImageIcon className="h-4 w-4 text-info" />;
  }
  if (['pdf', 'doc', 'docx', 'txt'].includes(ext || '')) {
- return <FileText className="h-4 w-4 text-green-400" />;
+ return <FileText className="h-4 w-4 text-success" />;
  }
  return <File className="h-4 w-4 text-tertiary" />;
  }
 
  if (mimeType.startsWith('image/')) {
- return <ImageIcon className="h-4 w-4 text-blue-400" />;
+ return <ImageIcon className="h-4 w-4 text-info" />;
  }
  if (mimeType.includes('pdf') || mimeType.includes('document')) {
- return <FileText className="h-4 w-4 text-green-400" />;
+ return <FileText className="h-4 w-4 text-success" />;
  }
  return <File className="h-4 w-4 text-tertiary" />;
  };
@@ -300,7 +300,7 @@ export default function TaskAttachments({ taskId, onUpdate }: TaskAttachmentsPro
  <div
  className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
  dragActive
- ? 'border-blue-400 bg-blue-400/10'
+ ? 'border-info bg-info/10'
  : 'border hover:border'
  }`}
  onDragEnter={handleDrag}
@@ -354,7 +354,7 @@ export default function TaskAttachments({ taskId, onUpdate }: TaskAttachmentsPro
  <div className="flex items-center gap-2">
  <div className="w-16 card rounded-full h-1">
  <div
- className="bg-blue-400 h-1 rounded-full transition-all"
+ className="bg-info h-1 rounded-full transition-all"
  style={{ width: `${progress}%` }}
  />
  </div>
@@ -366,7 +366,7 @@ export default function TaskAttachments({ taskId, onUpdate }: TaskAttachmentsPro
  e.stopPropagation();
  removeSelectedFile(index);
  }}
- className="text-red-400 hover:text-red-300"
+ className="text-destructive hover:text-destructive"
  disabled={uploading}
  >
  <Trash2 className="h-3 w-3" />
@@ -451,7 +451,7 @@ export default function TaskAttachments({ taskId, onUpdate }: TaskAttachmentsPro
  Download
  </DropdownMenuItem>
  <DropdownMenuItem
- className="text-red-400"
+ className="text-destructive"
  onClick={() => handleDeleteAttachment(attachment.id)}
  disabled={deleteAttachmentMutation.isPending}
  >

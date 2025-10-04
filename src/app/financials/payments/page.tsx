@@ -36,7 +36,7 @@ const statusConfig: Record<string, { label: string; className: string }> = {
   completed: { label: "Completed", className: "status-completed" },
   pending: { label: "Pending", className: "badge-neutral" },
   failed: { label: "Failed", className: "status-cancelled" },
-  refunded: { label: "Refunded", className: "bg-purple-100 text-purple-800 border-purple-300" },
+  refunded: { label: "Refunded", className: "btn-secondary text-secondary border-secondary" },
 };
 
 export default function PaymentsPage() {
@@ -105,7 +105,7 @@ export default function PaymentsPage() {
             <CardTitle className="card-title-sm">Allocated</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value text-green-600">${stats.totalAllocated.toLocaleString()}</div>
+            <div className="stat-value text-success">${stats.totalAllocated.toLocaleString()}</div>
             <p className="stat-label">To invoices</p>
           </CardContent>
         </Card>
@@ -115,7 +115,7 @@ export default function PaymentsPage() {
             <CardTitle className="card-title-sm">Unallocated</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value text-yellow-600">${stats.totalUnallocated.toLocaleString()}</div>
+            <div className="stat-value text-warning">${stats.totalUnallocated.toLocaleString()}</div>
             <p className="stat-label">Available to allocate</p>
           </CardContent>
         </Card>
@@ -125,7 +125,7 @@ export default function PaymentsPage() {
             <CardTitle className="card-title-sm">Completed</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value text-blue-600">{stats.countCompleted}</div>
+            <div className="stat-value text-info">{stats.countCompleted}</div>
             <p className="stat-label">Successful payments</p>
           </CardContent>
         </Card>
@@ -177,24 +177,19 @@ export default function PaymentsPage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Payments ({payments.length})</CardTitle>
-        </CardHeader>
-        <CardContent className="card-content-compact">
-          {isLoading ? (
-            <div className="loading-state">Loading payments...</div>
-          ) : payments.length === 0 ? (
-            <div className="empty-state">
-              <DollarSign className="empty-state-icon" aria-hidden="true" />
-              <h3 className="empty-state-title">No Payments Found</h3>
-              <p className="empty-state-description">
-                No payments match your current filters.
-              </p>
-            </div>
-          ) : (
-            <div className="table-container">
-              <Table>
+      {isLoading ? (
+        <div className="loading-state">Loading payments...</div>
+      ) : payments.length === 0 ? (
+        <div className="empty-state">
+          <DollarSign className="empty-state-icon" aria-hidden="true" />
+          <h3 className="empty-state-title">No Payments Found</h3>
+          <p className="empty-state-description">
+            No payments match your current filters.
+          </p>
+        </div>
+      ) : (
+        <div className="data-table-container">
+          <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Payment #</TableHead>
@@ -251,10 +246,10 @@ export default function PaymentsPage() {
                         <TableCell className="font-medium">
                           ${Number(payment.amount || 0).toLocaleString()}
                         </TableCell>
-                        <TableCell className="text-green-600">
+                        <TableCell className="text-success">
                           ${payment.totalAllocated?.toLocaleString() || "0.00"}
                         </TableCell>
-                        <TableCell className="text-yellow-600 font-medium">
+                        <TableCell className="text-warning font-medium">
                           ${payment.unallocated?.toLocaleString() || "0.00"}
                         </TableCell>
                         <TableCell>
@@ -280,10 +275,8 @@ export default function PaymentsPage() {
                   })}
                 </TableBody>
               </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        </div>
+      )}
 
       {/* Payment Methods Breakdown */}
       {Object.keys(stats.byMethod).length > 0 && (

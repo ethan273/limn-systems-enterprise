@@ -155,7 +155,7 @@ export function PhotoGallery({ prototypeId, milestoneId }: PhotoGalleryProps) {
  />
  {/* Featured Badge */}
  {photo.is_featured && (
- <Badge className="absolute top-2 right-2 bg-yellow-500">
+ <Badge className="absolute top-2 right-2 bg-warning">
  <Star className="w-3 h-3 mr-1" aria-hidden="true" />
  Featured
  </Badge>
@@ -262,7 +262,7 @@ export function PhotoGallery({ prototypeId, milestoneId }: PhotoGalleryProps) {
  <div>
  <span className="text-muted-foreground">Featured:</span>{" "}
  {selectedPhoto.is_featured ? (
- <Badge className="ml-2 bg-yellow-500">Yes</Badge>
+ <Badge className="ml-2 bg-warning">Yes</Badge>
  ) : (
  <span className="ml-2">No</span>
  )}

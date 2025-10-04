@@ -137,11 +137,11 @@ export default function TaskBulkOperations({
  case 'todo':
  return { icon: AlertTriangle, color: 'text-tertiary', label: 'Todo' };
  case 'in_progress':
- return { icon: Clock, color: 'text-blue-400', label: 'In Progress' };
+ return { icon: Clock, color: 'text-info', label: 'In Progress' };
  case 'completed':
- return { icon: CheckCircle2, color: 'text-green-400', label: 'Completed' };
+ return { icon: CheckCircle2, color: 'text-success', label: 'Completed' };
  case 'cancelled':
- return { icon: X, color: 'text-red-400', label: 'Cancelled' };
+ return { icon: X, color: 'text-destructive', label: 'Cancelled' };
  }
  };
 
@@ -160,11 +160,11 @@ export default function TaskBulkOperations({
  }
 
  return (
- <div className="flex items-center justify-between p-4 bg-blue-900/20 rounded-lg border border-blue-500/30">
+ <div className="flex items-center justify-between p-4 bg-info/20 rounded-lg border border-info/30">
  <div className="flex items-center gap-3">
  <button
  onClick={handleSelectAll}
- className="flex items-center gap-2 text-sm text-blue-300 hover:text-blue-200"
+ className="flex items-center gap-2 text-sm text-info hover:text-info"
  >
  {isAllSelected ? (
  <CheckSquare className="h-4 w-4" />
@@ -173,7 +173,7 @@ export default function TaskBulkOperations({
  <Square className="h-4 w-4" />
  {isIndeterminate && (
  <div className="absolute inset-0 flex items-center justify-center">
- <div className="w-2 h-0.5 bg-blue-400" />
+ <div className="w-2 h-0.5 bg-info" />
  </div>
  )}
  </div>
@@ -181,7 +181,7 @@ export default function TaskBulkOperations({
  {selectedTasks.length} of {tasks.length} selected
  </button>
 
- <Badge variant="outline" className="bg-blue-500/20 text-blue-300 border-blue-500/30">
+ <Badge variant="outline" className="bg-info/20 text-info border-info/30">
  {selectedTasks.length} task{selectedTasks.length !== 1 ? 's' : ''}
  </Badge>
  </div>
@@ -224,7 +224,7 @@ export default function TaskBulkOperations({
  <Archive className="h-4 w-4 mr-2" />
  Archive Tasks
  </DropdownMenuItem>
- <DropdownMenuItem disabled className="text-red-400">
+ <DropdownMenuItem disabled className="text-destructive">
  <Trash2 className="h-4 w-4 mr-2" />
  Delete Tasks
  </DropdownMenuItem>

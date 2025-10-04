@@ -299,14 +299,14 @@ export default function TaskTimeTracking({ taskId, onUpdate }: TaskTimeTrackingP
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-3">
  <div className="flex items-center gap-2">
- <Clock className="h-5 w-5 text-blue-400" />
- <div className="font-mono text-lg font-bold text-blue-400">
+ <Clock className="h-5 w-5 text-info" />
+ <div className="font-mono text-lg font-bold text-info">
  {formatDuration(elapsedTime)}
  </div>
  </div>
  {isTrackingTime && (
  <div className="flex items-center gap-1">
- <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+ <div className="w-2 h-2 bg-destructive rounded-full animate-pulse" />
  <span className="text-xs text-tertiary">Recording</span>
  </div>
  )}
@@ -314,7 +314,7 @@ export default function TaskTimeTracking({ taskId, onUpdate }: TaskTimeTrackingP
 
  <div className="flex items-center gap-2">
  {!isTrackingTime && !currentStartTime && (
- <Button size="sm" onClick={startTimer} className="bg-green-600 hover:bg-green-700">
+ <Button size="sm" onClick={startTimer} className="bg-success hover:bg-success">
  <Play className="h-4 w-4 mr-1" />
  Start
  </Button>
@@ -328,14 +328,14 @@ export default function TaskTimeTracking({ taskId, onUpdate }: TaskTimeTrackingP
  )}
 
  {!isTrackingTime && currentStartTime && (
- <Button size="sm" onClick={startTimer} className="bg-green-600 hover:bg-green-700">
+ <Button size="sm" onClick={startTimer} className="bg-success hover:bg-success">
  <Play className="h-4 w-4 mr-1" />
  Resume
  </Button>
  )}
 
  {currentStartTime && (
- <Button size="sm" variant="outline" onClick={stopTimer} className="text-red-400 border-red-400 hover:bg-red-400/10">
+ <Button size="sm" variant="outline" onClick={stopTimer} className="text-destructive border-destructive hover:bg-destructive/10">
  <Square className="h-4 w-4 mr-1" />
  Stop
  </Button>
@@ -505,7 +505,7 @@ export default function TaskTimeTracking({ taskId, onUpdate }: TaskTimeTrackingP
  Edit Entry
  </DropdownMenuItem>
  <DropdownMenuItem
- className="text-red-400"
+ className="text-destructive"
  onClick={() => handleDeleteTimeEntry(entry.id)}
  >
  <Trash2 className="h-4 w-4 mr-2" />

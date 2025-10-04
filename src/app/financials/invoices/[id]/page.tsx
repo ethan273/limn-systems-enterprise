@@ -38,22 +38,22 @@ const statusConfig: Record<string, { label: string; className: string; icon: Rea
   },
   partial: {
     label: "Partial",
-    className: "bg-blue-100 text-blue-800 border-blue-300",
+    className: "btn-primary text-info border-primary",
     icon: <CreditCard className="w-4 h-4" aria-hidden="true" />,
   },
   paid: {
     label: "Paid",
-    className: "bg-green-100 text-green-800 border-green-300",
+    className: "bg-success-muted text-success border-success",
     icon: <CheckCircle2 className="w-4 h-4" aria-hidden="true" />,
   },
   overdue: {
     label: "Overdue",
-    className: "bg-red-100 text-red-800 border-red-300",
+    className: "bg-destructive-muted text-destructive border-destructive",
     icon: <AlertCircle className="w-4 h-4" aria-hidden="true" />,
   },
   cancelled: {
     label: "Cancelled",
-    className: "bg-gray-100 text-gray-800 border-gray-300",
+    className: "bg-muted text-muted border-muted",
     icon: <XCircle className="w-4 h-4" aria-hidden="true" />,
   },
 };
@@ -187,7 +187,7 @@ export default function InvoiceDetailPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Amount Paid</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-green-600">${Number(invoice.totalPaid || 0).toFixed(2)}</p>
+            <p className="text-2xl font-bold text-success">${Number(invoice.totalPaid || 0).toFixed(2)}</p>
           </CardContent>
         </Card>
 
@@ -196,7 +196,7 @@ export default function InvoiceDetailPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Balance Due</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-red-600">${Number(invoice.balance || 0).toFixed(2)}</p>
+            <p className="text-2xl font-bold text-destructive">${Number(invoice.balance || 0).toFixed(2)}</p>
           </CardContent>
         </Card>
       </div>
@@ -308,8 +308,8 @@ export default function InvoiceDetailPage() {
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-green-600">${Number(allocation.allocated_amount).toFixed(2)}</p>
-                        <Badge className="bg-green-100 text-green-800 border-green-300">
+                        <p className="font-bold text-success">${Number(allocation.allocated_amount).toFixed(2)}</p>
+                        <Badge className="bg-success-muted text-success border-success">
                           {allocation.payments?.status || "processed"}
                         </Badge>
                       </div>
@@ -351,7 +351,7 @@ export default function InvoiceDetailPage() {
                         </div>
                         <div>
                           <p className="text-sm text-muted-foreground">Allocated Amount</p>
-                          <p className="font-medium text-green-600">${Number(allocation.allocated_amount).toFixed(2)}</p>
+                          <p className="font-medium text-success">${Number(allocation.allocated_amount).toFixed(2)}</p>
                         </div>
                       </div>
                     </div>

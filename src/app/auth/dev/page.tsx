@@ -96,14 +96,14 @@ export default function DevLoginPage() {
  </div>
 
  {error && (
- <div className="mb-6 p-4 bg-red-900/20 border border-red-600 rounded-lg">
- <p className="text-sm text-red-400">{error}</p>
+ <div className="mb-6 p-4 alert-error border  rounded-lg">
+ <p className="text-sm text-destructive">{error}</p>
  </div>
  )}
 
  {message && (
- <div className="mb-6 p-4 bg-green-900/20 border border-green-600 rounded-lg">
- <p className="text-sm text-green-400">{message}</p>
+ <div className="mb-6 p-4 alert-success border  rounded-lg">
+ <p className="text-sm text-success">{message}</p>
  </div>
  )}
 
@@ -114,7 +114,7 @@ export default function DevLoginPage() {
  <Button
  onClick={() => handleDevLogin('dev')}
  disabled={loading}
- className="w-full flex items-center justify-center px-4 py-3 border rounded-lg shadow-sm bg-blue-600 text-sm font-medium text-foreground hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+ className="w-full flex items-center justify-center px-4 py-3 border rounded-lg shadow-sm btn-primary text-sm font-medium text-foreground hover:btn-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
  >
  {loading && selectedUserType === 'dev' ? (
  <div className="flex items-center">
@@ -124,7 +124,7 @@ export default function DevLoginPage() {
  ) : (
  <div className="text-left w-full">
  <div className="font-semibold">Development User</div>
- <div className="text-xs text-blue-200">dev-user@limn.us.com - CRM & Production access</div>
+ <div className="text-xs text-info">dev-user@limn.us.com - CRM & Production access</div>
  </div>
  )}
  </Button>
@@ -132,7 +132,7 @@ export default function DevLoginPage() {
  <Button
  onClick={() => handleDevLogin('designer')}
  disabled={loading}
- className="w-full flex items-center justify-center px-4 py-3 border rounded-lg shadow-sm bg-purple-600 text-sm font-medium text-foreground hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+ className="w-full flex items-center justify-center px-4 py-3 border rounded-lg shadow-sm btn-secondary text-sm font-medium text-foreground hover:btn-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary disabled:opacity-50 disabled:cursor-not-allowed"
  >
  {loading && selectedUserType === 'designer' ? (
  <div className="flex items-center">
@@ -142,24 +142,24 @@ export default function DevLoginPage() {
  ) : (
  <div className="text-left w-full">
  <div className="font-semibold">Designer User</div>
- <div className="text-xs text-purple-200">designer-user@limn.us.com - Design module access</div>
+ <div className="text-xs text-secondary">designer-user@limn.us.com - Design module access</div>
  </div>
  )}
  </Button>
  </div>
 
- <div className="bg-orange-900/20 border border-orange-600 rounded-lg p-4">
+ <div className="alert-warning border  rounded-lg p-4">
  <div className="flex">
  <div className="flex-shrink-0">
- <svg className="h-5 w-5 text-orange-400" viewBox="0 0 20 20" fill="currentColor">
+ <svg className="h-5 w-5 text-warning" viewBox="0 0 20 20" fill="currentColor">
  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
  </svg>
  </div>
  <div className="ml-3">
- <h3 className="text-sm font-medium text-orange-300">
+ <h3 className="text-sm font-medium text-warning">
  Development Only
  </h3>
- <div className="mt-2 text-sm text-orange-400">
+ <div className="mt-2 text-sm text-warning">
  <p>
  These test users bypass normal OAuth requirements and should only be used for local development and testing.
  Each user has different permissions to test module-specific functionality.

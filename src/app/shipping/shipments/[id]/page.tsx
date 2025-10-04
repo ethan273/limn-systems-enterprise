@@ -39,37 +39,37 @@ const statusConfig: Record<string, { label: string; className: string; icon: Rea
   },
   preparing: {
     label: "Preparing",
-    className: "bg-blue-100 text-blue-800 border-blue-300",
+    className: "bg-info-muted text-info border-info",
     icon: <Package className="w-4 h-4" aria-hidden="true" />,
   },
   ready: {
     label: "Ready",
-    className: "bg-purple-100 text-purple-800 border-purple-300",
+    className: "bg-primary-muted text-primary border-primary",
     icon: <CheckCircle2 className="w-4 h-4" aria-hidden="true" />,
   },
   shipped: {
     label: "Shipped",
-    className: "bg-green-100 text-green-800 border-green-300",
+    className: "bg-success-muted text-success border-success",
     icon: <Truck className="w-4 h-4" aria-hidden="true" />,
   },
   in_transit: {
     label: "In Transit",
-    className: "bg-cyan-100 text-cyan-800 border-cyan-300",
+    className: "bg-info text-info border-info",
     icon: <Truck className="w-4 h-4" aria-hidden="true" />,
   },
   delivered: {
     label: "Delivered",
-    className: "bg-green-100 text-green-800 border-green-300",
+    className: "bg-success-muted text-success border-success",
     icon: <MapPin className="w-4 h-4" aria-hidden="true" />,
   },
   delayed: {
     label: "Delayed",
-    className: "bg-yellow-100 text-yellow-800 border-yellow-300",
+    className: "bg-warning-muted text-warning border-warning",
     icon: <AlertCircle className="w-4 h-4" aria-hidden="true" />,
   },
   cancelled: {
     label: "Cancelled",
-    className: "bg-gray-100 text-gray-800 border-gray-300",
+    className: "bg-muted text-muted border-muted",
     icon: <XCircle className="w-4 h-4" aria-hidden="true" />,
   },
 };

@@ -1,0 +1,9 @@
+{
+  "projectToken": "chpt_1f5febce33fd048",
+  "playwright": true,
+  "onlyChanged": true,
+  "exitZeroOnChanges": true,
+  "exitOnceUploaded": true,
+  "autoAcceptChanges": "main",
+  "zip": true
+}

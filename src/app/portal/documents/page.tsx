@@ -41,32 +41,32 @@ const documentTypeConfig: Record<string, { label: string; icon: React.ReactNode;
  invoice: {
  label: "Invoice",
  icon: <FileText className="w-4 h-4" aria-hidden="true" />,
- className: "bg-blue-100 text-blue-800 border-blue-300",
+ className: "btn-primary text-info border-primary",
  },
  quote: {
  label: "Quote",
  icon: <FileText className="w-4 h-4" aria-hidden="true" />,
- className: "bg-purple-100 text-purple-800 border-purple-300",
+ className: "btn-secondary text-secondary border-secondary",
  },
  contract: {
  label: "Contract",
  icon: <FileText className="w-4 h-4" aria-hidden="true" />,
- className: "bg-green-100 text-green-800 border-green-300",
+ className: "bg-success-muted text-success border-success",
  },
  shop_drawing: {
  label: "Shop Drawing",
  icon: <ImageIcon className="w-4 h-4" aria-hidden="true" />,
- className: "bg-orange-100 text-orange-800 border-orange-300",
+ className: "bg-orange-100 text-warning border-orange-300",
  },
  photo: {
  label: "Photo",
  icon: <ImageIcon className="w-4 h-4" aria-hidden="true" />,
- className: "bg-pink-100 text-pink-800 border-pink-300",
+ className: "bg-muted text-muted border-muted",
  },
  shipping: {
  label: "Shipping Document",
  icon: <FileArchive className="w-4 h-4" aria-hidden="true" />,
- className: "bg-teal-100 text-teal-800 border-teal-300",
+ className: "bg-success text-success border-success",
  },
  other: {
  label: "Other",
@@ -143,7 +143,7 @@ export default function DocumentsPage() {
  <FileText className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-blue-600">{stats.invoices}</div>
+ <div className="text-2xl font-bold text-info">{stats.invoices}</div>
  </CardContent>
  </Card>
 
@@ -153,7 +153,7 @@ export default function DocumentsPage() {
  <ImageIcon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-orange-600">{stats.shopDrawings}</div>
+ <div className="text-2xl font-bold text-warning">{stats.shopDrawings}</div>
  </CardContent>
  </Card>
 
@@ -163,7 +163,7 @@ export default function DocumentsPage() {
  <FileArchive className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-teal-600">{stats.shipping}</div>
+ <div className="text-2xl font-bold text-success">{stats.shipping}</div>
  </CardContent>
  </Card>
 
@@ -173,7 +173,7 @@ export default function DocumentsPage() {
  <ImageIcon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-pink-600">{stats.photos}</div>
+ <div className="text-2xl font-bold text-muted">{stats.photos}</div>
  </CardContent>
  </Card>
  </div>

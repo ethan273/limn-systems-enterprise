@@ -283,10 +283,10 @@ function _getEntityIcon(_entityType: CRMEntityType) {
 
 function _getEntityColor(_entityType: CRMEntityType) {
  switch (_entityType) {
- case 'contact': return 'border-blue-400/30 bg-blue-400/10 text-blue-400';
- case 'lead': return 'border-green-400/30 bg-green-400/10 text-green-400';
- case 'customer': return 'border-purple-400/30 bg-purple-400/10 text-purple-400';
- case 'opportunity': return 'border-yellow-400/30 bg-yellow-400/10 text-yellow-400';
+ case 'contact': return 'border-info/30 bg-info/10 text-info';
+ case 'lead': return 'border-success/30 bg-success/10 text-success';
+ case 'customer': return 'border-primary/30 bg-primary/10 text-primary';
+ case 'opportunity': return 'border-warning/30 bg-warning/10 text-warning';
  default: return 'border/30 card text-tertiary';
  }
 }
@@ -294,9 +294,9 @@ function _getEntityColor(_entityType: CRMEntityType) {
 function getStatusColor(status: TaskStatus) {
  switch (status) {
  case 'todo': return 'card text-tertiary border/20';
- case 'in_progress': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
- case 'completed': return 'bg-green-500/10 text-green-400 border-green-500/20';
- case 'cancelled': return 'bg-red-500/10 text-red-400 border-red-500/20';
+ case 'in_progress': return 'bg-info/10 text-info border-info/20';
+ case 'completed': return 'bg-success/10 text-success border-success/20';
+ case 'cancelled': return 'bg-destructive/10 text-destructive border-destructive/20';
  default: return 'card text-tertiary border/20';
  }
 }
@@ -304,8 +304,8 @@ function getStatusColor(status: TaskStatus) {
 function getPriorityColor(priority: TaskPriority) {
  switch (priority) {
  case 'low': return 'card text-tertiary border/20';
- case 'medium': return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
- case 'high': return 'bg-red-500/10 text-red-400 border-red-500/20';
+ case 'medium': return 'bg-warning/10 text-warning border-warning/20';
+ case 'high': return 'bg-destructive/10 text-destructive border-destructive/20';
  default: return 'card text-tertiary border/20';
  }
 }
@@ -516,7 +516,7 @@ function TaskCard({
  className="h-6 w-6 p-0"
  >
  {task.status === 'completed' ? (
- <CheckCircle className="w-4 h-4 text-green-400" />
+ <CheckCircle className="w-4 h-4 text-success" />
  ) : (
  <div className="w-4 h-4 rounded border-2 border" />
  )}
@@ -537,7 +537,7 @@ function TaskCard({
  {task.priority}
  </Badge>
  {isOverdue && (
- <Badge className="bg-red-500/10 text-red-400 border-red-500/20">
+ <Badge className="bg-destructive/10 text-destructive border-destructive/20">
  <AlertCircle className="w-3 h-3 mr-1" />
  Overdue
  </Badge>
@@ -579,7 +579,7 @@ function TaskCard({
  <DropdownMenuSeparator />
  <DropdownMenuItem
  onClick={() => onUnlink(task.id)}
- className="text-red-400"
+ className="text-destructive"
  >
  <Trash2 className="w-4 h-4 mr-2" />
  Unlink

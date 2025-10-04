@@ -46,11 +46,11 @@ export default function TaskStatusSelect({ taskId, currentStatus, onUpdate }: Ta
  case 'todo':
  return <AlertCircle className="h-3 w-3 text-tertiary" />;
  case 'in_progress':
- return <Clock className="h-3 w-3 text-blue-400" />;
+ return <Clock className="h-3 w-3 text-info" />;
  case 'completed':
- return <CheckCircle2 className="h-3 w-3 text-green-400" />;
+ return <CheckCircle2 className="h-3 w-3 text-success" />;
  case 'cancelled':
- return <X className="h-3 w-3 text-red-400" />;
+ return <X className="h-3 w-3 text-destructive" />;
  }
  };
 
@@ -79,10 +79,10 @@ export default function TaskStatusSelect({ taskId, currentStatus, onUpdate }: Ta
  variant="outline"
  className={cn(
  "border text-xs font-medium flex items-center gap-1 px-2 py-0.5 h-6",
- currentStatus === 'todo' && "bg-gray-500/20 text-gray-400 border-gray-500/20",
- currentStatus === 'in_progress' && "bg-blue-500/20 text-blue-400 border-blue-500/20",
- currentStatus === 'completed' && "bg-green-500/20 text-green-400 border-green-500/20",
- currentStatus === 'cancelled' && "bg-red-500/20 text-red-400 border-red-500/20",
+ currentStatus === 'todo' && "bg-muted/20 text-muted border-muted/20",
+ currentStatus === 'in_progress' && "bg-info/20 text-info border-info/20",
+ currentStatus === 'completed' && "bg-success/20 text-success border-success/20",
+ currentStatus === 'cancelled' && "bg-destructive/20 text-destructive border-destructive/20",
  isUpdating && "opacity-50"
  )}
  >
@@ -100,19 +100,19 @@ export default function TaskStatusSelect({ taskId, currentStatus, onUpdate }: Ta
  </SelectItem>
  <SelectItem value="in_progress">
  <div className="flex items-center gap-2">
- <Clock className="h-3 w-3 text-blue-400" />
+ <Clock className="h-3 w-3 text-info" />
  In Progress
  </div>
  </SelectItem>
  <SelectItem value="completed">
  <div className="flex items-center gap-2">
- <CheckCircle2 className="h-3 w-3 text-green-400" />
+ <CheckCircle2 className="h-3 w-3 text-success" />
  Completed
  </div>
  </SelectItem>
  <SelectItem value="cancelled">
  <div className="flex items-center gap-2">
- <X className="h-3 w-3 text-red-400" />
+ <X className="h-3 w-3 text-destructive" />
  Cancelled
  </div>
  </SelectItem>

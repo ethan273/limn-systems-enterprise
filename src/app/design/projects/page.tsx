@@ -224,7 +224,7 @@ export default function DesignProjectsPage() {
  filteredProjects.map((project: any) => (
  <TableRow key={project.id}>
  <TableCell>
- <Link href={`/design/projects/${project.id}`} className="font-medium text-blue-600 hover:underline">
+ <Link href={`/design/projects/${project.id}`} className="font-medium text-info hover:underline">
  {project.project_code || "—"}
  </Link>
  </TableCell>

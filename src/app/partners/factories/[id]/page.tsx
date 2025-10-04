@@ -238,7 +238,7 @@ export default function FactoryDetailPage({ params }: FactoryDetailPageProps) {
  </div>
  <div className="flex items-center gap-2">
  <Mail className="h-4 w-4 text-muted-foreground" />
- <a href={`mailto:${factory.primary_email}`} className="text-sm text-blue-600 hover:underline">
+ <a href={`mailto:${factory.primary_email}`} className="text-sm text-info hover:underline">
  {factory.primary_email}
  </a>
  </div>
@@ -255,7 +255,7 @@ export default function FactoryDetailPage({ params }: FactoryDetailPageProps) {
  href={factory.website}
  target="_blank"
  rel="noopener noreferrer"
- className="text-sm text-blue-600 hover:underline"
+ className="text-sm text-info hover:underline"
  >
  {factory.website}
  </a>
@@ -405,7 +405,7 @@ export default function FactoryDetailPage({ params }: FactoryDetailPageProps) {
  </TableCell>
  <TableCell>{contact.role}</TableCell>
  <TableCell>
- <a href={`mailto:${contact.email}`} className="text-blue-600 hover:underline">
+ <a href={`mailto:${contact.email}`} className="text-info hover:underline">
  {contact.email}
  </a>
  </TableCell>
@@ -546,7 +546,7 @@ export default function FactoryDetailPage({ params }: FactoryDetailPageProps) {
  <TableCell>{perf.orders_completed}</TableCell>
  <TableCell>
  <div className="flex items-center gap-1">
- <TrendingUp className="h-3 w-3 text-green-600" />
+ <TrendingUp className="h-3 w-3 text-success" />
  {Number(perf.on_time_rate).toFixed(1)}%
  </div>
  </TableCell>

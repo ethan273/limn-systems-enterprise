@@ -12,7 +12,7 @@ export default function Home() {
  </p>
  <Link
  href="/dashboard"
- className="inline-block bg-blue-500 hover:bg-blue-600 text-foreground px-8 py-3 rounded-lg font-medium transition-colors"
+ className="inline-block btn-primary hover:btn-primary text-foreground px-8 py-3 rounded-lg font-medium transition-colors"
  >
  Go to Dashboard
  </Link>

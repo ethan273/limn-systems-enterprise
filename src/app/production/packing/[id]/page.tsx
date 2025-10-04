@@ -41,17 +41,17 @@ const statusConfig: Record<string, { label: string; className: string; icon: Rea
  },
  in_progress: {
  label: "In Progress",
- className: "bg-blue-100 text-blue-800 border-blue-300",
+ className: "bg-info-muted text-info border-info",
  icon: <Package className="w-4 h-4" aria-hidden="true" />,
  },
  packed: {
  label: "Packed",
- className: "bg-green-100 text-green-800 border-green-300",
+ className: "bg-success-muted text-success border-success",
  icon: <PackageCheck className="w-4 h-4" aria-hidden="true" />,
  },
  shipped: {
  label: "Shipped",
- className: "bg-purple-100 text-purple-800 border-purple-300",
+ className: "bg-primary-muted text-primary border-primary",
  icon: <Truck className="w-4 h-4" aria-hidden="true" />,
  },
 };
@@ -238,8 +238,8 @@ export default function PackingJobDetailPage() {
  variant="outline"
  className={cn(
  "capitalize",
- job.priority === "high" && "bg-red-100 text-red-800 border-red-300",
- job.priority === "normal" && "bg-blue-100 text-blue-800 border-blue-300",
+ job.priority === "high" && "bg-destructive-muted text-destructive border-destructive",
+ job.priority === "normal" && "bg-info-muted text-info border-info",
  job.priority === "low" && "badge-neutral"
  )}
  >
@@ -273,8 +273,8 @@ export default function PackingJobDetailPage() {
  variant="outline"
  className={cn(
  "capitalize",
- job.qc_inspections.status === "passed" && "bg-green-100 text-green-800 border-green-300",
- job.qc_inspections.status === "failed" && "bg-red-100 text-red-800 border-red-300"
+ job.qc_inspections.status === "passed" && "bg-success-muted text-success border-success",
+ job.qc_inspections.status === "failed" && "bg-destructive-muted text-destructive border-destructive"
  )}
  >
  {job.qc_inspections.status}

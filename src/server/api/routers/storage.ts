@@ -2,6 +2,7 @@
  * Storage tRPC Router
  *
  * Unified API for hybrid file storage (Supabase + Google Drive).
+ * Uses Google Drive Service Account for always-connected corporate folder access.
  */
 
 import { z } from 'zod';
@@ -12,58 +13,11 @@ import {
 } from '@/lib/storage/hybrid-storage';
 import { deleteFromSupabase } from '@/lib/storage/supabase-storage';
 import {
-  deleteFromGoogleDrive,
-  getGoogleDriveFileMetadata,
-} from '@/lib/storage/google-drive-storage';
-import { decryptToken } from '@/lib/oauth/token-encryption';
-import { isTokenExpired, refreshAccessToken } from '@/lib/oauth/google-drive-client';
-import { encryptToken } from '@/lib/oauth/token-encryption';
-
-// Helper function to get access token (used internally within router)
-async function getValidAccessToken(ctx: any): Promise<string> {
-  if (!ctx.session?.user?.id) {
-    throw new TRPCError({
-      code: 'UNAUTHORIZED',
-      message: 'User must be logged in',
-    });
-  }
-
-  const token = await ctx.db.oauth_tokens.findFirst({
-    where: {
-      user_id: ctx.session.user.id,
-      provider: 'google_drive',
-    },
-  });
-
-  if (!token) {
-    throw new TRPCError({
-      code: 'NOT_FOUND',
-      message: 'No Google Drive connection found',
-    });
-  }
-
-  const expiryDate = token.expires_at ? token.expires_at.getTime() : null;
-  const expired = isTokenExpired(expiryDate);
-
-  if (expired && token.refresh_token) {
-    const decryptedRefreshToken = decryptToken(token.refresh_token);
-    const newTokens = await refreshAccessToken(decryptedRefreshToken);
-    const encryptedAccessToken = encryptToken(newTokens.access_token);
-
-    await ctx.db.oauth_tokens.update({
-      where: { id: token.id },
-      data: {
-        access_token: encryptedAccessToken,
-        expires_at: newTokens.expiry_date ? new Date(newTokens.expiry_date) : new Date(Date.now() + 3600000),
-        updated_at: new Date(),
-      },
-    });
-
-    return newTokens.access_token;
-  }
-
-  return decryptToken(token.access_token);
-}
+  deleteFileFromDrive,
+  getFileMetadata as getDriveFileMetadata,
+  validateServiceAccountConfig,
+  testConnection,
+} from '@/lib/google-drive/service-account-client';
 
 export const storageRouter = createTRPCRouter({
   /**
@@ -116,58 +70,34 @@ export const storageRouter = createTRPCRouter({
     }),
 
   /**
-   * Get valid Google Drive access token (refresh if needed)
+   * Test Google Drive service account connection
    */
-  getAccessToken: publicProcedure.query(async ({ ctx }) => {
-    if (!ctx.session?.user?.id) {
-      throw new TRPCError({
-        code: 'UNAUTHORIZED',
-        message: 'User must be logged in',
-      });
+  testDriveConnection: publicProcedure.query(async () => {
+    return await testConnection();
+  }),
+
+  /**
+   * Get Google Drive configuration status
+   */
+  getDriveStatus: publicProcedure.query(async () => {
+    const validation = validateServiceAccountConfig();
+
+    if (!validation.valid) {
+      return {
+        connected: false,
+        configured: false,
+        errors: validation.errors,
+      };
     }
 
-    const userId = ctx.session.user.id;
+    // Test actual connection
+    const connectionTest = await testConnection();
 
-    // Get OAuth token from database
-    const token = await ctx.db.oauth_tokens.findFirst({
-      where: {
-        user_id: userId,
-        provider: 'google_drive',
-      },
-    });
-
-    if (!token) {
-      throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'No Google Drive connection found. Please connect your account.',
-      });
-    }
-
-    // Check if token is expired
-    const expiryDate = token.expires_at ? token.expires_at.getTime() : null;
-    const expired = isTokenExpired(expiryDate);
-
-    // Refresh if expired
-    if (expired && token.refresh_token) {
-      const decryptedRefreshToken = decryptToken(token.refresh_token);
-      const newTokens = await refreshAccessToken(decryptedRefreshToken);
-      const encryptedAccessToken = encryptToken(newTokens.access_token);
-
-      await ctx.db.oauth_tokens.update({
-        where: { id: token.id },
-        data: {
-          access_token: encryptedAccessToken,
-          expires_at: newTokens.expiry_date ? new Date(newTokens.expiry_date) : new Date(Date.now() + 3600000),
-          updated_at: new Date(),
-        },
-      });
-
-      return { accessToken: newTokens.access_token };
-    }
-
-    // Return existing token
-    const decryptedAccessToken = decryptToken(token.access_token);
-    return { accessToken: decryptedAccessToken };
+    return {
+      connected: connectionTest.success,
+      configured: true,
+      message: connectionTest.message,
+    };
   }),
 
   /**
@@ -295,9 +225,8 @@ export const storageRouter = createTRPCRouter({
       if (file.storage_type === 'supabase' && file.storage_path) {
         await deleteFromSupabase(file.storage_path);
       } else if (file.storage_type === 'google_drive' && file.google_drive_id) {
-        // Get access token
-        const accessToken = await getValidAccessToken(ctx);
-        await deleteFromGoogleDrive(file.google_drive_id, accessToken);
+        // Use service account to delete
+        await deleteFileFromDrive(file.google_drive_id);
       }
 
       // Delete from database
@@ -335,9 +264,8 @@ export const storageRouter = createTRPCRouter({
           type: 'supabase' as const,
         };
       } else {
-        // Get Google Drive metadata for latest URL
-        const accessToken = await getValidAccessToken(ctx);
-        const metadata = await getGoogleDriveFileMetadata(file.google_drive_id!, accessToken);
+        // Get Google Drive metadata for latest URL using service account
+        const metadata = await getDriveFileMetadata(file.google_drive_id!);
 
         return {
           url: metadata?.webViewLink || metadata?.webContentLink || file.google_drive_url || null,

@@ -656,7 +656,7 @@ function OrderCreationDialog({
 
  {/* Fabric Materials */}
  <div className="space-y-3">
- <h4 className="font-medium text-purple-800 dark:text-purple-200">Fabric Materials (Hierarchical: Brand → Collection → Color)</h4>
+ <h4 className="font-medium text-secondary dark:text-secondary">Fabric Materials (Hierarchical: Brand → Collection → Color)</h4>
  <div className="grid grid-cols-3 gap-4">
  <div className="space-y-2">
  <Label htmlFor="fabric_brand_id">Fabric Brand</Label>
@@ -743,7 +743,7 @@ function OrderCreationDialog({
 
  {/* Wood Materials */}
  <div className="space-y-3">
- <h4 className="font-medium text-amber-800 dark:text-amber-200">Wood Materials (Hierarchical: Type → Finish)</h4>
+ <h4 className="font-medium text-muted dark:text-muted">Wood Materials (Hierarchical: Type → Finish)</h4>
  <div className="grid grid-cols-2 gap-4">
  <div className="space-y-2">
  <Label htmlFor="wood_type_id">Wood Type</Label>
@@ -879,7 +879,7 @@ function OrderCreationDialog({
 
  {/* Stone Materials */}
  <div className="space-y-3">
- <h4 className="font-medium text-stone-800 dark:text-stone-200">Stone Materials (Hierarchical: Type → Finish)</h4>
+ <h4 className="font-medium text-muted dark:text-muted">Stone Materials (Hierarchical: Type → Finish)</h4>
  <div className="grid grid-cols-2 gap-4">
  <div className="space-y-2">
  <Label htmlFor="stone_type_id">Stone Type</Label>
@@ -933,7 +933,7 @@ function OrderCreationDialog({
 
  {/* Weaving Materials */}
  <div className="space-y-3">
- <h4 className="font-medium text-green-800 dark:text-green-200">Weaving Materials (Independent selection: Material, Pattern, Color)</h4>
+ <h4 className="font-medium text-success dark:text-success">Weaving Materials (Independent selection: Material, Pattern, Color)</h4>
  <div className="grid grid-cols-3 gap-4">
  <div className="space-y-2">
  <Label htmlFor="weaving_material_id">Weaving Material</Label>
@@ -1000,7 +1000,7 @@ function OrderCreationDialog({
 
  {/* Carving */}
  <div className="space-y-3">
- <h4 className="font-medium text-orange-800 dark:text-orange-200">Carving (Independent selection: Style, Pattern)</h4>
+ <h4 className="font-medium text-warning dark:text-warning">Carving (Independent selection: Style, Pattern)</h4>
  <div className="grid grid-cols-2 gap-4">
  <div className="space-y-2">
  <Label htmlFor="carving_style_id">Carving Style</Label>
@@ -1192,7 +1192,7 @@ function OrderCreationDialog({
  {orderItems.length > 0 && (
  <Button
  onClick={() => onFinalizeOrder(projectId)}
- className="bg-green-600 hover:bg-green-700"
+ className="bg-success-muted hover:bg-success-muted"
  >
  Finalize Order (${orderItems.reduce((sum, item) => sum + item.total_price, 0).toFixed(2)})
  </Button>
@@ -1478,19 +1478,19 @@ export default function ProjectsPage() {
  });
 
  const statuses = [
- { value: "planning", label: "Planning", color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200", icon: Target },
- { value: "active", label: "Active", color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200", icon: Clock },
- { value: "review", label: "Review", color: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200", icon: Eye },
- { value: "completed", label: "Completed", color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200", icon: CheckCircle2 },
- { value: "on_hold", label: "On Hold", color: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200", icon: AlertCircle },
- { value: "cancelled", label: "Cancelled", color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200", icon: AlertCircle },
+ { value: "planning", label: "Planning", color: "btn-primary text-info dark:btn-primary dark:text-info", icon: Target },
+ { value: "active", label: "Active", color: "bg-warning-muted text-warning dark:bg-warning-muted dark:text-warning", icon: Clock },
+ { value: "review", label: "Review", color: "btn-secondary text-secondary dark:btn-secondary dark:text-secondary", icon: Eye },
+ { value: "completed", label: "Completed", color: "bg-success-muted text-success dark:bg-success-muted dark:text-success", icon: CheckCircle2 },
+ { value: "on_hold", label: "On Hold", color: "bg-orange-100 text-warning dark:bg-orange-900 dark:text-warning", icon: AlertCircle },
+ { value: "cancelled", label: "Cancelled", color: "bg-destructive-muted text-destructive dark:bg-destructive-muted dark:text-destructive", icon: AlertCircle },
  ];
 
  const priorities = [
  { value: "low", label: "Low", color: "badge-neutral" },
- { value: "medium", label: "Medium", color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" },
- { value: "high", label: "High", color: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200" },
- { value: "urgent", label: "Urgent", color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" },
+ { value: "medium", label: "Medium", color: "btn-primary text-info dark:btn-primary dark:text-info" },
+ { value: "high", label: "High", color: "bg-orange-100 text-warning dark:bg-orange-900 dark:text-warning" },
+ { value: "urgent", label: "Urgent", color: "bg-destructive-muted text-destructive dark:bg-destructive-muted dark:text-destructive" },
  ];
 
  const getStatusInfo = (status: string) => {
@@ -1842,21 +1842,22 @@ export default function ProjectsPage() {
  </Card>
  </div>
 
- {/* Filters and Controls */}
- <div className="mt-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
- <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
- <div className="relative">
- <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+ {/* Filters */}
+ <Card>
+ <CardContent className="card-content-compact">
+ <div className="filters-section">
+ <div className="search-input-wrapper">
+ <Search className="search-icon" aria-hidden="true" />
  <Input
  placeholder="Search projects..."
  value={searchTerm}
  onChange={(e) => setSearchTerm(e.target.value)}
- className="pl-10 w-64"
+ className="search-input"
  />
  </div>
 
  <Select value={selectedStatus} onValueChange={setSelectedStatus}>
- <SelectTrigger className="w-40">
+ <SelectTrigger className="filter-select">
  <SelectValue placeholder="Status" />
  </SelectTrigger>
  <SelectContent>
@@ -1870,7 +1871,7 @@ export default function ProjectsPage() {
  </Select>
 
  <Select value={selectedPriority} onValueChange={setSelectedPriority}>
- <SelectTrigger className="w-40">
+ <SelectTrigger className="filter-select">
  <SelectValue placeholder="Priority" />
  </SelectTrigger>
  <SelectContent>
@@ -1884,12 +1885,16 @@ export default function ProjectsPage() {
  </Select>
 
  {(selectedStatus || selectedPriority || searchTerm) && (
- <Button variant="outline" size="sm" onClick={clearFilters}>
- <Filter className="mr-1 h-3 w-3" />
+ <Button variant="outline" size="sm" onClick={clearFilters} className="filter-select">
+ <Filter className="icon-sm" aria-hidden="true" />
  Clear Filters
  </Button>
  )}
  </div>
+ </CardContent>
+ </Card>
+
+ <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 
  <div className="text-sm text-muted-foreground">
  {filteredProjects.length} projects • {formatPrice(getTotalBudget())} budget
@@ -1920,7 +1925,7 @@ export default function ProjectsPage() {
  <TableRow
  key={project.id}
  className="cursor-pointer hover:bg-muted/50"
- onClick={() => router.push(`/design/projects/${project.id}`)}
+ onClick={() => router.push(`/crm/projects/${project.id}`)}
  >
  <TableCell>
  <div className="space-y-1">
@@ -1957,7 +1962,7 @@ export default function ProjectsPage() {
  <div className="flex items-center gap-2">
  <div className="w-16 card rounded-full h-2">
  <div
- className="bg-blue-600 h-2 rounded-full transition-all"
+ className="btn-primary h-2 rounded-full transition-all"
  style={{ width: `${project.completion_percentage}%` }}
  />
  </div>
@@ -1997,12 +2002,12 @@ export default function ProjectsPage() {
  <Edit className="mr-2 h-4 w-4" />
  Edit
  </DropdownMenuItem>
- <DropdownMenuItem onClick={(e) => { e.stopPropagation(); router.push(`/design/projects/${project.id}`); }}>
+ <DropdownMenuItem onClick={(e) => { e.stopPropagation(); router.push(`/crm/projects/${project.id}`); }}>
  <Eye className="mr-2 h-4 w-4" />
  View Details
  </DropdownMenuItem>
  <DropdownMenuSeparator />
- <DropdownMenuItem className="text-red-600" onClick={(e) => e.stopPropagation()}>
+ <DropdownMenuItem className="text-destructive" onClick={(e) => e.stopPropagation()}>
  <Trash2 className="mr-2 h-4 w-4" />
  Delete
  </DropdownMenuItem>

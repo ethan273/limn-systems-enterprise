@@ -32,7 +32,6 @@ import {
  Clock,
  AlertTriangle,
  Package,
- Filter,
  Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -45,23 +44,23 @@ const statusConfig: Record<string, {
 }> = {
  in_review: {
  label: "In Review",
- className: "bg-yellow-100 text-yellow-800 border-yellow-300"
+ className: "bg-warning-muted text-warning border-warning"
  },
  designer_approved: {
  label: "Designer Approved",
- className: "bg-blue-100 text-blue-800 border-blue-300"
+ className: "bg-info-muted text-info border-info"
  },
  approved: {
  label: "Approved",
- className: "bg-green-100 text-green-800 border-green-300"
+ className: "bg-success-muted text-success border-success"
  },
  rejected: {
  label: "Rejected",
- className: "bg-red-100 text-red-800 border-red-300"
+ className: "bg-destructive-muted text-destructive border-destructive"
  },
  revision_requested: {
  label: "Revision Requested",
- className: "bg-orange-100 text-orange-800 border-orange-300"
+ className: "bg-orange-100 text-warning border-orange-300"
  }
 };
 
@@ -203,7 +202,7 @@ export default function ShopDrawingsPage() {
  </CardTitle>
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
+ <div className="text-2xl font-bold text-warning">{stats.pending}</div>
  </CardContent>
  </Card>
 
@@ -215,7 +214,7 @@ export default function ShopDrawingsPage() {
  </CardTitle>
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-green-600">{stats.approved}</div>
+ <div className="text-2xl font-bold text-success">{stats.approved}</div>
  </CardContent>
  </Card>
 
@@ -227,36 +226,28 @@ export default function ShopDrawingsPage() {
  </CardTitle>
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-red-600">{stats.rejected}</div>
+ <div className="text-2xl font-bold text-destructive">{stats.rejected}</div>
  </CardContent>
  </Card>
  </div>
 
  {/* Filters */}
  <Card>
- <CardHeader>
- <CardTitle className="text-lg flex items-center gap-2">
- <Filter className="w-5 h-5" aria-hidden="true" />
- Filters
- </CardTitle>
- </CardHeader>
- <CardContent className="filters-section">
- <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
- {/* Search */}
- <div className="relative">
- <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" aria-hidden="true" />
+ <CardContent className="card-content-compact">
+ <div className="filters-section">
+ <div className="search-input-wrapper">
+ <Search className="search-icon" aria-hidden="true" />
  <Input
  placeholder="Search by number or name..."
  value={searchQuery}
  onChange={handleSearchChange}
- className="pl-10"
+ className="search-input"
  aria-label="Search shop drawings"
  />
  </div>
 
- {/* Production Order Filter */}
  <Select value={orderFilter} onValueChange={handleOrderFilterChange}>
- <SelectTrigger aria-label="Filter by production order">
+ <SelectTrigger className="filter-select" aria-label="Filter by production order">
  <SelectValue placeholder="Production Order" />
  </SelectTrigger>
  <SelectContent>
@@ -269,9 +260,8 @@ export default function ShopDrawingsPage() {
  </SelectContent>
  </Select>
 
- {/* Factory Filter */}
  <Select value={factoryFilter} onValueChange={handleFactoryFilterChange}>
- <SelectTrigger aria-label="Filter by factory">
+ <SelectTrigger className="filter-select" aria-label="Filter by factory">
  <SelectValue placeholder="Factory" />
  </SelectTrigger>
  <SelectContent>
@@ -284,9 +274,8 @@ export default function ShopDrawingsPage() {
  </SelectContent>
  </Select>
 
- {/* Status Filter */}
  <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
- <SelectTrigger aria-label="Filter by status">
+ <SelectTrigger className="filter-select" aria-label="Filter by status">
  <SelectValue placeholder="Status" />
  </SelectTrigger>
  <SelectContent>
@@ -298,16 +287,16 @@ export default function ShopDrawingsPage() {
  <SelectItem value="revision_requested">Revision Requested</SelectItem>
  </SelectContent>
  </Select>
- </div>
 
  {(searchQuery || orderFilter || factoryFilter || statusFilter) && (
- <div className="mt-4 flex items-center gap-2">
- <Button variant="outline" size="sm" onClick={handleClearFilters}>
+ <Button variant="outline" size="sm" onClick={handleClearFilters} className="filter-select">
  Clear Filters
  </Button>
- <span className="text-sm text-muted-foreground">
+ )}
+ </div>
+ {(searchQuery || orderFilter || factoryFilter || statusFilter) && (
+ <div className="mt-2 text-sm text-muted">
  Showing {drawings.length} of {total} drawings
- </span>
  </div>
  )}
  </CardContent>

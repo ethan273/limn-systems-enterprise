@@ -119,7 +119,7 @@ export default function DocumentsPage() {
             <CardTitle className="card-title-sm">Total Storage</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value text-blue-600">{formatFileSize(stats.total.size)}</div>
+            <div className="stat-value text-info">{formatFileSize(stats.total.size)}</div>
             <p className="stat-label">Across all files</p>
           </CardContent>
         </Card>
@@ -129,7 +129,7 @@ export default function DocumentsPage() {
             <CardTitle className="card-title-sm">Google Drive</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value text-green-600">
+            <div className="stat-value text-success">
               {stats.googleDrive.files}
             </div>
             <p className="stat-label">Documents</p>
@@ -141,7 +141,7 @@ export default function DocumentsPage() {
             <CardTitle className="card-title-sm">Supabase Storage</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value text-purple-600">
+            <div className="stat-value text-secondary">
               {stats.supabase.files}
             </div>
             <p className="stat-label">Documents</p>
@@ -176,12 +176,7 @@ export default function DocumentsPage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Documents ({documents.length})</CardTitle>
-        </CardHeader>
-        <CardContent className="card-content-compact">
-          {isLoading ? (
+      {isLoading ? (
             <div className="loading-state">Loading documents...</div>
           ) : documents.length === 0 ? (
             <div className="empty-state">
@@ -196,7 +191,7 @@ export default function DocumentsPage() {
               </Button>
             </div>
           ) : (
-            <div className="table-container">
+        <div className="data-table-container">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -235,12 +230,12 @@ export default function DocumentsPage() {
                         </TableCell>
                         <TableCell>
                           {doc.storage_type === "google_drive" ? (
-                            <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
+                            <Badge variant="outline" className="bg-success-muted text-success border-success">
                               <ExternalLink className="icon-sm" aria-hidden="true" />
                               <span>Google Drive</span>
                             </Badge>
                           ) : (
-                            <Badge variant="outline" className="bg-purple-100 text-purple-800 border-purple-300">
+                            <Badge variant="outline" className="btn-secondary text-secondary border-secondary">
                               <HardDrive className="icon-sm" aria-hidden="true" />
                               <span>Supabase</span>
                             </Badge>
@@ -298,19 +293,18 @@ export default function DocumentsPage() {
               </Table>
             </div>
           )}
-        </CardContent>
-      </Card>
+
 
       {/* Google Drive Integration Notice */}
-      <Card className="bg-green-50 border-green-200">
+      <Card className="bg-success-muted border-success">
         <CardContent className="card-content-compact">
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <ExternalLink className="w-5 h-5 text-green-600" aria-hidden="true" />
+            <div className="p-2 bg-success-muted rounded-lg">
+              <ExternalLink className="w-5 h-5 text-success" aria-hidden="true" />
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold text-green-900">Google Drive Integration Active</h3>
-              <p className="text-sm text-green-700 mt-1">
+              <h3 className="font-semibold text-success">Google Drive Integration Active</h3>
+              <p className="text-sm text-success mt-1">
                 This document hub is integrated with Google Drive for centralized file storage. Upload documents
                 to Google Drive or Supabase Storage for different use cases.
               </p>

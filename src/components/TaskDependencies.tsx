@@ -124,11 +124,11 @@ export default function TaskDependencies({ taskId, onUpdate }: TaskDependenciesP
  case 'todo':
  return <AlertTriangle className="h-3 w-3 text-tertiary" />;
  case 'in_progress':
- return <Clock className="h-3 w-3 text-blue-400" />;
+ return <Clock className="h-3 w-3 text-info" />;
  case 'completed':
- return <CheckCircle2 className="h-3 w-3 text-green-400" />;
+ return <CheckCircle2 className="h-3 w-3 text-success" />;
  case 'cancelled':
- return <X className="h-3 w-3 text-red-400" />;
+ return <X className="h-3 w-3 text-destructive" />;
  }
  };
 
@@ -137,11 +137,11 @@ export default function TaskDependencies({ taskId, onUpdate }: TaskDependenciesP
  case 'todo':
  return 'card text-tertiary border/20';
  case 'in_progress':
- return 'bg-blue-500/20 text-blue-400 border-blue-500/20';
+ return 'bg-info/20 text-info border-info/20';
  case 'completed':
- return 'bg-green-500/20 text-green-400 border-green-500/20';
+ return 'bg-success/20 text-success border-success/20';
  case 'cancelled':
- return 'bg-red-500/20 text-red-400 border-red-500/20';
+ return 'bg-destructive/20 text-destructive border-destructive/20';
  }
  };
 
@@ -151,8 +151,8 @@ export default function TaskDependencies({ taskId, onUpdate }: TaskDependenciesP
 
  const _getDependencyColor = (type: DependencyType) => {
  return type === 'depends_on'
- ? 'text-blue-400 border-blue-400/30 bg-blue-400/10'
- : 'text-orange-400 border-orange-400/30 bg-orange-400/10';
+ ? 'text-info border-info/30 bg-info/10'
+ : 'text-warning border-warning/30 bg-warning/10';
  };
 
  const addDependency = () => {
@@ -226,13 +226,13 @@ export default function TaskDependencies({ taskId, onUpdate }: TaskDependenciesP
  <SelectContent>
  <SelectItem value="depends_on">
  <div className="flex items-center gap-2">
- <ArrowRight className="h-4 w-4 text-blue-400" />
+ <ArrowRight className="h-4 w-4 text-info" />
  This task depends on...
  </div>
  </SelectItem>
  <SelectItem value="blocks">
  <div className="flex items-center gap-2">
- <Link2 className="h-4 w-4 text-orange-400" />
+ <Link2 className="h-4 w-4 text-warning" />
  This task blocks...
  </div>
  </SelectItem>
@@ -318,7 +318,7 @@ export default function TaskDependencies({ taskId, onUpdate }: TaskDependenciesP
  {dependsOnTasks.map((dep) => (
  <div
  key={dep.id}
- className="flex items-center justify-between p-2 bg-blue-500/10 border border-blue-500/20 rounded"
+ className="flex items-center justify-between p-2 bg-info/10 border border-info/20 rounded"
  >
  <div className="flex items-center gap-2 flex-1 min-w-0">
  {getStatusIcon(dep.fromTask.status)}
@@ -335,7 +335,7 @@ export default function TaskDependencies({ taskId, onUpdate }: TaskDependenciesP
  </DropdownMenuTrigger>
  <DropdownMenuContent align="end">
  <DropdownMenuItem
- className="text-red-400"
+ className="text-destructive"
  onClick={() => removeDependency(dep.id)}
  >
  <Unlink className="h-4 w-4 mr-2" />
@@ -360,7 +360,7 @@ export default function TaskDependencies({ taskId, onUpdate }: TaskDependenciesP
  {blockedByTasks.map((dep) => (
  <div
  key={dep.id}
- className="flex items-center justify-between p-2 bg-blue-500/10 border border-blue-500/20 rounded"
+ className="flex items-center justify-between p-2 bg-info/10 border border-info/20 rounded"
  >
  <div className="flex items-center gap-2 flex-1 min-w-0">
  {getStatusIcon(dep.toTask.status)}
@@ -377,7 +377,7 @@ export default function TaskDependencies({ taskId, onUpdate }: TaskDependenciesP
  </DropdownMenuTrigger>
  <DropdownMenuContent align="end">
  <DropdownMenuItem
- className="text-red-400"
+ className="text-destructive"
  onClick={() => removeDependency(dep.id)}
  >
  <Unlink className="h-4 w-4 mr-2" />
@@ -402,7 +402,7 @@ export default function TaskDependencies({ taskId, onUpdate }: TaskDependenciesP
  {blockingTasks.map((dep) => (
  <div
  key={dep.id}
- className="flex items-center justify-between p-2 bg-orange-500/10 border border-orange-500/20 rounded"
+ className="flex items-center justify-between p-2 bg-warning/10 border border-warning/20 rounded"
  >
  <div className="flex items-center gap-2 flex-1 min-w-0">
  {getStatusIcon(dep.toTask.status)}
@@ -419,7 +419,7 @@ export default function TaskDependencies({ taskId, onUpdate }: TaskDependenciesP
  </DropdownMenuTrigger>
  <DropdownMenuContent align="end">
  <DropdownMenuItem
- className="text-red-400"
+ className="text-destructive"
  onClick={() => removeDependency(dep.id)}
  >
  <Unlink className="h-4 w-4 mr-2" />

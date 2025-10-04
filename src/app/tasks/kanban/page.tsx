@@ -42,20 +42,20 @@ const statusConfig = {
  in_progress: {
  title: "In Progress",
  icon: Clock,
- color: "bg-blue-500/20 border-blue-500/20",
- textColor: "text-blue-400"
+ color: "bg-info-muted/20 border-info/20",
+ textColor: "text-info"
  },
  completed: {
  title: "Completed",
  icon: CheckCircle2,
- color: "bg-green-500/20 border-green-500/20",
- textColor: "text-green-400"
+ color: "bg-success-muted/20 border-success/20",
+ textColor: "text-success"
  },
  cancelled: {
  title: "Cancelled",
  icon: MoreVertical,
- color: "bg-red-500/20 border-red-500/20",
- textColor: "text-red-400"
+ color: "bg-destructive-muted/20 border-destructive/20",
+ textColor: "text-destructive"
  }
 };
 
@@ -214,7 +214,7 @@ export default function TasksKanbanPage() {
  <DropdownMenuItem className="text-sm">
  View Details
  </DropdownMenuItem>
- <DropdownMenuItem className="text-sm text-red-400">
+ <DropdownMenuItem className="text-sm text-destructive">
  Delete Task
  </DropdownMenuItem>
  </DropdownMenuContent>
@@ -298,15 +298,15 @@ export default function TasksKanbanPage() {
  className="border-2 border-dashed rounded-lg p-4 text-center text-sm opacity-0 transition-opacity hover:opacity-100"
  onDragOver={(e) => {
  e.preventDefault();
- e.currentTarget.classList.add('opacity-100', 'border-blue-400');
+ e.currentTarget.classList.add('opacity-100', 'border-info');
  }}
  onDragLeave={(e) => {
  e.preventDefault();
- e.currentTarget.classList.remove('opacity-100', 'border-blue-400');
+ e.currentTarget.classList.remove('opacity-100', 'border-info');
  }}
  onDrop={(e) => {
  e.preventDefault();
- e.currentTarget.classList.remove('opacity-100', 'border-blue-400');
+ e.currentTarget.classList.remove('opacity-100', 'border-info');
 
  const taskId = e.dataTransfer.getData('taskId');
  const currentStatus = e.dataTransfer.getData('currentStatus');

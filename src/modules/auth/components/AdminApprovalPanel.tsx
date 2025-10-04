@@ -54,11 +54,11 @@ export function AdminApprovalPanel() {
  const getStatusColor = (status: string) => {
  switch (status) {
  case 'pending':
- return 'bg-yellow-500/10 text-yellow-500'
+ return 'bg-warning-muted text-warning border-warning'
  case 'approved':
- return 'bg-green-500/10 text-green-500'
+ return 'bg-success-muted text-success border-success'
  case 'denied':
- return 'bg-red-500/10 text-red-500'
+ return 'bg-destructive-muted text-destructive border-destructive'
  default:
  return 'card text-muted-foreground'
  }
@@ -89,7 +89,7 @@ export function AdminApprovalPanel() {
  <CardTitle className="text-sm font-medium">Pending</CardTitle>
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-yellow-500">{stats.stats.pending}</div>
+ <div className="text-2xl font-bold text-warning">{stats.stats.pending}</div>
  </CardContent>
  </Card>
  <Card>
@@ -97,7 +97,7 @@ export function AdminApprovalPanel() {
  <CardTitle className="text-sm font-medium">Approved</CardTitle>
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-green-500">{stats.stats.approved}</div>
+ <div className="text-2xl font-bold text-success">{stats.stats.approved}</div>
  </CardContent>
  </Card>
  <Card>
@@ -105,7 +105,7 @@ export function AdminApprovalPanel() {
  <CardTitle className="text-sm font-medium">Denied</CardTitle>
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-red-500">{stats.stats.denied}</div>
+ <div className="text-2xl font-bold text-destructive">{stats.stats.denied}</div>
  </CardContent>
  </Card>
  <Card>

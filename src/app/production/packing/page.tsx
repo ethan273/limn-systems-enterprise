@@ -46,17 +46,17 @@ const statusConfig: Record<string, { label: string; className: string; icon: Rea
  },
  in_progress: {
  label: "In Progress",
- className: "bg-blue-100 text-blue-800 border-blue-300",
+ className: "bg-info-muted text-info border-info",
  icon: <Package className="w-3 h-3" aria-hidden="true" />,
  },
  packed: {
  label: "Packed",
- className: "bg-green-100 text-green-800 border-green-300",
+ className: "bg-success-muted text-success border-success",
  icon: <PackageCheck className="w-3 h-3" aria-hidden="true" />,
  },
  shipped: {
  label: "Shipped",
- className: "bg-purple-100 text-purple-800 border-purple-300",
+ className: "bg-primary-muted text-primary border-primary",
  icon: <Truck className="w-3 h-3" aria-hidden="true" />,
  },
 };
@@ -135,7 +135,7 @@ export default function PackingJobsPage() {
  <Package className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-blue-600">{stats.inProgress}</div>
+ <div className="text-2xl font-bold text-info">{stats.inProgress}</div>
  </CardContent>
  </Card>
 
@@ -145,7 +145,7 @@ export default function PackingJobsPage() {
  <PackageCheck className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-green-600">{stats.packed}</div>
+ <div className="text-2xl font-bold text-success">{stats.packed}</div>
  </CardContent>
  </Card>
 
@@ -155,7 +155,7 @@ export default function PackingJobsPage() {
  <Truck className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-purple-600">{stats.shipped}</div>
+ <div className="text-2xl font-bold text-primary">{stats.shipped}</div>
  </CardContent>
  </Card>
  </div>
@@ -291,8 +291,8 @@ export default function PackingJobsPage() {
  variant="outline"
  className={cn(
  "capitalize",
- job.priority === "high" && "bg-red-100 text-red-800 border-red-300",
- job.priority === "normal" && "bg-blue-100 text-blue-800 border-blue-300",
+ job.priority === "high" && "bg-destructive-muted text-destructive border-destructive",
+ job.priority === "normal" && "bg-info-muted text-info border-info",
  job.priority === "low" && "badge-neutral"
  )}
  >

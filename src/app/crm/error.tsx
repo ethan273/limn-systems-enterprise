@@ -20,8 +20,8 @@ export default function CRMError({
  <div className="min-h-screen flex items-center justify-center p-6">
  <div className="max-w-md w-full card rounded-lg border p-8 text-center">
  <div className="flex justify-center mb-6">
- <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10">
- <AlertTriangle className="h-8 w-8 text-red-500" aria-hidden="true" />
+ <div className="flex h-16 w-16 items-center justify-center rounded-full bg-destructive-muted/10">
+ <AlertTriangle className="h-8 w-8 text-destructive" aria-hidden="true" />
  </div>
  </div>
 
@@ -35,7 +35,7 @@ export default function CRMError({
 
  {process.env.NODE_ENV === 'development' && (
  <div className="mb-6 p-4 card rounded-lg text-left">
- <p className="text-xs font-mono text-red-400 break-all">
+ <p className="text-xs font-mono text-destructive break-all">
  {error.message}
  </p>
  </div>

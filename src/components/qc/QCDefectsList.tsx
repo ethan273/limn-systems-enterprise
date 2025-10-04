@@ -35,9 +35,9 @@ interface QCDefectsListProps {
 }
 
 const severityConfig: Record<string, { label: string; className: string }> = {
- critical: { label: "Critical", className: "bg-red-100 text-red-800 border-red-300" },
- major: { label: "Major", className: "bg-orange-100 text-orange-800 border-orange-300" },
- minor: { label: "Minor", className: "bg-yellow-100 text-yellow-800 border-yellow-300" },
+ critical: { label: "Critical", className: "bg-destructive text-destructive border-destructive" },
+ major: { label: "Major", className: "bg-warning text-warning border-warning" },
+ minor: { label: "Minor", className: "bg-warning text-warning border-warning" },
  cosmetic: { label: "Cosmetic", className: "card border" },
 };
 
@@ -160,7 +160,7 @@ export function QCDefectsList({ inspectionId, defects, onUpdate }: QCDefectsList
  {defect._count?.qc_issue_comments || 0} comments
  </div>
  {defect.resolved_at && (
- <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
+ <Badge variant="outline" className="bg-success text-success border-success">
  Resolved
  </Badge>
  )}

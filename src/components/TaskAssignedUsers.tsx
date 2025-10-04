@@ -109,12 +109,12 @@ export default function TaskAssignedUsers({ taskId, assignedUsers = [], onUpdate
 
  const getUserColor = (userId: string) => {
  const colors = [
- 'bg-blue-500',
- 'bg-green-500',
- 'bg-purple-500',
- 'bg-orange-500',
- 'bg-pink-500',
- 'bg-indigo-500',
+ 'bg-info',
+ 'bg-success',
+ 'bg-primary',
+ 'bg-warning',
+ 'bg-muted',
+ 'bg-primary',
  ];
  const index = parseInt(userId.slice(-1), 16) % colors.length;
  return colors[index as keyof typeof colors] || colors[0];
@@ -182,7 +182,7 @@ export default function TaskAssignedUsers({ taskId, assignedUsers = [], onUpdate
  <p className="text-xs text-tertiary truncate">{user.email}</p>
  </div>
  </div>
- <UserPlus className="h-4 w-4 text-green-400" />
+ <UserPlus className="h-4 w-4 text-success" />
  </div>
  ))
  ) : (
@@ -241,7 +241,7 @@ export default function TaskAssignedUsers({ taskId, assignedUsers = [], onUpdate
  </DropdownMenuTrigger>
  <DropdownMenuContent align="end">
  <DropdownMenuItem
- className="text-red-400"
+ className="text-destructive"
  onClick={() => removeUser(user.id)}
  >
  <UserMinus className="h-4 w-4 mr-2" />

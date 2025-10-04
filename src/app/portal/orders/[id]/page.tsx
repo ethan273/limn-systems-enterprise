@@ -41,42 +41,42 @@ export const dynamic = 'force-dynamic';
 const statusConfig: Record<string, { label: string; className: string; icon: React.ReactNode }> = {
  awaiting_deposit: {
  label: "Awaiting Deposit",
- className: "bg-yellow-100 text-yellow-800 border-yellow-300",
+ className: "bg-warning-muted text-warning border-warning",
  icon: <Clock className="w-4 h-4" aria-hidden="true" />,
  },
  deposit_paid: {
  label: "Deposit Paid",
- className: "bg-blue-100 text-blue-800 border-blue-300",
+ className: "btn-primary text-info border-primary",
  icon: <DollarSign className="w-4 h-4" aria-hidden="true" />,
  },
  in_progress: {
  label: "In Production",
- className: "bg-blue-100 text-blue-800 border-blue-300",
+ className: "btn-primary text-info border-primary",
  icon: <Package className="w-4 h-4" aria-hidden="true" />,
  },
  completed: {
  label: "Completed",
- className: "bg-green-100 text-green-800 border-green-300",
+ className: "bg-success-muted text-success border-success",
  icon: <CheckCircle2 className="w-4 h-4" aria-hidden="true" />,
  },
  awaiting_final_payment: {
  label: "Awaiting Final Payment",
- className: "bg-yellow-100 text-yellow-800 border-yellow-300",
+ className: "bg-warning-muted text-warning border-warning",
  icon: <Clock className="w-4 h-4" aria-hidden="true" />,
  },
  final_paid: {
  label: "Final Payment Received",
- className: "bg-green-100 text-green-800 border-green-300",
+ className: "bg-success-muted text-success border-success",
  icon: <DollarSign className="w-4 h-4" aria-hidden="true" />,
  },
  shipped: {
  label: "Shipped",
- className: "bg-purple-100 text-purple-800 border-purple-300",
+ className: "btn-secondary text-secondary border-secondary",
  icon: <Truck className="w-4 h-4" aria-hidden="true" />,
  },
  delivered: {
  label: "Delivered",
- className: "bg-green-100 text-green-800 border-green-300",
+ className: "bg-success-muted text-success border-success",
  icon: <CheckCircle2 className="w-4 h-4" aria-hidden="true" />,
  },
 };
@@ -191,8 +191,8 @@ export default function OrderDetailPage() {
  className={cn(
  "text-sm",
  order.deposit_paid
- ? "bg-green-100 text-green-800 border-green-300"
- : "bg-yellow-100 text-yellow-800 border-yellow-300"
+ ? "bg-success-muted text-success border-success"
+ : "bg-warning-muted text-warning border-warning"
  )}
  >
  {order.deposit_paid ? "Paid" : "Pending"}
@@ -214,8 +214,8 @@ export default function OrderDetailPage() {
  className={cn(
  "text-sm",
  order.final_payment_paid
- ? "bg-green-100 text-green-800 border-green-300"
- : "bg-yellow-100 text-yellow-800 border-yellow-300"
+ ? "bg-success-muted text-success border-success"
+ : "bg-warning-muted text-warning border-warning"
  )}
  >
  {order.final_payment_paid ? "Paid" : "Pending"}
@@ -328,8 +328,8 @@ export default function OrderDetailPage() {
  variant="outline"
  className={cn(
  depositInvoice.status === "paid"
- ? "bg-green-100 text-green-800 border-green-300"
- : "bg-yellow-100 text-yellow-800 border-yellow-300"
+ ? "bg-success-muted text-success border-success"
+ : "bg-warning-muted text-warning border-warning"
  )}
  >
  {depositInvoice.status === "paid" ? "Paid" : "Pending"}
@@ -352,7 +352,7 @@ export default function OrderDetailPage() {
  </div>
  <div>
  <label className="text-sm font-medium text-muted-foreground">Amount Due</label>
- <p className="text-base font-semibold text-red-600">
+ <p className="text-base font-semibold text-destructive">
  ${Number(depositInvoice.amount_due).toLocaleString()}
  </p>
  </div>
@@ -401,8 +401,8 @@ export default function OrderDetailPage() {
  variant="outline"
  className={cn(
  finalInvoice.status === "paid"
- ? "bg-green-100 text-green-800 border-green-300"
- : "bg-yellow-100 text-yellow-800 border-yellow-300"
+ ? "bg-success-muted text-success border-success"
+ : "bg-warning-muted text-warning border-warning"
  )}
  >
  {finalInvoice.status === "paid" ? "Paid" : "Pending"}
@@ -425,7 +425,7 @@ export default function OrderDetailPage() {
  </div>
  <div>
  <label className="text-sm font-medium text-muted-foreground">Amount Due</label>
- <p className="text-base font-semibold text-red-600">
+ <p className="text-base font-semibold text-destructive">
  ${Number(finalInvoice.amount_due).toLocaleString()}
  </p>
  </div>

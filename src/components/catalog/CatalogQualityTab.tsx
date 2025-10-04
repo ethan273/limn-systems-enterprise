@@ -170,85 +170,83 @@ export default function CatalogQualityTab({ itemId }: CatalogQualityTabProps) {
       </div>
 
       {/* Recent Inspections Table */}
-      <Card className="inspections-table-card">
-        <CardHeader>
-          <CardTitle>Recent QC Inspections</CardTitle>
-          <CardDescription>
+      <div className="data-table-container">
+        <div className="data-table-header">
+          <h3 className="data-table-title">Recent QC Inspections</h3>
+          <p className="data-table-description">
             {inspections.length > 0
               ? `Last ${inspections.length} inspection(s) for this catalog item`
               : "No QC inspections found"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {inspections.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Full SKU</TableHead>
-                  <TableHead>Stage</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Defects</TableHead>
-                  <TableHead>Notes</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {inspections.map((inspection: any) => (
-                  <TableRow key={inspection.id}>
-                    <TableCell>
-                      {new Date(inspection.created_at).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="font-mono text-sm">
-                      {inspection.order_items?.full_sku || "N/A"}
-                    </TableCell>
-                    <TableCell>
-                      {inspection.qc_stage ? (
-                        <Badge variant="outline">
-                          {inspection.qc_stage.replace(/_/g, " ")}
-                        </Badge>
-                      ) : (
-                        "N/A"
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(inspection.status)}
-                        {getStatusBadge(inspection.status)}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={inspection._count?.qc_defects > 0 ? "destructive" : "secondary"}>
-                        {inspection._count?.qc_defects || 0}
+          </p>
+        </div>
+        {inspections.length > 0 ? (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Date</TableHead>
+                <TableHead>Full SKU</TableHead>
+                <TableHead>Stage</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Defects</TableHead>
+                <TableHead>Notes</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {inspections.map((inspection: any) => (
+                <TableRow key={inspection.id}>
+                  <TableCell>
+                    {new Date(inspection.created_at).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell className="font-mono text-sm">
+                    {inspection.order_items?.full_sku || "N/A"}
+                  </TableCell>
+                  <TableCell>
+                    {inspection.qc_stage ? (
+                      <Badge variant="outline">
+                        {inspection.qc_stage.replace(/_/g, " ")}
                       </Badge>
-                    </TableCell>
-                    <TableCell className="max-w-md truncate">
-                      {inspection.notes || "-"}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Link
-                        href={`/production/qc/${inspection.id}`}
-                        className="view-detail-link"
-                      >
-                        <span>View Details</span>
-                        <ExternalLink className="link-icon" />
-                      </Link>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <div className="empty-state">
-              <AlertCircle className="empty-state-icon" />
-              <p className="empty-state-text">No QC inspections yet</p>
-              <p className="empty-state-subtext">
-                QC inspections will appear here once orders for this catalog item are produced and inspected.
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                    ) : (
+                      "N/A"
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      {getStatusIcon(inspection.status)}
+                      {getStatusBadge(inspection.status)}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={inspection._count?.qc_defects > 0 ? "destructive" : "secondary"}>
+                      {inspection._count?.qc_defects || 0}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="max-w-md truncate">
+                    {inspection.notes || "-"}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Link
+                      href={`/production/qc/${inspection.id}`}
+                      className="view-detail-link"
+                    >
+                      <span>View Details</span>
+                      <ExternalLink className="link-icon" />
+                    </Link>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        ) : (
+          <div className="empty-state">
+            <AlertCircle className="empty-state-icon" />
+            <p className="empty-state-text">No QC inspections yet</p>
+            <p className="empty-state-subtext">
+              QC inspections will appear here once orders for this catalog item are produced and inspected.
+            </p>
+          </div>
+        )}
+      </div>
 
       {/* View All Inspections Link */}
       {inspections.length > 0 && (

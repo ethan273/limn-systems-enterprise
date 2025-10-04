@@ -110,9 +110,9 @@ export default function FinanceDashboard() {
  <CardTitle className="flex items-center gap-2">
  QuickBooks Connection
  {connectionStatus?.connected ? (
- <CheckCircle2 className="h-5 w-5 text-green-600" />
+ <CheckCircle2 className="h-5 w-5 text-success" />
  ) : (
- <XCircle className="h-5 w-5 text-red-600" />
+ <XCircle className="h-5 w-5 text-destructive" />
  )}
  </CardTitle>
  <CardDescription>
@@ -144,7 +144,7 @@ export default function FinanceDashboard() {
  {connectionStatus.token_expired ? (
  <Badge variant="destructive">Expired</Badge>
  ) : (
- <Badge variant="default" className="bg-green-600">Active</Badge>
+ <Badge variant="default" className="bg-success-muted">Active</Badge>
  )}
  </div>
  </div>
@@ -187,7 +187,7 @@ export default function FinanceDashboard() {
  <Card>
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
  <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
- <CheckCircle2 className="h-4 w-4 text-green-600" />
+ <CheckCircle2 className="h-4 w-4 text-success" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold">{syncStats.successRate}%</div>
@@ -200,7 +200,7 @@ export default function FinanceDashboard() {
  <Card>
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
  <CardTitle className="text-sm font-medium">Invoices Synced</CardTitle>
- <FileText className="h-4 w-4 text-blue-600" />
+ <FileText className="h-4 w-4 text-info" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold">{syncStats.invoicesSynced}</div>
@@ -213,7 +213,7 @@ export default function FinanceDashboard() {
  <Card>
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
  <CardTitle className="text-sm font-medium">Payments Synced</CardTitle>
- <CreditCard className="h-4 w-4 text-purple-600" />
+ <CreditCard className="h-4 w-4 text-secondary" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold">{syncStats.paymentsSynced}</div>

@@ -75,7 +75,7 @@ export function ContactStatusBadge({ status, className = '' }: ContactStatusBadg
  case 'active':
  return {
  label: 'Active',
- className: 'bg-green-500/10 text-green-400 border-green-500/20',
+ className: 'bg-success/10 text-success border-success/20',
  icon: CheckCircle,
  };
  case 'inactive':
@@ -87,13 +87,13 @@ export function ContactStatusBadge({ status, className = '' }: ContactStatusBadg
  case 'pending':
  return {
  label: 'Pending',
- className: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+ className: 'bg-warning/10 text-warning border-warning/20',
  icon: AlertCircle,
  };
  case 'archived':
  return {
  label: 'Archived',
- className: 'bg-red-500/10 text-red-400 border-red-500/20',
+ className: 'bg-destructive/10 text-destructive border-destructive/20',
  icon: XCircle,
  };
  default:
@@ -123,43 +123,43 @@ export function LeadStatusBadge({ status, className = '' }: LeadStatusBadgeProps
  case 'new':
  return {
  label: 'New',
- className: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+ className: 'bg-info/10 text-info border-info/20',
  icon: Mail,
  };
  case 'contacted':
  return {
  label: 'Contacted',
- className: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+ className: 'bg-primary/10 text-primary border-primary/20',
  icon: CheckCircle,
  };
  case 'qualified':
  return {
  label: 'Qualified',
- className: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
+ className: 'bg-primary/10 text-primary border-primary/20',
  icon: TrendingUp,
  };
  case 'proposal':
  return {
  label: 'Proposal',
- className: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+ className: 'bg-warning/10 text-warning border-warning/20',
  icon: AlertCircle,
  };
  case 'negotiation':
  return {
  label: 'Negotiation',
- className: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
+ className: 'bg-warning/10 text-warning border-warning/20',
  icon: Clock,
  };
  case 'closed_won':
  return {
  label: 'Won',
- className: 'bg-green-500/10 text-green-400 border-green-500/20',
+ className: 'bg-success/10 text-success border-success/20',
  icon: CheckCircle,
  };
  case 'closed_lost':
  return {
  label: 'Lost',
- className: 'bg-red-500/10 text-red-400 border-red-500/20',
+ className: 'bg-destructive/10 text-destructive border-destructive/20',
  icon: XCircle,
  };
  default:
@@ -189,7 +189,7 @@ export function CustomerStatusBadge({ status, className = '' }: CustomerStatusBa
  case 'active':
  return {
  label: 'Active',
- className: 'bg-green-500/10 text-green-400 border-green-500/20',
+ className: 'bg-success/10 text-success border-success/20',
  icon: CheckCircle,
  };
  case 'inactive':
@@ -201,13 +201,13 @@ export function CustomerStatusBadge({ status, className = '' }: CustomerStatusBa
  case 'pending':
  return {
  label: 'Pending',
- className: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+ className: 'bg-warning/10 text-warning border-warning/20',
  icon: AlertCircle,
  };
  case 'suspended':
  return {
  label: 'Suspended',
- className: 'bg-red-500/10 text-red-400 border-red-500/20',
+ className: 'bg-destructive/10 text-destructive border-destructive/20',
  icon: XCircle,
  };
  default:
@@ -237,19 +237,19 @@ export function ProspectStatusBadge({ status, className = '' }: ProspectStatusBa
  case 'hot':
  return {
  label: 'Hot',
- className: 'bg-red-500/10 text-red-400 border-red-500/20',
+ className: 'bg-destructive/10 text-destructive border-destructive/20',
  icon: TrendingUp,
  };
  case 'warm':
  return {
  label: 'Warm',
- className: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+ className: 'bg-warning/10 text-warning border-warning/20',
  icon: AlertCircle,
  };
  case 'cold':
  return {
  label: 'Cold',
- className: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+ className: 'bg-info/10 text-info border-info/20',
  icon: Clock,
  };
  default:
@@ -279,37 +279,37 @@ export function LeadSourceBadge({ source, className = '' }: LeadSourceBadgeProps
  case 'website':
  return {
  label: 'Website',
- className: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+ className: 'bg-info/10 text-info border-info/20',
  };
  case 'referral':
  return {
  label: 'Referral',
- className: 'bg-green-500/10 text-green-400 border-green-500/20',
+ className: 'bg-success/10 text-success border-success/20',
  };
  case 'advertising':
  return {
  label: 'Advertising',
- className: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+ className: 'bg-primary/10 text-primary border-primary/20',
  };
  case 'social_media':
  return {
  label: 'Social Media',
- className: 'bg-pink-500/10 text-pink-400 border-pink-500/20',
+ className: 'bg-muted/10 text-muted border-muted/20',
  };
  case 'email':
  return {
  label: 'Email',
- className: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
+ className: 'bg-primary/10 text-primary border-primary/20',
  };
  case 'phone':
  return {
  label: 'Phone',
- className: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+ className: 'bg-warning/10 text-warning border-warning/20',
  };
  case 'trade_show':
  return {
  label: 'Trade Show',
- className: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
+ className: 'bg-warning/10 text-warning border-warning/20',
  };
  case 'other':
  return {
@@ -340,19 +340,19 @@ export function CustomerTypeBadge({ type, className = '' }: CustomerTypeBadgePro
  case 'individual':
  return {
  label: 'Individual',
- className: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+ className: 'bg-info/10 text-info border-info/20',
  icon: Users,
  };
  case 'business':
  return {
  label: 'Business',
- className: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+ className: 'bg-primary/10 text-primary border-primary/20',
  icon: Building2,
  };
  case 'enterprise':
  return {
  label: 'Enterprise',
- className: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
+ className: 'bg-warning/10 text-warning border-warning/20',
  icon: Building2,
  };
  default:
@@ -388,37 +388,37 @@ export function PipelineStageBadge({ stage, className = '' }: PipelineStageBadge
  case 'contacted':
  return {
  label: 'Contacted',
- className: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+ className: 'bg-info/10 text-info border-info/20',
  icon: Mail,
  };
  case 'qualified':
  return {
  label: 'Qualified',
- className: 'bg-green-500/10 text-green-400 border-green-500/20',
+ className: 'bg-success/10 text-success border-success/20',
  icon: CheckCircle,
  };
  case 'proposal':
  return {
  label: 'Proposal',
- className: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+ className: 'bg-warning/10 text-warning border-warning/20',
  icon: AlertCircle,
  };
  case 'negotiation':
  return {
  label: 'Negotiation',
- className: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
+ className: 'bg-warning/10 text-warning border-warning/20',
  icon: TrendingUp,
  };
  case 'decision':
  return {
  label: 'Decision',
- className: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+ className: 'bg-primary/10 text-primary border-primary/20',
  icon: AlertCircle,
  };
  case 'closed':
  return {
  label: 'Closed',
- className: 'bg-green-600/10 text-green-500 border-green-600/20',
+ className: 'bg-success/10 text-success border-success/20',
  icon: CheckCircle,
  };
  default:
@@ -448,49 +448,49 @@ export function ContactSourceBadge({ source, className = '' }: ContactSourceBadg
  case 'website':
  return {
  label: 'Website',
- className: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+ className: 'bg-info/10 text-info border-info/20',
  icon: Building2,
  };
  case 'referral':
  return {
  label: 'Referral',
- className: 'bg-green-500/10 text-green-400 border-green-500/20',
+ className: 'bg-success/10 text-success border-success/20',
  icon: Users,
  };
  case 'linkedin':
  return {
  label: 'LinkedIn',
- className: 'bg-blue-600/10 text-blue-500 border-blue-600/20',
+ className: 'bg-info/10 text-info border-info/20',
  icon: Users,
  };
  case 'cold_call':
  return {
  label: 'Cold Call',
- className: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+ className: 'bg-primary/10 text-primary border-primary/20',
  icon: Mail,
  };
  case 'email':
  return {
  label: 'Email',
- className: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
+ className: 'bg-warning/10 text-warning border-warning/20',
  icon: Mail,
  };
  case 'trade_show':
  return {
  label: 'Trade Show',
- className: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
+ className: 'bg-primary/10 text-primary border-primary/20',
  icon: Building2,
  };
  case 'advertising':
  return {
  label: 'Advertising',
- className: 'bg-red-500/10 text-red-400 border-red-500/20',
+ className: 'bg-destructive/10 text-destructive border-destructive/20',
  icon: TrendingUp,
  };
  case 'social_media':
  return {
  label: 'Social Media',
- className: 'bg-pink-500/10 text-pink-400 border-pink-500/20',
+ className: 'bg-muted/10 text-muted border-muted/20',
  icon: TrendingUp,
  };
  case 'other':

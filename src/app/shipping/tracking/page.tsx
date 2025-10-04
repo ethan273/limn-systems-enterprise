@@ -122,8 +122,8 @@ export default function TrackingPage() {
                         variant="outline"
                         className={cn(
                           shipment.status === "delivered" && "status-completed",
-                          shipment.status === "shipped" && "bg-green-100 text-green-800 border-green-300",
-                          shipment.status === "in_transit" && "bg-blue-100 text-blue-800 border-blue-300",
+                          shipment.status === "shipped" && "bg-success-muted text-success border-success",
+                          shipment.status === "in_transit" && "bg-info-muted text-info border-info",
                           shipment.status === "pending" && "badge-neutral",
                           shipment.status === "delayed" && "status-cancelled"
                         )}
@@ -154,8 +154,8 @@ export default function TrackingPage() {
                   <div className="space-y-4">
                     {/* Example tracking events - in a real implementation, this would come from SEKO API */}
                     <div className="flex items-start gap-3">
-                      <div className="p-2 bg-green-100 rounded-full">
-                        <CheckCircle2 className="w-4 h-4 text-green-600" aria-hidden="true" />
+                      <div className="p-2 bg-success-muted rounded-full">
+                        <CheckCircle2 className="w-4 h-4 text-success" aria-hidden="true" />
                       </div>
                       <div className="flex-1">
                         <p className="font-medium text-sm">Shipment Created</p>
@@ -167,8 +167,8 @@ export default function TrackingPage() {
 
                     {(shipment as any).shipped_date && (
                       <div className="flex items-start gap-3">
-                        <div className="p-2 bg-blue-100 rounded-full">
-                          <TruckIcon className="w-4 h-4 text-blue-600" aria-hidden="true" />
+                        <div className="p-2 bg-info-muted rounded-full">
+                          <TruckIcon className="w-4 h-4 text-info" aria-hidden="true" />
                         </div>
                         <div className="flex-1">
                           <p className="font-medium text-sm">Picked Up</p>
@@ -181,8 +181,8 @@ export default function TrackingPage() {
 
                     {shipment.status === "in_transit" && (
                       <div className="flex items-start gap-3">
-                        <div className="p-2 bg-yellow-100 rounded-full">
-                          <Clock className="w-4 h-4 text-yellow-600" aria-hidden="true" />
+                        <div className="p-2 bg-warning-muted rounded-full">
+                          <Clock className="w-4 h-4 text-warning" aria-hidden="true" />
                         </div>
                         <div className="flex-1">
                           <p className="font-medium text-sm">In Transit</p>
@@ -193,8 +193,8 @@ export default function TrackingPage() {
 
                     {shipment.status === "delivered" && (
                       <div className="flex items-start gap-3">
-                        <div className="p-2 bg-green-100 rounded-full">
-                          <CheckCircle2 className="w-4 h-4 text-green-600" aria-hidden="true" />
+                        <div className="p-2 bg-success-muted rounded-full">
+                          <CheckCircle2 className="w-4 h-4 text-success" aria-hidden="true" />
                         </div>
                         <div className="flex-1">
                           <p className="font-medium text-sm">Delivered</p>
@@ -205,8 +205,8 @@ export default function TrackingPage() {
 
                     {shipment.status === "delayed" && (
                       <div className="flex items-start gap-3">
-                        <div className="p-2 bg-red-100 rounded-full">
-                          <AlertCircle className="w-4 h-4 text-red-600" aria-hidden="true" />
+                        <div className="p-2 bg-destructive-muted rounded-full">
+                          <AlertCircle className="w-4 h-4 text-destructive" aria-hidden="true" />
                         </div>
                         <div className="flex-1">
                           <p className="font-medium text-sm">Delayed</p>
@@ -262,19 +262,19 @@ export default function TrackingPage() {
 
       {/* Instructions (shown when no search attempted) */}
       {!searchAttempted && (
-        <Card className="bg-blue-50 border-blue-200">
+        <Card className="bg-info-muted border-info">
           <CardContent className="card-content-compact">
             <div className="flex items-start gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <MapPin className="w-5 h-5 text-blue-600" aria-hidden="true" />
+              <div className="p-2 bg-info-muted rounded-lg">
+                <MapPin className="w-5 h-5 text-info" aria-hidden="true" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-blue-900">How to Track Your Shipment</h3>
-                <p className="text-sm text-blue-700 mt-1">
+                <h3 className="font-semibold text-info">How to Track Your Shipment</h3>
+                <p className="text-sm text-info mt-1">
                   Enter your tracking number in the search box above. Tracking numbers are typically provided
                   in your shipping confirmation email or can be found on your packing slip.
                 </p>
-                <ul className="text-sm text-blue-700 mt-2 space-y-1 list-disc list-inside">
+                <ul className="text-sm text-info mt-2 space-y-1 list-disc list-inside">
                   <li>Tracking numbers are usually 10-20 characters long</li>
                   <li>They may contain letters and numbers</li>
                   <li>Real-time tracking information is powered by SEKO</li>

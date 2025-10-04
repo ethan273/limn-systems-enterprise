@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -753,8 +753,8 @@ export default function LeadsPage() {
           <Card className="card">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-500/20 rounded-lg">
-                  <Users className="h-5 w-5 text-blue-400" aria-hidden="true" />
+                <div className="p-2 bg-info-muted/20 rounded-lg">
+                  <Users className="h-5 w-5 text-info" aria-hidden="true" />
                 </div>
                 <div>
                   <p className="text-sm page-subtitle">Total Leads</p>
@@ -766,8 +766,8 @@ export default function LeadsPage() {
           <Card className="card">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-500/20 rounded-lg">
-                  <DollarSign className="h-5 w-5 text-green-400" aria-hidden="true" />
+                <div className="p-2 bg-success-muted/20 rounded-lg">
+                  <DollarSign className="h-5 w-5 text-success" aria-hidden="true" />
                 </div>
                 <div>
                   <p className="text-sm page-subtitle">Pipeline Value</p>
@@ -781,8 +781,8 @@ export default function LeadsPage() {
           <Card className="card">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-yellow-500/20 rounded-lg">
-                  <Target className="h-5 w-5 text-yellow-400" aria-hidden="true" />
+                <div className="p-2 bg-warning-muted/20 rounded-lg">
+                  <Target className="h-5 w-5 text-warning" aria-hidden="true" />
                 </div>
                 <div>
                   <p className="text-sm page-subtitle">Hot Prospects</p>
@@ -796,8 +796,8 @@ export default function LeadsPage() {
           <Card className="card">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-500/20 rounded-lg">
-                  <TrendingUp className="h-5 w-5 text-purple-400" aria-hidden="true" />
+                <div className="p-2 bg-primary-muted/20 rounded-lg">
+                  <TrendingUp className="h-5 w-5 text-secondary" aria-hidden="true" />
                 </div>
                 <div>
                   <p className="text-sm page-subtitle">Won This Month</p>
@@ -812,29 +812,24 @@ export default function LeadsPage() {
       )}
 
       {/* Filters */}
-      <Card className="card">
-        <CardHeader className="card-header-sm">
-          <CardTitle className="card-title-sm">Filters</CardTitle>
-        </CardHeader>
-        <CardContent className="filters-section">
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 icon-sm text-muted" aria-hidden="true" />
+      <Card>
+        <CardContent className="card-content-compact">
+          <div className="filters-section">
+            <div className="search-input-wrapper">
+              <Search className="search-icon" aria-hidden="true" />
               <Input
                 placeholder="Search leads..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 card"
+                className="search-input"
               />
             </div>
 
-            {/* Status Filter */}
             <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as LeadStatus | 'all')}>
-              <SelectTrigger className="card">
+              <SelectTrigger className="filter-select">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
-              <SelectContent className="card">
+              <SelectContent>
                 <SelectItem value="all">All Statuses</SelectItem>
                 {LEAD_STATUSES.map((status) => (
                   <SelectItem key={status.value} value={status.value}>
@@ -844,12 +839,11 @@ export default function LeadsPage() {
               </SelectContent>
             </Select>
 
-            {/* Prospect Filter */}
             <Select value={prospectFilter} onValueChange={(value) => setProspectFilter(value as ProspectStatus | 'all')}>
-              <SelectTrigger className="card">
+              <SelectTrigger className="filter-select">
                 <SelectValue placeholder="Prospect" />
               </SelectTrigger>
-              <SelectContent className="card">
+              <SelectContent>
                 <SelectItem value="all">All Prospects</SelectItem>
                 {PROSPECT_STATUSES.map((status) => (
                   <SelectItem key={status.value} value={status.value}>
@@ -859,12 +853,11 @@ export default function LeadsPage() {
               </SelectContent>
             </Select>
 
-            {/* Source Filter */}
             <Select value={sourceFilter} onValueChange={setSourceFilter}>
-              <SelectTrigger className="card">
+              <SelectTrigger className="filter-select">
                 <SelectValue placeholder="Source" />
               </SelectTrigger>
-              <SelectContent className="card">
+              <SelectContent>
                 <SelectItem value="all">All Sources</SelectItem>
                 <SelectItem value="manual">Manual</SelectItem>
                 <SelectItem value="website">Website</SelectItem>
@@ -874,11 +867,10 @@ export default function LeadsPage() {
               </SelectContent>
             </Select>
 
-            {/* Clear Filters */}
             <Button
               variant="outline"
               onClick={clearFilters}
-              className="btn-secondary"
+              className="filter-select"
             >
               <Filter className="icon-sm" aria-hidden="true" />
               Clear
@@ -888,28 +880,22 @@ export default function LeadsPage() {
       </Card>
 
       {/* Leads Table */}
-      <Card className="card">
-        <CardHeader className="card-header-sm">
-          <CardTitle className="card-title-sm">
-            Leads ({filteredLeads.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="data-table-container">
-          {isLoading ? (
-            <div className="loading-state">
-              <div className="loading-spinner"></div>
-              <p>Loading leads...</p>
-            </div>
-          ) : filteredLeads.length === 0 ? (
-            <div className="empty-state">
-              <Target className="empty-state-icon" aria-hidden="true" />
-              <h3 className="empty-state-title">No leads found</h3>
-              <p className="empty-state-description">
-                Try adjusting your filters or create a new lead to get started.
-              </p>
-            </div>
-          ) : (
-            <Table>
+      <div className="data-table-container">
+        {isLoading ? (
+          <div className="loading-state">
+            <div className="loading-spinner"></div>
+            <p>Loading leads...</p>
+          </div>
+        ) : filteredLeads.length === 0 ? (
+          <div className="empty-state">
+            <Target className="empty-state-icon" aria-hidden="true" />
+            <h3 className="empty-state-title">No leads found</h3>
+            <p className="empty-state-description">
+              Try adjusting your filters or create a new lead to get started.
+            </p>
+          </div>
+        ) : (
+          <Table>
               <TableHeader>
                 <TableRow className="data-table-header-row">
                   <TableHead className="data-table-header">Name</TableHead>
@@ -1047,38 +1033,37 @@ export default function LeadsPage() {
                 ))}
               </TableBody>
             </Table>
-          )}
+        )}
 
-          {/* Pagination */}
-          {leadsData && leadsData.total > limit && (
-            <div className="data-table-pagination">
-              <div className="data-table-pagination-info">
-                Showing {page * limit + 1} to {Math.min((page + 1) * limit, leadsData.total)} of {leadsData.total} leads
-              </div>
-              <div className="data-table-pagination-controls">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage(Math.max(0, page - 1))}
-                  disabled={page === 0}
-                  className="btn-secondary"
-                >
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage(page + 1)}
-                  disabled={!leadsData.hasMore}
-                  className="btn-secondary"
-                >
-                  Next
-                </Button>
-              </div>
+        {/* Pagination */}
+        {leadsData && leadsData.total > limit && (
+          <div className="data-table-pagination">
+            <div className="data-table-pagination-info">
+              Showing {page * limit + 1} to {Math.min((page + 1) * limit, leadsData.total)} of {leadsData.total} leads
             </div>
-          )}
-        </CardContent>
-      </Card>
+            <div className="data-table-pagination-controls">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(Math.max(0, page - 1))}
+                disabled={page === 0}
+                className="btn-secondary"
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(page + 1)}
+                disabled={!leadsData.hasMore}
+                className="btn-secondary"
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

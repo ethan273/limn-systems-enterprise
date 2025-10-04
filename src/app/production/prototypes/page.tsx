@@ -44,47 +44,47 @@ const statusConfig: Record<string, {
 }> = {
  concept: {
  label: "Concept",
- className: "bg-purple-100 text-purple-800 border-purple-300"
+ className: "bg-primary-muted text-primary border-primary"
  },
  design_review: {
  label: "Design Review",
- className: "bg-yellow-100 text-yellow-800 border-yellow-300"
+ className: "bg-warning-muted text-warning border-warning"
  },
  design_approved: {
  label: "Design Approved",
- className: "bg-blue-100 text-blue-800 border-blue-300"
+ className: "bg-info-muted text-info border-info"
  },
  production_pending: {
  label: "Production Pending",
- className: "bg-orange-100 text-orange-800 border-orange-300"
+ className: "bg-orange-100 text-warning border-orange-300"
  },
  in_production: {
  label: "In Production",
- className: "bg-blue-100 text-blue-800 border-blue-300"
+ className: "bg-info-muted text-info border-info"
  },
  assembly_complete: {
  label: "Assembly Complete",
- className: "bg-indigo-100 text-indigo-800 border-indigo-300"
+ className: "bg-primary text-primary border-primary"
  },
  quality_review: {
  label: "Quality Review",
- className: "bg-yellow-100 text-yellow-800 border-yellow-300"
+ className: "bg-warning-muted text-warning border-warning"
  },
  client_review: {
  label: "Client Review",
- className: "bg-yellow-100 text-yellow-800 border-yellow-300"
+ className: "bg-warning-muted text-warning border-warning"
  },
  approved: {
  label: "Approved",
- className: "bg-green-100 text-green-800 border-green-300"
+ className: "bg-success-muted text-success border-success"
  },
  rejected: {
  label: "Rejected",
- className: "bg-red-100 text-red-800 border-red-300"
+ className: "bg-destructive-muted text-destructive border-destructive"
  },
  ready_for_catalog: {
  label: "Ready for Catalog",
- className: "bg-emerald-100 text-emerald-800 border-emerald-300"
+ className: "bg-success text-success border-success"
  },
  archived: {
  label: "Archived",
@@ -99,15 +99,15 @@ const priorityConfig: Record<string, {
 }> = {
  low: {
  label: "Low",
- className: "bg-green-100 text-green-800 border-green-300"
+ className: "bg-success-muted text-success border-success"
  },
  medium: {
  label: "Medium",
- className: "bg-yellow-100 text-yellow-800 border-yellow-300"
+ className: "bg-warning-muted text-warning border-warning"
  },
  high: {
  label: "High",
- className: "bg-red-100 text-red-800 border-red-300"
+ className: "bg-destructive-muted text-destructive border-destructive"
  }
 };
 
@@ -274,7 +274,7 @@ export default function PrototypesPage() {
  </CardTitle>
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-blue-600">{stats.inProgress}</div>
+ <div className="text-2xl font-bold text-info">{stats.inProgress}</div>
  </CardContent>
  </Card>
 
@@ -286,7 +286,7 @@ export default function PrototypesPage() {
  </CardTitle>
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-green-600">{stats.completed}</div>
+ <div className="text-2xl font-bold text-success">{stats.completed}</div>
  </CardContent>
  </Card>
 
@@ -298,7 +298,7 @@ export default function PrototypesPage() {
  </CardTitle>
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-red-600">{stats.rejected}</div>
+ <div className="text-2xl font-bold text-destructive">{stats.rejected}</div>
  </CardContent>
  </Card>
  </div>
@@ -511,7 +511,7 @@ export default function PrototypesPage() {
  <div className="flex items-center gap-2">
  <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
  <div
- className="h-full bg-blue-600 transition-all"
+ className="h-full bg-info-muted transition-all"
  style={{ width: `${(prototype.prototype_production[0] as any)?.overall_progress || 0}%` }}
  />
  </div>

@@ -52,9 +52,9 @@ export default function TaskPrioritySelect({ taskId, currentPriority, onUpdate }
  variant="outline"
  className={cn(
  "border text-xs font-medium px-2 py-0.5 h-6",
- currentPriority === 'low' && "bg-gray-500/20 text-gray-400 border-gray-500/20",
- currentPriority === 'medium' && "bg-yellow-500/20 text-yellow-400 border-yellow-500/20",
- currentPriority === 'high' && "bg-red-500/20 text-red-400 border-red-500/20",
+ currentPriority === 'low' && "bg-muted/20 text-muted border-muted/20",
+ currentPriority === 'medium' && "bg-warning/20 text-warning border-warning/20",
+ currentPriority === 'high' && "bg-destructive/20 text-destructive border-destructive/20",
  isUpdating && "opacity-50"
  )}
  >
@@ -69,12 +69,12 @@ export default function TaskPrioritySelect({ taskId, currentPriority, onUpdate }
  </Badge>
  </SelectItem>
  <SelectItem value="medium">
- <Badge variant="outline" className="bg-yellow-500/20 text-yellow-400 border-yellow-500/20 text-xs">
+ <Badge variant="outline" className="bg-warning/20 text-warning border-warning/20 text-xs">
  MEDIUM
  </Badge>
  </SelectItem>
  <SelectItem value="high">
- <Badge variant="outline" className="bg-red-500/20 text-red-400 border-red-500/20 text-xs">
+ <Badge variant="outline" className="bg-destructive/20 text-destructive border-destructive/20 text-xs">
  HIGH
  </Badge>
  </SelectItem>

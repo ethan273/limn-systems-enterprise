@@ -165,7 +165,7 @@ function UserSelectorDialog({
  key={user.id}
  className={`flex items-center space-x-3 p-3 rounded-lg border ${
  isSelected
- ? 'border-blue-500/50 bg-blue-500/10'
+ ? 'border-info/50 bg-info/10'
  : 'border hover:border'
  } ${isDisabled ? 'opacity-50' : ''}`}
  >
@@ -311,7 +311,7 @@ export function CRMAssignmentSelector({
  variant="ghost"
  size="sm"
  onClick={() => removeUser(user.id)}
- className="h-6 w-6 p-0 hover:bg-red-500/20"
+ className="h-6 w-6 p-0 hover:bg-destructive/20"
  >
  <X className="w-3 h-3" />
  </Button>
@@ -337,7 +337,7 @@ export function CRMAssignmentSelector({
  <Button
  variant="ghost"
  onClick={() => onSelectionChange([])}
- className="text-tertiary hover:text-red-400"
+ className="text-tertiary hover:text-destructive"
  >
  Clear All
  </Button>

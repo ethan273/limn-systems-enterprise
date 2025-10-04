@@ -7,6 +7,7 @@ import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ShippingStatusBadge } from "@/components/ui/status-badge";
 import {
   Table,
   TableBody,
@@ -104,7 +105,7 @@ export default function ShippingDashboardPage() {
             <CardTitle className="card-title-sm">Pending</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value text-yellow-600">{stats.pending}</div>
+            <div className="stat-value text-warning">{stats.pending}</div>
             <p className="stat-label">Awaiting shipment</p>
           </CardContent>
         </Card>
@@ -114,7 +115,7 @@ export default function ShippingDashboardPage() {
             <CardTitle className="card-title-sm">In Transit</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value text-blue-600">{stats.inTransit}</div>
+            <div className="stat-value text-info">{stats.inTransit}</div>
             <p className="stat-label">Currently shipping</p>
           </CardContent>
         </Card>
@@ -124,7 +125,7 @@ export default function ShippingDashboardPage() {
             <CardTitle className="card-title-sm">Delivered</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value text-green-600">{stats.delivered}</div>
+            <div className="stat-value text-success">{stats.delivered}</div>
             <p className="stat-label">Successfully delivered</p>
           </CardContent>
         </Card>
@@ -142,7 +143,7 @@ export default function ShippingDashboardPage() {
                 <h3 className="font-semibold text-lg">Manage Shipments</h3>
                 <p className="text-sm text-muted">View and create shipments</p>
               </div>
-              <TruckIcon className="w-8 h-8 text-blue-600" aria-hidden="true" />
+              <TruckIcon className="w-8 h-8 text-info" aria-hidden="true" />
             </div>
           </CardContent>
         </Card>
@@ -157,7 +158,7 @@ export default function ShippingDashboardPage() {
                 <h3 className="font-semibold text-lg">Track Shipment</h3>
                 <p className="text-sm text-muted">Real-time tracking lookup</p>
               </div>
-              <MapPin className="w-8 h-8 text-green-600" aria-hidden="true" />
+              <MapPin className="w-8 h-8 text-success" aria-hidden="true" />
             </div>
           </CardContent>
         </Card>
@@ -172,7 +173,7 @@ export default function ShippingDashboardPage() {
                 <h3 className="font-semibold text-lg">Production Shipments</h3>
                 <p className="text-sm text-muted">From production orders</p>
               </div>
-              <Package className="w-8 h-8 text-purple-600" aria-hidden="true" />
+              <Package className="w-8 h-8 text-primary" aria-hidden="true" />
             </div>
           </CardContent>
         </Card>
@@ -212,7 +213,7 @@ export default function ShippingDashboardPage() {
               </Button>
             </div>
           ) : (
-            <div className="table-container">
+            <div className="data-table-container">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -227,18 +228,6 @@ export default function ShippingDashboardPage() {
                 </TableHeader>
                 <TableBody>
                   {recentShipments.map((shipment) => {
-                    const statusConfig: Record<string, { label: string; className: string }> = {
-                      pending: { label: "Pending", className: "badge-neutral" },
-                      preparing: { label: "Preparing", className: "bg-yellow-100 text-yellow-800 border-yellow-300" },
-                      ready: { label: "Ready", className: "bg-blue-100 text-blue-800 border-blue-300" },
-                      shipped: { label: "Shipped", className: "bg-green-100 text-green-800 border-green-300" },
-                      in_transit: { label: "In Transit", className: "bg-blue-100 text-blue-800 border-blue-300" },
-                      delivered: { label: "Delivered", className: "status-completed" },
-                      delayed: { label: "Delayed", className: "status-cancelled" },
-                    };
-
-                    const statusInfo = statusConfig[shipment.status || "pending"];
-
                     return (
                       <TableRow
                         key={shipment.id}
@@ -278,9 +267,7 @@ export default function ShippingDashboardPage() {
                           )}
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className={statusInfo?.className}>
-                            {statusInfo?.label || shipment.status}
-                          </Badge>
+                          <ShippingStatusBadge status={shipment.status || "pending"} />
                         </TableCell>
                         <TableCell>
                           {shipment.shipped_date ? (
@@ -307,15 +294,15 @@ export default function ShippingDashboardPage() {
       </Card>
 
       {/* SEKO Integration Notice */}
-      <Card className="bg-blue-50 border-blue-200">
+      <Card className="bg-info-muted border-info">
         <CardContent className="card-content-compact">
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Ship className="w-5 h-5 text-blue-600" aria-hidden="true" />
+            <div className="p-2 bg-info-muted rounded-lg">
+              <Ship className="w-5 h-5 text-info" aria-hidden="true" />
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold text-blue-900">SEKO Integration Active</h3>
-              <p className="text-sm text-blue-700 mt-1">
+              <h3 className="font-semibold text-info">SEKO Integration Active</h3>
+              <p className="text-sm text-info mt-1">
                 This shipping module is integrated with SEKO for real-time rates, label generation, and tracking.
               </p>
             </div>

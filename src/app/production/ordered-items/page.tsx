@@ -50,7 +50,7 @@ const statusConfig: Record<string, { label: string; className: string; icon: Rea
   },
   quality_check: {
     label: "Quality Check",
-    className: "bg-purple-100 text-purple-800 border-purple-300",
+    className: "bg-primary-muted text-primary border-primary",
     icon: <AlertCircle className="icon-sm" aria-hidden="true" />,
   },
   approved: {
@@ -60,17 +60,17 @@ const statusConfig: Record<string, { label: string; className: string; icon: Rea
   },
   packed: {
     label: "Packed",
-    className: "bg-indigo-100 text-indigo-800 border-indigo-300",
+    className: "bg-primary text-primary border-primary",
     icon: <Package className="icon-sm" aria-hidden="true" />,
   },
   shipped: {
     label: "Shipped",
-    className: "bg-blue-100 text-blue-800 border-blue-300",
+    className: "bg-info-muted text-info border-info",
     icon: <TruckIcon className="icon-sm" aria-hidden="true" />,
   },
   delivered: {
     label: "Delivered",
-    className: "bg-green-100 text-green-800 border-green-300",
+    className: "bg-success-muted text-success border-success",
     icon: <CheckCircle2 className="icon-sm" aria-hidden="true" />,
   },
 };
@@ -90,7 +90,7 @@ const qcStatusConfig: Record<string, { label: string; className: string }> = {
   },
   repaired: {
     label: "Repaired",
-    className: "bg-yellow-100 text-yellow-800 border-yellow-300",
+    className: "bg-warning-muted text-warning border-warning",
   },
 };
 
@@ -156,7 +156,7 @@ export default function OrderedItemsProductionPage() {
             <CardTitle className="card-title-sm">In Production</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value text-blue-600">{stats.inProduction}</div>
+            <div className="stat-value text-info">{stats.inProduction}</div>
           </CardContent>
         </Card>
 
@@ -165,7 +165,7 @@ export default function OrderedItemsProductionPage() {
             <CardTitle className="card-title-sm">Quality Check</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value text-purple-600">{stats.qualityCheck}</div>
+            <div className="stat-value text-primary">{stats.qualityCheck}</div>
           </CardContent>
         </Card>
 
@@ -174,7 +174,7 @@ export default function OrderedItemsProductionPage() {
             <CardTitle className="card-title-sm">QC Pass Rate</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value text-green-600">
+            <div className="stat-value text-success">
               {stats.total > 0
                 ? `${Math.round((stats.qcPass / stats.total) * 100)}%`
                 : "0%"}
@@ -233,12 +233,7 @@ export default function OrderedItemsProductionPage() {
       </Card>
 
       {/* Items Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Individual Units ({items.length})</CardTitle>
-        </CardHeader>
-        <CardContent className="card-content-compact">
-          {isLoading ? (
+      {isLoading ? (
             <div className="loading-state">Loading ordered items...</div>
           ) : items.length === 0 ? (
             <div className="empty-state">
@@ -249,7 +244,7 @@ export default function OrderedItemsProductionPage() {
               </p>
             </div>
           ) : (
-            <div className="table-container">
+        <div className="data-table-container">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -364,8 +359,7 @@ export default function OrderedItemsProductionPage() {
               </Table>
             </div>
           )}
-        </CardContent>
-      </Card>
+
     </div>
   );
 }

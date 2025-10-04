@@ -261,7 +261,7 @@ export function FileUploader({
  border-2 border-dashed rounded-lg p-8 text-center transition-colors
  ${
  isDragging
- ? 'border-blue-500 bg-blue-500/10'
+ ? 'border-info bg-info/10'
  : 'border card/50'
  }
  `}
@@ -339,10 +339,10 @@ export function FileUploader({
  </div>
 
  {uploadFile.status === 'success' && (
- <CheckCircle className="w-5 h-5 text-green-500" />
+ <CheckCircle className="w-5 h-5 text-success" />
  )}
  {uploadFile.status === 'error' && (
- <AlertCircle className="w-5 h-5 text-red-500" />
+ <AlertCircle className="w-5 h-5 text-destructive" />
  )}
  {uploadFile.status !== 'uploading' && (
  <Button
@@ -360,7 +360,7 @@ export function FileUploader({
  )}
 
  {uploadFile.error && (
- <p className="text-sm text-red-500">{uploadFile.error}</p>
+ <p className="text-sm text-destructive">{uploadFile.error}</p>
  )}
  </div>
  ))}

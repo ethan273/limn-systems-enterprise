@@ -81,10 +81,10 @@ export default function FactoryQualityPage() {
  <div className="grid gap-4 md:grid-cols-3">
  <div className="p-4 border rounded-lg">
  <div className="flex items-center gap-2 mb-2">
- <CheckCircle className="h-5 w-5 text-green-600" />
+ <CheckCircle className="h-5 w-5 text-success" />
  <span className="text-sm text-muted-foreground">On-Time Delivery</span>
  </div>
- <p className="text-3xl font-bold text-green-600">
+ <p className="text-3xl font-bold text-success">
  {performance.summary.onTimePercentage}%
  </p>
  <p className="text-xs text-muted-foreground mt-1">
@@ -93,10 +93,10 @@ export default function FactoryQualityPage() {
  </div>
  <div className="p-4 border rounded-lg">
  <div className="flex items-center gap-2 mb-2">
- <Award className="h-5 w-5 text-blue-600" />
+ <Award className="h-5 w-5 text-info" />
  <span className="text-sm text-muted-foreground">Quality Rate</span>
  </div>
- <p className="text-3xl font-bold text-blue-600">
+ <p className="text-3xl font-bold text-info">
  {100 - performance.summary.defectPercentage}%
  </p>
  <p className="text-xs text-muted-foreground mt-1">
@@ -105,10 +105,10 @@ export default function FactoryQualityPage() {
  </div>
  <div className="p-4 border rounded-lg">
  <div className="flex items-center gap-2 mb-2">
- <BarChart3 className="h-5 w-5 text-purple-600" />
+ <BarChart3 className="h-5 w-5 text-secondary" />
  <span className="text-sm text-muted-foreground">Total Revenue</span>
  </div>
- <p className="text-3xl font-bold text-purple-600">
+ <p className="text-3xl font-bold text-secondary">
  {new Intl.NumberFormat('en-US', {
  style: 'currency',
  currency: partner.currency || 'USD',

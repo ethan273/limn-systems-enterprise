@@ -142,9 +142,9 @@ export default function DesignProjectDetailPage({ params }: { params: { id: stri
  </CardHeader>
  <CardContent>
  <div className="space-y-4">
- <div className="w-full card rounded-full h-3 dark:card">
+ <div className="design-progress-track">
  <div
- className="bg-blue-600 h-3 rounded-full transition-all"
+ className="design-progress-bar"
  style={{ width: `${getStageProgress(project.current_stage)}%` }}
  />
  </div>
@@ -152,7 +152,7 @@ export default function DesignProjectDetailPage({ params }: { params: { id: stri
  {stages.map((stage) => (
  <span
  key={stage.value}
- className={project.current_stage === stage.value ? "font-bold text-blue-600" : ""}
+ className={project.current_stage === stage.value ? "font-bold text-primary" : ""}
  >
  {stage.label}
  </span>
@@ -242,18 +242,16 @@ export default function DesignProjectDetailPage({ params }: { params: { id: stri
  return (
  <div
  key={stage.value}
- className={`flex items-center gap-3 p-3 rounded ${
- isCompleted ? 'bg-green-50 border border-green-200' : 'card border border'
- }`}
+ className={isCompleted ? 'deliverable-card-completed' : 'deliverable-card'}
  >
- <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
- isCompleted ? 'bg-green-500 text-foreground' : 'border '
- }`}>
+ <div className="flex items-center gap-3">
+ <div className={isCompleted ? 'deliverable-icon-bg-completed' : 'deliverable-icon-bg'}>
  {isCompleted ? '✓' : index + 1}
  </div>
- <span className={`font-medium ${isCompleted ? 'text-green-700' : ''}`}>
+ <span className="font-medium">
  {stage.label}
  </span>
+ </div>
  </div>
  );
  })}
@@ -400,9 +398,10 @@ export default function DesignProjectDetailPage({ params }: { params: { id: stri
  <CardContent>
  <div className="space-y-3">
  {project.design_revisions.map((revision: any, index: number) => (
- <div key={revision.id} className="flex items-start gap-3 p-3 border rounded">
- <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
- <Layers className="h-4 w-4 text-blue-600" />
+ <div key={revision.id} className="deliverable-card">
+ <div className="flex items-start gap-3">
+ <div className="deliverable-icon-bg">
+ <Layers className="h-4 w-4" />
  </div>
  <div className="flex-1">
  <div className="flex items-center justify-between mb-1">
@@ -414,6 +413,7 @@ export default function DesignProjectDetailPage({ params }: { params: { id: stri
  {revision.revision_notes && (
  <p className="text-sm text-muted-foreground">{revision.revision_notes}</p>
  )}
+ </div>
  </div>
  </div>
  ))}

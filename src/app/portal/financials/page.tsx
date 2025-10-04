@@ -46,27 +46,27 @@ const invoiceStatusConfig: Record<string, { label: string; className: string; ic
  },
  sent: {
  label: "Sent",
- className: "bg-blue-100 text-blue-800 border-blue-300",
+ className: "btn-primary text-info border-primary",
  icon: <Clock className="w-3 h-3" aria-hidden="true" />,
  },
  pending: {
  label: "Pending",
- className: "bg-yellow-100 text-yellow-800 border-yellow-300",
+ className: "bg-warning-muted text-warning border-warning",
  icon: <Clock className="w-3 h-3" aria-hidden="true" />,
  },
  partial: {
  label: "Partially Paid",
- className: "bg-orange-100 text-orange-800 border-orange-300",
+ className: "bg-orange-100 text-warning border-orange-300",
  icon: <DollarSign className="w-3 h-3" aria-hidden="true" />,
  },
  paid: {
  label: "Paid",
- className: "bg-green-100 text-green-800 border-green-300",
+ className: "bg-success-muted text-success border-success",
  icon: <CheckCircle2 className="w-3 h-3" aria-hidden="true" />,
  },
  overdue: {
  label: "Overdue",
- className: "bg-red-100 text-red-800 border-red-300",
+ className: "bg-destructive-muted text-destructive border-destructive",
  icon: <AlertCircle className="w-3 h-3" aria-hidden="true" />,
  },
  cancelled: {
@@ -79,15 +79,15 @@ const invoiceStatusConfig: Record<string, { label: string; className: string; ic
 const invoiceTypeConfig: Record<string, { label: string; className: string }> = {
  deposit: {
  label: "Deposit (50%)",
- className: "bg-blue-100 text-blue-800 border-blue-300",
+ className: "btn-primary text-info border-primary",
  },
  final: {
  label: "Final (50%)",
- className: "bg-purple-100 text-purple-800 border-purple-300",
+ className: "btn-secondary text-secondary border-secondary",
  },
  full: {
  label: "Full Payment",
- className: "bg-green-100 text-green-800 border-green-300",
+ className: "bg-success-muted text-success border-success",
  },
  custom: {
  label: "Custom",
@@ -156,7 +156,7 @@ export default function FinancialsPage() {
  <CheckCircle2 className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-green-600">${stats.totalPaid.toLocaleString()}</div>
+ <div className="text-2xl font-bold text-success">${stats.totalPaid.toLocaleString()}</div>
  </CardContent>
  </Card>
 
@@ -166,7 +166,7 @@ export default function FinancialsPage() {
  <DollarSign className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-red-600">${stats.totalDue.toLocaleString()}</div>
+ <div className="text-2xl font-bold text-destructive">${stats.totalDue.toLocaleString()}</div>
  </CardContent>
  </Card>
 
@@ -176,7 +176,7 @@ export default function FinancialsPage() {
  <Clock className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-yellow-600">{stats.pendingInvoices}</div>
+ <div className="text-2xl font-bold text-warning">{stats.pendingInvoices}</div>
  </CardContent>
  </Card>
 
@@ -186,7 +186,7 @@ export default function FinancialsPage() {
  <AlertCircle className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-red-600">{stats.overdueInvoices}</div>
+ <div className="text-2xl font-bold text-destructive">{stats.overdueInvoices}</div>
  </CardContent>
  </Card>
  </div>
@@ -234,11 +234,6 @@ export default function FinancialsPage() {
  </Card>
 
  {/* Invoices Table */}
- <Card>
- <CardHeader>
- <CardTitle>Invoices</CardTitle>
- </CardHeader>
- <CardContent>
  {isLoading ? (
  <div className="text-center py-8 text-muted-foreground">Loading invoices...</div>
  ) : filteredInvoices.length === 0 ? (
@@ -248,7 +243,7 @@ export default function FinancialsPage() {
  {searchQuery && <p className="text-sm mt-2">Try adjusting your search</p>}
  </div>
  ) : (
- <div className="overflow-x-auto">
+ <div className="data-table-container">
  <Table>
  <TableHeader>
  <TableRow>
@@ -295,14 +290,14 @@ export default function FinancialsPage() {
  <span className="font-semibold">${Number(invoice.total).toLocaleString()}</span>
  </TableCell>
  <TableCell>
- <span className="text-green-600 font-medium">
+ <span className="text-success font-medium">
  ${Number(invoice.amount_paid).toLocaleString()}
  </span>
  </TableCell>
  <TableCell>
  <span className={cn(
  "font-medium",
- Number(invoice.amount_due) > 0 ? "text-red-600" : "text-green-600"
+ Number(invoice.amount_due) > 0 ? "text-destructive" : "text-success"
  )}>
  ${Number(invoice.amount_due).toLocaleString()}
  </span>
@@ -336,15 +331,9 @@ export default function FinancialsPage() {
  </Table>
  </div>
  )}
- </CardContent>
- </Card>
 
  {/* Payment History */}
- <Card>
- <CardHeader>
- <CardTitle>Recent Payment History</CardTitle>
- </CardHeader>
- <CardContent>
+ <div className="data-table-container">
  <Table>
  <TableHeader>
  <TableRow>
@@ -378,7 +367,7 @@ export default function FinancialsPage() {
  <span className="font-mono text-sm">{payment.invoice_number}</span>
  </TableCell>
  <TableCell>
- <span className="font-semibold text-green-600">
+ <span className="font-semibold text-success">
  ${Number(payment.amount).toLocaleString()}
  </span>
  </TableCell>
@@ -405,8 +394,7 @@ export default function FinancialsPage() {
  )}
  </TableBody>
  </Table>
- </CardContent>
- </Card>
+ </div>
  </div>
  );
 }

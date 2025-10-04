@@ -329,7 +329,7 @@ function OrderedItemDialog({
 
  {/* Fabric Materials */}
  <div className="space-y-3">
- <h4 className="font-medium text-purple-800 dark:text-purple-200">Fabric Materials</h4>
+ <h4 className="font-medium text-primary dark:text-primary">Fabric Materials</h4>
  <div className="grid grid-cols-3 gap-4">
  <div className="space-y-2">
  <Label htmlFor="fabric_brand">Fabric Brand</Label>
@@ -390,7 +390,7 @@ function OrderedItemDialog({
 
  {/* Wood Materials */}
  <div className="space-y-3">
- <h4 className="font-medium text-amber-800 dark:text-amber-200">Wood Materials</h4>
+ <h4 className="font-medium text-muted dark:text-muted">Wood Materials</h4>
  <div className="grid grid-cols-2 gap-4">
  <div className="space-y-2">
  <Label htmlFor="wood_type">Wood Type</Label>
@@ -494,7 +494,7 @@ function OrderedItemDialog({
 
  {/* Stone Materials */}
  <div className="space-y-3">
- <h4 className="font-medium text-stone-800 dark:text-stone-200">Stone Materials</h4>
+ <h4 className="font-medium text-muted dark:text-muted">Stone Materials</h4>
  <div className="grid grid-cols-2 gap-4">
  <div className="space-y-2">
  <Label htmlFor="stone_type">Stone Type</Label>
@@ -537,7 +537,7 @@ function OrderedItemDialog({
 
  {/* Weaving Materials */}
  <div className="space-y-3">
- <h4 className="font-medium text-green-800 dark:text-green-200">Weaving Materials</h4>
+ <h4 className="font-medium text-success dark:text-success">Weaving Materials</h4>
  <div className="grid grid-cols-3 gap-4">
  <div className="space-y-2">
  <Label htmlFor="weaving_material">Weaving Material</Label>
@@ -598,7 +598,7 @@ function OrderedItemDialog({
 
  {/* Carving */}
  <div className="space-y-3">
- <h4 className="font-medium text-orange-800 dark:text-orange-200">Carving</h4>
+ <h4 className="font-medium text-warning dark:text-warning">Carving</h4>
  <div className="grid grid-cols-2 gap-4">
  <div className="space-y-2">
  <Label htmlFor="carving_style">Carving Style</Label>
@@ -753,11 +753,11 @@ export default function OrderedItemsPage() {
  }));
 
  const statuses = [
- { value: "pending", label: "Pending", color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200" },
- { value: "in_production", label: "In Production", color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" },
- { value: "ready", label: "Ready", color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" },
+ { value: "pending", label: "Pending", color: "bg-warning-muted text-warning dark:bg-warning-muted dark:text-warning" },
+ { value: "in_production", label: "In Production", color: "bg-info-muted text-info dark:bg-info-muted dark:text-info" },
+ { value: "ready", label: "Ready", color: "bg-success-muted text-success dark:bg-success-muted dark:text-success" },
  { value: "delivered", label: "Delivered", color: "badge-neutral" },
- { value: "cancelled", label: "Cancelled", color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" },
+ { value: "cancelled", label: "Cancelled", color: "bg-destructive-muted text-destructive dark:bg-destructive-muted dark:text-destructive" },
  ];
 
  const getStatusColor = (status: string) => {
@@ -1188,7 +1188,7 @@ export default function OrderedItemsPage() {
  e.stopPropagation();
  handleDeleteItem(item);
  }}
- className="text-red-600"
+ className="text-destructive"
  >
  <Trash2 className="mr-2 h-4 w-4" />
  Delete

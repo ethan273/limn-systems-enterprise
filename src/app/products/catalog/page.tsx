@@ -6,6 +6,7 @@ import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   DropdownMenu,
@@ -60,51 +61,67 @@ export default function CatalogItemsPage() {
       </div>
 
       {/* Filters */}
-      <div className="filters-section">
-        <div className="relative flex-1">
-          <Search className="search-icon" />
-          <Input
-            placeholder="Search catalog items by name, SKU, or collection..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="search-input"
-          />
-        </div>
-      </div>
+      <Card>
+        <CardContent className="card-content-compact">
+          <div className="filters-section">
+            <div className="search-input-wrapper">
+              <Search className="search-icon" aria-hidden="true" />
+              <Input
+                placeholder="Search catalog items by name, SKU, or collection..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="search-input"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="stat-card">
-          <div className="stat-card-content">
-            <div className="stat-card-header">
-              <span className="stat-card-label">Total Items</span>
-              <Package className="stat-card-icon" />
+        <Card className="card">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-info-muted/20 rounded-lg">
+                <Package className="h-5 w-5 text-info" aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-sm page-subtitle">Total Items</p>
+                <p className="text-xl font-bold text-primary">{productionReadyItems.length}</p>
+              </div>
             </div>
-            <div className="stat-card-value">{productionReadyItems.length}</div>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-card-content">
-            <div className="stat-card-header">
-              <span className="stat-card-label">Active</span>
-              <Package className="stat-card-icon" />
+          </CardContent>
+        </Card>
+        <Card className="card">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-success-muted/20 rounded-lg">
+                <Package className="h-5 w-5 text-success" aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-sm page-subtitle">Active</p>
+                <p className="text-xl font-bold text-primary">
+                  {productionReadyItems.filter((item: any) => item.is_active).length}
+                </p>
+              </div>
             </div>
-            <div className="stat-card-value">
-              {productionReadyItems.filter((item: any) => item.is_active).length}
+          </CardContent>
+        </Card>
+        <Card className="card">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-muted/20 rounded-lg">
+                <Package className="h-5 w-5 text-muted" aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-sm page-subtitle">Inactive</p>
+                <p className="text-xl font-bold text-primary">
+                  {productionReadyItems.filter((item: any) => !item.is_active).length}
+                </p>
+              </div>
             </div>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-card-content">
-            <div className="stat-card-header">
-              <span className="stat-card-label">Inactive</span>
-              <Package className="stat-card-icon" />
-            </div>
-            <div className="stat-card-value">
-              {productionReadyItems.filter((item: any) => !item.is_active).length}
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Items Table */}

@@ -251,85 +251,83 @@ export default function CatalogSalesTab({ itemId }: CatalogSalesTabProps) {
       </Card>
 
       {/* Order History Table */}
-      <Card className="order-history-card">
-        <CardHeader>
-          <CardTitle>Order History</CardTitle>
-          <CardDescription>
+      <div className="data-table-container">
+        <div className="data-table-header">
+          <h3 className="data-table-title">Order History</h3>
+          <p className="data-table-description">
             {orderItems.length} order item(s) for this catalog item
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {orderItems.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Full SKU</TableHead>
-                  <TableHead>Quantity</TableHead>
-                  <TableHead>Unit Price</TableHead>
-                  <TableHead>Total</TableHead>
-                  <TableHead>Materials</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {orderItems.map((item: any) => {
-                  const unitPrice = item.unit_price ? Number(item.unit_price) : 0;
-                  const quantity = item.quantity || 0;
-                  const total = unitPrice * quantity;
-                  const materials = item.specifications?.materials || {};
+          </p>
+        </div>
+        {orderItems.length > 0 ? (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Date</TableHead>
+                <TableHead>Full SKU</TableHead>
+                <TableHead>Quantity</TableHead>
+                <TableHead>Unit Price</TableHead>
+                <TableHead>Total</TableHead>
+                <TableHead>Materials</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {orderItems.map((item: any) => {
+                const unitPrice = item.unit_price ? Number(item.unit_price) : 0;
+                const quantity = item.quantity || 0;
+                const total = unitPrice * quantity;
+                const materials = item.specifications?.materials || {};
 
-                  return (
-                    <TableRow key={item.id}>
-                      <TableCell>
-                        {item.created_at
-                          ? new Date(item.created_at).toLocaleDateString()
-                          : "-"}
-                      </TableCell>
-                      <TableCell className="font-mono text-sm">
-                        {item.full_sku || "-"}
-                      </TableCell>
-                      <TableCell>{quantity}</TableCell>
-                      <TableCell>${unitPrice.toLocaleString()}</TableCell>
-                      <TableCell className="font-medium">
-                        ${total.toLocaleString()}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {materials.fabric && (
-                            <Badge variant="outline" className="text-xs">
-                              {materials.fabric.color || "Fabric"}
-                            </Badge>
-                          )}
-                          {materials.wood && (
-                            <Badge variant="outline" className="text-xs">
-                              {materials.wood.species || materials.wood.finish || "Wood"}
-                            </Badge>
-                          )}
-                          {materials.metal && (
-                            <Badge variant="outline" className="text-xs">
-                              {materials.metal.finish || "Metal"}
-                            </Badge>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          ) : (
-            <div className="empty-state">
-              <AlertCircle className="empty-state-icon" />
-              <p className="empty-state-text">No orders found</p>
-              <p className="empty-state-subtext">
-                {dateRange !== "all"
-                  ? "Try selecting a different date range"
-                  : "This catalog item hasn't been ordered yet"}
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                return (
+                  <TableRow key={item.id}>
+                    <TableCell>
+                      {item.created_at
+                        ? new Date(item.created_at).toLocaleDateString()
+                        : "-"}
+                    </TableCell>
+                    <TableCell className="font-mono text-sm">
+                      {item.full_sku || "-"}
+                    </TableCell>
+                    <TableCell>{quantity}</TableCell>
+                    <TableCell>${unitPrice.toLocaleString()}</TableCell>
+                    <TableCell className="font-medium">
+                      ${total.toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {materials.fabric && (
+                          <Badge variant="outline" className="text-xs">
+                            {materials.fabric.color || "Fabric"}
+                          </Badge>
+                        )}
+                        {materials.wood && (
+                          <Badge variant="outline" className="text-xs">
+                            {materials.wood.species || materials.wood.finish || "Wood"}
+                          </Badge>
+                        )}
+                        {materials.metal && (
+                          <Badge variant="outline" className="text-xs">
+                            {materials.metal.finish || "Metal"}
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        ) : (
+          <div className="empty-state">
+            <AlertCircle className="empty-state-icon" />
+            <p className="empty-state-text">No orders found</p>
+            <p className="empty-state-subtext">
+              {dateRange !== "all"
+                ? "Try selecting a different date range"
+                : "This catalog item hasn't been ordered yet"}
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

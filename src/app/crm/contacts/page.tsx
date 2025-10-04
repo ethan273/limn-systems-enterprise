@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -442,40 +442,34 @@ export default function ContactsPage() {
       </div>
 
       {/* Filters */}
-      <Card className="card">
-        <CardHeader className="card-header-sm">
-          <CardTitle className="card-title-sm">Filters</CardTitle>
-        </CardHeader>
-        <CardContent className="filters-section">
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 icon-sm text-muted" aria-hidden="true" />
+      <Card>
+        <CardContent className="card-content-compact">
+          <div className="filters-section">
+            <div className="search-input-wrapper">
+              <Search className="search-icon" aria-hidden="true" />
               <Input
                 placeholder="Search contacts..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 card"
+                className="search-input"
               />
             </div>
 
-            {/* Company Filter */}
             <Select value={companyFilter} onValueChange={setCompanyFilter}>
-              <SelectTrigger className="card">
+              <SelectTrigger className="filter-select">
                 <SelectValue placeholder="Company" />
               </SelectTrigger>
-              <SelectContent className="card">
+              <SelectContent>
                 <SelectItem value="all">All Contacts</SelectItem>
                 <SelectItem value="with_company">With Company</SelectItem>
                 <SelectItem value="no_company">No Company</SelectItem>
               </SelectContent>
             </Select>
 
-            {/* Clear Filters */}
             <Button
               variant="outline"
               onClick={clearFilters}
-              className="btn-secondary"
+              className="filter-select"
             >
               <Filter className="icon-sm" aria-hidden="true" />
               Clear
@@ -485,28 +479,22 @@ export default function ContactsPage() {
       </Card>
 
       {/* Contacts Table */}
-      <Card className="card">
-        <CardHeader className="card-header-sm">
-          <CardTitle className="card-title-sm">
-            Contacts ({filteredContacts.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="data-table-container">
-          {isLoading ? (
-            <div className="loading-state">
-              <div className="loading-spinner"></div>
-              <p>Loading contacts...</p>
-            </div>
-          ) : filteredContacts.length === 0 ? (
-            <div className="empty-state">
-              <User className="empty-state-icon" aria-hidden="true" />
-              <h3 className="empty-state-title">No contacts found</h3>
-              <p className="empty-state-description">
-                Try adjusting your filters or create a new contact to get started.
-              </p>
-            </div>
-          ) : (
-            <Table>
+      <div className="data-table-container">
+        {isLoading ? (
+          <div className="loading-state">
+            <div className="loading-spinner"></div>
+            <p>Loading contacts...</p>
+          </div>
+        ) : filteredContacts.length === 0 ? (
+          <div className="empty-state">
+            <User className="empty-state-icon" aria-hidden="true" />
+            <h3 className="empty-state-title">No contacts found</h3>
+            <p className="empty-state-description">
+              Try adjusting your filters or create a new contact to get started.
+            </p>
+          </div>
+        ) : (
+          <Table>
               <TableHeader>
                 <TableRow className="data-table-header-row">
                   <TableHead className="data-table-header">Name</TableHead>
@@ -648,38 +636,37 @@ export default function ContactsPage() {
                 ))}
               </TableBody>
             </Table>
-          )}
+        )}
 
-          {/* Pagination */}
-          {contactsData && contactsData.total > limit && (
-            <div className="data-table-pagination">
-              <div className="data-table-pagination-info">
-                Showing {page * limit + 1} to {Math.min((page + 1) * limit, contactsData.total)} of {contactsData.total} contacts
-              </div>
-              <div className="data-table-pagination-controls">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage(Math.max(0, page - 1))}
-                  disabled={page === 0}
-                  className="btn-secondary"
-                >
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage(page + 1)}
-                  disabled={!contactsData.hasMore}
-                  className="btn-secondary"
-                >
-                  Next
-                </Button>
-              </div>
+        {/* Pagination */}
+        {contactsData && contactsData.total > limit && (
+          <div className="data-table-pagination">
+            <div className="data-table-pagination-info">
+              Showing {page * limit + 1} to {Math.min((page + 1) * limit, contactsData.total)} of {contactsData.total} contacts
             </div>
-          )}
-        </CardContent>
-      </Card>
+            <div className="data-table-pagination-controls">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(Math.max(0, page - 1))}
+                disabled={page === 0}
+                className="btn-secondary"
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(page + 1)}
+                disabled={!contactsData.hasMore}
+                className="btn-secondary"
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

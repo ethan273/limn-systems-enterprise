@@ -100,7 +100,7 @@ export default function FactoriesPage() {
  <Card>
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
  <CardTitle className="text-sm font-medium">Active</CardTitle>
- <div className="h-2 w-2 rounded-full bg-green-500" />
+ <div className="h-2 w-2 rounded-full bg-success-muted" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold">
@@ -111,7 +111,7 @@ export default function FactoriesPage() {
  <Card>
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
  <CardTitle className="text-sm font-medium">Pending Approval</CardTitle>
- <div className="h-2 w-2 rounded-full bg-yellow-500" />
+ <div className="h-2 w-2 rounded-full bg-warning-muted" />
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold">
@@ -168,8 +168,7 @@ export default function FactoriesPage() {
  </Card>
 
  {/* Factories Table */}
- <Card>
- <CardContent className="pt-6">
+ <div className="data-table-container">
  {isLoading ? (
  <div className="text-center py-12 text-muted-foreground">
  Loading factories...
@@ -258,7 +257,7 @@ export default function FactoriesPage() {
  <TableCell>
  {factory.quality_rating ? (
  <div className="flex items-center">
- <Star className="h-4 w-4 text-yellow-500 mr-1" />
+ <Star className="h-4 w-4 text-warning mr-1" />
  <span className="font-medium">{Number(factory.quality_rating).toFixed(1)}</span>
  <span className="text-muted-foreground ml-1">/ 5.0</span>
  </div>
@@ -292,8 +291,7 @@ export default function FactoriesPage() {
  </TableBody>
  </Table>
  )}
- </CardContent>
- </Card>
  </div>
+</div>
  );
 }

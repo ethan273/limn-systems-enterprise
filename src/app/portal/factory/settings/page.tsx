@@ -101,7 +101,7 @@ export default function FactorySettingsPage() {
 
  {partner.quality_rating && (
  <div className="flex items-center gap-2">
- <Star className="h-5 w-5 text-yellow-500" />
+ <Star className="h-5 w-5 text-warning" />
  <span className="text-lg font-semibold">{partner.quality_rating} / 5.0</span>
  <span className="text-sm text-muted-foreground">Quality Rating</span>
  </div>
@@ -152,7 +152,7 @@ export default function FactorySettingsPage() {
  href={partner.website}
  target="_blank"
  rel="noopener noreferrer"
- className="text-lg text-blue-600 hover:underline"
+ className="text-lg text-info hover:underline"
  >
  {partner.website}
  </a>

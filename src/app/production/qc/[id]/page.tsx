@@ -42,22 +42,22 @@ const statusConfig: Record<string, { label: string; className: string; icon: Rea
  },
  in_progress: {
  label: "In Progress",
- className: "bg-blue-100 text-blue-800 border-blue-300",
+ className: "bg-info-muted text-info border-info",
  icon: <ClipboardCheck className="w-4 h-4" aria-hidden="true" />,
  },
  passed: {
  label: "Passed",
- className: "bg-green-100 text-green-800 border-green-300",
+ className: "bg-success-muted text-success border-success",
  icon: <CheckCircle2 className="w-4 h-4" aria-hidden="true" />,
  },
  failed: {
  label: "Failed",
- className: "bg-red-100 text-red-800 border-red-300",
+ className: "bg-destructive-muted text-destructive border-destructive",
  icon: <XCircle className="w-4 h-4" aria-hidden="true" />,
  },
  on_hold: {
  label: "On Hold",
- className: "bg-yellow-100 text-yellow-800 border-yellow-300",
+ className: "bg-warning-muted text-warning border-warning",
  icon: <AlertCircle className="w-4 h-4" aria-hidden="true" />,
  },
 };
@@ -196,7 +196,7 @@ export default function QCInspectionDetailPage() {
  <CardContent>
  <div className="text-2xl font-bold">{defectStats.total}</div>
  {defectStats.critical > 0 && (
- <p className="text-xs text-red-600 mt-1">{defectStats.critical} critical</p>
+ <p className="text-xs text-destructive mt-1">{defectStats.critical} critical</p>
  )}
  </CardContent>
  </Card>
@@ -268,8 +268,8 @@ export default function QCInspectionDetailPage() {
  variant="outline"
  className={cn(
  "capitalize",
- inspection.priority === "high" && "bg-red-100 text-red-800 border-red-300",
- inspection.priority === "normal" && "bg-blue-100 text-blue-800 border-blue-300",
+ inspection.priority === "high" && "bg-destructive-muted text-destructive border-destructive",
+ inspection.priority === "normal" && "bg-info-muted text-info border-info",
  inspection.priority === "low" && "badge-neutral"
  )}
  >
@@ -316,16 +316,16 @@ export default function QCInspectionDetailPage() {
  </CardHeader>
  <CardContent>
  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
- <div className="text-center p-4 bg-red-50 rounded-lg border border-red-200">
- <p className="text-2xl font-bold text-red-600">{defectStats.critical}</p>
+ <div className="text-center p-4 bg-destructive-muted rounded-lg border border-destructive">
+ <p className="text-2xl font-bold text-destructive">{defectStats.critical}</p>
  <p className="text-sm text-muted-foreground">Critical</p>
  </div>
- <div className="text-center p-4 bg-orange-50 rounded-lg border border-orange-200">
- <p className="text-2xl font-bold text-orange-600">{defectStats.major}</p>
+ <div className="text-center p-4 bg-warning-muted rounded-lg border border-warning">
+ <p className="text-2xl font-bold text-warning">{defectStats.major}</p>
  <p className="text-sm text-muted-foreground">Major</p>
  </div>
- <div className="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-200">
- <p className="text-2xl font-bold text-yellow-600">{defectStats.minor}</p>
+ <div className="text-center p-4 bg-warning-muted rounded-lg border border-warning">
+ <p className="text-2xl font-bold text-warning">{defectStats.minor}</p>
  <p className="text-sm text-muted-foreground">Minor</p>
  </div>
  <div className="text-center p-4 card rounded-lg border border">

@@ -36,17 +36,17 @@ const statusConfig: Record<string, { label: string; className: string; icon: Rea
   },
   processed: {
     label: "Processed",
-    className: "bg-green-100 text-green-800 border-green-300",
+    className: "bg-success-muted text-success border-success",
     icon: <CheckCircle2 className="w-4 h-4" aria-hidden="true" />,
   },
   failed: {
     label: "Failed",
-    className: "bg-red-100 text-red-800 border-red-300",
+    className: "bg-destructive-muted text-destructive border-destructive",
     icon: <XCircle className="w-4 h-4" aria-hidden="true" />,
   },
   refunded: {
     label: "Refunded",
-    className: "bg-blue-100 text-blue-800 border-blue-300",
+    className: "btn-primary text-info border-primary",
     icon: <RotateCcw className="w-4 h-4" aria-hidden="true" />,
   },
 };
@@ -265,7 +265,7 @@ export default function PaymentDetailPage() {
                         <td className="p-2">
                           {invoiceCustomer?.company_name || invoiceCustomer?.name || "N/A"}
                         </td>
-                        <td className="text-right p-2 font-medium text-green-600">
+                        <td className="text-right p-2 font-medium text-success">
                           ${Number(allocation.allocated_amount).toFixed(2)}
                         </td>
                         <td className="p-2">

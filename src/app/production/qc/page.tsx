@@ -46,22 +46,22 @@ const statusConfig: Record<string, { label: string; className: string; icon: Rea
  },
  in_progress: {
  label: "In Progress",
- className: "bg-blue-100 text-blue-800 border-blue-300",
+ className: "bg-info-muted text-info border-info",
  icon: <ClipboardCheck className="w-3 h-3" aria-hidden="true" />,
  },
  passed: {
  label: "Passed",
- className: "bg-green-100 text-green-800 border-green-300",
+ className: "bg-success-muted text-success border-success",
  icon: <CheckCircle2 className="w-3 h-3" aria-hidden="true" />,
  },
  failed: {
  label: "Failed",
- className: "bg-red-100 text-red-800 border-red-300",
+ className: "bg-destructive-muted text-destructive border-destructive",
  icon: <XCircle className="w-3 h-3" aria-hidden="true" />,
  },
  on_hold: {
  label: "On Hold",
- className: "bg-yellow-100 text-yellow-800 border-yellow-300",
+ className: "bg-warning-muted text-warning border-warning",
  icon: <AlertCircle className="w-3 h-3" aria-hidden="true" />,
  },
 };
@@ -141,7 +141,7 @@ export default function QCInspectionsPage() {
  <ClipboardCheck className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-blue-600">{stats.inProgress}</div>
+ <div className="text-2xl font-bold text-info">{stats.inProgress}</div>
  </CardContent>
  </Card>
 
@@ -151,7 +151,7 @@ export default function QCInspectionsPage() {
  <CheckCircle2 className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-green-600">{stats.passed}</div>
+ <div className="text-2xl font-bold text-success">{stats.passed}</div>
  </CardContent>
  </Card>
 
@@ -161,7 +161,7 @@ export default function QCInspectionsPage() {
  <XCircle className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-red-600">{stats.failed}</div>
+ <div className="text-2xl font-bold text-destructive">{stats.failed}</div>
  </CardContent>
  </Card>
  </div>
@@ -207,11 +207,6 @@ export default function QCInspectionsPage() {
  </Card>
 
  {/* Inspections Table */}
- <Card>
- <CardHeader>
- <CardTitle>QC Inspections</CardTitle>
- </CardHeader>
- <CardContent className="card-content-compact">
  {isLoading ? (
  <div className="loading-state">Loading inspections...</div>
  ) : filteredInspections.length === 0 ? (
@@ -221,7 +216,7 @@ export default function QCInspectionsPage() {
  {searchQuery && <p className="empty-state-description">Try adjusting your search</p>}
  </div>
  ) : (
- <div className="table-container">
+        <div className="data-table-container">
  <Table>
  <TableHeader>
  <TableRow>
@@ -291,8 +286,8 @@ export default function QCInspectionsPage() {
  variant="outline"
  className={cn(
  "capitalize",
- inspection.priority === "high" && "bg-red-100 text-red-800 border-red-300",
- inspection.priority === "normal" && "bg-blue-100 text-blue-800 border-blue-300",
+ inspection.priority === "high" && "bg-destructive-muted text-destructive border-destructive",
+ inspection.priority === "normal" && "bg-info-muted text-info border-info",
  inspection.priority === "low" && "badge-neutral"
  )}
  >
@@ -323,8 +318,7 @@ export default function QCInspectionsPage() {
  </Table>
  </div>
  )}
- </CardContent>
- </Card>
+
  </div>
  );
 }

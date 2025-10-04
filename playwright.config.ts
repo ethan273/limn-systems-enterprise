@@ -3,11 +3,13 @@ import { defineConfig, devices } from '@playwright/test';
 /**
  * Playwright E2E Testing Configuration
  *
- * Comprehensive testing setup for all 95+ pages
+ * Comprehensive testing setup for all 104+ pages
  * Desktop, tablet, and mobile testing
  * Screenshot and video capture on failures
+ * Chromatic visual regression integration
  *
  * Created: October 3, 2025
+ * Updated: January 25, 2025 - Added Chromatic integration
  */
 
 export default defineConfig({
@@ -112,5 +114,26 @@ export default defineConfig({
   // Expect timeout for assertions
   expect: {
     timeout: 10000, // 10 seconds
+
+    // Visual regression settings
+    toHaveScreenshot: {
+      /* Maximum pixel difference threshold */
+      maxDiffPixels: 100,
+
+      /* Threshold for pixel color difference (0-1) */
+      threshold: 0.2,
+
+      /* Animation handling */
+      animations: 'disabled',
+
+      /* CSS animations */
+      caret: 'hide',
+
+      /* Full page screenshots */
+      fullPage: true,
+
+      /* Screenshot comparison mode */
+      scale: 'css',
+    },
   },
 });

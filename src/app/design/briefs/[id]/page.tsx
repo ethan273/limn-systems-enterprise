@@ -223,7 +223,7 @@ export default function DesignBriefDetailPage({ params }: { params: { id: string
  {brief.materials_preference && Array.isArray(brief.materials_preference) && brief.materials_preference.length > 0 ? (
  <div className="flex flex-wrap gap-2">
  {brief.materials_preference.map((material: string, index: number) => (
- <Badge key={index} variant="outline">
+ <Badge key={index} variant="outline" className="badge-material">
  {material}
  </Badge>
  ))}
@@ -242,7 +242,7 @@ export default function DesignBriefDetailPage({ params }: { params: { id: string
  {brief.style_references && Array.isArray(brief.style_references) && brief.style_references.length > 0 ? (
  <div className="flex flex-wrap gap-2">
  {brief.style_references.map((style: string, index: number) => (
- <Badge key={index} variant="outline" className="bg-purple-50">
+ <Badge key={index} variant="outline" className="badge-style">
  {style}
  </Badge>
  ))}

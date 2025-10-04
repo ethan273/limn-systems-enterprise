@@ -6,7 +6,7 @@ import { api } from "@/lib/api/client";
 import { Customer } from "@/lib/db";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -514,8 +514,8 @@ export default function ClientsPage() {
         <Card className="card">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-500/20 rounded-lg">
-                <Users className="h-5 w-5 text-blue-400" aria-hidden="true" />
+              <div className="p-2 bg-info-muted/20 rounded-lg">
+                <Users className="h-5 w-5 text-info" aria-hidden="true" />
               </div>
               <div>
                 <p className="text-sm page-subtitle">Total Clients</p>
@@ -527,8 +527,8 @@ export default function ClientsPage() {
         <Card className="card">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-500/20 rounded-lg">
-                <Package className="h-5 w-5 text-green-400" aria-hidden="true" />
+              <div className="p-2 bg-success-muted/20 rounded-lg">
+                <Package className="h-5 w-5 text-success" aria-hidden="true" />
               </div>
               <div>
                 <p className="text-sm page-subtitle">Active</p>
@@ -540,8 +540,8 @@ export default function ClientsPage() {
         <Card className="card">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-yellow-500/20 rounded-lg">
-                <DollarSign className="h-5 w-5 text-yellow-400" aria-hidden="true" />
+              <div className="p-2 bg-warning-muted/20 rounded-lg">
+                <DollarSign className="h-5 w-5 text-warning" aria-hidden="true" />
               </div>
               <div>
                 <p className="text-sm page-subtitle">Total Value</p>
@@ -553,8 +553,8 @@ export default function ClientsPage() {
         <Card className="card">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-500/20 rounded-lg">
-                <TrendingUp className="h-5 w-5 text-purple-400" aria-hidden="true" />
+              <div className="p-2 bg-primary-muted/20 rounded-lg">
+                <TrendingUp className="h-5 w-5 text-secondary" aria-hidden="true" />
               </div>
               <div>
                 <p className="text-sm page-subtitle">Avg Value</p>
@@ -566,32 +566,27 @@ export default function ClientsPage() {
       </div>
 
       {/* Filters */}
-      <Card className="card">
-        <CardHeader className="card-header-sm">
-          <CardTitle className="card-title-sm">Filters</CardTitle>
-        </CardHeader>
-        <CardContent className="filters-section">
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 icon-sm text-muted" aria-hidden="true" />
+      <Card>
+        <CardContent className="card-content-compact">
+          <div className="filters-section">
+            <div className="search-input-wrapper">
+              <Search className="search-icon" aria-hidden="true" />
               <Input
                 placeholder="Search clients..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 card"
+                className="search-input"
               />
             </div>
 
-            {/* Status Filter */}
             <Select
               value={statusFilter}
               onValueChange={(value: CustomerStatus | "all") => setStatusFilter(value)}
             >
-              <SelectTrigger className="card">
+              <SelectTrigger className="filter-select">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
-              <SelectContent className="card">
+              <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="inactive">Inactive</SelectItem>
@@ -600,15 +595,14 @@ export default function ClientsPage() {
               </SelectContent>
             </Select>
 
-            {/* Type Filter */}
             <Select
               value={typeFilter}
               onValueChange={(value: CustomerType | "all") => setTypeFilter(value)}
             >
-              <SelectTrigger className="card">
+              <SelectTrigger className="filter-select">
                 <SelectValue placeholder="Type" />
               </SelectTrigger>
-              <SelectContent className="card">
+              <SelectContent>
                 <SelectItem value="all">All Types</SelectItem>
                 <SelectItem value="individual">Individual</SelectItem>
                 <SelectItem value="business">Business</SelectItem>
@@ -616,8 +610,7 @@ export default function ClientsPage() {
               </SelectContent>
             </Select>
 
-            {/* Clear Filters */}
-            <Button variant="outline" onClick={clearFilters} className="btn-secondary">
+            <Button variant="outline" onClick={clearFilters} className="filter-select">
               <Filter className="icon-sm" aria-hidden="true" />
               Clear
             </Button>
@@ -626,28 +619,22 @@ export default function ClientsPage() {
       </Card>
 
       {/* Clients Table */}
-      <Card className="card">
-        <CardHeader className="card-header-sm">
-          <CardTitle className="card-title-sm">
-            Clients ({filteredCustomers.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="data-table-container">
-          {isLoading ? (
-            <div className="loading-state">
-              <div className="loading-spinner"></div>
-              <p>Loading clients...</p>
-            </div>
-          ) : filteredCustomers.length === 0 ? (
-            <div className="empty-state">
-              <Building className="empty-state-icon" aria-hidden="true" />
-              <h3 className="empty-state-title">No clients found</h3>
-              <p className="empty-state-description">
-                Try adjusting your filters or create a new client to get started.
-              </p>
-            </div>
-          ) : (
-            <Table>
+      <div className="data-table-container">
+        {isLoading ? (
+          <div className="loading-state">
+            <div className="loading-spinner"></div>
+            <p>Loading clients...</p>
+          </div>
+        ) : filteredCustomers.length === 0 ? (
+          <div className="empty-state">
+            <Building className="empty-state-icon" aria-hidden="true" />
+            <h3 className="empty-state-title">No clients found</h3>
+            <p className="empty-state-description">
+              Try adjusting your filters or create a new client to get started.
+            </p>
+          </div>
+        ) : (
+          <Table>
               <TableHeader>
                 <TableRow className="data-table-header-row">
                   <TableHead className="data-table-header">Name</TableHead>
@@ -665,7 +652,7 @@ export default function ClientsPage() {
                   <TableRow
                     key={customer.id}
                     className="data-table-row"
-                    onClick={() => router.push(`/crm/clients/${customer.id}`)}
+                    onClick={() => router.push(`/crm/customers/${customer.id}`)}
                   >
                     <TableCell className="data-table-cell-primary">
                       <div className="flex items-center gap-3">
@@ -730,7 +717,7 @@ export default function ClientsPage() {
                             className="dropdown-item"
                             onClick={(e) => {
                               e.stopPropagation();
-                              router.push(`/crm/clients/${customer.id}`);
+                              router.push(`/crm/customers/${customer.id}`);
                             }}
                           >
                             <Eye className="icon-sm" aria-hidden="true" />
@@ -763,9 +750,8 @@ export default function ClientsPage() {
                 ))}
               </TableBody>
             </Table>
-          )}
-        </CardContent>
-      </Card>
+        )}
+      </div>
     </div>
   );
 }

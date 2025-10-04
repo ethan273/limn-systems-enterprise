@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ShippingStatusBadge } from "@/components/ui/status-badge";
 import {
   Select,
   SelectContent,
@@ -32,16 +33,7 @@ import { format } from "date-fns";
 // Dynamic route configuration
 export const dynamic = 'force-dynamic';
 
-const statusConfig: Record<string, { label: string; className: string }> = {
-  pending: { label: "Pending", className: "badge-neutral" },
-  preparing: { label: "Preparing", className: "bg-yellow-100 text-yellow-800 border-yellow-300" },
-  ready: { label: "Ready", className: "bg-blue-100 text-blue-800 border-blue-300" },
-  shipped: { label: "Shipped", className: "bg-green-100 text-green-800 border-green-300" },
-  in_transit: { label: "In Transit", className: "bg-blue-100 text-blue-800 border-blue-300" },
-  delivered: { label: "Delivered", className: "status-completed" },
-  delayed: { label: "Delayed", className: "status-cancelled" },
-  cancelled: { label: "Cancelled", className: "status-cancelled" },
-};
+// Status config removed - using ShippingStatusBadge component instead
 
 export default function ShipmentsPage() {
   const router = useRouter();
@@ -95,7 +87,7 @@ export default function ShipmentsPage() {
             <CardTitle className="card-title-sm">Pending</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value text-yellow-600">{stats.pending}</div>
+            <div className="stat-value text-warning">{stats.pending}</div>
           </CardContent>
         </Card>
 
@@ -104,7 +96,7 @@ export default function ShipmentsPage() {
             <CardTitle className="card-title-sm">In Transit</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value text-blue-600">{stats.inTransit}</div>
+            <div className="stat-value text-info">{stats.inTransit}</div>
           </CardContent>
         </Card>
 
@@ -113,7 +105,7 @@ export default function ShipmentsPage() {
             <CardTitle className="card-title-sm">Delivered</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value text-green-600">{stats.delivered}</div>
+            <div className="stat-value text-success">{stats.delivered}</div>
           </CardContent>
         </Card>
       </div>
@@ -153,12 +145,7 @@ export default function ShipmentsPage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Shipments ({shipments.length})</CardTitle>
-        </CardHeader>
-        <CardContent className="card-content-compact">
-          {isLoading ? (
+      {isLoading ? (
             <div className="loading-state">Loading shipments...</div>
           ) : shipments.length === 0 ? (
             <div className="empty-state">
@@ -169,7 +156,7 @@ export default function ShipmentsPage() {
               </p>
             </div>
           ) : (
-            <div className="table-container">
+        <div className="data-table-container">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -186,7 +173,6 @@ export default function ShipmentsPage() {
                 </TableHeader>
                 <TableBody>
                   {shipments.map((shipment) => {
-                    const statusInfo = statusConfig[shipment.status || "pending"];
                     const packagesArray = Array.isArray(shipment.packages) ? shipment.packages : [];
 
                     return (
@@ -238,13 +224,11 @@ export default function ShipmentsPage() {
                           )}
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className={statusInfo?.className}>
-                            {statusInfo?.label || shipment.status}
-                          </Badge>
+                          <ShippingStatusBadge status={shipment.status || "pending"} />
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className="badge-neutral">
-                            <Package className="icon-sm" aria-hidden="true" />
+                          <Badge variant="outline" className="badge-with-icon badge-neutral">
+                            <Package className="badge-icon" aria-hidden="true" />
                             <span>{packagesArray.length}</span>
                           </Badge>
                         </TableCell>
@@ -269,8 +253,7 @@ export default function ShipmentsPage() {
               </Table>
             </div>
           )}
-        </CardContent>
-      </Card>
+
     </div>
   );
 }

@@ -74,7 +74,7 @@ export default function AdminApprovalDashboard() {
  </div>
  {/* Dashboard content will be rendered here */}
  {loading ? (
- <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+ <Loader2 className="h-8 w-8 animate-spin text-primary" />
  ) : (
  <div>Total pending: {signUps.length}</div>
  )}

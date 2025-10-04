@@ -273,11 +273,11 @@ export default function TaskTemplates({ onCreateFromTemplate }: TaskTemplatesPro
  const getPriorityColor = (priority: TaskPriority) => {
  switch (priority) {
  case 'high':
- return 'bg-red-500/20 text-red-400 border-red-500/20';
+ return 'bg-destructive/20 text-destructive border-destructive/20';
  case 'medium':
- return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/20';
+ return 'bg-warning/20 text-warning border-warning/20';
  case 'low':
- return 'bg-green-500/20 text-green-400 border-green-500/20';
+ return 'bg-success/20 text-success border-success/20';
  }
  };
 
@@ -420,7 +420,7 @@ export default function TaskTemplates({ onCreateFromTemplate }: TaskTemplatesPro
  variant="ghost"
  size="sm"
  onClick={() => removeTask(index)}
- className="text-red-400 hover:text-red-300"
+ className="text-destructive hover:text-destructive"
  >
  <Trash2 className="h-4 w-4" />
  </Button>
@@ -475,7 +475,7 @@ export default function TaskTemplates({ onCreateFromTemplate }: TaskTemplatesPro
  <div className="flex items-start justify-between">
  <div className="flex items-center gap-2">
  <CardTitle className="text-lg">{template.name}</CardTitle>
- {template.isFavorite && <Star className="h-4 w-4 text-yellow-400 fill-current" />}
+ {template.isFavorite && <Star className="h-4 w-4 text-warning fill-current" />}
  {template.isDefault && <Badge variant="outline" className="text-xs">Default</Badge>}
  </div>
  <DropdownMenu>
@@ -498,7 +498,7 @@ export default function TaskTemplates({ onCreateFromTemplate }: TaskTemplatesPro
  Edit
  </DropdownMenuItem>
  <DropdownMenuItem
- className="text-red-400"
+ className="text-destructive"
  onClick={() => setTemplateToDelete(template.id)}
  >
  <Trash2 className="h-4 w-4 mr-2" />
@@ -579,7 +579,7 @@ export default function TaskTemplates({ onCreateFromTemplate }: TaskTemplatesPro
  <AlertDialogCancel>Cancel</AlertDialogCancel>
  <AlertDialogAction
  onClick={() => templateToDelete && deleteTemplate(templateToDelete)}
- className="bg-red-600 hover:bg-red-700"
+ className="bg-destructive hover:bg-destructive"
  >
  Delete Template
  </AlertDialogAction>

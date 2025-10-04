@@ -98,15 +98,15 @@ export default function TaskActivities({ taskId, onUpdate }: TaskActivitiesProps
  const getActivityIcon = (activityType: ActivityType) => {
  switch (activityType) {
  case 'comment':
- return <MessageSquare className="h-4 w-4 text-blue-400" />;
+ return <MessageSquare className="h-4 w-4 text-info" />;
  case 'status_change':
- return <CheckCircle2 className="h-4 w-4 text-green-400" />;
+ return <CheckCircle2 className="h-4 w-4 text-success" />;
  case 'assignment':
- return <User className="h-4 w-4 text-purple-400" />;
+ return <User className="h-4 w-4 text-primary" />;
  case 'attachment':
- return <Paperclip className="h-4 w-4 text-yellow-400" />;
+ return <Paperclip className="h-4 w-4 text-warning" />;
  case 'entity_linked':
- return <Link className="h-4 w-4 text-cyan-400" />;
+ return <Link className="h-4 w-4 text-info" />;
  case 'task_created':
  return <Plus className="h-4 w-4 text-tertiary" />;
  default:
@@ -117,15 +117,15 @@ export default function TaskActivities({ taskId, onUpdate }: TaskActivitiesProps
  const getActivityColor = (activityType: ActivityType) => {
  switch (activityType) {
  case 'comment':
- return 'text-blue-400';
+ return 'text-info';
  case 'status_change':
- return 'text-green-400';
+ return 'text-success';
  case 'assignment':
- return 'text-purple-400';
+ return 'text-primary';
  case 'attachment':
- return 'text-yellow-400';
+ return 'text-warning';
  case 'entity_linked':
- return 'text-cyan-400';
+ return 'text-info';
  case 'task_created':
  return 'text-tertiary';
  default:
@@ -245,12 +245,12 @@ export default function TaskActivities({ taskId, onUpdate }: TaskActivitiesProps
  <div className="text-xs text-tertiary space-y-1">
  {activity.old_value && (
  <div>
- <span className="text-red-400">From:</span> {JSON.stringify(activity.old_value)}
+ <span className="text-destructive">From:</span> {JSON.stringify(activity.old_value)}
  </div>
  )}
  {activity.new_value && (
  <div>
- <span className="text-green-400">To:</span> {JSON.stringify(activity.new_value)}
+ <span className="text-success">To:</span> {JSON.stringify(activity.new_value)}
  </div>
  )}
  </div>

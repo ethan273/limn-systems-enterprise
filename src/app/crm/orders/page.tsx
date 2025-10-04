@@ -84,28 +84,28 @@ export default function CRMOrdersPage() {
  info = { label: "Draft", variant: "outline", className: "badge-neutral" };
  break;
  case 'pending':
- info = { label: "Pending", variant: "outline", className: "bg-yellow-100 text-yellow-800 border-yellow-300" };
+ info = { label: "Pending", variant: "outline", className: "bg-warning-muted text-warning border-warning" };
  break;
  case 'confirmed':
- info = { label: "Confirmed", variant: "outline", className: "bg-blue-100 text-blue-800 border-blue-300" };
+ info = { label: "Confirmed", variant: "outline", className: "btn-primary text-info border-primary" };
  break;
  case 'in_production':
- info = { label: "In Production", variant: "outline", className: "bg-purple-100 text-purple-800 border-purple-300" };
+ info = { label: "In Production", variant: "outline", className: "btn-secondary text-secondary border-secondary" };
  break;
  case 'ready_to_ship':
- info = { label: "Ready to Ship", variant: "outline", className: "bg-green-100 text-green-800 border-green-300" };
+ info = { label: "Ready to Ship", variant: "outline", className: "bg-success-muted text-success border-success" };
  break;
  case 'shipped':
- info = { label: "Shipped", variant: "outline", className: "bg-teal-100 text-teal-800 border-teal-300" };
+ info = { label: "Shipped", variant: "outline", className: "bg-success text-success border-success" };
  break;
  case 'delivered':
- info = { label: "Delivered", variant: "outline", className: "bg-emerald-100 text-emerald-800 border-emerald-300" };
+ info = { label: "Delivered", variant: "outline", className: "bg-success text-success border-success" };
  break;
  case 'completed':
- info = { label: "Completed", variant: "outline", className: "bg-green-600 text-foreground border-green-700" };
+ info = { label: "Completed", variant: "outline", className: "bg-success-muted text-foreground border-success" };
  break;
  case 'cancelled':
- info = { label: "Cancelled", variant: "outline", className: "bg-red-100 text-red-800 border-red-300" };
+ info = { label: "Cancelled", variant: "outline", className: "bg-destructive-muted text-destructive border-destructive" };
  break;
  default:
  info = { label: "Unknown", variant: "outline", className: "badge-neutral" };
@@ -122,12 +122,12 @@ export default function CRMOrdersPage() {
  const finalInvoice = invoices.find((inv: any) => inv.invoice_type === 'final');
 
  if (finalInvoice?.status === 'paid') {
- return <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">Fully Paid</Badge>;
+ return <Badge variant="outline" className="bg-success-muted text-success border-success">Fully Paid</Badge>;
  }
  if (depositInvoice?.status === 'paid') {
- return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">Deposit Paid</Badge>;
+ return <Badge variant="outline" className="bg-warning-muted text-warning border-warning">Deposit Paid</Badge>;
  }
- return <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">Pending</Badge>;
+ return <Badge variant="outline" className="bg-destructive-muted text-destructive border-destructive">Pending</Badge>;
  };
 
  // Show loading state while checking authentication
@@ -157,7 +157,7 @@ export default function CRMOrdersPage() {
  <h1 className="text-3xl font-bold">Orders</h1>
  <p className="text-muted-foreground">
  Manage client orders with invoice generation and payment tracking. Create new orders from{" "}
- <Link href="/crm/projects" className="text-blue-600 hover:underline font-medium">
+ <Link href="/crm/projects" className="text-info hover:underline font-medium">
  Projects
  </Link>
  </p>
@@ -271,7 +271,7 @@ export default function CRMOrdersPage() {
  <p className="text-muted-foreground">No orders found</p>
  <p className="text-sm text-muted-foreground">
  Create orders from{" "}
- <Link href="/crm/projects" className="text-blue-600 hover:underline">
+ <Link href="/crm/projects" className="text-info hover:underline">
  Projects
  </Link>
  </p>
@@ -345,7 +345,7 @@ export default function CRMOrdersPage() {
  {order.production_orders.map((po: any) => (
  <TableRow key={po.id}>
  <TableCell>
- <Link href={`/production/orders/${po.id}`} className="font-medium text-blue-600 hover:underline">
+ <Link href={`/production/orders/${po.id}`} className="font-medium text-info hover:underline">
  {po.order_number}
  </Link>
  </TableCell>
@@ -354,9 +354,9 @@ export default function CRMOrdersPage() {
  <TableCell>${Number(po.total_cost).toFixed(2)}</TableCell>
  <TableCell>
  <Badge variant="outline" className={
- po.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
- po.status === 'completed' ? 'bg-green-100 text-green-800' :
- 'bg-yellow-100 text-yellow-800'
+ po.status === 'in_progress' ? 'btn-primary text-info' :
+ po.status === 'completed' ? 'bg-success-muted text-success' :
+ 'bg-warning-muted text-warning'
  }>
  {po.status}
  </Badge>
@@ -410,17 +410,17 @@ export default function CRMOrdersPage() {
  {invoice.invoice_type}
  </Badge>
  <Badge variant="outline" className={
- invoice.status === 'paid' ? 'bg-green-100 text-green-800' :
- invoice.status === 'partial_payment' ? 'bg-yellow-100 text-yellow-800' :
- 'bg-red-100 text-red-800'
+ invoice.status === 'paid' ? 'bg-success-muted text-success' :
+ invoice.status === 'partial_payment' ? 'bg-warning-muted text-warning' :
+ 'bg-destructive-muted text-destructive'
  }>
  {invoice.status === 'pending_payment' ? 'Pending' : invoice.status}
  </Badge>
  </div>
  <div className="text-right">
  <div className="text-sm text-muted-foreground">Total: ${Number(invoice.total).toFixed(2)}</div>
- <div className="text-sm font-medium text-green-600">Paid: ${Number(invoice.amount_paid).toFixed(2)}</div>
- <div className="text-sm font-medium text-red-600">Due: ${Number(invoice.amount_due).toFixed(2)}</div>
+ <div className="text-sm font-medium text-success">Paid: ${Number(invoice.amount_paid).toFixed(2)}</div>
+ <div className="text-sm font-medium text-destructive">Due: ${Number(invoice.amount_due).toFixed(2)}</div>
  </div>
  </div>
  {invoice.production_payments?.length > 0 && (
@@ -446,7 +446,7 @@ export default function CRMOrdersPage() {
  }
  >
  <TableCell>
- <span className="font-medium text-blue-600">{order.order_number}</span>
+ <span className="font-medium text-info">{order.order_number}</span>
  </TableCell>
  <TableCell>{order.customers?.name || "—"}</TableCell>
  <TableCell>{order.projects?.name || "—"}</TableCell>

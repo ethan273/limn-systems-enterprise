@@ -37,12 +37,12 @@ const versionStatusConfig: Record<VersionStatus, {
  current: {
  label: "Current",
  icon: CheckCircle2,
- className: "bg-green-100 text-green-800 border-green-300"
+ className: "bg-success text-success border-success"
  },
  superseded: {
  label: "Superseded",
  icon: Clock,
- className: "bg-orange-100 text-orange-800 border-orange-300"
+ className: "bg-warning text-warning border-warning"
  },
  archived: {
  label: "Archived",
@@ -108,15 +108,15 @@ export function VersionTimeline({ versions, onVersionClick }: VersionTimelinePro
 
  <Card className={cn(
  "relative transition-all hover:shadow-md",
- version.status === "current" && "border-green-500 border-2"
+ version.status === "current" && "border-success border-2"
  )}>
  <CardContent className="p-4">
  <div className="flex items-start gap-4">
  {/* Timeline dot */}
  <div className={cn(
  "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center border-2",
- version.status === "current" && "bg-green-500 border-green-600",
- version.status === "superseded" && "bg-orange-500 border-orange-600",
+ version.status === "current" && "bg-success border-success",
+ version.status === "superseded" && "bg-warning border-warning",
  version.status === "archived" && "card border"
  )}>
  <StatusIcon

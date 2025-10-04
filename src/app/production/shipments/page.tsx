@@ -46,17 +46,17 @@ const statusConfig: Record<string, { label: string; className: string; icon: Rea
   },
   preparing: {
     label: "Preparing",
-    className: "bg-yellow-100 text-yellow-800 border-yellow-300",
+    className: "bg-warning-muted text-warning border-warning",
     icon: <Package className="icon-sm" aria-hidden="true" />,
   },
   ready: {
     label: "Ready",
-    className: "bg-blue-100 text-blue-800 border-blue-300",
+    className: "bg-info-muted text-info border-info",
     icon: <CheckCircle2 className="icon-sm" aria-hidden="true" />,
   },
   shipped: {
     label: "Shipped",
-    className: "bg-green-100 text-green-800 border-green-300",
+    className: "bg-success-muted text-success border-success",
     icon: <TruckIcon className="icon-sm" aria-hidden="true" />,
   },
   delivered: {
@@ -136,7 +136,7 @@ export default function ProductionShipmentsPage() {
             <CardTitle className="card-title-sm">Preparing</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value text-yellow-600">{stats.preparing}</div>
+            <div className="stat-value text-warning">{stats.preparing}</div>
           </CardContent>
         </Card>
 
@@ -145,7 +145,7 @@ export default function ProductionShipmentsPage() {
             <CardTitle className="card-title-sm">Ready to Ship</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value text-blue-600">{stats.ready}</div>
+            <div className="stat-value text-info">{stats.ready}</div>
           </CardContent>
         </Card>
 
@@ -154,7 +154,7 @@ export default function ProductionShipmentsPage() {
             <CardTitle className="card-title-sm">Shipped</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value text-green-600">{stats.shipped}</div>
+            <div className="stat-value text-success">{stats.shipped}</div>
           </CardContent>
         </Card>
       </div>
@@ -192,12 +192,7 @@ export default function ProductionShipmentsPage() {
       </Card>
 
       {/* Shipments Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Shipments ({shipments.length})</CardTitle>
-        </CardHeader>
-        <CardContent className="card-content-compact">
-          {isLoading ? (
+      {isLoading ? (
             <div className="loading-state">Loading shipments...</div>
           ) : shipments.length === 0 ? (
             <div className="empty-state">
@@ -208,7 +203,7 @@ export default function ProductionShipmentsPage() {
               </p>
             </div>
           ) : (
-            <div className="table-container">
+        <div className="data-table-container">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -312,8 +307,7 @@ export default function ProductionShipmentsPage() {
               </Table>
             </div>
           )}
-        </CardContent>
-      </Card>
+
     </div>
   );
 }

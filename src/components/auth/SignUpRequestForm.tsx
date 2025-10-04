@@ -83,7 +83,7 @@ export default function SignUpRequestForm() {
  {/* Personal Information */}
  <div className="bg-card p-6 rounded-lg shadow-sm border border">
  <h3 className="text-lg font-medium mb-4 flex items-center">
- <User className="mr-2 h-5 w-5 text-indigo-500" />
+ <User className="mr-2 h-5 w-5 text-primary" />
  Personal Information
  </h3>
  
@@ -95,11 +95,11 @@ export default function SignUpRequestForm() {
  <input
  {...register('firstName')}
  type="text"
- className="mt-1 block w-full rounded-md border shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+ className="mt-1 block w-full rounded-md border shadow-sm focus:border-primary focus:ring-indigo-500 sm:text-sm"
  placeholder="John"
  />
  {errors.firstName && (
- <p className="mt-1 text-sm text-red-600">{errors.firstName.message}</p>
+ <p className="mt-1 text-sm text-destructive">{errors.firstName.message}</p>
  )}
  </div>
  <div>
@@ -109,11 +109,11 @@ export default function SignUpRequestForm() {
  <input
  {...register('lastName')}
  type="text"
- className="mt-1 block w-full rounded-md border shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+ className="mt-1 block w-full rounded-md border shadow-sm focus:border-primary focus:ring-indigo-500 sm:text-sm"
  placeholder="Doe"
  />
  {errors.lastName && (
- <p className="mt-1 text-sm text-red-600">{errors.lastName.message}</p>
+ <p className="mt-1 text-sm text-destructive">{errors.lastName.message}</p>
  )}
  </div>
  </div>

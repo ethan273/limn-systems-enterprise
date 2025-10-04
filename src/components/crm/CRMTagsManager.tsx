@@ -210,7 +210,7 @@ export function CRMTagsManager({
  variant="ghost"
  size="sm"
  onClick={() => removeTag(tag)}
- className="h-4 w-4 p-0 hover:bg-red-500/20 ml-1"
+ className="h-4 w-4 p-0 hover:bg-destructive/20 ml-1"
  >
  <X className="w-2 h-2" />
  </Button>
@@ -273,7 +273,7 @@ export function CRMTagsManager({
  <DropdownMenuSeparator />
  <DropdownMenuItem
  onClick={() => removeTag(tag)}
- className="text-red-400"
+ className="text-destructive"
  >
  <Trash2 className="w-3 h-3 mr-2" />
  Remove
@@ -374,7 +374,7 @@ export function CRMTagsManager({
  <DropdownMenuSeparator />
  <DropdownMenuItem
  onClick={() => removeTag(tag)}
- className="text-red-400"
+ className="text-destructive"
  >
  <Trash2 className="w-3 h-3 mr-2" />
  Remove

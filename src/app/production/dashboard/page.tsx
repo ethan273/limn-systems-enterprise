@@ -146,7 +146,7 @@ export default function ProductionDashboardPage() {
  <div className="text-sm font-medium">{count as number}</div>
  <div className="w-32 h-2 card rounded-full overflow-hidden">
  <div
- className="h-full bg-blue-500"
+ className="h-full bg-info-muted"
  style={{
  width: `${((count as number) / (stats.totalOrders || 1)) * 100}%`,
  }}
@@ -167,28 +167,28 @@ export default function ProductionDashboardPage() {
  <div className="space-y-2">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-2">
- <CheckCircle className="h-4 w-4 text-green-500" />
+ <CheckCircle className="h-4 w-4 text-success" />
  <span className="text-sm">On Track</span>
  </div>
- <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
+ <Badge variant="outline" className="bg-success-muted text-success border-success">
  {stats?.timelineDistribution.on_track || 0}
  </Badge>
  </div>
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-2">
- <AlertCircle className="h-4 w-4 text-yellow-500" />
+ <AlertCircle className="h-4 w-4 text-warning" />
  <span className="text-sm">At Risk</span>
  </div>
- <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">
+ <Badge variant="outline" className="bg-warning-muted text-warning border-warning">
  {stats?.timelineDistribution.at_risk || 0}
  </Badge>
  </div>
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-2">
- <TrendingUp className="h-4 w-4 text-red-500" />
+ <TrendingUp className="h-4 w-4 text-destructive" />
  <span className="text-sm">Delayed</span>
  </div>
- <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">
+ <Badge variant="outline" className="bg-destructive-muted text-destructive border-destructive">
  {stats?.timelineDistribution.delayed || 0}
  </Badge>
  </div>
@@ -202,7 +202,7 @@ export default function ProductionDashboardPage() {
  <CardHeader>
  <div className="flex items-center justify-between">
  <CardTitle>Recent Production Orders</CardTitle>
- <Link href="/production/orders" className="text-sm text-blue-600 hover:underline">
+ <Link href="/production/orders" className="text-sm text-info hover:underline">
  View All
  </Link>
  </div>
@@ -223,7 +223,7 @@ export default function ProductionDashboardPage() {
  {progress?.items.map((order: any) => (
  <TableRow key={order.id}>
  <TableCell>
- <Link href={`/production/orders/${order.id}`} className="font-medium text-blue-600 hover:underline">
+ <Link href={`/production/orders/${order.id}`} className="font-medium text-info hover:underline">
  {order.order_number}
  </Link>
  </TableCell>
@@ -233,7 +233,7 @@ export default function ProductionDashboardPage() {
  <div className="flex items-center gap-2">
  <div className="w-24 h-2 card rounded-full overflow-hidden">
  <div
- className="h-full bg-blue-500"
+ className="h-full bg-info-muted"
  style={{ width: `${order.overall_progress}%` }}
  />
  </div>
@@ -245,10 +245,10 @@ export default function ProductionDashboardPage() {
  variant="outline"
  className={
  order.timeline_status === "on_track"
- ? "bg-green-100 text-green-800 border-green-300"
+ ? "bg-success-muted text-success border-success"
  : order.timeline_status === "at_risk"
- ? "bg-yellow-100 text-yellow-800 border-yellow-300"
- : "bg-red-100 text-red-800 border-red-300"
+ ? "bg-warning-muted text-warning border-warning"
+ : "bg-destructive-muted text-destructive border-destructive"
  }
  >
  {order.timeline_status.replace(/_/g, " ")}
