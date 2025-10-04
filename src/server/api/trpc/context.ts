@@ -6,6 +6,7 @@ import type { Session } from '@supabase/supabase-js';
 
 /**
  * Create Supabase server client to get session
+ * Uses getUser() instead of getSession() for security - validates with Supabase server
  */
 async function getSession(): Promise<Session | null> {
   try {
@@ -23,13 +24,25 @@ async function getSession(): Promise<Session | null> {
       }
     );
 
-    const { data: { session }, error } = await supabase.auth.getSession();
+    // Use getUser() instead of getSession() for security
+    // This validates the JWT token with Supabase servers
+    const { data: { user }, error } = await supabase.auth.getUser();
 
-    if (error || !session) {
+    if (error || !user) {
       return null;
     }
 
-    return session;
+    // Construct a minimal session object from the validated user
+    // We don't use getSession() here to avoid security warnings
+    // The user has already been validated with the auth server
+    return {
+      user,
+      access_token: '', // Not needed for our use case
+      refresh_token: '', // Not needed for our use case
+      expires_at: 0,
+      expires_in: 0,
+      token_type: 'bearer',
+    } as Session;
   } catch (error) {
     console.error('[tRPC Context] Error getting session:', error);
     return null;

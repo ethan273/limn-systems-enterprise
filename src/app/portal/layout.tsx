@@ -61,11 +61,14 @@ export default function PortalLayout({ children }: LayoutProps) {
  const checkAuth = async () => {
  try {
  const supabase = createClient();
- const {
- data: { session },
- } = await supabase.auth.getSession();
 
- if (!session?.user) {
+ // Use getUser() instead of getSession() for security - validates with Supabase server
+ const {
+ data: { user },
+ error: userError,
+ } = await supabase.auth.getUser();
+
+ if (userError || !user) {
  // Not authenticated, redirect to login
  if (pathname !== '/portal/login') {
  router.push('/portal/login');
@@ -77,7 +80,7 @@ export default function PortalLayout({ children }: LayoutProps) {
  const { data: portalAccess } = await supabase
  .from('customer_portal_access')
  .select('*')
- .eq('user_id', session.user.id)
+ .eq('user_id', user.id)
  .eq('is_active', true)
  .single();
 
@@ -88,7 +91,7 @@ export default function PortalLayout({ children }: LayoutProps) {
  return;
  }
 
- setUser(session.user);
+ setUser(user);
  } catch (error) {
  console.error('Auth error:', error);
  if (pathname !== '/portal/login') {

@@ -32,16 +32,20 @@ export default function EmployeeLoginPage() {
 
  const checkExistingSession = useCallback(async () => {
  try {
- const { data: { session } } = await supabase.auth.getSession()
- if (session?.user) {
+ // Use getUser() instead of getSession() for security - validates with Supabase server
+ const { data: { user }, error } = await supabase.auth.getUser()
+ if (error || !user) {
+ // No authenticated user
+ return
+ }
+
  // Check if user email is from limn.us.com domain
- const userEmail = session.user.email
+ const userEmail = user.email
  if (userEmail?.endsWith('@limn.us.com')) {
  router.push('/dashboard')
  } else {
  await supabase.auth.signOut()
  setError('Employee access requires a @limn.us.com email address')
- }
  }
  } catch (error) {
  console.error('Session check error:', error)

@@ -306,7 +306,19 @@ export default function CollectionDetailPage({ params }: PageProps) {
             <MediaGallery
               entityType="collection"
               entityId={collectionId}
-              media={media}
+              media={media.map(m => ({
+                ...m,
+                file_name: m.name ?? '',
+                file_url: m.url ?? '',
+                file_type: m.type ?? '',
+                file_size: 0,
+                media_type: m.media_type ?? undefined,
+                use_for_packaging: m.use_for_packaging ?? undefined,
+                use_for_labeling: m.use_for_labeling ?? undefined,
+                use_for_marketing: m.use_for_marketing ?? undefined,
+                is_primary_image: m.is_primary_image ?? undefined,
+                display_order: m.display_order ?? undefined
+              }))}
               onRefresh={handleMediaRefresh}
             />
           </div>

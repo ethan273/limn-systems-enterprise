@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { FileImage, Download, Trash2, ExternalLink, Package, Tag, Star, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -116,7 +117,13 @@ export function MediaGallery({
               {/* Media Preview */}
               <div className="media-preview" onClick={() => openMediaViewer(item)}>
                 {isImage ? (
-                  <img src={item.file_url} alt={item.file_name} className="media-preview-image" />
+                  <Image
+                    src={item.file_url}
+                    alt={item.file_name}
+                    width={300}
+                    height={300}
+                    className="media-preview-image"
+                  />
                 ) : (
                   <div className="media-preview-icon">
                     <FileImage className="file-icon-large" />
@@ -226,9 +233,11 @@ export function MediaGallery({
             </DialogHeader>
             <div className="media-viewer-content">
               {selectedMedia.file_type?.startsWith("image/") ? (
-                <img
+                <Image
                   src={selectedMedia.file_url}
                   alt={selectedMedia.file_name}
+                  width={1200}
+                  height={800}
                   className="media-viewer-image"
                 />
               ) : (

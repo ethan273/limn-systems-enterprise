@@ -132,6 +132,9 @@ export default function PaymentsPage() {
       </div>
 
       <Card>
+        <CardHeader>
+          <CardTitle>Filter Payments</CardTitle>
+        </CardHeader>
         <CardContent className="card-content-compact">
           <div className="filters-section">
             <div className="search-input-wrapper">

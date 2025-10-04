@@ -300,7 +300,7 @@ export const shopDrawingsRouter = createTRPCRouter({
       const drawing = await ctx.db.shop_drawings.findUnique({
         where: { id: input.shopDrawingId },
         include: {
-          versions: {
+          shop_drawing_versions: {
             orderBy: {
               version_number: 'desc',
             },
@@ -321,9 +321,9 @@ export const shopDrawingsRouter = createTRPCRouter({
       // Create new version and update drawing
       const result = await ctx.db.$transaction(async (tx) => {
         // Mark previous version as superseded
-        if (drawing.versions[0]) {
+        if (drawing.shop_drawing_versions[0]) {
           await tx.shop_drawing_versions.update({
-            where: { id: drawing.versions[0].id },
+            where: { id: drawing.shop_drawing_versions[0].id },
             data: { status: 'superseded' },
           });
         }
@@ -671,16 +671,13 @@ export const shopDrawingsRouter = createTRPCRouter({
               email: true,
             },
           },
-          shop_drawing_comments: {
+          other_shop_drawing_comments: {
             include: {
               users_shop_drawing_comments_author_idTousers: {
                 select: {
                   email: true,
                 },
               },
-            },
-            orderBy: {
-              created_at: 'asc',
             },
           },
         },

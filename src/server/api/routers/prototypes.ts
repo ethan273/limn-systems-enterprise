@@ -70,12 +70,12 @@ export const prototypesRouter = createTRPCRouter({
                 project_name: true,
               },
             },
-            crm_project: {
+            projects: {
               select: {
                 name: true,
               },
             },
-            base_items: {
+            items: {
               select: {
                 name: true,
                 sku_full: true,
@@ -118,13 +118,13 @@ export const prototypesRouter = createTRPCRouter({
               project_name: true,
             },
           },
-          crm_project: {
+          projects: {
             select: {
               name: true,
               customer_id: true,
             },
           },
-          base_items: {
+          items: {
             select: {
               name: true,
               sku_full: true,
@@ -133,36 +133,36 @@ export const prototypesRouter = createTRPCRouter({
           },
           prototype_production: {
             include: {
-              factory: {
+              partners: {
                 select: {
                   company_name: true,
                 },
               },
-              production_manager: {
+              users: {
                 select: {
                   email: true,
                 },
               },
             },
           },
-          creator: {
+          users: {
             select: {
               email: true,
             },
           },
-          milestones: {
+          prototype_milestones: {
             orderBy: {
               sequence_order: 'asc',
             },
             take: 5, // Get first 5 milestones for overview
           },
-          photos: {
+          prototype_photos: {
             where: {
               is_featured: true,
             },
             take: 3,
           },
-          reviews: {
+          prototype_reviews: {
             orderBy: {
               review_date: 'desc',
             },
@@ -191,12 +191,12 @@ export const prototypesRouter = createTRPCRouter({
         where: { prototype_number: input.prototypeNumber },
         include: {
           design_projects: true,
-          crm_project: true,
-          base_items: true,
+          projects: true,
+          items: true,
           prototype_production: {
             include: {
-              factory: true,
-              production_manager: true,
+              partners: true,
+              users: true,
             },
           },
         },
@@ -500,7 +500,7 @@ export const prototypesRouter = createTRPCRouter({
               project_name: true,
             },
           },
-          crm_project: {
+          projects: {
             select: {
               name: true,
             },
@@ -556,14 +556,14 @@ export const prototypesRouter = createTRPCRouter({
       const production = await ctx.db.prototype_production.findUnique({
         where: { prototype_id: input.prototypeId },
         include: {
-          factory: {
+          partners: {
             select: {
               company_name: true,
               primary_contact: true,
               primary_email: true,
             },
           },
-          production_manager: {
+          users: {
             select: {
               email: true,
             },
@@ -767,30 +767,30 @@ export const prototypesRouter = createTRPCRouter({
       const milestones = await ctx.db.prototype_milestones.findMany({
         where: { prototype_id: input.prototypeId },
         include: {
-          assignee: {
+          users_prototype_milestones_assigned_toTousers: {
             select: {
               email: true,
             },
           },
-          completer: {
+          users_prototype_milestones_completed_byTousers: {
             select: {
               email: true,
             },
           },
-          dependency: {
+          prototype_milestones: {
             select: {
               id: true,
               milestone_name: true,
               status: true,
             },
           },
-          photos: {
+          prototype_photos: {
             select: {
               id: true,
               photo_type: true,
             },
           },
-          documents: {
+          prototype_documents: {
             select: {
               id: true,
               document_type: true,
@@ -814,31 +814,31 @@ export const prototypesRouter = createTRPCRouter({
       const milestone = await ctx.db.prototype_milestones.findUnique({
         where: { id: input.id },
         include: {
-          assignee: {
+          users_prototype_milestones_assigned_toTousers: {
             select: {
               email: true,
             },
           },
-          completer: {
+          users_prototype_milestones_completed_byTousers: {
             select: {
               email: true,
             },
           },
-          dependency: {
+          prototype_milestones: {
             select: {
               milestone_name: true,
               status: true,
             },
           },
-          dependent_milestones: {
+          other_prototype_milestones: {
             select: {
               id: true,
               milestone_name: true,
               status: true,
             },
           },
-          photos: true,
-          documents: true,
+          prototype_photos: true,
+          prototype_documents: true,
         },
       });
 
@@ -1112,17 +1112,17 @@ export const prototypesRouter = createTRPCRouter({
       const photos = await ctx.db.prototype_photos.findMany({
         where,
         include: {
-          milestone: {
+          prototype_milestones: {
             select: {
               milestone_name: true,
             },
           },
-          uploader: {
+          users: {
             select: {
               email: true,
             },
           },
-          comments: {
+          prototype_photo_comments: {
             where: {
               parent_comment_id: null,
             },
@@ -1150,35 +1150,35 @@ export const prototypesRouter = createTRPCRouter({
       const photo = await ctx.db.prototype_photos.findUnique({
         where: { id: input.id },
         include: {
-          milestone: {
+          prototype_milestones: {
             select: {
               milestone_name: true,
               sequence_order: true,
             },
           },
-          uploader: {
+          users: {
             select: {
               email: true,
             },
           },
-          comments: {
+          prototype_photo_comments: {
             where: {
               parent_comment_id: null,
             },
             include: {
-              author: {
+              users_prototype_photo_comments_author_idTousers: {
                 select: {
                   email: true,
                 },
               },
-              resolver: {
+              users_prototype_photo_comments_resolved_byTousers: {
                 select: {
                   email: true,
                 },
               },
-              replies: {
+              other_prototype_photo_comments: {
                 include: {
-                  author: {
+                  users_prototype_photo_comments_author_idTousers: {
                     select: {
                       email: true,
                     },
@@ -1430,19 +1430,19 @@ export const prototypesRouter = createTRPCRouter({
       const comments = await ctx.db.prototype_photo_comments.findMany({
         where,
         include: {
-          author: {
+          users_prototype_photo_comments_author_idTousers: {
             select: {
               email: true,
             },
           },
-          resolver: {
+          users_prototype_photo_comments_resolved_byTousers: {
             select: {
               email: true,
             },
           },
-          replies: {
+          other_prototype_photo_comments: {
             include: {
-              author: {
+              users_prototype_photo_comments_author_idTousers: {
                 select: {
                   email: true,
                 },
@@ -1497,7 +1497,7 @@ export const prototypesRouter = createTRPCRouter({
           status: 'open',
         },
         include: {
-          author: {
+          users_prototype_photo_comments_author_idTousers: {
             select: {
               email: true,
             },
@@ -1595,17 +1595,17 @@ export const prototypesRouter = createTRPCRouter({
       const documents = await ctx.db.prototype_documents.findMany({
         where,
         include: {
-          milestone: {
+          prototype_milestones: {
             select: {
               milestone_name: true,
             },
           },
-          uploader: {
+          users_prototype_documents_uploaded_byTousers: {
             select: {
               email: true,
             },
           },
-          approver: {
+          users_prototype_documents_approved_byTousers: {
             select: {
               email: true,
             },
@@ -1628,18 +1628,18 @@ export const prototypesRouter = createTRPCRouter({
       const document = await ctx.db.prototype_documents.findUnique({
         where: { id: input.id },
         include: {
-          milestone: {
+          prototype_milestones: {
             select: {
               milestone_name: true,
               sequence_order: true,
             },
           },
-          uploader: {
+          users_prototype_documents_uploaded_byTousers: {
             select: {
               email: true,
             },
           },
-          approver: {
+          users_prototype_documents_approved_byTousers: {
             select: {
               email: true,
             },
@@ -1824,21 +1824,21 @@ export const prototypesRouter = createTRPCRouter({
       const reviews = await ctx.db.prototype_reviews.findMany({
         where,
         include: {
-          creator: {
+          users: {
             select: {
               email: true,
             },
           },
-          participants: {
+          prototype_review_participants: {
             include: {
-              user: {
+              users: {
                 select: {
                   email: true,
                 },
               },
             },
           },
-          action_items: {
+          prototype_review_actions: {
             select: {
               id: true,
               title: true,
@@ -1864,28 +1864,28 @@ export const prototypesRouter = createTRPCRouter({
       const review = await ctx.db.prototype_reviews.findUnique({
         where: { id: input.id },
         include: {
-          creator: {
+          users: {
             select: {
               email: true,
             },
           },
-          participants: {
+          prototype_review_participants: {
             include: {
-              user: {
+              users: {
                 select: {
                   email: true,
                 },
               },
             },
           },
-          action_items: {
+          prototype_review_actions: {
             include: {
-              assignee: {
+              users_prototype_review_actions_assigned_toTousers: {
                 select: {
                   email: true,
                 },
               },
-              verifier: {
+              users_prototype_review_actions_verified_byTousers: {
                 select: {
                   email: true,
                 },
@@ -2073,12 +2073,12 @@ export const prototypesRouter = createTRPCRouter({
       const actions = await ctx.db.prototype_review_actions.findMany({
         where,
         include: {
-          assignee: {
+          users_prototype_review_actions_assigned_toTousers: {
             select: {
               email: true,
             },
           },
-          verifier: {
+          users_prototype_review_actions_verified_byTousers: {
             select: {
               email: true,
             },
@@ -2259,12 +2259,12 @@ export const prototypesRouter = createTRPCRouter({
       const feedback = await ctx.db.prototype_feedback.findMany({
         where,
         include: {
-          submitter: {
+          users_prototype_feedback_submitted_byTousers: {
             select: {
               email: true,
             },
           },
-          addresser: {
+          users_prototype_feedback_addressed_byTousers: {
             select: {
               email: true,
             },
@@ -2435,12 +2435,12 @@ export const prototypesRouter = createTRPCRouter({
       const revisions = await ctx.db.prototype_revisions.findMany({
         where: { prototype_id: input.prototypeId },
         include: {
-          creator: {
+          users_prototype_revisions_created_byTousers: {
             select: {
               email: true,
             },
           },
-          approver: {
+          users_prototype_revisions_approved_byTousers: {
             select: {
               email: true,
             },
@@ -2548,17 +2548,17 @@ export const prototypesRouter = createTRPCRouter({
       const revision = await ctx.db.prototype_revisions.findUnique({
         where: { id: input.id },
         include: {
-          creator: {
+          users_prototype_revisions_created_byTousers: {
             select: {
               email: true,
             },
           },
-          approver: {
+          users_prototype_revisions_approved_byTousers: {
             select: {
               email: true,
             },
           },
-          prototype: {
+          prototypes: {
             select: {
               prototype_number: true,
               name: true,

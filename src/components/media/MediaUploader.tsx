@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
+import Image from "next/image";
 import { Upload, X, File } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -73,6 +74,7 @@ export function MediaUploader({
   const removeFile = (index: number) => {
     setFiles((prev) => {
       const newFiles = [...prev];
+      // eslint-disable-next-line security/detect-object-injection
       const fileToRemove = newFiles[index];
       if (fileToRemove?.preview) {
         URL.revokeObjectURL(fileToRemove.preview);
@@ -85,8 +87,10 @@ export function MediaUploader({
   const updateFileMetadata = (index: number, updates: Partial<MediaFile>) => {
     setFiles((prev) => {
       const newFiles = [...prev];
+      // eslint-disable-next-line security/detect-object-injection
       const currentFile = newFiles[index];
       if (currentFile) {
+        // eslint-disable-next-line security/detect-object-injection
         newFiles[index] = { ...currentFile, ...updates };
       }
       return newFiles;
@@ -173,7 +177,13 @@ export function MediaUploader({
                 {/* File Preview/Icon */}
                 <div className="file-preview">
                   {fileData.preview ? (
-                    <img src={fileData.preview} alt={fileData.file.name} className="file-preview-image" />
+                    <Image
+                      src={fileData.preview}
+                      alt={fileData.file.name}
+                      width={60}
+                      height={60}
+                      className="file-preview-image"
+                    />
                   ) : (
                     <File className="file-icon" />
                   )}

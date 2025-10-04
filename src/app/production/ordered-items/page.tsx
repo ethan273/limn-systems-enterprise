@@ -185,6 +185,9 @@ export default function OrderedItemsProductionPage() {
 
       {/* Filters */}
       <Card>
+        <CardHeader>
+          <CardTitle>Filter Ordered Items</CardTitle>
+        </CardHeader>
         <CardContent className="card-content-compact">
           <div className="filters-section">
             <div className="search-input-wrapper">

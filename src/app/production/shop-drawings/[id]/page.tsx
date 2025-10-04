@@ -101,7 +101,7 @@ export default function ShopDrawingDetailPage({ params }: PageProps) {
  });
 
  // Get current version ID
- const currentVersionId = drawing?.versions?.[0]?.id ?? "";
+ const currentVersionId = drawing?.shop_drawing_versions?.[0]?.id ?? "";
 
  // Fetch comments for current version
  const { data: comments, refetch: refetchComments } = api.shopDrawings.getComments.useQuery(
@@ -234,7 +234,7 @@ export default function ShopDrawingDetailPage({ params }: PageProps) {
 
  const config = statusConfig[drawing.status] || statusConfig.in_review;
  const StatusIcon = config.icon;
- const currentVersion = drawing.versions?.[0];
+ const currentVersion = drawing.shop_drawing_versions?.[0];
  const fileUrl = currentVersion?.file_url ?? "";
 
  return (
@@ -438,7 +438,7 @@ export default function ShopDrawingDetailPage({ params }: PageProps) {
  text: comment.comment_text,
  author: {
  id: comment.author_id,
- name: comment.author.email ?? "Unknown User",
+ name: comment.users_shop_drawing_comments_author_idTousers.email ?? "Unknown User",
  },
  createdAt: new Date(comment.created_at),
  type: comment.comment_type === "review" ? "question" :
@@ -446,16 +446,16 @@ export default function ShopDrawingDetailPage({ params }: PageProps) {
  comment.comment_type === "approval" ? "approval" : "general",
  status: comment.status === "resolved" ? "resolved" : "open",
  resolvedAt: comment.resolved_at ? new Date(comment.resolved_at) : null,
- resolvedBy: comment.resolver ? {
+ resolvedBy: comment.users_shop_drawing_comments_resolved_byTousers ? {
  id: comment.resolved_by ?? "",
- name: comment.resolver.email ?? "Unknown User",
+ name: comment.users_shop_drawing_comments_resolved_byTousers.email ?? "Unknown User",
  } : null,
- replies: comment.replies?.map((reply) => ({
+ replies: comment.other_shop_drawing_comments?.map((reply) => ({
  id: reply.id,
  text: reply.comment_text,
  author: {
  id: reply.author_id,
- name: reply.author.email ?? "Unknown User",
+ name: reply.users_shop_drawing_comments_author_idTousers.email ?? "Unknown User",
  },
  createdAt: new Date(reply.created_at),
  type: "general" as const,
@@ -490,7 +490,7 @@ export default function ShopDrawingDetailPage({ params }: PageProps) {
  uploadedAt: new Date(v.uploaded_at),
  uploadedBy: {
  id: v.uploaded_by,
- name: v.uploader.email ?? "Unknown User",
+ name: v.users.email ?? "Unknown User",
  },
  status: v.status as "current" | "superseded" | "archived",
  notes: v.upload_notes,

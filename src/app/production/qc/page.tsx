@@ -84,7 +84,7 @@ export default function QCInspectionsPage() {
  if (!searchQuery) return true;
  const searchLower = searchQuery.toLowerCase();
  return (
- inspection.prototype_production?.prototype?.name.toLowerCase().includes(searchLower) ||
+ inspection.prototype_production?.prototypes?.name.toLowerCase().includes(searchLower) ||
  inspection.production_items?.item_name.toLowerCase().includes(searchLower) ||
  inspection.batch_id?.toLowerCase().includes(searchLower)
  );
@@ -211,17 +211,17 @@ export default function QCInspectionsPage() {
  <CardHeader>
  <CardTitle>QC Inspections</CardTitle>
  </CardHeader>
- <CardContent>
+ <CardContent className="card-content-compact">
  {isLoading ? (
- <div className="text-center py-8 text-muted-foreground">Loading inspections...</div>
+ <div className="loading-state">Loading inspections...</div>
  ) : filteredInspections.length === 0 ? (
- <div className="text-center py-12 text-muted-foreground">
- <ClipboardCheck className="w-12 h-12 mx-auto mb-2 opacity-50" aria-hidden="true" />
- <p>No QC inspections found</p>
- {searchQuery && <p className="text-sm mt-2">Try adjusting your search</p>}
+ <div className="empty-state">
+ <ClipboardCheck className="empty-state-icon" aria-hidden="true" />
+ <p className="empty-state-title">No QC inspections found</p>
+ {searchQuery && <p className="empty-state-description">Try adjusting your search</p>}
  </div>
  ) : (
- <div className="overflow-x-auto">
+ <div className="table-container">
  <Table>
  <TableHeader>
  <TableRow>
@@ -247,7 +247,7 @@ export default function QCInspectionsPage() {
  <TableCell>
  <div>
  <p className="font-medium">
- {inspection.prototype_production?.prototype?.name ||
+ {inspection.prototype_production?.prototypes?.name ||
  inspection.production_items?.item_name ||
  "—"}
  </p>

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ExpandableTableRowWithTrigger } from "@/components/ui/expandable-table-row";
 import { Search, Package, DollarSign, FileText, AlertCircle } from "lucide-react";
@@ -164,21 +165,24 @@ export default function CRMOrdersPage() {
  </div>
 
  {/* Filters */}
- <div className="flex gap-4 filters-section">
- <div className="flex-1">
- <div className="relative">
- <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+ <Card>
+ <CardHeader>
+ <CardTitle>Filter Customer Orders</CardTitle>
+ </CardHeader>
+ <CardContent className="card-content-compact">
+ <div className="filters-section">
+ <div className="search-input-wrapper">
+ <Search className="search-icon" aria-hidden="true" />
  <Input
  placeholder="Search by order number, customer, or project..."
  value={searchQuery}
  onChange={(e) => setSearchQuery(e.target.value)}
- className="pl-10 w-full"
+ className="search-input"
  />
  </div>
- </div>
  <Select value={statusFilter} onValueChange={setStatusFilter}>
- <SelectTrigger className="w-[200px]">
- <SelectValue placeholder="Filter by status" />
+ <SelectTrigger className="filter-select">
+ <SelectValue placeholder="Status" />
  </SelectTrigger>
  <SelectContent>
  <SelectItem value="all">All Statuses</SelectItem>
@@ -194,6 +198,8 @@ export default function CRMOrdersPage() {
  </SelectContent>
  </Select>
  </div>
+ </CardContent>
+ </Card>
 
  {/* Summary Stats */}
  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

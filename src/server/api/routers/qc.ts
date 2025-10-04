@@ -53,7 +53,7 @@ export const qcRouter = createTRPCRouter({
           include: {
             prototype_production: {
               include: {
-                prototype: {
+                prototypes: {
                   select: {
                     name: true,
                     prototype_number: true,
@@ -101,7 +101,7 @@ export const qcRouter = createTRPCRouter({
         include: {
           prototype_production: {
             include: {
-              prototype: {
+              prototypes: {
                 select: {
                   id: true,
                   name: true,
@@ -125,7 +125,7 @@ export const qcRouter = createTRPCRouter({
               },
               qc_issue_comments: {
                 include: {
-                  author: {
+                  users: {
                     select: {
                       email: true,
                     },
@@ -200,7 +200,7 @@ export const qcRouter = createTRPCRouter({
         include: {
           prototype_production: {
             include: {
-              prototype: true,
+              prototypes: true,
             },
           },
           production_items: true,
@@ -275,7 +275,7 @@ export const qcRouter = createTRPCRouter({
           },
           qc_issue_comments: {
             include: {
-              author: {
+              users: {
                 select: {
                   email: true,
                 },
@@ -475,7 +475,7 @@ export const qcRouter = createTRPCRouter({
           issue_id: input.issueId,
         },
         include: {
-          author: {
+          users: {
             select: {
               email: true,
             },
@@ -522,7 +522,7 @@ export const qcRouter = createTRPCRouter({
           voice_note_duration: input.voiceNoteDuration,
         },
         include: {
-          author: {
+          users: {
             select: {
               email: true,
             },

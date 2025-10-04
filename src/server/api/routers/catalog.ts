@@ -408,7 +408,7 @@ export const itemsRouter = createTRPCRouter({
         sku: skuParts.join('-'),
         item,
         material,
-        totalPrice: Number(item.list_price ?? 0) + Number(material.list_price ?? 0),
+        totalPrice: Number(item.list_price ?? 0) + Number(material.cost_per_unit ?? 0),
       };
     }),
 

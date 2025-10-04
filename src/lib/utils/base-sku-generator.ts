@@ -96,7 +96,7 @@ export async function regenerateBaseSku(
   variationType?: string | null
 ): Promise<string> {
   // Get collection prefix
-  const collection = await prisma.furniture_collections.findUnique({
+  const collection = await prisma.collections.findUnique({
     where: { id: collectionId },
     select: { prefix: true }
   });

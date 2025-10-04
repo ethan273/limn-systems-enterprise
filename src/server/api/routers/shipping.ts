@@ -1,7 +1,8 @@
 import { z } from 'zod';
-import { createTRPCRouter, protectedProcedure } from '../trpc/init';
+import { createTRPCRouter, protectedProcedure, publicProcedure } from '../trpc/init';
 import { sekoClient } from '@/lib/seko/client';
 import type { Address, Package } from '@/lib/seko/client';
+import { TRPCError } from '@trpc/server';
 
 // ============================================================================
 // SCHEMAS
@@ -373,5 +374,138 @@ export const shippingRouter = createTRPCRouter({
         total,
         hasMore: total > input.offset + input.limit,
       };
+    }),
+
+  /**
+   * Get single shipment by ID with full details
+   * Used by shipment detail page
+   */
+  getShipmentById: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const shipment = await ctx.db.shipments.findUnique({
+        where: { id: input.id },
+        include: {
+          projects: {
+            select: {
+              id: true,
+              name: true,
+              project_number: true,
+            },
+          },
+          users: {
+            select: {
+              id: true,
+              first_name: true,
+              last_name: true,
+              email: true,
+            },
+          },
+          ordered_items_production: {
+            include: {
+              catalog_items: {
+                select: {
+                  id: true,
+                  name: true,
+                  sku: true,
+                },
+              },
+              production_orders: {
+                select: {
+                  id: true,
+                  production_order_number: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!shipment) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Shipment not found',
+        });
+      }
+
+      return shipment;
+    }),
+
+  /**
+   * Update shipment status
+   * Used by shipment detail page status dropdown
+   */
+  updateShipmentStatus: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().uuid(),
+        status: z.enum([
+          'pending',
+          'preparing',
+          'ready',
+          'shipped',
+          'in_transit',
+          'delivered',
+          'delayed',
+          'cancelled',
+        ]),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const updatedShipment = await ctx.db.shipments.update({
+        where: { id: input.id },
+        data: { status: input.status },
+      });
+
+      return {
+        success: true,
+        shipment: updatedShipment,
+        message: `Shipment status updated to ${input.status}`,
+      };
+    }),
+
+  /**
+   * Get tracking info by tracking number (PUBLIC - no auth required)
+   * Used by customer-facing tracking page
+   */
+  getTrackingInfo: publicProcedure
+    .input(z.object({ trackingNumber: z.string().min(1) }))
+    .query(async ({ ctx, input }) => {
+      const shipment = await ctx.db.shipments.findFirst({
+        where: { tracking_number: input.trackingNumber },
+      });
+
+      if (!shipment) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Tracking number not found',
+        });
+      }
+
+      // Fetch latest tracking from SEKO API
+      try {
+        const sekoTracking = await sekoClient.trackShipment(input.trackingNumber);
+
+        // Update database with latest tracking info
+        await ctx.db.shipments.update({
+          where: { id: shipment.id },
+          data: {
+            status: sekoTracking.status,
+            actual_delivery: sekoTracking.actual_delivery,
+            tracking_events: sekoTracking.events,
+          },
+        });
+
+        return {
+          ...shipment,
+          status: sekoTracking.status,
+          actual_delivery: sekoTracking.actual_delivery,
+          tracking_events: sekoTracking.events,
+        };
+      } catch (error) {
+        // If SEKO API fails, return cached data from database
+        console.warn('Failed to fetch live tracking from SEKO, returning cached data:', error);
+        return shipment;
+      }
     }),
 });

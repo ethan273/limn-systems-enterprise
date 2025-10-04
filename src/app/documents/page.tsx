@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ import { format } from "date-fns";
 export const dynamic = 'force-dynamic';
 
 export default function DocumentsPage() {
+  const router = useRouter();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [storageFilter, setStorageFilter] = useState<"all" | "google_drive" | "supabase">("all");
@@ -211,7 +213,11 @@ export default function DocumentsPage() {
                 <TableBody>
                   {documents.map((doc: any) => {
                     return (
-                      <TableRow key={doc.id}>
+                      <TableRow
+                        key={doc.id}
+                        className="table-row-clickable"
+                        onClick={() => router.push(`/documents/${doc.id}`)}
+                      >
                         <TableCell className="font-medium">
                           <div className="flex items-center gap-2">
                             <FileText className="w-4 h-4 text-muted" aria-hidden="true" />

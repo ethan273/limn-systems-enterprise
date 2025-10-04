@@ -260,9 +260,7 @@ export const ordersRouter = createTRPCRouter({
 
       for (const item of input.order_items) {
         // Generate Full SKU from base SKU + material selections
-        const fullSku = generateFullSku(item.base_sku, {
-          materials: item.material_selections,
-        });
+        const fullSku = generateFullSku(item.base_sku, item.material_selections);
 
         const orderItemData = {
           order_id: order.id,

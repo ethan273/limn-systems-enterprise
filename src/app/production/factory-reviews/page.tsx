@@ -73,7 +73,7 @@ export default function FactoryReviewsPage() {
  const searchLower = searchQuery.toLowerCase();
  return (
  session.session_name.toLowerCase().includes(searchLower) ||
- session.prototype_production?.prototype?.name.toLowerCase().includes(searchLower) ||
+ session.prototype_production?.prototypes?.name.toLowerCase().includes(searchLower) ||
  session.location?.toLowerCase().includes(searchLower)
  );
  });
@@ -230,10 +230,10 @@ export default function FactoryReviewsPage() {
  <TableCell>
  <div>
  <p className="font-medium">
- {session.prototype_production?.prototype?.name || "—"}
+ {session.prototype_production?.prototypes?.name || "—"}
  </p>
  <p className="text-sm text-muted-foreground">
- {session.prototype_production?.prototype?.prototype_number || "—"}
+ {session.prototype_production?.prototypes?.prototype_number || "—"}
  </p>
  </div>
  </TableCell>
@@ -254,13 +254,13 @@ export default function FactoryReviewsPage() {
  <TableCell>
  <div className="flex items-center gap-1">
  <ImageIcon className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
- {session._count?.photos || 0}
+ {session._count?.factory_review_photos || 0}
  </div>
  </TableCell>
  <TableCell>
  <div className="flex items-center gap-1">
  <MessageSquare className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
- {session._count?.comments || 0}
+ {session._count?.factory_review_comments || 0}
  </div>
  </TableCell>
  <TableCell>

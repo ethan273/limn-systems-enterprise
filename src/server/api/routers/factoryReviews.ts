@@ -43,7 +43,7 @@ export const factoryReviewsRouter = createTRPCRouter({
           include: {
             prototype_production: {
               include: {
-                prototype: {
+                prototypes: {
                   select: {
                     name: true,
                     prototype_number: true,
@@ -51,16 +51,16 @@ export const factoryReviewsRouter = createTRPCRouter({
                 },
               },
             },
-            creator: {
+            users: {
               select: {
                 email: true,
               },
             },
             _count: {
               select: {
-                photos: true,
-                comments: true,
-                documents: true,
+                factory_review_photos: true,
+                factory_review_comments: true,
+                factory_review_documents: true,
               },
             },
           },
@@ -92,35 +92,35 @@ export const factoryReviewsRouter = createTRPCRouter({
         include: {
           prototype_production: {
             include: {
-              prototype: {
+              prototypes: {
                 select: {
                   id: true,
                   name: true,
                   prototype_number: true,
                 },
               },
-              factory: {
+              partners: {
                 select: {
                   company_name: true,
                 },
               },
             },
           },
-          creator: {
+          users: {
             select: {
               email: true,
             },
           },
-          photos: {
+          factory_review_photos: {
             include: {
-              uploader: {
+              users: {
                 select: {
                   email: true,
                 },
               },
               _count: {
                 select: {
-                  comments: true,
+                  factory_review_comments: true,
                 },
               },
             },
@@ -128,24 +128,24 @@ export const factoryReviewsRouter = createTRPCRouter({
               created_at: 'desc',
             },
           },
-          comments: {
+          factory_review_comments: {
             where: {
               parent_comment_id: null,
             },
             include: {
-              author: {
+              users_factory_review_comments_author_idTousers: {
                 select: {
                   email: true,
                 },
               },
-              resolver: {
+              users_factory_review_comments_resolved_byTousers: {
                 select: {
                   email: true,
                 },
               },
-              replies: {
+              other_factory_review_comments: {
                 include: {
-                  author: {
+                  users_factory_review_comments_author_idTousers: {
                     select: {
                       email: true,
                     },
@@ -160,9 +160,9 @@ export const factoryReviewsRouter = createTRPCRouter({
               created_at: 'desc',
             },
           },
-          documents: {
+          factory_review_documents: {
             include: {
-              uploader: {
+              users: {
                 select: {
                   email: true,
                 },
@@ -226,7 +226,7 @@ export const factoryReviewsRouter = createTRPCRouter({
         include: {
           prototype_production: {
             include: {
-              prototype: true,
+              prototypes: true,
             },
           },
         },
@@ -307,14 +307,14 @@ export const factoryReviewsRouter = createTRPCRouter({
       const photos = await ctx.db.factory_review_photos.findMany({
         where,
         include: {
-          uploader: {
+          users: {
             select: {
               email: true,
             },
           },
-          comments: {
+          factory_review_comments: {
             include: {
-              author: {
+              users_factory_review_comments_author_idTousers: {
                 select: {
                   email: true,
                 },
@@ -430,19 +430,19 @@ export const factoryReviewsRouter = createTRPCRouter({
       const comments = await ctx.db.factory_review_comments.findMany({
         where,
         include: {
-          author: {
+          users_factory_review_comments_author_idTousers: {
             select: {
               email: true,
             },
           },
-          resolver: {
+          users_factory_review_comments_resolved_byTousers: {
             select: {
               email: true,
             },
           },
-          replies: {
+          other_factory_review_comments: {
             include: {
-              author: {
+              users_factory_review_comments_author_idTousers: {
                 select: {
                   email: true,
                 },
@@ -502,7 +502,7 @@ export const factoryReviewsRouter = createTRPCRouter({
           parent_comment_id: input.parentCommentId,
         },
         include: {
-          author: {
+          users_factory_review_comments_author_idTousers: {
             select: {
               email: true,
             },
@@ -574,17 +574,17 @@ export const factoryReviewsRouter = createTRPCRouter({
       const actionItems = await ctx.db.factory_review_comments.findMany({
         where,
         include: {
-          author: {
+          users_factory_review_comments_author_idTousers: {
             select: {
               email: true,
             },
           },
-          resolver: {
+          users_factory_review_comments_resolved_byTousers: {
             select: {
               email: true,
             },
           },
-          photo: {
+          factory_review_photos: {
             select: {
               file_url: true,
               component_area: true,

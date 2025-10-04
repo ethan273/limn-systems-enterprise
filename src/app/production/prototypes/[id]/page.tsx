@@ -376,20 +376,20 @@ export default function PrototypeDetailPage({ params }: PageProps) {
  CRM Project
  </Label>
  <p className="font-medium">
- {prototype.crm_project?.name || "—"}
+ {prototype.projects?.name || "—"}
  </p>
  </div>
  </div>
 
  {/* Base Item */}
- {prototype.base_item && (
+ {prototype.items && (
  <div>
  <Label className="text-muted-foreground flex items-center gap-2">
  <Package className="w-4 h-4" aria-hidden="true" />
  Base Item
  </Label>
  <p className="font-medium">
- {prototype.base_item.name} {prototype.base_item.sku_full ? `(${prototype.base_item.sku_full})` : ''}
+ {prototype.items.name} {prototype.items.sku_full ? `(${prototype.items.sku_full})` : ''}
  </p>
  </div>
  )}
@@ -495,7 +495,7 @@ export default function PrototypeDetailPage({ params }: PageProps) {
  Factory
  </Label>
  <p className="font-medium">
- {production.factory?.company_name || "—"}
+ {production.partners?.company_name || "—"}
  </p>
  </div>
  <div>
@@ -504,7 +504,7 @@ export default function PrototypeDetailPage({ params }: PageProps) {
  Production Manager
  </Label>
  <p className="font-medium">
- {production.production_manager?.email || "—"}
+ {production.users?.email || "—"}
  </p>
  </div>
  </div>
@@ -691,10 +691,10 @@ export default function PrototypeDetailPage({ params }: PageProps) {
  </div>
  )}
 
- {milestone.assignee && (
+ {milestone.users_prototype_milestones_assigned_toTousers && (
  <div>
  <Label className="text-muted-foreground">Assigned To</Label>
- <p>{milestone.assignee.email || "—"}</p>
+ <p>{milestone.users_prototype_milestones_assigned_toTousers.email || "—"}</p>
  </div>
  )}
  </CardContent>
@@ -810,7 +810,7 @@ export default function PrototypeDetailPage({ params }: PageProps) {
  )}
  <div className="flex items-center gap-2 text-sm text-muted-foreground">
  <AlertCircleIcon className="w-4 h-4" aria-hidden="true" />
- <span>{review.action_items?.length || 0} Action Items</span>
+ <span>{review.prototype_review_actions?.length || 0} Action Items</span>
  </div>
  </CardContent>
  </Card>
@@ -917,7 +917,7 @@ export default function PrototypeDetailPage({ params }: PageProps) {
  </div>
  <p className="text-sm">{item.feedback_text}</p>
  <p className="text-xs text-muted-foreground">
- By {item.submitter?.email || "Unknown"}
+ By {item.users_prototype_feedback_submitted_byTousers?.email || "Unknown"}
  </p>
  </div>
  </CardContent>

@@ -677,4 +677,31 @@ export const paymentsRouter = createTRPCRouter({
         byMethod: methodTotals,
       };
     }),
+
+  // ============================================================================
+  // MUTATIONS
+  // ============================================================================
+
+  /**
+   * Update payment status
+   */
+  updateStatus: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().uuid(),
+        status: z.enum(['pending', 'processed', 'failed', 'refunded']),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const updatedPayment = await ctx.db.payments.update({
+        where: { id: input.id },
+        data: { status: input.status },
+      });
+
+      return {
+        success: true,
+        payment: updatedPayment,
+        message: `Payment status updated to ${input.status}`,
+      };
+    }),
 });

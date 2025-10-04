@@ -616,4 +616,27 @@ export const invoicesRouter = createTRPCRouter({
         countPending,
       };
     }),
+
+  /**
+   * Update invoice status
+   */
+  updateStatus: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().uuid(),
+        status: z.enum(['pending', 'partial', 'paid', 'overdue', 'cancelled']),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const updatedInvoice = await ctx.db.invoices.update({
+        where: { id: input.id },
+        data: { status: input.status },
+      });
+
+      return {
+        success: true,
+        invoice: updatedInvoice,
+        message: `Invoice status updated to ${input.status}`,
+      };
+    }),
 });

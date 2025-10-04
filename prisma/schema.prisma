@@ -352,6 +352,7 @@ model users {
   client_files                                                          client_files[]
   collection_activities_collection_activities_created_byTousers         collection_activities[]             @relation("collection_activities_created_byTousers")
   collection_activities_collection_activities_updated_byTousers         collection_activities[]             @relation("collection_activities_updated_byTousers")
+  concepts                                                              concepts[]
   customer_notifications                                                customer_notifications[]
   customer_portal_access_customer_portal_access_invited_byTousers       customer_portal_access[]            @relation("customer_portal_access_invited_byTousers")
   customer_portal_access_customer_portal_access_user_idTousers          customer_portal_access[]            @relation("customer_portal_access_user_idTousers")
@@ -387,6 +388,7 @@ model users {
   factory_review_photos                                                 factory_review_photos[]
   factory_review_sessions                                               factory_review_sessions[]
   financial_periods                                                     financial_periods[]
+  invoice_templates                                                     invoice_templates[]
   manufacturer_communications                                           manufacturer_communications[]
   material_collection_audit                                             material_collection_audit[]
   material_price_history                                                material_price_history[]
@@ -438,7 +440,6 @@ model users {
   prototype_revisions_prototype_revisions_approved_byTousers            prototype_revisions[]               @relation("prototype_revisions_approved_byTousers")
   prototype_revisions_prototype_revisions_created_byTousers             prototype_revisions[]               @relation("prototype_revisions_created_byTousers")
   prototypes                                                            prototypes[]
-  concepts                                                              concepts[]
   push_subscriptions                                                    push_subscriptions[]
   pwa_devices                                                           pwa_devices[]
   pwa_subscriptions                                                     pwa_subscriptions[]
@@ -936,13 +937,15 @@ model collections {
   updated_at                     DateTime?                        @default(now()) @db.Timestamptz(6)
   prefix                         String?                          @db.VarChar(2)
   designer                       String?
-  designer_id                    String?                          @db.Uuid
   display_order                  Int?                             @default(1)
   is_active                      Boolean?                         @default(true)
   image_url                      String?
   metadata                       Json?
   variation_types                String[]
+  designer_id                    String?                          @db.Uuid
   carving_style_collections      carving_style_collections[]
+  designers                      designers?                       @relation(fields: [designer_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_collections_designer")
+  concepts                       concepts[]
   design_projects                design_projects[]
   documents                      documents[]
   fabric_brand_collections       fabric_brand_collections[]
@@ -957,6 +960,7 @@ model collections {
   metal_finish_collections       metal_finish_collections[]
   metal_type_collections         metal_type_collections[]
   orders                         orders[]
+  prototypes                     prototypes[]
   stone_finish_collections       stone_finish_collections[]
   stone_type_collections         stone_type_collections[]
   weaving_color_collections      weaving_color_collections[]
@@ -964,42 +968,40 @@ model collections {
   weaving_pattern_collections    weaving_pattern_collections[]
   wood_finish_collections        wood_finish_collections[]
   wood_type_collections          wood_type_collections[]
-  concepts                       concepts[]
-  prototypes                     prototypes[]
-  designers                      designers?                       @relation(fields: [designer_id], references: [id])
 
+  @@index([designer_id], map: "idx_collections_designer_id")
   @@schema("public")
 }
 
 model concepts {
-  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name           String        @db.VarChar(255)
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name           String       @db.VarChar(255)
   description    String?
-  concept_number String?       @unique @db.VarChar(50)
-  designer_id    String?       @db.Uuid
-  collection_id  String?       @db.Uuid
-  created_by     String        @db.Uuid
-  status         String?       @default("concept") @db.VarChar(50)
-  priority       String?       @default("medium") @db.VarChar(20)
+  concept_number String?      @unique @db.VarChar(50)
+  designer_id    String?      @db.Uuid
+  collection_id  String?      @db.Uuid
+  created_by     String       @db.Uuid
+  status         String?      @default("concept") @db.VarChar(50)
+  priority       String?      @default("medium") @db.VarChar(20)
   specifications Json?
-  target_price   Decimal?      @db.Decimal(10, 2)
-  estimated_cost Decimal?      @db.Decimal(10, 2)
+  target_price   Decimal?     @db.Decimal(10, 2)
+  estimated_cost Decimal?     @db.Decimal(10, 2)
   tags           String[]
   notes          String?
   internal_notes String?
-  created_at     DateTime      @default(now()) @db.Timestamptz(6)
-  updated_at     DateTime      @default(now()) @db.Timestamptz(6)
-  designers      designers?    @relation(fields: [designer_id], references: [id])
-  collections    collections?  @relation(fields: [collection_id], references: [id])
-  users          users         @relation(fields: [created_by], references: [id])
+  created_at     DateTime?    @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime?    @default(now()) @db.Timestamptz(6)
+  collections    collections? @relation(fields: [collection_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_concepts_collection")
+  designers      designers?   @relation(fields: [designer_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_concepts_designer")
+  users          users        @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_concepts_user")
   documents      documents[]
   prototypes     prototypes[]
 
-  @@index([designer_id])
-  @@index([collection_id])
-  @@index([status])
-  @@index([concept_number])
-  @@index([created_by])
+  @@index([collection_id], map: "idx_concepts_collection_id")
+  @@index([concept_number], map: "idx_concepts_concept_number")
+  @@index([created_by], map: "idx_concepts_created_by")
+  @@index([designer_id], map: "idx_concepts_designer_id")
+  @@index([status], map: "idx_concepts_status")
   @@schema("public")
 }
 
@@ -1357,6 +1359,7 @@ model customers {
   design_approvals                                design_approvals[]
   document_folders                                document_folders[]
   documents                                       documents[]
+  invoices                                        invoices[]
   notifications                                   notifications[]
   orders                                          orders[]
   orders_old                                      orders_old[]
@@ -1706,13 +1709,13 @@ model designers {
   notes                String?
   created_at           DateTime?              @default(now()) @db.Timestamp(6)
   updated_at           DateTime?              @default(now()) @db.Timestamp(6)
+  collections          collections[]
+  concepts             concepts[]
   design_projects      design_projects[]
   designer_contracts   designer_contracts[]
   designer_performance designer_performance[]
   documents            documents[]
   mood_boards          mood_boards[]
-  collections          collections[]
-  concepts             concepts[]
   prototypes           prototypes[]
 
   @@schema("public")
@@ -1959,10 +1962,6 @@ model documents {
   document_revisions                                      document_revisions[]
   user_profiles_documents_approved_byTouser_profiles      user_profiles?          @relation("documents_approved_byTouser_profiles", fields: [approved_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
   collections                                             collections?            @relation(fields: [collection_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  concepts                                                concepts?               @relation(fields: [concept_id], references: [id], onDelete: Cascade)
-  prototypes                                              prototypes?             @relation(fields: [prototype_id], references: [id], onDelete: Cascade)
-  items                                                   items?                  @relation(fields: [catalog_item_id], references: [id], onDelete: Cascade)
-  production_orders_documents                             production_orders?      @relation("production_orders_documents", fields: [production_order_id], references: [id], onDelete: Cascade)
   customers                                               customers?              @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   design_projects                                         design_projects?        @relation(fields: [design_project_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   designers                                               designers?              @relation(fields: [designer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -1970,11 +1969,19 @@ model documents {
   manufacturer_projects                                   manufacturer_projects?  @relation(fields: [manufacturer_project_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   order_items                                             order_items?            @relation(fields: [order_item_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   user_profiles_documents_uploaded_by_userTouser_profiles user_profiles?          @relation("documents_uploaded_by_userTouser_profiles", fields: [uploaded_by_user], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  concepts                                                concepts?               @relation(fields: [concept_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_documents_concepts")
+  prototypes                                              prototypes?             @relation(fields: [prototype_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_documents_prototypes")
+  production_orders                                       production_orders[]
 
   @@index([customer_id], map: "idx_documents_customer_id")
   @@index([designer_id], map: "idx_documents_designer_id")
   @@index([manufacturer_id], map: "idx_documents_manufacturer_id")
   @@index([storage_type], map: "idx_documents_storage_type")
+  @@index([catalog_item_id], map: "idx_documents_catalog_item_id")
+  @@index([concept_id], map: "idx_documents_concept_id")
+  @@index([media_type], map: "idx_documents_media_type")
+  @@index([production_order_id], map: "idx_documents_production_order_id")
+  @@index([prototype_id], map: "idx_documents_prototype_id")
   @@schema("public")
 }
 
@@ -2581,10 +2588,43 @@ model invoices {
   id                       String                     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   created_at               DateTime?                  @default(now()) @db.Timestamptz(6)
   updated_at               DateTime?                  @default(now()) @db.Timestamptz(6)
+  invoice_number           String?                    @unique
+  invoice_date             DateTime?                  @default(dbgenerated("CURRENT_DATE")) @db.Date
+  due_date                 DateTime?                  @db.Date
+  customer_id              String?                    @db.Uuid
+  order_id                 String?                    @db.Uuid
+  project_id               String?                    @db.Uuid
+  status                   String?                    @default("pending")
+  subtotal                 Decimal?                   @default(0) @db.Decimal(12, 2)
+  tax_total                Decimal?                   @default(0) @db.Decimal(12, 2)
+  discount_total           Decimal?                   @default(0) @db.Decimal(12, 2)
+  total_amount             Decimal?                   @default(0) @db.Decimal(12, 2)
+  amount_paid              Decimal?                   @default(0) @db.Decimal(12, 2)
+  balance_due              Decimal?                   @default(dbgenerated("(total_amount - amount_paid)")) @db.Decimal(12, 2)
+  template_id              String?                    @db.Uuid
+  pdf_url                  String?
+  pdf_generated_at         DateTime?                  @db.Timestamptz(6)
+  invoice_notes            String?
+  payment_terms            String?                    @default("Net 30")
+  internal_notes           String?
+  quickbooks_invoice_id    String?
+  quickbooks_sync_date     DateTime?                  @db.Timestamptz(6)
   invoice_items            invoice_items[]
+  customers                customers?                 @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  orders                   orders?                    @relation(fields: [order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  projects                 projects?                  @relation(fields: [project_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  invoice_templates        invoice_templates?         @relation(fields: [template_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   payment_allocations      payment_allocations[]
   quickbooks_payment_queue quickbooks_payment_queue[]
 
+  @@index([customer_id], map: "idx_invoices_customer_id")
+  @@index([due_date], map: "idx_invoices_due_date")
+  @@index([invoice_date(sort: Desc)], map: "idx_invoices_invoice_date")
+  @@index([invoice_number], map: "idx_invoices_invoice_number")
+  @@index([order_id], map: "idx_invoices_order_id")
+  @@index([project_id], map: "idx_invoices_project_id")
+  @@index([status], map: "idx_invoices_status")
+  @@index([template_id], map: "idx_invoices_template_id")
   @@schema("public")
 }
 
@@ -2661,7 +2701,6 @@ model items {
   production_orders_production_orders_concept_idToitems      production_orders[]     @relation("production_orders_concept_idToitems")
   production_orders_production_orders_prototype_idToitems    production_orders[]     @relation("production_orders_prototype_idToitems")
   prototypes                                                 prototypes[]
-  documents                                                  documents[]
 
   @@index([category], map: "idx_items_category")
   @@index([collection_id], map: "idx_items_collection_id")
@@ -3497,6 +3536,7 @@ model orders {
   customer_production_notifications customer_production_notifications[]
   design_approvals                  design_approvals[]
   document_folders                  document_folders[]
+  invoices                          invoices[]
   order_items                       order_items[]
   order_materials                   order_materials[]
   collections                       collections?                        @relation(fields: [collection_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -4301,13 +4341,13 @@ model production_orders {
   users                                          users?                     @relation(fields: [created_by], references: [id], onUpdate: NoAction)
   manufacturers                                  manufacturers?             @relation(fields: [factory_id], references: [id], onUpdate: NoAction)
   orders                                         orders?                    @relation(fields: [order_id], references: [id], onUpdate: NoAction)
-  partners                                       partners?                  @relation(fields: [factory_id], references: [id], onUpdate: NoAction, map: "production_orders_partner_factory_id_fkey")
+  factory                                        partners?                  @relation(fields: [factory_id], references: [id], onUpdate: NoAction, map: "production_orders_partner_factory_id_fkey")
   projects                                       projects?                  @relation(fields: [project_id], references: [id], onUpdate: NoAction)
   items_production_orders_prototype_idToitems    items?                     @relation("production_orders_prototype_idToitems", fields: [prototype_id], references: [id], onUpdate: NoAction)
   production_payments                            production_payments[]
   shipping_quotes                                shipping_quotes[]
   shop_drawings                                  shop_drawings[]
-  production_orders_documents                    documents[]                @relation("production_orders_documents")
+  documents                                      documents[]
 
   @@index([catalog_item_id], map: "idx_production_orders_catalog_item_id")
   @@index([factory_id], map: "idx_production_orders_factory_id")
@@ -4530,6 +4570,7 @@ model projects {
   budget_estimate           String?
   actual_cost               String?
   project_manager           String?
+  invoices                  invoices[]
   orders_old                orders_old[]
   production_invoices       production_invoices[]
   production_orders         production_orders[]
@@ -4874,6 +4915,7 @@ model prototypes {
   manufacturer_id      String?                @db.Uuid
   collection_id        String?                @db.Uuid
   concept_id           String?                @db.Uuid
+  documents            documents[]
   prototype_documents  prototype_documents[]
   prototype_feedback   prototype_feedback[]
   prototype_milestones prototype_milestones[]
@@ -4881,15 +4923,14 @@ model prototypes {
   prototype_production prototype_production?
   prototype_reviews    prototype_reviews[]
   prototype_revisions  prototype_revisions[]
+  collections          collections?           @relation(fields: [collection_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_prototypes_collection")
+  concepts             concepts?              @relation(fields: [concept_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_prototypes_concepts")
+  designers            designers?             @relation(fields: [designer_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_prototypes_designer")
+  manufacturers        manufacturers?         @relation(fields: [manufacturer_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_prototypes_manufacturer")
   items                items?                 @relation(fields: [base_item_id], references: [id], onUpdate: NoAction)
   users                users                  @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
   projects             projects?              @relation(fields: [crm_project_id], references: [id], onUpdate: NoAction)
   design_projects      design_projects?       @relation(fields: [design_project_id], references: [id], onUpdate: NoAction)
-  designers            designers?             @relation(fields: [designer_id], references: [id])
-  manufacturers        manufacturers?         @relation(fields: [manufacturer_id], references: [id])
-  collections          collections?           @relation(fields: [collection_id], references: [id])
-  concepts             concepts?              @relation(fields: [concept_id], references: [id])
-  documents            documents[]
 
   @@index([base_item_id], map: "idx_prototypes_base_item")
   @@index([created_by], map: "idx_prototypes_created_by")
@@ -4898,6 +4939,10 @@ model prototypes {
   @@index([prototype_number], map: "idx_prototypes_number")
   @@index([priority], map: "idx_prototypes_priority")
   @@index([status], map: "idx_prototypes_status")
+  @@index([collection_id], map: "idx_prototypes_collection_id")
+  @@index([concept_id], map: "idx_prototypes_concept_id")
+  @@index([designer_id], map: "idx_prototypes_designer_id")
+  @@index([manufacturer_id], map: "idx_prototypes_manufacturer_id")
   @@schema("public")
 }
 
@@ -6880,6 +6925,52 @@ model workflows {
   @@index([category], map: "idx_workflows_category")
   @@index([department_id], map: "idx_workflows_department")
   @@index([trigger_type], map: "idx_workflows_trigger_type")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model invoice_templates {
+  id                     String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                   String
+  template_type          String
+  is_default             Boolean?   @default(false)
+  company_logo_url       String?
+  company_name           String?    @default("Limn Systems")
+  company_address        String?
+  company_city_state_zip String?
+  company_phone          String?
+  company_email          String?
+  company_website        String?
+  font_family            String?    @default("Roboto")
+  font_size_base         Int?       @default(10)
+  font_size_heading      Int?       @default(24)
+  font_size_subheading   Int?       @default(14)
+  color_primary          String?    @default("#2563eb")
+  color_secondary        String?    @default("#64748b")
+  color_text             String?    @default("#0f172a")
+  color_border           String?    @default("#e2e8f0")
+  color_background       String?    @default("#ffffff")
+  show_company_logo      Boolean?   @default(true)
+  show_payment_terms     Boolean?   @default(true)
+  show_bank_details      Boolean?   @default(false)
+  show_notes_section     Boolean?   @default(true)
+  show_tax_summary       Boolean?   @default(true)
+  default_payment_terms  String?    @default("Net 30")
+  bank_name              String?
+  bank_account_number    String?
+  bank_routing_number    String?
+  bank_swift_code        String?
+  footer_text            String?
+  notes_text             String?
+  created_at             DateTime?  @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime?  @default(now()) @db.Timestamptz(6)
+  created_by             String?    @db.Uuid
+  users                  users?     @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  invoices               invoices[]
+
+  @@index([template_type], map: "idx_invoice_templates_type")
   @@schema("public")
 }
 

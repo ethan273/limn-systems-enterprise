@@ -9,7 +9,7 @@ const generateUniquePrefix = async (db: any, collectionName: string): Promise<st
   });
   const existingPrefixes = existingCollections
     .map((c: { prefix?: string | null }) => c.prefix)
-    .filter((p): p is string => Boolean(p))
+    .filter((p: string | null | undefined): p is string => Boolean(p))
     .map((p: string) => p.toUpperCase());
 
   const words = collectionName.trim().split(/\s+/);

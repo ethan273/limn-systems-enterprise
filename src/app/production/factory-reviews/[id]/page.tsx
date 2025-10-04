@@ -264,11 +264,11 @@ export default function FactoryReviewDetailPage() {
  // Filter photos by severity
  const filteredPhotos =
  severityFilter === "all"
- ? session.photos || []
- : session.photos?.filter((p) => p.issue_severity === severityFilter) || [];
+ ? session.factory_review_photos || []
+ : session.factory_review_photos?.filter((p) => p.issue_severity === severityFilter) || [];
 
  // Group comments by photo
- const sessionComments = session.comments?.filter((c) => !c.photo_id) || [];
+ const sessionComments = session.factory_review_comments?.filter((c) => !c.photo_id) || [];
  const unresolvedActions = actionItems || [];
 
  return (
@@ -352,7 +352,7 @@ export default function FactoryReviewDetailPage() {
  <ImageIcon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold">{session.photos?.length || 0}</div>
+ <div className="text-2xl font-bold">{session.factory_review_photos?.length || 0}</div>
  </CardContent>
  </Card>
 
@@ -362,7 +362,7 @@ export default function FactoryReviewDetailPage() {
  <MessageSquare className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold">{session.comments?.length || 0}</div>
+ <div className="text-2xl font-bold">{session.factory_review_comments?.length || 0}</div>
  </CardContent>
  </Card>
 
@@ -384,7 +384,7 @@ export default function FactoryReviewDetailPage() {
  <FileText className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold">{session.documents?.length || 0}</div>
+ <div className="text-2xl font-bold">{session.factory_review_documents?.length || 0}</div>
  </CardContent>
  </Card>
  </div>
@@ -410,16 +410,16 @@ export default function FactoryReviewDetailPage() {
  <div>
  <Label className="text-muted-foreground">Prototype</Label>
  <p className="font-medium mt-1">
- {session.prototype_production?.prototype?.name || "—"}
+ {session.prototype_production?.prototypes?.name || "—"}
  </p>
  <p className="text-sm text-muted-foreground">
- {session.prototype_production?.prototype?.prototype_number || ""}
+ {session.prototype_production?.prototypes?.prototype_number || ""}
  </p>
  </div>
  <div>
  <Label className="text-muted-foreground">Factory</Label>
  <p className="font-medium mt-1">
- {session.prototype_production?.factory?.company_name || "—"}
+ {session.prototype_production?.partners?.company_name || "—"}
  </p>
  </div>
  <div>
@@ -556,7 +556,7 @@ export default function FactoryReviewDetailPage() {
  <p className="text-sm font-medium">{photo.component_area}</p>
  )}
  <p className="text-xs text-muted-foreground">
- {photo._count?.comments || 0} comments
+ {photo._count?.factory_review_comments || 0} comments
  </p>
  </div>
  </CardContent>
@@ -594,7 +594,7 @@ export default function FactoryReviewDetailPage() {
  <div className="flex items-start justify-between">
  <div className="flex items-center gap-2">
  <p className="font-medium text-sm">
- {comment.author?.email || "Unknown"}
+ {comment.users_factory_review_comments_author_idTousers?.email || "Unknown"}
  </p>
  <Badge variant="outline" className="text-xs capitalize">
  {comment.author_role.replace("_", " ")}
@@ -610,12 +610,12 @@ export default function FactoryReviewDetailPage() {
  </span>
  </div>
  <p className="text-sm whitespace-pre-wrap">{comment.comment_text}</p>
- {comment.replies && comment.replies.length > 0 && (
+ {comment.other_factory_review_comments && comment.other_factory_review_comments.length > 0 && (
  <div className="pl-4 border-l-2 space-y-2 mt-2">
- {comment.replies.map((reply) => (
+ {comment.other_factory_review_comments.map((reply) => (
  <div key={reply.id} className="text-sm">
  <div className="flex items-center gap-2 mb-1">
- <p className="font-medium">{reply.author?.email || "Unknown"}</p>
+ <p className="font-medium">{reply.users_factory_review_comments_author_idTousers?.email || "Unknown"}</p>
  <span className="text-xs text-muted-foreground">
  {format(new Date(reply.created_at), "MMM d, h:mm a")}
  </span>
@@ -664,9 +664,9 @@ export default function FactoryReviewDetailPage() {
  <p className="text-sm text-muted-foreground mb-2">
  {action.comment_text}
  </p>
- {action.photo && (
+ {action.factory_review_photos && (
  <p className="text-xs text-muted-foreground">
- Related to: {action.photo.component_area || "Photo"}
+ Related to: {action.factory_review_photos.component_area || "Photo"}
  </p>
  )}
  </div>
@@ -681,7 +681,7 @@ export default function FactoryReviewDetailPage() {
  </Button>
  </div>
  <div className="flex items-center gap-4 text-xs text-muted-foreground">
- <span>Created by: {action.author?.email || "Unknown"}</span>
+ <span>Created by: {action.users_factory_review_comments_author_idTousers?.email || "Unknown"}</span>
  <span>{format(new Date(action.created_at), "MMM d, yyyy")}</span>
  </div>
  </div>
@@ -705,14 +705,14 @@ export default function FactoryReviewDetailPage() {
  </div>
  </CardHeader>
  <CardContent>
- {!session.documents || session.documents.length === 0 ? (
+ {!session.factory_review_documents || session.factory_review_documents.length === 0 ? (
  <div className="text-center py-12 text-muted-foreground">
  <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" aria-hidden="true" />
  <p>No documents uploaded yet</p>
  </div>
  ) : (
  <div className="space-y-2">
- {session.documents.map((doc) => (
+ {session.factory_review_documents.map((doc) => (
  <div
  key={doc.id}
  className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50"
@@ -722,7 +722,7 @@ export default function FactoryReviewDetailPage() {
  <div>
  <p className="font-medium text-sm">{doc.file_name}</p>
  <p className="text-xs text-muted-foreground">
- Uploaded by {doc.uploader?.email || "Unknown"} on{" "}
+ Uploaded by {doc.users?.email || "Unknown"} on{" "}
  {format(new Date(doc.created_at), "MMM d, yyyy")}
  </p>
  </div>

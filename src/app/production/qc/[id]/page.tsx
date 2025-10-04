@@ -142,7 +142,7 @@ export default function QCInspectionDetailPage() {
  <div>
  <h1 className="text-3xl font-bold">QC Inspection</h1>
  <p className="text-muted-foreground">
- {inspection.prototype_production?.prototype?.name ||
+ {inspection.prototype_production?.prototypes?.name ||
  inspection.production_items?.item_name ||
  "Inspection Details"}
  </p>
@@ -248,11 +248,11 @@ export default function QCInspectionDetailPage() {
  <div>
  <label className="text-sm font-medium text-muted-foreground">Item/Prototype</label>
  <p className="text-base">
- {inspection.prototype_production?.prototype?.name ||
+ {inspection.prototype_production?.prototypes?.name ||
  inspection.production_items?.item_name ||
  "—"}
  </p>
- {inspection.prototype_production?.prototype?.prototype_number && (
+ {inspection.prototype_production?.prototypes?.prototype_number && (
  <p className="text-sm text-muted-foreground">
  {inspection.prototype_production.prototypes.prototype_number}
  </p>
