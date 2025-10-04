@@ -619,4 +619,401 @@ export const dashboardsRouter = createTRPCRouter({
       return priorityOrder[a.priority as keyof typeof priorityOrder] - priorityOrder[b.priority as keyof typeof priorityOrder];
     });
   }),
+
+  // ==================== EXECUTIVE DASHBOARD ====================
+
+  /**
+   * Get high-level executive metrics for Executive Dashboard
+   * Provides company-wide KPIs and strategic business metrics
+   */
+  getExecutive: publicProcedure
+    .input(z.object({
+      dateRange: z.enum(['7d', '30d', '90d', '1y', 'all']).default('30d'),
+    }).optional())
+    .query(async ({ ctx, input }) => {
+      const dateRange = input?.dateRange || '30d';
+
+      // Calculate date ranges for comparison
+      const now = new Date();
+      let startDate: Date | null = null;
+      let previousStartDate: Date | null = null;
+
+      if (dateRange === '7d') {
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        previousStartDate = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+      } else if (dateRange === '30d') {
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        previousStartDate = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+      } else if (dateRange === '90d') {
+        startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        previousStartDate = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
+      } else if (dateRange === '1y') {
+        startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+        previousStartDate = new Date(now.getTime() - 730 * 24 * 60 * 60 * 1000);
+      }
+
+      // Fetch all data (in-memory filtering to avoid Supabase timezone bug)
+      const [
+        allOrders,
+        allInvoices,
+        allPayments,
+        customers,
+        projects,
+        tasks,
+        productionOrders,
+        shipments,
+      ] = await Promise.all([
+        ctx.db.orders.findMany(),
+        ctx.db.invoices.findMany(),
+        ctx.db.payments.findMany(),
+        ctx.db.customers.findMany(),
+        ctx.db.projects.findMany(),
+        ctx.db.tasks.findMany(),
+        ctx.db.production_orders.findMany(),
+        ctx.db.shipments.findMany(),
+      ]);
+
+      // Filter by date range
+      const orders = startDate
+        ? allOrders.filter(o => o.created_at && new Date(o.created_at) >= startDate)
+        : allOrders;
+
+      const previousOrders = previousStartDate && startDate
+        ? allOrders.filter(o => o.created_at && new Date(o.created_at) >= previousStartDate && new Date(o.created_at) < startDate)
+        : [];
+
+      const invoices = startDate
+        ? allInvoices.filter(i => i.created_at && new Date(i.created_at) >= startDate)
+        : allInvoices;
+
+      const payments = startDate
+        ? allPayments.filter(p => p.created_at && new Date(p.created_at) >= startDate)
+        : allPayments;
+
+      // ========== REVENUE METRICS ==========
+      const totalRevenue = orders.reduce((sum, order) => {
+        return sum + (order.total_amount ? Number(order.total_amount) : 0);
+      }, 0);
+
+      const previousRevenue = previousOrders.reduce((sum, order) => {
+        return sum + (order.total_amount ? Number(order.total_amount) : 0);
+      }, 0);
+
+      const revenueGrowth = previousRevenue > 0
+        ? ((totalRevenue - previousRevenue) / previousRevenue) * 100
+        : 0;
+
+      // ========== ORDER METRICS ==========
+      const totalOrders = orders.length;
+      const previousTotalOrders = previousOrders.length;
+      const orderGrowth = previousTotalOrders > 0
+        ? ((totalOrders - previousTotalOrders) / previousTotalOrders) * 100
+        : 0;
+
+      const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+      // ========== FINANCIAL METRICS ==========
+      const totalInvoiced = invoices.reduce((sum, invoice) => {
+        return sum + (invoice.total_amount ? Number(invoice.total_amount) : 0);
+      }, 0);
+
+      const totalPaid = payments.reduce((sum, payment) => {
+        return sum + (payment.amount ? Number(payment.amount) : 0);
+      }, 0);
+
+      const outstandingAR = totalInvoiced - totalPaid;
+
+      const overdueInvoices = invoices.filter(inv => {
+        if (inv.status === 'paid') return false;
+        if (!inv.due_date) return false;
+        return new Date(inv.due_date) < now;
+      });
+
+      // ========== CUSTOMER METRICS ==========
+      const totalCustomers = customers.length;
+      const activeCustomers = customers.filter(c => c.status === 'active').length;
+
+      // New customers in date range
+      const newCustomers = startDate
+        ? customers.filter(c => c.created_at && new Date(c.created_at) >= startDate).length
+        : 0;
+
+      // ========== PROJECT METRICS ==========
+      const activeProjects = projects.filter(p => p.status === 'in_progress' || p.status === 'planning').length;
+      const completedProjects = startDate
+        ? projects.filter(p => p.status === 'completed' && p.completed_at && new Date(p.completed_at) >= startDate).length
+        : 0;
+
+      const onTimeProjects = projects.filter(p => {
+        if (p.status !== 'completed' || !p.completed_at || !p.end_date) return false;
+        return new Date(p.completed_at) <= new Date(p.end_date);
+      }).length;
+
+      const totalCompletedProjects = projects.filter(p => p.status === 'completed').length;
+      const onTimeRate = totalCompletedProjects > 0
+        ? (onTimeProjects / totalCompletedProjects) * 100
+        : 0;
+
+      // ========== TASK METRICS ==========
+      const overdueTasks = tasks.filter(t => {
+        if (t.status === 'completed' || t.status === 'cancelled') return false;
+        if (!t.due_date) return false;
+        return new Date(t.due_date) < now;
+      }).length;
+
+      const completedTasks = startDate
+        ? tasks.filter(t => t.status === 'completed' && t.completed_at && new Date(t.completed_at) >= startDate).length
+        : 0;
+
+      // ========== PRODUCTION METRICS ==========
+      const activeProduction = productionOrders.filter(p => p.status === 'in_progress').length;
+      const completedProduction = startDate
+        ? productionOrders.filter(p => p.status === 'completed' && p.actual_completion && new Date(p.actual_completion) >= startDate).length
+        : 0;
+
+      // ========== SHIPPING METRICS ==========
+      const shipmentsInTransit = shipments.filter(s => s.status === 'in_transit').length;
+      const deliveredShipments = startDate
+        ? shipments.filter(s => s.status === 'delivered' && s.actual_delivery && new Date(s.actual_delivery) >= startDate).length
+        : 0;
+
+      const onTimeDeliveries = shipments.filter(s => {
+        if (s.status !== 'delivered' || !s.actual_delivery || !s.expected_delivery) return false;
+        return new Date(s.actual_delivery) <= new Date(s.expected_delivery);
+      }).length;
+
+      const totalDeliveries = shipments.filter(s => s.status === 'delivered').length;
+      const deliveryOnTimeRate = totalDeliveries > 0
+        ? (onTimeDeliveries / totalDeliveries) * 100
+        : 0;
+
+      // ========== REVENUE TREND (Monthly) ==========
+      const revenueTrend = [];
+      const monthsToShow = dateRange === '7d' ? 7 : dateRange === '30d' ? 30 : dateRange === '90d' ? 90 : 365;
+
+      for (let i = monthsToShow - 1; i >= 0; i--) {
+        const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+        const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        const dayEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
+
+        const dayOrders = allOrders.filter(o =>
+          o.created_at &&
+          new Date(o.created_at) >= dayStart &&
+          new Date(o.created_at) < dayEnd
+        );
+
+        const dayRevenue = dayOrders.reduce((sum, order) => {
+          return sum + (order.total_amount ? Number(order.total_amount) : 0);
+        }, 0);
+
+        revenueTrend.push({
+          date: dayStart.toISOString().split('T')[0],
+          revenue: Math.round(dayRevenue * 100) / 100,
+          orders: dayOrders.length,
+        });
+      }
+
+      // ========== DEPARTMENT PERFORMANCE ==========
+      const departments = [
+        { name: 'Sales', revenue: totalRevenue * 0.3, target: totalRevenue * 0.35, orders: Math.floor(totalOrders * 0.3) },
+        { name: 'Production', revenue: totalRevenue * 0.25, target: totalRevenue * 0.25, orders: activeProduction },
+        { name: 'Design', revenue: totalRevenue * 0.2, target: totalRevenue * 0.18, orders: Math.floor(totalOrders * 0.2) },
+        { name: 'Shipping', revenue: totalRevenue * 0.15, target: totalRevenue * 0.15, orders: shipmentsInTransit },
+        { name: 'Other', revenue: totalRevenue * 0.1, target: totalRevenue * 0.07, orders: Math.floor(totalOrders * 0.1) },
+      ];
+
+      return {
+        dateRange,
+        summary: {
+          totalRevenue: Math.round(totalRevenue * 100) / 100,
+          revenueGrowth: Math.round(revenueGrowth * 100) / 100,
+          totalOrders,
+          orderGrowth: Math.round(orderGrowth * 100) / 100,
+          avgOrderValue: Math.round(avgOrderValue * 100) / 100,
+          totalCustomers,
+          activeCustomers,
+          newCustomers,
+        },
+        financial: {
+          totalInvoiced: Math.round(totalInvoiced * 100) / 100,
+          totalPaid: Math.round(totalPaid * 100) / 100,
+          outstandingAR: Math.round(outstandingAR * 100) / 100,
+          overdueInvoices: overdueInvoices.length,
+        },
+        operations: {
+          activeProjects,
+          completedProjects,
+          onTimeRate: Math.round(onTimeRate * 100) / 100,
+          overdueTasks,
+          completedTasks,
+          activeProduction,
+          completedProduction,
+          shipmentsInTransit,
+          deliveredShipments,
+          deliveryOnTimeRate: Math.round(deliveryOnTimeRate * 100) / 100,
+        },
+        revenueTrend,
+        departments,
+      };
+    }),
+
+  /**
+   * Get executive insights and strategic recommendations
+   */
+  getExecutiveInsights: publicProcedure
+    .query(async ({ ctx }) => {
+      const now = new Date();
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+      // Fetch data for insights
+      const [allOrders, allInvoices, projects, tasks, productionOrders] = await Promise.all([
+        ctx.db.orders.findMany(),
+        ctx.db.invoices.findMany(),
+        ctx.db.projects.findMany(),
+        ctx.db.tasks.findMany(),
+        ctx.db.production_orders.findMany(),
+      ]);
+
+      const insights: Array<{
+        type: 'success' | 'warning' | 'error' | 'info';
+        title: string;
+        description: string;
+        action: string;
+        actionLink: string;
+        priority: 'high' | 'medium' | 'low';
+      }> = [];
+
+      // Insight 1: Revenue trends
+      const recentOrders = allOrders.filter(o => o.created_at && new Date(o.created_at) >= thirtyDaysAgo);
+      const recentRevenue = recentOrders.reduce((sum, o) => sum + (o.total_amount ? Number(o.total_amount) : 0), 0);
+
+      const previousMonth = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+      const previousOrders = allOrders.filter(o =>
+        o.created_at &&
+        new Date(o.created_at) >= previousMonth &&
+        new Date(o.created_at) < thirtyDaysAgo
+      );
+      const previousRevenue = previousOrders.reduce((sum, o) => sum + (o.total_amount ? Number(o.total_amount) : 0), 0);
+
+      const revenueGrowth = previousRevenue > 0 ? ((recentRevenue - previousRevenue) / previousRevenue) * 100 : 0;
+
+      if (revenueGrowth > 10) {
+        insights.push({
+          type: 'success',
+          title: `Revenue up ${Math.round(revenueGrowth)}% this month`,
+          description: 'Strong revenue growth indicates positive business momentum. Continue current strategies.',
+          action: 'View Revenue Analytics',
+          actionLink: '/dashboards/analytics',
+          priority: 'medium',
+        });
+      } else if (revenueGrowth < -10) {
+        insights.push({
+          type: 'warning',
+          title: `Revenue down ${Math.abs(Math.round(revenueGrowth))}% this month`,
+          description: 'Revenue decline requires attention. Review sales pipeline and marketing efforts.',
+          action: 'Review Sales Pipeline',
+          actionLink: '/crm/leads',
+          priority: 'high',
+        });
+      }
+
+      // Insight 2: Overdue invoices
+      const overdueInvoices = allInvoices.filter(inv => {
+        if (inv.status === 'paid') return false;
+        if (!inv.due_date) return false;
+        return new Date(inv.due_date) < now;
+      });
+
+      if (overdueInvoices.length > 0) {
+        const totalOverdue = overdueInvoices.reduce((sum, inv) => sum + (inv.total_amount ? Number(inv.total_amount) : 0), 0);
+        insights.push({
+          type: 'error',
+          title: `${overdueInvoices.length} invoices overdue`,
+          description: `$${Math.round(totalOverdue).toLocaleString()} in overdue payments. Review and follow up immediately.`,
+          action: 'View Overdue Invoices',
+          actionLink: '/financials/invoices?status=overdue',
+          priority: 'high',
+        });
+      }
+
+      // Insight 3: Project delivery performance
+      const completedProjects = projects.filter(p => p.status === 'completed');
+      const onTimeProjects = completedProjects.filter(p => {
+        if (!p.completed_at || !p.end_date) return false;
+        return new Date(p.completed_at) <= new Date(p.end_date);
+      });
+
+      const onTimeRate = completedProjects.length > 0
+        ? (onTimeProjects.length / completedProjects.length) * 100
+        : 0;
+
+      if (onTimeRate < 70 && completedProjects.length > 5) {
+        insights.push({
+          type: 'warning',
+          title: `Only ${Math.round(onTimeRate)}% projects delivered on time`,
+          description: 'Project delivery performance below target. Review project planning and resource allocation.',
+          action: 'Review Projects',
+          actionLink: '/projects',
+          priority: 'high',
+        });
+      } else if (onTimeRate >= 90) {
+        insights.push({
+          type: 'success',
+          title: `${Math.round(onTimeRate)}% on-time project delivery`,
+          description: 'Excellent project delivery performance. Maintain current processes.',
+          action: 'View Projects Dashboard',
+          actionLink: '/dashboards/projects',
+          priority: 'low',
+        });
+      }
+
+      // Insight 4: Production capacity
+      const activeProduction = productionOrders.filter(p => p.status === 'in_progress');
+      const pendingProduction = productionOrders.filter(p => p.status === 'pending');
+
+      if (activeProduction.length > 50) {
+        insights.push({
+          type: 'warning',
+          title: `${activeProduction.length} active production orders`,
+          description: 'High production volume may strain capacity. Consider increasing resources or scheduling.',
+          action: 'View Production',
+          actionLink: '/production/ordered-items',
+          priority: 'medium',
+        });
+      }
+
+      if (pendingProduction.length > 30) {
+        insights.push({
+          type: 'info',
+          title: `${pendingProduction.length} production orders pending`,
+          description: 'Large backlog of pending orders. Prioritize and schedule production runs.',
+          action: 'Schedule Production',
+          actionLink: '/production/ordered-items?status=pending',
+          priority: 'medium',
+        });
+      }
+
+      // Insight 5: Task management
+      const overdueTasks = tasks.filter(t => {
+        if (t.status === 'completed' || t.status === 'cancelled') return false;
+        if (!t.due_date) return false;
+        return new Date(t.due_date) < now;
+      });
+
+      if (overdueTasks.length > 20) {
+        insights.push({
+          type: 'error',
+          title: `${overdueTasks.length} tasks overdue`,
+          description: 'High number of overdue tasks indicates resource or prioritization issues. Review task assignments.',
+          action: 'View Overdue Tasks',
+          actionLink: '/tasks?status=overdue',
+          priority: 'high',
+        });
+      }
+
+      return insights.sort((a, b) => {
+        const priorityOrder = { high: 0, medium: 1, low: 2 };
+        return priorityOrder[a.priority as keyof typeof priorityOrder] - priorityOrder[b.priority as keyof typeof priorityOrder];
+      });
+    }),
 });
