@@ -143,10 +143,10 @@ export function AlertsPanel({
       </CardHeader>
       <CardContent>
         {alerts.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <Check className="h-12 w-12 mx-auto mb-2 text-green-500" />
-            <p className="text-lg font-medium">All clear!</p>
-            <p className="text-sm">No active alerts at this time</p>
+          <div className="alert-empty-state">
+            <Check className="alert-empty-icon" />
+            <p className="alert-empty-title">All clear!</p>
+            <p className="alert-empty-description">No active alerts at this time</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -187,7 +187,7 @@ export function AlertsPanel({
                           </p>
                         )}
                         {alert.resolvedAt && (
-                          <p className="text-xs text-green-600 mt-1">
+                          <p className="alert-resolved-text">
                             Resolved {formatDistanceToNow(alert.resolvedAt, { addSuffix: true })}
                           </p>
                         )}

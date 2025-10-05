@@ -162,6 +162,134 @@ class PushNotificationManager {
     }
   }
 
+  /**
+   * Show notification with action buttons
+   */
+  async showActionNotification(
+    title: string,
+    options: {
+      body: string;
+      tag?: string;
+      data?: any;
+      actions: Array<{ action: string; title: string; icon?: string }>;
+      requireInteraction?: boolean;
+    }
+  ): Promise<void> {
+    if (!('serviceWorker' in navigator)) {
+      console.warn('[Push] Service Worker not available');
+      return;
+    }
+
+    try {
+      const registration = await navigator.serviceWorker.ready;
+
+      await registration.showNotification(title, {
+        body: options.body,
+        icon: '/icons/icon-192.png',
+        badge: '/icons/icon-192.png',
+        tag: options.tag || `notification-${Date.now()}`,
+        data: options.data,
+        actions: options.actions,
+        vibrate: [200, 100, 200],
+        requireInteraction: options.requireInteraction || false,
+      });
+    } catch (error) {
+      console.error('[Push] Error showing action notification:', error);
+    }
+  }
+
+  /**
+   * Show task notification with approve/complete/snooze actions
+   */
+  async showTaskNotification(task: {
+    id: string;
+    title: string;
+    description: string;
+    priority: string;
+  }): Promise<void> {
+    await this.showActionNotification(`New Task: ${task.title}`, {
+      body: task.description,
+      tag: `task-${task.id}`,
+      data: { type: 'task', taskId: task.id, ...task },
+      actions: [
+        { action: 'view', title: '👁️ View' },
+        { action: 'complete', title: '✅ Complete' },
+        { action: 'snooze', title: '⏰ Snooze' },
+      ],
+      requireInteraction: task.priority === 'high',
+    });
+  }
+
+  /**
+   * Show order notification with approve/reject actions
+   */
+  async showOrderNotification(order: {
+    id: string;
+    orderNumber: string;
+    customer: string;
+    amount: number;
+  }): Promise<void> {
+    await this.showActionNotification(`New Order: ${order.orderNumber}`, {
+      body: `${order.customer} - $${order.amount.toFixed(2)}`,
+      tag: `order-${order.id}`,
+      data: { type: 'order', orderId: order.id, ...order },
+      actions: [
+        { action: 'approve', title: '✅ Approve' },
+        { action: 'reject', title: '❌ Reject' },
+        { action: 'view', title: '👁️ View Details' },
+      ],
+      requireInteraction: true,
+    });
+  }
+
+  /**
+   * Show message notification with reply action
+   */
+  async showMessageNotification(message: {
+    id: string;
+    from: string;
+    subject: string;
+    preview: string;
+  }): Promise<void> {
+    await this.showActionNotification(`Message from ${message.from}`, {
+      body: `${message.subject}\n${message.preview}`,
+      tag: `message-${message.id}`,
+      data: { type: 'message', messageId: message.id, ...message },
+      actions: [
+        { action: 'reply', title: '💬 Reply' },
+        { action: 'view', title: '👁️ View' },
+        { action: 'archive', title: '📁 Archive' },
+      ],
+    });
+  }
+
+  /**
+   * Group notifications by tag
+   */
+  async groupNotifications(tag: string, count: number, title: string): Promise<void> {
+    if (!('serviceWorker' in navigator)) {
+      return;
+    }
+
+    try {
+      const registration = await navigator.serviceWorker.ready;
+
+      await registration.showNotification(title, {
+        body: `You have ${count} ${tag}`,
+        icon: '/icons/icon-192.png',
+        badge: '/icons/icon-192.png',
+        tag: `group-${tag}`,
+        data: { type: 'group', tag, count },
+        actions: [
+          { action: 'view-all', title: '👁️ View All' },
+          { action: 'clear-all', title: '🗑️ Clear All' },
+        ],
+      });
+    } catch (error) {
+      console.error('[Push] Error showing grouped notification:', error);
+    }
+  }
+
   private extractSubscriptionData(subscription: PushSubscription): PushSubscriptionData {
     const keys = subscription.toJSON();
     return {

@@ -42,22 +42,13 @@ async function getSession(): Promise<Session | null> {
     // This validates the JWT token with Supabase servers
     const { data: { user }, error } = await supabase.auth.getUser();
 
-    console.log('[tRPC Context Debug] getUser result:', {
-      hasUser: !!user,
-      userId: user?.id,
-      userEmail: user?.email,
-      error: error?.message,
-    });
-
     if (error || !user) {
-      console.log('[tRPC Context Debug] No user found, returning null session');
       return null;
     }
 
     // Construct a minimal session object from the validated user
     // We don't use getSession() here to avoid security warnings
     // The user has already been validated with the auth server
-    console.log('[tRPC Context Debug] Creating session for user:', user.id);
     return {
       user,
       access_token: '', // Not needed for our use case

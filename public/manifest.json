@@ -147,19 +147,13 @@
     "Push Notifications Ready"
   ],
   "share_target": {
-    "action": "/documents/upload",
-    "method": "POST",
-    "enctype": "multipart/form-data",
+    "action": "/share",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
     "params": {
       "title": "title",
       "text": "text",
-      "url": "url",
-      "files": [
-        {
-          "name": "file",
-          "accept": ["image/*", "application/pdf", ".docx", ".xlsx"]
-        }
-      ]
+      "url": "url"
     }
   },
   "protocol_handlers": [
