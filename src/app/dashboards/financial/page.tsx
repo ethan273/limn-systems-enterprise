@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { DateRangeSelector } from '@/components/DateRangeSelector';
 import {
   DollarSign,
   TrendingUp,
@@ -18,6 +19,7 @@ import {
   Users,
   ArrowRight,
   Lightbulb,
+  RefreshCw,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -55,11 +57,18 @@ const INSIGHT_CLASSES = {
 };
 
 export default function FinancialDashboardPage() {
-  const { data: financial, isLoading } = api.dashboards.getFinancial.useQuery({
-    dateRange: '30d',
-  });
+  const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | '1y' | 'all'>('30d');
 
-  const { data: insights } = api.dashboards.getFinancialInsights.useQuery();
+  const { data: financial, isLoading, refetch } = api.dashboards.getFinancial.useQuery(
+    { dateRange },
+    {
+      refetchInterval: 60000, // Auto-refresh every 60 seconds
+    }
+  );
+
+  const { data: insights } = api.dashboards.getFinancialInsights.useQuery(undefined, {
+    refetchInterval: 60000, // Auto-refresh every 60 seconds
+  });
 
   if (isLoading) {
     return (
@@ -94,6 +103,10 @@ export default function FinancialDashboardPage() {
           <p className="page-subtitle">Revenue, expenses, cash flow, and financial metrics</p>
         </div>
         <div className="dashboard-actions">
+          <DateRangeSelector value={dateRange} onChange={(value: any) => setDateRange(value)} />
+          <Button variant="outline" size="icon" onClick={() => refetch()} title="Refresh data">
+            <RefreshCw className="h-4 w-4" />
+          </Button>
           <Button variant="outline" asChild>
             <Link href="/financials/invoices">
               <FileText className="icon-sm" />

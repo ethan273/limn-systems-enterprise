@@ -1479,9 +1479,19 @@ export const dashboardsRouter = createTRPCRouter({
           .slice(0, 10)
           .map(([customerId, revenue]) => {
             const customer = customers.find((c: any) => c.id === customerId);
+            // Better customer display: name > email > truncated ID
+            let displayName = 'Unknown Customer';
+            if (customer?.name) {
+              displayName = customer.name;
+            } else if (customer?.email) {
+              displayName = customer.email;
+            } else if (customerId) {
+              // Show truncated customer ID for reference
+              displayName = `Customer ID: ${customerId.substring(0, 8)}...`;
+            }
             return {
               id: customerId,
-              name: customer?.name || 'Unknown Customer',
+              name: displayName,
               revenue: Math.round(revenue * 100) / 100,
             };
           });
