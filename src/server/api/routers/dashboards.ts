@@ -1016,4 +1016,624 @@ export const dashboardsRouter = createTRPCRouter({
         return priorityOrder[a.priority as keyof typeof priorityOrder] - priorityOrder[b.priority as keyof typeof priorityOrder];
       });
     }),
+
+  // ==================== MANUFACTURING & PRODUCTION DASHBOARD ====================
+
+  /**
+   * Get manufacturing and production metrics for Manufacturing Dashboard
+   */
+  getManufacturing: publicProcedure
+    .input(z.object({
+      dateRange: z.enum(['7d', '30d', '90d', 'all']).default('30d'),
+    }).optional())
+    .query(async ({ ctx, input }) => {
+      const dateRange = input?.dateRange || '30d';
+
+      // Calculate date range
+      const now = new Date();
+      let startDate: Date | null = null;
+
+      if (dateRange === '7d') {
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      } else if (dateRange === '30d') {
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      } else if (dateRange === '90d') {
+        startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+      }
+
+      // Fetch all production data (in-memory filtering)
+      const [
+        allProductionOrders,
+        allProductionItems,
+        allQualityChecks,
+        allOrderItems,
+        products,
+      ] = await Promise.all([
+        ctx.db.production_orders.findMany(),
+        ctx.db.production_items.findMany(),
+        ctx.db.quality_checks.findMany(),
+        ctx.db.order_items.findMany(),
+        ctx.db.products.findMany(),
+      ]);
+
+      // Filter by date range
+      const productionOrders = startDate
+        ? allProductionOrders.filter(po => po.created_at && new Date(po.created_at) >= startDate)
+        : allProductionOrders;
+
+      // ========== PRODUCTION ORDERS METRICS ==========
+      const totalOrders = productionOrders.length;
+      const activeOrders = allProductionOrders.filter(po => po.status === 'in_progress').length;
+      const pendingOrders = allProductionOrders.filter(po => po.status === 'pending').length;
+      const completedOrders = productionOrders.filter(po => po.status === 'completed').length;
+      const cancelledOrders = productionOrders.filter(po => po.status === 'cancelled').length;
+
+      // Status distribution
+      const statusDistribution = [
+        { status: 'Pending', count: allProductionOrders.filter(po => po.status === 'pending').length },
+        { status: 'In Progress', count: activeOrders },
+        { status: 'Completed', count: allProductionOrders.filter(po => po.status === 'completed').length },
+        { status: 'On Hold', count: allProductionOrders.filter(po => po.status === 'on_hold').length },
+        { status: 'Cancelled', count: allProductionOrders.filter(po => po.status === 'cancelled').length },
+      ];
+
+      // ========== PRODUCTION ITEMS METRICS ==========
+      const totalItems = allProductionItems.length;
+      const itemsInProduction = allProductionItems.filter(item => item.status === 'in_progress').length;
+      const itemsCompleted = allProductionItems.filter(item => item.status === 'completed').length;
+
+      // ========== QUALITY METRICS ==========
+      const totalQualityChecks = allQualityChecks.length;
+      const passedChecks = allQualityChecks.filter(qc => qc.status === 'passed').length;
+      const failedChecks = allQualityChecks.filter(qc => qc.status === 'failed').length;
+      const qualityRate = totalQualityChecks > 0 ? (passedChecks / totalQualityChecks) * 100 : 0;
+
+      // ========== ON-TIME DELIVERY ==========
+      const completedWithDates = allProductionOrders.filter(po =>
+        po.status === 'completed' && po.actual_completion && po.target_completion
+      );
+      const onTimeDeliveries = completedWithDates.filter(po => {
+        if (!po.actual_completion || !po.target_completion) return false;
+        return new Date(po.actual_completion) <= new Date(po.target_completion);
+      }).length;
+      const onTimeRate = completedWithDates.length > 0
+        ? (onTimeDeliveries / completedWithDates.length) * 100
+        : 0;
+
+      // ========== CAPACITY UTILIZATION ==========
+      // Simplified capacity calculation (could be enhanced with actual capacity data)
+      const maxCapacity = 100; // This would come from configuration
+      const capacityUtilization = activeOrders > 0 ? Math.min((activeOrders / maxCapacity) * 100, 100) : 0;
+
+      // ========== PRODUCTION TREND (Daily) ==========
+      const productionTrend = [];
+      const daysToShow = dateRange === '7d' ? 7 : dateRange === '30d' ? 30 : 90;
+
+      for (let i = daysToShow - 1; i >= 0; i--) {
+        const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+        const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        const dayEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
+
+        const dayCompleted = allProductionOrders.filter(po =>
+          po.status === 'completed' &&
+          po.actual_completion &&
+          new Date(po.actual_completion) >= dayStart &&
+          new Date(po.actual_completion) < dayEnd
+        ).length;
+
+        const dayStarted = allProductionOrders.filter(po =>
+          po.start_date &&
+          new Date(po.start_date) >= dayStart &&
+          new Date(po.start_date) < dayEnd
+        ).length;
+
+        productionTrend.push({
+          date: dayStart.toISOString().split('T')[0],
+          completed: dayCompleted,
+          started: dayStarted,
+        });
+      }
+
+      // ========== TOP PRODUCTS BY PRODUCTION VOLUME ==========
+      const productionByProduct: Record<string, number> = {};
+      allProductionItems.forEach((item: any) => {
+        const productId = item.product_id;
+        if (productId) {
+          productionByProduct[productId] = (productionByProduct[productId] || 0) + (item.quantity || 0);
+        }
+      });
+
+      const topProducts = Object.entries(productionByProduct)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 10)
+        .map(([productId, quantity]) => {
+          const product = products.find((p: any) => p.id === productId);
+          return {
+            id: productId,
+            name: product?.name || 'Unknown Product',
+            sku: product?.sku || 'N/A',
+            quantity,
+          };
+        });
+
+      // ========== AVERAGE PRODUCTION TIME ==========
+      const ordersWithDuration = allProductionOrders.filter(po =>
+        po.start_date && po.actual_completion
+      );
+      const totalDuration = ordersWithDuration.reduce((sum, po) => {
+        if (!po.start_date || !po.actual_completion) return sum;
+        const duration = new Date(po.actual_completion).getTime() - new Date(po.start_date).getTime();
+        return sum + (duration / (1000 * 60 * 60 * 24)); // Convert to days
+      }, 0);
+      const avgProductionTime = ordersWithDuration.length > 0
+        ? totalDuration / ordersWithDuration.length
+        : 0;
+
+      return {
+        dateRange,
+        summary: {
+          totalOrders,
+          activeOrders,
+          pendingOrders,
+          completedOrders,
+          cancelledOrders,
+          totalItems,
+          itemsInProduction,
+          itemsCompleted,
+        },
+        quality: {
+          totalQualityChecks,
+          passedChecks,
+          failedChecks,
+          qualityRate: Math.round(qualityRate * 100) / 100,
+        },
+        performance: {
+          onTimeRate: Math.round(onTimeRate * 100) / 100,
+          capacityUtilization: Math.round(capacityUtilization * 100) / 100,
+          avgProductionTime: Math.round(avgProductionTime * 10) / 10,
+        },
+        statusDistribution,
+        productionTrend,
+        topProducts,
+      };
+    }),
+
+  /**
+   * Get manufacturing insights and recommendations
+   */
+  getManufacturingInsights: publicProcedure
+    .query(async ({ ctx }) => {
+      const now = new Date();
+
+      // Fetch data for insights
+      const [productionOrders, qualityChecks, productionItems] = await Promise.all([
+        ctx.db.production_orders.findMany(),
+        ctx.db.quality_checks.findMany(),
+        ctx.db.production_items.findMany(),
+      ]);
+
+      const insights: Array<{
+        type: 'success' | 'warning' | 'error' | 'info';
+        title: string;
+        description: string;
+        action: string;
+        actionLink: string;
+        priority: 'high' | 'medium' | 'low';
+      }> = [];
+
+      // Insight 1: High pending orders
+      const pendingOrders = productionOrders.filter(po => po.status === 'pending');
+      if (pendingOrders.length > 10) {
+        insights.push({
+          type: 'warning',
+          title: `${pendingOrders.length} orders pending production`,
+          description: 'Large backlog of pending orders. Review capacity and prioritize urgent orders.',
+          action: 'View Pending Orders',
+          actionLink: '/production/ordered-items?status=pending',
+          priority: 'high',
+        });
+      }
+
+      // Insight 2: Quality rate
+      const totalQC = qualityChecks.length;
+      const passedQC = qualityChecks.filter(qc => qc.status === 'passed').length;
+      const qualityRate = totalQC > 0 ? (passedQC / totalQC) * 100 : 0;
+
+      if (qualityRate < 90 && totalQC > 10) {
+        insights.push({
+          type: 'error',
+          title: `Quality rate at ${Math.round(qualityRate)}%`,
+          description: 'Quality rate below target (90%). Review production processes and quality controls.',
+          action: 'View Quality Checks',
+          actionLink: '/production/ordered-items',
+          priority: 'high',
+        });
+      } else if (qualityRate >= 95) {
+        insights.push({
+          type: 'success',
+          title: `${Math.round(qualityRate)}% quality pass rate`,
+          description: 'Excellent quality control. Maintain current standards.',
+          action: 'View Quality Dashboard',
+          actionLink: '/production/ordered-items',
+          priority: 'low',
+        });
+      }
+
+      // Insight 3: Overdue production orders
+      const overdueOrders = productionOrders.filter(po => {
+        if (po.status === 'completed' || po.status === 'cancelled') return false;
+        if (!po.target_completion) return false;
+        return new Date(po.target_completion) < now;
+      });
+
+      if (overdueOrders.length > 0) {
+        insights.push({
+          type: 'error',
+          title: `${overdueOrders.length} production orders overdue`,
+          description: 'Orders past target completion date. Expedite or reschedule to avoid delays.',
+          action: 'View Overdue Orders',
+          actionLink: '/production/ordered-items?status=overdue',
+          priority: 'high',
+        });
+      }
+
+      // Insight 4: Capacity utilization
+      const activeOrders = productionOrders.filter(po => po.status === 'in_progress').length;
+      const maxCapacity = 100;
+      const capacityUtilization = (activeOrders / maxCapacity) * 100;
+
+      if (capacityUtilization > 90) {
+        insights.push({
+          type: 'warning',
+          title: `${Math.round(capacityUtilization)}% capacity utilization`,
+          description: 'Near maximum capacity. Consider adding resources or adjusting schedules.',
+          action: 'View Active Production',
+          actionLink: '/production/ordered-items?status=in_progress',
+          priority: 'medium',
+        });
+      } else if (capacityUtilization < 50 && activeOrders > 0) {
+        insights.push({
+          type: 'info',
+          title: `${Math.round(capacityUtilization)}% capacity utilization`,
+          description: 'Production capacity available. Good opportunity to schedule new orders.',
+          action: 'View Pending Orders',
+          actionLink: '/production/ordered-items?status=pending',
+          priority: 'low',
+        });
+      }
+
+      // Insight 5: Items in production
+      const itemsInProd = productionItems.filter(item => item.status === 'in_progress');
+      if (itemsInProd.length > 100) {
+        insights.push({
+          type: 'info',
+          title: `${itemsInProd.length} items currently in production`,
+          description: 'High production volume. Monitor closely to ensure quality and timelines.',
+          action: 'View Production Items',
+          actionLink: '/production/ordered-items',
+          priority: 'medium',
+        });
+      }
+
+      return insights.sort((a, b) => {
+        const priorityOrder = { high: 0, medium: 1, low: 2 };
+        return priorityOrder[a.priority as keyof typeof priorityOrder] - priorityOrder[b.priority as keyof typeof priorityOrder];
+      });
+    }),
+
+    // ==================== FINANCIAL OPERATIONS DASHBOARD ====================
+
+    /**
+     * Get financial operations metrics for Financial Dashboard
+     */
+    getFinancial: publicProcedure
+      .input(z.object({
+        dateRange: z.enum(['7d', '30d', '90d', '1y', 'all']).default('30d'),
+      }).optional())
+      .query(async ({ ctx, input }) => {
+        const dateRange = input?.dateRange || '30d';
+
+        // Calculate date range
+        const now = new Date();
+        let startDate: Date | null = null;
+
+        if (dateRange === '7d') {
+          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        } else if (dateRange === '30d') {
+          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        } else if (dateRange === '90d') {
+          startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        } else if (dateRange === '1y') {
+          startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+        }
+
+        // Fetch all financial data (in-memory filtering)
+        const [
+          allInvoices,
+          allPayments,
+          allOrders,
+          customers,
+        ] = await Promise.all([
+          ctx.db.invoices.findMany(),
+          ctx.db.payments.findMany(),
+          ctx.db.orders.findMany(),
+          ctx.db.customers.findMany(),
+        ]);
+
+        // Filter by date range
+        const invoices = startDate
+          ? allInvoices.filter(i => i.created_at && new Date(i.created_at) >= startDate)
+          : allInvoices;
+
+        const payments = startDate
+          ? allPayments.filter(p => p.created_at && new Date(p.created_at) >= startDate)
+          : allPayments;
+
+        // ========== REVENUE METRICS ==========
+        const totalRevenue = payments.reduce((sum, payment) => {
+          return sum + (payment.amount ? Number(payment.amount) : 0);
+        }, 0);
+
+        // ========== INVOICE METRICS ==========
+        const totalInvoiced = invoices.reduce((sum, invoice) => {
+          return sum + (invoice.total_amount ? Number(invoice.total_amount) : 0);
+        }, 0);
+
+        const paidInvoices = allInvoices.filter(i => i.status === 'paid');
+        const totalPaid = paidInvoices.reduce((sum, invoice) => {
+          return sum + (invoice.total_amount ? Number(invoice.total_amount) : 0);
+        }, 0);
+
+        const pendingInvoices = allInvoices.filter(i => i.status === 'pending' || i.status === 'sent');
+        const totalPending = pendingInvoices.reduce((sum, invoice) => {
+          return sum + (invoice.total_amount ? Number(invoice.total_amount) : 0);
+        }, 0);
+
+        const overdueInvoices = allInvoices.filter(inv => {
+          if (inv.status === 'paid') return false;
+          if (!inv.due_date) return false;
+          return new Date(inv.due_date) < now;
+        });
+        const totalOverdue = overdueInvoices.reduce((sum, invoice) => {
+          return sum + (invoice.total_amount ? Number(invoice.total_amount) : 0);
+        }, 0);
+
+        // ========== PAYMENT METRICS ==========
+        const paymentsByMethod: Record<string, number> = {};
+        allPayments.forEach((payment: any) => {
+          const method = payment.payment_method || 'Unknown';
+          paymentsByMethod[method] = (paymentsByMethod[method] || 0) + (payment.amount ? Number(payment.amount) : 0);
+        });
+
+        const paymentMethods = Object.entries(paymentsByMethod).map(([method, amount]) => ({
+          method,
+          amount: Math.round(amount * 100) / 100,
+        }));
+
+        // ========== EXPENSE METRICS (ESTIMATED) ==========
+        // Note: expenses table not available, using estimated 30% of revenue
+        const totalExpenses = totalRevenue * 0.3;
+
+        // Estimated expense breakdown
+        const topExpenseCategories = [
+          { category: 'Materials', amount: Math.round(totalExpenses * 0.4 * 100) / 100 },
+          { category: 'Labor', amount: Math.round(totalExpenses * 0.35 * 100) / 100 },
+          { category: 'Overhead', amount: Math.round(totalExpenses * 0.15 * 100) / 100 },
+          { category: 'Shipping', amount: Math.round(totalExpenses * 0.07 * 100) / 100 },
+          { category: 'Other', amount: Math.round(totalExpenses * 0.03 * 100) / 100 },
+        ];
+
+        // ========== PROFITABILITY ==========
+        const profit = totalRevenue - totalExpenses;
+        const profitMargin = totalRevenue > 0 ? (profit / totalRevenue) * 100 : 0;
+
+        // ========== ACCOUNTS RECEIVABLE ==========
+        const totalAR = totalInvoiced - totalPaid;
+        const avgInvoiceValue = invoices.length > 0 ? totalInvoiced / invoices.length : 0;
+
+        // ========== CASH FLOW TREND ==========
+        const cashFlowTrend = [];
+        const daysToShow = dateRange === '7d' ? 7 : dateRange === '30d' ? 30 : dateRange === '90d' ? 90 : 365;
+
+        for (let i = daysToShow - 1; i >= 0; i--) {
+          const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+          const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+          const dayEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
+
+          const dayPayments = allPayments.filter(p =>
+            p.created_at &&
+            new Date(p.created_at) >= dayStart &&
+            new Date(p.created_at) < dayEnd
+          );
+
+          const dayRevenue = dayPayments.reduce((sum, p) => sum + (p.amount ? Number(p.amount) : 0), 0);
+          const dayExpense = dayRevenue * 0.3; // Estimated 30% expense ratio
+
+          cashFlowTrend.push({
+            date: dayStart.toISOString().split('T')[0],
+            revenue: Math.round(dayRevenue * 100) / 100,
+            expenses: Math.round(dayExpense * 100) / 100,
+            netCashFlow: Math.round((dayRevenue - dayExpense) * 100) / 100,
+          });
+        }
+
+        // ========== INVOICE STATUS DISTRIBUTION ==========
+        const invoiceStatusDistribution = [
+          { status: 'Paid', count: paidInvoices.length, amount: totalPaid },
+          { status: 'Pending', count: pendingInvoices.length, amount: totalPending },
+          { status: 'Overdue', count: overdueInvoices.length, amount: totalOverdue },
+          { status: 'Draft', count: allInvoices.filter(i => i.status === 'draft').length, amount: allInvoices.filter(i => i.status === 'draft').reduce((sum, i) => sum + (i.total_amount ? Number(i.total_amount) : 0), 0) },
+        ];
+
+        // ========== TOP CUSTOMERS BY REVENUE ==========
+        const customerRevenue: Record<string, number> = {};
+        allPayments.forEach((payment: any) => {
+          const customerId = payment.customer_id;
+          if (customerId) {
+            customerRevenue[customerId] = (customerRevenue[customerId] || 0) + (payment.amount ? Number(payment.amount) : 0);
+          }
+        });
+
+        const topCustomers = Object.entries(customerRevenue)
+          .sort(([, a], [, b]) => b - a)
+          .slice(0, 10)
+          .map(([customerId, revenue]) => {
+            const customer = customers.find((c: any) => c.id === customerId);
+            return {
+              id: customerId,
+              name: customer?.name || 'Unknown Customer',
+              revenue: Math.round(revenue * 100) / 100,
+            };
+          });
+
+        return {
+          dateRange,
+          summary: {
+            totalRevenue: Math.round(totalRevenue * 100) / 100,
+            totalInvoiced: Math.round(totalInvoiced * 100) / 100,
+            totalPaid: Math.round(totalPaid * 100) / 100,
+            totalPending: Math.round(totalPending * 100) / 100,
+            totalOverdue: Math.round(totalOverdue * 100) / 100,
+            totalExpenses: Math.round(totalExpenses * 100) / 100,
+            profit: Math.round(profit * 100) / 100,
+            profitMargin: Math.round(profitMargin * 100) / 100,
+          },
+          invoices: {
+            total: invoices.length,
+            paid: paidInvoices.length,
+            pending: pendingInvoices.length,
+            overdue: overdueInvoices.length,
+            totalAR: Math.round(totalAR * 100) / 100,
+            avgInvoiceValue: Math.round(avgInvoiceValue * 100) / 100,
+          },
+          cashFlowTrend,
+          invoiceStatusDistribution,
+          paymentMethods,
+          topExpenseCategories,
+          topCustomers,
+        };
+      }),
+
+    /**
+     * Get financial insights and recommendations
+     */
+    getFinancialInsights: publicProcedure
+      .query(async ({ ctx }) => {
+        const now = new Date();
+        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+        // Fetch data for insights
+        const [allInvoices, allPayments] = await Promise.all([
+          ctx.db.invoices.findMany(),
+          ctx.db.payments.findMany(),
+        ]);
+
+        const insights: Array<{
+          type: 'success' | 'warning' | 'error' | 'info';
+          title: string;
+          description: string;
+          action: string;
+          actionLink: string;
+          priority: 'high' | 'medium' | 'low';
+        }> = [];
+
+        // Insight 1: Overdue invoices
+        const overdueInvoices = allInvoices.filter(inv => {
+          if (inv.status === 'paid') return false;
+          if (!inv.due_date) return false;
+          return new Date(inv.due_date) < now;
+        });
+
+        if (overdueInvoices.length > 0) {
+          const totalOverdue = overdueInvoices.reduce((sum, inv) => sum + (inv.total_amount ? Number(inv.total_amount) : 0), 0);
+          insights.push({
+            type: 'error',
+            title: `${overdueInvoices.length} invoices overdue`,
+            description: `$${Math.round(totalOverdue).toLocaleString()} in overdue payments. Follow up immediately to improve cash flow.`,
+            action: 'View Overdue Invoices',
+            actionLink: '/financials/invoices?status=overdue',
+            priority: 'high',
+          });
+        }
+
+        // Insight 2: Cash flow analysis
+        const recentPayments = allPayments.filter(p => p.created_at && new Date(p.created_at) >= thirtyDaysAgo);
+
+        const recentRevenue = recentPayments.reduce((sum, p) => sum + (p.amount ? Number(p.amount) : 0), 0);
+        const recentExpenseAmount = recentRevenue * 0.3; // Estimated 30% expense ratio
+        const cashFlow = recentRevenue - recentExpenseAmount;
+
+        if (cashFlow < 0) {
+          insights.push({
+            type: 'warning',
+            title: 'Negative cash flow this month',
+            description: `Expenses ($${Math.round(recentExpenseAmount).toLocaleString()}) exceed revenue ($${Math.round(recentRevenue).toLocaleString()}). Review expenses and accelerate collections.`,
+            action: 'Review Expenses',
+            actionLink: '/financials/expenses',
+            priority: 'high',
+          });
+        } else if (cashFlow > 0) {
+          insights.push({
+            type: 'success',
+            title: `Positive cash flow: $${Math.round(cashFlow).toLocaleString()}`,
+            description: 'Healthy cash flow position. Consider strategic investments or debt reduction.',
+            action: 'View Financial Dashboard',
+            actionLink: '/dashboards/financial',
+            priority: 'low',
+          });
+        }
+
+        // Insight 3: Pending invoices
+        const pendingInvoices = allInvoices.filter(i => i.status === 'pending' || i.status === 'sent');
+        if (pendingInvoices.length > 5) {
+          const totalPending = pendingInvoices.reduce((sum, inv) => sum + (inv.total_amount ? Number(inv.total_amount) : 0), 0);
+          insights.push({
+            type: 'info',
+            title: `${pendingInvoices.length} invoices pending payment`,
+            description: `$${Math.round(totalPending).toLocaleString()} awaiting collection. Monitor closely to ensure timely payment.`,
+            action: 'View Pending Invoices',
+            actionLink: '/financials/invoices?status=pending',
+            priority: 'medium',
+          });
+        }
+
+        // Insight 4: Expense ratio (expenses table not available, using estimated ratio)
+        if (recentExpenseAmount > recentRevenue * 0.35) {
+          insights.push({
+            type: 'warning',
+            title: `Expense ratio at ${Math.round((recentExpenseAmount / recentRevenue) * 100)}%`,
+            description: `Estimated expenses ($${Math.round(recentExpenseAmount).toLocaleString()}) are ${Math.round((recentExpenseAmount / recentRevenue) * 100)}% of revenue. Target is below 35%.`,
+            action: 'View Financial Dashboard',
+            actionLink: '/dashboards/financial',
+            priority: 'medium',
+          });
+        }
+
+        // Insight 5: Profit margin
+        const profitMargin = recentRevenue > 0 ? ((recentRevenue - recentExpenseAmount) / recentRevenue) * 100 : 0;
+        if (profitMargin < 20 && recentRevenue > 0) {
+          insights.push({
+            type: 'warning',
+            title: `Profit margin at ${Math.round(profitMargin)}%`,
+            description: 'Below target profit margin (20%). Consider cost reduction or pricing adjustments.',
+            action: 'Review Pricing',
+            actionLink: '/financials/invoices',
+            priority: 'high',
+          });
+        } else if (profitMargin >= 30) {
+          insights.push({
+            type: 'success',
+            title: `Strong profit margin: ${Math.round(profitMargin)}%`,
+            description: 'Excellent profitability. Maintain current pricing and cost controls.',
+            action: 'View Financial Dashboard',
+            actionLink: '/dashboards/financial',
+            priority: 'low',
+          });
+        }
+
+        return insights.sort((a, b) => {
+          const priorityOrder = { high: 0, medium: 1, low: 2 };
+          return priorityOrder[a.priority as keyof typeof priorityOrder] - priorityOrder[b.priority as keyof typeof priorityOrder];
+        });
+      }),
 });

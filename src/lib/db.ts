@@ -1222,6 +1222,63 @@ export class DatabaseClient {
       this.countGeneric('production_orders', options),
   };
 
+  // Production Items model
+  production_items = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('production_items', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('production_items', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('production_items', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('production_items', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('production_items', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('production_items', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('production_items', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('production_items', options),
+  };
+
+  // Quality Checks model
+  quality_checks = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('quality_checks', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('quality_checks', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('quality_checks', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('quality_checks', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('quality_checks', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('quality_checks', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('quality_checks', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('quality_checks', options),
+  };
+
+  // Expenses model
+  expenses = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('expenses', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('expenses', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('expenses', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('expenses', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('expenses', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('expenses', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('expenses', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('expenses', options),
+  };
+
   // Production Invoices model
   production_invoices = {
     findMany: (options?: QueryOptions) => this.findManyGeneric<any>('production_invoices', options),
