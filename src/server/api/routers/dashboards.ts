@@ -1636,4 +1636,576 @@ export const dashboardsRouter = createTRPCRouter({
           return priorityOrder[a.priority as keyof typeof priorityOrder] - priorityOrder[b.priority as keyof typeof priorityOrder];
         });
       }),
+
+    // ==================== DESIGN & CREATIVE DASHBOARD ====================
+
+    /**
+     * Get design and creative metrics for Design Dashboard
+     */
+    getDesign: publicProcedure
+      .input(z.object({
+        dateRange: z.enum(['7d', '30d', '90d', 'all']).default('30d'),
+      }).optional())
+      .query(async ({ ctx, input }) => {
+        const dateRange = input?.dateRange || '30d';
+
+        // Calculate date range
+        const now = new Date();
+        let startDate: Date | null = null;
+
+        if (dateRange === '7d') {
+          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        } else if (dateRange === '30d') {
+          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        } else if (dateRange === '90d') {
+          startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        }
+
+        // Fetch all design data (in-memory filtering)
+        const [
+          allDesignFiles,
+          allDesignRevisions,
+          allShopDrawings,
+          allProjects,
+        ] = await Promise.all([
+          ctx.db.design_files.findMany(),
+          ctx.db.design_revisions.findMany(),
+          ctx.db.shop_drawings.findMany(),
+          ctx.db.projects.findMany(),
+        ]);
+
+        // Filter by date range
+        const designFiles = startDate
+          ? allDesignFiles.filter(df => df.created_at && new Date(df.created_at) >= startDate)
+          : allDesignFiles;
+
+        const designRevisions = startDate
+          ? allDesignRevisions.filter(dr => dr.created_at && new Date(dr.created_at) >= startDate)
+          : allDesignRevisions;
+
+        const shopDrawings = startDate
+          ? allShopDrawings.filter(sd => sd.created_at && new Date(sd.created_at) >= startDate)
+          : allShopDrawings;
+
+        // ========== DESIGN FILES METRICS ==========
+        const totalDesignFiles = allDesignFiles.length;
+        const activeDesignFiles = allDesignFiles.filter(df => df.status === 'active' || df.status === 'in_progress').length;
+        const approvedDesignFiles = allDesignFiles.filter(df => df.status === 'approved').length;
+        const newDesignFiles = designFiles.length;
+
+        // ========== DESIGN REVISIONS METRICS ==========
+        const totalRevisions = allDesignRevisions.length;
+        const pendingReviews = allDesignRevisions.filter(dr => dr.status === 'pending_review').length;
+        const approvedRevisions = allDesignRevisions.filter(dr => dr.status === 'approved').length;
+        const recentRevisions = designRevisions.length;
+
+        const avgRevisionsPerFile = totalDesignFiles > 0 ? totalRevisions / totalDesignFiles : 0;
+
+        // ========== SHOP DRAWINGS METRICS ==========
+        const totalShopDrawings = allShopDrawings.length;
+        const pendingShopDrawings = allShopDrawings.filter(sd => sd.status === 'pending').length;
+        const approvedShopDrawings = allShopDrawings.filter(sd => sd.status === 'approved').length;
+        const rejectedShopDrawings = allShopDrawings.filter(sd => sd.status === 'rejected').length;
+        const newShopDrawings = shopDrawings.length;
+
+        const approvalRate = totalShopDrawings > 0 ? (approvedShopDrawings / totalShopDrawings) * 100 : 0;
+
+        // ========== PROJECT DESIGN STATUS ==========
+        const projectsWithDesign = allProjects.filter(p => {
+          // Projects that have associated design files
+          return allDesignFiles.some((df: any) => df.project_id === p.id);
+        }).length;
+
+        const totalProjects = allProjects.length;
+        const designCoverage = totalProjects > 0 ? (projectsWithDesign / totalProjects) * 100 : 0;
+
+        // ========== DESIGN ACTIVITY TREND ==========
+        const designActivityTrend = [];
+        const daysToShow = dateRange === '7d' ? 7 : dateRange === '30d' ? 30 : 90;
+
+        for (let i = daysToShow - 1; i >= 0; i--) {
+          const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+          const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+          const dayEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
+
+          const dayFiles = allDesignFiles.filter(df =>
+            df.created_at &&
+            new Date(df.created_at) >= dayStart &&
+            new Date(df.created_at) < dayEnd
+          ).length;
+
+          const dayRevisions = allDesignRevisions.filter(dr =>
+            dr.created_at &&
+            new Date(dr.created_at) >= dayStart &&
+            new Date(dr.created_at) < dayEnd
+          ).length;
+
+          const dayShopDrawings = allShopDrawings.filter(sd =>
+            sd.created_at &&
+            new Date(sd.created_at) >= dayStart &&
+            new Date(sd.created_at) < dayEnd
+          ).length;
+
+          designActivityTrend.push({
+            date: dayStart.toISOString().split('T')[0],
+            files: dayFiles,
+            revisions: dayRevisions,
+            shopDrawings: dayShopDrawings,
+          });
+        }
+
+        // ========== FILE STATUS DISTRIBUTION ==========
+        const fileStatusDistribution = [
+          { status: 'Active', count: allDesignFiles.filter(df => df.status === 'active').length },
+          { status: 'In Progress', count: allDesignFiles.filter(df => df.status === 'in_progress').length },
+          { status: 'Approved', count: approvedDesignFiles },
+          { status: 'Archived', count: allDesignFiles.filter(df => df.status === 'archived').length },
+          { status: 'Rejected', count: allDesignFiles.filter(df => df.status === 'rejected').length },
+        ];
+
+        // ========== REVISION STATUS DISTRIBUTION ==========
+        const revisionStatusDistribution = [
+          { status: 'Pending Review', count: pendingReviews },
+          { status: 'Approved', count: approvedRevisions },
+          { status: 'In Progress', count: allDesignRevisions.filter(dr => dr.status === 'in_progress').length },
+          { status: 'Rejected', count: allDesignRevisions.filter(dr => dr.status === 'rejected').length },
+        ];
+
+        return {
+          dateRange,
+          summary: {
+            totalDesignFiles,
+            activeDesignFiles,
+            approvedDesignFiles,
+            newDesignFiles,
+            totalRevisions,
+            pendingReviews,
+            approvedRevisions,
+            recentRevisions,
+            avgRevisionsPerFile: Math.round(avgRevisionsPerFile * 10) / 10,
+          },
+          shopDrawings: {
+            total: totalShopDrawings,
+            pending: pendingShopDrawings,
+            approved: approvedShopDrawings,
+            rejected: rejectedShopDrawings,
+            new: newShopDrawings,
+            approvalRate: Math.round(approvalRate * 100) / 100,
+          },
+          projects: {
+            total: totalProjects,
+            withDesign: projectsWithDesign,
+            designCoverage: Math.round(designCoverage * 100) / 100,
+          },
+          designActivityTrend,
+          fileStatusDistribution,
+          revisionStatusDistribution,
+        };
+      }),
+
+    /**
+     * Get design insights and recommendations
+     */
+    getDesignInsights: publicProcedure
+      .query(async ({ ctx }) => {
+        const now = new Date();
+
+        // Fetch data for insights
+        const [designFiles, designRevisions, shopDrawings] = await Promise.all([
+          ctx.db.design_files.findMany(),
+          ctx.db.design_revisions.findMany(),
+          ctx.db.shop_drawings.findMany(),
+        ]);
+
+        const insights: Array<{
+          type: 'success' | 'warning' | 'error' | 'info';
+          title: string;
+          description: string;
+          action: string;
+          actionLink: string;
+          priority: 'high' | 'medium' | 'low';
+        }> = [];
+
+        // Insight 1: Pending reviews
+        const pendingReviews = designRevisions.filter(dr => dr.status === 'pending_review');
+        if (pendingReviews.length > 5) {
+          insights.push({
+            type: 'warning',
+            title: `${pendingReviews.length} design revisions pending review`,
+            description: 'Large backlog of pending reviews may delay projects. Expedite review process.',
+            action: 'Review Pending Designs',
+            actionLink: '/design/files',
+            priority: 'high',
+          });
+        }
+
+        // Insight 2: Shop drawing approval rate
+        const totalShopDrawings = shopDrawings.length;
+        const approvedShopDrawings = shopDrawings.filter(sd => sd.status === 'approved').length;
+        const approvalRate = totalShopDrawings > 0 ? (approvedShopDrawings / totalShopDrawings) * 100 : 0;
+
+        if (approvalRate < 70 && totalShopDrawings > 10) {
+          insights.push({
+            type: 'warning',
+            title: `Shop drawing approval rate at ${Math.round(approvalRate)}%`,
+            description: 'Below target approval rate (70%). Review design quality and specification accuracy.',
+            action: 'View Shop Drawings',
+            actionLink: '/design/shop-drawings',
+            priority: 'high',
+          });
+        } else if (approvalRate >= 90) {
+          insights.push({
+            type: 'success',
+            title: `${Math.round(approvalRate)}% shop drawing approval rate`,
+            description: 'Excellent approval rate. Design quality standards are being maintained.',
+            action: 'View Shop Drawings',
+            actionLink: '/design/shop-drawings',
+            priority: 'low',
+          });
+        }
+
+        // Insight 3: High revision count
+        const totalRevisions = designRevisions.length;
+        const totalFiles = designFiles.length;
+        const avgRevisions = totalFiles > 0 ? totalRevisions / totalFiles : 0;
+
+        if (avgRevisions > 5 && totalFiles > 10) {
+          insights.push({
+            type: 'info',
+            title: `Average ${Math.round(avgRevisions * 10) / 10} revisions per design`,
+            description: 'High revision count may indicate unclear requirements or quality issues. Review design process.',
+            action: 'View Design Files',
+            actionLink: '/design/files',
+            priority: 'medium',
+          });
+        }
+
+        // Insight 4: Rejected shop drawings
+        const rejectedShopDrawings = shopDrawings.filter(sd => sd.status === 'rejected');
+        if (rejectedShopDrawings.length > 3) {
+          insights.push({
+            type: 'error',
+            title: `${rejectedShopDrawings.length} shop drawings rejected`,
+            description: 'Multiple rejected drawings indicate quality or specification issues. Review and revise immediately.',
+            action: 'View Rejected Drawings',
+            actionLink: '/design/shop-drawings?status=rejected',
+            priority: 'high',
+          });
+        }
+
+        // Insight 5: Active design files
+        const activeFiles = designFiles.filter(df => df.status === 'active' || df.status === 'in_progress');
+        if (activeFiles.length > 50) {
+          insights.push({
+            type: 'info',
+            title: `${activeFiles.length} active design files`,
+            description: 'High volume of active designs. Ensure adequate resources and prioritization.',
+            action: 'View Active Designs',
+            actionLink: '/design/files?status=active',
+            priority: 'medium',
+          });
+        }
+
+        return insights.sort((a, b) => {
+          const priorityOrder = { high: 0, medium: 1, low: 2 };
+          return priorityOrder[a.priority as keyof typeof priorityOrder] - priorityOrder[b.priority as keyof typeof priorityOrder];
+        });
+      }),
+
+    // ==================== SHIPPING & LOGISTICS DASHBOARD ====================
+
+    /**
+     * Get shipping and logistics metrics for Shipping Dashboard
+     */
+    getShipping: publicProcedure
+      .input(z.object({
+        dateRange: z.enum(['7d', '30d', '90d', 'all']).default('30d'),
+      }).optional())
+      .query(async ({ ctx, input }) => {
+        const dateRange = input?.dateRange || '30d';
+
+        // Calculate date range
+        const now = new Date();
+        let startDate: Date | null = null;
+
+        if (dateRange === '7d') {
+          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        } else if (dateRange === '30d') {
+          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        } else if (dateRange === '90d') {
+          startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        }
+
+        // Fetch all shipping data (in-memory filtering)
+        const [
+          allShipments,
+          allCarriers,
+          allEvents,
+          allOrders,
+        ] = await Promise.all([
+          ctx.db.shipments.findMany(),
+          ctx.db.shipping_carriers.findMany(),
+          ctx.db.shipping_events.findMany(),
+          ctx.db.orders.findMany(),
+        ]);
+
+        // Filter by date range
+        const shipments = startDate
+          ? allShipments.filter(s => s.created_at && new Date(s.created_at) >= startDate)
+          : allShipments;
+
+        // ========== SHIPMENT METRICS ==========
+        const totalShipments = allShipments.length;
+        const newShipments = shipments.length;
+        const inTransitShipments = allShipments.filter(s => s.status === 'in_transit').length;
+        const deliveredShipments = allShipments.filter(s => s.status === 'delivered').length;
+        const pendingShipments = allShipments.filter(s => s.status === 'pending').length;
+        const cancelledShipments = allShipments.filter(s => s.status === 'cancelled').length;
+
+        // ========== ON-TIME DELIVERY ==========
+        const completedShipments = allShipments.filter(s =>
+          s.status === 'delivered' && s.actual_delivery && s.expected_delivery
+        );
+        const onTimeDeliveries = completedShipments.filter(s => {
+          if (!s.actual_delivery || !s.expected_delivery) return false;
+          return new Date(s.actual_delivery) <= new Date(s.expected_delivery);
+        }).length;
+        const onTimeRate = completedShipments.length > 0
+          ? (onTimeDeliveries / completedShipments.length) * 100
+          : 0;
+
+        const lateDeliveries = completedShipments.length - onTimeDeliveries;
+
+        // ========== AVERAGE DELIVERY TIME ==========
+        const shipmentsWithDuration = completedShipments.filter(s => s.shipped_at && s.actual_delivery);
+        const totalDuration = shipmentsWithDuration.reduce((sum, s) => {
+          if (!s.shipped_at || !s.actual_delivery) return sum;
+          const duration = new Date(s.actual_delivery).getTime() - new Date(s.shipped_at).getTime();
+          return sum + (duration / (1000 * 60 * 60 * 24)); // Convert to days
+        }, 0);
+        const avgDeliveryTime = shipmentsWithDuration.length > 0
+          ? totalDuration / shipmentsWithDuration.length
+          : 0;
+
+        // ========== CARRIER PERFORMANCE ==========
+        const carrierPerformance: Record<string, { total: number; onTime: number; late: number }> = {};
+        completedShipments.forEach((shipment: any) => {
+          const carrierId = shipment.carrier_id || 'Unknown';
+          if (!carrierPerformance[carrierId]) {
+            carrierPerformance[carrierId] = { total: 0, onTime: 0, late: 0 };
+          }
+          carrierPerformance[carrierId].total++;
+
+          const isOnTime = shipment.actual_delivery && shipment.expected_delivery &&
+            new Date(shipment.actual_delivery) <= new Date(shipment.expected_delivery);
+
+          if (isOnTime) {
+            carrierPerformance[carrierId].onTime++;
+          } else {
+            carrierPerformance[carrierId].late++;
+          }
+        });
+
+        const topCarriers = Object.entries(carrierPerformance)
+          .sort(([, a], [, b]) => b.total - a.total)
+          .slice(0, 5)
+          .map(([carrierId, stats]) => {
+            const carrier = allCarriers.find((c: any) => c.id === carrierId);
+            return {
+              id: carrierId,
+              name: carrier?.name || 'Unknown Carrier',
+              totalShipments: stats.total,
+              onTimeRate: stats.total > 0 ? (stats.onTime / stats.total) * 100 : 0,
+            };
+          });
+
+        // ========== SHIPPING TREND ==========
+        const shippingTrend = [];
+        const daysToShow = dateRange === '7d' ? 7 : dateRange === '30d' ? 30 : 90;
+
+        for (let i = daysToShow - 1; i >= 0; i--) {
+          const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+          const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+          const dayEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
+
+          const dayShipped = allShipments.filter(s =>
+            s.shipped_at &&
+            new Date(s.shipped_at) >= dayStart &&
+            new Date(s.shipped_at) < dayEnd
+          ).length;
+
+          const dayDelivered = allShipments.filter(s =>
+            s.actual_delivery &&
+            new Date(s.actual_delivery) >= dayStart &&
+            new Date(s.actual_delivery) < dayEnd
+          ).length;
+
+          shippingTrend.push({
+            date: dayStart.toISOString().split('T')[0],
+            shipped: dayShipped,
+            delivered: dayDelivered,
+          });
+        }
+
+        // ========== SHIPMENT STATUS DISTRIBUTION ==========
+        const statusDistribution = [
+          { status: 'Pending', count: pendingShipments },
+          { status: 'In Transit', count: inTransitShipments },
+          { status: 'Delivered', count: deliveredShipments },
+          { status: 'Cancelled', count: cancelledShipments },
+        ];
+
+        // ========== DELIVERY ZONES ==========
+        const deliveryZones: Record<string, number> = {};
+        allShipments.forEach((shipment: any) => {
+          const zone = shipment.delivery_zone || 'Unknown';
+          deliveryZones[zone] = (deliveryZones[zone] || 0) + 1;
+        });
+
+        const topZones = Object.entries(deliveryZones)
+          .sort(([, a], [, b]) => b - a)
+          .slice(0, 5)
+          .map(([zone, count]) => ({
+            zone,
+            count,
+          }));
+
+        return {
+          dateRange,
+          summary: {
+            totalShipments,
+            newShipments,
+            inTransitShipments,
+            deliveredShipments,
+            pendingShipments,
+            cancelledShipments,
+            onTimeRate: Math.round(onTimeRate * 100) / 100,
+            lateDeliveries,
+            avgDeliveryTime: Math.round(avgDeliveryTime * 10) / 10,
+          },
+          topCarriers,
+          shippingTrend,
+          statusDistribution,
+          topZones,
+        };
+      }),
+
+    /**
+     * Get shipping insights and recommendations
+     */
+    getShippingInsights: publicProcedure
+      .query(async ({ ctx }) => {
+        const now = new Date();
+
+        // Fetch data for insights
+        const [shipments] = await Promise.all([
+          ctx.db.shipments.findMany(),
+        ]);
+
+        const insights: Array<{
+          type: 'success' | 'warning' | 'error' | 'info';
+          title: string;
+          description: string;
+          action: string;
+          actionLink: string;
+          priority: 'high' | 'medium' | 'low';
+        }> = [];
+
+        // Insight 1: On-time delivery rate
+        const completedShipments = shipments.filter(s =>
+          s.status === 'delivered' && s.actual_delivery && s.expected_delivery
+        );
+        const onTimeDeliveries = completedShipments.filter(s => {
+          if (!s.actual_delivery || !s.expected_delivery) return false;
+          return new Date(s.actual_delivery) <= new Date(s.expected_delivery);
+        }).length;
+        const onTimeRate = completedShipments.length > 0
+          ? (onTimeDeliveries / completedShipments.length) * 100
+          : 0;
+
+        if (onTimeRate < 80 && completedShipments.length > 10) {
+          insights.push({
+            type: 'warning',
+            title: `On-time delivery rate at ${Math.round(onTimeRate)}%`,
+            description: 'Below target (80%). Review carrier performance and shipping processes.',
+            action: 'View Shipments',
+            actionLink: '/shipping/shipments',
+            priority: 'high',
+          });
+        } else if (onTimeRate >= 95) {
+          insights.push({
+            type: 'success',
+            title: `${Math.round(onTimeRate)}% on-time delivery rate`,
+            description: 'Excellent delivery performance. Maintain current processes.',
+            action: 'View Shipments',
+            actionLink: '/shipping/shipments',
+            priority: 'low',
+          });
+        }
+
+        // Insight 2: Pending shipments
+        const pendingShipments = shipments.filter(s => s.status === 'pending');
+        if (pendingShipments.length > 10) {
+          insights.push({
+            type: 'warning',
+            title: `${pendingShipments.length} shipments pending`,
+            description: 'Large backlog of pending shipments. Expedite processing and carrier pickup.',
+            action: 'View Pending Shipments',
+            actionLink: '/shipping/shipments?status=pending',
+            priority: 'high',
+          });
+        }
+
+        // Insight 3: In-transit shipments
+        const inTransitShipments = shipments.filter(s => s.status === 'in_transit');
+        if (inTransitShipments.length > 50) {
+          insights.push({
+            type: 'info',
+            title: `${inTransitShipments.length} shipments in transit`,
+            description: 'High volume of active shipments. Monitor closely for delivery issues.',
+            action: 'Track Shipments',
+            actionLink: '/shipping/shipments?status=in_transit',
+            priority: 'medium',
+          });
+        }
+
+        // Insight 4: Delayed shipments
+        const delayedShipments = inTransitShipments.filter(s => {
+          if (!s.expected_delivery) return false;
+          return new Date(s.expected_delivery) < now;
+        });
+        if (delayedShipments.length > 0) {
+          insights.push({
+            type: 'error',
+            title: `${delayedShipments.length} shipments delayed`,
+            description: 'Shipments past expected delivery date. Contact carriers and notify customers immediately.',
+            action: 'View Delayed Shipments',
+            actionLink: '/shipping/shipments?status=delayed',
+            priority: 'high',
+          });
+        }
+
+        // Insight 5: Cancelled shipments
+        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        const recentCancellations = shipments.filter(s =>
+          s.status === 'cancelled' &&
+          s.created_at &&
+          new Date(s.created_at) >= thirtyDaysAgo
+        );
+        if (recentCancellations.length > 5) {
+          insights.push({
+            type: 'warning',
+            title: `${recentCancellations.length} shipments cancelled this month`,
+            description: 'High cancellation rate may indicate inventory or fulfillment issues.',
+            action: 'Review Cancellations',
+            actionLink: '/shipping/shipments?status=cancelled',
+            priority: 'medium',
+          });
+        }
+
+        return insights.sort((a, b) => {
+          const priorityOrder = { high: 0, medium: 1, low: 2 };
+          return priorityOrder[a.priority as keyof typeof priorityOrder] - priorityOrder[b.priority as keyof typeof priorityOrder];
+        });
+      }),
 });

@@ -479,6 +479,11 @@ export class DatabaseClient {
   shop_drawing_approvals = prisma.shop_drawing_approvals;
   oauth_tokens = prisma.oauth_tokens;
   design_files = prisma.design_files;
+  design_revisions = prisma.design_revisions;
+
+  // Shipping & Logistics
+  shipping_carriers = prisma.shipping_carriers;
+  shipping_events = prisma.shipping_events;
 
   // Prototyping Module (Phase 2 - Week 17)
   prototypes = prisma.prototypes;
