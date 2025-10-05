@@ -51,10 +51,7 @@ export function FileUploader({
  const [isDragging, setIsDragging] = useState(false);
  const [uploadingFiles, setUploadingFiles] = useState<UploadingFile[]>([]);
 
- const { data: connectionStatus } = api.oauth.getConnectionStatus.useQuery();
- const getAccessToken = api.storage.getAccessToken.useQuery(undefined, {
- enabled: false, // Only fetch when needed
- });
+ const { data: driveStatus } = api.storage.getDriveStatus.useQuery();
  const recordUpload = api.storage.recordUpload.useMutation();
 
  const handleFiles = useCallback(
@@ -79,13 +76,13 @@ export function FileUploader({
  const storageType = determineStorageType(file.size);
 
  // If Google Drive and not connected, show error
- if (storageType === 'google_drive' && !connectionStatus?.connected) {
+ if (storageType === 'google_drive' && !driveStatus?.connected) {
  validatedFiles.push({
  file,
  progress: 0,
  status: 'error',
  storageType,
- error: 'Google Drive not connected. Please connect your account for files ≥50MB.',
+ error: 'Google Drive service account not configured. Please configure for files ≥50MB.',
  });
  continue;
  }
@@ -110,22 +107,9 @@ export function FileUploader({
  const file = uploadFile.file;
  const storageType = uploadFile.storageType!;
 
- // Get access token if needed for Google Drive
- let accessToken: string | null = null;
- if (storageType === 'google_drive') {
- const { data: tokenData } = await getAccessToken.refetch();
- if (!tokenData?.accessToken) {
- throw new Error('Could not get Google Drive access token');
- }
- accessToken = tokenData.accessToken;
- }
-
- // Upload via API route (server-side to avoid Node.js imports in client)
+ // Upload via API route (server-side handles both Supabase and Google Drive via service account)
  const uploadFormData = new FormData();
  uploadFormData.append('file', file);
- if (accessToken) {
- uploadFormData.append('accessToken', accessToken);
- }
  if (category) {
  uploadFormData.append('category', category);
  }
@@ -197,12 +181,11 @@ export function FileUploader({
  },
  [
  maxFiles,
- connectionStatus,
+ driveStatus,
  projectId,
  briefId,
  category,
  recordUpload,
- getAccessToken,
  onUploadComplete,
  ]
  );
@@ -291,11 +274,11 @@ export function FileUploader({
  </div>
 
  {/* Google Drive Connection Status */}
- {!connectionStatus?.connected && (
+ {!driveStatus?.connected && (
  <Alert>
  <AlertCircle className="h-4 w-4" />
  <AlertDescription>
- Files ≥50MB require Google Drive. Please connect your account to upload large files.
+ Files ≥50MB require Google Drive service account configuration. Please configure to upload large files.
  </AlertDescription>
  </Alert>
  )}
