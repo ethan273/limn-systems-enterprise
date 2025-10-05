@@ -93,3 +93,20 @@ final_complete_migration.js
 app_backup/
 docs/
 *.sh.backup
+# Build artifacts (cleanup additions)
+.next/
+coverage/
+test-results/
+.turbo/
+
+# Backup files
+*.backup
+*.bak
+*_backup*
+
+# Test files in root
+test-*.js
+test-*.mjs
+
+# Large schema dumps
+*-complete-schema.json
