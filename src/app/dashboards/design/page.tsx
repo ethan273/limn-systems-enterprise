@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { DateRangeSelector } from '@/components/DateRangeSelector';
 import {
   FileText,
   FilePlus,
@@ -16,6 +17,7 @@ import {
   GitBranch,
   Lightbulb,
   ArrowRight,
+  RefreshCw,
 } from 'lucide-react';
 import {
   LineChart,
@@ -53,9 +55,12 @@ const INSIGHT_CLASSES = {
 const CHART_COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))', 'hsl(var(--destructive))'];
 
 export default function DesignDashboardPage() {
-  const { data: design, isLoading } = api.dashboards.getDesign.useQuery({
-    dateRange: '30d',
-  });
+  const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | '1y' | 'all'>('30d');
+
+  const { data: design, isLoading, refetch } = api.dashboards.getDesign.useQuery(
+    { dateRange },
+    { refetchInterval: 60000 } // Auto-refresh every 60 seconds
+  );
 
   const { data: insights } = api.dashboards.getDesignInsights.useQuery();
 
@@ -92,6 +97,18 @@ export default function DesignDashboardPage() {
           <p className="page-subtitle">Design files, revisions, and shop drawings metrics</p>
         </div>
         <div className="dashboard-actions">
+          <DateRangeSelector
+            value={dateRange}
+            onChange={(value: any) => setDateRange(value)}
+          />
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => refetch()}
+            title="Refresh data"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
           <Button variant="outline" asChild>
             <Link href="/design/files">
               <FolderOpen className="icon-sm" />

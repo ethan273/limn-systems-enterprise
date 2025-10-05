@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { DateRangeSelector } from '@/components/DateRangeSelector';
 import {
   TrendingUp,
   TrendingDown,
@@ -16,6 +17,7 @@ import {
   Lightbulb,
   ArrowRight,
   BarChart3,
+  RefreshCw,
 } from 'lucide-react';
 import {
   PieChart,
@@ -43,9 +45,12 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function AnalyticsDashboardPage() {
-  const { data: analytics, isLoading } = api.dashboards.getAnalytics.useQuery({
-    dateRange: '30d',
-  });
+  const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | '1y' | 'all'>('30d');
+
+  const { data: analytics, isLoading, refetch } = api.dashboards.getAnalytics.useQuery(
+    { dateRange },
+    { refetchInterval: 60000 } // Auto-refresh every 60 seconds
+  );
 
   const { data: insights } = api.dashboards.getAnalyticsInsights.useQuery();
 
@@ -84,10 +89,26 @@ export default function AnalyticsDashboardPage() {
     <div className="dashboard-page">
       {/* Header */}
       <div className="dashboard-header">
-        <h1 className="dashboard-title">Analytics Dashboard</h1>
-        <p className="dashboard-subtitle">
-          Comprehensive business performance metrics and trends
-        </p>
+        <div>
+          <h1 className="dashboard-title">Analytics Dashboard</h1>
+          <p className="dashboard-subtitle">
+            Comprehensive business performance metrics and trends
+          </p>
+        </div>
+        <div className="dashboard-actions">
+          <DateRangeSelector
+            value={dateRange}
+            onChange={(value: any) => setDateRange(value)}
+          />
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => refetch()}
+            title="Refresh data"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {/* AI Insights Section */}

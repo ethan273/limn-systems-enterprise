@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { DateRangeSelector } from '@/components/DateRangeSelector';
 import {
   Package,
   Clock,
@@ -18,6 +19,7 @@ import {
   ArrowRight,
   PlayCircle,
   PauseCircle,
+  RefreshCw,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -61,9 +63,12 @@ const INSIGHT_CLASSES = {
 };
 
 export default function ManufacturingDashboardPage() {
-  const { data: manufacturing, isLoading } = api.dashboards.getManufacturing.useQuery({
-    dateRange: '30d',
-  });
+  const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | '1y' | 'all'>('30d');
+
+  const { data: manufacturing, isLoading, refetch } = api.dashboards.getManufacturing.useQuery(
+    { dateRange },
+    { refetchInterval: 60000 } // Auto-refresh every 60 seconds
+  );
 
   const { data: insights } = api.dashboards.getManufacturingInsights.useQuery();
 
@@ -100,6 +105,18 @@ export default function ManufacturingDashboardPage() {
           <p className="page-subtitle">Production metrics, quality control, and capacity management</p>
         </div>
         <div className="dashboard-actions">
+          <DateRangeSelector
+            value={dateRange}
+            onChange={(value: any) => setDateRange(value)}
+          />
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => refetch()}
+            title="Refresh data"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
           <Button variant="outline" asChild>
             <Link href="/production/ordered-items">
               <Package className="icon-sm" />

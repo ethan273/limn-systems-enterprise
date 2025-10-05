@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { DateRangeSelector } from '@/components/DateRangeSelector';
 import {
   TrendingUp,
   TrendingDown,
@@ -21,6 +22,7 @@ import {
   Lightbulb,
   ArrowRight,
   BarChart3,
+  RefreshCw,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -53,9 +55,12 @@ const INSIGHT_CLASSES = {
 };
 
 export default function ExecutiveDashboardPage() {
-  const { data: executive, isLoading } = api.dashboards.getExecutive.useQuery({
-    dateRange: '30d',
-  });
+  const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | '1y' | 'all'>('30d');
+
+  const { data: executive, isLoading, refetch } = api.dashboards.getExecutive.useQuery(
+    { dateRange },
+    { refetchInterval: 60000 } // Auto-refresh every 60 seconds
+  );
 
   const { data: insights } = api.dashboards.getExecutiveInsights.useQuery();
 
@@ -92,6 +97,18 @@ export default function ExecutiveDashboardPage() {
           <p className="page-subtitle">High-level business metrics and strategic KPIs</p>
         </div>
         <div className="dashboard-actions">
+          <DateRangeSelector
+            value={dateRange}
+            onChange={(value: any) => setDateRange(value)}
+          />
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => refetch()}
+            title="Refresh data"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
           <Button variant="outline" asChild>
             <Link href="/dashboards/analytics">
               <BarChart3 className="icon-sm" />

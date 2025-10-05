@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { DateRangeSelector } from '@/components/DateRangeSelector';
 import {
   CheckCircle,
   XCircle,
@@ -15,6 +16,7 @@ import {
   Lightbulb,
   ArrowRight,
   ClipboardCheck,
+  RefreshCw,
 } from 'lucide-react';
 import {
   LineChart,
@@ -52,9 +54,12 @@ const INSIGHT_CLASSES = {
 const CHART_COLORS = ['hsl(var(--primary))', 'hsl(var(--destructive))', 'hsl(var(--muted))'];
 
 export default function QualityDashboardPage() {
-  const { data: quality, isLoading } = api.dashboards.getQuality.useQuery({
-    dateRange: '30d',
-  });
+  const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | '1y' | 'all'>('30d');
+
+  const { data: quality, isLoading, refetch } = api.dashboards.getQuality.useQuery(
+    { dateRange },
+    { refetchInterval: 60000 } // Auto-refresh every 60 seconds
+  );
 
   const { data: insights } = api.dashboards.getQualityInsights.useQuery();
 
@@ -91,6 +96,18 @@ export default function QualityDashboardPage() {
           <p className="page-subtitle">Quality inspections, pass rates, and defect analysis</p>
         </div>
         <div className="dashboard-actions">
+          <DateRangeSelector
+            value={dateRange}
+            onChange={(value: any) => setDateRange(value)}
+          />
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => refetch()}
+            title="Refresh data"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
           <Button variant="outline" asChild>
             <Link href="/production/ordered-items">
               <ClipboardCheck className="icon-sm" />

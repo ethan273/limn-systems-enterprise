@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { DateRangeSelector } from '@/components/DateRangeSelector';
 import {
   Truck,
   Package,
@@ -15,6 +16,7 @@ import {
   MapPin,
   Lightbulb,
   ArrowRight,
+  RefreshCw,
 } from 'lucide-react';
 import {
   LineChart,
@@ -52,9 +54,12 @@ const INSIGHT_CLASSES = {
 const CHART_COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))'];
 
 export default function ShippingDashboardPage() {
-  const { data: shipping, isLoading } = api.dashboards.getShipping.useQuery({
-    dateRange: '30d',
-  });
+  const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | '1y' | 'all'>('30d');
+
+  const { data: shipping, isLoading, refetch } = api.dashboards.getShipping.useQuery(
+    { dateRange },
+    { refetchInterval: 60000 } // Auto-refresh every 60 seconds
+  );
 
   const { data: insights } = api.dashboards.getShippingInsights.useQuery();
 
@@ -91,6 +96,18 @@ export default function ShippingDashboardPage() {
           <p className="page-subtitle">Shipment tracking, delivery performance, and logistics metrics</p>
         </div>
         <div className="dashboard-actions">
+          <DateRangeSelector
+            value={dateRange}
+            onChange={(value: any) => setDateRange(value)}
+          />
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => refetch()}
+            title="Refresh data"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
           <Button variant="outline" asChild>
             <Link href="/shipping/shipments">
               <Truck className="icon-sm" />

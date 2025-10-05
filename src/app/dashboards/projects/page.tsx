@@ -20,7 +20,9 @@ import {
   XCircle,
   Lightbulb,
   ArrowRight,
+  RefreshCw,
 } from 'lucide-react';
+import { DateRangeSelector } from '@/components/DateRangeSelector';
 import {
   BarChart,
   Bar,
@@ -48,12 +50,13 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function ProjectDashboardPage() {
-  const [dateRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d');
+  const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | '1y' | 'all'>('30d');
 
   // Fetch projects analytics
-  const { data: analytics, isLoading } = api.dashboards.getProjectsAnalytics.useQuery({
-    dateRange,
-  });
+  const { data: analytics, isLoading, refetch } = api.dashboards.getProjectsAnalytics.useQuery(
+    { dateRange },
+    { refetchInterval: 60000 } // Auto-refresh every 60 seconds
+  );
 
   // Fetch AI insights
   const { data: insights } = api.dashboards.getProjectsInsights.useQuery();
@@ -98,10 +101,26 @@ export default function ProjectDashboardPage() {
     <div className="dashboard-page">
       {/* Header */}
       <div className="dashboard-header">
-        <h1 className="dashboard-title">Projects Dashboard</h1>
-        <p className="dashboard-subtitle">
-          Comprehensive project portfolio analysis and performance tracking
-        </p>
+        <div>
+          <h1 className="dashboard-title">Projects Dashboard</h1>
+          <p className="dashboard-subtitle">
+            Comprehensive project portfolio analysis and performance tracking
+          </p>
+        </div>
+        <div className="dashboard-actions">
+          <DateRangeSelector
+            value={dateRange}
+            onChange={(value: any) => setDateRange(value)}
+          />
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => refetch()}
+            title="Refresh data"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {/* AI Insights Section */}
