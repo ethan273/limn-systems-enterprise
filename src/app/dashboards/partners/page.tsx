@@ -66,7 +66,7 @@ const CHART_COLORS = [
 ];
 
 export default function PartnerDashboardPage() {
-  const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | '1y' | 'all'>('30d');
+  const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d');
 
   const { data: partners, isLoading, refetch } = api.dashboards.getPartners.useQuery(
     { dateRange },

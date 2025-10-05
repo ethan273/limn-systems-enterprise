@@ -12,21 +12,17 @@ import {
   CheckCircle,
   XCircle,
   AlertTriangle,
-  TrendingUp,
   BarChart3,
   Activity,
   Lightbulb,
   ArrowRight,
   PlayCircle,
-  PauseCircle,
   RefreshCw,
 } from 'lucide-react';
 import { ExportPDFButton } from '@/components/ExportPDFButton';
 import {
   AreaChart,
   Area,
-  BarChart,
-  Bar,
   PieChart,
   Pie,
   Cell,
@@ -64,7 +60,7 @@ const INSIGHT_CLASSES = {
 };
 
 export default function ManufacturingDashboardPage() {
-  const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | '1y' | 'all'>('30d');
+  const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d');
 
   const { data: manufacturing, isLoading, refetch } = api.dashboards.getManufacturing.useQuery(
     { dateRange },
@@ -117,7 +113,7 @@ export default function ManufacturingDashboardPage() {
             onClick={() => refetch()}
             title="Refresh data"
           >
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCw className="icon-sm" />
           </Button>
           <ExportPDFButton dashboardName="Manufacturing Dashboard" dateRange={dateRange} />
           <Button variant="outline" asChild>
@@ -130,7 +126,8 @@ export default function ManufacturingDashboardPage() {
       </div>
 
       {/* Production Orders Metrics */}
-      <div className="dashboard-grid mb-6">
+      <div className="dashboard-section">
+        <div className="dashboard-grid">
         <Card className="metric-card">
           <CardHeader>
             <CardTitle className="metric-label">Total Production Orders</CardTitle>
@@ -182,6 +179,7 @@ export default function ManufacturingDashboardPage() {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
 
       {/* Quality & Performance Metrics */}
@@ -244,8 +242,8 @@ export default function ManufacturingDashboardPage() {
 
       {/* Production Status Distribution */}
       <div className="dashboard-section">
-        <div className="dashboard-row">
-          <Card className="dashboard-card-half">
+        <div className="grid-two-columns">
+          <Card>
             <CardHeader>
               <CardTitle>Production Status Distribution</CardTitle>
             </CardHeader>
@@ -273,7 +271,7 @@ export default function ManufacturingDashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="dashboard-card-half">
+          <Card>
             <CardHeader>
               <CardTitle>Quality Checks Summary</CardTitle>
             </CardHeader>
@@ -391,7 +389,7 @@ export default function ManufacturingDashboardPage() {
                         </div>
                       </td>
                       <td>{product.sku}</td>
-                      <td className="text-right font-semibold">{product.quantity}</td>
+                      <td className="table-cell-numeric">{product.quantity}</td>
                     </tr>
                   ))}
                 </tbody>

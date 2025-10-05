@@ -3871,6 +3871,122 @@ button.bg-primary {
   color: hsl(var(--muted-foreground));
 }
 
+/* Product/Item List (for top products, top items, etc.) */
+.product-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.product-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.product-rank-section {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.product-rank-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  background: hsl(var(--primary) / 0.1);
+}
+
+.product-rank-number {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: hsl(var(--primary));
+}
+
+.product-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.product-name {
+  font-weight: 500;
+  color: hsl(var(--foreground));
+}
+
+.product-sku {
+  font-size: 0.75rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.product-revenue-section {
+  text-align: right;
+}
+
+.product-revenue-amount {
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.product-revenue-label {
+  font-size: 0.75rem;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Metric Trend (growth/decline indicators) */
+.metric-trend {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.metric-trend-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.metric-trend-text {
+  font-size: 0.75rem;
+}
+
+/* Three Column Grid - For performance metrics */
+.grid-three-columns {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(1, 1fr);
+}
+
+@media (min-width: 768px) {
+  .grid-three-columns {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Performance Stat Box */
+.performance-stat {
+  text-align: center;
+  padding: 1rem;
+  background: hsl(var(--card));
+  border-radius: 0.5rem;
+  border: 1px solid hsl(var(--border));
+}
+
+.performance-stat-value {
+  font-size: 1.875rem;
+  font-weight: 700;
+}
+
+.performance-stat-label {
+  font-size: 0.875rem;
+  color: hsl(var(--muted-foreground));
+  margin-top: 0.25rem;
+}
+
 /* Metric Cards */
 .metric-card {
   background: hsl(var(--card));

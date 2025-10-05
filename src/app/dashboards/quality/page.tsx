@@ -55,7 +55,7 @@ const INSIGHT_CLASSES = {
 const CHART_COLORS = ['hsl(var(--primary))', 'hsl(var(--destructive))', 'hsl(var(--muted))'];
 
 export default function QualityDashboardPage() {
-  const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | '1y' | 'all'>('30d');
+  const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d');
 
   const { data: quality, isLoading, refetch } = api.dashboards.getQuality.useQuery(
     { dateRange },

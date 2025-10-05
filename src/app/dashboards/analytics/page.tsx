@@ -45,7 +45,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function AnalyticsDashboardPage() {
-  const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | '1y' | 'all'>('30d');
+  const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | 'year' | 'all'>('30d');
 
   const { data: analytics, isLoading, refetch } = api.dashboards.getAnalytics.useQuery(
     { dateRange },
@@ -113,7 +113,8 @@ export default function AnalyticsDashboardPage() {
 
       {/* AI Insights Section */}
       {insights && insights.length > 0 && (
-        <div className="space-y-4 mb-6">
+        <div className="dashboard-section">
+          <div className="insights-grid">
           {insights.map((insight, idx) => (
             <div key={idx} className="insight-card">
               <Lightbulb className="insight-icon" aria-hidden="true" />
@@ -125,7 +126,7 @@ export default function AnalyticsDashboardPage() {
                     <Link href={insight.actionLink}>
                       <Button size="sm" variant="outline" className="btn-secondary">
                         {insight.action}
-                        <ArrowRight className="w-4 h-4 ml-2" aria-hidden="true" />
+                        <ArrowRight className="icon-sm" aria-hidden="true" />
                       </Button>
                     </Link>
                   </div>
@@ -133,11 +134,13 @@ export default function AnalyticsDashboardPage() {
               </div>
             </div>
           ))}
+          </div>
         </div>
       )}
 
       {/* Summary Metrics */}
-      <div className="dashboard-grid mb-6">
+      <div className="dashboard-section">
+        <div className="dashboard-grid">
         <Card className="metric-card">
           <CardHeader className="metric-card-header">
             <span className="metric-label">Total Revenue</span>
@@ -145,13 +148,13 @@ export default function AnalyticsDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="metric-value">${(analytics.summary.totalRevenue / 1000).toFixed(1)}K</div>
-            <div className="flex items-center gap-2 mt-2">
+            <div className="metric-trend">
               {analytics.summary.revenueGrowth >= 0 ? (
-                <TrendingUp className="w-4 h-4 text-success" aria-hidden="true" />
+                <TrendingUp className="metric-trend-icon text-success" aria-hidden="true" />
               ) : (
-                <TrendingDown className="w-4 h-4 text-destructive" aria-hidden="true" />
+                <TrendingDown className="metric-trend-icon text-destructive" aria-hidden="true" />
               )}
-              <p className={`text-xs ${analytics.summary.revenueGrowth >= 0 ? 'text-success' : 'text-destructive'}`}>
+              <p className={`metric-trend-text ${analytics.summary.revenueGrowth >= 0 ? 'text-success' : 'text-destructive'}`}>
                 {Math.abs(analytics.summary.revenueGrowth).toFixed(1)}% vs last period
               </p>
             </div>
@@ -178,13 +181,13 @@ export default function AnalyticsDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="metric-value">{analytics.summary.totalCustomers}</div>
-            <div className="flex items-center gap-2 mt-2">
+            <div className="metric-trend">
               {analytics.summary.customerGrowth >= 0 ? (
-                <TrendingUp className="w-4 h-4 text-success" aria-hidden="true" />
+                <TrendingUp className="metric-trend-icon text-success" aria-hidden="true" />
               ) : (
-                <TrendingDown className="w-4 h-4 text-destructive" aria-hidden="true" />
+                <TrendingDown className="metric-trend-icon text-destructive" aria-hidden="true" />
               )}
-              <p className={`text-xs ${analytics.summary.customerGrowth >= 0 ? 'text-success' : 'text-destructive'}`}>
+              <p className={`metric-trend-text ${analytics.summary.customerGrowth >= 0 ? 'text-success' : 'text-destructive'}`}>
                 {Math.abs(analytics.summary.customerGrowth).toFixed(1)}% growth
               </p>
             </div>
@@ -201,10 +204,12 @@ export default function AnalyticsDashboardPage() {
             <p className="text-xs text-muted-foreground mt-2">Currently in progress</p>
           </CardContent>
         </Card>
+        </div>
       </div>
 
       {/* Revenue Trend Chart */}
-      <Card className="chart-container mb-6">
+      <div className="dashboard-section">
+        <Card className="chart-container">
         <CardHeader className="chart-header">
           <div>
             <h3 className="chart-title">Revenue Trend (Last 12 Months)</h3>
@@ -239,9 +244,11 @@ export default function AnalyticsDashboardPage() {
           </div>
         </CardContent>
       </Card>
+      </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div className="dashboard-section">
+        <div className="grid-two-columns">
         {/* Order Status Distribution */}
         <Card className="chart-container">
           <CardHeader className="chart-header">
@@ -284,54 +291,57 @@ export default function AnalyticsDashboardPage() {
             <p className="chart-description">Best performing products</p>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+            <div className="product-list">
               {analytics.topProducts.slice(0, 5).map((product, idx) => (
-                <div key={product.id} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 flex-1">
-                    <div className="w-8 h-8 rounded-full bg-primary-muted flex items-center justify-center">
-                      <span className="text-sm font-bold text-primary">#{idx + 1}</span>
+                <div key={product.id} className="product-list-item">
+                  <div className="product-rank-section">
+                    <div className="product-rank-badge">
+                      <span className="product-rank-number">#{idx + 1}</span>
                     </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-foreground">{product.name}</p>
-                      <p className="text-xs text-muted-foreground">{product.sku}</p>
+                    <div className="product-info">
+                      <p className="product-name">{product.name}</p>
+                      <p className="product-sku">{product.sku}</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-foreground">${(product.revenue / 1000).toFixed(1)}K</p>
-                    <p className="text-xs text-muted-foreground">{product.quantity} sold</p>
+                  <div className="product-revenue-section">
+                    <p className="product-revenue-amount">${(product.revenue / 1000).toFixed(1)}K</p>
+                    <p className="product-revenue-label">{product.quantity} sold</p>
                   </div>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
 
       {/* Performance Metrics */}
-      <Card className="mb-6">
+      <div className="dashboard-section">
+        <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="w-5 h-5" aria-hidden="true" />
+            <BarChart3 className="icon-sm" aria-hidden="true" />
             Performance Metrics
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center p-4 card rounded-lg border border">
-              <div className="text-3xl font-bold text-primary">{analytics.performance.taskCompletionRate.toFixed(1)}%</div>
-              <p className="text-sm text-muted-foreground mt-1">Task Completion Rate</p>
+          <div className="grid-three-columns">
+            <div className="performance-stat">
+              <div className="performance-stat-value text-primary">{analytics.performance.taskCompletionRate.toFixed(1)}%</div>
+              <p className="performance-stat-label">Task Completion Rate</p>
             </div>
-            <div className="text-center p-4 card rounded-lg border border">
-              <div className="text-3xl font-bold text-success">{analytics.performance.productionCompletionRate.toFixed(1)}%</div>
-              <p className="text-sm text-muted-foreground mt-1">Production Completion</p>
+            <div className="performance-stat">
+              <div className="performance-stat-value text-success">{analytics.performance.productionCompletionRate.toFixed(1)}%</div>
+              <p className="performance-stat-label">Production Completion</p>
             </div>
-            <div className="text-center p-4 card rounded-lg border border">
-              <div className="text-3xl font-bold text-warning">{analytics.performance.onTimeDeliveryRate.toFixed(1)}%</div>
-              <p className="text-sm text-muted-foreground mt-1">On-Time Delivery</p>
+            <div className="performance-stat">
+              <div className="performance-stat-value text-warning">{analytics.performance.onTimeDeliveryRate.toFixed(1)}%</div>
+              <p className="performance-stat-label">On-Time Delivery</p>
             </div>
           </div>
         </CardContent>
       </Card>
+      </div>
 
       {/* Quick Actions */}
       <Card className="chart-container">

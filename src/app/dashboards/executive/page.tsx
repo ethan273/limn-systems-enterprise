@@ -109,7 +109,7 @@ export default function ExecutiveDashboardPage() {
             onClick={() => refetch()}
             title="Refresh data"
           >
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCw className="icon-sm" />
           </Button>
           <ExportPDFButton dashboardName="Executive Dashboard" dateRange={dateRange} />
           <Button variant="outline" asChild>
@@ -122,7 +122,8 @@ export default function ExecutiveDashboardPage() {
       </div>
 
       {/* Key Performance Metrics */}
-      <div className="dashboard-grid">
+      <div className="dashboard-section">
+        <div className="dashboard-grid">
         <Card className="metric-card">
           <CardHeader>
             <CardTitle className="metric-label">Total Revenue</CardTitle>
@@ -182,6 +183,7 @@ export default function ExecutiveDashboardPage() {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
 
       {/* Financial Metrics */}

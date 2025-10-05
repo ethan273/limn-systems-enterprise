@@ -11,13 +11,8 @@ import {
   TrendingUp,
   AlertTriangle,
   CheckCircle2,
-  Clock,
-  DollarSign,
-  Users,
-  Calendar,
   BarChart3,
   PauseCircle,
-  XCircle,
   Lightbulb,
   ArrowRight,
   RefreshCw,
@@ -51,7 +46,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function ProjectDashboardPage() {
-  const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | '1y' | 'all'>('30d');
+  const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d');
 
   // Fetch projects analytics
   const { data: analytics, isLoading, refetch } = api.dashboards.getProjectsAnalytics.useQuery(
@@ -120,7 +115,7 @@ export default function ProjectDashboardPage() {
             onClick={() => refetch()}
             title="Refresh data"
           >
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCw className="icon-sm" />
           </Button>
           <ExportPDFButton dashboardName="Projects Dashboard" dateRange={dateRange} />
         </div>
@@ -128,7 +123,8 @@ export default function ProjectDashboardPage() {
 
       {/* AI Insights Section */}
       {insights && insights.length > 0 && (
-        <div className="space-y-4 mb-6">
+        <div className="dashboard-section">
+          <div className="insights-grid">
           {insights.map((insight, idx) => (
             <div key={idx} className="insight-card">
               <Lightbulb className="insight-icon" aria-hidden="true" />
@@ -140,7 +136,7 @@ export default function ProjectDashboardPage() {
                     <Link href={insight.actionLink}>
                       <Button size="sm" variant="outline" className="btn-secondary">
                         {insight.action}
-                        <ArrowRight className="w-4 h-4 ml-2" aria-hidden="true" />
+                        <ArrowRight className="icon-sm" aria-hidden="true" />
                       </Button>
                     </Link>
                   </div>
@@ -148,11 +144,13 @@ export default function ProjectDashboardPage() {
               </div>
             </div>
           ))}
+          </div>
         </div>
       )}
 
       {/* Summary Metrics */}
-      <div className="dashboard-grid mb-6">
+      <div className="dashboard-section">
+        <div className="dashboard-grid">
         <Card className="metric-card">
           <CardHeader className="metric-card-header">
             <span className="metric-label">Total Projects</span>
@@ -196,6 +194,7 @@ export default function ProjectDashboardPage() {
             <p className="text-xs text-muted-foreground">Successfully finished</p>
           </CardContent>
         </Card>
+        </div>
       </div>
 
       {/* Budget Overview */}
