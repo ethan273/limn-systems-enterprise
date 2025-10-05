@@ -6,6 +6,7 @@ import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DateRangeSelector } from '@/components/DateRangeSelector';
+import { ExportPDFButton } from '@/components/ExportPDFButton';
 import {
   DollarSign,
   TrendingUp,
@@ -96,8 +97,9 @@ export default function FinancialDashboardPage() {
 
   return (
     <div className="dashboard-page">
-      {/* Header */}
-      <div className="dashboard-header">
+      <div id="dashboard-export-container">
+        {/* Header */}
+        <div className="dashboard-header">
         <div>
           <h1 className="page-title">Financial Operations Dashboard</h1>
           <p className="page-subtitle">Revenue, expenses, cash flow, and financial metrics</p>
@@ -107,6 +109,7 @@ export default function FinancialDashboardPage() {
           <Button variant="outline" size="icon" onClick={() => refetch()} title="Refresh data">
             <RefreshCw className="h-4 w-4" />
           </Button>
+          <ExportPDFButton dashboardName="Financial Operations Dashboard" dateRange={dateRange} />
           <Button variant="outline" asChild>
             <Link href="/financials/invoices">
               <FileText className="icon-sm" />
@@ -117,7 +120,8 @@ export default function FinancialDashboardPage() {
       </div>
 
       {/* Key Financial Metrics */}
-      <div className="dashboard-grid mb-6">
+      <div className="dashboard-section">
+        <div className="dashboard-grid">
         <Card className="metric-card">
           <CardHeader>
             <CardTitle className="metric-label">Total Revenue</CardTitle>
@@ -173,6 +177,7 @@ export default function FinancialDashboardPage() {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
 
       {/* Invoice & AR Metrics */}
@@ -309,7 +314,7 @@ export default function FinancialDashboardPage() {
 
       {/* Invoice Status & Payment Methods */}
       <div className="dashboard-section">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid-two-columns">
           {/* Invoice Status Distribution */}
           <Card>
             <CardHeader>
@@ -423,21 +428,21 @@ export default function FinancialDashboardPage() {
             <CardTitle>Top Customers by Revenue</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="customer-list">
               {topCustomers.map((customer, index) => (
-                <div key={customer.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold">
+                <div key={customer.id} className="customer-list-item">
+                  <div className="customer-rank">
+                    <div className="customer-rank-badge">
                       {index + 1}
                     </div>
-                    <div>
-                      <p className="font-medium">{customer.name}</p>
-                      <p className="text-sm text-muted-foreground">Customer ID: {customer.id}</p>
+                    <div className="customer-info">
+                      <p className="customer-name">{customer.name}</p>
+                      <p className="customer-id">Customer ID: {customer.id}</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-lg">${customer.revenue.toLocaleString()}</p>
-                    <p className="text-sm text-muted-foreground">Total revenue</p>
+                  <div className="customer-revenue">
+                    <p className="customer-revenue-amount">${customer.revenue.toLocaleString()}</p>
+                    <p className="customer-revenue-label">Total revenue</p>
                   </div>
                 </div>
               ))}
@@ -519,6 +524,7 @@ export default function FinancialDashboardPage() {
             </Link>
           </Button>
         </div>
+      </div>
       </div>
     </div>
   );

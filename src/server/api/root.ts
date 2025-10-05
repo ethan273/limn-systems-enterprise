@@ -33,6 +33,8 @@ import { invoicesRouter } from './routers/invoices';
 import { paymentsRouter } from './routers/payments';
 import { documentsRouter } from './routers/documents';
 import { dashboardsRouter } from './routers/dashboards';
+import { notificationsRouter } from './routers/notifications';
+import { userProfileRouter } from './routers/user-profile';
 
 /**
  * Main API router
@@ -44,6 +46,10 @@ export const appRouter = createTRPCRouter({
 
   // Authentication & Access Control
   auth: authRouter,
+
+  // Notifications & User Profile
+  notifications: notificationsRouter,
+  userProfile: userProfileRouter,
 
   // Task Management
   tasks: tasksRouter,

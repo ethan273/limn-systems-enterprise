@@ -551,85 +551,133 @@ body {
 
 /* Header Component */
 .app-header {
-  height: 4rem;
-  background: hsl(var(--card));
-  border-bottom: 1px solid hsl(var(--border));
-  padding: 0 1.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: hsl(var(--card));
+  border-bottom: 1px solid hsl(var(--border));
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  width: 100%;
+  min-height: 4rem;
 }
 
 .header-search-container {
-  flex: 1;
-  max-width: 36rem;
   position: relative;
+  flex: 1;
+  max-width: 600px;
 }
 
 .header-search-icon {
   position: absolute;
-  left: 0.75rem;
+  left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 18px;
+  height: 18px;
   color: hsl(var(--muted-foreground));
+  pointer-events: none;
 }
 
 .header-search-input {
   width: 100%;
-  padding-left: 2.5rem;
-  padding-right: 1rem;
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
+  padding: 0.625rem 1rem 0.625rem 2.5rem;
   background: hsl(var(--background));
-  border: 1px solid hsl(var(--input));
-  border-radius: 0.5rem;
-  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
   font-size: 0.875rem;
+  color: hsl(var(--foreground));
+  transition: all 0.2s ease;
 }
 
 .header-search-input:focus {
   outline: none;
-  ring: 2px;
-  ring-color: hsl(var(--ring));
-  border-color: hsl(var(--ring));
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.1);
 }
 
 .header-search-input::placeholder {
   color: hsl(var(--muted-foreground));
 }
 
-.header-actions {
+/* Icon Group (Right-aligned) */
+.header-icon-group {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
+  margin-left: auto;
 }
 
 .header-icon-button {
   position: relative;
-  padding: 0.5rem;
-  color: hsl(var(--muted-foreground));
-  transition: color 200ms;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius);
+  background: transparent;
+  border: none;
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .header-icon-button:hover {
-  color: hsl(var(--foreground));
+  background: hsl(var(--muted));
+}
+
+.header-icon-button:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
 }
 
 .notification-badge {
   position: absolute;
-  top: -0.125rem;
-  right: -0.125rem;
-  width: 1.25rem;
-  height: 1.25rem;
-  background: hsl(var(--destructive));
-  color: hsl(var(--destructive-foreground));
-  border-radius: 9999px;
-  font-size: 0.75rem;
+  top: 6px;
+  right: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  background: hsl(var(--destructive));
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 9px;
+  border: 2px solid hsl(var(--card));
+}
+
+/* Legacy header-actions for backwards compatibility */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .app-header {
+    padding: 0.5rem 1rem;
+  }
+
+  .header-search-container {
+    max-width: 100%;
+  }
+
+  .header-icon-group {
+    gap: 0.5rem;
+  }
+
+  .header-icon-button {
+    width: 36px;
+    height: 36px;
+  }
 }
 
 /* User Profile Component */
@@ -3667,6 +3715,15 @@ button.bg-primary {
   color: hsl(var(--muted-foreground));
 }
 
+/* Dashboard Section - Consistent spacing between dashboard sections */
+.dashboard-section {
+  margin-bottom: 2rem;
+}
+
+.dashboard-section:last-child {
+  margin-bottom: 0;
+}
+
 /* Dashboard Grid System */
 .dashboard-grid {
   display: grid;
@@ -3684,6 +3741,101 @@ button.bg-primary {
   .dashboard-grid {
     grid-template-columns: repeat(4, 1fr);
   }
+}
+
+/* Insights Grid - For insight/recommendation cards */
+.insights-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(1, 1fr);
+}
+
+@media (min-width: 768px) {
+  .insights-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .insights-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Two Column Grid - For charts side by side */
+.grid-two-columns {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(1, 1fr);
+}
+
+@media (min-width: 1024px) {
+  .grid-two-columns {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Customer List Vertical Stack */
+.customer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Customer List Item */
+.customer-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background: hsl(var(--muted) / 0.5);
+  border-radius: 0.5rem;
+}
+
+.customer-rank {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.customer-rank-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 2rem;
+  width: 2rem;
+  border-radius: 9999px;
+  background: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
+  font-weight: 600;
+}
+
+.customer-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.customer-name {
+  font-weight: 500;
+}
+
+.customer-id {
+  font-size: 0.875rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.customer-revenue {
+  text-align: right;
+}
+
+.customer-revenue-amount {
+  font-weight: 600;
+  font-size: 1.125rem;
+}
+
+.customer-revenue-label {
+  font-size: 0.875rem;
+  color: hsl(var(--muted-foreground));
 }
 
 /* Metric Cards */

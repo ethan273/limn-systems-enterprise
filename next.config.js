@@ -22,6 +22,22 @@ const withPWA = require('next-pwa')({
         }
       }
     },
+    // tRPC API calls - optimized for enterprise operations
+    {
+      urlPattern: /^https?:\/\/.*\/api\/trpc\/.*/i,
+      handler: 'NetworkFirst',
+      options: {
+        cacheName: 'trpc-api-cache',
+        expiration: {
+          maxEntries: 200,
+          maxAgeSeconds: 5 * 60 // 5 minutes for fresh data
+        },
+        networkTimeoutSeconds: 10,
+        cacheableResponse: {
+          statuses: [0, 200]
+        }
+      }
+    },
     // Static assets (images, fonts)
     {
       urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/i,
@@ -42,6 +58,42 @@ const withPWA = require('next-pwa')({
         cacheName: 'font-cache',
         expiration: {
           maxEntries: 10,
+          maxAgeSeconds: 365 * 24 * 60 * 60 // 1 year
+        }
+      }
+    },
+    // Document files - PDFs, Excel, Word
+    {
+      urlPattern: /\.(?:pdf|docx|xlsx|pptx|doc|xls|ppt)$/i,
+      handler: 'CacheFirst',
+      options: {
+        cacheName: 'document-cache',
+        expiration: {
+          maxEntries: 50,
+          maxAgeSeconds: 7 * 24 * 60 * 60 // 7 days
+        }
+      }
+    },
+    // CSS and JavaScript files
+    {
+      urlPattern: /\.(?:css|js)$/i,
+      handler: 'StaleWhileRevalidate',
+      options: {
+        cacheName: 'static-resources',
+        expiration: {
+          maxEntries: 100,
+          maxAgeSeconds: 30 * 24 * 60 * 60 // 30 days
+        }
+      }
+    },
+    // Google Fonts
+    {
+      urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
+      handler: 'CacheFirst',
+      options: {
+        cacheName: 'google-fonts',
+        expiration: {
+          maxEntries: 30,
           maxAgeSeconds: 365 * 24 * 60 * 60 // 1 year
         }
       }

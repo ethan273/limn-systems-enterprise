@@ -52,22 +52,36 @@
     {
       "name": "Dashboard",
       "short_name": "Dashboard",
-      "description": "View enterprise dashboard",
+      "description": "Main enterprise dashboard",
       "url": "/dashboard",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     },
     {
-      "name": "Tasks",
-      "short_name": "Tasks",
-      "description": "View and manage tasks",
-      "url": "/tasks",
+      "name": "Executive Dashboard",
+      "short_name": "Executive",
+      "description": "Executive analytics and KPIs",
+      "url": "/dashboards/executive",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     },
     {
-      "name": "CRM",
-      "short_name": "CRM",
-      "description": "Customer relationship management",
-      "url": "/crm",
+      "name": "Manufacturing",
+      "short_name": "Manufacturing",
+      "description": "Manufacturing operations dashboard",
+      "url": "/dashboards/manufacturing",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Analytics",
+      "short_name": "Analytics",
+      "description": "Business analytics dashboard",
+      "url": "/dashboards/analytics",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "My Tasks",
+      "short_name": "Tasks",
+      "description": "Personal task management",
+      "url": "/tasks/my",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     },
     {
@@ -78,8 +92,15 @@
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     },
     {
+      "name": "CRM",
+      "short_name": "CRM",
+      "description": "Customer relationships",
+      "url": "/crm",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
       "name": "Finance",
-      "short_name": "Finance", 
+      "short_name": "Finance",
       "description": "Financial management",
       "url": "/financials",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
@@ -90,14 +111,61 @@
       "description": "Document management",
       "url": "/documents",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Shipping",
+      "short_name": "Shipping",
+      "description": "Shipping and logistics",
+      "url": "/shipping",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/desktop-dashboard.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Desktop Dashboard View"
+    },
+    {
+      "src": "/screenshots/mobile-dashboard.png",
+      "sizes": "412x915",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Mobile Dashboard View"
     }
   ],
   "related_applications": [],
   "prefer_related_applications": false,
   "features": [
     "Cross Platform",
-    "Offline Capable", 
+    "Offline Capable",
     "Secure",
-    "Fast"
+    "Fast",
+    "Analytics Enabled",
+    "Push Notifications Ready"
+  ],
+  "share_target": {
+    "action": "/documents/upload",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "file",
+          "accept": ["image/*", "application/pdf", ".docx", ".xlsx"]
+        }
+      ]
+    }
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+limn",
+      "url": "/open?url=%s"
+    }
   ]
 }
