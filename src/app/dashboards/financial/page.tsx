@@ -104,7 +104,7 @@ export default function FinancialDashboardPage() {
       </div>
 
       {/* Key Financial Metrics */}
-      <div className="metrics-grid">
+      <div className="dashboard-grid mb-6">
         <Card className="metric-card">
           <CardHeader>
             <CardTitle className="metric-label">Total Revenue</CardTitle>
@@ -165,7 +165,7 @@ export default function FinancialDashboardPage() {
       {/* Invoice & AR Metrics */}
       <div className="dashboard-section">
         <h2 className="section-title">Accounts Receivable & Invoices</h2>
-        <div className="metrics-grid">
+        <div className="dashboard-grid">
           <Card className="metric-card">
             <CardHeader>
               <CardTitle className="metric-label">Total A/R</CardTitle>

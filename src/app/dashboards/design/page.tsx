@@ -104,7 +104,7 @@ export default function DesignDashboardPage() {
       {/* Design Files Metrics */}
       <div className="dashboard-section">
         <h2 className="section-title">Design Files</h2>
-        <div className="metrics-grid">
+        <div className="dashboard-grid">
           <Card className="metric-card">
             <CardHeader>
               <CardTitle className="metric-label">Total Files</CardTitle>
@@ -162,7 +162,7 @@ export default function DesignDashboardPage() {
       {/* Design Revisions Metrics */}
       <div className="dashboard-section">
         <h2 className="section-title">Design Revisions</h2>
-        <div className="metrics-grid">
+        <div className="dashboard-grid">
           <Card className="metric-card">
             <CardHeader>
               <CardTitle className="metric-label">Total Revisions</CardTitle>
@@ -207,7 +207,7 @@ export default function DesignDashboardPage() {
       {/* Shop Drawings Metrics */}
       <div className="dashboard-section">
         <h2 className="section-title">Shop Drawings</h2>
-        <div className="metrics-grid">
+        <div className="dashboard-grid">
           <Card className="metric-card">
             <CardHeader>
               <CardTitle className="metric-label">Total Drawings</CardTitle>
@@ -265,7 +265,7 @@ export default function DesignDashboardPage() {
       {/* Project Design Coverage */}
       <div className="dashboard-section">
         <h2 className="section-title">Project Coverage</h2>
-        <div className="metrics-grid-3col">
+        <div className="dashboard-grid">
           <Card className="metric-card">
             <CardHeader>
               <CardTitle className="metric-label">Total Projects</CardTitle>

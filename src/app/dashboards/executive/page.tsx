@@ -102,7 +102,7 @@ export default function ExecutiveDashboardPage() {
       </div>
 
       {/* Key Performance Metrics */}
-      <div className="metrics-grid">
+      <div className="dashboard-grid">
         <Card className="metric-card">
           <CardHeader>
             <CardTitle className="metric-label">Total Revenue</CardTitle>
@@ -167,7 +167,7 @@ export default function ExecutiveDashboardPage() {
       {/* Financial Metrics */}
       <div className="dashboard-section">
         <h2 className="section-title">Financial Performance</h2>
-        <div className="metrics-grid">
+        <div className="dashboard-grid">
           <Card className="metric-card">
             <CardHeader>
               <CardTitle className="metric-label">Total Invoiced</CardTitle>
@@ -225,7 +225,7 @@ export default function ExecutiveDashboardPage() {
       {/* Operations Metrics */}
       <div className="dashboard-section">
         <h2 className="section-title">Operations Performance</h2>
-        <div className="metrics-grid-3col">
+        <div className="dashboard-grid">
           <Card className="metric-card">
             <CardHeader>
               <CardTitle className="metric-label">Active Projects</CardTitle>

@@ -1051,7 +1051,7 @@ export const dashboardsRouter = createTRPCRouter({
       ] = await Promise.all([
         ctx.db.production_orders.findMany(),
         ctx.db.production_items.findMany(),
-        ctx.db.quality_checks.findMany(),
+        ctx.db.qc_inspections.findMany(),
         ctx.db.order_items.findMany(),
         ctx.db.products.findMany(),
       ]);
@@ -1208,7 +1208,7 @@ export const dashboardsRouter = createTRPCRouter({
       // Fetch data for insights
       const [productionOrders, qualityChecks, productionItems] = await Promise.all([
         ctx.db.production_orders.findMany(),
-        ctx.db.quality_checks.findMany(),
+        ctx.db.qc_inspections.findMany(),
         ctx.db.production_items.findMany(),
       ]);
 

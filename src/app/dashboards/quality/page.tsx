@@ -103,7 +103,7 @@ export default function QualityDashboardPage() {
       {/* Inspection Summary Metrics */}
       <div className="dashboard-section">
         <h2 className="section-title">Inspection Overview</h2>
-        <div className="metrics-grid">
+        <div className="dashboard-grid">
           <Card className="metric-card">
             <CardHeader>
               <CardTitle className="metric-label">Total Inspections</CardTitle>
@@ -161,7 +161,7 @@ export default function QualityDashboardPage() {
       {/* Quality Performance Metrics */}
       <div className="dashboard-section">
         <h2 className="section-title">Quality Performance</h2>
-        <div className="metrics-grid-2col">
+        <div className="dashboard-grid">
           <Card className="metric-card">
             <CardHeader>
               <CardTitle className="metric-label">Pass Rate</CardTitle>

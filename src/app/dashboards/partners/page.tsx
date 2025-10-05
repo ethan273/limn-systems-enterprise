@@ -114,7 +114,7 @@ export default function PartnerDashboardPage() {
       {/* Partner Summary Metrics */}
       <div className="dashboard-section">
         <h2 className="section-title">Partner Overview</h2>
-        <div className="metrics-grid">
+        <div className="dashboard-grid">
           <Card className="metric-card">
             <CardHeader>
               <CardTitle className="metric-label">Total Partners</CardTitle>
@@ -172,7 +172,7 @@ export default function PartnerDashboardPage() {
       {/* Partner Engagement Metrics */}
       <div className="dashboard-section">
         <h2 className="section-title">Partner Engagement</h2>
-        <div className="metrics-grid-3col">
+        <div className="dashboard-grid">
           <Card className="metric-card">
             <CardHeader>
               <CardTitle className="metric-label">Total Contacts</CardTitle>
@@ -217,7 +217,7 @@ export default function PartnerDashboardPage() {
       {/* Performance Metrics */}
       <div className="dashboard-section">
         <h2 className="section-title">Performance Metrics</h2>
-        <div className="metrics-grid-2col">
+        <div className="dashboard-grid">
           <Card className="metric-card">
             <CardHeader>
               <CardTitle className="metric-label">Avg On-Time Rate</CardTitle>
