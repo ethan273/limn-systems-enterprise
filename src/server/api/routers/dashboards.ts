@@ -1353,11 +1353,13 @@ export const dashboardsRouter = createTRPCRouter({
           allPayments,
           allOrders,
           customers,
+          allExpenses,
         ] = await Promise.all([
           ctx.db.invoices.findMany(),
           ctx.db.payments.findMany(),
           ctx.db.orders.findMany(),
           ctx.db.customers.findMany(),
+          ctx.db.expenses.findMany(),
         ]);
 
         // Filter by date range
@@ -1410,18 +1412,32 @@ export const dashboardsRouter = createTRPCRouter({
           amount: Math.round(amount * 100) / 100,
         }));
 
-        // ========== EXPENSE METRICS (ESTIMATED) ==========
-        // Note: expenses table not available, using estimated 30% of revenue
-        const totalExpenses = totalRevenue * 0.3;
+        // ========== EXPENSE METRICS (REAL DATA) ==========
+        // Filter expenses by date range
+        const expenses = startDate
+          ? allExpenses.filter(e => e.expense_date && new Date(e.expense_date) >= startDate)
+          : allExpenses;
 
-        // Estimated expense breakdown
-        const topExpenseCategories = [
-          { category: 'Materials', amount: Math.round(totalExpenses * 0.4 * 100) / 100 },
-          { category: 'Labor', amount: Math.round(totalExpenses * 0.35 * 100) / 100 },
-          { category: 'Overhead', amount: Math.round(totalExpenses * 0.15 * 100) / 100 },
-          { category: 'Shipping', amount: Math.round(totalExpenses * 0.07 * 100) / 100 },
-          { category: 'Other', amount: Math.round(totalExpenses * 0.03 * 100) / 100 },
-        ];
+        // Calculate total expenses
+        const totalExpenses = expenses.reduce((sum, expense: any) => {
+          return sum + (expense.amount ? Number(expense.amount) : 0);
+        }, 0);
+
+        // Group expenses by category and calculate totals
+        const expensesByCategory: Record<string, number> = {};
+        expenses.forEach((expense: any) => {
+          const category = expense.category || 'Other';
+          expensesByCategory[category] = (expensesByCategory[category] || 0) + (expense.amount ? Number(expense.amount) : 0);
+        });
+
+        // Get top 5 expense categories
+        const topExpenseCategories = Object.entries(expensesByCategory)
+          .sort(([, a], [, b]) => b - a)
+          .slice(0, 5)
+          .map(([category, amount]) => ({
+            category,
+            amount: Math.round(amount * 100) / 100,
+          }));
 
         // ========== PROFITABILITY ==========
         const profit = totalRevenue - totalExpenses;
