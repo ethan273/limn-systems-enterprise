@@ -1,7 +1,6 @@
 "use client";
 
-import React from "react";
-import { useParams } from "next/navigation";
+import React, { use } from "react";
 import { api } from "@/lib/api/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -63,11 +62,13 @@ const statusConfig: Record<string, { label: string; className: string; icon: Rea
   },
 };
 
-export default function TrackingDetailPage() {
-  const params = useParams();
-  const trackingNumber = params?.trackingNumber as string;
+interface PageProps {
+  params: Promise<{ trackingNumber: string }>;
+}
 
-  // Fetch tracking info (public endpoint - no auth required)
+export default function TrackingDetailPage({ params }: PageProps) {
+  const { trackingNumber } = use(params);
+    // Fetch tracking info (public endpoint - no auth required)
   const { data: shipment, isLoading } = api.shipping.getTrackingInfo.useQuery(
     { trackingNumber },
     { enabled: !!trackingNumber }

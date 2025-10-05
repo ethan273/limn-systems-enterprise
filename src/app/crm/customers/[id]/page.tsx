@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import React, { use, useState } from "react";
+import { useRouter} from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
 import type { orders } from "@prisma/client";
@@ -41,16 +41,19 @@ import { format } from "date-fns";
 // Dynamic route configuration
 export const dynamic = 'force-dynamic';
 
-export default function CustomerDetailPage() {
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default function CustomerDetailPage({ params }: PageProps) {
+  const { id } = use(params);
   const router = useRouter();
-  const params = useParams();
   const { user } = useAuth();
-  const customerId = params.id as string;
   const [activeTab, setActiveTab] = useState("overview");
 
   const { data, isLoading, error } = api.crm.customers.getById.useQuery(
-    { id: customerId },
-    { enabled: !!user && !!customerId }
+    { id: id },
+    { enabled: !!user && !!id }
   );
 
   if (isLoading) {

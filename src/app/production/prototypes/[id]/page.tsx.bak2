@@ -123,7 +123,7 @@ const statusConfig: Record<string, {
  className: "badge-neutral",
  icon: Package
  }
-};
+}>;
 
 // Priority badge configuration
 const priorityConfig: Record<string, {
@@ -142,7 +142,7 @@ const priorityConfig: Record<string, {
  label: "High",
  className: "bg-destructive-muted text-destructive border-destructive"
  }
-};
+}>;
 
 export default function PrototypeDetailPage({ params }: PageProps) {
   const { id } = use(params);
@@ -218,7 +218,7 @@ export default function PrototypeDetailPage({ params }: PageProps) {
 
  const handleBack = () => {
  router.push("/prototypes");
- };
+ }>;
 
  const handleSubmitFeedback = (e: React.FormEvent) => {
  e.preventDefault();
@@ -229,7 +229,7 @@ export default function PrototypeDetailPage({ params }: PageProps) {
  feedbackText: feedbackText.trim(),
  feedbackSource,
  });
- };
+ }>;
 
  if (prototypeLoading) {
  return (

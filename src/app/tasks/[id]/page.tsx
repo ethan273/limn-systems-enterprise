@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import React, { use, useState } from "react";
+import { useRouter} from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -78,16 +78,19 @@ const DEPARTMENT_CONFIG: Record<TaskDepartment, { label: string; className: stri
   sales: { label: 'Sales', className: 'department-sales' },
 };
 
-export default function TaskDetailPage() {
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default function TaskDetailPage({ params }: PageProps) {
+  const { id } = use(params);
   const router = useRouter();
-  const params = useParams();
   const { user } = useAuth();
-  const taskId = params.id as string;
-  const [activeTab, setActiveTab] = useState("overview");
+    const [activeTab, setActiveTab] = useState("overview");
 
   const { data: task, isLoading, error, refetch } = api.tasks.getFullDetails.useQuery(
-    { id: taskId },
-    { enabled: !!user && !!taskId }
+    { id: id },
+    { enabled: !!user && !!id }
   );
 
   const handleTaskUpdate = () => {
@@ -362,7 +365,7 @@ export default function TaskDetailPage() {
                       <span className="text-sm font-medium">Assigned Users</span>
                     </div>
                     <TaskAssignedUsers
-                      taskId={task.id}
+                      id={task.id}
                       assignedUsers={task.assigned_to || []}
                       onUpdate={handleTaskUpdate}
                     />
@@ -378,7 +381,7 @@ export default function TaskDetailPage() {
               </CardHeader>
               <CardContent>
                 <TaskTimeTracking
-                  taskId={task.id}
+                  id={task.id}
                   onUpdate={handleTaskUpdate}
                 />
               </CardContent>
@@ -394,7 +397,7 @@ export default function TaskDetailPage() {
             </CardHeader>
             <CardContent>
               <TaskAttachments
-                taskId={task.id}
+                id={task.id}
                 onUpdate={handleTaskUpdate}
               />
             </CardContent>
@@ -409,7 +412,7 @@ export default function TaskDetailPage() {
             </CardHeader>
             <CardContent>
               <TaskActivities
-                taskId={task.id}
+                id={task.id}
                 onUpdate={handleTaskUpdate}
               />
             </CardContent>
@@ -424,7 +427,7 @@ export default function TaskDetailPage() {
             </CardHeader>
             <CardContent>
               <TaskEntityLinks
-                taskId={task.id}
+                id={task.id}
                 onUpdate={handleTaskUpdate}
               />
             </CardContent>
@@ -443,7 +446,7 @@ export default function TaskDetailPage() {
               </CardHeader>
               <CardContent>
                 <TaskTimeTracking
-                  taskId={task.id}
+                  id={task.id}
                   onUpdate={handleTaskUpdate}
                 />
               </CardContent>
@@ -458,7 +461,7 @@ export default function TaskDetailPage() {
               </CardHeader>
               <CardContent>
                 <TaskDependencies
-                  taskId={task.id}
+                  id={task.id}
                   onUpdate={handleTaskUpdate}
                 />
               </CardContent>

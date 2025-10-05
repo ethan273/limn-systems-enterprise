@@ -13,6 +13,7 @@
  * Architecture: See /docs/catalog-detail-page/CATALOG_ITEM_DETAIL_IMPLEMENTATION_PLAN.md
  */
 
+import { use } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -28,14 +29,14 @@ import CatalogDocumentsTab from "@/components/catalog/CatalogDocumentsTab";
 import CatalogQualityTab from "@/components/catalog/CatalogQualityTab";
 
 interface CatalogDetailPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default function CatalogDetailPage({ params }: CatalogDetailPageProps) {
+  const { id } = use(params);
   const router = useRouter();
-  const { id } = params;
 
   // Fetch catalog item with full details
   const { data: catalogItem, isLoading, error } = api.items.getCatalogItemById.useQuery({

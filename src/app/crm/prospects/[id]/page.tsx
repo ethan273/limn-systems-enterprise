@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import React, { use, useState } from "react";
+import { useRouter} from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -59,16 +59,19 @@ const PROSPECT_STATUSES: {
   },
 ];
 
-export default function ProspectDetailPage() {
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default function ProspectDetailPage({ params }: PageProps) {
+  const { id } = use(params);
   const router = useRouter();
-  const params = useParams();
   const { user } = useAuth();
-  const prospectId = params.id as string;
   const [activeTab, setActiveTab] = useState("overview");
 
   const { data, isLoading, error } = api.crm.leads.getById.useQuery(
-    { id: prospectId },
-    { enabled: !!user && !!prospectId }
+    { id: id },
+    { enabled: !!user && !!id }
   );
 
   // Convert to client mutation

@@ -16,7 +16,7 @@ import {
  TableRow,
 } from '@/components/ui/table';
 import {
- Palette,
+ Building2,
  MapPin,
  Phone,
  Mail,
@@ -33,19 +33,19 @@ import {
 } from 'lucide-react';
 import { notFound } from 'next/navigation';
 
-interface DesignerDetailPageProps {
+interface FactoryDetailPageProps {
  params: Promise<{
  id: string;
  }>;
 }
 
-export default function DesignerDetailPage({ params }: DesignerDetailPageProps) {
+export default function FactoryDetailPage({ params }: FactoryDetailPageProps) {
   const { id } = use(params);
  const router = useRouter();
  const [activeTab, setActiveTab] = useState('overview');
 
- // Fetch designer details
- const { data: designer, isLoading, error } = api.partners.getById.useQuery({ id: id });
+ // Fetch factory details
+ const { data: factory, isLoading, error } = api.partners.getById.useQuery({ id: id });
 
  if (error) {
  notFound();
@@ -54,12 +54,12 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
  if (isLoading) {
  return (
  <div className="container mx-auto py-6">
- <div className="text-center py-12 text-muted-foreground">Loading designer details...</div>
+ <div className="text-center py-12 text-muted-foreground">Loading factory details...</div>
  </div>
  );
  }
 
- if (!designer) {
+ if (!factory) {
  notFound();
  }
 
@@ -76,11 +76,11 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
  default:
  return 'secondary';
  }
- };
+ }>;
 
  const formatStatus = (status: string) => {
  return status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
- };
+ }>;
 
  const formatDate = (date: Date | string | null | undefined) => {
  if (!date) return '—';
@@ -89,7 +89,7 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
  month: 'short',
  day: 'numeric',
  });
- };
+ }>;
 
  return (
  <div className="container mx-auto py-6 space-y-6">
@@ -100,28 +100,28 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
  <Button
  variant="ghost"
  size="sm"
- onClick={() => router.push('/partners/designers')}
+ onClick={() => router.push('/partners/factories')}
  >
  <ArrowLeft className="h-4 w-4 mr-2" />
- Back to Designers
+ Back to Factories
  </Button>
  </div>
  <div className="flex items-center gap-3">
- <Palette className="h-8 w-8 text-muted-foreground" />
+ <Building2 className="h-8 w-8 text-muted-foreground" />
  <div>
- <h1 className="text-3xl font-bold tracking-tight">{designer.company_name}</h1>
- {designer.business_name && designer.business_name !== designer.company_name && (
- <p className="text-muted-foreground">{designer.business_name}</p>
+ <h1 className="text-3xl font-bold tracking-tight">{factory.company_name}</h1>
+ {factory.business_name && factory.business_name !== factory.company_name && (
+ <p className="text-muted-foreground">{factory.business_name}</p>
  )}
  </div>
- <Badge variant={getStatusBadgeVariant(designer.status)}>
- {formatStatus(designer.status)}
+ <Badge variant={getStatusBadgeVariant(factory.status)}>
+ {formatStatus(factory.status)}
  </Badge>
  </div>
  </div>
- <Button onClick={() => router.push(`/partners/designers/${id}/edit`)}>
+ <Button onClick={() => router.push(`/partners/factories/${id}/edit`)}>
  <Edit className="mr-2 h-4 w-4" />
- Edit Designer
+ Edit Factory
  </Button>
  </div>
 
@@ -133,18 +133,18 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
  <MapPin className="h-4 w-4 text-muted-foreground" />
  </CardHeader>
  <CardContent>
- <div className="text-sm font-medium">{designer.city}, {designer.country}</div>
- <p className="text-xs text-muted-foreground mt-1">{designer.address_line1}</p>
+ <div className="text-sm font-medium">{factory.city}, {factory.country}</div>
+ <p className="text-xs text-muted-foreground mt-1">{factory.address_line1}</p>
  </CardContent>
  </Card>
  <Card>
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium">Design Projects</CardTitle>
+ <CardTitle className="text-sm font-medium">Production Orders</CardTitle>
  <Package className="h-4 w-4 text-muted-foreground" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold">{designer._count.production_orders}</div>
- <p className="text-xs text-muted-foreground">Total projects</p>
+ <div className="text-2xl font-bold">{factory._count.production_orders}</div>
+ <p className="text-xs text-muted-foreground">Total orders</p>
  </CardContent>
  </Card>
  <Card>
@@ -153,7 +153,7 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
  <Clock className="h-4 w-4 text-muted-foreground" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold">{designer.lead_time_days || '—'}</div>
+ <div className="text-2xl font-bold">{factory.lead_time_days || '—'}</div>
  <p className="text-xs text-muted-foreground">days average</p>
  </CardContent>
  </Card>
@@ -164,7 +164,7 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
  </CardHeader>
  <CardContent>
  <div className="text-2xl font-bold">
- {designer.quality_rating ? Number(designer.quality_rating).toFixed(1) : '—'}
+ {factory.quality_rating ? Number(factory.quality_rating).toFixed(1) : '—'}
  </div>
  <p className="text-xs text-muted-foreground">out of 5.0</p>
  </CardContent>
@@ -176,14 +176,14 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
  <TabsList>
  <TabsTrigger value="overview">Overview</TabsTrigger>
  <TabsTrigger value="contacts">
- Contacts ({designer._count.contacts})
+ Contacts ({factory._count.contacts})
  </TabsTrigger>
  <TabsTrigger value="documents">
- Documents ({designer._count.documents})
+ Documents ({factory._count.documents})
  </TabsTrigger>
  <TabsTrigger value="performance">Performance</TabsTrigger>
- <TabsTrigger value="projects">
- Design Projects ({designer._count.production_orders})
+ <TabsTrigger value="orders">
+ Production Orders ({factory._count.production_orders})
  </TabsTrigger>
  </TabsList>
 
@@ -198,30 +198,30 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
  <CardContent className="space-y-3">
  <div>
  <label className="text-sm font-medium text-muted-foreground">Legal Name</label>
- <p className="text-sm">{designer.company_name}</p>
+ <p className="text-sm">{factory.company_name}</p>
  </div>
- {designer.business_name && (
+ {factory.business_name && (
  <div>
  <label className="text-sm font-medium text-muted-foreground">Business Name</label>
- <p className="text-sm">{designer.business_name}</p>
+ <p className="text-sm">{factory.business_name}</p>
  </div>
  )}
- {designer.registration_number && (
+ {factory.registration_number && (
  <div>
  <label className="text-sm font-medium text-muted-foreground">Registration Number</label>
- <p className="text-sm">{designer.registration_number}</p>
+ <p className="text-sm">{factory.registration_number}</p>
  </div>
  )}
  <div>
  <label className="text-sm font-medium text-muted-foreground">Address</label>
  <p className="text-sm">
- {designer.address_line1}
- {designer.address_line2 && <br />}
- {designer.address_line2}
+ {factory.address_line1}
+ {factory.address_line2 && <br />}
+ {factory.address_line2}
  <br />
- {designer.city}, {designer.state} {designer.postal_code}
+ {factory.city}, {factory.state} {factory.postal_code}
  <br />
- {designer.country}
+ {factory.country}
  </p>
  </div>
  </CardContent>
@@ -235,30 +235,30 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
  <CardContent className="space-y-3">
  <div>
  <label className="text-sm font-medium text-muted-foreground">Contact Person</label>
- <p className="text-sm font-medium">{designer.primary_contact}</p>
+ <p className="text-sm font-medium">{factory.primary_contact}</p>
  </div>
  <div className="flex items-center gap-2">
  <Mail className="h-4 w-4 text-muted-foreground" />
- <a href={`mailto:${designer.primary_email}`} className="text-sm text-info hover:underline">
- {designer.primary_email}
+ <a href={`mailto:${factory.primary_email}`} className="text-sm text-info hover:underline">
+ {factory.primary_email}
  </a>
  </div>
  <div className="flex items-center gap-2">
  <Phone className="h-4 w-4 text-muted-foreground" />
- <a href={`tel:${designer.primary_phone}`} className="text-sm">
- {designer.primary_phone}
+ <a href={`tel:${factory.primary_phone}`} className="text-sm">
+ {factory.primary_phone}
  </a>
  </div>
- {designer.website && (
+ {factory.website && (
  <div className="flex items-center gap-2">
  <Globe className="h-4 w-4 text-muted-foreground" />
  <a
- href={designer.website}
+ href={factory.website}
  target="_blank"
  rel="noopener noreferrer"
  className="text-sm text-info hover:underline"
  >
- {designer.website}
+ {factory.website}
  </a>
  </div>
  )}
@@ -274,7 +274,7 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
  <div>
  <label className="text-sm font-medium text-muted-foreground">Specializations</label>
  <div className="flex flex-wrap gap-2 mt-1">
- {designer.specializations.map((spec: string, idx: number) => (
+ {factory.specializations.map((spec: string, idx: number) => (
  <Badge key={idx} variant="secondary">{spec}</Badge>
  ))}
  </div>
@@ -282,25 +282,25 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
  <div>
  <label className="text-sm font-medium text-muted-foreground">Capabilities</label>
  <div className="flex flex-wrap gap-2 mt-1">
- {designer.capabilities.map((cap: string, idx: number) => (
+ {factory.capabilities.map((cap: string, idx: number) => (
  <Badge key={idx} variant="outline">{cap}</Badge>
  ))}
  </div>
  </div>
- {designer.certifications.length > 0 && (
+ {factory.certifications.length > 0 && (
  <div>
  <label className="text-sm font-medium text-muted-foreground">Certifications</label>
  <div className="flex flex-wrap gap-2 mt-1">
- {designer.certifications.map((cert: string, idx: number) => (
+ {factory.certifications.map((cert: string, idx: number) => (
  <Badge key={idx} variant="default">{cert}</Badge>
  ))}
  </div>
  </div>
  )}
- {designer.languages.length > 0 && (
+ {factory.languages.length > 0 && (
  <div>
  <label className="text-sm font-medium text-muted-foreground">Languages</label>
- <p className="text-sm">{designer.languages.join(', ')}</p>
+ <p className="text-sm">{factory.languages.join(', ')}</p>
  </div>
  )}
  </CardContent>
@@ -312,46 +312,46 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
  <CardTitle>Business Details</CardTitle>
  </CardHeader>
  <CardContent className="space-y-3">
- {designer.production_capacity && (
+ {factory.production_capacity && (
  <div>
  <label className="text-sm font-medium text-muted-foreground">Production Capacity</label>
- <p className="text-sm">{designer.production_capacity.toLocaleString()} units/month</p>
+ <p className="text-sm">{factory.production_capacity.toLocaleString()} units/month</p>
  </div>
  )}
- {designer.lead_time_days && (
+ {factory.lead_time_days && (
  <div>
  <label className="text-sm font-medium text-muted-foreground">Lead Time</label>
- <p className="text-sm">{designer.lead_time_days} days</p>
+ <p className="text-sm">{factory.lead_time_days} days</p>
  </div>
  )}
- {designer.minimum_order && (
+ {factory.minimum_order && (
  <div>
  <label className="text-sm font-medium text-muted-foreground">Minimum Order Quantity</label>
- <p className="text-sm">{designer.minimum_order.toLocaleString()} units</p>
+ <p className="text-sm">{factory.minimum_order.toLocaleString()} units</p>
  </div>
  )}
- {designer.payment_terms && (
+ {factory.payment_terms && (
  <div>
  <label className="text-sm font-medium text-muted-foreground">Payment Terms</label>
- <p className="text-sm">{designer.payment_terms}</p>
+ <p className="text-sm">{factory.payment_terms}</p>
  </div>
  )}
  <div>
  <label className="text-sm font-medium text-muted-foreground">Currency</label>
- <p className="text-sm">{designer.currency}</p>
+ <p className="text-sm">{factory.currency}</p>
  </div>
  </CardContent>
  </Card>
  </div>
 
  {/* Notes */}
- {designer.notes && (
+ {factory.notes && (
  <Card>
  <CardHeader>
  <CardTitle>Notes</CardTitle>
  </CardHeader>
  <CardContent>
- <p className="text-sm whitespace-pre-wrap">{designer.notes}</p>
+ <p className="text-sm whitespace-pre-wrap">{factory.notes}</p>
  </CardContent>
  </Card>
  )}
@@ -363,8 +363,8 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
  <CardHeader>
  <div className="flex items-center justify-between">
  <div>
- <CardTitle>Designer Contacts</CardTitle>
- <CardDescription>Manage multiple contacts for this designer</CardDescription>
+ <CardTitle>Factory Contacts</CardTitle>
+ <CardDescription>Manage multiple contacts for this factory</CardDescription>
  </div>
  <Button size="sm">
  <Users className="mr-2 h-4 w-4" />
@@ -373,7 +373,7 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
  </div>
  </CardHeader>
  <CardContent>
- {designer.contacts && designer.contacts.length > 0 ? (
+ {factory.contacts && factory.contacts.length > 0 ? (
  <Table>
  <TableHeader>
  <TableRow>
@@ -386,7 +386,7 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
  </TableRow>
  </TableHeader>
  <TableBody>
- {designer.contacts.map((contact: {
+ {factory.contacts.map((contact: {
  id: string;
  name: string;
  role: string;
@@ -452,7 +452,7 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
  </div>
  </CardHeader>
  <CardContent>
- {designer.documents && designer.documents.length > 0 ? (
+ {factory.documents && factory.documents.length > 0 ? (
  <Table>
  <TableHeader>
  <TableRow>
@@ -465,7 +465,7 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
  </TableRow>
  </TableHeader>
  <TableBody>
- {designer.documents.map((doc: {
+ {factory.documents.map((doc: {
  id: string;
  title: string;
  document_type: string;
@@ -514,20 +514,20 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
  <CardDescription>Quality and delivery performance over time</CardDescription>
  </CardHeader>
  <CardContent>
- {designer.partner_performance && designer.partner_performance.length > 0 ? (
+ {factory.partner_performance && factory.partner_performance.length > 0 ? (
  <Table>
  <TableHeader>
  <TableRow>
  <TableHead>Period</TableHead>
- <TableHead>Projects</TableHead>
+ <TableHead>Orders</TableHead>
  <TableHead>On-Time Rate</TableHead>
  <TableHead>Defect Rate</TableHead>
  <TableHead>Revenue</TableHead>
- <TableHead>Avg Project Value</TableHead>
+ <TableHead>Avg Order Value</TableHead>
  </TableRow>
  </TableHeader>
  <TableBody>
- {designer.partner_performance.map((perf: {
+ {factory.partner_performance.map((perf: {
  id: string;
  period_start: Date;
  period_end: Date;
@@ -568,19 +568,19 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
  </Card>
  </TabsContent>
 
- {/* Design Projects Tab */}
- <TabsContent value="projects">
+ {/* Production Orders Tab */}
+ <TabsContent value="orders">
  <Card>
  <CardHeader>
- <CardTitle>Design Projects</CardTitle>
- <CardDescription>Projects assigned to this designer</CardDescription>
+ <CardTitle>Production Orders</CardTitle>
+ <CardDescription>Orders assigned to this factory</CardDescription>
  </CardHeader>
  <CardContent>
- {designer.production_orders && designer.production_orders.length > 0 ? (
+ {factory.production_orders && factory.production_orders.length > 0 ? (
  <Table>
  <TableHeader>
  <TableRow>
- <TableHead>Project #</TableHead>
+ <TableHead>Order #</TableHead>
  <TableHead>Item</TableHead>
  <TableHead>Quantity</TableHead>
  <TableHead>Total Cost</TableHead>
@@ -590,7 +590,7 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
  </TableRow>
  </TableHeader>
  <TableBody>
- {designer.production_orders.map((order: {
+ {factory.production_orders.map((order: {
  id: string;
  order_number: string;
  item_name: string;
@@ -617,7 +617,7 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
  ) : (
  <div className="text-center py-12 text-muted-foreground">
  <Package className="mx-auto h-12 w-12 opacity-50 mb-4" />
- <p>No design projects assigned to this designer yet</p>
+ <p>No production orders assigned to this factory yet</p>
  </div>
  )}
  </CardContent>

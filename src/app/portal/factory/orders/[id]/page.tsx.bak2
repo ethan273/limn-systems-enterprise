@@ -29,13 +29,13 @@ import {
 } from 'lucide-react';
 import { notFound } from 'next/navigation';
 
-interface DesignerProjectDetailPageProps {
+interface FactoryOrderDetailPageProps {
  params: Promise<{
  id: string;
  }>;
 }
 
-export default function DesignerProjectDetailPage({ params }: DesignerProjectDetailPageProps) {
+export default function FactoryOrderDetailPage({ params }: FactoryOrderDetailPageProps) {
   const { id } = use(params);
  const router = useRouter();
  const { user: currentUser, loading: userLoading } = useAuth();
@@ -47,33 +47,33 @@ export default function DesignerProjectDetailPage({ params }: DesignerProjectDet
  );
 
  // Get production order details
- const { data: project, isLoading, error } = api.productionOrders.getById.useQuery(
+ const { data: order, isLoading, error } = api.productionOrders.getById.useQuery(
  { id: id },
  { enabled: !!partner }
  );
 
  useEffect(() => {
  if (!userLoading && !currentUser) {
- router.push('/login?redirect=/portal/designer');
+ router.push('/login?redirect=/portal/factory');
  }
  }, [currentUser, userLoading, router]);
 
- // Security: Verify this project belongs to this designer
+ // Security: Verify this order belongs to this factory
  useEffect(() => {
- if (project && partner && project.factory_id !== partner.id) {
- router.push('/portal/designer');
+ if (order && partner && order.factory_id !== partner.id) {
+ router.push('/portal/factory');
  }
- }, [project, partner, router]);
+ }, [order, partner, router]);
 
  if (error) {
  notFound();
  }
 
- if (isLoading || !project || !partner) {
+ if (isLoading || !order || !partner) {
  return (
  <div className="min-h-screen flex items-center justify-center card">
  <div className="text-center">
- <div className="text-muted-foreground">Loading project details...</div>
+ <div className="text-muted-foreground">Loading order details...</div>
  </div>
  </div>
  );
@@ -87,21 +87,21 @@ export default function DesignerProjectDetailPage({ params }: DesignerProjectDet
  awaiting_final_payment: { variant: 'outline', label: 'Awaiting Payment' },
  ready_to_ship: { variant: 'default', label: 'Ready to Ship' },
  shipped: { variant: 'secondary', label: 'Shipped' },
- };
+ }>;
 
  const config = Object.prototype.hasOwnProperty.call(variants, status)
  ? variants[status as keyof typeof variants]
- : { variant: 'secondary' as const, label: status };
+ : { variant: 'secondary' as const, label: status }>;
 
  return <Badge variant={config.variant}>{config.label}</Badge>;
- };
+ }>;
 
  const formatCurrency = (amount: number | string) => {
  return new Intl.NumberFormat('en-US', {
  style: 'currency',
  currency: partner.currency || 'USD',
  }).format(Number(amount));
- };
+ }>;
 
  const formatDate = (date: Date | string | null) => {
  if (!date) return '—';
@@ -110,10 +110,10 @@ export default function DesignerProjectDetailPage({ params }: DesignerProjectDet
  month: 'long',
  day: 'numeric',
  });
- };
+ }>;
 
- const depositAmount = Number(project.total_cost) * 0.5;
- const balanceAmount = Number(project.total_cost) * 0.5;
+ const depositAmount = Number(order.total_cost) * 0.5;
+ const balanceAmount = Number(order.total_cost) * 0.5;
 
  return (
  <div className="min-h-screen card">
@@ -124,24 +124,24 @@ export default function DesignerProjectDetailPage({ params }: DesignerProjectDet
  <div className="flex items-center gap-4">
  <Button
  variant="ghost"
- onClick={() => router.push('/portal/designer')}
+ onClick={() => router.push('/portal/factory')}
  >
  <ArrowLeft className="h-4 w-4 mr-2" />
  Back to Dashboard
  </Button>
  <div>
- <h1 className="text-2xl font-bold">{project.order_number}</h1>
+ <h1 className="text-2xl font-bold">{order.order_number}</h1>
  <p className="text-muted-foreground">{partner.company_name}</p>
  </div>
  </div>
- {getStatusBadge(project.status)}
+ {getStatusBadge(order.status)}
  </div>
  </div>
  </div>
 
  <div className="container mx-auto px-4 py-8 space-y-6">
  {/* Payment Status Alerts */}
- {project.status === 'awaiting_deposit' && (
+ {order.status === 'awaiting_deposit' && (
  <Alert>
  <AlertCircle className="h-4 w-4" />
  <AlertDescription>
@@ -152,24 +152,24 @@ export default function DesignerProjectDetailPage({ params }: DesignerProjectDet
  </Alert>
  )}
 
- {project.status === 'awaiting_final_payment' && (
+ {order.status === 'awaiting_final_payment' && (
  <Alert>
  <AlertCircle className="h-4 w-4" />
  <AlertDescription>
  <strong>Waiting for Final Payment</strong>
  <br />
- Project cannot be shipped until the customer pays the final 50% balance ({formatCurrency(balanceAmount)}).
+ Order cannot be shipped until the customer pays the final 50% balance ({formatCurrency(balanceAmount)}).
  </AlertDescription>
  </Alert>
  )}
 
- {project.status === 'deposit_paid' && (
+ {order.status === 'deposit_paid' && (
  <Alert className="border-success bg-success-muted">
  <CheckCircle className="h-4 w-4 text-success" />
  <AlertDescription className="text-success">
  <strong>Ready to Start Production</strong>
  <br />
- Deposit has been paid. You can begin production on this project.
+ Deposit has been paid. You can begin production on this order.
  </AlertDescription>
  </Alert>
  )}
@@ -178,13 +178,13 @@ export default function DesignerProjectDetailPage({ params }: DesignerProjectDet
  <div className="grid gap-4 md:grid-cols-4">
  <Card>
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium">Project Value</CardTitle>
+ <CardTitle className="text-sm font-medium">Order Value</CardTitle>
  <DollarSign className="h-4 w-4 text-muted-foreground" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold">{formatCurrency(project.total_cost)}</div>
+ <div className="text-2xl font-bold">{formatCurrency(order.total_cost)}</div>
  <p className="text-xs text-muted-foreground">
- {project.quantity} units @ {formatCurrency(project.unit_price)} each
+ {order.quantity} units @ {formatCurrency(order.unit_price)} each
  </p>
  </CardContent>
  </Card>
@@ -195,18 +195,18 @@ export default function DesignerProjectDetailPage({ params }: DesignerProjectDet
  <Package className="h-4 w-4 text-muted-foreground" />
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold">{project.quantity}</div>
+ <div className="text-2xl font-bold">{order.quantity}</div>
  <p className="text-xs text-muted-foreground">units to produce</p>
  </CardContent>
  </Card>
 
  <Card>
  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium">Project Date</CardTitle>
+ <CardTitle className="text-sm font-medium">Order Date</CardTitle>
  <Calendar className="h-4 w-4 text-muted-foreground" />
  </CardHeader>
  <CardContent>
- <div className="text-lg font-bold">{formatDate(project.order_date)}</div>
+ <div className="text-lg font-bold">{formatDate(order.order_date)}</div>
  <p className="text-xs text-muted-foreground">placed</p>
  </CardContent>
  </Card>
@@ -217,7 +217,7 @@ export default function DesignerProjectDetailPage({ params }: DesignerProjectDet
  <Calendar className="h-4 w-4 text-muted-foreground" />
  </CardHeader>
  <CardContent>
- <div className="text-lg font-bold">{formatDate(project.estimated_ship_date)}</div>
+ <div className="text-lg font-bold">{formatDate(order.estimated_ship_date)}</div>
  <p className="text-xs text-muted-foreground">target</p>
  </CardContent>
  </Card>
@@ -228,7 +228,7 @@ export default function DesignerProjectDetailPage({ params }: DesignerProjectDet
  <TabsList>
  <TabsTrigger value="overview">Overview</TabsTrigger>
  <TabsTrigger value="payments">Payments</TabsTrigger>
- <TabsTrigger value="items">Project Items ({project.ordered_items?.length || 0})</TabsTrigger>
+ <TabsTrigger value="items">Order Items ({order.ordered_items?.length || 0})</TabsTrigger>
  <TabsTrigger value="notes">Notes</TabsTrigger>
  </TabsList>
 
@@ -236,45 +236,45 @@ export default function DesignerProjectDetailPage({ params }: DesignerProjectDet
  <TabsContent value="overview" className="space-y-4">
  <Card>
  <CardHeader>
- <CardTitle>Project Details</CardTitle>
+ <CardTitle>Order Details</CardTitle>
  </CardHeader>
  <CardContent className="space-y-4">
  <div className="grid gap-4 md:grid-cols-2">
  <div>
  <label className="text-sm font-medium text-muted-foreground">Item Name</label>
- <p className="text-lg font-semibold">{project.item_name}</p>
+ <p className="text-lg font-semibold">{order.item_name}</p>
  </div>
  <div>
  <label className="text-sm font-medium text-muted-foreground">Product Type</label>
- <p className="text-lg capitalize">{project.product_type}</p>
+ <p className="text-lg capitalize">{order.product_type}</p>
  </div>
  </div>
 
- {project.item_description && (
+ {order.item_description && (
  <div>
  <label className="text-sm font-medium text-muted-foreground">Description</label>
- <p className="text-sm whitespace-pre-wrap">{project.item_description}</p>
+ <p className="text-sm whitespace-pre-wrap">{order.item_description}</p>
  </div>
  )}
 
  <div className="grid gap-4 md:grid-cols-3">
  <div>
  <label className="text-sm font-medium text-muted-foreground">Quantity</label>
- <p className="text-lg font-semibold">{project.quantity} units</p>
+ <p className="text-lg font-semibold">{order.quantity} units</p>
  </div>
  <div>
  <label className="text-sm font-medium text-muted-foreground">Unit Price</label>
- <p className="text-lg font-semibold">{formatCurrency(project.unit_price)}</p>
+ <p className="text-lg font-semibold">{formatCurrency(order.unit_price)}</p>
  </div>
  <div>
  <label className="text-sm font-medium text-muted-foreground">Total Cost</label>
- <p className="text-lg font-semibold">{formatCurrency(project.total_cost)}</p>
+ <p className="text-lg font-semibold">{formatCurrency(order.total_cost)}</p>
  </div>
  </div>
  </CardContent>
  </Card>
 
- {project.factory_notes && (
+ {order.factory_notes && (
  <Card>
  <CardHeader>
  <CardTitle className="flex items-center gap-2">
@@ -283,7 +283,7 @@ export default function DesignerProjectDetailPage({ params }: DesignerProjectDet
  </CardTitle>
  </CardHeader>
  <CardContent>
- <p className="text-sm whitespace-pre-wrap">{project.factory_notes}</p>
+ <p className="text-sm whitespace-pre-wrap">{order.factory_notes}</p>
  </CardContent>
  </Card>
  )}
@@ -301,7 +301,7 @@ export default function DesignerProjectDetailPage({ params }: DesignerProjectDet
  <div className="border rounded-lg p-4">
  <div className="flex items-center justify-between mb-3">
  <h3 className="font-semibold">Deposit (50%)</h3>
- {project.deposit_paid ? (
+ {order.deposit_paid ? (
  <Badge variant="default">
  <CheckCircle className="h-3 w-3 mr-1" />
  Paid
@@ -315,7 +315,7 @@ export default function DesignerProjectDetailPage({ params }: DesignerProjectDet
  </div>
  <p className="text-2xl font-bold">{formatCurrency(depositAmount)}</p>
  <p className="text-sm text-muted-foreground mt-1">
- {project.deposit_paid ? 'Required to start production' : 'Blocks production until paid'}
+ {order.deposit_paid ? 'Required to start production' : 'Blocks production until paid'}
  </p>
  </div>
 
@@ -323,7 +323,7 @@ export default function DesignerProjectDetailPage({ params }: DesignerProjectDet
  <div className="border rounded-lg p-4">
  <div className="flex items-center justify-between mb-3">
  <h3 className="font-semibold">Final Payment (50%)</h3>
- {project.final_payment_paid ? (
+ {order.final_payment_paid ? (
  <Badge variant="default">
  <CheckCircle className="h-3 w-3 mr-1" />
  Paid
@@ -337,7 +337,7 @@ export default function DesignerProjectDetailPage({ params }: DesignerProjectDet
  </div>
  <p className="text-2xl font-bold">{formatCurrency(balanceAmount)}</p>
  <p className="text-sm text-muted-foreground mt-1">
- {project.final_payment_paid ? 'Required to ship project' : 'Blocks shipping until paid'}
+ {order.final_payment_paid ? 'Required to ship order' : 'Blocks shipping until paid'}
  </p>
  </div>
  </div>
@@ -352,14 +352,14 @@ export default function DesignerProjectDetailPage({ params }: DesignerProjectDet
  </Card>
  </TabsContent>
 
- {/* Project Items Tab */}
+ {/* Order Items Tab */}
  <TabsContent value="items">
  <Card>
  <CardHeader>
  <CardTitle>Individual Units</CardTitle>
  </CardHeader>
  <CardContent>
- {project.ordered_items && project.ordered_items.length > 0 ? (
+ {order.ordered_items && order.ordered_items.length > 0 ? (
  <Table>
  <TableHeader>
  <TableRow>
@@ -370,7 +370,7 @@ export default function DesignerProjectDetailPage({ params }: DesignerProjectDet
  </TableRow>
  </TableHeader>
  <TableBody>
- {project.ordered_items.map((item: {
+ {order.ordered_items.map((item: {
  id: string;
  unit_number: number;
  status: string;
@@ -421,14 +421,14 @@ export default function DesignerProjectDetailPage({ params }: DesignerProjectDet
  </CardTitle>
  </CardHeader>
  <CardContent>
- {project.factory_notes ? (
+ {order.factory_notes ? (
  <div className="prose max-w-none">
- <p className="whitespace-pre-wrap">{project.factory_notes}</p>
+ <p className="whitespace-pre-wrap">{order.factory_notes}</p>
  </div>
  ) : (
  <div className="text-center py-12 text-muted-foreground">
  <FileText className="mx-auto h-12 w-12 opacity-50 mb-4" />
- <p>No production notes for this project</p>
+ <p>No production notes for this order</p>
  </div>
  )}
  </CardContent>

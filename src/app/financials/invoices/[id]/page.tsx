@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import React, { use }, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -58,16 +58,19 @@ const statusConfig: Record<string, { label: string; className: string; icon: Rea
   },
 };
 
-export default function InvoiceDetailPage() {
-  const params = useParams();
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default function InvoiceDetailPage({ params }: PageProps) {
+  const { id } = use(params);
   const router = useRouter();
-  const invoiceId = params?.id as string;
   const [activeTab, setActiveTab] = useState("overview");
 
   // Fetch invoice details
   const { data: invoice, isLoading, refetch } = api.invoices.getById.useQuery(
-    { id: invoiceId },
-    { enabled: !!invoiceId }
+    { id: id },
+    { enabled: !!id }
   );
 
   // Update invoice status mutation
@@ -90,7 +93,7 @@ export default function InvoiceDetailPage() {
 
   const handleStatusChange = (newStatus: string) => {
     updateStatusMutation.mutate({
-      id: invoiceId,
+      id: id,
       status: newStatus as "pending" | "partial" | "paid" | "overdue" | "cancelled",
     });
   };

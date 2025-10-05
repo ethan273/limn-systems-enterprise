@@ -209,6 +209,7 @@ export default function Sidebar() {
  icon: Shield,
  items: [
  { label: "Approvals", href: "/admin/approvals" },
+ { label: "Users", href: "/admin/users" },
  ]
  }
  ];

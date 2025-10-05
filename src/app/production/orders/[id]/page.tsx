@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { use, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -19,8 +19,12 @@ import { DollarSign, Package, Truck, AlertCircle, CheckCircle, ArrowLeft, Settin
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 
-export default function ProductionOrderDetailPage() {
- const params = useParams();
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default function ProductionOrderDetailPage({ params }: PageProps) {
+  const { id } = use(params);
  const router = useRouter();
  const { user, loading: authLoading } = useAuth();
 
@@ -74,7 +78,7 @@ export default function ProductionOrderDetailPage() {
 
  const { data: order, refetch } = api.productionOrders.getById.useQuery(
  {
- id: params.id as string,
+ id: id as string,
  },
  { enabled: !authLoading && !!user }
  );
@@ -137,12 +141,12 @@ export default function ProductionOrderDetailPage() {
  });
 
  const { data: shipments } = api.shipping.getShipmentsByOrder.useQuery({
- production_order_id: params.id as string,
+ production_order_id: id as string,
  });
 
  // Packing jobs query
  const { data: packingJobsData, refetch: refetchPackingJobs } = api.packing.getAllJobs.useQuery({
- orderId: order?.order_id,
+ id: order?.order_id,
  limit: 50,
  offset: 0,
  }, { enabled: !!order?.order_id });
@@ -160,8 +164,8 @@ export default function ProductionOrderDetailPage() {
  },
  });
 
- const openPaymentDialog = (invoiceId: string, amountDue: number) => {
- setSelectedInvoiceId(invoiceId);
+ const openPaymentDialog = (id: string, amountDue: number) => {
+ setSelectedInvoiceId(id);
  setPaymentForm({ ...paymentForm, amount: amountDue });
  setPaymentDialogOpen(true);
  };
@@ -178,7 +182,7 @@ export default function ProductionOrderDetailPage() {
 
  const handleRequestQuotes = () => {
  getQuotes.mutate({
- production_order_id: params.id as string,
+ production_order_id: id as string,
  origin: shippingForm.origin,
  destination: shippingForm.destination,
  packages: shippingForm.packages,
@@ -192,7 +196,7 @@ export default function ProductionOrderDetailPage() {
  }
 
  createShipment.mutate({
- production_order_id: params.id as string,
+ production_order_id: id as string,
  origin: shippingForm.origin,
  destination: shippingForm.destination,
  packages: shippingForm.packages,
@@ -961,7 +965,7 @@ export default function ProductionOrderDetailPage() {
  <Button
  onClick={() => {
  updateStatus.mutate({
- id: params.id as string,
+ id: id as string,
  status: selectedStatus,
  });
  }}
@@ -1008,7 +1012,7 @@ export default function ProductionOrderDetailPage() {
  <Button
  variant="destructive"
  onClick={() => {
- deleteOrder.mutate({ id: params.id as string });
+ deleteOrder.mutate({ id: id as string });
  }}
  disabled={deleteOrder.isPending || (Number(order?.production_invoices?.find((inv: any) => inv.amount_paid > 0)?.amount_paid) > 0)}
  >

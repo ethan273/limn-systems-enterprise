@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import React, { use, useState } from "react";
+import { useRouter} from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,16 +44,19 @@ const interestLevels: Record<string, { label: string; className: string }> = {
   unknown: { label: "Unknown", className: "badge-neutral" },
 };
 
-export default function LeadDetailPage() {
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default function LeadDetailPage({ params }: PageProps) {
+  const { id } = use(params);
   const router = useRouter();
-  const params = useParams();
   const { user } = useAuth();
-  const leadId = params.id as string;
   const [activeTab, setActiveTab] = useState("overview");
 
   const { data, isLoading, error } = api.crm.leads.getById.useQuery(
-    { id: leadId },
-    { enabled: !!user && !!leadId }
+    { id: id },
+    { enabled: !!user && !!id }
   );
 
   if (isLoading) {

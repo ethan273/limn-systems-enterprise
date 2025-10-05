@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import React, { use }, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -62,16 +62,19 @@ const statusConfig: Record<string, { label: string; className: string; icon: Rea
  },
 };
 
-export default function QCInspectionDetailPage() {
- const params = useParams();
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default function QCInspectionDetailPage({ params }: PageProps) {
+  const { id } = use(params);
  const router = useRouter();
- const inspectionId = params?.id as string;
  const [activeTab, setActiveTab] = useState("overview");
 
  // Fetch inspection details
  const { data: inspection, isLoading, refetch } = api.qc.getInspectionById.useQuery(
- { id: inspectionId },
- { enabled: !!inspectionId }
+ { id: id },
+ { enabled: !!id }
  );
 
  // Update inspection status mutation
@@ -94,7 +97,7 @@ export default function QCInspectionDetailPage() {
 
  const handleStatusChange = (newStatus: string) => {
  updateStatusMutation.mutate({
- id: inspectionId,
+ id: id,
  status: newStatus as any,
  });
  };
@@ -338,15 +341,15 @@ export default function QCInspectionDetailPage() {
  </TabsContent>
 
  <TabsContent value="defects">
- <QCDefectsList inspectionId={inspectionId} defects={inspection.qc_defects || []} onUpdate={refetch} />
+ <QCDefectsList id={id} defects={inspection.qc_defects || []} onUpdate={refetch} />
  </TabsContent>
 
  <TabsContent value="photos">
- <QCPhotoGallery inspectionId={inspectionId} photos={inspection.qc_photos || []} onUpdate={refetch} />
+ <QCPhotoGallery id={id} photos={inspection.qc_photos || []} onUpdate={refetch} />
  </TabsContent>
 
  <TabsContent value="checkpoints">
- <QCCheckpointsList inspectionId={inspectionId} onUpdate={refetch} />
+ <QCCheckpointsList id={id} onUpdate={refetch} />
  </TabsContent>
  </Tabs>
  </div>

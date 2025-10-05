@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use,  useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { useAuthContext } from "@/lib/auth/AuthProvider";
@@ -14,7 +14,8 @@ import Link from "next/link";
 
 export const dynamic = 'force-dynamic';
 
-export default function MoodBoardDetailPage({ params }: { params: { id: string } }) {
+export default function MoodBoardDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
  const router = useRouter();
  const { user, loading: authLoading } = useAuthContext();
  const [shareUrl, setShareUrl] = useState<string>("");
@@ -26,8 +27,8 @@ export default function MoodBoardDetailPage({ params }: { params: { id: string }
  }, [authLoading, user, router]);
 
  const { data: board, isLoading } = api.moodBoards.getById.useQuery(
- { id: params.id },
- { enabled: !authLoading && !!user && !!params.id }
+ { id: id },
+ { enabled: !authLoading && !!user && !!id }
  );
 
  const generateShareLinkMutation = api.moodBoards.generateShareLink.useMutation();
@@ -36,7 +37,7 @@ export default function MoodBoardDetailPage({ params }: { params: { id: string }
  const handleGenerateShareLink = async () => {
  try {
  const result = await generateShareLinkMutation.mutateAsync({
- id: params.id,
+ id: id,
  expiresInDays: 30,
  });
  setShareUrl(result.share_url);
@@ -65,7 +66,7 @@ export default function MoodBoardDetailPage({ params }: { params: { id: string }
 
  const handleRevokeShareLink = async () => {
  try {
- await revokeShareLinkMutation.mutateAsync({ id: params.id });
+ await revokeShareLinkMutation.mutateAsync({ id: id });
  setShareUrl("");
  toast({
  title: "Success",

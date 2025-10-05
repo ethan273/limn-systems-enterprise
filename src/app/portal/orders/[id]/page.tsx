@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import React, { use }, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -81,22 +81,25 @@ const statusConfig: Record<string, { label: string; className: string; icon: Rea
  },
 };
 
-export default function OrderDetailPage() {
- const params = useParams();
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default function OrderDetailPage({ params }: PageProps) {
+  const { id } = use(params);
  const router = useRouter();
- const orderId = params?.id as string;
  const [activeTab, setActiveTab] = useState("overview");
 
  // Fetch order details
  const { data: order, isLoading } = api.portal.getOrderById.useQuery(
- { orderId },
- { enabled: !!orderId }
+ { id },
+ { enabled: !!id }
  );
 
  // Fetch shipments
  const { data: shipments } = api.portal.getOrderShipments.useQuery(
- { orderId },
- { enabled: !!orderId }
+ { id },
+ { enabled: !!id }
  );
 
  if (isLoading) {

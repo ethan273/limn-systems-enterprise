@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import React, { use }, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -74,16 +74,19 @@ const statusConfig: Record<string, { label: string; className: string; icon: Rea
   },
 };
 
-export default function ShipmentDetailPage() {
-  const params = useParams();
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default function ShipmentDetailPage({ params }: PageProps) {
+  const { id } = use(params);
   const router = useRouter();
-  const shipmentId = params?.id as string;
   const [activeTab, setActiveTab] = useState("overview");
 
   // Fetch shipment details
   const { data: shipment, isLoading, refetch } = api.shipping.getShipmentById.useQuery(
-    { id: shipmentId },
-    { enabled: !!shipmentId }
+    { id: id },
+    { enabled: !!id }
   );
 
   // Update shipment status mutation
@@ -106,7 +109,7 @@ export default function ShipmentDetailPage() {
 
   const handleStatusChange = (newStatus: string) => {
     updateStatusMutation.mutate({
-      id: shipmentId,
+      id: id,
       status: newStatus as "pending" | "preparing" | "ready" | "shipped" | "in_transit" | "delivered" | "delayed" | "cancelled",
     });
   };

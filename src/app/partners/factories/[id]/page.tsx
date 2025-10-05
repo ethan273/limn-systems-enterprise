@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { use,  useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
 import { Button } from '@/components/ui/button';
@@ -34,17 +34,18 @@ import {
 import { notFound } from 'next/navigation';
 
 interface FactoryDetailPageProps {
- params: {
+ params: Promise<{
  id: string;
- };
+ }>;
 }
 
 export default function FactoryDetailPage({ params }: FactoryDetailPageProps) {
+  const { id } = use(params);
  const router = useRouter();
  const [activeTab, setActiveTab] = useState('overview');
 
  // Fetch factory details
- const { data: factory, isLoading, error } = api.partners.getById.useQuery({ id: params.id });
+ const { data: factory, isLoading, error } = api.partners.getById.useQuery({ id: id });
 
  if (error) {
  notFound();
@@ -118,7 +119,7 @@ export default function FactoryDetailPage({ params }: FactoryDetailPageProps) {
  </Badge>
  </div>
  </div>
- <Button onClick={() => router.push(`/partners/factories/${params.id}/edit`)}>
+ <Button onClick={() => router.push(`/partners/factories/${id}/edit`)}>
  <Edit className="mr-2 h-4 w-4" />
  Edit Factory
  </Button>

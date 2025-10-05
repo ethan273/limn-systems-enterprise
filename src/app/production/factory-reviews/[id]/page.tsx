@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import React, { use }, { useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
@@ -84,10 +84,13 @@ const severityConfig: Record<string, { label: string; className: string }> = {
  },
 };
 
-export default function FactoryReviewDetailPage() {
- const params = useParams();
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default function FactoryReviewDetailPage({ params }: PageProps) {
+  const { id } = use(params);
  const router = useRouter();
- const sessionId = params.id as string;
 
  const [activeTab, setActiveTab] = useState("overview");
  const [severityFilter, setSeverityFilter] = useState<string>("all");
@@ -101,12 +104,12 @@ export default function FactoryReviewDetailPage() {
 
  // Fetch session details
  const { data: session, isLoading, refetch } = api.factoryReviews.getSessionById.useQuery({
- id: sessionId,
+ id: id,
  });
 
  // Fetch action items
  const { data: actionItems } = api.factoryReviews.getActionItems.useQuery({
- sessionId,
+ id,
  resolved: false,
  });
 
@@ -198,7 +201,7 @@ export default function FactoryReviewDetailPage() {
  }
 
  addCommentMutation.mutate({
- sessionId,
+ id,
  photoId: selectedPhotoId || undefined,
  commentText,
  commentType,
@@ -218,7 +221,7 @@ export default function FactoryReviewDetailPage() {
  }
 
  updateStatusMutation.mutate({
- id: sessionId,
+ id: id,
  status: newStatus,
  });
  };

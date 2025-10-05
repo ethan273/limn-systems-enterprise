@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { use,  useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { useAuthContext } from "@/lib/auth/AuthProvider";
@@ -14,7 +14,8 @@ import Link from "next/link";
 
 export const dynamic = 'force-dynamic';
 
-export default function DesignBriefDetailPage({ params }: { params: { id: string } }) {
+export default function DesignBriefDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
  const router = useRouter();
  const { user, loading: authLoading } = useAuthContext();
 
@@ -25,15 +26,15 @@ export default function DesignBriefDetailPage({ params }: { params: { id: string
  }, [authLoading, user, router]);
 
  const { data: brief, isLoading } = api.designBriefs.getById.useQuery(
- { id: params.id },
- { enabled: !authLoading && !!user && !!params.id }
+ { id: id },
+ { enabled: !authLoading && !!user && !!id }
  );
 
  const approveBriefMutation = api.designBriefs.approve.useMutation();
 
  const handleApprove = async () => {
  try {
- await approveBriefMutation.mutateAsync({ id: params.id });
+ await approveBriefMutation.mutateAsync({ id: id });
  toast({
  title: "Success",
  description: "Design brief approved successfully!",

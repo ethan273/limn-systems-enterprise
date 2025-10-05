@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { use,  useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { api } from '@/lib/api/client';
@@ -30,12 +30,13 @@ import {
 import { notFound } from 'next/navigation';
 
 interface FactoryOrderDetailPageProps {
- params: {
+ params: Promise<{
  id: string;
- };
+ }>;
 }
 
 export default function FactoryOrderDetailPage({ params }: FactoryOrderDetailPageProps) {
+  const { id } = use(params);
  const router = useRouter();
  const { user: currentUser, loading: userLoading } = useAuth();
 
@@ -47,7 +48,7 @@ export default function FactoryOrderDetailPage({ params }: FactoryOrderDetailPag
 
  // Get production order details
  const { data: order, isLoading, error } = api.productionOrders.getById.useQuery(
- { id: params.id },
+ { id: id },
  { enabled: !!partner }
  );
 

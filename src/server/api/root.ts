@@ -35,6 +35,7 @@ import { documentsRouter } from './routers/documents';
 import { dashboardsRouter } from './routers/dashboards';
 import { notificationsRouter } from './routers/notifications';
 import { userProfileRouter } from './routers/user-profile';
+import { adminRouter } from './routers/admin';
 
 /**
  * Main API router
@@ -46,6 +47,9 @@ export const appRouter = createTRPCRouter({
 
   // Authentication & Access Control
   auth: authRouter,
+
+  // Admin Portal
+  admin: adminRouter,
 
   // Notifications & User Profile
   notifications: notificationsRouter,

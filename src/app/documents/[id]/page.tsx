@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { useParams, useRouter } from "next/navigation";
+import React, { use } from "react";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -48,15 +48,18 @@ const documentTypeConfig: Record<string, { label: string; className: string; ico
   },
 };
 
-export default function DocumentDetailPage() {
-  const params = useParams();
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default function DocumentDetailPage({ params }: PageProps) {
+  const { id } = use(params);
   const router = useRouter();
-  const documentId = params?.id as string;
 
   // Fetch document details - using documents router
   const { data: documentData, isLoading } = api.documents.getById.useQuery(
-    { id: documentId },
-    { enabled: !!documentId }
+    { id: id },
+    { enabled: !!id }
   );
 
   const document = documentData as any;

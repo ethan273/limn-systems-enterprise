@@ -87,21 +87,21 @@ export default function DesignerProjectDetailPage({ params }: DesignerProjectDet
  awaiting_final_payment: { variant: 'outline', label: 'Awaiting Payment' },
  ready_to_ship: { variant: 'default', label: 'Ready to Ship' },
  shipped: { variant: 'secondary', label: 'Shipped' },
- };
+ }>;
 
  const config = Object.prototype.hasOwnProperty.call(variants, status)
  ? variants[status as keyof typeof variants]
- : { variant: 'secondary' as const, label: status };
+ : { variant: 'secondary' as const, label: status }>;
 
  return <Badge variant={config.variant}>{config.label}</Badge>;
- };
+ }>;
 
  const formatCurrency = (amount: number | string) => {
  return new Intl.NumberFormat('en-US', {
  style: 'currency',
  currency: partner.currency || 'USD',
  }).format(Number(amount));
- };
+ }>;
 
  const formatDate = (date: Date | string | null) => {
  if (!date) return '—';
@@ -110,7 +110,7 @@ export default function DesignerProjectDetailPage({ params }: DesignerProjectDet
  month: 'long',
  day: 'numeric',
  });
- };
+ }>;
 
  const depositAmount = Number(project.total_cost) * 0.5;
  const balanceAmount = Number(project.total_cost) * 0.5;

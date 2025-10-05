@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { use,  useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { useAuthContext } from "@/lib/auth/AuthProvider";
@@ -15,7 +15,8 @@ import Link from "next/link";
 
 export const dynamic = 'force-dynamic';
 
-export default function DesignProjectDetailPage({ params }: { params: { id: string } }) {
+export default function DesignProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
  const router = useRouter();
  const { user, loading: authLoading } = useAuthContext();
 
@@ -26,8 +27,8 @@ export default function DesignProjectDetailPage({ params }: { params: { id: stri
  }, [authLoading, user, router]);
 
  const { data: project, isLoading } = api.designProjects.getById.useQuery(
- { id: params.id },
- { enabled: !authLoading && !!user && !!params.id }
+ { id: id },
+ { enabled: !authLoading && !!user && !!id }
  );
 
  const updateProgressMutation = api.designProjects.updateProgress.useMutation();
@@ -35,7 +36,7 @@ export default function DesignProjectDetailPage({ params }: { params: { id: stri
  const handleStageUpdate = async (newStage: string) => {
  try {
  await updateProgressMutation.mutateAsync({
- id: params.id,
+ id: id,
  current_stage: newStage,
  });
  toast({

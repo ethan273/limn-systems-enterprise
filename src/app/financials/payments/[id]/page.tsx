@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { useParams, useRouter } from "next/navigation";
+import React, { use } from "react";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,15 +51,18 @@ const statusConfig: Record<string, { label: string; className: string; icon: Rea
   },
 };
 
-export default function PaymentDetailPage() {
-  const params = useParams();
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default function PaymentDetailPage({ params }: PageProps) {
+  const { id } = use(params);
   const router = useRouter();
-  const paymentId = params?.id as string;
 
   // Fetch payment details
   const { data: payment, isLoading, refetch } = api.payments.getById.useQuery(
-    { id: paymentId },
-    { enabled: !!paymentId }
+    { id: id },
+    { enabled: !!id }
   );
 
   // Update payment status mutation
@@ -82,7 +85,7 @@ export default function PaymentDetailPage() {
 
   const handleStatusChange = (newStatus: string) => {
     updateStatusMutation.mutate({
-      id: paymentId,
+      id: id,
       status: newStatus as "pending" | "processed" | "failed" | "refunded",
     });
   };

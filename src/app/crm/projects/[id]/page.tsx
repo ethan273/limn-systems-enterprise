@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import React, { use, useState } from "react";
+import { useRouter} from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,16 +34,19 @@ import { format } from "date-fns";
 // Dynamic route configuration
 export const dynamic = 'force-dynamic';
 
-export default function CRMProjectDetailPage() {
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default function CRMProjectDetailPage({ params }: PageProps) {
+  const { id } = use(params);
   const router = useRouter();
-  const params = useParams();
   const { user } = useAuth();
-  const projectId = params.id as string;
   const [activeTab, setActiveTab] = useState("overview");
 
   const { data, isLoading, error } = api.projects.getById.useQuery(
-    { id: projectId },
-    { enabled: !!user && !!projectId }
+    { id: id },
+    { enabled: !!user && !!id }
   );
 
   if (isLoading) {

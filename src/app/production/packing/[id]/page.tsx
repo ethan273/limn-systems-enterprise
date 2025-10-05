@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { useParams, useRouter } from "next/navigation";
+import React, { use } from "react";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -56,15 +56,18 @@ const statusConfig: Record<string, { label: string; className: string; icon: Rea
  },
 };
 
-export default function PackingJobDetailPage() {
- const params = useParams();
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default function PackingJobDetailPage({ params }: PageProps) {
+  const { id } = use(params);
  const router = useRouter();
- const jobId = params?.id as string;
 
  // Fetch packing job details
  const { data: job, isLoading, refetch } = api.packing.getJobById.useQuery(
- { id: jobId },
- { enabled: !!jobId }
+ { id: id },
+ { enabled: !!id }
  );
 
  // Update status mutation
@@ -87,7 +90,7 @@ export default function PackingJobDetailPage() {
 
  const handleStatusChange = (newStatus: string) => {
  updateStatusMutation.mutate({
- id: jobId,
+ id: id,
  status: newStatus as any,
  });
  };
@@ -296,7 +299,7 @@ export default function PackingJobDetailPage() {
  </Card>
 
  {/* Packing Boxes */}
- <PackingBoxesList packingJobId={jobId} boxes={job.packing_boxes || []} onUpdate={refetch} />
+ <PackingBoxesList packingJobId={id} boxes={job.packing_boxes || []} onUpdate={refetch} />
  </div>
  );
 }
