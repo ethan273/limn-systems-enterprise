@@ -24,6 +24,7 @@ import {
   BarChart3,
   RefreshCw,
 } from 'lucide-react';
+import { ExportPDFButton } from '@/components/ExportPDFButton';
 import {
   AreaChart,
   Area,
@@ -90,6 +91,7 @@ export default function ExecutiveDashboardPage() {
 
   return (
     <div className="dashboard-page">
+      <div id="dashboard-export-container">
       {/* Header */}
       <div className="dashboard-header">
         <div>
@@ -109,6 +111,7 @@ export default function ExecutiveDashboardPage() {
           >
             <RefreshCw className="h-4 w-4" />
           </Button>
+          <ExportPDFButton dashboardName="Executive Dashboard" dateRange={dateRange} />
           <Button variant="outline" asChild>
             <Link href="/dashboards/analytics">
               <BarChart3 className="icon-sm" />
@@ -480,6 +483,7 @@ export default function ExecutiveDashboardPage() {
             </Link>
           </Button>
         </div>
+      </div>
       </div>
     </div>
   );

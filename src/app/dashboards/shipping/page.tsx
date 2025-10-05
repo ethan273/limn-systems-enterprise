@@ -18,6 +18,7 @@ import {
   ArrowRight,
   RefreshCw,
 } from 'lucide-react';
+import { ExportPDFButton } from '@/components/ExportPDFButton';
 import {
   LineChart,
   Line,
@@ -89,6 +90,7 @@ export default function ShippingDashboardPage() {
 
   return (
     <div className="dashboard-page">
+      <div id="dashboard-export-container">
       {/* Header */}
       <div className="dashboard-header">
         <div>
@@ -108,6 +110,7 @@ export default function ShippingDashboardPage() {
           >
             <RefreshCw className="h-4 w-4" />
           </Button>
+          <ExportPDFButton dashboardName="Shipping Dashboard" dateRange={dateRange} />
           <Button variant="outline" asChild>
             <Link href="/shipping/shipments">
               <Truck className="icon-sm" />
@@ -420,6 +423,7 @@ export default function ShippingDashboardPage() {
             </Link>
           </Button>
         </div>
+      </div>
       </div>
     </div>
   );

@@ -18,6 +18,7 @@ import {
   ClipboardCheck,
   RefreshCw,
 } from 'lucide-react';
+import { ExportPDFButton } from '@/components/ExportPDFButton';
 import {
   LineChart,
   Line,
@@ -89,6 +90,7 @@ export default function QualityDashboardPage() {
 
   return (
     <div className="dashboard-page">
+      <div id="dashboard-export-container">
       {/* Header */}
       <div className="dashboard-header">
         <div>
@@ -108,6 +110,7 @@ export default function QualityDashboardPage() {
           >
             <RefreshCw className="h-4 w-4" />
           </Button>
+          <ExportPDFButton dashboardName="Quality Dashboard" dateRange={dateRange} />
           <Button variant="outline" asChild>
             <Link href="/production/ordered-items">
               <ClipboardCheck className="icon-sm" />
@@ -387,6 +390,7 @@ export default function QualityDashboardPage() {
             </Link>
           </Button>
         </div>
+      </div>
       </div>
     </div>
   );

@@ -22,6 +22,7 @@ import {
   ArrowRight,
   RefreshCw,
 } from 'lucide-react';
+import { ExportPDFButton } from '@/components/ExportPDFButton';
 import { DateRangeSelector } from '@/components/DateRangeSelector';
 import {
   BarChart,
@@ -99,6 +100,7 @@ export default function ProjectDashboardPage() {
 
   return (
     <div className="dashboard-page">
+      <div id="dashboard-export-container">
       {/* Header */}
       <div className="dashboard-header">
         <div>
@@ -120,6 +122,7 @@ export default function ProjectDashboardPage() {
           >
             <RefreshCw className="h-4 w-4" />
           </Button>
+          <ExportPDFButton dashboardName="Projects Dashboard" dateRange={dateRange} />
         </div>
       </div>
 
@@ -423,6 +426,7 @@ export default function ProjectDashboardPage() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

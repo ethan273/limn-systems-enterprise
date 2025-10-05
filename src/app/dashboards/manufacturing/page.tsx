@@ -21,6 +21,7 @@ import {
   PauseCircle,
   RefreshCw,
 } from 'lucide-react';
+import { ExportPDFButton } from '@/components/ExportPDFButton';
 import {
   AreaChart,
   Area,
@@ -98,6 +99,7 @@ export default function ManufacturingDashboardPage() {
 
   return (
     <div className="dashboard-page">
+      <div id="dashboard-export-container">
       {/* Header */}
       <div className="dashboard-header">
         <div>
@@ -117,6 +119,7 @@ export default function ManufacturingDashboardPage() {
           >
             <RefreshCw className="h-4 w-4" />
           </Button>
+          <ExportPDFButton dashboardName="Manufacturing Dashboard" dateRange={dateRange} />
           <Button variant="outline" asChild>
             <Link href="/production/ordered-items">
               <Package className="icon-sm" />
@@ -459,6 +462,7 @@ export default function ManufacturingDashboardPage() {
             </Link>
           </Button>
         </div>
+      </div>
       </div>
     </div>
   );
