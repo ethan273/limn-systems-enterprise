@@ -25,7 +25,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api/client";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface NavSubItem {
  label: string;
@@ -103,7 +102,13 @@ export default function Sidebar() {
  { label: "Main Dashboard", href: "/dashboard" },
  { label: "Analytics Dashboard", href: "/dashboards/analytics" },
  { label: "Executive Dashboard", href: "/dashboards/executive" },
- { label: "Project Dashboard", href: "/dashboards/projects" },
+ { label: "Financial Dashboard", href: "/dashboards/financial" },
+ { label: "Projects Dashboard", href: "/dashboards/projects" },
+ { label: "Manufacturing Dashboard", href: "/dashboards/manufacturing" },
+ { label: "Design Dashboard", href: "/dashboards/design" },
+ { label: "Shipping Dashboard", href: "/dashboards/shipping" },
+ { label: "Quality Dashboard", href: "/dashboards/quality" },
+ { label: "Partners Dashboard", href: "/dashboards/partners" },
  ]
  },
  {
@@ -271,7 +276,6 @@ export default function Sidebar() {
  ) : (
  <div className="sidebar-logo-image" style={{ width: 180, height: 50 }} />
  )}
- <ThemeToggle />
  </div>
  <p className="sidebar-subtitle">Enterprise Dashboard</p>
  </div>
