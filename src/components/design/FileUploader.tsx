@@ -105,7 +105,7 @@ export function FileUploader({
 
  try {
  const file = uploadFile.file;
- const storageType = uploadFile.storageType!;
+ const _storageType = uploadFile.storageType!;
 
  // Upload via API route (server-side handles both Supabase and Google Drive via service account)
  const uploadFormData = new FormData();

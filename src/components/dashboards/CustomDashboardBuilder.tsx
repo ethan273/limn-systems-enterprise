@@ -13,7 +13,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  Plus,
   Trash2,
   GripVertical,
   Save,
@@ -24,13 +23,8 @@ import {
   BarChart3,
   PieChart,
   LineChart,
-  Calendar,
-  DollarSign,
   TrendingUp,
-  Users,
   Package,
-  AlertTriangle,
-  Settings,
 } from 'lucide-react';
 
 // Widget type definitions
@@ -71,8 +65,8 @@ export interface Dashboard {
 interface CustomDashboardBuilderProps {
   initialDashboard?: Dashboard;
   availableDataSources: DataSource[];
-  onSave: (dashboard: Dashboard) => Promise<void>;
-  onPreview?: (dashboard: Dashboard) => void;
+  onSave: (_dashboard: Dashboard) => Promise<void>;
+  onPreview?: (_dashboard: Dashboard) => void;
 }
 
 interface DataSource {
@@ -223,8 +217,11 @@ export function CustomDashboardBuilder({
       const newIndex = direction === 'up' ? index - 1 : index + 1;
       if (newIndex < 0 || newIndex >= widgets.length) return prev;
 
+      // eslint-disable-next-line security/detect-object-injection
       [widgets[index], widgets[newIndex]] = [widgets[newIndex], widgets[index]];
+      // eslint-disable-next-line security/detect-object-injection
       widgets[index].position = index;
+      // eslint-disable-next-line security/detect-object-injection
       widgets[newIndex].position = newIndex;
 
       return {

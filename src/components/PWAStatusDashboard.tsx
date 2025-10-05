@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { Wifi, WifiOff, Download, Bell, Database, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Wifi, WifiOff, Download, Bell, Database, Clock } from 'lucide-react';
 import { useBackgroundSync } from '@/lib/pwa/background-sync';
 
 interface PWAStatus {

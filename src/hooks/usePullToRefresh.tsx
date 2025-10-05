@@ -171,8 +171,8 @@ export interface PullToRefreshIndicatorProps {
 export function PullToRefreshIndicator({ state, threshold = 80 }: PullToRefreshIndicatorProps) {
   const { pulling, refreshing, pullDistance, triggered } = state;
 
-  // Calculate progress percentage
-  const progress = Math.min((pullDistance / threshold) * 100, 100);
+  // Calculate _progress percentage
+  const _progress = Math.min((pullDistance / threshold) * 100, 100);
 
   // Calculate opacity
   const opacity = Math.min(pullDistance / threshold, 1);

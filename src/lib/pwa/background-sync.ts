@@ -38,7 +38,7 @@ class BackgroundSync {
     // Register sync event if supported
     if ('serviceWorker' in navigator && 'sync' in ServiceWorkerRegistration.prototype) {
       navigator.serviceWorker.ready.then(registration => {
-        registration.sync.register('sync-queue').catch(err => {
+        (registration as any).sync.register('sync-queue').catch((err: Error) => {
           console.warn('Background sync registration failed:', err);
         });
       });
@@ -105,6 +105,7 @@ class BackgroundSync {
 
     results.forEach((result, index) => {
       if (result.status === 'rejected') {
+        // eslint-disable-next-line security/detect-object-injection
         const action = queue[index];
         action.retryCount++;
 

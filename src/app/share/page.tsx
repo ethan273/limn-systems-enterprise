@@ -6,11 +6,11 @@
 
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, Link as LinkIcon, Image, Upload, Loader2 } from 'lucide-react';
+import { FileText, Link as LinkIcon, Image as ImageIcon, Upload, Loader2 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,7 +21,7 @@ interface SharedData {
   files?: File[];
 }
 
-export default function ShareTargetPage() {
+function ShareTargetContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [sharedData, setSharedData] = useState<SharedData>({});
@@ -91,7 +91,7 @@ export default function ShareTargetPage() {
     if (sharedData.url && !sharedData.text) {
       return <LinkIcon className="h-12 w-12" />;
     } else if (sharedData.files && sharedData.files.length > 0) {
-      return <Image className="h-12 w-12" />;
+      return <ImageIcon className="h-12 w-12" />;
     } else {
       return <FileText className="h-12 w-12" />;
     }
@@ -221,5 +221,17 @@ export default function ShareTargetPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function ShareTargetPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    }>
+      <ShareTargetContent />
+    </Suspense>
   );
 }

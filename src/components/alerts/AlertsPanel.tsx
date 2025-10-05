@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,10 +13,9 @@ import {
   Bell,
   BellOff,
   RefreshCw,
-  Settings,
-  Filter,
 } from 'lucide-react';
-import { Alert, AlertSeverity, AlertStatus, globalThresholdMonitor } from '@/lib/alerts/threshold-monitor';
+import { Alert, globalThresholdMonitor } from '@/lib/alerts/threshold-monitor';
+type AlertSeverity = 'info' | 'warning' | 'critical';
 import { formatDistanceToNow } from 'date-fns';
 
 const SEVERITY_ICONS = {
@@ -43,7 +42,7 @@ interface AlertsPanelProps {
   maxAlerts?: number;
   autoRefresh?: boolean;
   refreshInterval?: number;
-  onAlertClick?: (alert: Alert) => void;
+  onAlertClick?: (_alert: Alert) => void;
 }
 
 export function AlertsPanel({
@@ -58,7 +57,7 @@ export function AlertsPanel({
   const [filterSeverity, setFilterSeverity] = useState<AlertSeverity | 'all'>('all');
   const [muted, setMuted] = useState(false);
 
-  const loadAlerts = () => {
+  const loadAlerts = useCallback(() => {
     let allAlerts = showResolved
       ? globalThresholdMonitor.getAllAlerts()
       : globalThresholdMonitor.getActiveAlerts({ dashboardId });
@@ -68,7 +67,7 @@ export function AlertsPanel({
     }
 
     setAlerts(allAlerts.slice(0, maxAlerts));
-  };
+  }, [dashboardId, showResolved, filterSeverity, maxAlerts]);
 
   useEffect(() => {
     loadAlerts();
@@ -77,7 +76,7 @@ export function AlertsPanel({
       const interval = setInterval(loadAlerts, refreshInterval);
       return () => clearInterval(interval);
     }
-  }, [dashboardId, showResolved, filterSeverity, autoRefresh, refreshInterval]);
+  }, [dashboardId, showResolved, filterSeverity, autoRefresh, refreshInterval, loadAlerts]);
 
   const handleAcknowledge = (alertId: string, userId: string = 'current-user') => {
     globalThresholdMonitor.acknowledgeAlert(alertId, userId);

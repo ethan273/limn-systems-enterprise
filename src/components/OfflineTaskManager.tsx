@@ -99,8 +99,8 @@ export function OfflineTaskManager() {
 
   // Load draft when editing
   useEffect(() => {
-    if (selectedTask && draft) {
-      setFormData(draft.formData);
+    if (selectedTask && draft && draft.formData) {
+      setFormData(draft.formData as typeof formData);
     }
   }, [selectedTask, draft]);
 

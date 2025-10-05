@@ -20,7 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 interface CreateMoodBoardModalProps {
   open: boolean;
-  onOpenChange: (isOpen: boolean) => void;
+  onOpenChange: (_isOpen: boolean) => void;
   designProjectId?: string;
 }
 

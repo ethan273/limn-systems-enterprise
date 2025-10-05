@@ -12,7 +12,7 @@ import { Calendar } from 'lucide-react';
 
 interface DateRangeSelectorProps {
   value: string;
-  onChange: (value: string) => void;
+  onChange: (_value: string) => void;
   className?: string;
 }
 
@@ -24,10 +24,10 @@ const DATE_RANGE_OPTIONS = [
   { value: 'all', label: 'All Time' },
 ];
 
-export function DateRangeSelector({ value, onChange, className }: DateRangeSelectorProps) {
+export function DateRangeSelector({ value: currentValue, onChange, className }: DateRangeSelectorProps) {
   return (
     <div className={`date-range-selector ${className || ''}`}>
-      <Select value={value} onValueChange={onChange}>
+      <Select value={currentValue} onValueChange={onChange}>
         <SelectTrigger className="w-[180px]">
           <Calendar className="w-4 h-4 mr-2" />
           <SelectValue placeholder="Select time range" />

@@ -79,7 +79,7 @@ class PushNotificationManager {
 
         subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: this.urlBase64ToUint8Array(vapidPublicKey),
+          applicationServerKey: this.urlBase64ToUint8Array(vapidPublicKey) as BufferSource,
         });
       }
 
@@ -151,7 +151,7 @@ class PushNotificationManager {
 
   showLocalNotification(title: string, options?: NotificationOptions): void {
     if ('Notification' in window && Notification.permission === 'granted') {
-      const defaultOptions: NotificationOptions = {
+      const defaultOptions: NotificationOptions & { vibrate?: number[] } = {
         icon: '/icons/icon-192.png',
         badge: '/icons/icon-192.png',
         vibrate: [200, 100, 200],
@@ -189,10 +189,10 @@ class PushNotificationManager {
         badge: '/icons/icon-192.png',
         tag: options.tag || `notification-${Date.now()}`,
         data: options.data,
-        actions: options.actions,
-        vibrate: [200, 100, 200],
+        actions: options.actions as any,
+        vibrate: [200, 100, 200] as any,
         requireInteraction: options.requireInteraction || false,
-      });
+      } as NotificationOptions);
     } catch (error) {
       console.error('[Push] Error showing action notification:', error);
     }
@@ -283,8 +283,8 @@ class PushNotificationManager {
         actions: [
           { action: 'view-all', title: '👁️ View All' },
           { action: 'clear-all', title: '🗑️ Clear All' },
-        ],
-      });
+        ] as any,
+      } as NotificationOptions);
     } catch (error) {
       console.error('[Push] Error showing grouped notification:', error);
     }
@@ -347,6 +347,7 @@ class PushNotificationManager {
     const outputArray = new Uint8Array(rawData.length);
 
     for (let i = 0; i < rawData.length; ++i) {
+      // eslint-disable-next-line security/detect-object-injection
       outputArray[i] = rawData.charCodeAt(i);
     }
 

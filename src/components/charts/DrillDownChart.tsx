@@ -27,8 +27,8 @@ export interface DrillDownConfig {
   enabled: boolean;
   filterField: string;
   navigationPath?: string;
-  onDrillDown?: (dataPoint: any) => void;
-  customFilterTransform?: (value: any) => string;
+  onDrillDown?: (_dataPoint: any) => void;
+  customFilterTransform?: (_value: any) => string;
 }
 
 export interface ChartDataPoint {
@@ -255,6 +255,7 @@ export function DrillDownChart({
                 cx="50%"
                 cy="50%"
                 outerRadius={80}
+                // eslint-disable-next-line security/detect-object-injection
                 label={(entry) => `${entry[xAxisKey]}: ${entry[Array.isArray(dataKey) ? dataKey[0] : dataKey]}`}
                 onClick={handleChartClick}
                 style={drillDownConfig?.enabled ? { cursor: 'pointer' } : undefined}

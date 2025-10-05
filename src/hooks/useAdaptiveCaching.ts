@@ -77,7 +77,9 @@ export function useAdaptiveCaching(config: AdaptiveCachingConfig = {}) {
     }
 
     // Use custom thresholds if provided
+    // eslint-disable-next-line security/detect-object-injection
     if (customThresholds && customThresholds[type]) {
+      // eslint-disable-next-line security/detect-object-injection
       return customThresholds[type]!;
     }
 
@@ -89,7 +91,7 @@ export function useAdaptiveCaching(config: AdaptiveCachingConfig = {}) {
       'slow-2g': 'minimal',
       'unknown': 'moderate',
     };
-
+    // eslint-disable-next-line security/detect-object-injection
     return strategyMap[type];
   }, [customThresholds]);
 
@@ -393,6 +395,7 @@ export function useAdaptiveFetch<T>(
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchFn, cacheKey, cacheTTL, networkStatus, ...dependencies]);
 
   return { data, loading, error };

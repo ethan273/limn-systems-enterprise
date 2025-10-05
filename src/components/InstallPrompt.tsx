@@ -45,7 +45,7 @@ export function InstallPrompt() {
 
     // iOS specific check
     const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-    if (isIOS && !window.navigator.standalone) {
+    if (isIOS && !(window.navigator as any).standalone) {
       // Show iOS install instructions after delay
       setTimeout(() => {
         setShowPrompt(true);

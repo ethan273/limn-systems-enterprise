@@ -50,10 +50,10 @@ interface ComparisonResult extends MetricComparison {
 
 interface DashboardComparisonViewProps {
   availableDashboards: DashboardOption[];
-  onCompare: (leftDashboardId: string, rightDashboardId: string, dateRange: DateRange) => Promise<MetricComparison[]>;
+  onCompare: (_leftDashboardId: string, _rightDashboardId: string, _dateRange: DateRange) => Promise<MetricComparison[]>;
   defaultLeftDashboard?: string;
   defaultRightDashboard?: string;
-  onExportComparison?: (comparison: ComparisonResult[]) => void;
+  onExportComparison?: (_comparison: ComparisonResult[]) => void;
 }
 
 interface DateRange {
@@ -70,7 +70,7 @@ export function DashboardComparisonView({
 }: DashboardComparisonViewProps) {
   const [leftDashboard, setLeftDashboard] = useState<string>(defaultLeftDashboard || '');
   const [rightDashboard, setRightDashboard] = useState<string>(defaultRightDashboard || '');
-  const [dateRange, setDateRange] = useState<DateRange>({
+  const [dateRange, _setDateRange] = useState<DateRange>({
     start: new Date(new Date().setDate(new Date().getDate() - 30)),
     end: new Date(),
   });
@@ -130,9 +130,12 @@ export function DashboardComparisonView({
     const grouped: Record<string, ComparisonResult[]> = { Uncategorized: [] };
     comparisonResults.forEach((result) => {
       const category = result.category || 'Uncategorized';
+      // eslint-disable-next-line security/detect-object-injection
       if (!grouped[category]) {
+        // eslint-disable-next-line security/detect-object-injection
         grouped[category] = [];
       }
+      // eslint-disable-next-line security/detect-object-injection
       grouped[category].push(result);
     });
     return grouped;

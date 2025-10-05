@@ -12,7 +12,7 @@ export function getSupabaseAdmin() {
   if (!_adminClient) {
     _adminClient = createClient(supabaseUrl, supabaseServiceKey, {
       db: {
-        schema: 'public',
+        schema: 'public' as any,
       },
       global: {
         headers: {
