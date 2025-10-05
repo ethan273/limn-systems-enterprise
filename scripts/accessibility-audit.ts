@@ -158,9 +158,9 @@ async function runAccessibilityAudit() {
             helpUrl: v.helpUrl,
             nodes: v.nodes.map(n => ({
               html: n.html,
-              target: n.target,
-              failureSummary: n.failureSummary,
-            })),
+              target: Array.isArray(n.target) ? n.target.map(String) : [String(n.target)],
+              failureSummary: n.failureSummary || '',
+            })) as Array<{ html: string; target: string[]; failureSummary: string }>,
           };
         });
 

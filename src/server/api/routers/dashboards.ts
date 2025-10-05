@@ -2208,4 +2208,489 @@ export const dashboardsRouter = createTRPCRouter({
           return priorityOrder[a.priority as keyof typeof priorityOrder] - priorityOrder[b.priority as keyof typeof priorityOrder];
         });
       }),
+
+    // ==================== QUALITY CONTROL DASHBOARD ====================
+
+    /**
+     * Get quality control metrics for Quality Dashboard
+     */
+    getQuality: publicProcedure
+      .input(z.object({
+        dateRange: z.enum(['7d', '30d', '90d', 'all']).default('30d'),
+      }).optional())
+      .query(async ({ ctx, input }) => {
+        const dateRange = input?.dateRange || '30d';
+
+        // Calculate date range
+        const now = new Date();
+        let startDate: Date | null = null;
+
+        if (dateRange === '7d') {
+          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        } else if (dateRange === '30d') {
+          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        } else if (dateRange === '90d') {
+          startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        }
+
+        // Fetch all quality data (in-memory filtering)
+        const [
+          allInspections,
+          allProductionOrders,
+        ] = await Promise.all([
+          ctx.db.qc_inspections.findMany(),
+          ctx.db.production_orders.findMany(),
+        ]);
+
+        // Filter by date range
+        const inspections = startDate
+          ? allInspections.filter(i => i.created_at && new Date(i.created_at) >= startDate)
+          : allInspections;
+
+        // ========== INSPECTION METRICS ==========
+        const totalInspections = allInspections.length;
+        const newInspections = inspections.length;
+        const passedInspections = allInspections.filter(i => i.status === 'passed').length;
+        const failedInspections = allInspections.filter(i => i.status === 'failed').length;
+        const pendingInspections = allInspections.filter(i => i.status === 'pending').length;
+
+        const passRate = totalInspections > 0 ? (passedInspections / totalInspections) * 100 : 0;
+        const failRate = totalInspections > 0 ? (failedInspections / totalInspections) * 100 : 0;
+
+        // ========== DEFECT ANALYSIS ==========
+        const defectCategories: Record<string, number> = {};
+        allInspections.forEach((inspection: any) => {
+          if (inspection.status === 'failed' && inspection.defect_type) {
+            defectCategories[inspection.defect_type] = (defectCategories[inspection.defect_type] || 0) + 1;
+          }
+        });
+
+        const topDefects = Object.entries(defectCategories)
+          .sort(([, a], [, b]) => b - a)
+          .slice(0, 5)
+          .map(([category, count]) => ({
+            category,
+            count,
+          }));
+
+        // ========== INSPECTION TREND ==========
+        const inspectionTrend = [];
+        const daysToShow = dateRange === '7d' ? 7 : dateRange === '30d' ? 30 : 90;
+
+        for (let i = daysToShow - 1; i >= 0; i--) {
+          const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+          const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+          const dayEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
+
+          const dayInspections = allInspections.filter(i =>
+            i.created_at &&
+            new Date(i.created_at) >= dayStart &&
+            new Date(i.created_at) < dayEnd
+          );
+
+          const dayPassed = dayInspections.filter(i => i.status === 'passed').length;
+          const dayFailed = dayInspections.filter(i => i.status === 'failed').length;
+
+          inspectionTrend.push({
+            date: dayStart.toISOString().split('T')[0],
+            passed: dayPassed,
+            failed: dayFailed,
+            total: dayInspections.length,
+          });
+        }
+
+        // ========== STATUS DISTRIBUTION ==========
+        const statusDistribution = [
+          { status: 'Passed', count: passedInspections },
+          { status: 'Failed', count: failedInspections },
+          { status: 'Pending', count: pendingInspections },
+        ];
+
+        return {
+          dateRange,
+          summary: {
+            totalInspections,
+            newInspections,
+            passedInspections,
+            failedInspections,
+            pendingInspections,
+            passRate: Math.round(passRate * 100) / 100,
+            failRate: Math.round(failRate * 100) / 100,
+          },
+          topDefects,
+          inspectionTrend,
+          statusDistribution,
+        };
+      }),
+
+    /**
+     * Get quality insights and recommendations
+     */
+    getQualityInsights: publicProcedure
+      .query(async ({ ctx }) => {
+        const [inspections] = await Promise.all([
+          ctx.db.qc_inspections.findMany(),
+        ]);
+
+        const insights: Array<{
+          type: 'success' | 'warning' | 'error' | 'info';
+          title: string;
+          description: string;
+          action: string;
+          actionLink: string;
+          priority: 'high' | 'medium' | 'low';
+        }> = [];
+
+        // Insight 1: Pass rate
+        const totalInspections = inspections.length;
+        const passedInspections = inspections.filter(i => i.status === 'passed').length;
+        const passRate = totalInspections > 0 ? (passedInspections / totalInspections) * 100 : 0;
+
+        if (passRate < 90 && totalInspections > 10) {
+          insights.push({
+            type: 'warning',
+            title: `Quality pass rate at ${Math.round(passRate)}%`,
+            description: 'Below target (90%). Review production processes and quality standards.',
+            action: 'View Inspections',
+            actionLink: '/production/ordered-items',
+            priority: 'high',
+          });
+        } else if (passRate >= 95) {
+          insights.push({
+            type: 'success',
+            title: `${Math.round(passRate)}% quality pass rate`,
+            description: 'Excellent quality standards maintained.',
+            action: 'View Quality Dashboard',
+            actionLink: '/dashboards/quality',
+            priority: 'low',
+          });
+        }
+
+        // Insight 2: Pending inspections
+        const pendingInspections = inspections.filter(i => i.status === 'pending');
+        if (pendingInspections.length > 10) {
+          insights.push({
+            type: 'warning',
+            title: `${pendingInspections.length} inspections pending`,
+            description: 'Large backlog may delay production. Expedite reviews.',
+            action: 'Review Pending',
+            actionLink: '/production/ordered-items',
+            priority: 'high',
+          });
+        }
+
+        // Insight 3: Failed inspections
+        const failedInspections = inspections.filter(i => i.status === 'failed');
+        if (failedInspections.length > 5) {
+          insights.push({
+            type: 'error',
+            title: `${failedInspections.length} failed inspections`,
+            description: 'Multiple quality failures. Implement corrective actions.',
+            action: 'View Failed Inspections',
+            actionLink: '/production/ordered-items',
+            priority: 'high',
+          });
+        }
+
+        // Insight 4: Defect patterns
+        const defectCategories: Record<string, number> = {};
+        failedInspections.forEach((inspection: any) => {
+          if (inspection.defect_type) {
+            defectCategories[inspection.defect_type] = (defectCategories[inspection.defect_type] || 0) + 1;
+          }
+        });
+
+        const topDefect = Object.entries(defectCategories).sort(([, a], [, b]) => b - a)[0];
+        if (topDefect && topDefect[1] > 3) {
+          insights.push({
+            type: 'warning',
+            title: `${topDefect[0]} defects occurring frequently`,
+            description: `${topDefect[1]} instances. Investigate root cause.`,
+            action: 'Review Defects',
+            actionLink: '/production/ordered-items',
+            priority: 'high',
+          });
+        }
+
+        return insights.sort((a, b) => {
+          const priorityOrder = { high: 0, medium: 1, low: 2 };
+          return priorityOrder[a.priority as keyof typeof priorityOrder] - priorityOrder[b.priority as keyof typeof priorityOrder];
+        });
+      }),
+
+    // ==================== PARTNER RELATIONSHIP DASHBOARD ====================
+
+    /**
+     * Get partner relationship metrics for Partner Dashboard
+     */
+    getPartners: publicProcedure
+      .input(z.object({
+        dateRange: z.enum(['7d', '30d', '90d', 'all']).default('30d'),
+      }).optional())
+      .query(async ({ ctx, input }) => {
+        const dateRange = input?.dateRange || '30d';
+
+        // Calculate date range
+        const now = new Date();
+        let startDate: Date | null = null;
+
+        if (dateRange === '7d') {
+          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        } else if (dateRange === '30d') {
+          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        } else if (dateRange === '90d') {
+          startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        }
+
+        // Fetch all partner data (in-memory filtering)
+        const [
+          allPartners,
+          allContacts,
+          allDocuments,
+          allPerformance,
+          allOrders,
+        ] = await Promise.all([
+          ctx.db.partners.findMany(),
+          ctx.db.partner_contacts.findMany(),
+          ctx.db.partner_documents.findMany(),
+          ctx.db.partner_performance.findMany(),
+          ctx.db.orders.findMany(),
+        ]);
+
+        // Filter by date range
+        const partners = startDate
+          ? allPartners.filter(p => p.created_at && new Date(p.created_at) >= startDate)
+          : allPartners;
+
+        // ========== PARTNER METRICS ==========
+        const totalPartners = allPartners.length;
+        const newPartners = partners.length;
+        const activePartners = allPartners.filter(p => p.status === 'active').length;
+        const inactivePartners = allPartners.filter(p => p.status === 'inactive').length;
+        const pendingPartners = allPartners.filter(p => p.status === 'pending').length;
+
+        // ========== PARTNER TYPES ==========
+        const partnerTypes: Record<string, number> = {};
+        allPartners.forEach((partner: any) => {
+          const type = partner.partner_type || 'Unknown';
+          partnerTypes[type] = (partnerTypes[type] || 0) + 1;
+        });
+
+        const typeDistribution = Object.entries(partnerTypes).map(([type, count]) => ({
+          type,
+          count,
+        }));
+
+        // ========== CONTACTS & DOCUMENTS ==========
+        const totalContacts = allContacts.length;
+        const totalDocuments = allDocuments.length;
+        const avgContactsPerPartner = totalPartners > 0 ? totalContacts / totalPartners : 0;
+        const avgDocumentsPerPartner = totalPartners > 0 ? totalDocuments / totalPartners : 0;
+
+        // ========== PARTNER PERFORMANCE ==========
+        const performanceMetrics = allPerformance.reduce((acc, perf: any) => {
+          return {
+            totalOrders: acc.totalOrders + (perf.total_orders || 0),
+            onTimeDeliveries: acc.onTimeDeliveries + (perf.on_time_deliveries || 0),
+            qualityScore: acc.qualityScore + (perf.quality_score || 0),
+            count: acc.count + 1,
+          };
+        }, { totalOrders: 0, onTimeDeliveries: 0, qualityScore: 0, count: 0 });
+
+        const avgOnTimeRate = performanceMetrics.totalOrders > 0
+          ? (performanceMetrics.onTimeDeliveries / performanceMetrics.totalOrders) * 100
+          : 0;
+
+        const avgQualityScore = performanceMetrics.count > 0
+          ? performanceMetrics.qualityScore / performanceMetrics.count
+          : 0;
+
+        // ========== TOP PARTNERS BY ORDERS ==========
+        const partnerOrderCounts: Record<string, number> = {};
+        allOrders.forEach((order: any) => {
+          const partnerId = order.partner_id;
+          if (partnerId) {
+            partnerOrderCounts[partnerId] = (partnerOrderCounts[partnerId] || 0) + 1;
+          }
+        });
+
+        const topPartners = Object.entries(partnerOrderCounts)
+          .sort(([, a], [, b]) => b - a)
+          .slice(0, 10)
+          .map(([partnerId, orderCount]) => {
+            const partner = allPartners.find((p: any) => p.id === partnerId);
+            return {
+              id: partnerId,
+              name: partner?.name || 'Unknown Partner',
+              orderCount,
+              status: partner?.status || 'unknown',
+            };
+          });
+
+        // ========== PARTNER GROWTH TREND ==========
+        const partnerTrend = [];
+        const daysToShow = dateRange === '7d' ? 7 : dateRange === '30d' ? 30 : 90;
+
+        for (let i = daysToShow - 1; i >= 0; i--) {
+          const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+          const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+          const dayEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
+
+          const dayNewPartners = allPartners.filter(p =>
+            p.created_at &&
+            new Date(p.created_at) >= dayStart &&
+            new Date(p.created_at) < dayEnd
+          ).length;
+
+          // Count cumulative active partners up to this date
+          const cumulativeActive = allPartners.filter(p =>
+            p.created_at &&
+            new Date(p.created_at) <= dayEnd &&
+            (p.status === 'active' || p.status === 'pending')
+          ).length;
+
+          partnerTrend.push({
+            date: dayStart.toISOString().split('T')[0],
+            newPartners: dayNewPartners,
+            activePartners: cumulativeActive,
+          });
+        }
+
+        // ========== STATUS DISTRIBUTION ==========
+        const statusDistribution = [
+          { status: 'Active', count: activePartners },
+          { status: 'Inactive', count: inactivePartners },
+          { status: 'Pending', count: pendingPartners },
+        ];
+
+        return {
+          dateRange,
+          summary: {
+            totalPartners,
+            newPartners,
+            activePartners,
+            inactivePartners,
+            pendingPartners,
+            totalContacts,
+            totalDocuments,
+            avgContactsPerPartner: Math.round(avgContactsPerPartner * 10) / 10,
+            avgDocumentsPerPartner: Math.round(avgDocumentsPerPartner * 10) / 10,
+          },
+          performance: {
+            avgOnTimeRate: Math.round(avgOnTimeRate * 100) / 100,
+            avgQualityScore: Math.round(avgQualityScore * 100) / 100,
+          },
+          typeDistribution,
+          topPartners,
+          partnerTrend,
+          statusDistribution,
+        };
+      }),
+
+    /**
+     * Get partner insights and recommendations
+     */
+    getPartnerInsights: publicProcedure
+      .query(async ({ ctx }) => {
+        const [partners, performance] = await Promise.all([
+          ctx.db.partners.findMany(),
+          ctx.db.partner_performance.findMany(),
+        ]);
+
+        const insights: Array<{
+          type: 'success' | 'warning' | 'error' | 'info';
+          title: string;
+          description: string;
+          action: string;
+          actionLink: string;
+          priority: 'high' | 'medium' | 'low';
+        }> = [];
+
+        // Insight 1: Partner growth
+        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        const newPartners = partners.filter(p =>
+          p.created_at && new Date(p.created_at) >= thirtyDaysAgo
+        );
+
+        if (newPartners.length > 5) {
+          insights.push({
+            type: 'success',
+            title: `${newPartners.length} new partners this month`,
+            description: 'Strong partnership growth. Ensure proper onboarding and relationship management.',
+            action: 'View New Partners',
+            actionLink: '/partners',
+            priority: 'low',
+          });
+        }
+
+        // Insight 2: Inactive partners
+        const inactivePartners = partners.filter(p => p.status === 'inactive');
+        if (inactivePartners.length > 10) {
+          insights.push({
+            type: 'warning',
+            title: `${inactivePartners.length} inactive partners`,
+            description: 'High number of inactive partnerships. Review and re-engage or archive.',
+            action: 'Review Inactive Partners',
+            actionLink: '/partners?status=inactive',
+            priority: 'medium',
+          });
+        }
+
+        // Insight 3: Performance issues
+        const lowPerformers = performance.filter((perf: any) => {
+          const onTimeRate = perf.total_orders > 0
+            ? (perf.on_time_deliveries / perf.total_orders) * 100
+            : 0;
+          return onTimeRate < 80 && perf.total_orders > 5;
+        });
+
+        if (lowPerformers.length > 0) {
+          insights.push({
+            type: 'warning',
+            title: `${lowPerformers.length} partners below performance targets`,
+            description: 'Partners with on-time delivery below 80%. Review and address performance issues.',
+            action: 'Review Performance',
+            actionLink: '/partners',
+            priority: 'high',
+          });
+        }
+
+        // Insight 4: Pending approvals
+        const pendingPartners = partners.filter(p => p.status === 'pending');
+        if (pendingPartners.length > 3) {
+          insights.push({
+            type: 'info',
+            title: `${pendingPartners.length} partners pending approval`,
+            description: 'Complete onboarding process and activate partnerships.',
+            action: 'Review Pending',
+            actionLink: '/partners?status=pending',
+            priority: 'medium',
+          });
+        }
+
+        // Insight 5: Top performers
+        const highPerformers = performance.filter((perf: any) => {
+          const onTimeRate = perf.total_orders > 0
+            ? (perf.on_time_deliveries / perf.total_orders) * 100
+            : 0;
+          const qualityScore = perf.quality_score || 0;
+          return onTimeRate >= 95 && qualityScore >= 4.5 && perf.total_orders > 10;
+        });
+
+        if (highPerformers.length > 0) {
+          insights.push({
+            type: 'success',
+            title: `${highPerformers.length} top-performing partners`,
+            description: 'Excellent performance and quality. Consider expanding collaboration.',
+            action: 'View Top Partners',
+            actionLink: '/partners',
+            priority: 'low',
+          });
+        }
+
+        return insights.sort((a, b) => {
+          const priorityOrder = { high: 0, medium: 1, low: 2 };
+          return priorityOrder[a.priority as keyof typeof priorityOrder] - priorityOrder[b.priority as keyof typeof priorityOrder];
+        });
+      }),
 });

@@ -149,7 +149,7 @@ async function testPageInMode(page: any, pageInfo: any, mode: 'light' | 'dark'):
       help: v.help,
       helpUrl: v.helpUrl,
       element: node.html.substring(0, 150),
-      failureSummary: node.failureSummary,
+      failureSummary: node.failureSummary || '',
     }))
   );
 

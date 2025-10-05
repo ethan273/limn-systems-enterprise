@@ -201,7 +201,7 @@ async function runCompleteAccessibilityAudit() {
         console.log(`${progress} ✅ ${pageInfo.name}`);
       }
     } catch (error) {
-      console.log(`${progress} ⚠️  ${pageInfo.name} - Error: ${error.message}`);
+      console.log(`${progress} ⚠️  ${pageInfo.name} - Error: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 

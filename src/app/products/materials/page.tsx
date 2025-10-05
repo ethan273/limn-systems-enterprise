@@ -166,6 +166,7 @@ export default function MaterialsPage() {
           type: formData.type || undefined,
           description: formData.description || undefined,
           category_id: formData.category_id,
+          hierarchy_level: 1,
           active: formData.active,
           cost_per_unit: formData.cost_per_unit || undefined,
           unit_of_measure: formData.unit_of_measure || undefined,

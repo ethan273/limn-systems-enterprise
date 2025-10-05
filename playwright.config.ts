@@ -129,9 +129,6 @@ export default defineConfig({
       /* CSS animations */
       caret: 'hide',
 
-      /* Full page screenshots */
-      fullPage: true,
-
       /* Screenshot comparison mode */
       scale: 'css',
     },
