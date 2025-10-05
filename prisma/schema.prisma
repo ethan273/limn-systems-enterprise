@@ -1973,7 +1973,7 @@ model documents {
   user_profiles_documents_uploaded_by_userTouser_profiles user_profiles?          @relation("documents_uploaded_by_userTouser_profiles", fields: [uploaded_by_user], references: [id], onDelete: NoAction, onUpdate: NoAction)
   concepts                                                concepts?               @relation(fields: [concept_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_documents_concepts")
   prototypes                                              prototypes?             @relation(fields: [prototype_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_documents_prototypes")
-  production_orders                                       production_orders[]
+  production_orders                                       production_orders[]     @relation("documentsToproduction_orders")
 
   @@index([catalog_item_id], map: "idx_documents_catalog_item_id")
   @@index([concept_id], map: "idx_documents_concept_id")
@@ -3393,8 +3393,12 @@ model notifications {
   priority    String?
   expires_at  String?
   created_at  DateTime?  @default(now()) @db.Timestamptz(6)
+  link        String?
+  entity_type String?
+  entity_id   String?    @db.Uuid
   customers   customers? @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
+  @@index([entity_type, entity_id], map: "idx_notifications_entity")
   @@schema("public")
 }
 
@@ -4391,13 +4395,13 @@ model production_orders {
   users                                          users?                     @relation(fields: [created_by], references: [id], onUpdate: NoAction)
   manufacturers                                  manufacturers?             @relation(fields: [factory_id], references: [id], onUpdate: NoAction)
   orders                                         orders?                    @relation(fields: [order_id], references: [id], onUpdate: NoAction)
-  partners                                       partners?                  @relation(fields: [factory_id], references: [id], onUpdate: NoAction, map: "production_orders_partner_factory_id_fkey")
+  factory_partner                                partners?                  @relation(fields: [factory_id], references: [id], onUpdate: NoAction, map: "production_orders_partner_factory_id_fkey")
   projects                                       projects?                  @relation(fields: [project_id], references: [id], onUpdate: NoAction)
   items_production_orders_prototype_idToitems    items?                     @relation("production_orders_prototype_idToitems", fields: [prototype_id], references: [id], onUpdate: NoAction)
   production_payments                            production_payments[]
   shipping_quotes                                shipping_quotes[]
   shop_drawings                                  shop_drawings[]
-  documents                                      documents[]
+  documents                                      documents[]                @relation("documentsToproduction_orders")
 
   @@index([catalog_item_id], map: "idx_production_orders_catalog_item_id")
   @@index([factory_id], map: "idx_production_orders_factory_id")
