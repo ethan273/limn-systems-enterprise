@@ -110,7 +110,8 @@ export async function uploadFileToDrive(
     if (file instanceof Buffer) {
       buffer = file;
     } else {
-      const arrayBuffer = await file.arrayBuffer();
+      // Handle File object (from browser uploads)
+      const arrayBuffer = await (file as File).arrayBuffer();
       buffer = Buffer.from(arrayBuffer);
     }
 

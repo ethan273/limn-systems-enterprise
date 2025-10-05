@@ -5931,3 +5931,49 @@ button.bg-primary {
     margin-top: 0.5rem;
   }
 }
+
+/* ==========================================================================
+   CHART LOADING SKELETON
+   ========================================================================== */
+.chart-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 2rem;
+  min-height: 300px;
+  justify-content: center;
+}
+
+.skeleton-bar {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted) / 0.3) 0%,
+    hsl(var(--muted) / 0.5) 50%,
+  hsl(var(--muted) / 0.3) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: 0.5rem;
+  height: 60px;
+}
+
+.skeleton-bar:nth-child(1) {
+  width: 80%;
+}
+
+.skeleton-bar:nth-child(2) {
+  width: 95%;
+}
+
+.skeleton-bar:nth-child(3) {
+  width: 70%;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

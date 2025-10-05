@@ -139,8 +139,19 @@ const nextConfig = {
   // Explicitly set workspace root to prevent inference warnings
   outputFileTracingRoot: __dirname,
 
-  // Image optimization
+  // Image optimization - OPTIMIZED FOR PERFORMANCE
   images: {
+    // Modern image formats for better compression
+    formats: ['image/avif', 'image/webp'],
+
+    // Responsive image sizes
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+
+    // Cache TTL for optimized images
+    minimumCacheTTL: 60,
+
+    // Allowed image domains
     remotePatterns: [
       {
         protocol: 'http',
@@ -172,6 +183,9 @@ const nextConfig = {
 
   // Experimental features
   experimental: {
+    // React Compiler - DISABLED: Experimental, has peer dependency conflicts with current setup
+    // reactCompiler: true,
+
     // Server actions configuration
     serverActions: {
       allowedOrigins: ["localhost:3000", "127.0.0.1:3000", "192.168.50.158:3000"],

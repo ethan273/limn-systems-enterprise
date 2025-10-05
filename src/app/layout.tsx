@@ -3,7 +3,11 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({
+  subsets: ["latin"],
+  display: 'swap', // Prevent FOIT (Flash of Invisible Text)
+  preload: true, // Preload font for faster initial render
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(
