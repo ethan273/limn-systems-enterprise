@@ -3,38 +3,29 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  PageHeader,
+  StatsGrid,
+  DataTable,
+  EmptyState,
+  LoadingState,
+  StatusBadge,
+  type StatItem,
+  type DataTableColumn,
+  type DataTableFilter,
+} from "@/components/common";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 import {
-  Search,
-  Filter,
+  Thermometer,
   MoreVertical,
   Building,
   Mail,
-  Thermometer,
   Eye,
   Edit,
   Trash,
@@ -49,42 +40,37 @@ type LeadStatus = 'new' | 'contacted' | 'qualified' | 'proposal' | 'negotiation'
 const PROSPECT_STATUSES: {
   value: ProspectStatus;
   label: string;
-  className: string;
   description: string;
 }[] = [
   {
     value: 'hot',
     label: 'Hot',
-    className: 'priority-high',
     description: 'Ready to buy, high interest'
   },
   {
     value: 'warm',
     label: 'Warm',
-    className: 'priority-medium',
     description: 'Engaged, needs nurturing'
   },
   {
     value: 'cold',
     label: 'Cold',
-    className: 'priority-low',
     description: 'Early stage, requires attention'
   },
 ];
 
 export default function ProspectsPage() {
   const router = useRouter();
-  const [search, setSearch] = useState("");
-  const [prospectFilter, setProspectFilter] = useState<ProspectStatus | 'all'>('all');
-  const [statusFilter, setStatusFilter] = useState<LeadStatus | 'all'>('all');
-  const [page, setPage] = useState(0);
+  const [_prospectFilter, _setProspectFilter] = useState<ProspectStatus | 'all'>('all');
+  const [_statusFilter, _setStatusFilter] = useState<LeadStatus | 'all'>('all');
+  const [_page, _setPage] = useState(0);
   const [limit] = useState(20);
 
   const { data: prospectsData, isLoading, refetch } = api.crm.leads.getProspects.useQuery({
     limit,
-    offset: page * limit,
-    prospect_status: prospectFilter === 'all' ? undefined : prospectFilter,
-    status: statusFilter === 'all' ? undefined : statusFilter,
+    offset: _page * limit,
+    prospect_status: _prospectFilter === 'all' ? undefined : _prospectFilter,
+    status: _statusFilter === 'all' ? undefined : _statusFilter,
   });
 
   const deleteLeadMutation = api.crm.leads.delete.useMutation({
@@ -107,15 +93,13 @@ export default function ProspectsPage() {
     },
   });
 
-  const handleDeleteProspect = (prospectId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleDeleteProspect = (prospectId: string) => {
     if (confirm("Are you sure you want to delete this prospect?")) {
       deleteLeadMutation.mutate({ id: prospectId });
     }
   };
 
-  const handleConvertToClient = (prospect: any, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleConvertToClient = (prospect: any) => {
     convertToClientMutation.mutate({
       leadId: prospect.id,
       clientData: {
@@ -128,17 +112,6 @@ export default function ProspectsPage() {
     });
   };
 
-  const clearFilters = () => {
-    setSearch("");
-    setProspectFilter('all');
-    setStatusFilter('all');
-    setPage(0);
-  };
-
-  const getProspectConfig = (status: string | null) => {
-    return PROSPECT_STATUSES.find(s => s.value === status);
-  };
-
   const getProspectPriority = (prospect: any): number => {
     const statusPriority = { 'hot': 3, 'warm': 2, 'cold': 1 };
     const statusScore = statusPriority[prospect.prospect_status as ProspectStatus] || 0;
@@ -149,18 +122,10 @@ export default function ProspectsPage() {
     return Math.round(statusScore + valueScore + timeScore);
   };
 
-  // Filter prospects based on search
-  const filteredProspects = (prospectsData?.items as any[] || []).filter((prospect: any) => {
-    const matchesSearch = !search ||
-      prospect.name.toLowerCase().includes(search.toLowerCase()) ||
-      prospect.email.toLowerCase().includes(search.toLowerCase()) ||
-      prospect.company.toLowerCase().includes(search.toLowerCase());
-
-    return matchesSearch;
-  }) || [];
+  const prospects = prospectsData?.items || [];
 
   // Sort prospects by priority and status
-  const sortedProspects = [...filteredProspects].sort((a: any, b: any) => {
+  const sortedProspects = [...prospects].sort((a: any, b: any) => {
     const aPriority = getProspectPriority(a);
     const bPriority = getProspectPriority(b);
     if (aPriority !== bPriority) return bPriority - aPriority;
@@ -174,260 +139,194 @@ export default function ProspectsPage() {
 
   const prospectsByStatus = PROSPECT_STATUSES.map((status) => ({
     ...status,
-    count: filteredProspects.filter((p: any) => p.prospect_status === status.value).length,
-    totalValue: filteredProspects
+    count: prospects.filter((p: any) => p.prospect_status === status.value).length,
+    totalValue: prospects
       .filter((p: any) => p.prospect_status === status.value)
       .reduce((sum: number, p: any) => sum + (p.value || 0), 0),
   }));
 
+  // Stats configuration
+  const stats: StatItem[] = prospectsByStatus.map((status) => ({
+    title: `${status.label} Prospects`,
+    value: status.count,
+    description: `$${status.totalValue.toLocaleString()} total value`,
+    icon: Thermometer,
+    iconColor: status.value === 'hot' ? 'error' : status.value === 'warm' ? 'warning' : 'info',
+  }));
+
+  // DataTable columns
+  const columns: DataTableColumn<any>[] = [
+    {
+      key: 'priority',
+      label: 'Priority',
+      render: (_, row) => {
+        const priority = getProspectPriority(row);
+        return (
+          <div className="flex items-center gap-1">
+            <Star className={`icon-sm ${priority >= 5 ? 'text-warning' : 'text-muted'}`} aria-hidden="true" />
+            <span className="font-mono text-sm">{priority}</span>
+          </div>
+        );
+      },
+    },
+    {
+      key: 'name',
+      label: 'Name',
+      sortable: true,
+      render: (value) => <span className="font-medium">{value as string}</span>,
+    },
+    {
+      key: 'company',
+      label: 'Company',
+      render: (value) => value ? (
+        <div className="flex items-center gap-2">
+          <Building className="icon-xs text-muted" aria-hidden="true" />
+          <span>{value as string}</span>
+        </div>
+      ) : <span className="text-muted">—</span>,
+    },
+    {
+      key: 'email',
+      label: 'Email',
+      render: (value) => value ? (
+        <div className="flex items-center gap-2">
+          <Mail className="icon-xs text-muted" aria-hidden="true" />
+          <span className="truncate max-w-[200px]">{value as string}</span>
+        </div>
+      ) : <span className="text-muted">—</span>,
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (value) => value ? <StatusBadge status={value as string} /> : <span className="text-muted">—</span>,
+    },
+    {
+      key: 'prospect_status',
+      label: 'Prospect',
+      render: (value) => value ? <StatusBadge status={value as string} /> : <span className="text-muted">—</span>,
+    },
+    {
+      key: 'value',
+      label: 'Value',
+      sortable: true,
+      render: (value) => value ? `$${(value as number).toLocaleString()}` : <span className="text-muted">—</span>,
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      render: (_, row) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+            <Button variant="ghost" size="sm" className="btn-icon">
+              <MoreVertical className="icon-sm" aria-hidden="true" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="card">
+            <DropdownMenuItem
+              className="dropdown-item"
+              onClick={(e) => {
+                e.stopPropagation();
+                router.push(`/crm/prospects/${row.id}`);
+              }}
+            >
+              <Eye className="icon-sm" aria-hidden="true" />
+              View Details
+            </DropdownMenuItem>
+            <DropdownMenuItem className="dropdown-item">
+              <Edit className="icon-sm" aria-hidden="true" />
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="dropdown-item"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleConvertToClient(row);
+              }}
+            >
+              <ArrowRight className="icon-sm" aria-hidden="true" />
+              Convert to Client
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="dropdown-item-danger"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteProspect(row.id);
+              }}
+            >
+              <Trash className="icon-sm" aria-hidden="true" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ];
+
+  // Filters configuration
+  const filters: DataTableFilter[] = [
+    {
+      key: 'search',
+      label: 'Search prospects',
+      type: 'search',
+      placeholder: 'Search by name, email, or company...',
+    },
+    {
+      key: 'prospect_status',
+      label: 'Prospect Status',
+      type: 'select',
+      options: [
+        { value: 'all', label: 'All Prospects' },
+        ...PROSPECT_STATUSES.map(s => ({ value: s.value, label: `${s.label} Prospects` })),
+      ],
+    },
+    {
+      key: 'status',
+      label: 'Lead Status',
+      type: 'select',
+      options: [
+        { value: 'all', label: 'All Statuses' },
+        { value: 'new', label: 'New' },
+        { value: 'contacted', label: 'Contacted' },
+        { value: 'qualified', label: 'Qualified' },
+        { value: 'proposal', label: 'Proposal' },
+        { value: 'negotiation', label: 'Negotiation' },
+      ],
+    },
+  ];
+
   return (
     <div className="page-container">
-      {/* Header */}
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Prospects</h1>
-          <p className="page-subtitle">Manage qualified prospects in your sales pipeline</p>
-        </div>
-      </div>
+      {/* Page Header */}
+      <PageHeader
+        title="Prospects"
+        subtitle="Manage qualified prospects in your sales pipeline"
+      />
 
-      {/* Prospect Status Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {prospectsByStatus.map((status) => {
-          const bgColor = status.value === 'hot' ? 'bg-destructive-muted/20' : status.value === 'warm' ? 'bg-warning-muted/20' : 'bg-info-muted/20';
-          const iconColor = status.value === 'hot' ? 'text-destructive' : status.value === 'warm' ? 'text-warning' : 'text-info';
+      {/* Pipeline Stats */}
+      <StatsGrid stats={stats} columns={3} />
 
-          return (
-            <Card key={status.value} className="card">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${bgColor}`}>
-                    <Thermometer className={`h-5 w-5 ${iconColor}`} aria-hidden="true" />
-                  </div>
-                  <div>
-                    <p className="text-sm page-subtitle">{status.label} Prospects</p>
-                    <p className="text-xl font-bold text-primary">
-                      {status.count}<span className="text-sm font-normal text-secondary ml-1">prospects</span>
-                    </p>
-                    <p className="text-sm text-secondary mt-1">
-                      ${status.totalValue.toLocaleString()} total value
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filter Prospects</CardTitle>
-        </CardHeader>
-        <CardContent className="card-content-compact">
-          <div className="filters-section">
-            {/* Search */}
-            <div className="search-input-wrapper">
-              <Search className="search-icon" aria-hidden="true" />
-              <Input
-                placeholder="Search prospects..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="search-input"
-              />
-            </div>
-
-            {/* Prospect Status Filter */}
-            <Select value={prospectFilter} onValueChange={(value) => setProspectFilter(value as ProspectStatus | 'all')}>
-              <SelectTrigger className="filter-select">
-                <SelectValue placeholder="Prospect Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Prospects</SelectItem>
-                {PROSPECT_STATUSES.map((status) => (
-                  <SelectItem key={status.value} value={status.value}>
-                    {status.label} Prospects
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* Lead Status Filter */}
-            <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as LeadStatus | 'all')}>
-              <SelectTrigger className="filter-select">
-                <SelectValue placeholder="Lead Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="new">New</SelectItem>
-                <SelectItem value="contacted">Contacted</SelectItem>
-                <SelectItem value="qualified">Qualified</SelectItem>
-                <SelectItem value="proposal">Proposal</SelectItem>
-                <SelectItem value="negotiation">Negotiation</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Clear Filters */}
-            <Button
-              variant="outline"
-              onClick={clearFilters}
-              className="btn-secondary"
-            >
-              <Filter className="icon-sm" aria-hidden="true" />
-              Clear
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Prospects Table */}
+      {/* Prospects DataTable */}
       {isLoading ? (
-            <div className="loading-state">Loading prospects...</div>
-          ) : sortedProspects.length === 0 ? (
-            <div className="empty-state">
-              <Thermometer className="empty-state-icon" aria-hidden="true" />
-              <h3 className="empty-state-title">No prospects found</h3>
-              <p className="empty-state-description">
-                Try adjusting your filters or convert some leads to prospects.
-              </p>
-            </div>
-          ) : (
-        <div className="data-table-container">
-              <Table>
-              <TableHeader>
-                <TableRow className="data-table-header-row">
-                  <TableHead className="data-table-header">Priority</TableHead>
-                  <TableHead className="data-table-header">Name</TableHead>
-                  <TableHead className="data-table-header">Company</TableHead>
-                  <TableHead className="data-table-header">Email</TableHead>
-                  <TableHead className="data-table-header">Status</TableHead>
-                  <TableHead className="data-table-header">Prospect</TableHead>
-                  <TableHead className="data-table-header">Value</TableHead>
-                  <TableHead className="data-table-header-actions">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sortedProspects.map((prospect: any) => {
-                  const prospectConfig = getProspectConfig(prospect.prospect_status);
-                  const priority = getProspectPriority(prospect);
-
-                  return (
-                    <TableRow
-                      key={prospect.id}
-                      className="data-table-row"
-                      onClick={() => router.push(`/crm/prospects/${prospect.id}`)}
-                    >
-                      <TableCell className="data-table-cell">
-                        <div className="flex items-center gap-1">
-                          <Star className={`icon-sm ${priority >= 5 ? 'text-warning' : 'text-muted-foreground'}`} aria-hidden="true" />
-                          <span className="font-mono text-sm">{priority}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="data-table-cell-primary">
-                        <span className="font-medium">{prospect.name}</span>
-                      </TableCell>
-                      <TableCell className="data-table-cell">
-                        <div className="flex items-center gap-2">
-                          <Building className="icon-xs" aria-hidden="true" />
-                          {prospect.company || "—"}
-                        </div>
-                      </TableCell>
-                      <TableCell className="data-table-cell">
-                        <div className="flex items-center gap-2">
-                          <Mail className="icon-xs" aria-hidden="true" />
-                          {prospect.email || "—"}
-                        </div>
-                      </TableCell>
-                      <TableCell className="data-table-cell">
-                        <Badge variant="outline" className="badge-neutral">
-                          {prospect.status ? prospect.status.charAt(0).toUpperCase() + prospect.status.slice(1) : "N/A"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="data-table-cell">
-                        {prospectConfig && (
-                          <Badge variant="outline" className={prospectConfig.className}>
-                            <Thermometer className="icon-xs" aria-hidden="true" />
-                            {prospectConfig.label}
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="data-table-cell">
-                        {prospect.value ? `$${prospect.value.toLocaleString()}` : "—"}
-                      </TableCell>
-                      <TableCell className="data-table-cell-actions">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                            <Button variant="ghost" size="sm" className="btn-icon">
-                              <MoreVertical className="icon-sm" aria-hidden="true" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                router.push(`/crm/prospects/${prospect.id}`);
-                              }}
-                              className="dropdown-item"
-                            >
-                              <Eye className="icon-sm" aria-hidden="true" />
-                              View Details
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="dropdown-item">
-                              <Edit className="icon-sm" aria-hidden="true" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={(e) => handleConvertToClient(prospect, e)}
-                              className="dropdown-item"
-                            >
-                              <ArrowRight className="icon-sm" aria-hidden="true" />
-                              Convert to Client
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={(e) => handleDeleteProspect(prospect.id, e)}
-                              className="dropdown-item-danger"
-                            >
-                              <Trash className="icon-sm" aria-hidden="true" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-              </Table>
-            </div>
-          )}
-
-      {/* Pagination */}
-      {prospectsData && prospectsData.total > limit && (
-        <div className="pagination">
-          <div className="pagination-info">
-            Showing {page * limit + 1} to {Math.min((page + 1) * limit, prospectsData.total)} of {prospectsData.total} prospects
-          </div>
-          <div className="pagination-buttons">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage(Math.max(0, page - 1))}
-              disabled={page === 0}
-              className="btn-secondary"
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage(page + 1)}
-              disabled={!prospectsData.hasMore}
-              className="btn-secondary"
-            >
-              Next
-            </Button>
-          </div>
-        </div>
+        <LoadingState message="Loading prospects..." size="lg" />
+      ) : sortedProspects.length === 0 ? (
+        <EmptyState
+          icon={Thermometer}
+          title="No prospects found"
+          description="Try adjusting your filters or convert some leads to prospects."
+        />
+      ) : (
+        <DataTable
+          data={sortedProspects}
+          columns={columns}
+          filters={filters}
+          onRowClick={(row) => router.push(`/crm/prospects/${row.id}`)}
+          pagination={{ pageSize: 20, showSizeSelector: true }}
+          emptyState={{
+            icon: Thermometer,
+            title: 'No prospects match your filters',
+            description: 'Try adjusting your search or filter criteria',
+          }}
+        />
       )}
     </div>
   );
