@@ -6,6 +6,7 @@ import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DateRangeSelector } from '@/components/DateRangeSelector';
+import { DashboardStatCard } from '@/components/dashboard/DashboardStatCard';
 import {
   CheckCircle,
   XCircle,
@@ -124,57 +125,37 @@ export default function QualityDashboardPage() {
       <div className="dashboard-section">
         <h2 className="section-title">Inspection Overview</h2>
         <div className="dashboard-grid">
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Total Inspections</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{summary.totalInspections}</div>
-              <div className="metric-subtext">
-                <ClipboardCheck className="icon-xs" />
-                <span>{summary.newInspections} this period</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Total Inspections"
+            value={summary.totalInspections}
+            description={`${summary.newInspections} this period`}
+            icon={ClipboardCheck}
+            iconColor="primary"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Passed</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{summary.passedInspections}</div>
-              <div className="metric-subtext">
-                <CheckCircle className="icon-xs" />
-                <span>Quality approved</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Passed"
+            value={summary.passedInspections}
+            description="Quality approved"
+            icon={CheckCircle}
+            iconColor="success"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Failed</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{summary.failedInspections}</div>
-              <div className="metric-subtext">
-                <XCircle className="icon-xs" />
-                <span>Requires rework</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Failed"
+            value={summary.failedInspections}
+            description="Requires rework"
+            icon={XCircle}
+            iconColor="destructive"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Pending</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{summary.pendingInspections}</div>
-              <div className="metric-subtext">
-                <Clock className="icon-xs" />
-                <span>Awaiting inspection</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Pending"
+            value={summary.pendingInspections}
+            description="Awaiting inspection"
+            icon={Clock}
+            iconColor="warning"
+          />
         </div>
       </div>
 
@@ -182,39 +163,21 @@ export default function QualityDashboardPage() {
       <div className="dashboard-section">
         <h2 className="section-title">Quality Performance</h2>
         <div className="dashboard-grid">
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Pass Rate</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{summary.passRate.toFixed(1)}%</div>
-              <div className={summary.passRate >= 90 ? 'metric-change-positive' : 'metric-change-negative'}>
-                {summary.passRate >= 90 ? (
-                  <TrendingUp className="icon-xs" />
-                ) : (
-                  <TrendingDown className="icon-xs" />
-                )}
-                <span>{summary.passRate >= 90 ? 'Above target' : 'Below target (90%)'}</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Pass Rate"
+            value={`${summary.passRate.toFixed(1)}%`}
+            description={summary.passRate >= 90 ? 'Above target' : 'Below target (90%)'}
+            icon={summary.passRate >= 90 ? TrendingUp : TrendingDown}
+            iconColor={summary.passRate >= 90 ? 'success' : 'warning'}
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Fail Rate</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{summary.failRate.toFixed(1)}%</div>
-              <div className={summary.failRate <= 10 ? 'metric-change-positive' : 'metric-change-negative'}>
-                {summary.failRate <= 10 ? (
-                  <TrendingUp className="icon-xs" />
-                ) : (
-                  <TrendingDown className="icon-xs" />
-                )}
-                <span>{summary.failRate <= 10 ? 'Within target' : 'Exceeds target (10%)'}</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Fail Rate"
+            value={`${summary.failRate.toFixed(1)}%`}
+            description={summary.failRate <= 10 ? 'Within target' : 'Exceeds target (10%)'}
+            icon={summary.failRate <= 10 ? TrendingUp : TrendingDown}
+            iconColor={summary.failRate <= 10 ? 'success' : 'warning'}
+          />
         </div>
       </div>
 

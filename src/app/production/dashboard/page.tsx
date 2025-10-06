@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { DashboardStatCard } from "@/components/dashboard/DashboardStatCard";
 import { DollarSign, Package, TrendingUp, AlertCircle, Clock, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
@@ -74,57 +75,37 @@ export default function ProductionDashboardPage() {
 
  {/* KPI Cards */}
  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
- <Card>
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
- <Package className="h-4 w-4 text-muted-foreground" />
- </CardHeader>
- <CardContent>
- <div className="text-2xl font-bold">{stats?.totalOrders || 0}</div>
- <p className="text-xs text-muted-foreground">
- {stats?.recentOrders || 0} new this week
- </p>
- </CardContent>
- </Card>
+ <DashboardStatCard
+ title="Total Orders"
+ value={stats?.totalOrders || 0}
+ description={`${stats?.recentOrders || 0} new this week`}
+ icon={Package}
+ iconColor="primary"
+ />
 
- <Card>
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium">In Production</CardTitle>
- <Clock className="h-4 w-4 text-muted-foreground" />
- </CardHeader>
- <CardContent>
- <div className="text-2xl font-bold">{stats?.inProgress || 0}</div>
- <p className="text-xs text-muted-foreground">
- {stats?.awaitingDeposit || 0} awaiting deposit
- </p>
- </CardContent>
- </Card>
+ <DashboardStatCard
+ title="In Production"
+ value={stats?.inProgress || 0}
+ description={`${stats?.awaitingDeposit || 0} awaiting deposit`}
+ icon={Clock}
+ iconColor="warning"
+ />
 
- <Card>
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium">Completed</CardTitle>
- <CheckCircle className="h-4 w-4 text-muted-foreground" />
- </CardHeader>
- <CardContent>
- <div className="text-2xl font-bold">{stats?.completed || 0}</div>
- <p className="text-xs text-muted-foreground">
- {stats?.completionRate || 0}% completion rate
- </p>
- </CardContent>
- </Card>
+ <DashboardStatCard
+ title="Completed"
+ value={stats?.completed || 0}
+ description={`${stats?.completionRate || 0}% completion rate`}
+ icon={CheckCircle}
+ iconColor="success"
+ />
 
- <Card>
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
- <DollarSign className="h-4 w-4 text-muted-foreground" />
- </CardHeader>
- <CardContent>
- <div className="text-2xl font-bold">${((stats?.totalRevenue || 0) / 1000).toFixed(1)}k</div>
- <p className="text-xs text-muted-foreground">
- ${((stats?.paidRevenue || 0) / 1000).toFixed(1)}k paid
- </p>
- </CardContent>
- </Card>
+ <DashboardStatCard
+ title="Total Revenue"
+ value={`$${((stats?.totalRevenue || 0) / 1000).toFixed(1)}k`}
+ description={`$${((stats?.paidRevenue || 0) / 1000).toFixed(1)}k paid`}
+ icon={DollarSign}
+ iconColor="success"
+ />
  </div>
 
  {/* Status Distribution */}

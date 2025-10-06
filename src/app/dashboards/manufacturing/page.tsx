@@ -6,6 +6,7 @@ import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DateRangeSelector } from '@/components/DateRangeSelector';
+import { DashboardStatCard } from '@/components/dashboard/DashboardStatCard';
 import {
   Package,
   Clock,
@@ -128,57 +129,37 @@ export default function ManufacturingDashboardPage() {
       {/* Production Orders Metrics */}
       <div className="dashboard-section">
         <div className="dashboard-grid">
-        <Card className="metric-card">
-          <CardHeader>
-            <CardTitle className="metric-label">Total Production Orders</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="metric-value">{summary.totalOrders}</div>
-            <div className="metric-subtext">
-              <Package className="icon-xs" />
-              <span>{summary.completedOrders} completed</span>
-            </div>
-          </CardContent>
-        </Card>
+        <DashboardStatCard
+          title="Total Production Orders"
+          value={summary.totalOrders}
+          description={`${summary.completedOrders} completed`}
+          icon={Package}
+          iconColor="primary"
+        />
 
-        <Card className="metric-card">
-          <CardHeader>
-            <CardTitle className="metric-label">Active Orders</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="metric-value">{summary.activeOrders}</div>
-            <div className="metric-subtext">
-              <PlayCircle className="icon-xs" />
-              <span>Currently in production</span>
-            </div>
-          </CardContent>
-        </Card>
+        <DashboardStatCard
+          title="Active Orders"
+          value={summary.activeOrders}
+          description="Currently in production"
+          icon={PlayCircle}
+          iconColor="info"
+        />
 
-        <Card className="metric-card">
-          <CardHeader>
-            <CardTitle className="metric-label">Pending Orders</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="metric-value">{summary.pendingOrders}</div>
-            <div className="metric-subtext">
-              <Clock className="icon-xs" />
-              <span>Awaiting production</span>
-            </div>
-          </CardContent>
-        </Card>
+        <DashboardStatCard
+          title="Pending Orders"
+          value={summary.pendingOrders}
+          description="Awaiting production"
+          icon={Clock}
+          iconColor="warning"
+        />
 
-        <Card className="metric-card">
-          <CardHeader>
-            <CardTitle className="metric-label">Total Items</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="metric-value">{summary.totalItems}</div>
-            <div className="metric-subtext">
-              <Package className="icon-xs" />
-              <span>{summary.itemsInProduction} in production</span>
-            </div>
-          </CardContent>
-        </Card>
+        <DashboardStatCard
+          title="Total Items"
+          value={summary.totalItems}
+          description={`${summary.itemsInProduction} in production`}
+          icon={Package}
+          iconColor="primary"
+        />
         </div>
       </div>
 
@@ -186,57 +167,37 @@ export default function ManufacturingDashboardPage() {
       <div className="dashboard-section">
         <h2 className="section-title">Quality & Performance</h2>
         <div className="dashboard-grid">
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Quality Pass Rate</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{quality.qualityRate.toFixed(1)}%</div>
-              <div className="metric-subtext">
-                <CheckCircle className="icon-xs" />
-                <span>{quality.passedChecks} of {quality.totalQualityChecks} passed</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Quality Pass Rate"
+            value={`${quality.qualityRate.toFixed(1)}%`}
+            description={`${quality.passedChecks} of ${quality.totalQualityChecks} passed`}
+            icon={CheckCircle}
+            iconColor="success"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">On-Time Delivery Rate</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{performance.onTimeRate.toFixed(1)}%</div>
-              <div className="metric-subtext">
-                <Clock className="icon-xs" />
-                <span>Delivery performance</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="On-Time Delivery Rate"
+            value={`${performance.onTimeRate.toFixed(1)}%`}
+            description="Delivery performance"
+            icon={Clock}
+            iconColor="success"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Capacity Utilization</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{performance.capacityUtilization.toFixed(1)}%</div>
-              <div className="metric-subtext">
-                <Activity className="icon-xs" />
-                <span>Current capacity</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Capacity Utilization"
+            value={`${performance.capacityUtilization.toFixed(1)}%`}
+            description="Current capacity"
+            icon={Activity}
+            iconColor="info"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Avg Production Time</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{performance.avgProductionTime.toFixed(1)} days</div>
-              <div className="metric-subtext">
-                <Clock className="icon-xs" />
-                <span>Per order</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Avg Production Time"
+            value={`${performance.avgProductionTime.toFixed(1)} days`}
+            description="Per order"
+            icon={Clock}
+            iconColor="info"
+          />
         </div>
       </div>
 

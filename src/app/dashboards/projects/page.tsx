@@ -6,6 +6,7 @@ import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { DashboardStatCard } from '@/components/dashboard/DashboardStatCard';
 import {
   Folder,
   TrendingUp,
@@ -151,49 +152,37 @@ export default function ProjectDashboardPage() {
       {/* Summary Metrics */}
       <div className="dashboard-section">
         <div className="dashboard-grid">
-        <Card className="metric-card">
-          <CardHeader className="metric-card-header">
-            <span className="metric-label">Total Projects</span>
-            <Folder className="metric-icon" aria-hidden="true" />
-          </CardHeader>
-          <CardContent>
-            <div className="metric-value">{analytics.summary.total}</div>
-            <p className="text-xs text-muted-foreground">Across all statuses</p>
-          </CardContent>
-        </Card>
+        <DashboardStatCard
+          title="Total Projects"
+          value={analytics.summary.total}
+          description="Across all statuses"
+          icon={Folder}
+          iconColor="primary"
+        />
 
-        <Card className="metric-card">
-          <CardHeader className="metric-card-header">
-            <span className="metric-label">Active Projects</span>
-            <TrendingUp className="metric-icon" aria-hidden="true" />
-          </CardHeader>
-          <CardContent>
-            <div className="metric-value">{analytics.summary.active + analytics.summary.in_progress}</div>
-            <p className="text-xs text-success">Currently in progress</p>
-          </CardContent>
-        </Card>
+        <DashboardStatCard
+          title="Active Projects"
+          value={analytics.summary.active + analytics.summary.in_progress}
+          description="Currently in progress"
+          icon={TrendingUp}
+          iconColor="primary"
+        />
 
-        <Card className="metric-card">
-          <CardHeader className="metric-card-header">
-            <span className="metric-label">Overdue Projects</span>
-            <AlertTriangle className="metric-icon" aria-hidden="true" />
-          </CardHeader>
-          <CardContent>
-            <div className="metric-value text-destructive">{analytics.overdueProjects.length}</div>
-            <p className="text-xs text-destructive">Require immediate attention</p>
-          </CardContent>
-        </Card>
+        <DashboardStatCard
+          title="Overdue Projects"
+          value={analytics.overdueProjects.length}
+          description="Require immediate attention"
+          icon={AlertTriangle}
+          iconColor="destructive"
+        />
 
-        <Card className="metric-card">
-          <CardHeader className="metric-card-header">
-            <span className="metric-label">Completed</span>
-            <CheckCircle2 className="metric-icon" aria-hidden="true" />
-          </CardHeader>
-          <CardContent>
-            <div className="metric-value text-success">{analytics.summary.completed}</div>
-            <p className="text-xs text-muted-foreground">Successfully finished</p>
-          </CardContent>
-        </Card>
+        <DashboardStatCard
+          title="Completed"
+          value={analytics.summary.completed}
+          description="Successfully finished"
+          icon={CheckCircle2}
+          iconColor="success"
+        />
         </div>
       </div>
 

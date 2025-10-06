@@ -6,6 +6,7 @@ import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DateRangeSelector } from '@/components/DateRangeSelector';
+import { DashboardStatCard } from '@/components/dashboard/DashboardStatCard';
 import {
   FileText,
   FilePlus,
@@ -125,57 +126,37 @@ export default function DesignDashboardPage() {
       <div className="dashboard-section">
         <h2 className="section-title">Design Files</h2>
         <div className="dashboard-grid">
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Total Files</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{summary.totalDesignFiles}</div>
-              <div className="metric-subtext">
-                <FileText className="icon-xs" />
-                <span>{summary.newDesignFiles} new this period</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Total Files"
+            value={summary.totalDesignFiles}
+            description={`${summary.newDesignFiles} new this period`}
+            icon={FileText}
+            iconColor="primary"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Active Files</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{summary.activeDesignFiles}</div>
-              <div className="metric-subtext">
-                <Clock className="icon-xs" />
-                <span>In progress</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Active Files"
+            value={summary.activeDesignFiles}
+            description="In progress"
+            icon={Clock}
+            iconColor="warning"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Approved Files</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{summary.approvedDesignFiles}</div>
-              <div className="metric-subtext">
-                <CheckCircle className="icon-xs" />
-                <span>Completed</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Approved Files"
+            value={summary.approvedDesignFiles}
+            description="Completed"
+            icon={CheckCircle}
+            iconColor="success"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Avg Revisions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{summary.avgRevisionsPerFile}</div>
-              <div className="metric-subtext">
-                <GitBranch className="icon-xs" />
-                <span>Per design file</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Avg Revisions"
+            value={summary.avgRevisionsPerFile}
+            description="Per design file"
+            icon={GitBranch}
+            iconColor="info"
+          />
         </div>
       </div>
 
@@ -183,44 +164,29 @@ export default function DesignDashboardPage() {
       <div className="dashboard-section">
         <h2 className="section-title">Design Revisions</h2>
         <div className="dashboard-grid">
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Total Revisions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{summary.totalRevisions}</div>
-              <div className="metric-subtext">
-                <GitBranch className="icon-xs" />
-                <span>{summary.recentRevisions} this period</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Total Revisions"
+            value={summary.totalRevisions}
+            description={`${summary.recentRevisions} this period`}
+            icon={GitBranch}
+            iconColor="primary"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Pending Reviews</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{summary.pendingReviews}</div>
-              <div className="metric-subtext">
-                <Clock className="icon-xs" />
-                <span>Awaiting review</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Pending Reviews"
+            value={summary.pendingReviews}
+            description="Awaiting review"
+            icon={Clock}
+            iconColor="warning"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Approved Revisions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{summary.approvedRevisions}</div>
-              <div className="metric-subtext">
-                <CheckCircle className="icon-xs" />
-                <span>Completed</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Approved Revisions"
+            value={summary.approvedRevisions}
+            description="Completed"
+            icon={CheckCircle}
+            iconColor="success"
+          />
         </div>
       </div>
 
@@ -228,57 +194,37 @@ export default function DesignDashboardPage() {
       <div className="dashboard-section">
         <h2 className="section-title">Shop Drawings</h2>
         <div className="dashboard-grid">
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Total Drawings</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{shopDrawings.total}</div>
-              <div className="metric-subtext">
-                <FileText className="icon-xs" />
-                <span>{shopDrawings.new} new this period</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Total Drawings"
+            value={shopDrawings.total}
+            description={`${shopDrawings.new} new this period`}
+            icon={FileText}
+            iconColor="primary"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Pending</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{shopDrawings.pending}</div>
-              <div className="metric-subtext">
-                <Clock className="icon-xs" />
-                <span>Awaiting approval</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Pending"
+            value={shopDrawings.pending}
+            description="Awaiting approval"
+            icon={Clock}
+            iconColor="warning"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Approved</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{shopDrawings.approved}</div>
-              <div className="metric-subtext">
-                <CheckCircle className="icon-xs" />
-                <span>Ready for production</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Approved"
+            value={shopDrawings.approved}
+            description="Ready for production"
+            icon={CheckCircle}
+            iconColor="success"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Approval Rate</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{shopDrawings.approvalRate.toFixed(1)}%</div>
-              <div className="metric-subtext">
-                <TrendingUp className="icon-xs" />
-                <span>{shopDrawings.rejected} rejected</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Approval Rate"
+            value={`${shopDrawings.approvalRate.toFixed(1)}%`}
+            description={`${shopDrawings.rejected} rejected`}
+            icon={TrendingUp}
+            iconColor="success"
+          />
         </div>
       </div>
 
@@ -286,44 +232,29 @@ export default function DesignDashboardPage() {
       <div className="dashboard-section">
         <h2 className="section-title">Project Coverage</h2>
         <div className="dashboard-grid">
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Total Projects</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{projects.total}</div>
-              <div className="metric-subtext">
-                <FolderOpen className="icon-xs" />
-                <span>Active projects</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Total Projects"
+            value={projects.total}
+            description="Active projects"
+            icon={FolderOpen}
+            iconColor="primary"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Projects with Design</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{projects.withDesign}</div>
-              <div className="metric-subtext">
-                <FileText className="icon-xs" />
-                <span>Have design files</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Projects with Design"
+            value={projects.withDesign}
+            description="Have design files"
+            icon={FileText}
+            iconColor="info"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Design Coverage</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{projects.designCoverage.toFixed(1)}%</div>
-              <div className="metric-subtext">
-                <TrendingUp className="icon-xs" />
-                <span>Coverage rate</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Design Coverage"
+            value={`${projects.designCoverage.toFixed(1)}%`}
+            description="Coverage rate"
+            icon={TrendingUp}
+            iconColor="success"
+          />
         </div>
       </div>
 

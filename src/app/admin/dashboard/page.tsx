@@ -5,6 +5,7 @@ import { api } from "@/lib/api/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { DashboardStatCard } from "@/components/dashboard/DashboardStatCard";
 import {
   Users,
   Activity,
@@ -13,7 +14,6 @@ import {
   FileDown,
   UserCog,
   BarChart3,
-  CheckCircle2,
   Clock,
   XCircle,
 } from "lucide-react";
@@ -47,60 +47,37 @@ export default function AdminDashboardPage() {
 
       {/* Overview Stats */}
       <div className="stats-grid-lg">
-        <Card>
-          <CardHeader className="card-header-compact">
-            <div className="card-header-row">
-              <CardTitle className="card-title-sm">Total Users</CardTitle>
-              <Users className="icon-muted" aria-hidden="true" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="stat-value">{totalUsers}</div>
-            <div className="flex items-center gap-2 mt-2">
-              <CheckCircle2 className="icon-success" aria-hidden="true" />
-              <span className="stat-label">{activeUsers} Active</span>
-            </div>
-          </CardContent>
-        </Card>
+        <DashboardStatCard
+          title="Total Users"
+          value={totalUsers}
+          description={`${activeUsers} active users`}
+          icon={Users}
+          iconColor="info"
+        />
 
-        <Card>
-          <CardHeader className="card-header-compact">
-            <div className="card-header-row">
-              <CardTitle className="card-title-sm">Activity Logs</CardTitle>
-              <Activity className="icon-muted" aria-hidden="true" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="stat-value">{activityStats?.adminLogsCount || 0}</div>
-            <p className="stat-label">Last 30 days</p>
-          </CardContent>
-        </Card>
+        <DashboardStatCard
+          title="Activity Logs"
+          value={activityStats?.adminLogsCount || 0}
+          description="Last 30 days"
+          icon={Activity}
+          iconColor="primary"
+        />
 
-        <Card>
-          <CardHeader className="card-header-compact">
-            <div className="card-header-row">
-              <CardTitle className="card-title-sm">Security Events</CardTitle>
-              <Shield className="icon-muted" aria-hidden="true" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="stat-value">{activityStats?.securityLogsCount || 0}</div>
-            <p className="stat-label">Last 30 days</p>
-          </CardContent>
-        </Card>
+        <DashboardStatCard
+          title="Security Events"
+          value={activityStats?.securityLogsCount || 0}
+          description="Last 30 days"
+          icon={Shield}
+          iconColor="warning"
+        />
 
-        <Card>
-          <CardHeader className="card-header-compact">
-            <div className="card-header-row">
-              <CardTitle className="card-title-sm">Failed Logins</CardTitle>
-              <XCircle className="icon-destructive" aria-hidden="true" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="stat-value text-destructive">{activityStats?.failedLoginsCount || 0}</div>
-            <p className="stat-label">Last 30 days</p>
-          </CardContent>
-        </Card>
+        <DashboardStatCard
+          title="Failed Logins"
+          value={activityStats?.failedLoginsCount || 0}
+          description="Last 30 days"
+          icon={XCircle}
+          iconColor="destructive"
+        />
       </div>
 
       {/* Quick Actions */}

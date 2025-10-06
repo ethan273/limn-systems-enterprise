@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DateRangeSelector } from '@/components/DateRangeSelector';
 import { ExportPDFButton } from '@/components/ExportPDFButton';
+import { DashboardStatCard } from '@/components/dashboard/DashboardStatCard';
 import {
   DollarSign,
   TrendingUp,
@@ -122,61 +123,37 @@ export default function FinancialDashboardPage() {
       {/* Key Financial Metrics */}
       <div className="dashboard-section">
         <div className="dashboard-grid">
-        <Card className="metric-card">
-          <CardHeader>
-            <CardTitle className="metric-label">Total Revenue</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="metric-value">${summary.totalRevenue.toLocaleString()}</div>
-            <div className="metric-subtext">
-              <DollarSign className="icon-xs" />
-              <span>Collected this period</span>
-            </div>
-          </CardContent>
-        </Card>
+        <DashboardStatCard
+          title="Total Revenue"
+          value={`$${summary.totalRevenue.toLocaleString()}`}
+          description="Collected this period"
+          icon={DollarSign}
+          iconColor="success"
+        />
 
-        <Card className="metric-card">
-          <CardHeader>
-            <CardTitle className="metric-label">Total Invoiced</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="metric-value">${summary.totalInvoiced.toLocaleString()}</div>
-            <div className="metric-subtext">
-              <FileText className="icon-xs" />
-              <span>{invoices.total} invoices</span>
-            </div>
-          </CardContent>
-        </Card>
+        <DashboardStatCard
+          title="Total Invoiced"
+          value={`$${summary.totalInvoiced.toLocaleString()}`}
+          description={`${invoices.total} invoices`}
+          icon={FileText}
+          iconColor="primary"
+        />
 
-        <Card className="metric-card">
-          <CardHeader>
-            <CardTitle className="metric-label">Total Expenses</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="metric-value">${summary.totalExpenses.toLocaleString()}</div>
-            <div className="metric-subtext">
-              <TrendingDown className="icon-xs" />
-              <span>Period expenses</span>
-            </div>
-          </CardContent>
-        </Card>
+        <DashboardStatCard
+          title="Total Expenses"
+          value={`$${summary.totalExpenses.toLocaleString()}`}
+          description="Period expenses"
+          icon={TrendingDown}
+          iconColor="destructive"
+        />
 
-        <Card className="metric-card">
-          <CardHeader>
-            <CardTitle className="metric-label">Net Profit</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="metric-value">${summary.profit.toLocaleString()}</div>
-            <div className={summary.profitMargin >= 0 ? 'metric-change-positive' : 'metric-change-negative'}>
-              {summary.profitMargin >= 0 ? (
-                <TrendingUp className="icon-xs" />
-              ) : (
-                <TrendingDown className="icon-xs" />
-              )}
-              <span>{Math.abs(summary.profitMargin).toFixed(1)}% profit margin</span>
-            </div>
-          </CardContent>
-        </Card>
+        <DashboardStatCard
+          title="Net Profit"
+          value={`$${summary.profit.toLocaleString()}`}
+          description={`${summary.profitMargin >= 0 ? '↑' : '↓'} ${Math.abs(summary.profitMargin).toFixed(1)}% profit margin`}
+          icon={summary.profitMargin >= 0 ? TrendingUp : TrendingDown}
+          iconColor={summary.profitMargin >= 0 ? 'success' : 'destructive'}
+        />
         </div>
       </div>
 
@@ -184,70 +161,45 @@ export default function FinancialDashboardPage() {
       <div className="dashboard-section">
         <h2 className="section-title">Accounts Receivable & Invoices</h2>
         <div className="dashboard-grid">
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Total A/R</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">${invoices.totalAR.toLocaleString()}</div>
-              <div className="metric-subtext">
-                <Clock className="icon-xs" />
-                <span>Outstanding receivables</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Total A/R"
+            value={`$${invoices.totalAR.toLocaleString()}`}
+            description="Outstanding receivables"
+            icon={Clock}
+            iconColor="warning"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Paid Invoices</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{invoices.paid}</div>
-              <div className="metric-subtext">
-                <CheckCircle className="icon-xs" />
-                <span>${summary.totalPaid.toLocaleString()} paid</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Paid Invoices"
+            value={invoices.paid}
+            description={`$${summary.totalPaid.toLocaleString()} paid`}
+            icon={CheckCircle}
+            iconColor="success"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Pending Invoices</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{invoices.pending}</div>
-              <div className="metric-subtext">
-                <Clock className="icon-xs" />
-                <span>${summary.totalPending.toLocaleString()} pending</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Pending Invoices"
+            value={invoices.pending}
+            description={`$${summary.totalPending.toLocaleString()} pending`}
+            icon={Clock}
+            iconColor="warning"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Overdue Invoices</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{invoices.overdue}</div>
-              <div className="metric-subtext">
-                <AlertTriangle className="icon-xs" />
-                <span>${summary.totalOverdue.toLocaleString()} overdue</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Overdue Invoices"
+            value={invoices.overdue}
+            description={`$${summary.totalOverdue.toLocaleString()} overdue`}
+            icon={AlertTriangle}
+            iconColor="destructive"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Avg Invoice Value</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">${invoices.avgInvoiceValue.toLocaleString()}</div>
-              <div className="metric-subtext">
-                <FileText className="icon-xs" />
-                <span>Per invoice</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Avg Invoice Value"
+            value={`$${invoices.avgInvoiceValue.toLocaleString()}`}
+            description="Per invoice"
+            icon={FileText}
+            iconColor="info"
+          />
         </div>
       </div>
 

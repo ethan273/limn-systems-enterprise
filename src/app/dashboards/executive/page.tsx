@@ -6,9 +6,8 @@ import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DateRangeSelector } from '@/components/DateRangeSelector';
+import { DashboardStatCard } from '@/components/dashboard/DashboardStatCard';
 import {
-  TrendingUp,
-  TrendingDown,
   DollarSign,
   ShoppingCart,
   Users,
@@ -124,65 +123,37 @@ export default function ExecutiveDashboardPage() {
       {/* Key Performance Metrics */}
       <div className="dashboard-section">
         <div className="dashboard-grid">
-        <Card className="metric-card">
-          <CardHeader>
-            <CardTitle className="metric-label">Total Revenue</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="metric-value">${summary.totalRevenue.toLocaleString()}</div>
-            <div className={summary.revenueGrowth >= 0 ? 'metric-change-positive' : 'metric-change-negative'}>
-              {summary.revenueGrowth >= 0 ? (
-                <TrendingUp className="icon-xs" />
-              ) : (
-                <TrendingDown className="icon-xs" />
-              )}
-              <span>{Math.abs(summary.revenueGrowth).toFixed(1)}% vs previous period</span>
-            </div>
-          </CardContent>
-        </Card>
+        <DashboardStatCard
+          title="Total Revenue"
+          value={`$${summary.totalRevenue.toLocaleString()}`}
+          description={`${summary.revenueGrowth >= 0 ? '↑' : '↓'} ${Math.abs(summary.revenueGrowth).toFixed(1)}% vs previous period`}
+          icon={DollarSign}
+          iconColor="success"
+        />
 
-        <Card className="metric-card">
-          <CardHeader>
-            <CardTitle className="metric-label">Total Orders</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="metric-value">{summary.totalOrders.toLocaleString()}</div>
-            <div className={summary.orderGrowth >= 0 ? 'metric-change-positive' : 'metric-change-negative'}>
-              {summary.orderGrowth >= 0 ? (
-                <TrendingUp className="icon-xs" />
-              ) : (
-                <TrendingDown className="icon-xs" />
-              )}
-              <span>{Math.abs(summary.orderGrowth).toFixed(1)}% vs previous period</span>
-            </div>
-          </CardContent>
-        </Card>
+        <DashboardStatCard
+          title="Total Orders"
+          value={summary.totalOrders.toLocaleString()}
+          description={`${summary.orderGrowth >= 0 ? '↑' : '↓'} ${Math.abs(summary.orderGrowth).toFixed(1)}% vs previous period`}
+          icon={ShoppingCart}
+          iconColor="primary"
+        />
 
-        <Card className="metric-card">
-          <CardHeader>
-            <CardTitle className="metric-label">Avg Order Value</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="metric-value">${summary.avgOrderValue.toLocaleString()}</div>
-            <div className="metric-subtext">
-              <ShoppingCart className="icon-xs" />
-              <span>Per order</span>
-            </div>
-          </CardContent>
-        </Card>
+        <DashboardStatCard
+          title="Avg Order Value"
+          value={`$${summary.avgOrderValue.toLocaleString()}`}
+          description="Per order"
+          icon={ShoppingCart}
+          iconColor="info"
+        />
 
-        <Card className="metric-card">
-          <CardHeader>
-            <CardTitle className="metric-label">Active Customers</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="metric-value">{summary.activeCustomers.toLocaleString()}</div>
-            <div className="metric-subtext">
-              <Users className="icon-xs" />
-              <span>{summary.newCustomers} new this period</span>
-            </div>
-          </CardContent>
-        </Card>
+        <DashboardStatCard
+          title="Active Customers"
+          value={summary.activeCustomers.toLocaleString()}
+          description={`${summary.newCustomers} new this period`}
+          icon={Users}
+          iconColor="info"
+        />
         </div>
       </div>
 
@@ -190,57 +161,37 @@ export default function ExecutiveDashboardPage() {
       <div className="dashboard-section">
         <h2 className="section-title">Financial Performance</h2>
         <div className="dashboard-grid">
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Total Invoiced</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">${financial.totalInvoiced.toLocaleString()}</div>
-              <div className="metric-subtext">
-                <DollarSign className="icon-xs" />
-                <span>Current period</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Total Invoiced"
+            value={`$${financial.totalInvoiced.toLocaleString()}`}
+            description="Current period"
+            icon={DollarSign}
+            iconColor="success"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Total Paid</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">${financial.totalPaid.toLocaleString()}</div>
-              <div className="metric-subtext">
-                <CheckCircle className="icon-xs" />
-                <span>Collected</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Total Paid"
+            value={`$${financial.totalPaid.toLocaleString()}`}
+            description="Collected"
+            icon={CheckCircle}
+            iconColor="success"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Outstanding A/R</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">${financial.outstandingAR.toLocaleString()}</div>
-              <div className="metric-subtext">
-                <Clock className="icon-xs" />
-                <span>Pending collection</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Outstanding A/R"
+            value={`$${financial.outstandingAR.toLocaleString()}`}
+            description="Pending collection"
+            icon={Clock}
+            iconColor="warning"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Overdue Invoices</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{financial.overdueInvoices}</div>
-              <div className="metric-subtext">
-                <AlertTriangle className="icon-xs" />
-                <span>Requires attention</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Overdue Invoices"
+            value={financial.overdueInvoices}
+            description="Requires attention"
+            icon={AlertTriangle}
+            iconColor="destructive"
+          />
         </div>
       </div>
 
@@ -248,83 +199,53 @@ export default function ExecutiveDashboardPage() {
       <div className="dashboard-section">
         <h2 className="section-title">Operations Performance</h2>
         <div className="dashboard-grid">
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Active Projects</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{operations.activeProjects}</div>
-              <div className="metric-subtext">
-                <Briefcase className="icon-xs" />
-                <span>{operations.completedProjects} completed this period</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Active Projects"
+            value={operations.activeProjects}
+            description={`${operations.completedProjects} completed this period`}
+            icon={Briefcase}
+            iconColor="primary"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Project On-Time Rate</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{operations.onTimeRate.toFixed(1)}%</div>
-              <div className="metric-subtext">
-                <Target className="icon-xs" />
-                <span>Delivery performance</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Project On-Time Rate"
+            value={`${operations.onTimeRate.toFixed(1)}%`}
+            description="Delivery performance"
+            icon={Target}
+            iconColor="success"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Overdue Tasks</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{operations.overdueTasks}</div>
-              <div className="metric-subtext">
-                <AlertTriangle className="icon-xs" />
-                <span>{operations.completedTasks} completed this period</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Overdue Tasks"
+            value={operations.overdueTasks}
+            description={`${operations.completedTasks} completed this period`}
+            icon={AlertTriangle}
+            iconColor="warning"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Active Production</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{operations.activeProduction}</div>
-              <div className="metric-subtext">
-                <Package className="icon-xs" />
-                <span>{operations.completedProduction} completed this period</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Active Production"
+            value={operations.activeProduction}
+            description={`${operations.completedProduction} completed this period`}
+            icon={Package}
+            iconColor="primary"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Shipments In Transit</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{operations.shipmentsInTransit}</div>
-              <div className="metric-subtext">
-                <Truck className="icon-xs" />
-                <span>{operations.deliveredShipments} delivered this period</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Shipments In Transit"
+            value={operations.shipmentsInTransit}
+            description={`${operations.deliveredShipments} delivered this period`}
+            icon={Truck}
+            iconColor="info"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Delivery On-Time Rate</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{operations.deliveryOnTimeRate.toFixed(1)}%</div>
-              <div className="metric-subtext">
-                <Target className="icon-xs" />
-                <span>Shipping performance</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Delivery On-Time Rate"
+            value={`${operations.deliveryOnTimeRate.toFixed(1)}%`}
+            description="Shipping performance"
+            icon={Target}
+            iconColor="success"
+          />
         </div>
       </div>
 

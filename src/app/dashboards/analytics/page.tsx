@@ -5,10 +5,9 @@ import Link from 'next/link';
 import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { DashboardStatCard } from '@/components/dashboard/DashboardStatCard';
 import { DateRangeSelector } from '@/components/DateRangeSelector';
 import {
-  TrendingUp,
-  TrendingDown,
   DollarSign,
   ShoppingCart,
   Users,
@@ -141,69 +140,37 @@ export default function AnalyticsDashboardPage() {
       {/* Summary Metrics */}
       <div className="dashboard-section">
         <div className="dashboard-grid">
-        <Card className="metric-card">
-          <CardHeader className="metric-card-header">
-            <span className="metric-label">Total Revenue</span>
-            <DollarSign className="metric-icon" aria-hidden="true" />
-          </CardHeader>
-          <CardContent>
-            <div className="metric-value">${(analytics.summary.totalRevenue / 1000).toFixed(1)}K</div>
-            <div className="metric-trend">
-              {analytics.summary.revenueGrowth >= 0 ? (
-                <TrendingUp className="metric-trend-icon text-success" aria-hidden="true" />
-              ) : (
-                <TrendingDown className="metric-trend-icon text-destructive" aria-hidden="true" />
-              )}
-              <p className={`metric-trend-text ${analytics.summary.revenueGrowth >= 0 ? 'text-success' : 'text-destructive'}`}>
-                {Math.abs(analytics.summary.revenueGrowth).toFixed(1)}% vs last period
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <DashboardStatCard
+          title="Total Revenue"
+          value={`$${(analytics.summary.totalRevenue / 1000).toFixed(1)}K`}
+          description={`${analytics.summary.revenueGrowth >= 0 ? '↑' : '↓'} ${Math.abs(analytics.summary.revenueGrowth).toFixed(1)}% vs last period`}
+          icon={DollarSign}
+          iconColor="success"
+        />
 
-        <Card className="metric-card">
-          <CardHeader className="metric-card-header">
-            <span className="metric-label">Total Orders</span>
-            <ShoppingCart className="metric-icon" aria-hidden="true" />
-          </CardHeader>
-          <CardContent>
-            <div className="metric-value">{analytics.summary.totalOrders}</div>
-            <p className="text-xs text-muted-foreground mt-2">
-              Avg: ${analytics.summary.avgOrderValue.toFixed(2)}
-            </p>
-          </CardContent>
-        </Card>
+        <DashboardStatCard
+          title="Total Orders"
+          value={analytics.summary.totalOrders}
+          description={`Avg: $${analytics.summary.avgOrderValue.toFixed(2)}`}
+          icon={ShoppingCart}
+          iconColor="primary"
+        />
 
-        <Card className="metric-card">
-          <CardHeader className="metric-card-header">
-            <span className="metric-label">Total Customers</span>
-            <Users className="metric-icon" aria-hidden="true" />
-          </CardHeader>
-          <CardContent>
-            <div className="metric-value">{analytics.summary.totalCustomers}</div>
-            <div className="metric-trend">
-              {analytics.summary.customerGrowth >= 0 ? (
-                <TrendingUp className="metric-trend-icon text-success" aria-hidden="true" />
-              ) : (
-                <TrendingDown className="metric-trend-icon text-destructive" aria-hidden="true" />
-              )}
-              <p className={`metric-trend-text ${analytics.summary.customerGrowth >= 0 ? 'text-success' : 'text-destructive'}`}>
-                {Math.abs(analytics.summary.customerGrowth).toFixed(1)}% growth
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <DashboardStatCard
+          title="Total Customers"
+          value={analytics.summary.totalCustomers}
+          description={`${analytics.summary.customerGrowth >= 0 ? '↑' : '↓'} ${Math.abs(analytics.summary.customerGrowth).toFixed(1)}% growth`}
+          icon={Users}
+          iconColor="info"
+        />
 
-        <Card className="metric-card">
-          <CardHeader className="metric-card-header">
-            <span className="metric-label">Active Projects</span>
-            <Briefcase className="metric-icon" aria-hidden="true" />
-          </CardHeader>
-          <CardContent>
-            <div className="metric-value">{analytics.summary.activeProjects}</div>
-            <p className="text-xs text-muted-foreground mt-2">Currently in progress</p>
-          </CardContent>
-        </Card>
+        <DashboardStatCard
+          title="Active Projects"
+          value={analytics.summary.activeProjects}
+          description="Currently in progress"
+          icon={Briefcase}
+          iconColor="primary"
+        />
         </div>
       </div>
 

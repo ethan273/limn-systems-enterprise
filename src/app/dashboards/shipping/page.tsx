@@ -6,6 +6,7 @@ import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DateRangeSelector } from '@/components/DateRangeSelector';
+import { DashboardStatCard } from '@/components/dashboard/DashboardStatCard';
 import {
   Truck,
   Package,
@@ -124,57 +125,37 @@ export default function ShippingDashboardPage() {
       <div className="dashboard-section">
         <h2 className="section-title">Shipment Overview</h2>
         <div className="dashboard-grid">
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Total Shipments</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{summary.totalShipments}</div>
-              <div className="metric-subtext">
-                <Package className="icon-xs" />
-                <span>{summary.newShipments} new this period</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Total Shipments"
+            value={summary.totalShipments}
+            description={`${summary.newShipments} new this period`}
+            icon={Package}
+            iconColor="primary"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">In Transit</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{summary.inTransitShipments}</div>
-              <div className="metric-subtext">
-                <Truck className="icon-xs" />
-                <span>Active shipments</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="In Transit"
+            value={summary.inTransitShipments}
+            description="Active shipments"
+            icon={Truck}
+            iconColor="info"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Delivered</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{summary.deliveredShipments}</div>
-              <div className="metric-subtext">
-                <CheckCircle className="icon-xs" />
-                <span>Successfully delivered</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Delivered"
+            value={summary.deliveredShipments}
+            description="Successfully delivered"
+            icon={CheckCircle}
+            iconColor="success"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Pending</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{summary.pendingShipments}</div>
-              <div className="metric-subtext">
-                <Clock className="icon-xs" />
-                <span>Awaiting pickup</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Pending"
+            value={summary.pendingShipments}
+            description="Awaiting pickup"
+            icon={Clock}
+            iconColor="warning"
+          />
         </div>
       </div>
 
@@ -182,44 +163,29 @@ export default function ShippingDashboardPage() {
       <div className="dashboard-section">
         <h2 className="section-title">Delivery Performance</h2>
         <div className="dashboard-grid">
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">On-Time Rate</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{summary.onTimeRate.toFixed(1)}%</div>
-              <div className="metric-subtext">
-                <TrendingUp className="icon-xs" />
-                <span>Delivery performance</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="On-Time Rate"
+            value={`${summary.onTimeRate.toFixed(1)}%`}
+            description="Delivery performance"
+            icon={TrendingUp}
+            iconColor="success"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Late Deliveries</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{summary.lateDeliveries}</div>
-              <div className="metric-subtext">
-                <AlertTriangle className="icon-xs" />
-                <span>Past expected date</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Late Deliveries"
+            value={summary.lateDeliveries}
+            description="Past expected date"
+            icon={AlertTriangle}
+            iconColor="warning"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Avg Delivery Time</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{summary.avgDeliveryTime.toFixed(1)} days</div>
-              <div className="metric-subtext">
-                <Clock className="icon-xs" />
-                <span>From ship to delivery</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Avg Delivery Time"
+            value={`${summary.avgDeliveryTime.toFixed(1)} days`}
+            description="From ship to delivery"
+            icon={Clock}
+            iconColor="info"
+          />
         </div>
       </div>
 

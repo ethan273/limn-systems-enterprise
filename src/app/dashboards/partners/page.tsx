@@ -6,6 +6,7 @@ import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DateRangeSelector } from '@/components/DateRangeSelector';
+import { DashboardStatCard } from '@/components/dashboard/DashboardStatCard';
 import {
   Users,
   UserPlus,
@@ -135,57 +136,37 @@ export default function PartnerDashboardPage() {
       <div className="dashboard-section">
         <h2 className="section-title">Partner Overview</h2>
         <div className="dashboard-grid">
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Total Partners</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{summary.totalPartners}</div>
-              <div className="metric-subtext">
-                <Users className="icon-xs" />
-                <span>{summary.newPartners} new this period</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Total Partners"
+            value={summary.totalPartners}
+            description={`${summary.newPartners} new this period`}
+            icon={Users}
+            iconColor="primary"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Active Partners</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{summary.activePartners}</div>
-              <div className="metric-subtext">
-                <UserCheck className="icon-xs" />
-                <span>Currently active</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Active Partners"
+            value={summary.activePartners}
+            description="Currently active"
+            icon={UserCheck}
+            iconColor="success"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Inactive Partners</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{summary.inactivePartners}</div>
-              <div className="metric-subtext">
-                <UserX className="icon-xs" />
-                <span>Require attention</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Inactive Partners"
+            value={summary.inactivePartners}
+            description="Require attention"
+            icon={UserX}
+            iconColor="warning"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Pending Approval</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{summary.pendingPartners}</div>
-              <div className="metric-subtext">
-                <Clock className="icon-xs" />
-                <span>Awaiting review</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Pending Approval"
+            value={summary.pendingPartners}
+            description="Awaiting review"
+            icon={Clock}
+            iconColor="warning"
+          />
         </div>
       </div>
 
@@ -193,44 +174,29 @@ export default function PartnerDashboardPage() {
       <div className="dashboard-section">
         <h2 className="section-title">Partner Engagement</h2>
         <div className="dashboard-grid">
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Total Contacts</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{summary.totalContacts}</div>
-              <div className="metric-subtext">
-                <Mail className="icon-xs" />
-                <span>Partner contacts</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Total Contacts"
+            value={summary.totalContacts}
+            description="Partner contacts"
+            icon={Mail}
+            iconColor="info"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Total Documents</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{summary.totalDocuments}</div>
-              <div className="metric-subtext">
-                <FileText className="icon-xs" />
-                <span>Shared documents</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Total Documents"
+            value={summary.totalDocuments}
+            description="Shared documents"
+            icon={FileText}
+            iconColor="info"
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">New Contacts</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{summary.avgContactsPerPartner}</div>
-              <div className="metric-subtext">
-                <UserPlus className="icon-xs" />
-                <span>Avg per partner</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="New Contacts"
+            value={summary.avgContactsPerPartner}
+            description="Avg per partner"
+            icon={UserPlus}
+            iconColor="info"
+          />
         </div>
       </div>
 
@@ -238,39 +204,21 @@ export default function PartnerDashboardPage() {
       <div className="dashboard-section">
         <h2 className="section-title">Performance Metrics</h2>
         <div className="dashboard-grid">
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Avg On-Time Rate</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{performance.avgOnTimeRate.toFixed(1)}%</div>
-              <div className={performance.avgOnTimeRate >= 90 ? 'metric-change-positive' : 'metric-change-negative'}>
-                {performance.avgOnTimeRate >= 90 ? (
-                  <TrendingUp className="icon-xs" />
-                ) : (
-                  <TrendingDown className="icon-xs" />
-                )}
-                <span>{performance.avgOnTimeRate >= 90 ? 'Excellent' : 'Needs improvement'}</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Avg On-Time Rate"
+            value={`${performance.avgOnTimeRate.toFixed(1)}%`}
+            description={performance.avgOnTimeRate >= 90 ? 'Excellent' : 'Needs improvement'}
+            icon={performance.avgOnTimeRate >= 90 ? TrendingUp : TrendingDown}
+            iconColor={performance.avgOnTimeRate >= 90 ? 'success' : 'warning'}
+          />
 
-          <Card className="metric-card">
-            <CardHeader>
-              <CardTitle className="metric-label">Avg Quality Score</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="metric-value">{performance.avgQualityScore.toFixed(1)}%</div>
-              <div className={performance.avgQualityScore >= 85 ? 'metric-change-positive' : 'metric-change-negative'}>
-                {performance.avgQualityScore >= 85 ? (
-                  <TrendingUp className="icon-xs" />
-                ) : (
-                  <TrendingDown className="icon-xs" />
-                )}
-                <span>{performance.avgQualityScore >= 85 ? 'High quality' : 'Needs attention'}</span>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            title="Avg Quality Score"
+            value={`${performance.avgQualityScore.toFixed(1)}%`}
+            description={performance.avgQualityScore >= 85 ? 'High quality' : 'Needs attention'}
+            icon={performance.avgQualityScore >= 85 ? TrendingUp : TrendingDown}
+            iconColor={performance.avgQualityScore >= 85 ? 'success' : 'warning'}
+          />
         </div>
       </div>
 
