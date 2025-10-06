@@ -7,6 +7,7 @@ import { useAuthContext } from '@/lib/auth/AuthProvider'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { DashboardStatCard } from '@/components/dashboard/DashboardStatCard'
 import {
  BarChart,
  Users,
@@ -15,7 +16,6 @@ import {
  TrendingUp,
  Calendar,
  UserPlus,
- Clock,
  Building2,
  CheckCircle
 } from 'lucide-react'
@@ -38,150 +38,77 @@ export default function DashboardPage() {
  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
  {/* Pending Approvals Card - Only show if there are pending requests */}
  {(adminStats?.stats?.pending ?? 0) > 0 && (
- <Card className="bg-card border-border">
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium text-muted-foreground">
- Pending Approvals
- </CardTitle>
- <UserPlus className="h-4 w-4 text-warning" />
- </CardHeader>
- <CardContent>
- <div className="flex items-center justify-between">
- <div className="text-2xl font-bold text-warning">
- {adminStats?.stats?.pending ?? 0}
- </div>
- <Badge className="bg-warning-muted text-warning border-warning">
- Urgent
- </Badge>
- </div>
- <p className="text-xs text-muted-foreground mb-3">
- Access requests awaiting review
- </p>
- <Link href="/admin/approvals">
- <Button size="sm" className="w-full btn-warning">
- <Clock className="w-4 h-4 mr-2" />
- Review Requests
- </Button>
- </Link>
- </CardContent>
- </Card>
+ <DashboardStatCard
+ title="Pending Approvals"
+ value={adminStats?.stats?.pending ?? 0}
+ description="Access requests awaiting review"
+ icon={UserPlus}
+ iconColor="warning"
+ />
  )}
 
  {/* Total Users Card */}
- <Card className="bg-card border-border">
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium text-muted-foreground">
- Total Users
- </CardTitle>
- <Users className="h-4 w-4 text-info" />
- </CardHeader>
- <CardContent>
- <div className="text-2xl font-bold text-foreground">
- {adminStats?.stats ? adminStats.stats.approved : 0}
- </div>
- <p className="text-xs text-muted-foreground">
- Approved system users
- </p>
- </CardContent>
- </Card>
+ <DashboardStatCard
+ title="Total Users"
+ value={adminStats?.stats ? adminStats.stats.approved : 0}
+ description="Approved system users"
+ icon={Users}
+ iconColor="info"
+ />
 
  {/* Approval Rate Card */}
- <Card className="bg-card border-border">
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium text-muted-foreground">
- Approval Rate
- </CardTitle>
- <CheckCircle className="h-4 w-4 text-success" />
- </CardHeader>
- <CardContent>
- <div className="text-2xl font-bold text-foreground">
- {adminStats?.stats?.approvalRate || 0}%
- </div>
- <p className="text-xs text-muted-foreground">
- Request approval success rate
- </p>
- </CardContent>
- </Card>
+ <DashboardStatCard
+ title="Approval Rate"
+ value={`${adminStats?.stats?.approvalRate || 0}%`}
+ description="Request approval success rate"
+ icon={CheckCircle}
+ iconColor="success"
+ />
 
  {/* Orders Card */}
- <Card className="bg-card border-border">
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium text-muted-foreground">
- Active Orders
- </CardTitle>
- <ShoppingCart className="h-4 w-4 text-primary" />
- </CardHeader>
- <CardContent>
- <div className="text-2xl font-bold text-foreground">24</div>
- <p className="text-xs text-muted-foreground">
- In production and shipping
- </p>
- </CardContent>
- </Card>
+ <DashboardStatCard
+ title="Active Orders"
+ value={24}
+ description="In production and shipping"
+ icon={ShoppingCart}
+ iconColor="primary"
+ />
 
  {/* Revenue Card */}
- <Card className="bg-card border-border">
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium text-muted-foreground">
- Monthly Revenue
- </CardTitle>
- <TrendingUp className="h-4 w-4 text-success" />
- </CardHeader>
- <CardContent>
- <div className="text-2xl font-bold text-foreground">$45,231</div>
- <p className="text-xs text-muted-foreground">
- +12% from last month
- </p>
- </CardContent>
- </Card>
+ <DashboardStatCard
+ title="Monthly Revenue"
+ value="$45,231"
+ description="+12% from last month"
+ icon={TrendingUp}
+ iconColor="success"
+ />
 
  {/* Production Card */}
- <Card className="bg-card border-border">
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium text-muted-foreground">
- In Production
- </CardTitle>
- <Package className="h-4 w-4 text-warning" />
- </CardHeader>
- <CardContent>
- <div className="text-2xl font-bold text-foreground">18</div>
- <p className="text-xs text-muted-foreground">
- Items being manufactured
- </p>
- </CardContent>
- </Card>
+ <DashboardStatCard
+ title="In Production"
+ value={18}
+ description="Items being manufactured"
+ icon={Package}
+ iconColor="warning"
+ />
 
  {/* Customers Card */}
- <Card className="bg-card border-border">
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium text-muted-foreground">
- Active Customers
- </CardTitle>
- <Building2 className="h-4 w-4 text-info" />
- </CardHeader>
- <CardContent>
- <div className="text-2xl font-bold text-foreground">89</div>
- <p className="text-xs text-muted-foreground">
- With active projects
- </p>
- </CardContent>
- </Card>
+ <DashboardStatCard
+ title="Active Customers"
+ value={89}
+ description="With active projects"
+ icon={Building2}
+ iconColor="info"
+ />
 
  {/* Projects Card */}
- <Card className="bg-card border-border">
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium text-muted-foreground">
- Active Projects
- </CardTitle>
- <Calendar className="h-4 w-4 text-primary" />
- </CardHeader>
- <CardContent>
- <div className="text-2xl font-bold text-foreground">32</div>
- <p className="text-xs text-muted-foreground">
- In various stages
- </p>
- </CardContent>
- </Card>
+ <DashboardStatCard
+ title="Active Projects"
+ value={32}
+ description="In various stages"
+ icon={Calendar}
+ iconColor="primary"
+ />
  </div>
 
  {/* Recent Activity Section */}

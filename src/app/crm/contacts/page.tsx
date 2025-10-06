@@ -44,7 +44,7 @@ export default function ContactsPage() {
   const [editContactId, setEditContactId] = useState<string>("");
 
   const { data: contactsData, isLoading, refetch } = api.crm.contacts.getAll.useQuery({
-    limit: 1000,
+    limit: 100,
     offset: 0,
     orderBy: { name: 'asc' },
   });
@@ -150,7 +150,7 @@ export default function ContactsPage() {
     {
       key: 'position',
       label: 'Position',
-      render: (value) => value || <span className="text-muted">—</span>,
+      render: (value) => value ? <span>{value as string}</span> : <span className="text-muted">—</span>,
     },
     {
       key: 'email',
