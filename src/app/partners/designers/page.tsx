@@ -3,26 +3,18 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Palette, Plus, MapPin, Phone, Mail, Star } from 'lucide-react';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+  PageHeader,
+  EmptyState,
+  LoadingState,
+  DataTable,
+  StatsGrid,
+  type DataTableColumn,
+  type DataTableFilter,
+  type StatItem,
+} from "@/components/common";
 import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Search, Plus, Palette, MapPin, Phone, Mail, Star } from 'lucide-react';
 
 /**
  * Designer Directory Page
@@ -30,13 +22,13 @@ import { Search, Plus, Palette, MapPin, Phone, Mail, Star } from 'lucide-react';
  */
 export default function DesignersPage() {
   const router = useRouter();
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive' | 'pending_approval' | 'suspended'>('active');
+  const [search, _setSearch] = useState('');
+  const [statusFilter, _setStatusFilter] = useState<'all' | 'active' | 'inactive' | 'pending_approval' | 'suspended'>('active');
 
   // Fetch designers
   const { data, isLoading } = api.partners.getAll.useQuery({
     type: 'designer',
-    status: statusFilter,
+    status: statusFilter === 'all' ? undefined : statusFilter,
     search: search.trim(),
     limit: 50,
   });
@@ -47,248 +39,216 @@ export default function DesignersPage() {
     router.push('/partners/designers/new');
   };
 
-  const handleViewDesigner = (id: string) => {
-    router.push(`/partners/designers/${id}`);
-  };
-
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'default';
-      case 'inactive':
-        return 'secondary';
-      case 'pending_approval':
-        return 'outline';
-      case 'suspended':
-        return 'destructive';
-      default:
-        return 'secondary';
-    }
-  };
-
   const formatStatus = (status: string) => {
     return status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
   };
 
-  return (
-    <div className="container mx-auto py-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+  const avgQualityRating = designers.length > 0
+    ? (
+      designers.reduce((sum: number, d: { quality_rating: number | null }) =>
+        sum + (d.quality_rating ? Number(d.quality_rating) : 0), 0
+      ) / designers.filter((d: { quality_rating: number | null }) => d.quality_rating).length
+    ).toFixed(1)
+    : '—';
+
+  // Stats configuration
+  const stats: StatItem[] = [
+    {
+      title: 'Total Designers',
+      value: data?.total || 0,
+      description: 'All designer partners',
+      icon: Palette,
+      iconColor: 'info',
+    },
+    {
+      title: 'Active',
+      value: designers.filter((d: { status: string }) => d.status === 'active').length,
+      description: 'Active designers',
+      icon: Palette,
+      iconColor: 'success',
+    },
+    {
+      title: 'Pending Approval',
+      value: designers.filter((d: { status: string }) => d.status === 'pending_approval').length,
+      description: 'Awaiting approval',
+      icon: Palette,
+      iconColor: 'warning',
+    },
+    {
+      title: 'Avg Quality Rating',
+      value: avgQualityRating,
+      description: 'Average rating',
+      icon: Star,
+      iconColor: 'info',
+    },
+  ];
+
+  // DataTable columns configuration
+  const columns: DataTableColumn<any>[] = [
+    {
+      key: 'company_name',
+      label: 'Company Name',
+      sortable: true,
+      render: (value, row) => (
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Designer Partners</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage your design partners and creative professionals
-          </p>
-        </div>
-        <Button onClick={handleCreateDesigner}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Designer
-        </Button>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Designers</CardTitle>
-            <Palette className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data?.total || 0}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active</CardTitle>
-            <div className="h-2 w-2 rounded-full bg-primary-muted" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {designers.filter((d: { status: string }) => d.status === 'active').length}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Approval</CardTitle>
-            <div className="h-2 w-2 rounded-full bg-warning-muted" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {designers.filter((d: { status: string }) => d.status === 'pending_approval').length}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Quality Rating</CardTitle>
-            <Star className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {designers.length > 0
-                ? (
-                  designers.reduce((sum: number, d: { quality_rating: number | null }) =>
-                    sum + (d.quality_rating ? Number(d.quality_rating) : 0), 0
-                  ) / designers.filter((d: { quality_rating: number | null }) => d.quality_rating).length
-                ).toFixed(1)
-                : '—'}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters */}
-      <Card>
-        <CardContent className="card-content-compact">
-          <div className="filters-section">
-            <div className="search-input-wrapper">
-              <Search className="search-icon" aria-hidden="true" />
-              <Input
-                placeholder="Search designers by name, city, country..."
-                value={search}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
-                className="search-input"
-              />
-            </div>
-            <Select value={statusFilter} onValueChange={(value: typeof statusFilter) => setStatusFilter(value)}>
-              <SelectTrigger className="filter-select">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-                <SelectItem value="pending_approval">Pending Approval</SelectItem>
-                <SelectItem value="suspended">Suspended</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="font-medium">{value as string}</div>
+          <div className="text-sm text-muted flex items-center gap-1">
+            <Mail className="icon-xs" aria-hidden="true" />
+            {row.primary_email}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      ),
+    },
+    {
+      key: 'city',
+      label: 'Location',
+      render: (_, row) => (
+        <div className="flex items-center gap-1">
+          <MapPin className="icon-xs text-muted" aria-hidden="true" />
+          {row.city}, {row.country}
+        </div>
+      ),
+    },
+    {
+      key: 'primary_contact',
+      label: 'Primary Contact',
+      render: (value, row) => (
+        <div>
+          <div>{value as string}</div>
+          <div className="text-sm text-muted flex items-center gap-1">
+            <Phone className="icon-xs" aria-hidden="true" />
+            {row.primary_phone}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'specializations',
+      label: 'Specializations',
+      render: (value) => {
+        const specs = value as string[];
+        return (
+          <div className="flex flex-wrap gap-1">
+            {specs.slice(0, 2).map((spec: string, idx: number) => (
+              <Badge key={idx} variant="secondary" className="text-xs">
+                {spec}
+              </Badge>
+            ))}
+            {specs.length > 2 && (
+              <Badge variant="outline" className="text-xs">
+                +{specs.length - 2}
+              </Badge>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      key: 'quality_rating',
+      label: 'Quality Rating',
+      sortable: true,
+      render: (value) => {
+        if (!value) return <span className="text-muted">—</span>;
+        return (
+          <div className="flex items-center gap-1">
+            <Star className="icon-xs text-warning" aria-hidden="true" />
+            <span className="font-medium">{Number(value).toFixed(1)}</span>
+            <span className="text-muted">/ 5.0</span>
+          </div>
+        );
+      },
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (value) => (
+        <Badge variant="outline" className="capitalize">
+          {formatStatus(value as string)}
+        </Badge>
+      ),
+    },
+    {
+      key: '_count',
+      label: 'Projects',
+      render: (value) => {
+        const count = (value as any)?.design_projects || (value as any)?.production_orders || 0;
+        return (
+          <div>
+            <div className="font-medium">{count}</div>
+            <div className="text-xs text-muted">projects</div>
+          </div>
+        );
+      },
+    },
+  ];
 
-      {/* Designers Table */}
+  // DataTable filters configuration
+  const filters: DataTableFilter[] = [
+    {
+      key: 'search',
+      label: 'Search designers',
+      type: 'search',
+      placeholder: 'Search by name, city, country...',
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      type: 'select',
+      options: [
+        { value: 'all', label: 'All Statuses' },
+        { value: 'active', label: 'Active' },
+        { value: 'inactive', label: 'Inactive' },
+        { value: 'pending_approval', label: 'Pending Approval' },
+        { value: 'suspended', label: 'Suspended' },
+      ],
+    },
+  ];
+
+  return (
+    <div className="page-container">
+      {/* Page Header */}
+      <PageHeader
+        title="Designer Partners"
+        subtitle="Manage your design partners and creative professionals"
+        actions={[
+          {
+            label: 'Add Designer',
+            icon: Plus,
+            onClick: handleCreateDesigner,
+          },
+        ]}
+      />
+
+      {/* Stats Grid */}
+      <StatsGrid stats={stats} columns={4} />
+
+      {/* Designers DataTable */}
       {isLoading ? (
-        <div className="loading-state">Loading designers...</div>
-      ) : designers.length === 0 ? (
-        <div className="empty-state">
-          <Palette className="empty-state-icon" aria-hidden="true" />
-          <h3 className="empty-state-title">No designers found</h3>
-          <p className="empty-state-description">
-            {search ? 'Try adjusting your search or filters' : 'Get started by adding your first designer partner'}
-          </p>
-          {!search && (
-            <Button onClick={handleCreateDesigner} className="mt-4">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Designer
-            </Button>
-          )}
-        </div>
+        <LoadingState message="Loading designers..." size="lg" />
+      ) : !designers || designers.length === 0 ? (
+        <EmptyState
+          icon={Palette}
+          title="No designers found"
+          description={search ? 'Try adjusting your search or filters' : 'Get started by adding your first designer partner'}
+          action={!search ? {
+            label: 'Add Designer',
+            onClick: handleCreateDesigner,
+            icon: Plus,
+          } : undefined}
+        />
       ) : (
-        <div className="data-table-container">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Company Name</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Primary Contact</TableHead>
-                <TableHead>Specializations</TableHead>
-                <TableHead>Quality Rating</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Projects</TableHead>
-                <TableHead className="w-[100px]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {designers.map((designer: {
-                id: string;
-                company_name: string;
-                city: string;
-                country: string;
-                primary_contact: string;
-                primary_email: string;
-                primary_phone: string;
-                specializations: string[];
-                quality_rating: number | null;
-                status: string;
-                _count: { production_orders: number; design_projects?: number };
-              }) => (
-                <TableRow
-                  key={designer.id}
-                  className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => handleViewDesigner(designer.id)}
-                >
-                  <TableCell>
-                    <div className="font-medium">{designer.company_name}</div>
-                    <div className="text-sm text-muted-foreground flex items-center mt-1">
-                      <Mail className="h-3 w-3 mr-1" />
-                      {designer.primary_email}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center">
-                      <MapPin className="h-3 w-3 mr-1 text-muted-foreground" />
-                      {designer.city}, {designer.country}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div>{designer.primary_contact}</div>
-                    <div className="text-sm text-muted-foreground flex items-center mt-1">
-                      <Phone className="h-3 w-3 mr-1" />
-                      {designer.primary_phone}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {designer.specializations.slice(0, 2).map((spec: string, idx: number) => (
-                        <Badge key={idx} variant="secondary" className="text-xs">
-                          {spec}
-                        </Badge>
-                      ))}
-                      {designer.specializations.length > 2 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{designer.specializations.length - 2}
-                        </Badge>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {designer.quality_rating ? (
-                      <div className="flex items-center">
-                        <Star className="h-4 w-4 text-warning mr-1" />
-                        <span className="font-medium">{Number(designer.quality_rating).toFixed(1)}</span>
-                        <span className="text-muted-foreground ml-1">/ 5.0</span>
-                      </div>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusBadgeVariant(designer.status)}>
-                      {formatStatus(designer.status)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="font-medium">{designer._count?.design_projects || designer._count?.production_orders || 0}</div>
-                    <div className="text-xs text-muted-foreground">projects</div>
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e: React.MouseEvent) => {
-                        e.stopPropagation();
-                        handleViewDesigner(designer.id);
-                      }}
-                    >
-                      View
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        <DataTable
+          data={designers}
+          columns={columns}
+          filters={filters}
+          onRowClick={(row) => router.push(`/partners/designers/${row.id}`)}
+          pagination={{ pageSize: 20, showSizeSelector: true }}
+          emptyState={{
+            icon: Palette,
+            title: 'No designers match your filters',
+            description: 'Try adjusting your search or filter criteria',
+          }}
+        />
       )}
     </div>
   );

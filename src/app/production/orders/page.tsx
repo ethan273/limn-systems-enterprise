@@ -115,18 +115,7 @@ export default function ProductionOrdersPage() {
     {
       key: 'status',
       label: 'Status',
-      render: (value) => {
-        const statusLabels: Record<string, string> = {
-          'awaiting_deposit': 'Awaiting Deposit',
-          'in_progress': 'In Progress',
-          'completed': 'Completed',
-          'awaiting_final_payment': 'Awaiting Final Payment',
-          'final_paid': 'Ready to Ship',
-          'shipped': 'Shipped',
-          'delivered': 'Delivered',
-        };
-        return <StatusBadge status={value as string} />;
-      },
+      render: (value) => <StatusBadge status={value as string} />,
     },
     {
       key: 'order_date',
