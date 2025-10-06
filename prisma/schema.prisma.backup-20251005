@@ -6522,11 +6522,11 @@ model user_permissions {
   module      String    @db.VarChar(50)
   can_view    Boolean?  @default(false)
   can_edit    Boolean?  @default(false)
-  created_at  DateTime? @default(now()) @db.Timestamptz(6)
-  updated_at  DateTime? @default(now()) @db.Timestamptz(6)
   can_create  Boolean?  @default(false)
   can_delete  Boolean?  @default(false)
   can_approve Boolean?  @default(false)
+  created_at  DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime? @default(now()) @db.Timestamptz(6)
   users       users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([user_id, module])
@@ -7000,30 +7000,6 @@ model workflows {
   @@index([category], map: "idx_workflows_category")
   @@index([department_id], map: "idx_workflows_department")
   @@index([trigger_type], map: "idx_workflows_trigger_type")
-  @@schema("public")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model expenses {
-  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  category         String    @db.VarChar(255)
-  subcategory      String?   @db.VarChar(255)
-  amount           Decimal   @db.Decimal(12, 2)
-  description      String?
-  vendor           String?   @db.VarChar(255)
-  payment_method   String?   @db.VarChar(100)
-  reference_number String?   @db.VarChar(100)
-  expense_date     DateTime  @db.Date
-  created_at       DateTime? @default(now()) @db.Timestamptz(6)
-  updated_at       DateTime? @default(now()) @db.Timestamptz(6)
-  created_by       String?   @db.Uuid
-  approved_by      String?   @db.Uuid
-  approval_status  String?   @default("pending") @db.VarChar(50)
-
-  @@index([approval_status], map: "idx_expenses_approval_status")
-  @@index([category], map: "idx_expenses_category")
-  @@index([created_at], map: "idx_expenses_created_at")
-  @@index([expense_date], map: "idx_expenses_expense_date")
   @@schema("public")
 }
 
