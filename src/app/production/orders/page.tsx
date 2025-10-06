@@ -1,20 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { api } from "@/lib/api/client";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Package, DollarSign, AlertCircle } from "lucide-react";
+import { Package, DollarSign, AlertCircle, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
+import {
+  PageHeader,
+  EmptyState,
+  LoadingState,
+  DataTable,
+  StatsGrid,
+  StatusBadge,
+  type DataTableColumn,
+  type DataTableFilter,
+  type StatItem,
+} from "@/components/common";
 
 export default function ProductionOrdersPage() {
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [searchQuery, setSearchQuery] = useState("");
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
@@ -31,76 +35,135 @@ export default function ProductionOrdersPage() {
     { enabled: !authLoading && !!user }
   );
 
-  // Filter by status and search query (client-side)
-  const filteredOrders = data?.items.filter((order: any) => {
-    // Status filter
-    if (statusFilter !== "all" && order.status !== statusFilter) {
-      return false;
-    }
-    // Search filter
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    return (
-      order.order_number.toLowerCase().includes(query) ||
-      order.item_name.toLowerCase().includes(query) ||
-      order.projects?.name?.toLowerCase().includes(query)
-    );
-  });
+  const orders = data?.items || [];
 
 
-  const getStatusBadge = (status: string) => {
-    // Define status info with explicit switch for security
-    let info: { label: string; variant: string; className: string };
-    switch (status) {
-      case 'awaiting_deposit':
-        info = { label: "Awaiting Deposit", variant: "outline", className: "bg-warning-muted text-warning border-warning" };
-        break;
-      case 'in_progress':
-        info = { label: "In Progress", variant: "outline", className: "bg-info-muted text-info border-info" };
-        break;
-      case 'completed':
-        info = { label: "Completed", variant: "outline", className: "bg-primary-muted text-primary border-primary" };
-        break;
-      case 'awaiting_final_payment':
-        info = { label: "Awaiting Final Payment", variant: "outline", className: "bg-orange-100 text-warning border-orange-300" };
-        break;
-      case 'final_paid':
-        info = { label: "Ready to Ship", variant: "outline", className: "bg-success-muted text-success border-success" };
-        break;
-      case 'shipped':
-        info = { label: "Shipped", variant: "outline", className: "bg-success text-success border-success" };
-        break;
-      case 'delivered':
-        info = { label: "Delivered", variant: "outline", className: "bg-success text-success border-success" };
-        break;
-      default:
-        info = { label: "Unknown", variant: "outline", className: "badge-neutral" };
-    }
-    return <Badge variant={info.variant as any} className={info.className}>{info.label}</Badge>;
-  };
+  // Stats configuration
+  const stats: StatItem[] = [
+    {
+      title: 'Total Orders',
+      value: orders.length,
+      description: 'All production orders',
+      icon: Package,
+      iconColor: 'info',
+    },
+    {
+      title: 'Total Value',
+      value: `$${orders.reduce((sum: number, order: any) => sum + Number(order.total_cost || 0), 0).toFixed(2)}`,
+      description: 'Total order value',
+      icon: DollarSign,
+      iconColor: 'warning',
+    },
+    {
+      title: 'In Production',
+      value: orders.filter((order: any) => order.status === 'in_progress').length,
+      description: 'Currently being produced',
+      icon: TrendingUp,
+      iconColor: 'info',
+    },
+    {
+      title: 'Awaiting Payment',
+      value: orders.filter((order: any) => order.status === 'awaiting_deposit' || order.status === 'awaiting_final_payment').length,
+      description: 'Payment pending',
+      icon: AlertCircle,
+      iconColor: 'warning',
+    },
+  ];
 
-  const getPaymentStatusBadge = (depositPaid: boolean, finalPaymentPaid: boolean) => {
-    if (!depositPaid) {
-      return <Badge variant="outline" className="bg-destructive-muted text-destructive border-destructive">No Deposit</Badge>;
-    }
-    if (depositPaid && !finalPaymentPaid) {
-      return <Badge variant="outline" className="bg-warning-muted text-warning border-warning">Deposit Paid</Badge>;
-    }
-    return <Badge variant="outline" className="bg-success-muted text-success border-success">Fully Paid</Badge>;
-  };
+  // DataTable columns configuration
+  const columns: DataTableColumn<any>[] = [
+    {
+      key: 'order_number',
+      label: 'Order Number',
+      sortable: true,
+      render: (value) => <span className="font-medium text-info">{value as string}</span>,
+    },
+    {
+      key: 'item_name',
+      label: 'Item',
+      sortable: true,
+    },
+    {
+      key: 'projects',
+      label: 'Project',
+      render: (value) => (value as any)?.name || <span className="text-muted">—</span>,
+    },
+    {
+      key: 'quantity',
+      label: 'Quantity',
+      sortable: true,
+    },
+    {
+      key: 'total_cost',
+      label: 'Total Cost',
+      sortable: true,
+      render: (value) => <span className="font-medium">${Number(value || 0).toFixed(2)}</span>,
+    },
+    {
+      key: 'deposit_paid',
+      label: 'Payment',
+      render: (_, row) => {
+        if (!row.deposit_paid) {
+          return <StatusBadge status="no_deposit" label="No Deposit" />;
+        }
+        if (row.deposit_paid && !row.final_payment_paid) {
+          return <StatusBadge status="deposit_paid" label="Deposit Paid" />;
+        }
+        return <StatusBadge status="fully_paid" label="Fully Paid" />;
+      },
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (value) => {
+        const statusLabels: Record<string, string> = {
+          'awaiting_deposit': 'Awaiting Deposit',
+          'in_progress': 'In Progress',
+          'completed': 'Completed',
+          'awaiting_final_payment': 'Awaiting Final Payment',
+          'final_paid': 'Ready to Ship',
+          'shipped': 'Shipped',
+          'delivered': 'Delivered',
+        };
+        return <StatusBadge status={value as string} label={statusLabels[value as string]} />;
+      },
+    },
+    {
+      key: 'order_date',
+      label: 'Order Date',
+      sortable: true,
+      render: (value) => value ? new Date(value as string).toLocaleDateString() : <span className="text-muted">—</span>,
+    },
+  ];
+
+  // DataTable filters configuration
+  const filters: DataTableFilter[] = [
+    {
+      key: 'search',
+      label: 'Search orders',
+      type: 'search',
+      placeholder: 'Search by order number, item name, or project...',
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      type: 'select',
+      options: [
+        { value: 'all', label: 'All Statuses' },
+        { value: 'awaiting_deposit', label: 'Awaiting Deposit' },
+        { value: 'in_progress', label: 'In Progress' },
+        { value: 'completed', label: 'Completed' },
+        { value: 'awaiting_final_payment', label: 'Awaiting Final Payment' },
+        { value: 'final_paid', label: 'Ready to Ship' },
+        { value: 'shipped', label: 'Shipped' },
+        { value: 'delivered', label: 'Delivered' },
+      ],
+    },
+  ];
 
   // Show loading state while checking authentication
   if (authLoading) {
-    return (
-      <div className="container mx-auto py-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading...</p>
-          </div>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Checking authentication..." size="lg" />;
   }
 
   // Don't render if not authenticated (will redirect)
@@ -109,156 +172,53 @@ export default function ProductionOrdersPage() {
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Production Orders</h1>
-          <p className="text-muted-foreground">
+    <div className="page-container">
+      {/* Page Header */}
+      <PageHeader
+        title="Production Orders"
+        subtitle={
+          <>
             View production orders with auto-generated invoices and payment tracking. To create orders, go to{" "}
             <Link href="/crm/projects" className="text-info hover:underline font-medium">
               CRM → Projects
             </Link>
-          </p>
-        </div>
-      </div>
+          </>
+        }
+      />
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filter Production Orders</CardTitle>
-        </CardHeader>
-        <CardContent className="card-content-compact">
-          <div className="filters-section">
-            <div className="search-input-wrapper">
-              <Search className="search-icon" aria-hidden="true" />
-              <Input
-                placeholder="Search by order number, item name, or project..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="search-input"
-              />
-            </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="filter-select">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="awaiting_deposit">Awaiting Deposit</SelectItem>
-                <SelectItem value="in_progress">In Progress</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="awaiting_final_payment">Awaiting Final Payment</SelectItem>
-                <SelectItem value="final_paid">Ready to Ship</SelectItem>
-                <SelectItem value="shipped">Shipped</SelectItem>
-                <SelectItem value="delivered">Delivered</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Stats Grid */}
+      <StatsGrid stats={stats} columns={4} />
 
-      {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="p-4 border rounded-lg bg-card">
-          <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
-            <Package className="h-4 w-4" />
-            <span>Total Orders</span>
-          </div>
-          <div className="text-2xl font-bold">{filteredOrders?.length || 0}</div>
-        </div>
-        <div className="p-4 border rounded-lg bg-card">
-          <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
-            <DollarSign className="h-4 w-4" />
-            <span>Total Value</span>
-          </div>
-          <div className="text-2xl font-bold">
-            ${filteredOrders?.reduce((sum: number, order: any) => sum + Number(order.total_cost || 0), 0).toFixed(2)}
-          </div>
-        </div>
-        <div className="p-4 border rounded-lg bg-card">
-          <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
-            <Package className="h-4 w-4" />
-            <span>In Production</span>
-          </div>
-          <div className="text-2xl font-bold">
-            {filteredOrders?.filter((order: any) => order.status === 'in_progress').length || 0}
-          </div>
-        </div>
-        <div className="p-4 border rounded-lg bg-card">
-          <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
-            <AlertCircle className="h-4 w-4" />
-            <span>Awaiting Payment</span>
-          </div>
-          <div className="text-2xl font-bold">
-            {filteredOrders?.filter((order: any) => order.status === 'awaiting_deposit' || order.status === 'awaiting_final_payment').length || 0}
-          </div>
-        </div>
-      </div>
-
-      {/* Orders Table */}
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Order Number</TableHead>
-              <TableHead>Item</TableHead>
-              <TableHead>Project</TableHead>
-              <TableHead>Quantity</TableHead>
-              <TableHead>Total Cost</TableHead>
-              <TableHead>Payment Status</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Order Date</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={8} className="text-center py-8">Loading production orders...</TableCell>
-              </TableRow>
-            ) : filteredOrders?.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={8} className="text-center py-8">
-                  <div className="space-y-2">
-                    <p className="text-muted-foreground">No production orders found</p>
-                    <p className="text-sm text-muted-foreground">
-                      Create orders from{" "}
-                      <Link href="/crm/projects" className="text-info hover:underline">
-                        Projects
-                      </Link>
-                    </p>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredOrders?.map((order: any) => (
-                <TableRow
-                  key={order.id}
-                  className="cursor-pointer hover:bg-muted/50 data-table-row"
-                  onClick={() => router.push(`/production/orders/${order.id}`)}
-                >
-                  <TableCell>
-                    <span className="font-medium text-info">
-                      {order.order_number}
-                    </span>
-                  </TableCell>
-                  <TableCell>{order.item_name}</TableCell>
-                  <TableCell>{order.projects?.name || "—"}</TableCell>
-                  <TableCell>{order.quantity}</TableCell>
-                  <TableCell>
-                    <span className="font-medium">${Number(order.total_cost || 0).toFixed(2)}</span>
-                  </TableCell>
-                  <TableCell>{getPaymentStatusBadge(order.deposit_paid, order.final_payment_paid)}</TableCell>
-                  <TableCell>{getStatusBadge(order.status)}</TableCell>
-                  <TableCell>
-                    {order.order_date ? new Date(order.order_date).toLocaleDateString() : "—"}
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      {/* Orders DataTable */}
+      {isLoading ? (
+        <LoadingState message="Loading production orders..." size="lg" />
+      ) : !orders || orders.length === 0 ? (
+        <EmptyState
+          icon={Package}
+          title="No production orders found"
+          description={
+            <>
+              Create orders from{" "}
+              <Link href="/crm/projects" className="text-info hover:underline">
+                Projects
+              </Link>
+            </>
+          }
+        />
+      ) : (
+        <DataTable
+          data={orders}
+          columns={columns}
+          filters={filters}
+          onRowClick={(row) => router.push(`/production/orders/${row.id}`)}
+          pagination={{ pageSize: 20, showSizeSelector: true }}
+          emptyState={{
+            icon: Package,
+            title: 'No orders match your filters',
+            description: 'Try adjusting your search or filter criteria',
+          }}
+        />
+      )}
     </div>
   );
 }
