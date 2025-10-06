@@ -77,7 +77,7 @@ jobs:
   visual-regression:
     runs-on: ubuntu-latest
     # Only run if Chromatic token is configured
-    if: ${{ secrets.CHROMATIC_PROJECT_TOKEN != '' }}
+    if: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4
