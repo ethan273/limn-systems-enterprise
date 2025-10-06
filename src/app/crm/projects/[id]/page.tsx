@@ -19,7 +19,6 @@ import {
 import {
   EntityDetailHeader,
   InfoCard,
-  StatusBadge,
   LoadingState,
   EmptyState,
 } from "@/components/common";
@@ -112,7 +111,7 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
         icon={Briefcase}
         title={project.name || "Unnamed Project"}
         subtitle={project.description || customer?.company || undefined}
-        status={<StatusBadge status={project.status || "planning"} />}
+        status={project.status || "planning"}
         metadata={[
           { icon: User, value: customer?.name || "No customer", type: 'text' as const },
           ...(customer?.company ? [{ icon: Building2, value: customer.company, type: 'text' as const }] : []),

@@ -1,14 +1,21 @@
-export default function DesignerTasksPage() {
- return (
- <div className="page-container">
- <div className="mb-6">
- <h1 className="page-title">Designer Tasks</h1>
- <p className="page-subtitle">Tasks assigned to design teams</p>
- </div>
+"use client";
 
- <div className="card">
- <p>Designer task management interface coming soon...</p>
- </div>
- </div>
- );
+import { PageHeader, EmptyState } from "@/components/common";
+import { Paintbrush } from "lucide-react";
+
+export default function DesignerTasksPage() {
+  return (
+    <div className="page-container">
+      <PageHeader
+        title="Designer Tasks"
+        subtitle="Tasks assigned to design teams"
+      />
+
+      <EmptyState
+        icon={Paintbrush}
+        title="Coming Soon"
+        description="Designer task management interface is under development."
+      />
+    </div>
+  );
 }

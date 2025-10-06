@@ -3,14 +3,14 @@
 import React, { use } from "react";
 import { api } from "@/lib/api/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { EntityDetailHeader } from "@/components/common/EntityDetailHeader";
+import { InfoCard } from "@/components/common/InfoCard";
+import { StatusBadge } from "@/components/common/StatusBadge";
+import { EmptyState } from "@/components/common/EmptyState";
+import { LoadingState } from "@/components/common/LoadingState";
 import {
   Package,
   AlertCircle,
-  CheckCircle2,
-  XCircle,
-  Clock,
   Truck,
   MapPin,
 } from "lucide-react";
@@ -19,56 +19,13 @@ import { format } from "date-fns";
 // Dynamic route configuration
 export const dynamic = 'force-dynamic';
 
-const statusConfig: Record<string, { label: string; className: string; icon: React.ReactNode }> = {
-  pending: {
-    label: "Pending",
-    className: "badge-neutral",
-    icon: <Clock className="w-4 h-4" aria-hidden="true" />,
-  },
-  preparing: {
-    label: "Preparing",
-    className: "bg-info-muted text-info border-info",
-    icon: <Package className="w-4 h-4" aria-hidden="true" />,
-  },
-  ready: {
-    label: "Ready",
-    className: "bg-primary-muted text-primary border-primary",
-    icon: <CheckCircle2 className="w-4 h-4" aria-hidden="true" />,
-  },
-  shipped: {
-    label: "Shipped",
-    className: "bg-success-muted text-success border-success",
-    icon: <Truck className="w-4 h-4" aria-hidden="true" />,
-  },
-  in_transit: {
-    label: "In Transit",
-    className: "bg-info text-info border-info",
-    icon: <Truck className="w-4 h-4" aria-hidden="true" />,
-  },
-  delivered: {
-    label: "Delivered",
-    className: "bg-success-muted text-success border-success",
-    icon: <MapPin className="w-4 h-4" aria-hidden="true" />,
-  },
-  delayed: {
-    label: "Delayed",
-    className: "bg-warning-muted text-warning border-warning",
-    icon: <AlertCircle className="w-4 h-4" aria-hidden="true" />,
-  },
-  cancelled: {
-    label: "Cancelled",
-    className: "bg-muted text-muted border-muted",
-    icon: <XCircle className="w-4 h-4" aria-hidden="true" />,
-  },
-};
-
 interface PageProps {
   params: Promise<{ trackingNumber: string }>;
 }
 
 export default function TrackingDetailPage({ params }: PageProps) {
   const { trackingNumber } = use(params);
-    // Fetch tracking info (public endpoint - no auth required)
+  // Fetch tracking info (public endpoint - no auth required)
   const { data: shipment, isLoading } = api.shipping.getTrackingInfo.useQuery(
     { trackingNumber },
     { enabled: !!trackingNumber }
@@ -77,9 +34,7 @@ export default function TrackingDetailPage({ params }: PageProps) {
   if (isLoading) {
     return (
       <div className="page-container">
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">Loading tracking information...</p>
-        </div>
+        <LoadingState message="Loading tracking information..." size="md" />
       </div>
     );
   }
@@ -87,57 +42,46 @@ export default function TrackingDetailPage({ params }: PageProps) {
   if (!shipment) {
     return (
       <div className="page-container">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" aria-hidden="true" />
-          <AlertDescription>Tracking number not found</AlertDescription>
-        </Alert>
+        <EmptyState
+          icon={AlertCircle}
+          title="Tracking Number Not Found"
+          description="The tracking number you entered could not be found in our system."
+        />
       </div>
     );
   }
-
-  const config = statusConfig[shipment.status] || statusConfig.pending;
 
   // Parse destination address
   const destAddress = typeof shipment.destination_address === 'object' ? shipment.destination_address : null;
 
   return (
     <div className="page-container">
-      {/* Header */}
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Track Your Shipment</h1>
-          <p className="page-description">
-            Tracking Number: {shipment.tracking_number}
-            {shipment.shipment_number && ` • Order: ${shipment.shipment_number}`}
-          </p>
-        </div>
-        <Badge className={config.className}>
-          <span className="flex items-center gap-1">
-            {config.icon}
-            {config.label}
-          </span>
-        </Badge>
-      </div>
+      {/* Shipment Header */}
+      <EntityDetailHeader
+        icon={Package}
+        title="Track Your Shipment"
+        subtitle={`Tracking: ${shipment.tracking_number}${shipment.shipment_number ? ` • Order: ${shipment.shipment_number}` : ''}`}
+        metadata={[
+          ...(shipment.carrier ? [{ icon: Truck, value: shipment.carrier, type: 'text' as const }] : []),
+          ...(shipment.service_level ? [{ icon: Truck, value: shipment.service_level, type: 'text' as const }] : []),
+        ]}
+        status={shipment.status}
+      />
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Current Status</CardTitle>
+          <CardHeader className="card-header-sm">
+            <CardTitle className="card-title-sm">Current Status</CardTitle>
           </CardHeader>
           <CardContent>
-            <Badge className={config.className}>
-              <span className="flex items-center gap-1">
-                {config.icon}
-                {config.label}
-              </span>
-            </Badge>
+            <StatusBadge status={shipment.status} />
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Estimated Delivery</CardTitle>
+          <CardHeader className="card-header-sm">
+            <CardTitle className="card-title-sm">Estimated Delivery</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-lg font-medium">
@@ -147,39 +91,45 @@ export default function TrackingDetailPage({ params }: PageProps) {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Shipping Method</CardTitle>
+          <CardHeader className="card-header-sm">
+            <CardTitle className="card-title-sm">Shipping Method</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-lg font-medium">{shipment.carrier || "N/A"}</p>
-            <p className="text-sm text-muted-foreground">{shipment.service_level || ""}</p>
+            {shipment.service_level && (
+              <p className="text-sm text-muted-foreground">{shipment.service_level}</p>
+            )}
           </CardContent>
         </Card>
       </div>
 
       {/* Tracking Timeline */}
-      <Card className="mb-6">
+      <Card>
         <CardHeader>
           <CardTitle>Tracking Timeline</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="card-content-compact">
           {shipment.tracking_events && Array.isArray(shipment.tracking_events) && (shipment.tracking_events as any[]).length > 0 ? (
-            <div className="space-y-4">
+            <div className="activity-timeline">
               {(shipment.tracking_events as any[]).map((event: any, index: number) => (
-                <div key={index} className="flex gap-4 pb-4 border-b last:border-b-0">
-                  <div className="flex-shrink-0 w-32">
-                    <p className="text-sm font-medium">
-                      {event.timestamp && format(new Date(event.timestamp), "MMM dd, yyyy")}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {event.timestamp && format(new Date(event.timestamp), "h:mm a")}
-                    </p>
+                <div key={index} className="activity-timeline-item">
+                  <div className="activity-timeline-icon">
+                    <MapPin className="icon-sm status-in-progress" aria-hidden="true" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-medium">{event.description || event.status || "Status update"}</p>
+                  <div className="activity-timeline-content">
+                    <div className="activity-timeline-header">
+                      <h4 className="activity-timeline-title">
+                        {event.description || event.status || "Status update"}
+                      </h4>
+                      {event.timestamp && (
+                        <span className="text-xs text-muted-foreground">
+                          {format(new Date(event.timestamp), "MMM dd, yyyy h:mm a")}
+                        </span>
+                      )}
+                    </div>
                     {event.location && (
-                      <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
-                        <MapPin className="w-3 h-3" aria-hidden="true" />
+                      <p className="activity-timeline-description">
+                        <MapPin className="icon-xs inline" aria-hidden="true" />
                         {event.location}
                       </p>
                     )}
@@ -188,53 +138,50 @@ export default function TrackingDetailPage({ params }: PageProps) {
               ))}
             </div>
           ) : (
-            <p className="text-muted-foreground">No tracking events available</p>
+            <EmptyState
+              icon={Package}
+              title="No Tracking Events"
+              description="No tracking events are available for this shipment yet."
+            />
           )}
         </CardContent>
       </Card>
 
       {/* Shipment Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Shipment Information</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-muted-foreground">Tracking Number</p>
-              <p className="font-medium">{shipment.tracking_number}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Shipment Number</p>
-              <p className="font-medium">{shipment.shipment_number || "N/A"}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Carrier</p>
-              <p className="font-medium">{shipment.carrier || "N/A"}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Service Level</p>
-              <p className="font-medium">{shipment.service_level || "N/A"}</p>
-            </div>
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <InfoCard
+          title="Shipment Information"
+          items={[
+            { label: 'Tracking Number', value: shipment.tracking_number },
+            { label: 'Shipment Number', value: shipment.shipment_number || '—' },
+            { label: 'Carrier', value: shipment.carrier || '—' },
+            { label: 'Service Level', value: shipment.service_level || '—' },
+          ]}
+        />
 
-          {destAddress && (
-            <div className="pt-4 border-t">
-              <p className="text-sm text-muted-foreground mb-2">Delivery Address</p>
-              <div className="space-y-1">
-                <p className="font-medium">{(destAddress as any).name || ""}</p>
-                {(destAddress as any).company && <p>{(destAddress as any).company}</p>}
-                <p>{(destAddress as any).address_line1 || ""}</p>
-                {(destAddress as any).address_line2 && <p>{(destAddress as any).address_line2}</p>}
-                <p>
-                  {(destAddress as any).city || ""}, {(destAddress as any).state || ""} {(destAddress as any).postal_code || ""}
-                </p>
-                <p>{(destAddress as any).country || ""}</p>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        {destAddress && (
+          <InfoCard
+            title="Delivery Address"
+            items={[
+              { label: 'Recipient', value: (destAddress as any).name || '—' },
+              ...(((destAddress as any).company) ? [{ label: 'Company', value: (destAddress as any).company }] : []),
+              {
+                label: 'Address',
+                value: (
+                  <>
+                    {(destAddress as any).address_line1 || ''}
+                    {(destAddress as any).address_line2 && <><br />{(destAddress as any).address_line2}</>}
+                    <br />
+                    {(destAddress as any).city || ''}, {(destAddress as any).state || ''} {(destAddress as any).postal_code || ''}
+                    <br />
+                    {(destAddress as any).country || ''}
+                  </>
+                ),
+              },
+            ]}
+          />
+        )}
+      </div>
     </div>
   );
 }

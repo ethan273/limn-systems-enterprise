@@ -28,8 +28,8 @@ export const dynamic = 'force-dynamic';
 export default function ShipmentsPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, _setStatusFilter] = useState<string>("all");
+  const [searchQuery, _setSearchQuery] = useState("");
 
   const { data, isLoading } = api.shipping.getAllShipments.useQuery(
     {
@@ -46,24 +46,32 @@ export default function ShipmentsPage() {
 
   const stats: StatItem[] = [
     {
-      label: "Total Shipments",
+      title: "Total Shipments",
       value: shipments.length,
-      variant: "default",
+      description: "All shipments",
+      icon: TruckIcon,
+      iconColor: 'info',
     },
     {
-      label: "Pending",
+      title: "Pending",
       value: shipments.filter((s) => s.status === "pending").length,
-      variant: "warning",
+      description: "Awaiting processing",
+      icon: Package,
+      iconColor: 'warning',
     },
     {
-      label: "In Transit",
+      title: "In Transit",
       value: shipments.filter((s) => s.status === "shipped" || s.status === "in_transit").length,
-      variant: "info",
+      description: "Currently shipping",
+      icon: TruckIcon,
+      iconColor: 'info',
     },
     {
-      label: "Delivered",
+      title: "Delivered",
       value: shipments.filter((s) => s.status === "delivered").length,
-      variant: "success",
+      description: "Successfully delivered",
+      icon: Package,
+      iconColor: 'success',
     },
   ];
 
@@ -72,8 +80,6 @@ export default function ShipmentsPage() {
       key: "status",
       label: "Status",
       type: "select",
-      value: statusFilter,
-      onChange: setStatusFilter,
       options: [
         { label: "All Statuses", value: "all" },
         { label: "Pending", value: "pending" },
@@ -91,14 +97,14 @@ export default function ShipmentsPage() {
     {
       key: "shipment_number",
       label: "Shipment #",
-      render: (value) => <span className="font-medium">{value || "—"}</span>,
+      render: (value) => <span className="font-medium">{(value as string) || "—"}</span>,
     },
     {
       key: "tracking_number",
       label: "Tracking #",
       render: (value) =>
         value ? (
-          <div className="font-mono text-xs">{value}</div>
+          <div className="font-mono text-xs">{value as string}</div>
         ) : (
           <span className="text-muted">Not assigned</span>
         ),
@@ -109,7 +115,7 @@ export default function ShipmentsPage() {
       render: (value) =>
         value ? (
           <Badge variant="outline" className="badge-neutral">
-            {value}
+            {value as string}
           </Badge>
         ) : (
           <span className="text-muted">—</span>
@@ -118,34 +124,38 @@ export default function ShipmentsPage() {
     {
       key: "orders",
       label: "Order",
-      render: (_, row) =>
-        row.orders ? (
+      render: (_, row) => {
+        const orders = row.orders as any;
+        return orders ? (
           <div className="text-sm">
-            <div className="font-medium">{row.orders.order_number}</div>
-            {row.orders.projects && (
-              <div className="text-muted">{row.orders.projects.project_name}</div>
+            <div className="font-medium">{orders.order_number}</div>
+            {orders.projects && (
+              <div className="text-muted">{orders.projects.project_name}</div>
             )}
           </div>
         ) : (
           <span className="text-muted">—</span>
-        ),
+        );
+      },
     },
     {
       key: "orders",
       label: "Customer",
-      render: (_, row) =>
-        row.orders?.customers ? (
+      render: (_, row) => {
+        const orders = row.orders as any;
+        return orders?.customers ? (
           <div className="text-sm">
-            {row.orders.customers.company_name || row.orders.customers.name}
+            {orders.customers.company_name || orders.customers.name}
           </div>
         ) : (
           <span className="text-muted">—</span>
-        ),
+        );
+      },
     },
     {
       key: "status",
       label: "Status",
-      render: (value) => <ShippingStatusBadge status={value || "pending"} />,
+      render: (value) => <ShippingStatusBadge status={(value as string) || "pending"} />,
     },
     {
       key: "packages",
@@ -165,7 +175,7 @@ export default function ShipmentsPage() {
       label: "Shipped",
       render: (value) =>
         value ? (
-          format(new Date(value), "MMM d, yyyy")
+          format(new Date(value as string), "MMM d, yyyy")
         ) : (
           <span className="text-muted">—</span>
         ),
@@ -174,8 +184,8 @@ export default function ShipmentsPage() {
       key: "estimated_delivery",
       label: "Est. Delivery",
       render: (value) =>
-        value ? (
-          format(new Date(value), "MMM d, yyyy")
+        value && typeof value === 'string' ? (
+          format(new Date(value as string), "MMM d, yyyy")
         ) : (
           <span className="text-muted">—</span>
         ),
@@ -213,9 +223,6 @@ export default function ShipmentsPage() {
         <DataTable
           data={filteredShipments}
           columns={columns}
-          searchPlaceholder="Search by shipment #, tracking #, order #..."
-          searchValue={searchQuery}
-          onSearchChange={setSearchQuery}
           filters={filters}
           onRowClick={(row) => router.push(`/shipping/shipments/${row.id}`)}
           emptyState={{

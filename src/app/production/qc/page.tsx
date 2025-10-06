@@ -59,8 +59,8 @@ const statusConfig: Record<string, { label: string; className: string; icon: Rea
 
 export default function QCInspectionsPage() {
   const router = useRouter();
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, _setStatusFilter] = useState<string>("all");
+  const [searchQuery, _setSearchQuery] = useState("");
 
   // Fetch QC inspections
   const { data, isLoading } = api.qc.getAllInspections.useQuery({
@@ -83,34 +83,39 @@ export default function QCInspectionsPage() {
 
   const stats: StatItem[] = [
     {
-      label: "Total",
+      title: "Total",
       value: inspections.length,
-      variant: "default",
+      description: "All inspections",
       icon: ClipboardCheck,
+      iconColor: 'primary',
     },
     {
-      label: "Pending",
+      title: "Pending",
       value: inspections.filter((i) => i.status === "pending").length,
-      variant: "default",
+      description: "Awaiting inspection",
       icon: Clock,
+      iconColor: 'warning',
     },
     {
-      label: "In Progress",
+      title: "In Progress",
       value: inspections.filter((i) => i.status === "in_progress").length,
-      variant: "info",
+      description: "Currently inspecting",
       icon: ClipboardCheck,
+      iconColor: 'info',
     },
     {
-      label: "Passed",
+      title: "Passed",
       value: inspections.filter((i) => i.status === "passed").length,
-      variant: "success",
+      description: "Quality approved",
       icon: CheckCircle2,
+      iconColor: 'success',
     },
     {
-      label: "Failed",
+      title: "Failed",
       value: inspections.filter((i) => i.status === "failed").length,
-      variant: "destructive",
+      description: "Requires rework",
       icon: XCircle,
+      iconColor: 'destructive',
     },
   ];
 
@@ -119,8 +124,6 @@ export default function QCInspectionsPage() {
       key: "status",
       label: "Status",
       type: "select",
-      value: statusFilter,
-      onChange: setStatusFilter,
       options: [
         { label: "All Statuses", value: "all" },
         { label: "Pending", value: "pending" },
@@ -161,7 +164,7 @@ export default function QCInspectionsPage() {
       label: "QC Stage",
       render: (value) => (
         <Badge variant="outline" className="capitalize">
-          {value.replace(/_/g, " ")}
+          {(value as string).replace(/_/g, " ")}
         </Badge>
       ),
     },
@@ -170,7 +173,7 @@ export default function QCInspectionsPage() {
       label: "Status",
       render: (value) => {
         // eslint-disable-next-line security/detect-object-injection
-        const config = statusConfig[value] || statusConfig.pending;
+        const config = statusConfig[value as string] || statusConfig.pending;
         return (
           <Badge variant="outline" className={cn(config.className, "flex items-center gap-1 w-fit")}>
             {config.icon}
@@ -185,7 +188,7 @@ export default function QCInspectionsPage() {
       render: (value) => (
         <div className="flex items-center gap-1">
           <AlertCircle className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
-          {value?.qc_defects || 0}
+          {(value as any)?.qc_defects || 0}
         </div>
       ),
     },
@@ -195,7 +198,7 @@ export default function QCInspectionsPage() {
       render: (value) => (
         <div className="flex items-center gap-1">
           <Camera className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
-          {value?.qc_photos || 0}
+          {(value as any)?.qc_photos || 0}
         </div>
       ),
     },
@@ -212,7 +215,7 @@ export default function QCInspectionsPage() {
             value === "low" && "badge-neutral"
           )}
         >
-          {value}
+          {value as string}
         </Badge>
       ),
     },
@@ -220,7 +223,7 @@ export default function QCInspectionsPage() {
       key: "started_at",
       label: "Started",
       render: (value) =>
-        value ? format(new Date(value), "MMM d, yyyy") : "—",
+        value ? format(new Date(value as string), "MMM d, yyyy") : "—",
     },
   ];
 
@@ -238,7 +241,7 @@ export default function QCInspectionsPage() {
         ]}
       />
 
-      <StatsGrid stats={stats} columns={5} />
+      <StatsGrid stats={stats} columns={4} />
 
       {isLoading ? (
         <LoadingState message="Loading inspections..." />
@@ -257,9 +260,6 @@ export default function QCInspectionsPage() {
         <DataTable
           data={filteredInspections}
           columns={columns}
-          searchPlaceholder="Search prototypes, items, or batch ID..."
-          searchValue={searchQuery}
-          onSearchChange={setSearchQuery}
           filters={filters}
           onRowClick={(row) => router.push(`/qc/${row.id}`)}
           emptyState={{

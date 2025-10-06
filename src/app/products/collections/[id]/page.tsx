@@ -4,19 +4,21 @@ import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EntityDetailHeader } from "@/components/common/EntityDetailHeader";
+import { InfoCard } from "@/components/common/InfoCard";
+import { StatusBadge } from "@/components/common/StatusBadge";
+import { EmptyState } from "@/components/common/EmptyState";
+import { LoadingState } from "@/components/common/LoadingState";
 import {
   ArrowLeft,
   Package,
-  Calendar,
-  Settings,
-  Edit,
   Image as ImageIcon,
   BarChart3,
   Layers,
   FileText,
+  AlertCircle,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { MediaUploader } from "@/components/media/MediaUploader";
@@ -55,12 +57,7 @@ export default function CollectionDetailPage({ params }: PageProps) {
   if (isLoading) {
     return (
       <div className="page-container">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="loading-spinner mx-auto mb-4" />
-            <p className="page-subtitle">Loading collection...</p>
-          </div>
-        </div>
+        <LoadingState message="Loading collection..." size="md" />
       </div>
     );
   }
@@ -68,17 +65,16 @@ export default function CollectionDetailPage({ params }: PageProps) {
   if (!collection) {
     return (
       <div className="page-container">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <Package className="mx-auto h-12 w-12 text-muted mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Collection Not Found</h2>
-            <p className="page-subtitle mb-4">The collection you&apos;re looking for doesn&apos;t exist.</p>
-            <Button onClick={() => router.push("/products/collections")}>
-              <ArrowLeft className="icon-sm" />
-              Back to Collections
-            </Button>
-          </div>
-        </div>
+        <EmptyState
+          icon={AlertCircle}
+          title="Collection Not Found"
+          description="The collection you're looking for doesn't exist."
+          action={{
+            label: 'Back to Collections',
+            onClick: () => router.push("/products/collections"),
+            icon: ArrowLeft,
+          }}
+        />
       </div>
     );
   }
@@ -87,289 +83,215 @@ export default function CollectionDetailPage({ params }: PageProps) {
     <div className="page-container">
       {/* Header */}
       <div className="page-header">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push("/products/collections")}
-            className="btn-back"
-          >
-            <ArrowLeft className="icon-sm" />
-          </Button>
-          <div>
-            <h1 className="page-title">{collection.name}</h1>
-            <div className="page-subtitle">
-              {collection.prefix && (
-                <Badge variant="secondary" className="font-mono mr-2">
-                  {collection.prefix}
-                </Badge>
-              )}
-              Collection Details
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge
-            variant="outline"
-            className={collection.is_active !== false ? "status-active" : "status-inactive"}
-          >
-            {collection.is_active !== false ? "Active" : "Inactive"}
-          </Badge>
-          <Button onClick={() => router.push(`/products/collections/${collectionId}/edit`)}>
-            <Edit className="icon-sm" />
-            Edit Collection
-          </Button>
-        </div>
+        <Button
+          onClick={() => router.push("/products/collections")}
+          variant="ghost"
+          className="btn-secondary"
+        >
+          <ArrowLeft className="icon-sm" aria-hidden="true" />
+          Back
+        </Button>
+      </div>
+
+      {/* Entity Header */}
+      <EntityDetailHeader
+        icon={Package}
+        title={collection.name}
+        subtitle={collection.prefix ? `Prefix: ${collection.prefix}` : "Collection Details"}
+        metadata={[
+          { icon: Package, value: collection.designer || "—", label: "Designer" },
+        ]}
+        tags={collection.variation_types || []}
+        actions={[
+          {
+            label: 'Edit Collection',
+            onClick: () => router.push(`/products/collections/${collectionId}/edit`),
+          },
+        ]}
+        status={collection.is_active !== false ? "active" : "inactive"}
+      />
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="card-header-sm">
+            <CardTitle className="card-title-sm">Materials</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="stat-value">0</div>
+            <p className="stat-label">Total materials</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="card-header-sm">
+            <CardTitle className="card-title-sm">Catalog Items</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="stat-value">0</div>
+            <p className="stat-label">Items in catalog</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="card-header-sm">
+            <CardTitle className="card-title-sm">Media Files</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="stat-value">{media.length}</div>
+            <p className="stat-label">Images and documents</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="overview">
-            <FileText className="icon-xs mr-2" />
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="tabs-list">
+          <TabsTrigger value="overview" className="tabs-trigger">
+            <FileText className="icon-sm" aria-hidden="true" />
             Overview
           </TabsTrigger>
-          <TabsTrigger value="media">
-            <ImageIcon className="icon-xs mr-2" />
+          <TabsTrigger value="media" className="tabs-trigger">
+            <ImageIcon className="icon-sm" aria-hidden="true" />
             Media ({media.length})
           </TabsTrigger>
-          <TabsTrigger value="materials">
-            <Layers className="icon-xs mr-2" />
+          <TabsTrigger value="materials" className="tabs-trigger">
+            <Layers className="icon-sm" aria-hidden="true" />
             Materials (0)
           </TabsTrigger>
-          <TabsTrigger value="catalog">
-            <Package className="icon-xs mr-2" />
+          <TabsTrigger value="catalog" className="tabs-trigger">
+            <Package className="icon-sm" aria-hidden="true" />
             Catalog Items (0)
           </TabsTrigger>
-          <TabsTrigger value="statistics">
-            <BarChart3 className="icon-xs mr-2" />
+          <TabsTrigger value="statistics" className="tabs-trigger">
+            <BarChart3 className="icon-sm" aria-hidden="true" />
             Statistics
           </TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-6">
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Materials</CardTitle>
-                <Layers className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">0</div>
-                <p className="text-xs text-muted-foreground mt-1">Total materials</p>
-              </CardContent>
-            </Card>
+        <TabsContent value="overview">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <InfoCard
+              title="Collection Information"
+              items={[
+                { label: 'Collection Name', value: collection.name },
+                { label: 'Prefix', value: collection.prefix || '—' },
+                { label: 'Designer', value: collection.designer || '—' },
+                { label: 'Display Order', value: collection.display_order?.toString() || '—' },
+                { label: 'Status', value: <StatusBadge status={collection.is_active !== false ? "active" : "inactive"} /> },
+                { label: 'Description', value: collection.description || 'No description provided' },
+              ]}
+            />
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Catalog Items</CardTitle>
-                <Package className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">0</div>
-                <p className="text-xs text-muted-foreground mt-1">Items in catalog</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Media Files</CardTitle>
-                <ImageIcon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{media.length}</div>
-                <p className="text-xs text-muted-foreground mt-1">Images and documents</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Collection Details */}
-          <div className="detail-section">
-            <div className="detail-section-header">
-              <Package className="detail-section-icon" />
-              <h2 className="detail-section-title">Collection Information</h2>
-            </div>
-            <div className="detail-grid">
-              <div className="detail-field">
-                <label className="detail-label">Collection Name</label>
-                <p className="detail-value">{collection.name}</p>
-              </div>
-              <div className="detail-field">
-                <label className="detail-label">Prefix</label>
-                <div className="detail-value">
-                  {collection.prefix ? (
-                    <Badge variant="secondary" className="font-mono">
-                      {collection.prefix}
-                    </Badge>
-                  ) : (
-                    <span className="text-muted">—</span>
-                  )}
-                </div>
-              </div>
-              <div className="detail-field">
-                <label className="detail-label">Designer</label>
-                <p className="detail-value">{collection.designer || <span className="text-muted">—</span>}</p>
-              </div>
-              <div className="detail-field">
-                <label className="detail-label">Display Order</label>
-                <p className="detail-value">{collection.display_order || <span className="text-muted">—</span>}</p>
-              </div>
-              <div className="detail-field">
-                <label className="detail-label">Status</label>
-                <div className="detail-value">
-                  <Badge
-                    variant="outline"
-                    className={collection.is_active !== false ? "status-active" : "status-inactive"}
-                  >
-                    {collection.is_active !== false ? "Active" : "Inactive"}
-                  </Badge>
-                </div>
-              </div>
-              <div className="detail-field col-span-2">
-                <label className="detail-label">Description</label>
-                <p className="detail-value">
-                  {collection.description || <span className="text-muted">No description provided</span>}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Variation Types */}
-          {collection.variation_types && collection.variation_types.length > 0 && (
-            <div className="detail-section">
-              <div className="detail-section-header">
-                <Settings className="detail-section-icon" />
-                <h2 className="detail-section-title">Variation Types</h2>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {collection.variation_types.map((type: string, idx: number) => (
-                  <Badge key={idx} variant="outline" className="badge-neutral">
-                    {type}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Metadata */}
-          <div className="detail-section">
-            <div className="detail-section-header">
-              <Calendar className="detail-section-icon" />
-              <h2 className="detail-section-title">Metadata</h2>
-            </div>
-            <div className="detail-grid">
-              <div className="detail-field">
-                <label className="detail-label">Created</label>
-                <p className="detail-value">
-                  {formatDistanceToNow(new Date(collection.created_at), { addSuffix: true })}
-                </p>
-              </div>
-              {collection.updated_at && (
-                <div className="detail-field">
-                  <label className="detail-label">Last Updated</label>
-                  <p className="detail-value">
-                    {formatDistanceToNow(new Date(collection.updated_at), { addSuffix: true })}
-                  </p>
-                </div>
-              )}
-              <div className="detail-field">
-                <label className="detail-label">Collection ID</label>
-                <p className="detail-value font-mono text-xs text-muted">{collection.id}</p>
-              </div>
-            </div>
+            <InfoCard
+              title="Metadata"
+              items={[
+                {
+                  label: 'Created',
+                  value: formatDistanceToNow(new Date(collection.created_at), { addSuffix: true })
+                },
+                {
+                  label: 'Last Updated',
+                  value: collection.updated_at
+                    ? formatDistanceToNow(new Date(collection.updated_at), { addSuffix: true })
+                    : "—"
+                },
+                { label: 'Collection ID', value: <span className="font-mono text-xs text-muted">{collection.id}</span> },
+              ]}
+            />
           </div>
         </TabsContent>
 
         {/* Media Tab */}
-        <TabsContent value="media" className="space-y-6">
-          <div className="detail-section">
-            <div className="detail-section-header">
-              <ImageIcon className="detail-section-icon" />
-              <h2 className="detail-section-title">Upload Media</h2>
-            </div>
-            <MediaUploader
-              entityType="collection"
-              entityId={collectionId}
-              onUploadComplete={handleMediaRefresh}
-              maxFileSize={100}
-              acceptedFileTypes={["image/*", "application/pdf", ".stl", ".obj", ".fbx"]}
-            />
-          </div>
+        <TabsContent value="media">
+          <Card>
+            <CardHeader>
+              <CardTitle>Upload Media</CardTitle>
+            </CardHeader>
+            <CardContent className="card-content-compact">
+              <MediaUploader
+                entityType="collection"
+                entityId={collectionId}
+                onUploadComplete={handleMediaRefresh}
+                maxFileSize={100}
+                acceptedFileTypes={["image/*", "application/pdf", ".stl", ".obj", ".fbx"]}
+              />
+            </CardContent>
+          </Card>
 
-          <div className="detail-section">
-            <div className="detail-section-header">
-              <ImageIcon className="detail-section-icon" />
-              <h2 className="detail-section-title">Media Gallery</h2>
-            </div>
-            <MediaGallery
-              entityType="collection"
-              entityId={collectionId}
-              media={media.map(m => ({
-                ...m,
-                file_name: m.name ?? '',
-                file_url: m.url ?? '',
-                file_type: m.type ?? '',
-                file_size: 0,
-                media_type: m.media_type ?? undefined,
-                use_for_packaging: m.use_for_packaging ?? undefined,
-                use_for_labeling: m.use_for_labeling ?? undefined,
-                use_for_marketing: m.use_for_marketing ?? undefined,
-                is_primary_image: m.is_primary_image ?? undefined,
-                display_order: m.display_order ?? undefined
-              }))}
-              onRefresh={handleMediaRefresh}
-            />
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Media Gallery</CardTitle>
+            </CardHeader>
+            <CardContent className="card-content-compact">
+              <MediaGallery
+                entityType="collection"
+                entityId={collectionId}
+                media={media.map(m => ({
+                  ...m,
+                  file_name: m.name ?? '',
+                  file_url: m.url ?? '',
+                  file_type: m.type ?? '',
+                  file_size: 0,
+                  media_type: m.media_type ?? undefined,
+                  use_for_packaging: m.use_for_packaging ?? undefined,
+                  use_for_labeling: m.use_for_labeling ?? undefined,
+                  use_for_marketing: m.use_for_marketing ?? undefined,
+                  is_primary_image: m.is_primary_image ?? undefined,
+                  display_order: m.display_order ?? undefined
+                }))}
+                onRefresh={handleMediaRefresh}
+              />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Materials Tab */}
-        <TabsContent value="materials" className="space-y-6">
-          <div className="detail-section">
-            <div className="detail-section-header">
-              <Layers className="detail-section-icon" />
-              <h2 className="detail-section-title">Associated Materials</h2>
-            </div>
-            <div className="empty-state">
-              <Layers className="empty-state-icon" />
-              <p className="empty-state-title">No materials yet</p>
-              <p className="empty-state-description">
-                Materials can be assigned to this collection from the Materials page.
-              </p>
-            </div>
-          </div>
+        <TabsContent value="materials">
+          <Card>
+            <CardHeader>
+              <CardTitle>Associated Materials</CardTitle>
+            </CardHeader>
+            <CardContent className="card-content-compact">
+              <EmptyState
+                icon={Layers}
+                title="No materials yet"
+                description="Materials can be assigned to this collection from the Materials page."
+              />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Catalog Items Tab */}
-        <TabsContent value="catalog" className="space-y-6">
-          <div className="detail-section">
-            <div className="detail-section-header">
-              <Package className="detail-section-icon" />
-              <h2 className="detail-section-title">Catalog Items</h2>
-            </div>
-            <div className="empty-state">
-              <Package className="empty-state-icon" />
-              <p className="empty-state-title">No catalog items yet</p>
-              <p className="empty-state-description">
-                Items will appear here once created in the Catalog module.
-              </p>
-            </div>
-          </div>
+        <TabsContent value="catalog">
+          <Card>
+            <CardHeader>
+              <CardTitle>Catalog Items</CardTitle>
+            </CardHeader>
+            <CardContent className="card-content-compact">
+              <EmptyState
+                icon={Package}
+                title="No catalog items yet"
+                description="Items will appear here once created in the Catalog module."
+              />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Statistics Tab */}
-        <TabsContent value="statistics" className="space-y-6">
+        <TabsContent value="statistics">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
                 <CardTitle>Material Distribution</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="empty-state">
-                  <BarChart3 className="empty-state-icon" />
-                  <p className="empty-state-description">No material statistics available yet</p>
-                </div>
+              <CardContent className="card-content-compact">
+                <EmptyState
+                  icon={BarChart3}
+                  title="No statistics available"
+                  description="Material statistics will appear here once materials are added."
+                />
               </CardContent>
             </Card>
 
@@ -377,11 +299,12 @@ export default function CollectionDetailPage({ params }: PageProps) {
               <CardHeader>
                 <CardTitle>Catalog Item Types</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="empty-state">
-                  <Package className="empty-state-icon" />
-                  <p className="empty-state-description">No catalog statistics available yet</p>
-                </div>
+              <CardContent className="card-content-compact">
+                <EmptyState
+                  icon={Package}
+                  title="No statistics available"
+                  description="Catalog statistics will appear here once items are added."
+                />
               </CardContent>
             </Card>
           </div>

@@ -9,8 +9,12 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { EntityDetailHeader } from "@/components/common/EntityDetailHeader";
+import { InfoCard } from "@/components/common/InfoCard";
+import { EmptyState } from "@/components/common/EmptyState";
+import { LoadingState } from "@/components/common/LoadingState";
 import { toast } from "@/hooks/use-toast";
-import { ArrowLeft, Calendar, DollarSign, FileText, Image, Layers } from "lucide-react";
+import { ArrowLeft, Calendar, DollarSign, FileText, Image, Layers, Briefcase, User, Edit } from "lucide-react";
 import Link from "next/link";
 
 export const dynamic = 'force-dynamic';
@@ -55,19 +59,27 @@ export default function DesignProjectDetailPage({ params }: { params: Promise<{ 
 
  if (authLoading || isLoading) {
  return (
- <div className="container mx-auto py-6">
- <div className="flex items-center justify-center h-64">
- <div className="text-center">
- <div className="animate-spin rounded-full h-12 w-12 border-b-2 border mx-auto mb-4"></div>
- <p className="text-muted-foreground">Loading...</p>
- </div>
- </div>
+ <div className="page-container">
+ <LoadingState message="Loading project details..." size="md" />
  </div>
  );
  }
 
  if (!user || !project) {
- return null;
+ return (
+ <div className="page-container">
+ <EmptyState
+ icon={Briefcase}
+ title="Project Not Found"
+ description="The project you're looking for doesn't exist or you don't have permission to view it."
+ action={{
+ label: 'Back to Projects',
+ onClick: () => router.push("/design/projects"),
+ icon: ArrowLeft,
+ }}
+ />
+ </div>
+ );
  }
 
  const stages = [
@@ -85,29 +97,44 @@ export default function DesignProjectDetailPage({ params }: { params: Promise<{ 
  };
 
  return (
- <div className="container mx-auto py-6 max-w-6xl">
- {/* Header */}
- <div className="mb-6">
- <Link href="/design/projects">
- <Button variant="ghost" size="sm" className="mb-4">
- <ArrowLeft className="mr-2 h-4 w-4" />
- Back to Projects
+ <div className="page-container">
+ {/* Header Section */}
+ <div className="page-header">
+ <Button
+ onClick={() => router.push("/design/projects")}
+ variant="ghost"
+ className="btn-secondary"
+ >
+ <ArrowLeft className="icon-sm" aria-hidden="true" />
+ Back
  </Button>
- </Link>
- <div className="flex items-start justify-between">
- <div>
- <div className="flex items-center gap-3 mb-2">
- <h1 className="text-3xl font-bold">{project.project_name}</h1>
- <Badge variant="outline" className="capitalize">
- {project.current_stage.replace('_', ' ')}
- </Badge>
  </div>
- <p className="text-muted-foreground">
- Project Code: {project.project_code || "Not assigned"}
- </p>
- </div>
- <div className="space-y-2">
- <div className="text-sm text-muted-foreground mb-1">Update Stage:</div>
+
+ {/* Project Header */}
+ <EntityDetailHeader
+ icon={Briefcase}
+ title={project.project_name || "Untitled Project"}
+ subtitle={project.project_code || undefined}
+ metadata={[
+ { icon: User, value: project.designers?.name || "Not assigned", label: 'Designer' },
+ ...(project.furniture_collections?.name ? [{ icon: Layers, value: project.furniture_collections.name, label: 'Collection' }] : []),
+ ...(project.target_launch_date ? [{ icon: Calendar, value: new Date(project.target_launch_date).toLocaleDateString(), label: 'Target Launch' }] : []),
+ ...(project.budget ? [{ icon: DollarSign, value: `$${Number(project.budget).toFixed(2)}`, label: 'Budget' }] : []),
+ ]}
+ status={project.current_stage}
+ actions={[
+ {
+ label: 'Edit Project',
+ icon: Edit,
+ onClick: () => router.push(`/design/projects/${project.id}/edit`),
+ },
+ ]}
+ />
+
+ {/* Stage Update Control */}
+ <div className="mb-6">
+ <div className="flex items-center gap-2">
+ <span className="text-sm text-muted-foreground">Update Stage:</span>
  <Select value={project.current_stage} onValueChange={handleStageUpdate}>
  <SelectTrigger className="w-[200px]">
  <SelectValue />
@@ -122,15 +149,14 @@ export default function DesignProjectDetailPage({ params }: { params: Promise<{ 
  </Select>
  </div>
  </div>
- </div>
 
- <Tabs defaultValue="overview" className="space-y-6">
- <TabsList>
- <TabsTrigger value="overview">Overview</TabsTrigger>
- <TabsTrigger value="briefs">Briefs</TabsTrigger>
- <TabsTrigger value="boards">Mood Boards</TabsTrigger>
- <TabsTrigger value="documents">Documents</TabsTrigger>
- <TabsTrigger value="revisions">Revisions</TabsTrigger>
+ <Tabs defaultValue="overview">
+ <TabsList className="tabs-list">
+ <TabsTrigger value="overview" className="tabs-trigger">Overview</TabsTrigger>
+ <TabsTrigger value="briefs" className="tabs-trigger">Briefs</TabsTrigger>
+ <TabsTrigger value="boards" className="tabs-trigger">Mood Boards</TabsTrigger>
+ <TabsTrigger value="documents" className="tabs-trigger">Documents</TabsTrigger>
+ <TabsTrigger value="revisions" className="tabs-trigger">Revisions</TabsTrigger>
  </TabsList>
 
  {/* Overview Tab */}
@@ -165,70 +191,37 @@ export default function DesignProjectDetailPage({ params }: { params: Promise<{ 
 
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
  {/* Project Details */}
- <Card>
- <CardHeader>
- <CardTitle>Project Details</CardTitle>
- </CardHeader>
- <CardContent className="space-y-4">
- <div className="flex items-center justify-between">
- <span className="text-sm text-muted-foreground">Designer</span>
- <span className="text-sm font-medium">{project.designers?.name || "Not assigned"}</span>
- </div>
- <div className="flex items-center justify-between">
- <span className="text-sm text-muted-foreground">Collection</span>
- <span className="text-sm font-medium">{project.furniture_collections?.name || "—"}</span>
- </div>
- <div className="flex items-center justify-between">
- <span className="text-sm text-muted-foreground">Project Type</span>
- <span className="text-sm font-medium">{project.project_type || "—"}</span>
- </div>
- <div className="flex items-center justify-between">
- <span className="text-sm text-muted-foreground">Priority</span>
- <Badge variant="outline" className="capitalize">
- {project.priority}
- </Badge>
- </div>
- <div className="flex items-center justify-between">
- <span className="text-sm text-muted-foreground">Days in Stage</span>
- <span className="text-sm font-medium">{project.days_in_stage || 0} days</span>
- </div>
- </CardContent>
- </Card>
+ <InfoCard
+ title="Project Details"
+ items={[
+ { label: 'Designer', value: project.designers?.name || "Not assigned" },
+ { label: 'Collection', value: project.furniture_collections?.name || "—" },
+ { label: 'Project Type', value: project.project_type || "—" },
+ { label: 'Priority', value: <Badge variant="outline" className="capitalize">{project.priority}</Badge> },
+ { label: 'Days in Stage', value: `${project.days_in_stage || 0} days` },
+ ]}
+ />
 
  {/* Timeline & Budget */}
- <Card>
- <CardHeader>
- <CardTitle>Timeline & Budget</CardTitle>
- </CardHeader>
- <CardContent className="space-y-4">
- {project.target_launch_date && (
- <div className="flex items-center justify-between">
- <span className="text-sm text-muted-foreground flex items-center gap-2">
- <Calendar className="h-4 w-4" />
- Target Launch
- </span>
- <span className="text-sm font-medium">
- {new Date(project.target_launch_date).toLocaleDateString()}
- </span>
- </div>
- )}
- {project.budget && (
- <div className="flex items-center justify-between">
- <span className="text-sm text-muted-foreground flex items-center gap-2">
- <DollarSign className="h-4 w-4" />
- Budget
- </span>
- <span className="text-sm font-medium">${Number(project.budget).toFixed(2)}</span>
- </div>
- )}
- {project.next_action && (
- <div className="border-t pt-4">
- <span className="text-sm text-muted-foreground block mb-1">Next Action</span>
- <p className="text-sm">{project.next_action}</p>
- </div>
- )}
- </CardContent>
- </Card>
+ <InfoCard
+ title="Timeline & Budget"
+ items={[
+ ...(project.target_launch_date ? [{
+ label: 'Target Launch',
+ value: new Date(project.target_launch_date).toLocaleDateString(),
+ icon: Calendar,
+ }] : []),
+ ...(project.budget ? [{
+ label: 'Budget',
+ value: `$${Number(project.budget).toFixed(2)}`,
+ icon: DollarSign,
+ }] : []),
+ ...(project.next_action ? [{
+ label: 'Next Action',
+ value: project.next_action,
+ }] : []),
+ ]}
+ />
  </div>
 
  {/* Milestones */}
@@ -295,14 +288,16 @@ export default function DesignProjectDetailPage({ params }: { params: Promise<{ 
  </div>
  ) : (
  <Card>
- <CardContent className="py-12 text-center">
- <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
- <p className="text-muted-foreground">No design briefs associated with this project</p>
- <Link href="/design/briefs/new">
- <Button variant="outline" size="sm" className="mt-4">
- Create Brief
- </Button>
- </Link>
+ <CardContent className="card-content-compact">
+ <EmptyState
+ icon={FileText}
+ title="No Design Briefs"
+ description="No design briefs associated with this project"
+ action={{
+ label: 'Create Brief',
+ onClick: () => router.push("/design/briefs/new"),
+ }}
+ />
  </CardContent>
  </Card>
  )}
@@ -340,14 +335,12 @@ export default function DesignProjectDetailPage({ params }: { params: Promise<{ 
  </div>
  ) : (
  <Card>
- <CardContent className="py-12 text-center">
- <div className="flex justify-center mb-4">
- <Image className="h-12 w-12 text-muted-foreground" aria-label="No mood boards icon" />
- </div>
- <p className="text-muted-foreground">No mood boards created for this project</p>
- <Button variant="outline" size="sm" className="mt-4">
- Create Mood Board
- </Button>
+ <CardContent className="card-content-compact">
+ <EmptyState
+ icon={Image}
+ title="No Mood Boards"
+ description="No mood boards created for this project"
+ />
  </CardContent>
  </Card>
  )}
@@ -381,9 +374,12 @@ export default function DesignProjectDetailPage({ params }: { params: Promise<{ 
  </Card>
  ) : (
  <Card>
- <CardContent className="py-12 text-center">
- <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
- <p className="text-muted-foreground">No documents uploaded</p>
+ <CardContent className="card-content-compact">
+ <EmptyState
+ icon={FileText}
+ title="No Documents"
+ description="No documents uploaded"
+ />
  </CardContent>
  </Card>
  )}
@@ -423,9 +419,12 @@ export default function DesignProjectDetailPage({ params }: { params: Promise<{ 
  </Card>
  ) : (
  <Card>
- <CardContent className="py-12 text-center">
- <Layers className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
- <p className="text-muted-foreground">No revisions recorded</p>
+ <CardContent className="card-content-compact">
+ <EmptyState
+ icon={Layers}
+ title="No Revisions"
+ description="No revisions recorded"
+ />
  </CardContent>
  </Card>
  )}

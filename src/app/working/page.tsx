@@ -1,8 +1,10 @@
 export default function WorkingPage() {
  return (
- <div>
- <h1>This Page Works</h1>
- <p>If you see this, the routing is fixed!</p>
+ <div className="page-container">
+ <div className="page-header">
+ <h1 className="page-title">This Page Works</h1>
+ <p className="page-description">If you see this, the routing is fixed!</p>
+ </div>
  </div>
  );
 }

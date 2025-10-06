@@ -17,7 +17,6 @@ import { use } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   EntityDetailHeader,
@@ -91,11 +90,11 @@ export default function CatalogDetailPage({ params }: CatalogDetailPageProps) {
         icon={Package}
         title={catalogItem.name}
         subtitle={catalogItem.type || undefined}
-        status={catalogItem.active ? <Badge className="badge-success">Active</Badge> : <Badge variant="outline">Inactive</Badge>}
+        status={catalogItem.active ? 'active' : 'inactive'}
         metadata={[
-          ...(catalogItem.base_sku ? [{ icon: Tag, value: `SKU: ${catalogItem.base_sku}`, type: 'text' as const }] : []),
-          ...(catalogItem.list_price ? [{ icon: DollarSign, value: `$${Number(catalogItem.list_price).toLocaleString()}`, type: 'text' as const }] : []),
-          ...(catalogItem.furniture_type ? [{ icon: Package, value: catalogItem.furniture_type.replace(/_/g, " "), type: 'text' as const }] : []),
+          ...(catalogItem.base_sku ? [{ icon: Tag, value: `SKU: ${catalogItem.base_sku}`, label: 'SKU' }] : []),
+          ...(catalogItem.list_price ? [{ icon: DollarSign, value: `$${Number(catalogItem.list_price).toLocaleString()}`, label: 'Price' }] : []),
+          ...(catalogItem.furniture_type ? [{ icon: Package, value: catalogItem.furniture_type.replace(/_/g, " "), label: 'Type' }] : []),
         ]}
       />
 

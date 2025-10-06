@@ -710,28 +710,32 @@ export default function OrderedItemsPage() {
 
   const stats: StatItem[] = [
     {
-      label: "Total Items",
+      title: "Total Items",
       value: filteredItems.length,
-      variant: "default",
+      description: "All ordered items",
       icon: Hash,
+      iconColor: 'info',
     },
     {
-      label: "Total Value",
+      title: "Total Value",
       value: formatPrice(getTotalValue()),
-      variant: "default",
+      description: "Total order value",
       icon: DollarSign,
+      iconColor: 'primary',
     },
     {
-      label: "In Production",
+      title: "In Production",
       value: filteredItems.filter(item => item.status === 'in_production').length,
-      variant: "info",
+      description: "Currently being made",
       icon: Package,
+      iconColor: 'info',
     },
     {
-      label: "Ready",
+      title: "Ready",
       value: filteredItems.filter(item => item.status === 'ready').length,
-      variant: "success",
+      description: "Ready to ship",
       icon: ShoppingCart,
+      iconColor: 'success',
     },
   ];
 

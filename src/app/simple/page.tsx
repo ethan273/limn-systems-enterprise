@@ -1,3 +1,7 @@
 export default function SimplePage() {
- return <h1>Simple Page</h1>;
+ return (
+ <div className="page-container">
+ <h1 className="page-title">Simple Page</h1>
+ </div>
+ );
 }

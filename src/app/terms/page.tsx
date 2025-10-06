@@ -1,11 +1,13 @@
 export default function TermsPage() {
  return (
- <div className="container mx-auto py-12 max-w-4xl">
- <h1 className="text-4xl font-bold mb-8">Terms of Service</h1>
+ <div className="page-container max-w-4xl">
+ <div className="page-header">
+ <h1 className="page-title">Terms of Service</h1>
+ </div>
 
- <div className="space-y-6 text-muted-foreground">
+ <div className="space-y-6 text-secondary">
  <section>
- <h2 className="text-2xl font-semibold text-foreground mb-4">Acceptance of Terms</h2>
+ <h2 className="text-2xl font-semibold text-primary mb-4">Acceptance of Terms</h2>
  <p>
  By accessing and using Limn Systems Enterprise, you accept and agree to be bound by
  the terms and provision of this agreement.
@@ -13,7 +15,7 @@ export default function TermsPage() {
  </section>
 
  <section>
- <h2 className="text-2xl font-semibold text-foreground mb-4">Use of Service</h2>
+ <h2 className="text-2xl font-semibold text-primary mb-4">Use of Service</h2>
  <p>
  Limn Systems Enterprise is a design and production management system for authorized
  users within your organization. You agree to use the service only for lawful purposes
@@ -22,7 +24,7 @@ export default function TermsPage() {
  </section>
 
  <section>
- <h2 className="text-2xl font-semibold text-foreground mb-4">Google Drive Integration</h2>
+ <h2 className="text-2xl font-semibold text-primary mb-4">Google Drive Integration</h2>
  <p>
  When you connect your Google Drive account to Limn Systems Enterprise:
  </p>
@@ -35,7 +37,7 @@ export default function TermsPage() {
  </section>
 
  <section>
- <h2 className="text-2xl font-semibold text-foreground mb-4">User Responsibilities</h2>
+ <h2 className="text-2xl font-semibold text-primary mb-4">User Responsibilities</h2>
  <p>You agree to:</p>
  <ul className="list-disc list-inside ml-4 mt-2 space-y-1">
  <li>Maintain the confidentiality of your account credentials</li>
@@ -46,7 +48,7 @@ export default function TermsPage() {
  </section>
 
  <section>
- <h2 className="text-2xl font-semibold text-foreground mb-4">Data and File Storage</h2>
+ <h2 className="text-2xl font-semibold text-primary mb-4">Data and File Storage</h2>
  <p>
  Files uploaded to the system are stored based on size:
  </p>
@@ -61,7 +63,7 @@ export default function TermsPage() {
  </section>
 
  <section>
- <h2 className="text-2xl font-semibold text-foreground mb-4">Intellectual Property</h2>
+ <h2 className="text-2xl font-semibold text-primary mb-4">Intellectual Property</h2>
  <p>
  You retain all rights to the content you upload. By uploading content, you grant
  Limn Systems the right to store, display, and process the content solely for the
@@ -70,7 +72,7 @@ export default function TermsPage() {
  </section>
 
  <section>
- <h2 className="text-2xl font-semibold text-foreground mb-4">Service Availability</h2>
+ <h2 className="text-2xl font-semibold text-primary mb-4">Service Availability</h2>
  <p>
  While we strive to provide continuous service, we do not guarantee uninterrupted
  access. The service may be temporarily unavailable for maintenance, updates, or
@@ -79,7 +81,7 @@ export default function TermsPage() {
  </section>
 
  <section>
- <h2 className="text-2xl font-semibold text-foreground mb-4">Limitation of Liability</h2>
+ <h2 className="text-2xl font-semibold text-primary mb-4">Limitation of Liability</h2>
  <p>
  Limn Systems Enterprise is provided &quot;as is&quot; without warranties of any kind. We are
  not liable for any damages arising from use of the service, including but not limited
@@ -88,7 +90,7 @@ export default function TermsPage() {
  </section>
 
  <section>
- <h2 className="text-2xl font-semibold text-foreground mb-4">Changes to Terms</h2>
+ <h2 className="text-2xl font-semibold text-primary mb-4">Changes to Terms</h2>
  <p>
  We reserve the right to modify these terms at any time. Continued use of the service
  after changes constitutes acceptance of the modified terms.
@@ -96,7 +98,7 @@ export default function TermsPage() {
  </section>
 
  <section>
- <h2 className="text-2xl font-semibold text-foreground mb-4">Contact</h2>
+ <h2 className="text-2xl font-semibold text-primary mb-4">Contact</h2>
  <p>
  For questions about these terms, contact: support@limn.us.com
  </p>

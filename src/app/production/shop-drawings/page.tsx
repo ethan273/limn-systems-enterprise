@@ -52,11 +52,11 @@ const statusConfig: Record<string, {
 
 export default function ShopDrawingsPage() {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [orderFilter, setOrderFilter] = useState<string>("all");
-  const [factoryFilter, setFactoryFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [page, setPage] = useState(0);
+  const [searchQuery, _setSearchQuery] = useState("");
+  const [orderFilter, _setOrderFilter] = useState<string>("all");
+  const [factoryFilter, _setFactoryFilter] = useState<string>("all");
+  const [statusFilter, _setStatusFilter] = useState<string>("all");
+  const [page, _setPage] = useState(0);
   const limit = 20;
 
   // Fetch shop drawings with filters
@@ -82,29 +82,36 @@ export default function ShopDrawingsPage() {
 
   const drawings = data?.drawings ?? [];
   const total = data?.total ?? 0;
-  const hasMore = data?.hasMore ?? false;
+  const _hasMore = data?.hasMore ?? false;
 
   const stats: StatItem[] = [
     {
-      label: "Total Drawings",
+      title: "Total Drawings",
       value: drawings.length,
-      variant: "default",
+      description: "All shop drawings",
       icon: FileText,
+      iconColor: 'primary',
     },
     {
-      label: "Pending Review",
+      title: "Pending Review",
       value: drawings.filter(d => d.status === 'in_review' || d.status === 'designer_approved').length,
-      variant: "warning",
+      description: "Awaiting approval",
+      icon: FileText,
+      iconColor: 'warning',
     },
     {
-      label: "Approved",
+      title: "Approved",
       value: drawings.filter(d => d.status === 'approved').length,
-      variant: "success",
+      description: "Ready for production",
+      icon: FileText,
+      iconColor: 'success',
     },
     {
-      label: "Rejected",
+      title: "Rejected",
       value: drawings.filter(d => d.status === 'rejected' || d.status === 'revision_requested').length,
-      variant: "destructive",
+      description: "Needs revision",
+      icon: FileText,
+      iconColor: 'destructive',
     },
   ];
 
@@ -113,11 +120,6 @@ export default function ShopDrawingsPage() {
       key: "order",
       label: "Production Order",
       type: "select",
-      value: orderFilter,
-      onChange: (value) => {
-        setOrderFilter(value);
-        setPage(0);
-      },
       options: [
         { label: "All Orders", value: "all" },
         ...(ordersData?.items?.map((order: any) => ({
@@ -130,11 +132,6 @@ export default function ShopDrawingsPage() {
       key: "factory",
       label: "Factory",
       type: "select",
-      value: factoryFilter,
-      onChange: (value) => {
-        setFactoryFilter(value);
-        setPage(0);
-      },
       options: [
         { label: "All Factories", value: "all" },
         ...(factoriesData?.partners?.map((factory: any) => ({
@@ -147,11 +144,6 @@ export default function ShopDrawingsPage() {
       key: "status",
       label: "Status",
       type: "select",
-      value: statusFilter,
-      onChange: (value) => {
-        setStatusFilter(value);
-        setPage(0);
-      },
       options: [
         { label: "All Statuses", value: "all" },
         { label: "In Review", value: "in_review" },
@@ -170,7 +162,7 @@ export default function ShopDrawingsPage() {
       render: (value) => (
         <div className="flex items-center gap-2">
           <FileText className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
-          {value}
+          {value as string}
         </div>
       ),
     },
@@ -181,40 +173,44 @@ export default function ShopDrawingsPage() {
     {
       key: "production_orders",
       label: "Production Order",
-      render: (value) =>
-        value ? (
+      render: (value) => {
+        const order = value as any;
+        return order ? (
           <div className="flex items-center gap-2">
             <Package className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
             <div>
-              <div className="font-medium">{value.order_number}</div>
+              <div className="font-medium">{order.order_number}</div>
               <div className="text-xs text-muted-foreground">
-                {value.item_name}
+                {order.item_name}
               </div>
             </div>
           </div>
         ) : (
           <span className="text-muted-foreground">—</span>
-        ),
+        );
+      },
     },
     {
       key: "partners",
       label: "Factory",
-      render: (value) =>
-        value ? (
+      render: (value) => {
+        const partner = value as any;
+        return partner ? (
           <div className="flex items-center gap-2">
             <Building2 className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
-            {value.company_name}
+            {partner.company_name}
           </div>
         ) : (
           <span className="text-muted-foreground">—</span>
-        ),
+        );
+      },
     },
     {
       key: "current_version",
       label: "Version",
       render: (value) => (
         <span className="font-mono text-sm">
-          v{value}
+          v{value as string}
         </span>
       ),
     },
@@ -222,8 +218,9 @@ export default function ShopDrawingsPage() {
       key: "status",
       label: "Status",
       render: (value) => {
+        const status = value as string;
         // eslint-disable-next-line security/detect-object-injection
-        const config = statusConfig[value] || statusConfig.in_review;
+        const config = statusConfig[status] || statusConfig.in_review;
         return (
           <Badge variant="outline" className={cn("text-xs", config.className)}>
             {config.label}
@@ -236,8 +233,8 @@ export default function ShopDrawingsPage() {
       label: "Created",
       render: (value) =>
         value ? (
-          <time dateTime={new Date(value).toISOString()}>
-            {format(new Date(value), "MMM d, yyyy")}
+          <time dateTime={new Date(value as string).toISOString()}>
+            {format(new Date(value as string), "MMM d, yyyy")}
           </time>
         ) : (
           <span className="text-muted-foreground">—</span>
@@ -276,14 +273,8 @@ export default function ShopDrawingsPage() {
         />
       ) : (
         <DataTable
-          data={drawings}
+          data={drawings as any[]}
           columns={columns}
-          searchPlaceholder="Search by number or name..."
-          searchValue={searchQuery}
-          onSearchChange={(value) => {
-            setSearchQuery(value);
-            setPage(0);
-          }}
           filters={filters}
           onRowClick={(row) => router.push(`/shop-drawings/${row.id}`)}
           emptyState={{
@@ -294,10 +285,8 @@ export default function ShopDrawingsPage() {
           pagination={
             total > limit
               ? {
-                  currentPage: page,
-                  totalPages: Math.ceil(total / limit),
-                  onPageChange: setPage,
-                  hasMore,
+                  pageSize: limit,
+                  showSizeSelector: false,
                 }
               : undefined
           }

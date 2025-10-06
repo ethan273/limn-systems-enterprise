@@ -25,7 +25,7 @@ import {
 import { format } from "date-fns";
 
 // Status badge configuration
-const statusConfig: Record<string, {
+const _statusConfig: Record<string, {
   label: string;
 }> = {
   concept: { label: "Concept" },
@@ -153,7 +153,7 @@ export default function PrototypesPage() {
     {
       key: 'status',
       label: 'Status',
-      render: (value) => <StatusBadge status={value as string} label={statusConfig[value as string]?.label} />,
+      render: (value) => <StatusBadge status={value as string} />,
     },
     {
       key: 'priority',

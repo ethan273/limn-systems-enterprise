@@ -5,14 +5,22 @@ import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  EntityDetailHeader,
+  InfoCard,
+  LoadingState,
+  EmptyState,
+  type EntityMetadata,
+} from "@/components/common";
 import {
   FileText,
   AlertCircle,
   ArrowLeft,
   Download,
   File,
+  Calendar,
+  HardDrive,
 } from "lucide-react";
 import { format } from "date-fns";
 import Image from "next/image";
@@ -67,9 +75,7 @@ export default function DocumentDetailPage({ params }: PageProps) {
   if (isLoading) {
     return (
       <div className="page-container">
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">Loading document details...</p>
-        </div>
+        <LoadingState message="Loading document details..." size="lg" />
       </div>
     );
   }
@@ -77,10 +83,16 @@ export default function DocumentDetailPage({ params }: PageProps) {
   if (!document) {
     return (
       <div className="page-container">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" aria-hidden="true" />
-          <AlertDescription>Document not found</AlertDescription>
-        </Alert>
+        <EmptyState
+          icon={AlertCircle}
+          title="Document Not Found"
+          description="The document you're looking for doesn't exist or you don't have permission to view it."
+          action={{
+            label: 'Back to Documents',
+            onClick: () => router.push("/documents"),
+            icon: ArrowLeft,
+          }}
+        />
       </div>
     );
   }
@@ -106,124 +118,60 @@ export default function DocumentDetailPage({ params }: PageProps) {
     return `${(numBytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
+  const metadata: EntityMetadata[] = [
+    { icon: Calendar, value: document.created_at ? format(new Date(document.created_at), "MMM dd, yyyy") : "N/A", label: 'Created' },
+    { icon: HardDrive, value: formatFileSize(document.size), label: 'Size' },
+    { icon: File, value: document.type || "N/A", label: 'Type' },
+  ];
+
   return (
     <div className="page-container">
       {/* Header */}
       <div className="page-header">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => router.push("/documents")}>
-            <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
-            Back
-          </Button>
-          <div>
-            <h1 className="page-title">{document.name || "Document"}</h1>
-            <p className="page-description">
-              {document.name || "Document Details"}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge className={typeConfig.className}>
-            <span className="flex items-center gap-1">
-              {typeConfig.icon}
-              {typeConfig.label}
-            </span>
-          </Badge>
-          {document.url && (
-            <Button variant="outline" asChild>
-              <a href={document.url} download target="_blank" rel="noopener noreferrer">
-                <Download className="w-4 h-4 mr-2" aria-hidden="true" />
-                Download
-              </a>
-            </Button>
-          )}
-        </div>
+        <Button variant="ghost" onClick={() => router.push("/documents")} className="btn-secondary">
+          <ArrowLeft className="icon-sm" aria-hidden="true" />
+          Back
+        </Button>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Document Type</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Badge className={typeConfig.className}>
-              <span className="flex items-center gap-1">
-                {typeConfig.icon}
-                {typeConfig.label}
-              </span>
-            </Badge>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Upload Date</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-lg font-medium">
-              {document.created_at ? format(new Date(document.created_at), "MMM dd, yyyy") : "N/A"}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">File Size</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-lg font-medium">
-              {document.size ? formatFileSize(document.size) : "N/A"}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Uploaded By</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-lg font-medium">N/A</p>
-          </CardContent>
-        </Card>
-      </div>
+      <EntityDetailHeader
+        icon={FileText}
+        title={document.name || "Document"}
+        subtitle={typeConfig.label}
+        metadata={metadata}
+        status={typeConfig.label}
+        actions={document.url ? [
+          {
+            label: 'Download',
+            icon: Download,
+            onClick: () => window.open(document.url, '_blank'),
+          },
+        ] : []}
+      />
 
       {/* Document Details */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Document Details</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-muted-foreground">Document Name</p>
-              <p className="font-medium">{document.name || "N/A"}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Document Type</p>
-              <p className="font-medium">{typeConfig.label}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">File Name</p>
-              <p className="font-medium">{document.name || "N/A"}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">File Type</p>
-              <p className="font-medium">{document.type || "N/A"}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Upload Date</p>
-              <p className="font-medium">
-                {document.created_at ? format(new Date(document.created_at), "MMM dd, yyyy 'at' h:mm a") : "N/A"}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Version</p>
-              <p className="font-medium">1.0</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <InfoCard
+          title="Document Information"
+          items={[
+            { label: 'Document Name', value: document.name || "N/A" },
+            { label: 'Document Type', value: typeConfig.label },
+            { label: 'File Type', value: document.type || "N/A" },
+            { label: 'File Size', value: formatFileSize(document.size) },
+            { label: 'Upload Date', value: document.created_at ? format(new Date(document.created_at), "MMM dd, yyyy 'at' h:mm a") : "N/A" },
+            { label: 'Version', value: '1.0' },
+          ]}
+        />
+
+        <InfoCard
+          title="Metadata"
+          items={[
+            { label: 'Uploaded By', value: 'N/A' },
+            { label: 'Last Modified', value: document.created_at ? format(new Date(document.created_at), "MMM dd, yyyy") : "N/A" },
+            { label: 'URL', value: document.url ? <a href={document.url} target="_blank" rel="noopener noreferrer" className="text-info hover:underline">View File</a> : 'N/A' },
+          ]}
+        />
+      </div>
 
       {/* Document Preview */}
       <Card className="mb-6">

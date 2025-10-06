@@ -1790,27 +1790,23 @@ export default function ProjectsPage() {
 
  const stats: StatItem[] = [
     {
-      label: "Total Projects",
+      title: "Total Projects",
       value: filteredProjects.length,
-      variant: "default",
       icon: ClipboardList,
     },
     {
-      label: "Total Budget",
+      title: "Total Budget",
       value: formatPrice(getTotalBudget()),
-      variant: "default",
       icon: DollarSign,
     },
     {
-      label: "Actual Cost",
+      title: "Actual Cost",
       value: formatPrice(getTotalActualCost()),
-      variant: "default",
       icon: Package,
     },
     {
-      label: "Active Projects",
+      title: "Active Projects",
       value: filteredProjects.filter((p: any) => p.status === 'active').length,
-      variant: "default",
       icon: Clock,
     },
   ];

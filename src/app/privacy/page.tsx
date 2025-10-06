@@ -1,11 +1,13 @@
 export default function PrivacyPage() {
  return (
- <div className="container mx-auto py-12 max-w-4xl">
- <h1 className="text-4xl font-bold mb-8">Privacy Policy</h1>
+ <div className="page-container max-w-4xl">
+ <div className="page-header">
+ <h1 className="page-title">Privacy Policy</h1>
+ </div>
 
- <div className="space-y-6 text-muted-foreground">
+ <div className="space-y-6 text-secondary">
  <section>
- <h2 className="text-2xl font-semibold text-foreground mb-4">Information We Collect</h2>
+ <h2 className="text-2xl font-semibold text-primary mb-4">Information We Collect</h2>
  <p>
  Limn Systems Enterprise collects information necessary to provide design and production
  management services, including user account information, project data, and files uploaded
@@ -14,7 +16,7 @@ export default function PrivacyPage() {
  </section>
 
  <section>
- <h2 className="text-2xl font-semibold text-foreground mb-4">Google Drive Integration</h2>
+ <h2 className="text-2xl font-semibold text-primary mb-4">Google Drive Integration</h2>
  <p>
  When you connect your Google Drive account, we request permission to store files on your
  behalf. We only access files that our application creates and never access your personal
@@ -31,7 +33,7 @@ export default function PrivacyPage() {
  </section>
 
  <section>
- <h2 className="text-2xl font-semibold text-foreground mb-4">Data Storage</h2>
+ <h2 className="text-2xl font-semibold text-primary mb-4">Data Storage</h2>
  <p>
  Files under 50MB are stored in Supabase Storage. Files 50MB and larger are stored in
  your connected Google Drive account in a dedicated folder.
@@ -39,7 +41,7 @@ export default function PrivacyPage() {
  </section>
 
  <section>
- <h2 className="text-2xl font-semibold text-foreground mb-4">Data Security</h2>
+ <h2 className="text-2xl font-semibold text-primary mb-4">Data Security</h2>
  <p>
  We use industry-standard encryption (AES-256-GCM) to protect OAuth tokens and secure
  connections (HTTPS) for all data transmission. Your Google Drive access tokens are
@@ -48,7 +50,7 @@ export default function PrivacyPage() {
  </section>
 
  <section>
- <h2 className="text-2xl font-semibold text-foreground mb-4">Your Rights</h2>
+ <h2 className="text-2xl font-semibold text-primary mb-4">Your Rights</h2>
  <p>
  You can revoke Google Drive access at any time through your Google Account settings
  or within the application. You can also request deletion of your data by contacting
@@ -57,7 +59,7 @@ export default function PrivacyPage() {
  </section>
 
  <section>
- <h2 className="text-2xl font-semibold text-foreground mb-4">Contact</h2>
+ <h2 className="text-2xl font-semibold text-primary mb-4">Contact</h2>
  <p>
  For privacy concerns or questions, contact: privacy@limn.us.com
  </p>

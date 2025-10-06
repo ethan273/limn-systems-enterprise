@@ -12,6 +12,7 @@ import {
   EmptyState,
   DataTable,
   StatusBadge,
+  PriorityBadge,
   type DataTableColumn,
   type DataTableFilter,
   type StatItem,
@@ -60,21 +61,11 @@ export default function DesignProjectsPage() {
       // eslint-disable-next-line security/detect-object-injection
       ? stageMap[stage]
       : { label: stage, status: 'pending' };
-    return <StatusBadge status={config.status} label={config.label} />;
+    return <StatusBadge status={config.label} />;
   };
 
   const getPriorityBadge = (priority: string) => {
-    const priorityMap: Record<string, { label: string; status: string }> = {
-      low: { label: 'Low', status: 'inactive' },
-      normal: { label: 'Normal', status: 'in_progress' },
-      high: { label: 'High', status: 'pending' },
-      urgent: { label: 'Urgent', status: 'rejected' },
-    };
-    const config = Object.prototype.hasOwnProperty.call(priorityMap, priority)
-      // eslint-disable-next-line security/detect-object-injection
-      ? priorityMap[priority]
-      : { label: priority, status: 'inactive' };
-    return <StatusBadge status={config.status} label={config.label} />;
+    return <PriorityBadge priority={priority} />;
   };
 
   if (authLoading) {

@@ -6,7 +6,10 @@ export { PageHeader } from './PageHeader';
 export type { PageHeaderAction, PageHeaderBreadcrumb, PageHeaderProps } from './PageHeader';
 
 export { EntityDetailHeader } from './EntityDetailHeader';
-export type { EntityMetadataItem, EntityDetailHeaderAction, EntityDetailHeaderProps } from './EntityDetailHeader';
+export type { EntityMetadataItem, EntityDetailHeaderAction, EntityDetailHeaderProps, EntityMetadata } from './EntityDetailHeader';
+
+export { InfoCard } from './InfoCard';
+export type { InfoCardProps, InfoCardItem } from './InfoCard';
 
 export { StatsGrid } from './StatsGrid';
 export type { StatItem, StatsGridProps } from './StatsGrid';

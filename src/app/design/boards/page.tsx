@@ -5,13 +5,21 @@ import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { useAuthContext } from "@/lib/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search, Plus, Image as ImageIcon, Share2 } from "lucide-react";
+import {
+  PageHeader,
+  StatsGrid,
+  EmptyState,
+  LoadingState,
+  type StatItem,
+} from "@/components/common";
+import { Plus, Image as ImageIcon, Share2 } from "lucide-react";
 import Link from "next/link";
 import { CreateMoodBoardModal } from "@/components/design/CreateMoodBoardModal";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
 
@@ -55,15 +63,42 @@ export default function MoodBoardsPage() {
     }
   };
 
+  // Stats configuration
+  const stats: StatItem[] = [
+    {
+      title: 'Total Boards',
+      value: filteredBoards.length,
+      description: 'All mood boards',
+      icon: ImageIcon,
+      iconColor: 'primary',
+    },
+    {
+      title: 'Active',
+      value: filteredBoards.filter((b: any) => b.status === 'active').length,
+      description: 'Currently active',
+      icon: ImageIcon,
+      iconColor: 'info',
+    },
+    {
+      title: 'Shared',
+      value: filteredBoards.filter((b: any) => b.is_shared).length,
+      description: 'Shared boards',
+      icon: Share2,
+      iconColor: 'success',
+    },
+    {
+      title: 'Approved',
+      value: filteredBoards.filter((b: any) => b.status === 'approved').length,
+      description: 'Finalized',
+      icon: ImageIcon,
+      iconColor: 'success',
+    },
+  ];
+
   if (authLoading) {
     return (
-      <div className="container mx-auto py-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading...</p>
-          </div>
-        </div>
+      <div className="page-container">
+        <LoadingState message="Loading..." size="lg" />
       </div>
     );
   }
@@ -73,117 +108,78 @@ export default function MoodBoardsPage() {
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Mood Boards</h1>
-          <p className="text-muted-foreground">
-            Create and manage mood boards for design inspiration
-          </p>
-        </div>
-        <Button onClick={() => setCreateModalOpen(true)} className="btn-primary">
-          <Plus className="mr-2 h-4 w-4" />
-          Create Board
-        </Button>
-      </div>
+    <div className="page-container">
+      {/* Page Header */}
+      <PageHeader
+        title="Mood Boards"
+        subtitle="Create and manage mood boards for design inspiration"
+        actions={[
+          {
+            label: 'Create Board',
+            icon: Plus,
+            onClick: () => setCreateModalOpen(true),
+          },
+        ]}
+      />
 
       {/* Filters */}
-      <div className="flex gap-4 filters-section">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search boards..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 w-full"
-            />
+      <Card className="card">
+        <CardContent className="card-content-compact">
+          <div className="filters-section">
+            <div className="search-input-wrapper flex-1">
+              <Search className="search-icon" aria-hidden="true" />
+              <Input
+                placeholder="Search boards..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="search-input"
+              />
+            </div>
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="filter-select w-[180px]">
+                <SelectValue placeholder="Filter by type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="mood">Mood</SelectItem>
+                <SelectItem value="material">Material</SelectItem>
+                <SelectItem value="color">Color</SelectItem>
+                <SelectItem value="concept">Concept</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="filter-select w-[180px]">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="draft">Draft</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="approved">Approved</SelectItem>
+                <SelectItem value="archived">Archived</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        </div>
-        <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="mood">Mood</SelectItem>
-            <SelectItem value="material">Material</SelectItem>
-            <SelectItem value="color">Color</SelectItem>
-            <SelectItem value="concept">Concept</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="draft">Draft</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="approved">Approved</SelectItem>
-            <SelectItem value="archived">Archived</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="stats-card">
-          <div className="stats-card-header">
-            <ImageIcon className="stats-card-icon" />
-            <span>Total Boards</span>
-          </div>
-          <div className="stats-card-value">{filteredBoards.length}</div>
-        </div>
-        <div className="stats-card">
-          <div className="stats-card-header">
-            <ImageIcon className="stats-card-icon" />
-            <span>Active</span>
-          </div>
-          <div className="stats-card-value">
-            {filteredBoards.filter((b: any) => b.status === 'active').length}
-          </div>
-        </div>
-        <div className="stats-card">
-          <div className="stats-card-header">
-            <Share2 className="stats-card-icon" />
-            <span>Shared</span>
-          </div>
-          <div className="stats-card-value">
-            {filteredBoards.filter((b: any) => b.is_shared).length}
-          </div>
-        </div>
-        <div className="stats-card">
-          <div className="stats-card-header">
-            <ImageIcon className="stats-card-icon" />
-            <span>Approved</span>
-          </div>
-          <div className="stats-card-value">
-            {filteredBoards.filter((b: any) => b.status === 'approved').length}
-          </div>
-        </div>
-      </div>
+      <StatsGrid stats={stats} columns={4} />
 
       {/* Boards Grid */}
       {isLoading ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading mood boards...</p>
-          </div>
-        </div>
+        <LoadingState message="Loading mood boards..." size="lg" />
       ) : filteredBoards.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <ImageIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground mb-4">No mood boards found</p>
-            <Button variant="outline" onClick={() => setCreateModalOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Create your first board
-            </Button>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={ImageIcon}
+          title="No mood boards found"
+          description="Create your first mood board to get started."
+          action={{
+            label: 'Create Board',
+            onClick: () => setCreateModalOpen(true),
+            icon: Plus,
+          }}
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredBoards.map((board: any) => (

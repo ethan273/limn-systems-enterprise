@@ -8,6 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { EntityDetailHeader } from "@/components/common/EntityDetailHeader";
+import { InfoCard } from "@/components/common/InfoCard";
+import { EmptyState } from "@/components/common/EmptyState";
+import { LoadingState } from "@/components/common/LoadingState";
 import TaskAttachments from "@/components/TaskAttachments";
 import TaskActivities from "@/components/TaskActivities";
 import TaskEntityLinks from "@/components/TaskEntityLinks";
@@ -29,7 +33,6 @@ import {
   Users,
   Calendar,
   FolderOpen,
-  Tag,
   AlertTriangle,
   Briefcase,
 } from "lucide-react";
@@ -100,7 +103,7 @@ export default function TaskDetailPage({ params }: PageProps) {
   if (isLoading) {
     return (
       <div className="page-container">
-        <div className="loading-state">Loading task details...</div>
+        <LoadingState message="Loading task details..." size="md" />
       </div>
     );
   }
@@ -108,17 +111,16 @@ export default function TaskDetailPage({ params }: PageProps) {
   if (error || !task) {
     return (
       <div className="page-container">
-        <div className="empty-state">
-          <AlertCircle className="empty-state-icon" aria-hidden="true" />
-          <h3 className="empty-state-title">Task Not Found</h3>
-          <p className="empty-state-description">
-            The task you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to view it.
-          </p>
-          <Button onClick={() => router.push("/tasks")} className="btn-primary">
-            <ArrowLeft className="icon-sm" aria-hidden="true" />
-            Back to Tasks
-          </Button>
-        </div>
+        <EmptyState
+          icon={AlertCircle}
+          title="Task Not Found"
+          description="The task you're looking for doesn't exist or you don't have permission to view it."
+          action={{
+            label: 'Back to Tasks',
+            onClick: () => router.push("/tasks"),
+            icon: ArrowLeft,
+          }}
+        />
       </div>
     );
   }
@@ -143,57 +145,43 @@ export default function TaskDetailPage({ params }: PageProps) {
         </Button>
       </div>
 
-      {/* Task Info Card */}
-      <Card className="detail-header-card">
-        <CardContent>
-          <div className="detail-header">
-            <div className="detail-avatar">
-              <CheckSquare className="detail-avatar-icon" aria-hidden="true" />
-            </div>
-            <div className="detail-info">
-              <h1 className="detail-title">{task.title || "Untitled Task"}</h1>
-              <div className="detail-meta">
-                <Badge variant="outline" className={statusConfig.className}>
-                  {statusConfig.icon}
-                  {statusConfig.label}
-                </Badge>
-                <Badge variant="outline" className={priorityConfig.className}>
-                  {priorityConfig.label}
-                </Badge>
-                <Badge variant="outline" className={departmentConfig.className}>
-                  <Briefcase className="icon-xs" aria-hidden="true" />
-                  {departmentConfig.label}
-                </Badge>
-                {isOverdue && task.status !== 'completed' && task.status !== 'cancelled' && (
-                  <Badge variant="outline" className="badge-error">
-                    <AlertTriangle className="icon-xs" aria-hidden="true" />
-                    Overdue
-                  </Badge>
-                )}
-              </div>
-              {task.description && (
-                <p className="detail-description">{task.description}</p>
-              )}
-              {task.tags && task.tags.length > 0 && (
-                <div className="tag-list">
-                  {task.tags.map((tag: string, idx: number) => (
-                    <Badge key={idx} variant="outline" className="badge-neutral">
-                      <Tag className="icon-xs" aria-hidden="true" />
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="detail-actions">
-              <Button className="btn-primary">
-                <Edit className="icon-sm" aria-hidden="true" />
-                Edit Task
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Task Header */}
+      <EntityDetailHeader
+        icon={CheckSquare}
+        title={task.title || "Untitled Task"}
+        subtitle={task.description || undefined}
+        metadata={[
+          ...(task.due_date ? [{
+            icon: Calendar,
+            value: format(task.due_date instanceof Date ? task.due_date : parseISO(task.due_date), "MMM d, yyyy"),
+            label: 'Due Date',
+          }] : []),
+          { icon: Briefcase, value: departmentConfig.label, label: 'Department' },
+          ...(task.project_id ? [{ icon: FolderOpen, value: 'Project Name', label: 'Project' }] : []),
+        ]}
+        status={task.status || 'todo'}
+        tags={task.tags || []}
+        actions={[
+          {
+            label: 'Edit Task',
+            icon: Edit,
+            onClick: () => router.push(`/tasks/${task.id}/edit`),
+          },
+        ]}
+      />
+
+      {/* Priority and Status Badges */}
+      <div className="mb-6 flex gap-2">
+        <Badge variant="outline" className={priorityConfig.className}>
+          {priorityConfig.label}
+        </Badge>
+        {isOverdue && task.status !== 'completed' && task.status !== 'cancelled' && (
+          <Badge variant="outline" className="badge-error">
+            <AlertTriangle className="icon-xs" aria-hidden="true" />
+            Overdue
+          </Badge>
+        )}
+      </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -275,73 +263,60 @@ export default function TaskDetailPage({ params }: PageProps) {
         <TabsContent value="overview">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Task Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Task Information</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <dl className="detail-list">
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Status</dt>
-                    <dd className="detail-list-value">
-                      <Badge variant="outline" className={statusConfig.className}>
-                        {statusConfig.icon}
-                        {statusConfig.label}
-                      </Badge>
-                    </dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Priority</dt>
-                    <dd className="detail-list-value">
-                      <Badge variant="outline" className={priorityConfig.className}>
-                        {priorityConfig.label}
-                      </Badge>
-                    </dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Department</dt>
-                    <dd className="detail-list-value">
-                      <Badge variant="outline" className={departmentConfig.className}>
-                        <Briefcase className="icon-xs" aria-hidden="true" />
-                        {departmentConfig.label}
-                      </Badge>
-                    </dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Type</dt>
-                    <dd className="detail-list-value">{task.task_type || "Task"}</dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Created</dt>
-                    <dd className="detail-list-value">
-                      {task.created_at
-                        ? format(new Date(task.created_at), "MMM d, yyyy h:mm a")
-                        : "—"}
-                    </dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Due Date</dt>
-                    <dd className="detail-list-value">
-                      {task.due_date ? (
-                        <span className={isOverdue ? "text-destructive" : ""}>
-                          <Calendar className="icon-xs inline" aria-hidden="true" />
-                          {format(task.due_date instanceof Date ? task.due_date : parseISO(task.due_date), "MMM d, yyyy")}
-                          {isOverdue && task.status !== 'completed' && task.status !== 'cancelled' && " (Overdue)"}
-                        </span>
-                      ) : "—"}
-                    </dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Last Activity</dt>
-                    <dd className="detail-list-value">
-                      {task.last_activity_at
-                        ? formatDistanceToNow(new Date(task.last_activity_at), { addSuffix: true })
-                        : "—"}
-                    </dd>
-                  </div>
-                </dl>
-              </CardContent>
-            </Card>
+            <InfoCard
+              title="Task Information"
+              items={[
+                {
+                  label: 'Status',
+                  value: (
+                    <Badge variant="outline" className={statusConfig.className}>
+                      {statusConfig.icon}
+                      {statusConfig.label}
+                    </Badge>
+                  ),
+                },
+                {
+                  label: 'Priority',
+                  value: (
+                    <Badge variant="outline" className={priorityConfig.className}>
+                      {priorityConfig.label}
+                    </Badge>
+                  ),
+                },
+                {
+                  label: 'Department',
+                  value: (
+                    <Badge variant="outline" className={departmentConfig.className}>
+                      <Briefcase className="icon-xs" aria-hidden="true" />
+                      {departmentConfig.label}
+                    </Badge>
+                  ),
+                },
+                { label: 'Type', value: task.task_type || "Task" },
+                {
+                  label: 'Created',
+                  value: task.created_at
+                    ? format(new Date(task.created_at), "MMM d, yyyy h:mm a")
+                    : "—",
+                },
+                {
+                  label: 'Due Date',
+                  value: task.due_date ? (
+                    <span className={isOverdue ? "text-destructive" : ""}>
+                      <Calendar className="icon-xs inline" aria-hidden="true" />
+                      {format(task.due_date instanceof Date ? task.due_date : parseISO(task.due_date), "MMM d, yyyy")}
+                      {isOverdue && task.status !== 'completed' && task.status !== 'cancelled' && " (Overdue)"}
+                    </span>
+                  ) : "—",
+                },
+                {
+                  label: 'Last Activity',
+                  value: task.last_activity_at
+                    ? formatDistanceToNow(new Date(task.last_activity_at), { addSuffix: true })
+                    : "—",
+                },
+              ]}
+            />
 
             {/* Project Info */}
             <Card>
@@ -468,47 +443,25 @@ export default function TaskDetailPage({ params }: PageProps) {
             </Card>
 
             {/* Additional Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Additional Information</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <dl className="detail-list">
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Visibility</dt>
-                    <dd className="detail-list-value capitalize">{task.visibility || "Company"}</dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Estimated Hours</dt>
-                    <dd className="detail-list-value">{task.estimated_hours ? `${task.estimated_hours}h` : "—"}</dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Actual Hours</dt>
-                    <dd className="detail-list-value">{task.actual_hours ? `${task.actual_hours}h` : "—"}</dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Start Date</dt>
-                    <dd className="detail-list-value">
-                      {task.start_date
-                        ? format(task.start_date instanceof Date ? task.start_date : parseISO(task.start_date), "MMM d, yyyy")
-                        : "—"}
-                    </dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Resolution</dt>
-                    <dd className="detail-list-value">{task.resolution || "—"}</dd>
-                  </div>
-                  {task.archived_at && (
-                    <div className="detail-list-item">
-                      <dt className="detail-list-label">Archived</dt>
-                      <dd className="detail-list-value">
-                        {format(new Date(task.archived_at), "MMM d, yyyy h:mm a")}
-                      </dd>
-                    </div>
-                  )}
-                </dl>
-              </CardContent>
-            </Card>
+            <InfoCard
+              title="Additional Information"
+              items={[
+                { label: 'Visibility', value: task.visibility ? task.visibility.charAt(0).toUpperCase() + task.visibility.slice(1) : "Company" },
+                { label: 'Estimated Hours', value: task.estimated_hours ? `${task.estimated_hours}h` : "—" },
+                { label: 'Actual Hours', value: task.actual_hours ? `${task.actual_hours}h` : "—" },
+                {
+                  label: 'Start Date',
+                  value: task.start_date
+                    ? format(task.start_date instanceof Date ? task.start_date : parseISO(task.start_date), "MMM d, yyyy")
+                    : "—",
+                },
+                { label: 'Resolution', value: task.resolution || "—" },
+                ...(task.archived_at ? [{
+                  label: 'Archived',
+                  value: format(new Date(task.archived_at), "MMM d, yyyy h:mm a"),
+                }] : []),
+              ]}
+            />
           </div>
         </TabsContent>
       </Tabs>

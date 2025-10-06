@@ -1,314 +1,262 @@
 "use client";
 
-import React, { useState } from "react";
 import { api } from "@/lib/api/client";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import {
- Select,
- SelectContent,
- SelectItem,
- SelectTrigger,
- SelectValue,
-} from "@/components/ui/select";
-import {
- Table,
- TableBody,
- TableCell,
- TableHead,
- TableHeader,
- TableRow,
-} from "@/components/ui/table";
-import {
- FileText,
- Download,
- Search,
- File,
- Image as ImageIcon,
- FileArchive,
- Calendar,
- Folder,
+  FileText,
+  Download,
+  File,
+  Image as ImageIcon,
+  FileArchive,
+  Calendar,
+  Folder,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import {
+  PageHeader,
+  DataTable,
+  StatsGrid,
+  EmptyState,
+  LoadingState,
+  type DataTableColumn,
+  type DataTableFilter,
+  type StatItem,
+} from "@/components/common";
 
-// Dynamic route configuration
 export const dynamic = 'force-dynamic';
 
 const documentTypeConfig: Record<string, { label: string; icon: React.ReactNode; className: string }> = {
- invoice: {
- label: "Invoice",
- icon: <FileText className="w-4 h-4" aria-hidden="true" />,
- className: "btn-primary text-info border-primary",
- },
- quote: {
- label: "Quote",
- icon: <FileText className="w-4 h-4" aria-hidden="true" />,
- className: "btn-secondary text-secondary border-secondary",
- },
- contract: {
- label: "Contract",
- icon: <FileText className="w-4 h-4" aria-hidden="true" />,
- className: "bg-success-muted text-success border-success",
- },
- shop_drawing: {
- label: "Shop Drawing",
- icon: <ImageIcon className="w-4 h-4" aria-hidden="true" />,
- className: "bg-orange-100 text-warning border-orange-300",
- },
- photo: {
- label: "Photo",
- icon: <ImageIcon className="w-4 h-4" aria-hidden="true" />,
- className: "bg-muted text-muted border-muted",
- },
- shipping: {
- label: "Shipping Document",
- icon: <FileArchive className="w-4 h-4" aria-hidden="true" />,
- className: "bg-success text-success border-success",
- },
- other: {
- label: "Other",
- icon: <File className="w-4 h-4" aria-hidden="true" />,
- className: "badge-neutral",
- },
+  invoice: {
+    label: "Invoice",
+    icon: <FileText className="w-4 h-4" aria-hidden="true" />,
+    className: "btn-primary text-info border-primary",
+  },
+  quote: {
+    label: "Quote",
+    icon: <FileText className="w-4 h-4" aria-hidden="true" />,
+    className: "btn-secondary text-secondary border-secondary",
+  },
+  contract: {
+    label: "Contract",
+    icon: <FileText className="w-4 h-4" aria-hidden="true" />,
+    className: "bg-success-muted text-success border-success",
+  },
+  shop_drawing: {
+    label: "Shop Drawing",
+    icon: <ImageIcon className="w-4 h-4" aria-hidden="true" />,
+    className: "bg-orange-100 text-warning border-orange-300",
+  },
+  photo: {
+    label: "Photo",
+    icon: <ImageIcon className="w-4 h-4" aria-hidden="true" />,
+    className: "bg-muted text-muted border-muted",
+  },
+  shipping: {
+    label: "Shipping Document",
+    icon: <FileArchive className="w-4 h-4" aria-hidden="true" />,
+    className: "bg-success text-success border-success",
+  },
+  other: {
+    label: "Other",
+    icon: <File className="w-4 h-4" aria-hidden="true" />,
+    className: "badge-neutral",
+  },
 };
 
 export default function DocumentsPage() {
- const [typeFilter, setTypeFilter] = useState<string>("all");
- const [searchQuery, setSearchQuery] = useState("");
+  const { data, isLoading } = api.portal.getCustomerDocuments.useQuery({
+    documentType: undefined,
+    limit: 100,
+    offset: 0,
+  });
 
- // Fetch customer documents
- const { data, isLoading } = api.portal.getCustomerDocuments.useQuery({
- documentType: typeFilter === "all" ? undefined : typeFilter,
- limit: 100,
- offset: 0,
- });
+  const documents = data?.documents || [];
 
- const documents = data?.documents || [];
+  const stats: StatItem[] = [
+    {
+      title: 'Total Documents',
+      value: documents.length,
+      description: 'All available files',
+      icon: Folder,
+      iconColor: 'primary',
+    },
+    {
+      title: 'Invoices',
+      value: documents.filter((d) => d.type === "invoice").length,
+      description: 'Invoice documents',
+      icon: FileText,
+      iconColor: 'info',
+    },
+    {
+      title: 'Shop Drawings',
+      value: documents.filter((d) => d.type === "shop_drawing").length,
+      description: 'Technical drawings',
+      icon: ImageIcon,
+      iconColor: 'warning',
+    },
+    {
+      title: 'Shipping Docs',
+      value: documents.filter((d) => d.type === "shipping").length,
+      description: 'Shipping documents',
+      icon: FileArchive,
+      iconColor: 'success',
+    },
+    {
+      title: 'Photos',
+      value: documents.filter((d) => d.type === "photo").length,
+      description: 'Project photos',
+      icon: ImageIcon,
+    },
+  ];
 
- // Client-side search filtering
- const filteredDocuments = documents.filter((doc) => {
- if (!searchQuery) return true;
- const searchLower = searchQuery.toLowerCase();
- return (
- doc.name?.toLowerCase().includes(searchLower) ||
- doc.project_name?.toLowerCase().includes(searchLower) ||
- doc.category?.toLowerCase().includes(searchLower)
- );
- });
+  const handleDownload = (doc: any) => {
+    const url = doc.download_url || doc.url || doc.google_drive_url;
+    if (url) {
+      window.open(url, '_blank');
+    }
+  };
 
- // Calculate statistics
- const stats = {
- total: documents.length,
- invoices: documents.filter((d) => d.type === "invoice").length,
- shopDrawings: documents.filter((d) => d.type === "shop_drawing").length,
- shipping: documents.filter((d) => d.type === "shipping").length,
- photos: documents.filter((d) => d.type === "photo").length,
- };
+  const columns: DataTableColumn<any>[] = [
+    {
+      key: 'name',
+      label: 'Document Name',
+      sortable: true,
+      render: (value, row) => {
+        const typeConfig = documentTypeConfig[row.type || 'other'] || documentTypeConfig.other;
+        return (
+          <div className="flex items-center gap-2">
+            {typeConfig.icon}
+            <span className="font-medium">{value as string || "Untitled"}</span>
+          </div>
+        );
+      },
+    },
+    {
+      key: 'type',
+      label: 'Type',
+      render: (value) => {
+        const typeConfig = documentTypeConfig[value as string || 'other'] || documentTypeConfig.other;
+        return (
+          <Badge variant="outline" className={cn(typeConfig.className)}>
+            {typeConfig.label}
+          </Badge>
+        );
+      },
+    },
+    {
+      key: 'project_name',
+      label: 'Project',
+      render: (value) => <span className="text-sm">{value as string || "—"}</span>,
+    },
+    {
+      key: 'category',
+      label: 'Description',
+      render: (value) => (
+        <span className="text-sm text-muted-foreground">
+          {value as string || "—"}
+        </span>
+      ),
+    },
+    {
+      key: 'created_at',
+      label: 'Upload Date',
+      sortable: true,
+      render: (value) => value ? (
+        <div className="flex items-center gap-1 text-sm">
+          <Calendar className="w-3 h-3 text-muted-foreground" aria-hidden="true" />
+          {format(new Date(value as string), "MMM d, yyyy")}
+        </div>
+      ) : <span className="text-sm">—</span>,
+    },
+    {
+      key: 'size',
+      label: 'Size',
+      sortable: true,
+      render: (value) => (
+        <span className="text-sm text-muted-foreground">
+          {value ? `${(Number(value) / 1024 / 1024).toFixed(2)} MB` : "—"}
+        </span>
+      ),
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      render: (_, row) => {
+        const downloadUrl = row.download_url || row.url || row.google_drive_url;
+        return (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDownload(row);
+            }}
+            disabled={!downloadUrl}
+          >
+            <Download className="w-4 h-4 mr-2" aria-hidden="true" />
+            Download
+          </Button>
+        );
+      },
+    },
+  ];
 
- const handleDownload = (doc: any) => {
- const url = doc.download_url || doc.url || doc.google_drive_url;
- if (url) {
- window.open(url, '_blank');
- }
- };
+  const filters: DataTableFilter[] = [
+    {
+      key: 'search',
+      label: 'Search documents',
+      type: 'search',
+      placeholder: 'Search documents, descriptions, or projects...',
+    },
+    {
+      key: 'type',
+      label: 'Type',
+      type: 'select',
+      options: [
+        { value: 'all', label: 'All Types' },
+        { value: 'invoice', label: 'Invoices' },
+        { value: 'quote', label: 'Quotes' },
+        { value: 'contract', label: 'Contracts' },
+        { value: 'shop_drawing', label: 'Shop Drawings' },
+        { value: 'photo', label: 'Photos' },
+        { value: 'shipping', label: 'Shipping Documents' },
+        { value: 'other', label: 'Other' },
+      ],
+    },
+  ];
 
- return (
- <div className="container mx-auto p-6 space-y-6">
- {/* Header */}
- <div className="flex items-center justify-between">
- <div>
- <h1 className="text-3xl font-bold">Documents</h1>
- <p className="text-muted-foreground">Access your project documents and files</p>
- </div>
- </div>
+  return (
+    <div className="page-container">
+      <PageHeader
+        title="Documents"
+        subtitle="Access your project documents and files"
+      />
 
- {/* Statistics Cards */}
- <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
- <Card>
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium">Total Documents</CardTitle>
- <Folder className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
- </CardHeader>
- <CardContent>
- <div className="text-2xl font-bold">{stats.total}</div>
- </CardContent>
- </Card>
+      <StatsGrid stats={stats} columns={4} />
 
- <Card>
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium">Invoices</CardTitle>
- <FileText className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
- </CardHeader>
- <CardContent>
- <div className="text-2xl font-bold text-info">{stats.invoices}</div>
- </CardContent>
- </Card>
-
- <Card>
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium">Shop Drawings</CardTitle>
- <ImageIcon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
- </CardHeader>
- <CardContent>
- <div className="text-2xl font-bold text-warning">{stats.shopDrawings}</div>
- </CardContent>
- </Card>
-
- <Card>
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium">Shipping Docs</CardTitle>
- <FileArchive className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
- </CardHeader>
- <CardContent>
- <div className="text-2xl font-bold text-success">{stats.shipping}</div>
- </CardContent>
- </Card>
-
- <Card>
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium">Photos</CardTitle>
- <ImageIcon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
- </CardHeader>
- <CardContent>
- <div className="text-2xl font-bold text-muted">{stats.photos}</div>
- </CardContent>
- </Card>
- </div>
-
- {/* Filters */}
- <Card>
- <CardHeader>
- <CardTitle>Filter Documents</CardTitle>
- </CardHeader>
- <CardContent>
- <div className="flex flex-col md:flex-row gap-4">
- {/* Search */}
- <div className="flex-1">
- <div className="relative">
- <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" aria-hidden="true" />
- <Input
- placeholder="Search documents, descriptions, or projects..."
- value={searchQuery}
- onChange={(e) => setSearchQuery(e.target.value)}
- className="pl-10"
- />
- </div>
- </div>
-
- {/* Type Filter */}
- <div className="w-full md:w-[250px]">
- <Select value={typeFilter} onValueChange={setTypeFilter}>
- <SelectTrigger>
- <SelectValue placeholder="Filter by type" />
- </SelectTrigger>
- <SelectContent>
- <SelectItem value="all">All Types</SelectItem>
- <SelectItem value="invoice">Invoices</SelectItem>
- <SelectItem value="quote">Quotes</SelectItem>
- <SelectItem value="contract">Contracts</SelectItem>
- <SelectItem value="shop_drawing">Shop Drawings</SelectItem>
- <SelectItem value="photo">Photos</SelectItem>
- <SelectItem value="shipping">Shipping Documents</SelectItem>
- <SelectItem value="other">Other</SelectItem>
- </SelectContent>
- </Select>
- </div>
- </div>
- </CardContent>
- </Card>
-
- {/* Documents Table */}
- <Card>
- <CardHeader>
- <CardTitle>Document Library</CardTitle>
- </CardHeader>
- <CardContent>
- {isLoading ? (
- <div className="text-center py-8 text-muted-foreground">Loading documents...</div>
- ) : filteredDocuments.length === 0 ? (
- <div className="text-center py-12 text-muted-foreground">
- <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" aria-hidden="true" />
- <p>No documents found</p>
- {searchQuery && <p className="text-sm mt-2">Try adjusting your search</p>}
- </div>
- ) : (
- <div className="overflow-x-auto">
- <Table>
- <TableHeader>
- <TableRow>
- <TableHead>Document Name</TableHead>
- <TableHead>Type</TableHead>
- <TableHead>Project</TableHead>
- <TableHead>Description</TableHead>
- <TableHead>Upload Date</TableHead>
- <TableHead>Size</TableHead>
- <TableHead>Actions</TableHead>
- </TableRow>
- </TableHeader>
- <TableBody>
- {filteredDocuments.map((doc) => {
- const typeConfig = documentTypeConfig[doc.type || 'other'] || documentTypeConfig.other;
- const downloadUrl = doc.download_url || doc.url || doc.google_drive_url;
-
- return (
- <TableRow key={doc.id} className="hover:bg-muted/50">
- <TableCell>
- <div className="flex items-center gap-2">
- {typeConfig.icon}
- <span className="font-medium">{doc.name || "Untitled"}</span>
- </div>
- </TableCell>
- <TableCell>
- <Badge variant="outline" className={cn(typeConfig.className)}>
- {typeConfig.label}
- </Badge>
- </TableCell>
- <TableCell>
- <span className="text-sm">{doc.project_name || "—"}</span>
- </TableCell>
- <TableCell>
- <span className="text-sm text-muted-foreground">
- {doc.category || "—"}
- </span>
- </TableCell>
- <TableCell>
- <div className="flex items-center gap-1 text-sm">
- <Calendar className="w-3 h-3 text-muted-foreground" aria-hidden="true" />
- {doc.created_at
- ? format(new Date(doc.created_at), "MMM d, yyyy")
- : "—"}
- </div>
- </TableCell>
- <TableCell>
- <span className="text-sm text-muted-foreground">
- {doc.size
- ? `${(Number(doc.size) / 1024 / 1024).toFixed(2)} MB`
- : "—"}
- </span>
- </TableCell>
- <TableCell>
- <Button
- variant="outline"
- size="sm"
- onClick={() => handleDownload(doc)}
- disabled={!downloadUrl}
- >
- <Download className="w-4 h-4 mr-2" aria-hidden="true" />
- Download
- </Button>
- </TableCell>
- </TableRow>
- );
- })}
- </TableBody>
- </Table>
- </div>
- )}
- </CardContent>
- </Card>
- </div>
- );
+      {isLoading ? (
+        <LoadingState message="Loading documents..." size="lg" />
+      ) : !documents || documents.length === 0 ? (
+        <EmptyState
+          icon={FileText}
+          title="No documents found"
+          description="You don't have any documents yet."
+        />
+      ) : (
+        <DataTable
+          data={documents}
+          columns={columns}
+          filters={filters}
+          pagination={{ pageSize: 20, showSizeSelector: true }}
+          emptyState={{
+            icon: FileText,
+            title: 'No documents match your filters',
+            description: 'Try adjusting your search or filter criteria',
+          }}
+        />
+      )}
+    </div>
+  );
 }

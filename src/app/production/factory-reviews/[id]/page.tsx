@@ -6,7 +6,6 @@ import Image from "next/image";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,65 +23,32 @@ import {
  DialogFooter,
  DialogHeader,
  DialogTitle,
- DialogTrigger,
 } from "@/components/ui/dialog";
+import { EntityDetailHeader } from "@/components/common/EntityDetailHeader";
+import { InfoCard } from "@/components/common/InfoCard";
+import { StatusBadge } from "@/components/common/StatusBadge";
+import { EmptyState } from "@/components/common/EmptyState";
+import { LoadingState } from "@/components/common/LoadingState";
 import {
  Factory,
  Calendar,
  MapPin,
- Users,
  Image as ImageIcon,
  MessageSquare,
  FileText,
- ChevronLeft,
+ ArrowLeft,
  AlertCircle,
  CheckCircle,
- Clock,
  Edit,
  Trash2,
  Upload,
  Loader2,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
 
 // Dynamic route configuration
 export const dynamic = 'force-dynamic';
-
-const statusConfig: Record<string, { label: string; className: string }> = {
- scheduled: {
- label: "Scheduled",
- className: "bg-warning-muted text-warning border-warning",
- },
- in_progress: {
- label: "In Progress",
- className: "bg-info-muted text-info border-info",
- },
- completed: {
- label: "Completed",
- className: "bg-success-muted text-success border-success",
- },
-};
-
-const severityConfig: Record<string, { label: string; className: string }> = {
- critical: {
- label: "Critical",
- className: "bg-destructive-muted text-destructive border-destructive",
- },
- major: {
- label: "Major",
- className: "bg-warning-muted text-warning border-warning",
- },
- minor: {
- label: "Minor",
- className: "bg-warning-muted text-warning border-warning",
- },
- observation: {
- label: "Observation",
- className: "bg-info-muted text-info border-info",
- },
-};
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -238,31 +204,28 @@ export default function FactoryReviewDetailPage({ params }: PageProps) {
 
  if (isLoading) {
  return (
- <div className="container mx-auto p-6">
- <div className="text-center py-12">
- <Loader2 className="w-8 h-8 mx-auto animate-spin text-muted-foreground" aria-hidden="true" />
- <p className="text-muted-foreground mt-4">Loading session details...</p>
- </div>
+ <div className="page-container">
+ <LoadingState message="Loading session details..." size="md" />
  </div>
  );
  }
 
  if (!session) {
  return (
- <div className="container mx-auto p-6">
- <div className="text-center py-12">
- <AlertCircle className="w-12 h-12 mx-auto text-destructive mb-4" aria-hidden="true" />
- <h2 className="text-2xl font-bold mb-2">Session Not Found</h2>
- <p className="text-muted-foreground mb-4">The factory review session you&apos;re looking for doesn&apos;t exist.</p>
- <Button onClick={() => router.push("/factory-reviews")}>
- Back to Sessions
- </Button>
- </div>
+ <div className="page-container">
+ <EmptyState
+ icon={AlertCircle}
+ title="Session Not Found"
+ description="The factory review session you're looking for doesn't exist."
+ action={{
+ label: 'Back to Sessions',
+ onClick: () => router.push("/production/factory-reviews"),
+ icon: ArrowLeft,
+ }}
+ />
  </div>
  );
  }
-
- const config = statusConfig[session.status] || statusConfig.scheduled;
 
  // Filter photos by severity
  const filteredPhotos =
@@ -275,206 +238,182 @@ export default function FactoryReviewDetailPage({ params }: PageProps) {
  const unresolvedActions = actionItems || [];
 
  return (
- <div className="container mx-auto p-6 space-y-6">
- {/* Header */}
- <div className="flex items-center justify-between">
- <div className="flex items-center gap-4">
- <Button variant="ghost" size="sm" onClick={() => router.push("/factory-reviews")}>
- <ChevronLeft className="w-4 h-4 mr-1" aria-hidden="true" />
+ <div className="page-container">
+ {/* Header Section */}
+ <div className="page-header">
+ <Button
+ onClick={() => router.push("/production/factory-reviews")}
+ variant="ghost"
+ className="btn-secondary"
+ >
+ <ArrowLeft className="icon-sm" aria-hidden="true" />
  Back
  </Button>
- <div>
- <h1 className="text-3xl font-bold">{session.session_name}</h1>
- <p className="text-muted-foreground">Review #{session.session_number}</p>
  </div>
- </div>
- <div className="flex items-center gap-2">
- <Badge variant="outline" className={cn(config.className, "text-sm px-3 py-1")}>
- {config.label}
- </Badge>
- <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
- <DialogTrigger asChild>
- <Button variant="outline" size="sm">
- <Edit className="w-4 h-4 mr-2" aria-hidden="true" />
- Update Status
- </Button>
- </DialogTrigger>
- <DialogContent>
- <DialogHeader>
- <DialogTitle>Update Session Status</DialogTitle>
- <DialogDescription>
- Change the status of this factory review session
- </DialogDescription>
- </DialogHeader>
- <div className="space-y-4">
- <div className="space-y-2">
- <Label htmlFor="status">New Status</Label>
- <Select value={newStatus || session.status} onValueChange={setNewStatus}>
- <SelectTrigger id="status">
- <SelectValue />
- </SelectTrigger>
- <SelectContent>
- <SelectItem value="scheduled">Scheduled</SelectItem>
- <SelectItem value="in_progress">In Progress</SelectItem>
- <SelectItem value="completed">Completed</SelectItem>
- </SelectContent>
- </Select>
- </div>
- </div>
- <DialogFooter>
- <Button
- variant="outline"
- onClick={() => setStatusDialogOpen(false)}
- >
- Cancel
- </Button>
- <Button
- onClick={handleUpdateStatus}
- disabled={updateStatusMutation.isPending}
- >
- {updateStatusMutation.isPending ? (
- <>
- <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
- Updating...
- </>
- ) : (
- "Update Status"
- )}
- </Button>
- </DialogFooter>
- </DialogContent>
- </Dialog>
- </div>
- </div>
+
+ {/* Session Header */}
+ <EntityDetailHeader
+ icon={Factory}
+ title={session.session_name}
+ subtitle={`Review #${session.session_number}`}
+ status={session.status}
+ metadata={[
+ {
+ icon: Calendar,
+ value: format(new Date(session.review_date), "MMMM d, yyyy"),
+ type: 'text' as const
+ },
+ ...(session.location ? [{
+ icon: MapPin,
+ value: session.location,
+ type: 'text' as const
+ }] : []),
+ ...(session.prototype_production?.partners?.company_name ? [{
+ icon: Factory,
+ value: session.prototype_production.partners.company_name,
+ type: 'text' as const
+ }] : []),
+ ]}
+ actions={[
+ {
+ label: 'Update Status',
+ icon: Edit,
+ onClick: () => setStatusDialogOpen(true),
+ },
+ ]}
+ />
 
  {/* Overview Cards */}
  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
  <Card>
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium">Photos</CardTitle>
- <ImageIcon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+ <CardHeader className="card-header-sm">
+ <CardTitle className="card-title-sm">Photos</CardTitle>
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold">{session.factory_review_photos?.length || 0}</div>
+ <div className="stat-value">{session.factory_review_photos?.length || 0}</div>
+ <p className="stat-label">Uploaded</p>
  </CardContent>
  </Card>
 
  <Card>
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium">Comments</CardTitle>
- <MessageSquare className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+ <CardHeader className="card-header-sm">
+ <CardTitle className="card-title-sm">Comments</CardTitle>
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold">{session.factory_review_comments?.length || 0}</div>
+ <div className="stat-value">{session.factory_review_comments?.length || 0}</div>
+ <p className="stat-label">Total comments</p>
  </CardContent>
  </Card>
 
  <Card>
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium">Action Items</CardTitle>
- <AlertCircle className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+ <CardHeader className="card-header-sm">
+ <CardTitle className="card-title-sm">Action Items</CardTitle>
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold text-warning">
+ <div className="stat-value stat-warning">
  {unresolvedActions.length}
  </div>
+ <p className="stat-label">Unresolved</p>
  </CardContent>
  </Card>
 
  <Card>
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium">Documents</CardTitle>
- <FileText className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+ <CardHeader className="card-header-sm">
+ <CardTitle className="card-title-sm">Documents</CardTitle>
  </CardHeader>
  <CardContent>
- <div className="text-2xl font-bold">{session.factory_review_documents?.length || 0}</div>
+ <div className="stat-value">{session.factory_review_documents?.length || 0}</div>
+ <p className="stat-label">Attached</p>
  </CardContent>
  </Card>
  </div>
 
  {/* Tabbed Content */}
  <Tabs value={activeTab} onValueChange={setActiveTab}>
- <TabsList className="grid w-full grid-cols-5">
- <TabsTrigger value="overview">Overview</TabsTrigger>
- <TabsTrigger value="photos">Photos</TabsTrigger>
- <TabsTrigger value="comments">Comments</TabsTrigger>
- <TabsTrigger value="actions">Action Items</TabsTrigger>
- <TabsTrigger value="documents">Documents</TabsTrigger>
+ <TabsList className="tabs-list">
+ <TabsTrigger value="overview" className="tabs-trigger">
+ <Factory className="icon-sm" aria-hidden="true" />
+ Overview
+ </TabsTrigger>
+ <TabsTrigger value="photos" className="tabs-trigger">
+ <ImageIcon className="icon-sm" aria-hidden="true" />
+ Photos
+ </TabsTrigger>
+ <TabsTrigger value="comments" className="tabs-trigger">
+ <MessageSquare className="icon-sm" aria-hidden="true" />
+ Comments
+ </TabsTrigger>
+ <TabsTrigger value="actions" className="tabs-trigger">
+ <AlertCircle className="icon-sm" aria-hidden="true" />
+ Action Items
+ </TabsTrigger>
+ <TabsTrigger value="documents" className="tabs-trigger">
+ <FileText className="icon-sm" aria-hidden="true" />
+ Documents
+ </TabsTrigger>
  </TabsList>
 
  {/* Overview Tab */}
- <TabsContent value="overview" className="space-y-4">
- <Card>
- <CardHeader>
- <CardTitle>Session Details</CardTitle>
- </CardHeader>
- <CardContent className="space-y-4">
- <div className="grid grid-cols-2 gap-4">
- <div>
- <Label className="text-muted-foreground">Prototype</Label>
- <p className="font-medium mt-1">
- {session.prototype_production?.prototypes?.name || "—"}
- </p>
- <p className="text-sm text-muted-foreground">
- {session.prototype_production?.prototypes?.prototype_number || ""}
- </p>
- </div>
- <div>
- <Label className="text-muted-foreground">Factory</Label>
- <p className="font-medium mt-1">
- {session.prototype_production?.partners?.company_name || "—"}
- </p>
- </div>
- <div>
- <Label className="text-muted-foreground flex items-center gap-2">
- <Calendar className="w-4 h-4" aria-hidden="true" />
- Review Date
- </Label>
- <p className="font-medium mt-1">
- {format(new Date(session.review_date), "MMMM d, yyyy")}
- </p>
- </div>
- <div>
- <Label className="text-muted-foreground flex items-center gap-2">
- <MapPin className="w-4 h-4" aria-hidden="true" />
- Location
- </Label>
- <p className="font-medium mt-1">{session.location || "—"}</p>
- </div>
- </div>
+ <TabsContent value="overview">
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+ {/* Session Details */}
+ <InfoCard
+ title="Session Details"
+ items={[
+ {
+ label: 'Prototype',
+ value: session.prototype_production?.prototypes?.name || "—"
+ },
+ {
+ label: 'Prototype Number',
+ value: session.prototype_production?.prototypes?.prototype_number || "—"
+ },
+ {
+ label: 'Factory',
+ value: session.prototype_production?.partners?.company_name || "—"
+ },
+ {
+ label: 'Review Date',
+ value: format(new Date(session.review_date), "MMMM d, yyyy")
+ },
+ {
+ label: 'Location',
+ value: session.location || "—"
+ },
+ ]}
+ />
 
- {session.limn_team_members && session.limn_team_members.length > 0 && (
- <div className="pt-4 border-t">
- <Label className="text-muted-foreground flex items-center gap-2">
- <Users className="w-4 h-4" aria-hidden="true" />
- Limn Team Members
- </Label>
- <p className="text-sm mt-2">{session.limn_team_members.length} team members</p>
- </div>
- )}
-
- {session.factory_representatives && session.factory_representatives.length > 0 && (
- <div>
- <Label className="text-muted-foreground flex items-center gap-2">
- <Factory className="w-4 h-4" aria-hidden="true" />
- Factory Representatives
- </Label>
- <ul className="list-disc list-inside mt-2 text-sm">
+ {/* Team Members */}
+ <InfoCard
+ title="Team Members"
+ items={[
+ {
+ label: 'Limn Team',
+ value: session.limn_team_members && session.limn_team_members.length > 0
+ ? `${session.limn_team_members.length} team members`
+ : "—"
+ },
+ {
+ label: 'Factory Representatives',
+ value: session.factory_representatives && session.factory_representatives.length > 0
+ ? (
+ <ul className="list-disc list-inside text-sm">
  {session.factory_representatives.map((rep, idx) => (
  <li key={idx}>{rep}</li>
  ))}
  </ul>
+ )
+ : "—"
+ },
+ {
+ label: 'Completion Notes',
+ value: session.completion_notes ? (
+ <p className="text-sm whitespace-pre-wrap">{session.completion_notes}</p>
+ ) : "—"
+ },
+ ]}
+ />
  </div>
- )}
-
- {session.completion_notes && (
- <div className="pt-4 border-t">
- <Label className="text-muted-foreground">Completion Notes</Label>
- <p className="text-sm mt-2 whitespace-pre-wrap">{session.completion_notes}</p>
- </div>
- )}
- </CardContent>
- </Card>
  </TabsContent>
 
  {/* Photos Tab */}
@@ -505,16 +444,14 @@ export default function FactoryReviewDetailPage({ params }: PageProps) {
  </CardHeader>
  <CardContent>
  {filteredPhotos.length === 0 ? (
- <div className="text-center py-12 text-muted-foreground">
- <ImageIcon className="w-12 h-12 mx-auto mb-2 opacity-50" aria-hidden="true" />
- <p>No photos uploaded yet</p>
- </div>
+ <EmptyState
+ icon={ImageIcon}
+ title="No Photos"
+ description="No photos uploaded yet"
+ />
  ) : (
  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
- {filteredPhotos.map((photo) => {
- const severityConf =
- severityConfig[photo.issue_severity] || severityConfig.observation;
- return (
+ {filteredPhotos.map((photo) => (
  <Card key={photo.id} className="overflow-hidden group">
  <CardContent className="p-0">
  <div className="relative aspect-square bg-muted">
@@ -524,15 +461,10 @@ export default function FactoryReviewDetailPage({ params }: PageProps) {
  fill
  className="object-cover"
  />
- <Badge
- variant="outline"
- className={cn(
- "absolute top-2 right-2",
- severityConf.className
- )}
- >
- {severityConf.label}
- </Badge>
+ <StatusBadge
+ status={photo.issue_severity}
+ className="absolute top-2 right-2"
+ />
  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
  <Button
  size="sm"
@@ -564,8 +496,7 @@ export default function FactoryReviewDetailPage({ params }: PageProps) {
  </div>
  </CardContent>
  </Card>
- );
- })}
+ ))}
  </div>
  )}
  </CardContent>
@@ -586,10 +517,11 @@ export default function FactoryReviewDetailPage({ params }: PageProps) {
  </CardHeader>
  <CardContent>
  {sessionComments.length === 0 ? (
- <div className="text-center py-12 text-muted-foreground">
- <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-50" aria-hidden="true" />
- <p>No comments yet</p>
- </div>
+ <EmptyState
+ icon={MessageSquare}
+ title="No Comments"
+ description="No comments yet"
+ />
  ) : (
  <div className="space-y-4">
  {sessionComments.map((comment) => (
@@ -599,13 +531,9 @@ export default function FactoryReviewDetailPage({ params }: PageProps) {
  <p className="font-medium text-sm">
  {comment.users_factory_review_comments_author_idTousers?.email || "Unknown"}
  </p>
- <Badge variant="outline" className="text-xs capitalize">
- {comment.author_role.replace("_", " ")}
- </Badge>
+ <StatusBadge status={comment.author_role.replace("_", " ")} />
  {comment.is_action_item && (
- <Badge variant="outline" className="text-xs bg-warning-muted text-warning border-warning">
- Action Item
- </Badge>
+ <StatusBadge status="action_item" />
  )}
  </div>
  <span className="text-xs text-muted-foreground">
@@ -644,10 +572,11 @@ export default function FactoryReviewDetailPage({ params }: PageProps) {
  </CardHeader>
  <CardContent>
  {unresolvedActions.length === 0 ? (
- <div className="text-center py-12 text-muted-foreground">
- <CheckCircle className="w-12 h-12 mx-auto mb-2 opacity-50" aria-hidden="true" />
- <p>No unresolved action items</p>
- </div>
+ <EmptyState
+ icon={CheckCircle}
+ title="No Unresolved Action Items"
+ description="No unresolved action items"
+ />
  ) : (
  <div className="space-y-4">
  {unresolvedActions.map((action) => (
@@ -658,10 +587,10 @@ export default function FactoryReviewDetailPage({ params }: PageProps) {
  <AlertCircle className="w-4 h-4 text-warning" aria-hidden="true" />
  <p className="font-medium">Action Item</p>
  {action.due_date && (
- <Badge variant="outline" className="text-xs">
- <Clock className="w-3 h-3 mr-1" aria-hidden="true" />
- Due {format(new Date(action.due_date), "MMM d, yyyy")}
- </Badge>
+ <StatusBadge
+ status="due"
+ className="text-xs"
+ />
  )}
  </div>
  <p className="text-sm text-muted-foreground mb-2">
@@ -709,10 +638,11 @@ export default function FactoryReviewDetailPage({ params }: PageProps) {
  </CardHeader>
  <CardContent>
  {!session.factory_review_documents || session.factory_review_documents.length === 0 ? (
- <div className="text-center py-12 text-muted-foreground">
- <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" aria-hidden="true" />
- <p>No documents uploaded yet</p>
- </div>
+ <EmptyState
+ icon={FileText}
+ title="No Documents"
+ description="No documents uploaded yet"
+ />
  ) : (
  <div className="space-y-2">
  {session.factory_review_documents.map((doc) => (
@@ -816,6 +746,54 @@ export default function FactoryReviewDetailPage({ params }: PageProps) {
  </>
  ) : (
  "Add Comment"
+ )}
+ </Button>
+ </DialogFooter>
+ </DialogContent>
+ </Dialog>
+
+ {/* Status Update Dialog */}
+ <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
+ <DialogContent>
+ <DialogHeader>
+ <DialogTitle>Update Session Status</DialogTitle>
+ <DialogDescription>
+ Change the status of this factory review session
+ </DialogDescription>
+ </DialogHeader>
+ <div className="space-y-4">
+ <div className="space-y-2">
+ <Label htmlFor="status">New Status</Label>
+ <Select value={newStatus || session.status} onValueChange={setNewStatus}>
+ <SelectTrigger id="status">
+ <SelectValue />
+ </SelectTrigger>
+ <SelectContent>
+ <SelectItem value="scheduled">Scheduled</SelectItem>
+ <SelectItem value="in_progress">In Progress</SelectItem>
+ <SelectItem value="completed">Completed</SelectItem>
+ </SelectContent>
+ </Select>
+ </div>
+ </div>
+ <DialogFooter>
+ <Button
+ variant="outline"
+ onClick={() => setStatusDialogOpen(false)}
+ >
+ Cancel
+ </Button>
+ <Button
+ onClick={handleUpdateStatus}
+ disabled={updateStatusMutation.isPending}
+ >
+ {updateStatusMutation.isPending ? (
+ <>
+ <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
+ Updating...
+ </>
+ ) : (
+ "Update Status"
  )}
  </Button>
  </DialogFooter>

@@ -1,7 +1,8 @@
 'use client'
 
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Users } from 'lucide-react'
 import Link from 'next/link'
+import { EmptyState } from '@/components/common'
 
 export default function ContractorLoginPage() {
  return (
@@ -30,26 +31,12 @@ export default function ContractorLoginPage() {
  </div>
  </div>
 
- <div className="alert-success border  rounded-lg p-4">
- <div className="flex">
- <div className="flex-shrink-0">
- <svg className="h-5 w-5 text-success" viewBox="0 0 20 20" fill="currentColor">
- <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
- </svg>
- </div>
- <div className="ml-3">
- <h3 className="text-sm font-medium text-success">
- Partner Portal In Development
- </h3>
- <div className="mt-2 text-sm text-success">
- <p>
- The partner portal is currently under development.
- If you&apos;re a contractor or partner, please contact support for access.
- </p>
- </div>
- </div>
- </div>
- </div>
+ <EmptyState
+ icon={Users}
+ title="Partner Portal In Development"
+ description="The partner portal is currently under development. If you're a contractor or partner, please contact support for access."
+ variant="coming-soon"
+ />
 
  <div className="mt-8 pt-6 border-t ">
  <p className="text-xs text-tertiary text-center">

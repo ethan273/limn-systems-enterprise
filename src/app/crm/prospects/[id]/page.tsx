@@ -162,16 +162,11 @@ export default function ProspectDetailPage({ params }: PageProps) {
         icon={User}
         title={prospect.name || "Unnamed Prospect"}
         subtitle={prospect.company || undefined}
-        status={prospectConfig && (
-          <Badge variant="outline" className={prospectConfig.className}>
-            <Thermometer className="icon-xs" aria-hidden="true" />
-            {prospectConfig.label}
-          </Badge>
-        )}
+        status={prospectConfig?.label}
         metadata={[
           ...(prospect.email ? [{ icon: Mail, value: prospect.email, type: 'email' as const }] : []),
           ...(prospect.phone ? [{ icon: Phone, value: prospect.phone, type: 'phone' as const }] : []),
-          ...(prospect.website ? [{ icon: Globe, value: prospect.website, type: 'url' as const }] : []),
+          ...(prospect.website ? [{ icon: Globe, value: prospect.website, type: 'link' as const }] : []),
           { icon: Star, value: `Priority: ${priority}/10`, type: 'text' as const },
         ]}
         tags={prospect.tags || []}
@@ -262,7 +257,7 @@ export default function ProspectDetailPage({ params }: PageProps) {
                 { label: 'Email', value: prospect.email || '—', type: 'email' },
                 { label: 'Phone', value: prospect.phone || '—', type: 'phone' },
                 { label: 'Company', value: prospect.company || '—' },
-                { label: 'Website', value: prospect.website || '—', type: 'url' },
+                { label: 'Website', value: prospect.website || '—', type: prospect.website ? 'link' : 'text', ...(prospect.website && { href: prospect.website }) },
                 { label: 'Lead Source', value: prospect.lead_source || '—' },
                 { label: 'Interest Level', value: prospect.interest_level || '—' },
                 { label: 'Contact Method', value: prospect.contact_method || '—' },

@@ -4,21 +4,23 @@ import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EntityDetailHeader } from "@/components/common/EntityDetailHeader";
+import { InfoCard } from "@/components/common/InfoCard";
+import { StatusBadge } from "@/components/common/StatusBadge";
+import { EmptyState } from "@/components/common/EmptyState";
+import { LoadingState } from "@/components/common/LoadingState";
 import {
   ArrowLeft,
   Package,
-  Calendar,
   Settings,
-  Edit,
   Image as ImageIcon,
   FileText,
-  DollarSign,
   Tag,
   CheckCircle,
   MessageSquare,
+  AlertCircle,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { MediaUploader } from "@/components/media/MediaUploader";
@@ -59,12 +61,7 @@ export default function PrototypeDetailPage({ params }: PageProps) {
   if (isLoading) {
     return (
       <div className="page-container">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="loading-spinner mx-auto mb-4" />
-            <p className="page-subtitle">Loading prototype...</p>
-          </div>
-        </div>
+        <LoadingState message="Loading prototype..." size="md" />
       </div>
     );
   }
@@ -72,17 +69,16 @@ export default function PrototypeDetailPage({ params }: PageProps) {
   if (!prototype) {
     return (
       <div className="page-container">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <Package className="mx-auto h-12 w-12 text-muted mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Prototype Not Found</h2>
-            <p className="page-subtitle mb-4">The prototype you&apos;re looking for doesn&apos;t exist.</p>
-            <Button onClick={() => router.push("/products/prototypes")}>
-              <ArrowLeft className="icon-sm" />
-              Back to Prototypes
-            </Button>
-          </div>
-        </div>
+        <EmptyState
+          icon={AlertCircle}
+          title="Prototype Not Found"
+          description="The prototype you're looking for doesn't exist."
+          action={{
+            label: 'Back to Prototypes',
+            onClick: () => router.push("/products/prototypes"),
+            icon: ArrowLeft,
+          }}
+        />
       </div>
     );
   }
@@ -91,386 +87,285 @@ export default function PrototypeDetailPage({ params }: PageProps) {
     <div className="page-container">
       {/* Header */}
       <div className="page-header">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push("/products/prototypes")}
-            className="btn-back"
-          >
-            <ArrowLeft className="icon-sm" />
-          </Button>
-          <div>
-            <h1 className="page-title">{prototype.name}</h1>
-            <div className="page-subtitle">
-              {prototype.prototype_number && (
-                <Badge variant="secondary" className="font-mono mr-2">
-                  {prototype.prototype_number}
-                </Badge>
-              )}
-              Prototype Details
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge
-            variant="outline"
-            className={
-              prototype.status === "concept"
-                ? "status-todo"
-                : prototype.status === "approved"
-                ? "status-completed"
-                : "status-in-progress"
-            }
-          >
-            {prototype.status}
-          </Badge>
-          <Badge
-            variant="outline"
-            className={
-              prototype.priority === "high"
-                ? "priority-high"
-                : prototype.priority === "medium"
-                ? "priority-medium"
-                : "priority-low"
-            }
-          >
-            {prototype.priority} priority
-          </Badge>
-          {prototype.is_catalog_candidate && (
-            <Badge variant="outline" className="badge-neutral">
-              Catalog Candidate
-            </Badge>
-          )}
-          <Button onClick={() => router.push(`/products/prototypes/${prototypeId}/edit`)}>
-            <Edit className="icon-sm" />
-            Edit Prototype
-          </Button>
-        </div>
+        <Button
+          onClick={() => router.push("/products/prototypes")}
+          variant="ghost"
+          className="btn-secondary"
+        >
+          <ArrowLeft className="icon-sm" aria-hidden="true" />
+          Back
+        </Button>
+      </div>
+
+      {/* Entity Header */}
+      <EntityDetailHeader
+        icon={Package}
+        title={prototype.name}
+        subtitle={prototype.prototype_number ? `Prototype #${prototype.prototype_number}` : "Prototype Details"}
+        metadata={[
+          { icon: Package, value: prototype.designer || "—", label: "Designer" },
+          { icon: Package, value: prototype.manufacturer || "—", label: "Manufacturer" },
+          { icon: Package, value: prototype.collection || "—", label: "Collection" },
+        ]}
+        tags={prototype.tags || []}
+        actions={[
+          {
+            label: 'Edit Prototype',
+            onClick: () => router.push(`/products/prototypes/${prototypeId}/edit`),
+          },
+        ]}
+        status={prototype.status as string}
+      />
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="card-header-sm">
+            <CardTitle className="card-title-sm">Target Price</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="stat-value">${prototype.target_price_usd?.toFixed(2) || "—"}</div>
+            <p className="stat-label">Estimated retail</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="card-header-sm">
+            <CardTitle className="card-title-sm">Target Cost</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="stat-value">${prototype.target_cost_usd?.toFixed(2) || "—"}</div>
+            <p className="stat-label">Manufacturing cost</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="card-header-sm">
+            <CardTitle className="card-title-sm">Feedback</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="stat-value">{prototype.feedback_count || 0}</div>
+            <p className="stat-label">Client feedback items</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="overview">
-            <FileText className="icon-xs mr-2" />
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="tabs-list">
+          <TabsTrigger value="overview" className="tabs-trigger">
+            <FileText className="icon-sm" aria-hidden="true" />
             Overview
           </TabsTrigger>
-          <TabsTrigger value="specifications">
-            <Settings className="icon-xs mr-2" />
+          <TabsTrigger value="specifications" className="tabs-trigger">
+            <Settings className="icon-sm" aria-hidden="true" />
             Specifications
           </TabsTrigger>
-          <TabsTrigger value="media">
-            <ImageIcon className="icon-xs mr-2" />
+          <TabsTrigger value="media" className="tabs-trigger">
+            <ImageIcon className="icon-sm" aria-hidden="true" />
             Media ({media.length})
           </TabsTrigger>
-          <TabsTrigger value="feedback">
-            <MessageSquare className="icon-xs mr-2" />
-            Feedback ({prototype.feedback_count})
+          <TabsTrigger value="feedback" className="tabs-trigger">
+            <MessageSquare className="icon-sm" aria-hidden="true" />
+            Feedback ({prototype.feedback_count || 0})
           </TabsTrigger>
-          <TabsTrigger value="milestones">
-            <CheckCircle className="icon-xs mr-2" />
-            Milestones ({prototype.milestone_count})
+          <TabsTrigger value="milestones" className="tabs-trigger">
+            <CheckCircle className="icon-sm" aria-hidden="true" />
+            Milestones ({prototype.milestone_count || 0})
           </TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-6">
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Target Price</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  ${prototype.target_price_usd?.toFixed(2) || "—"}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">Estimated retail</p>
-              </CardContent>
-            </Card>
+        <TabsContent value="overview">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <InfoCard
+              title="Prototype Information"
+              items={[
+                { label: 'Prototype Name', value: prototype.name },
+                { label: 'Prototype Number', value: prototype.prototype_number || '—' },
+                { label: 'Type', value: prototype.prototype_type || '—' },
+                { label: 'Designer', value: prototype.designer || '—' },
+                { label: 'Manufacturer', value: prototype.manufacturer || '—' },
+                { label: 'Collection', value: prototype.collection || '—' },
+                { label: 'Concept', value: prototype.concept || '—' },
+                { label: 'Status', value: <StatusBadge status={prototype.status as string} /> },
+                { label: 'Priority', value: <StatusBadge status={prototype.priority as string} /> },
+                { label: 'Description', value: prototype.description || 'No description provided' },
+              ]}
+            />
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Target Cost</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  ${prototype.target_cost_usd?.toFixed(2) || "—"}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">Manufacturing cost</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Feedback</CardTitle>
-                <MessageSquare className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{prototype.feedback_count}</div>
-                <p className="text-xs text-muted-foreground mt-1">Client feedback items</p>
-              </CardContent>
-            </Card>
+            <InfoCard
+              title="Pricing & Costs"
+              items={[
+                { label: 'Target Price', value: prototype.target_price_usd ? `$${prototype.target_price_usd.toFixed(2)}` : '—' },
+                { label: 'Target Cost', value: prototype.target_cost_usd ? `$${prototype.target_cost_usd.toFixed(2)}` : '—' },
+                { label: 'Feedback Count', value: (prototype.feedback_count || 0).toString() },
+                { label: 'Milestone Count', value: (prototype.milestone_count || 0).toString() },
+              ]}
+            />
           </div>
 
-          {/* Prototype Information */}
-          <div className="detail-section">
-            <div className="detail-section-header">
-              <Package className="detail-section-icon" />
-              <h2 className="detail-section-title">Prototype Information</h2>
-            </div>
-            <div className="detail-grid">
-              <div className="detail-field">
-                <label className="detail-label">Prototype Name</label>
-                <p className="detail-value">{prototype.name}</p>
-              </div>
-              <div className="detail-field">
-                <label className="detail-label">Prototype Number</label>
-                <div className="detail-value">
-                  {prototype.prototype_number ? (
-                    <Badge variant="secondary" className="font-mono">
-                      {prototype.prototype_number}
-                    </Badge>
-                  ) : (
-                    <span className="text-muted">—</span>
-                  )}
-                </div>
-              </div>
-              <div className="detail-field">
-                <label className="detail-label">Type</label>
-                <p className="detail-value">{prototype.prototype_type}</p>
-              </div>
-              <div className="detail-field">
-                <label className="detail-label">Designer</label>
-                <p className="detail-value">
-                  {prototype.designer || <span className="text-muted">—</span>}
-                </p>
-              </div>
-              <div className="detail-field">
-                <label className="detail-label">Manufacturer</label>
-                <p className="detail-value">
-                  {prototype.manufacturer || <span className="text-muted">—</span>}
-                </p>
-              </div>
-              <div className="detail-field">
-                <label className="detail-label">Collection</label>
-                <p className="detail-value">
-                  {prototype.collection || <span className="text-muted">—</span>}
-                </p>
-              </div>
-              <div className="detail-field">
-                <label className="detail-label">Concept</label>
-                <p className="detail-value">
-                  {prototype.concept || <span className="text-muted">—</span>}
-                </p>
-              </div>
-              <div className="detail-field">
-                <label className="detail-label">Status</label>
-                <div className="detail-value">
-                  <Badge
-                    variant="outline"
-                    className={
-                      prototype.status === "concept"
-                        ? "status-todo"
-                        : prototype.status === "approved"
-                        ? "status-completed"
-                        : "status-in-progress"
-                    }
-                  >
-                    {prototype.status}
-                  </Badge>
-                </div>
-              </div>
-              <div className="detail-field">
-                <label className="detail-label">Priority</label>
-                <div className="detail-value">
-                  <Badge
-                    variant="outline"
-                    className={
-                      prototype.priority === "high"
-                        ? "priority-high"
-                        : prototype.priority === "medium"
-                        ? "priority-medium"
-                        : "priority-low"
-                    }
-                  >
-                    {prototype.priority}
-                  </Badge>
-                </div>
-              </div>
-              <div className="detail-field col-span-2">
-                <label className="detail-label">Description</label>
-                <p className="detail-value">
-                  {prototype.description || <span className="text-muted">No description provided</span>}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Tags */}
           {prototype.tags && prototype.tags.length > 0 && (
-            <div className="detail-section">
-              <div className="detail-section-header">
-                <Tag className="detail-section-icon" />
-                <h2 className="detail-section-title">Tags</h2>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {prototype.tags.map((tag: string, idx: number) => (
-                  <Badge key={idx} variant="outline" className="badge-neutral">
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Notes */}
-          {prototype.notes && (
-            <div className="detail-section">
-              <div className="detail-section-header">
-                <FileText className="detail-section-icon" />
-                <h2 className="detail-section-title">Notes</h2>
-              </div>
-              <p className="detail-value">{prototype.notes}</p>
-            </div>
-          )}
-
-          {/* Metadata */}
-          <div className="detail-section">
-            <div className="detail-section-header">
-              <Calendar className="detail-section-icon" />
-              <h2 className="detail-section-title">Metadata</h2>
-            </div>
-            <div className="detail-grid">
-              <div className="detail-field">
-                <label className="detail-label">Created</label>
-                <p className="detail-value">
-                  {formatDistanceToNow(new Date(prototype.created_at), { addSuffix: true })}
-                </p>
-              </div>
-              {prototype.updated_at && (
-                <div className="detail-field">
-                  <label className="detail-label">Last Updated</label>
-                  <p className="detail-value">
-                    {formatDistanceToNow(new Date(prototype.updated_at), { addSuffix: true })}
-                  </p>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Tag className="icon-sm" aria-hidden="true" />
+                  Tags
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="card-content-compact">
+                <div className="flex flex-wrap gap-2">
+                  {prototype.tags.map((tag: string, idx: number) => (
+                    <span key={idx} className="badge-neutral">
+                      {tag}
+                    </span>
+                  ))}
                 </div>
-              )}
-              <div className="detail-field">
-                <label className="detail-label">Prototype ID</label>
-                <p className="detail-value font-mono text-xs text-muted">{prototype.id}</p>
-              </div>
-            </div>
-          </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {prototype.is_catalog_candidate && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Catalog Candidate</CardTitle>
+              </CardHeader>
+              <CardContent className="card-content-compact">
+                <p className="text-sm">This prototype is marked as a catalog candidate.</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {prototype.notes && (
+            <InfoCard
+              title="Notes"
+              items={[
+                { label: '', value: prototype.notes },
+              ]}
+            />
+          )}
+
+          <InfoCard
+            title="Metadata"
+            items={[
+              {
+                label: 'Created',
+                value: formatDistanceToNow(new Date(prototype.created_at), { addSuffix: true })
+              },
+              {
+                label: 'Last Updated',
+                value: prototype.updated_at
+                  ? formatDistanceToNow(new Date(prototype.updated_at), { addSuffix: true })
+                  : "—"
+              },
+              { label: 'Prototype ID', value: <span className="font-mono text-xs text-muted">{prototype.id}</span> },
+            ]}
+          />
         </TabsContent>
 
         {/* Specifications Tab */}
-        <TabsContent value="specifications" className="space-y-6">
-          <div className="detail-section">
-            <div className="detail-section-header">
-              <Settings className="detail-section-icon" />
-              <h2 className="detail-section-title">Specifications</h2>
-            </div>
-            {prototype.specifications ? (
-              <div className="detail-grid">
-                {Object.entries(prototype.specifications).map(([key, value]) => (
-                  <div key={key} className="detail-field col-span-2">
-                    <label className="detail-label">{key}</label>
-                    <p className="detail-value">
-                      {typeof value === "object" ? JSON.stringify(value, null, 2) : String(value)}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="empty-state">
-                <Settings className="empty-state-icon" />
-                <p className="empty-state-title">No specifications yet</p>
-                <p className="empty-state-description">
-                  Technical specifications can be added by editing this prototype.
-                </p>
-              </div>
-            )}
-          </div>
+        <TabsContent value="specifications">
+          <Card>
+            <CardHeader>
+              <CardTitle>Specifications</CardTitle>
+            </CardHeader>
+            <CardContent className="card-content-compact">
+              {prototype.specifications ? (
+                <div className="detail-grid">
+                  {Object.entries(prototype.specifications).map(([key, value]) => (
+                    <div key={key} className="detail-field col-span-2">
+                      <label className="detail-label">{key}</label>
+                      <p className="detail-value">
+                        {typeof value === "object" ? JSON.stringify(value, null, 2) : String(value)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  icon={Settings}
+                  title="No specifications yet"
+                  description="Technical specifications can be added by editing this prototype."
+                />
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Media Tab */}
-        <TabsContent value="media" className="space-y-6">
-          <div className="detail-section">
-            <div className="detail-section-header">
-              <ImageIcon className="detail-section-icon" />
-              <h2 className="detail-section-title">Upload Media</h2>
-            </div>
-            <MediaUploader
-              entityType="prototype"
-              entityId={prototypeId}
-              onUploadComplete={handleMediaRefresh}
-              maxFileSize={100}
-              acceptedFileTypes={["image/*", "application/pdf", ".stl", ".obj", ".fbx"]}
-            />
-          </div>
+        <TabsContent value="media">
+          <Card>
+            <CardHeader>
+              <CardTitle>Upload Media</CardTitle>
+            </CardHeader>
+            <CardContent className="card-content-compact">
+              <MediaUploader
+                entityType="prototype"
+                entityId={prototypeId}
+                onUploadComplete={handleMediaRefresh}
+                maxFileSize={100}
+                acceptedFileTypes={["image/*", "application/pdf", ".stl", ".obj", ".fbx"]}
+              />
+            </CardContent>
+          </Card>
 
-          <div className="detail-section">
-            <div className="detail-section-header">
-              <ImageIcon className="detail-section-icon" />
-              <h2 className="detail-section-title">Media Gallery</h2>
-            </div>
-            <MediaGallery
-              entityType="prototype"
-              entityId={prototypeId}
-              media={media.map(m => ({
-                ...m,
-                file_name: m.name ?? '',
-                file_url: m.url ?? '',
-                file_type: m.type ?? '',
-                file_size: 0,
-                media_type: m.media_type ?? undefined,
-                use_for_packaging: m.use_for_packaging ?? undefined,
-                use_for_labeling: m.use_for_labeling ?? undefined,
-                use_for_marketing: m.use_for_marketing ?? undefined,
-                is_primary_image: m.is_primary_image ?? undefined,
-                display_order: m.display_order ?? undefined
-              }))}
-              onRefresh={handleMediaRefresh}
-            />
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Media Gallery</CardTitle>
+            </CardHeader>
+            <CardContent className="card-content-compact">
+              <MediaGallery
+                entityType="prototype"
+                entityId={prototypeId}
+                media={media.map(m => ({
+                  ...m,
+                  file_name: m.name ?? '',
+                  file_url: m.url ?? '',
+                  file_type: m.type ?? '',
+                  file_size: 0,
+                  media_type: m.media_type ?? undefined,
+                  use_for_packaging: m.use_for_packaging ?? undefined,
+                  use_for_labeling: m.use_for_labeling ?? undefined,
+                  use_for_marketing: m.use_for_marketing ?? undefined,
+                  is_primary_image: m.is_primary_image ?? undefined,
+                  display_order: m.display_order ?? undefined
+                }))}
+                onRefresh={handleMediaRefresh}
+              />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Feedback Tab */}
-        <TabsContent value="feedback" className="space-y-6">
-          <div className="detail-section">
-            <div className="detail-section-header">
-              <MessageSquare className="detail-section-icon" />
-              <h2 className="detail-section-title">Client Feedback</h2>
-            </div>
-            <div className="empty-state">
-              <MessageSquare className="empty-state-icon" />
-              <p className="empty-state-title">No feedback yet</p>
-              <p className="empty-state-description">
-                Client feedback will appear here once collected.
-              </p>
-            </div>
-          </div>
+        <TabsContent value="feedback">
+          <Card>
+            <CardHeader>
+              <CardTitle>Client Feedback</CardTitle>
+            </CardHeader>
+            <CardContent className="card-content-compact">
+              <EmptyState
+                icon={MessageSquare}
+                title="No feedback yet"
+                description="Client feedback will appear here once collected."
+              />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Milestones Tab */}
-        <TabsContent value="milestones" className="space-y-6">
-          <div className="detail-section">
-            <div className="detail-section-header">
-              <CheckCircle className="detail-section-icon" />
-              <h2 className="detail-section-title">Development Milestones</h2>
-            </div>
-            <div className="empty-state">
-              <CheckCircle className="empty-state-icon" />
-              <p className="empty-state-title">No milestones yet</p>
-              <p className="empty-state-description">
-                Development milestones and progress will be tracked here.
-              </p>
-            </div>
-          </div>
+        <TabsContent value="milestones">
+          <Card>
+            <CardHeader>
+              <CardTitle>Development Milestones</CardTitle>
+            </CardHeader>
+            <CardContent className="card-content-compact">
+              <EmptyState
+                icon={CheckCircle}
+                title="No milestones yet"
+                description="Development milestones and progress will be tracked here."
+              />
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

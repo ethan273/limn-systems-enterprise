@@ -1,49 +1,31 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
-
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  FileText,
-  Search,
-} from "lucide-react";
+import { FileText, DollarSign, Clock, CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";
+import {
+  PageHeader,
+  EmptyState,
+  LoadingState,
+  DataTable,
+  StatsGrid,
+  StatusBadge,
+  type DataTableColumn,
+  type DataTableFilter,
+  type StatItem,
+} from "@/components/common";
 
 // Dynamic route configuration
 export const dynamic = 'force-dynamic';
 
-const statusConfig: Record<string, { label: string; className: string }> = {
-  pending: { label: "Pending", className: "badge-neutral" },
-  partial: { label: "Partial", className: "bg-warning-muted text-warning border-warning" },
-  paid: { label: "Paid", className: "status-completed" },
-  overdue: { label: "Overdue", className: "status-cancelled" },
-};
-
 export default function InvoicesPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [searchQuery, _setSearchQuery] = useState("");
+  const [statusFilter, _setStatusFilter] = useState<string>("all");
 
   const { data, isLoading } = api.invoices.getAll.useQuery(
     {
@@ -75,181 +57,158 @@ export default function InvoicesPage() {
     countPending: 0,
   };
 
+  // Stats configuration
+  const statItems: StatItem[] = [
+    {
+      title: 'Total Invoiced',
+      value: `$${stats.totalInvoiced.toLocaleString()}`,
+      description: `${stats.totalInvoices} invoices`,
+      icon: DollarSign,
+      iconColor: 'info',
+    },
+    {
+      title: 'Total Paid',
+      value: `$${stats.totalPaid.toLocaleString()}`,
+      description: `${stats.countPaid} paid`,
+      icon: CheckCircle2,
+      iconColor: 'success',
+    },
+    {
+      title: 'Outstanding',
+      value: `$${stats.totalOutstanding.toLocaleString()}`,
+      description: `${stats.countPending + stats.countPartial} pending`,
+      icon: Clock,
+      iconColor: 'warning',
+    },
+    {
+      title: 'Collection Rate',
+      value: `${stats.totalInvoiced > 0 ? Math.round((stats.totalPaid / stats.totalInvoiced) * 100) : 0}%`,
+      description: 'Payment rate',
+      icon: DollarSign,
+      iconColor: 'info',
+    },
+  ];
+
+  // DataTable columns configuration
+  const columns: DataTableColumn<any>[] = [
+    {
+      key: 'created_at',
+      label: 'Invoice Date',
+      sortable: true,
+      render: (value) => value ? format(new Date(value as string), "MMM d, yyyy") : '—',
+    },
+    {
+      key: 'customer',
+      label: 'Customer',
+      render: (value: any) => {
+        if (!value) return <span className="text-muted">—</span>;
+        return (
+          <div className="text-sm">
+            <div className="font-medium">{value.company_name || value.name}</div>
+            {value.email && <div className="text-muted">{value.email}</div>}
+          </div>
+        );
+      },
+    },
+    {
+      key: 'project',
+      label: 'Project',
+      render: (value: any) => value?.project_name ? (
+        <div className="text-sm">{value.project_name}</div>
+      ) : <span className="text-muted">—</span>,
+    },
+    {
+      key: 'invoice_items',
+      label: 'Items',
+      render: (value: any) => (
+        <StatusBadge status={`${value?.length || 0} items`} />
+      ),
+    },
+    {
+      key: 'total',
+      label: 'Total',
+      sortable: true,
+      render: (value) => (
+        <span className="font-medium">${(value as number)?.toLocaleString() || "0.00"}</span>
+      ),
+    },
+    {
+      key: 'totalPaid',
+      label: 'Paid',
+      render: (value) => (
+        <span className="text-success">${(value as number)?.toLocaleString() || "0.00"}</span>
+      ),
+    },
+    {
+      key: 'balance',
+      label: 'Balance',
+      render: (value) => (
+        <span className="font-medium">${(value as number)?.toLocaleString() || "0.00"}</span>
+      ),
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (value) => value ? <StatusBadge status={value as string} /> : null,
+    },
+  ];
+
+  // DataTable filters configuration
+  const filters: DataTableFilter[] = [
+    {
+      key: 'search',
+      label: 'Search invoices',
+      type: 'search',
+      placeholder: 'Search invoices...',
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      type: 'select',
+      options: [
+        { value: 'all', label: 'All Statuses' },
+        { value: 'pending', label: 'Pending' },
+        { value: 'partial', label: 'Partial' },
+        { value: 'paid', label: 'Paid' },
+        { value: 'overdue', label: 'Overdue' },
+      ],
+    },
+  ];
+
   return (
     <div className="page-container">
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Invoices</h1>
-          <p className="page-description">
-            General accounting invoices and payment tracking
-          </p>
-        </div>
-      </div>
+      {/* Page Header */}
+      <PageHeader
+        title="Invoices"
+        subtitle="General accounting invoices and payment tracking"
+      />
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="card-header-sm">
-            <CardTitle className="card-title-sm">Total Invoiced</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="stat-value">${stats.totalInvoiced.toLocaleString()}</div>
-            <p className="stat-label">{stats.totalInvoices} invoices</p>
-          </CardContent>
-        </Card>
+      {/* Stats */}
+      <StatsGrid stats={statItems} columns={4} />
 
-        <Card>
-          <CardHeader className="card-header-sm">
-            <CardTitle className="card-title-sm">Total Paid</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="stat-value text-success">${stats.totalPaid.toLocaleString()}</div>
-            <p className="stat-label">{stats.countPaid} paid</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="card-header-sm">
-            <CardTitle className="card-title-sm">Outstanding</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="stat-value text-warning">${stats.totalOutstanding.toLocaleString()}</div>
-            <p className="stat-label">{stats.countPending + stats.countPartial} pending</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="card-header-sm">
-            <CardTitle className="card-title-sm">Collection Rate</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="stat-value text-info">
-              {stats.totalInvoiced > 0
-                ? Math.round((stats.totalPaid / stats.totalInvoiced) * 100)
-                : 0}%
-            </div>
-            <p className="stat-label">Payment rate</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Filter Invoices</CardTitle>
-        </CardHeader>
-        <CardContent className="card-content-compact">
-          <div className="filters-section">
-            <div className="search-input-wrapper">
-              <Search className="search-icon" aria-hidden="true" />
-              <Input
-                placeholder="Search invoices..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="search-input"
-              />
-            </div>
-
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="filter-select">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="partial">Partial</SelectItem>
-                <SelectItem value="paid">Paid</SelectItem>
-                <SelectItem value="overdue">Overdue</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
+      {/* Invoices DataTable */}
       {isLoading ? (
-            <div className="loading-state">Loading invoices...</div>
-          ) : invoices.length === 0 ? (
-            <div className="empty-state">
-              <FileText className="empty-state-icon" aria-hidden="true" />
-              <h3 className="empty-state-title">No Invoices Found</h3>
-              <p className="empty-state-description">
-                No invoices match your current filters.
-              </p>
-            </div>
-          ) : (
-        <div className="data-table-container">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Invoice Date</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Project</TableHead>
-                    <TableHead>Items</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Paid</TableHead>
-                    <TableHead>Balance</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {invoices.map((invoice) => {
-                    const statusInfo = statusConfig[invoice.status || "pending"];
-
-                    return (
-                      <TableRow
-                        key={invoice.id}
-                        className="table-row-clickable"
-                        onClick={() => router.push(`/financials/invoices/${invoice.id}`)}
-                      >
-                        <TableCell>
-                          {invoice.created_at && format(new Date(invoice.created_at), "MMM d, yyyy")}
-                        </TableCell>
-                        <TableCell>
-                          {invoice.customer ? (
-                            <div className="text-sm">
-                              <div className="font-medium">
-                                {invoice.customer.company_name || invoice.customer.name}
-                              </div>
-                              {invoice.customer.email && (
-                                <div className="text-muted">{invoice.customer.email}</div>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-muted">—</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {invoice.project ? (
-                            <div className="text-sm">{invoice.project.project_name}</div>
-                          ) : (
-                            <span className="text-muted">—</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="badge-neutral">
-                            {invoice.invoice_items.length} items
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="font-medium">
-                          ${invoice.total?.toLocaleString() || "0.00"}
-                        </TableCell>
-                        <TableCell className="text-success">
-                          ${invoice.totalPaid?.toLocaleString() || "0.00"}
-                        </TableCell>
-                        <TableCell className="font-medium">
-                          ${invoice.balance?.toLocaleString() || "0.00"}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={statusInfo?.className}>
-                            {statusInfo?.label || invoice.status}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-
+        <LoadingState message="Loading invoices..." size="lg" />
+      ) : !invoices || invoices.length === 0 ? (
+        <EmptyState
+          icon={FileText}
+          title="No Invoices Found"
+          description="No invoices match your current filters."
+        />
+      ) : (
+        <DataTable
+          data={invoices}
+          columns={columns}
+          filters={filters}
+          onRowClick={(row) => router.push(`/financials/invoices/${row.id}`)}
+          pagination={{ pageSize: 20, showSizeSelector: true }}
+          emptyState={{
+            icon: FileText,
+            title: 'No invoices match your filters',
+            description: 'Try adjusting your search or filter criteria',
+          }}
+        />
+      )}
     </div>
   );
 }

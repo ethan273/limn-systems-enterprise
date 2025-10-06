@@ -3,10 +3,14 @@
 import React, { use } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  EntityDetailHeader,
+  InfoCard,
+  LoadingState,
+  EmptyState,
+  type EntityMetadata,
+} from "@/components/common";
 import {
  Select,
  SelectContent,
@@ -16,45 +20,19 @@ import {
 } from "@/components/ui/select";
 import {
  Package,
- Clock,
- PackageCheck,
- Truck,
  Box,
  Weight,
  ArrowLeft,
  AlertCircle,
  CheckCircle2,
+ Calendar,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { toast } from "@/hooks/use-toast";
 import { PackingBoxesList } from "@/components/packing/PackingBoxesList";
 
 // Dynamic route configuration
 export const dynamic = 'force-dynamic';
-
-const statusConfig: Record<string, { label: string; className: string; icon: React.ReactNode }> = {
- pending: {
- label: "Pending",
- className: "badge-neutral",
- icon: <Clock className="w-4 h-4" aria-hidden="true" />,
- },
- in_progress: {
- label: "In Progress",
- className: "bg-info-muted text-info border-info",
- icon: <Package className="w-4 h-4" aria-hidden="true" />,
- },
- packed: {
- label: "Packed",
- className: "bg-success-muted text-success border-success",
- icon: <PackageCheck className="w-4 h-4" aria-hidden="true" />,
- },
- shipped: {
- label: "Shipped",
- className: "bg-primary-muted text-primary border-primary",
- icon: <Truck className="w-4 h-4" aria-hidden="true" />,
- },
-};
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -96,210 +74,121 @@ export default function PackingJobDetailPage({ params }: PageProps) {
  };
 
  if (isLoading) {
- return (
- <div className="container mx-auto p-6">
- <div className="text-center py-12">
- <p className="text-muted-foreground">Loading packing job details...</p>
- </div>
- </div>
- );
- }
+    return (
+      <div className="page-container">
+        <LoadingState message="Loading packing job details..." size="lg" />
+      </div>
+    );
+  }
 
- if (!job) {
- return (
- <div className="container mx-auto p-6">
- <Alert variant="destructive">
- <AlertCircle className="h-4 w-4" aria-hidden="true" />
- <AlertDescription>Packing job not found</AlertDescription>
- </Alert>
- </div>
- );
- }
+  if (!job) {
+    return (
+      <div className="page-container">
+        <EmptyState
+          icon={AlertCircle}
+          title="Packing Job Not Found"
+          description="The packing job you're looking for doesn't exist or you don't have permission to view it."
+          action={{
+            label: 'Back to Packing',
+            onClick: () => router.push("/production/packing"),
+            icon: ArrowLeft,
+          }}
+        />
+      </div>
+    );
+  }
 
- const config = statusConfig[job.packing_status] || statusConfig.pending;
  const packingProgress = job.quantity > 0
  ? Math.round((job.packed_quantity / job.quantity) * 100)
  : 0;
 
- return (
- <div className="container mx-auto p-6 space-y-6">
- {/* Header */}
- <div className="flex items-center justify-between">
- <div className="flex items-center gap-4">
- <Button variant="ghost" size="sm" onClick={() => router.push("/packing")}>
- <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
- Back
- </Button>
- <div>
- <h1 className="text-3xl font-bold">Packing Job</h1>
- <p className="text-muted-foreground">
- {job.order_items?.description || "Packing Details"}
- </p>
- </div>
- </div>
- <div className="flex items-center gap-3">
- <Select value={job.packing_status} onValueChange={handleStatusChange}>
- <SelectTrigger className="w-[180px]">
- <SelectValue />
- </SelectTrigger>
- <SelectContent>
- <SelectItem value="pending">Pending</SelectItem>
- <SelectItem value="in_progress">In Progress</SelectItem>
- <SelectItem value="packed">Packed</SelectItem>
- <SelectItem value="shipped">Shipped</SelectItem>
- </SelectContent>
- </Select>
- </div>
- </div>
+  const metadata: EntityMetadata[] = [
+    { icon: Package, value: `${job.packed_quantity} / ${job.quantity}`, label: 'Packed Quantity' },
+    { icon: Box, value: `${job.box_count}`, label: 'Boxes' },
+    { icon: Weight, value: job.total_weight ? `${Number(job.total_weight).toFixed(2)} lbs` : "0 lbs", label: 'Total Weight' },
+  ];
 
- {/* Status Alert */}
- {job.packing_status === "packed" && !job.tracking_number && (
- <Alert>
- <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
- <AlertDescription>
- Packing complete. Ready to assign tracking number and ship.
- </AlertDescription>
- </Alert>
- )}
+  if (job.packed_date) {
+    metadata.push({ icon: Calendar, value: formatDistanceToNow(new Date(job.packed_date), { addSuffix: true }), label: 'Packed' });
+  }
 
- {/* Summary Cards */}
- <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
- <Card>
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium">Status</CardTitle>
- {config.icon}
- </CardHeader>
- <CardContent>
- <Badge variant="outline" className={cn(config.className, "text-base")}>
- {config.label}
- </Badge>
- </CardContent>
- </Card>
+  return (
+    <div className="page-container">
+      <EntityDetailHeader
+        icon={Package}
+        title="Packing Job"
+        subtitle={job.order_items?.description || "Packing Details"}
+        metadata={metadata}
+        status={job.packing_status}
+      />
 
- <Card>
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium">Packing Progress</CardTitle>
- <Package className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
- </CardHeader>
- <CardContent>
- <div className="text-2xl font-bold">{packingProgress}%</div>
- <p className="text-xs text-muted-foreground mt-1">
- {job.packed_quantity} of {job.quantity} items
- </p>
- </CardContent>
- </Card>
+      {/* Status Update Control */}
+      <div className="mb-6">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Update Status:</span>
+          <Select value={job.packing_status} onValueChange={handleStatusChange}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="in_progress">In Progress</SelectItem>
+              <SelectItem value="packed">Packed</SelectItem>
+              <SelectItem value="shipped">Shipped</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
 
- <Card>
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium">Boxes</CardTitle>
- <Box className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
- </CardHeader>
- <CardContent>
- <div className="text-2xl font-bold">{job.box_count}</div>
- </CardContent>
- </Card>
+      {/* Status Alert */}
+      {job.packing_status === "packed" && !job.tracking_number && (
+        <Alert className="mb-6">
+          <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+          <AlertDescription>
+            Packing complete. Ready to assign tracking number and ship.
+          </AlertDescription>
+        </Alert>
+      )}
 
- <Card>
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium">Total Weight</CardTitle>
- <Weight className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
- </CardHeader>
- <CardContent>
- <div className="text-2xl font-bold">
- {job.total_weight ? Number(job.total_weight).toFixed(2) : "0"} lbs
- </div>
- </CardContent>
- </Card>
- </div>
+      {/* Packing Info Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <InfoCard
+          title="Packing Information"
+          items={[
+            { label: 'Item Description', value: job.order_items?.description || "—" },
+            { label: 'SKU', value: job.order_items?.project_sku || "—" },
+            { label: 'Quantity', value: `${job.packed_quantity} / ${job.quantity} items` },
+            ...(packingProgress === 100 ? [{ label: 'Packing Progress', value: 'Complete', type: 'badge' as 'badge', badgeVariant: 'success' as const }] : [{ label: 'Packing Progress', value: `${packingProgress}%` }]),
+            { label: 'Priority', value: job.priority as string, type: 'badge', badgeVariant: job.priority === 'high' ? 'destructive' : 'default' },
+            ...(job.dimensions ? [{ label: 'Dimensions', value: job.dimensions }] : []),
+            ...(job.tracking_number ? [{ label: 'Tracking Number', value: job.tracking_number }] : []),
+            ...(job.packed_date ? [{ label: 'Packed Date', value: format(new Date(job.packed_date), "MMM d, yyyy h:mm a") }] : []),
+          ]}
+        />
 
- {/* Job Details */}
- <Card>
- <CardHeader>
- <CardTitle>Packing Job Details</CardTitle>
- </CardHeader>
- <CardContent className="space-y-4">
- <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
- <div>
- <label className="text-sm font-medium text-muted-foreground">Item Description</label>
- <p className="text-base">
- {job.order_items?.description || "—"}
- </p>
- </div>
- <div>
- <label className="text-sm font-medium text-muted-foreground">SKU</label>
- <p className="text-base">{job.order_items?.project_sku || "—"}</p>
- </div>
- <div>
- <label className="text-sm font-medium text-muted-foreground">Quantity</label>
- <p className="text-base">
- {job.packed_quantity} / {job.quantity} items
- </p>
- </div>
- <div>
- <label className="text-sm font-medium text-muted-foreground">Priority</label>
- <Badge
- variant="outline"
- className={cn(
- "capitalize",
- job.priority === "high" && "bg-destructive-muted text-destructive border-destructive",
- job.priority === "normal" && "bg-info-muted text-info border-info",
- job.priority === "low" && "badge-neutral"
- )}
- >
- {job.priority}
- </Badge>
- </div>
- {job.dimensions && (
- <div>
- <label className="text-sm font-medium text-muted-foreground">Dimensions</label>
- <p className="text-base">{job.dimensions}</p>
- </div>
- )}
- {job.tracking_number && (
- <div>
- <label className="text-sm font-medium text-muted-foreground">Tracking Number</label>
- <p className="text-base font-mono">{job.tracking_number}</p>
- </div>
- )}
- {job.packed_date && (
- <div>
- <label className="text-sm font-medium text-muted-foreground">Packed Date</label>
- <p className="text-base">
- {format(new Date(job.packed_date), "MMM d, yyyy h:mm a")}
- </p>
- </div>
- )}
- {job.qc_inspections && (
- <div>
- <label className="text-sm font-medium text-muted-foreground">QC Status</label>
- <Badge
- variant="outline"
- className={cn(
- "capitalize",
- job.qc_inspections.status === "passed" && "bg-success-muted text-success border-success",
- job.qc_inspections.status === "failed" && "bg-destructive-muted text-destructive border-destructive"
- )}
- >
- {job.qc_inspections.status}
- </Badge>
- </div>
- )}
- </div>
+        <InfoCard
+          title="Additional Details"
+          items={[
+            { label: 'Box Count', value: `${job.box_count}` },
+            { label: 'Total Weight', value: job.total_weight ? `${Number(job.total_weight).toFixed(2)} lbs` : "0 lbs" },
+            ...(job.qc_inspections && job.qc_inspections.status === 'passed' ? [{
+              label: 'QC Status',
+              value: job.qc_inspections.status as string,
+              type: 'badge' as 'badge',
+              badgeVariant: 'success' as 'success'
+            }] : job.qc_inspections ? [{
+              label: 'QC Status',
+              value: job.qc_inspections.status as string,
+              type: 'badge' as 'badge',
+              badgeVariant: 'destructive' as 'destructive'
+            }] : []),
+            ...(job.special_instructions ? [{ label: 'Special Instructions', value: job.special_instructions }] : []),
+          ]}
+        />
+      </div>
 
- {job.special_instructions && (
- <div>
- <label className="text-sm font-medium text-muted-foreground">Special Instructions</label>
- <Alert className="mt-2">
- <AlertCircle className="h-4 w-4" aria-hidden="true" />
- <AlertDescription>{job.special_instructions}</AlertDescription>
- </Alert>
- </div>
- )}
- </CardContent>
- </Card>
-
- {/* Packing Boxes */}
- <PackingBoxesList packingJobId={id} boxes={job.packing_boxes || []} onUpdate={refetch} />
- </div>
+      {/* Packing Boxes */}
+      <PackingBoxesList packingJobId={id} boxes={job.packing_boxes || []} onUpdate={refetch} />
+    </div>
  );
 }

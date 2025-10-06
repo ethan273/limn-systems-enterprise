@@ -5,9 +5,14 @@ import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  EntityDetailHeader,
+  InfoCard,
+  LoadingState,
+  EmptyState,
+  type EntityMetadata,
+} from "@/components/common";
 import {
   Select,
   SelectContent,
@@ -24,6 +29,9 @@ import {
   Clock,
   Truck,
   MapPin,
+  Calendar,
+  Weight,
+  DollarSign,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
@@ -117,9 +125,7 @@ export default function ShipmentDetailPage({ params }: PageProps) {
   if (isLoading) {
     return (
       <div className="page-container">
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">Loading shipment details...</p>
-        </div>
+        <LoadingState message="Loading shipment details..." size="lg" />
       </div>
     );
   }
@@ -127,15 +133,19 @@ export default function ShipmentDetailPage({ params }: PageProps) {
   if (!shipment) {
     return (
       <div className="page-container">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" aria-hidden="true" />
-          <AlertDescription>Shipment not found</AlertDescription>
-        </Alert>
+        <EmptyState
+          icon={AlertCircle}
+          title="Shipment Not Found"
+          description="The shipment you're looking for doesn't exist or you don't have permission to view it."
+          action={{
+            label: 'Back to Shipments',
+            onClick: () => router.push("/shipping/shipments"),
+            icon: ArrowLeft,
+          }}
+        />
       </div>
     );
   }
-
-  const config = statusConfig[shipment.status] || statusConfig.pending;
 
   // Parse packages data
   const packages = Array.isArray(shipment.packages) ? shipment.packages : [];
@@ -145,85 +155,43 @@ export default function ShipmentDetailPage({ params }: PageProps) {
   const originAddress = typeof shipment.origin_address === 'object' ? shipment.origin_address : null;
   const destAddress = typeof shipment.destination_address === 'object' ? shipment.destination_address : null;
 
+  const metadata: EntityMetadata[] = [
+    { icon: Truck, value: shipment.carrier || "N/A", label: 'Carrier' },
+    { icon: Weight, value: `${totalWeight.toFixed(2)} lbs`, label: 'Total Weight' },
+    { icon: Calendar, value: shipment.estimated_delivery ? format(new Date(shipment.estimated_delivery), "MMM dd, yyyy") : "N/A", label: 'Est. Delivery' },
+    { icon: DollarSign, value: `$${Number(shipment.shipping_cost || 0).toFixed(2)}`, label: 'Shipping Cost' },
+  ];
+
   return (
     <div className="page-container">
-      {/* Header */}
-      <div className="page-header">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => router.push("/shipping/shipments")}>
-            <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
-            Back
-          </Button>
-          <div>
-            <h1 className="page-title">{shipment.shipment_number || "Shipment"}</h1>
-            <p className="page-description">
-              Tracking: {shipment.tracking_number || "N/A"}
-              {shipment.projects && ` • ${shipment.projects.name}`}
-            </p>
-          </div>
+      <EntityDetailHeader
+        icon={Package}
+        title={shipment.shipment_number || "Shipment"}
+        subtitle={`Tracking: ${shipment.tracking_number || "N/A"}${shipment.projects ? ` • ${shipment.projects.name}` : ''}`}
+        metadata={metadata}
+        status={shipment.status}
+      />
+
+      {/* Status Update Control */}
+      <div className="mb-6">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Update Status:</span>
+          <Select value={shipment.status} onValueChange={handleStatusChange}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(statusConfig).map(([status, { label, icon }]) => (
+                <SelectItem key={status} value={status}>
+                  <div className="flex items-center gap-2">
+                    {icon}
+                    <span>{label}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-        <Select value={shipment.status} onValueChange={handleStatusChange}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.entries(statusConfig).map(([status, { label, icon }]) => (
-              <SelectItem key={status} value={status}>
-                <div className="flex items-center gap-2">
-                  {icon}
-                  <span>{label}</span>
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Status</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Badge className={config.className}>
-              <span className="flex items-center gap-1">
-                {config.icon}
-                {config.label}
-              </span>
-            </Badge>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Carrier</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-lg font-medium">{shipment.carrier || "N/A"}</p>
-            <p className="text-sm text-muted-foreground">{shipment.service_level || ""}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Weight</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{totalWeight.toFixed(2)} lbs</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Est. Delivery</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-lg font-medium">
-              {shipment.estimated_delivery ? format(new Date(shipment.estimated_delivery), "MMM dd, yyyy") : "N/A"}
-            </p>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Tabs */}
@@ -237,48 +205,28 @@ export default function ShipmentDetailPage({ params }: PageProps) {
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
           {/* Shipment Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Shipment Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Shipment Number</p>
-                  <p className="font-medium">{shipment.shipment_number || "N/A"}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Tracking Number</p>
-                  <p className="font-medium">{shipment.tracking_number || "N/A"}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Carrier</p>
-                  <p className="font-medium">{shipment.carrier || "N/A"}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Service Level</p>
-                  <p className="font-medium">{shipment.service_level || "N/A"}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Estimated Delivery</p>
-                  <p className="font-medium">
-                    {shipment.estimated_delivery ? format(new Date(shipment.estimated_delivery), "MMM dd, yyyy") : "N/A"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Shipping Cost</p>
-                  <p className="font-medium">${Number(shipment.shipping_cost || 0).toFixed(2)}</p>
-                </div>
-              </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <InfoCard
+              title="Shipment Details"
+              items={[
+                { label: 'Shipment Number', value: shipment.shipment_number || "N/A" },
+                { label: 'Tracking Number', value: shipment.tracking_number || "N/A" },
+                { label: 'Carrier', value: shipment.carrier || "N/A" },
+                { label: 'Service Level', value: shipment.service_level || "N/A" },
+                { label: 'Estimated Delivery', value: shipment.estimated_delivery ? format(new Date(shipment.estimated_delivery), "MMM dd, yyyy") : "N/A" },
+                { label: 'Shipping Cost', value: `$${Number(shipment.shipping_cost || 0).toFixed(2)}` },
+                ...(shipment.special_instructions ? [{ label: 'Special Instructions', value: shipment.special_instructions }] : []),
+              ]}
+            />
 
-              {shipment.special_instructions && (
-                <div className="pt-4 border-t">
-                  <p className="text-sm text-muted-foreground mb-2">Special Instructions</p>
-                  <p className="font-medium">{shipment.special_instructions}</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+            <InfoCard
+              title="Weight & Package Info"
+              items={[
+                { label: 'Total Weight', value: `${totalWeight.toFixed(2)} lbs` },
+                { label: 'Package Count', value: `${packages.length}` },
+              ]}
+            />
+          </div>
 
           {/* Package Contents */}
           <Card>

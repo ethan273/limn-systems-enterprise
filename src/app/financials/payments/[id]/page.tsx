@@ -5,8 +5,14 @@ import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  EntityDetailHeader,
+  InfoCard,
+  StatusBadge,
+  LoadingState,
+  EmptyState,
+  type EntityMetadata,
+} from "@/components/common";
 import {
   Select,
   SelectContent,
@@ -21,6 +27,9 @@ import {
   XCircle,
   Clock,
   RotateCcw,
+  DollarSign,
+  Calendar,
+  CreditCard,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
@@ -93,9 +102,7 @@ export default function PaymentDetailPage({ params }: PageProps) {
   if (isLoading) {
     return (
       <div className="page-container">
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">Loading payment details...</p>
-        </div>
+        <LoadingState message="Loading payment details..." size="lg" />
       </div>
     );
   }
@@ -103,142 +110,93 @@ export default function PaymentDetailPage({ params }: PageProps) {
   if (!payment) {
     return (
       <div className="page-container">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" aria-hidden="true" />
-          <AlertDescription>Payment not found</AlertDescription>
-        </Alert>
+        <EmptyState
+          icon={AlertCircle}
+          title="Payment Not Found"
+          description="The payment you're looking for doesn't exist or you don't have permission to view it."
+          action={{
+            label: 'Back to Payments',
+            onClick: () => router.push("/financials/payments"),
+            icon: ArrowLeft,
+          }}
+        />
       </div>
     );
   }
-
-  const config = statusConfig[payment.status] || statusConfig.pending;
 
   // Get customer info from payment allocations
   const firstAllocation = payment.payment_allocations?.[0];
   const customer = firstAllocation?.invoices?.invoice_items?.[0]?.order_items?.orders?.customers;
 
+  const metadata: EntityMetadata[] = [
+    { icon: DollarSign, value: `$${Number(payment.amount || 0).toFixed(2)}`, label: 'Amount' },
+    { icon: Calendar, value: payment.payment_date ? format(new Date(payment.payment_date), "MMM dd, yyyy") : "N/A", label: 'Payment Date' },
+    { icon: CreditCard, value: payment.payment_method || "N/A", label: 'Method' },
+  ];
+
   return (
     <div className="page-container">
       {/* Header */}
       <div className="page-header">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => router.push("/financials/payments")}>
-            <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
-            Back
-          </Button>
-          <div>
-            <h1 className="page-title">Payment {payment.payment_number || payment.id.substring(0, 8)}</h1>
-            <p className="page-description">
-              {customer?.company_name || customer?.name || "Payment Details"}
-            </p>
-          </div>
-        </div>
-        <Select value={payment.status} onValueChange={handleStatusChange}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.entries(statusConfig).map(([status, { label, icon }]) => (
-              <SelectItem key={status} value={status}>
-                <div className="flex items-center gap-2">
-                  {icon}
-                  <span>{label}</span>
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Button variant="ghost" onClick={() => router.push("/financials/payments")} className="btn-secondary">
+          <ArrowLeft className="icon-sm" aria-hidden="true" />
+          Back
+        </Button>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Status</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Badge className={config.className}>
-              <span className="flex items-center gap-1">
-                {config.icon}
-                {config.label}
-              </span>
-            </Badge>
-          </CardContent>
-        </Card>
+      <EntityDetailHeader
+        icon={DollarSign}
+        title={`Payment ${payment.payment_number || payment.id.substring(0, 8)}`}
+        subtitle={customer?.company_name || customer?.name || "Payment Details"}
+        metadata={metadata}
+        status={payment.status}
+      />
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Amount</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">${Number(payment.amount || 0).toFixed(2)}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Payment Method</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-lg font-medium">{payment.payment_method || "N/A"}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Payment Date</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-lg font-medium">
-              {payment.payment_date ? format(new Date(payment.payment_date), "MMM dd, yyyy") : "N/A"}
-            </p>
-          </CardContent>
-        </Card>
+      {/* Status Update Control */}
+      <div className="mb-6">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Update Status:</span>
+          <Select value={payment.status} onValueChange={handleStatusChange}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(statusConfig).map(([status, { label, icon }]) => (
+                <SelectItem key={status} value={status}>
+                  <div className="flex items-center gap-2">
+                    {icon}
+                    <span>{label}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Payment Details */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Payment Details</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-muted-foreground">Payment Number</p>
-              <p className="font-medium">{payment.payment_number || "N/A"}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Payment ID</p>
-              <p className="font-medium">{payment.id}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Payment Date</p>
-              <p className="font-medium">
-                {payment.payment_date ? format(new Date(payment.payment_date), "MMM dd, yyyy") : "N/A"}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Payment Method</p>
-              <p className="font-medium">{payment.payment_method || "N/A"}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Reference Number</p>
-              <p className="font-medium">{payment.reference_number || "N/A"}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Amount</p>
-              <p className="font-medium text-lg">${Number(payment.amount || 0).toFixed(2)}</p>
-            </div>
-          </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <InfoCard
+          title="Payment Information"
+          items={[
+            { label: 'Payment Number', value: payment.payment_number || "N/A" },
+            { label: 'Payment ID', value: payment.id },
+            { label: 'Amount', value: `$${Number(payment.amount || 0).toFixed(2)}` },
+            { label: 'Payment Method', value: payment.payment_method || "N/A" },
+            { label: 'Payment Date', value: payment.payment_date ? format(new Date(payment.payment_date), "MMM dd, yyyy") : "N/A" },
+            { label: 'Reference Number', value: payment.reference_number || "N/A" },
+          ]}
+        />
 
-          {payment.notes && (
-            <div className="pt-4 border-t">
-              <p className="text-sm text-muted-foreground mb-2">Notes</p>
-              <p className="font-medium">{payment.notes}</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        <InfoCard
+          title="Additional Information"
+          items={[
+            { label: 'Status', value: <StatusBadge status={payment.status} /> },
+            { label: 'Customer', value: customer?.company_name || customer?.name || "N/A" },
+            { label: 'Notes', value: payment.notes || "No notes" },
+          ]}
+        />
+      </div>
 
       {/* Allocated Invoices */}
       <Card>

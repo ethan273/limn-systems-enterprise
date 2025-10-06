@@ -1,243 +1,247 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { useAuthContext } from "@/lib/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Plus, FileText, Calendar } from "lucide-react";
+import {
+  PageHeader,
+  DataTable,
+  StatsGrid,
+  EmptyState,
+  LoadingState,
+  type DataTableColumn,
+  type DataTableFilter,
+  type StatItem,
+} from "@/components/common";
+import { Plus, FileText, Calendar } from "lucide-react";
 import Link from "next/link";
 
 export const dynamic = 'force-dynamic';
 
 export default function DesignBriefsPage() {
- const [statusFilter, setStatusFilter] = useState<string>("all");
- const [searchQuery, setSearchQuery] = useState("");
- const { user, loading: authLoading } = useAuthContext();
- const router = useRouter();
+  const { user, loading: authLoading } = useAuthContext();
+  const router = useRouter();
 
- useEffect(() => {
- if (!authLoading && !user) {
- router.push("/login");
- }
- }, [authLoading, user, router]);
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [authLoading, user, router]);
 
- const { data, isLoading } = api.designBriefs.getAll.useQuery(
- {
- status: statusFilter === "all" ? undefined : statusFilter,
- search: searchQuery || undefined,
- limit: 50,
- },
- { enabled: !authLoading && !!user }
- );
+  const { data, isLoading } = api.designBriefs.getAll.useQuery(
+    {
+      limit: 50,
+    },
+    { enabled: !authLoading && !!user }
+  );
 
- const filteredBriefs = data?.briefs || [];
+  const filteredBriefs = data?.briefs || [];
 
- const getStatusBadge = (brief: any) => {
- const hasProject = !!brief.design_projects;
- const isApproved = !!brief.approved_by;
+  const getStatusBadge = (brief: any) => {
+    const hasProject = !!brief.design_projects;
+    const isApproved = !!brief.approved_by;
 
- if (!hasProject) {
- return <Badge variant="outline" className="badge-neutral">Draft</Badge>;
- }
- if (!isApproved) {
- return <Badge variant="outline" className="badge-warning">Submitted</Badge>;
- }
+    if (!hasProject) {
+      return <Badge variant="outline" className="badge-neutral">Draft</Badge>;
+    }
+    if (!isApproved) {
+      return <Badge variant="outline" className="badge-warning">Submitted</Badge>;
+    }
 
- const stage = brief.design_projects?.current_stage;
- switch (stage) {
- case 'brief_creation':
- return <Badge variant="outline" className="badge-primary">Approved</Badge>;
- case 'concept':
- case 'draft':
- case 'revision':
- return <Badge variant="outline" className="badge-primary">In Progress</Badge>;
- case 'final':
- case 'approved':
- return <Badge variant="outline" className="badge-success">Completed</Badge>;
- default:
- return <Badge variant="outline" className="badge-primary">Approved</Badge>;
- }
- };
+    const stage = brief.design_projects?.current_stage;
+    switch (stage) {
+      case 'brief_creation':
+        return <Badge variant="outline" className="badge-primary">Approved</Badge>;
+      case 'concept':
+      case 'draft':
+      case 'revision':
+        return <Badge variant="outline" className="badge-primary">In Progress</Badge>;
+      case 'final':
+      case 'approved':
+        return <Badge variant="outline" className="badge-success">Completed</Badge>;
+      default:
+        return <Badge variant="outline" className="badge-primary">Approved</Badge>;
+    }
+  };
 
- if (authLoading) {
- return (
- <div className="container mx-auto py-6">
- <div className="flex items-center justify-center h-64">
- <div className="text-center">
- <div className="animate-spin rounded-full h-12 w-12 border-b-2 border mx-auto mb-4"></div>
- <p className="text-muted-foreground">Loading...</p>
- </div>
- </div>
- </div>
- );
- }
+  // Stats configuration
+  const stats: StatItem[] = [
+    {
+      title: 'Total Briefs',
+      value: filteredBriefs.length,
+      description: 'All briefs',
+      icon: FileText,
+      iconColor: 'primary',
+    },
+    {
+      title: 'Draft',
+      value: filteredBriefs.filter((b: any) => !b.design_projects).length,
+      description: 'Not submitted',
+      icon: FileText,
+    },
+    {
+      title: 'In Progress',
+      value: filteredBriefs.filter((b: any) =>
+        b.design_projects && ['concept', 'draft', 'revision'].includes(b.design_projects.current_stage)
+      ).length,
+      description: 'Being designed',
+      icon: FileText,
+      iconColor: 'info',
+    },
+    {
+      title: 'Completed',
+      value: filteredBriefs.filter((b: any) =>
+        b.design_projects && ['final', 'approved'].includes(b.design_projects.current_stage)
+      ).length,
+      description: 'Finalized',
+      icon: FileText,
+      iconColor: 'success',
+    },
+  ];
 
- if (!user) {
- return null;
- }
+  // DataTable columns configuration
+  const columns: DataTableColumn<any>[] = [
+    {
+      key: 'title',
+      label: 'Title',
+      sortable: true,
+      render: (value, row) => (
+        <div>
+          <Link href={`/design/briefs/${row.id}`} className="font-medium text-info hover:underline">
+            {value as string}
+          </Link>
+          {row.description && (
+            <p className="text-sm text-secondary line-clamp-1 mt-1">{row.description}</p>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (_, row) => getStatusBadge(row),
+    },
+    {
+      key: 'designer',
+      label: 'Designer',
+      render: (_, row) => row.design_projects?.designers?.name || "—",
+    },
+    {
+      key: 'created_at',
+      label: 'Created Date',
+      sortable: true,
+      render: (value) => {
+        if (!value) return "—";
+        return (
+          <div className="flex items-center gap-2 text-sm">
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+            {new Date(value as string).toLocaleDateString()}
+          </div>
+        );
+      },
+    },
+    {
+      key: 'target_market',
+      label: 'Target Market',
+      render: (value) => value as string || "—",
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      render: (_, row) => (
+        <Link href={`/design/briefs/${row.id}`}>
+          <Button variant="outline" size="sm">
+            View Details
+          </Button>
+        </Link>
+      ),
+    },
+  ];
 
- return (
- <div className="container mx-auto py-6 space-y-6">
- {/* Header */}
- <div className="flex items-center justify-between">
- <div>
- <h1 className="text-3xl font-bold">Design Briefs</h1>
- <p className="text-muted-foreground">
- Manage design briefs and requirements for new product development
- </p>
- </div>
- <Link href="/design/briefs/new">
- <Button>
- <Plus className="mr-2 h-4 w-4" />
- Create Brief
- </Button>
- </Link>
- </div>
+  // DataTable filters configuration
+  const filters: DataTableFilter[] = [
+    {
+      key: 'search',
+      label: 'Search briefs',
+      type: 'search',
+      placeholder: 'Search by title or description...',
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      type: 'select',
+      options: [
+        { value: 'all', label: 'All Statuses' },
+        { value: 'draft', label: 'Draft' },
+        { value: 'submitted', label: 'Submitted' },
+        { value: 'approved', label: 'Approved' },
+        { value: 'in_progress', label: 'In Progress' },
+        { value: 'completed', label: 'Completed' },
+      ],
+    },
+  ];
 
- {/* Filters */}
- <div className="flex gap-4 filters-section">
- <div className="flex-1">
- <div className="relative">
- <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
- <Input
- placeholder="Search by title or description..."
- value={searchQuery}
- onChange={(e) => setSearchQuery(e.target.value)}
- className="pl-10 w-full"
- />
- </div>
- </div>
- <Select value={statusFilter} onValueChange={setStatusFilter}>
- <SelectTrigger className="w-[200px]">
- <SelectValue placeholder="Filter by status" />
- </SelectTrigger>
- <SelectContent>
- <SelectItem value="all">All Statuses</SelectItem>
- <SelectItem value="draft">Draft</SelectItem>
- <SelectItem value="submitted">Submitted</SelectItem>
- <SelectItem value="approved">Approved</SelectItem>
- <SelectItem value="in_progress">In Progress</SelectItem>
- <SelectItem value="completed">Completed</SelectItem>
- </SelectContent>
- </Select>
- </div>
+  if (authLoading) {
+    return (
+      <div className="page-container">
+        <LoadingState message="Loading..." size="lg" />
+      </div>
+    );
+  }
 
- {/* Summary Stats */}
- <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
- <div className="p-4 border rounded-lg bg-card">
- <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
- <FileText className="h-4 w-4" />
- <span>Total Briefs</span>
- </div>
- <div className="text-2xl font-bold">{filteredBriefs.length}</div>
- </div>
- <div className="p-4 border rounded-lg bg-card">
- <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
- <FileText className="h-4 w-4" />
- <span>Draft</span>
- </div>
- <div className="text-2xl font-bold">
- {filteredBriefs.filter((b: any) => !b.design_projects).length}
- </div>
- </div>
- <div className="p-4 border rounded-lg bg-card">
- <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
- <FileText className="h-4 w-4" />
- <span>In Progress</span>
- </div>
- <div className="text-2xl font-bold">
- {filteredBriefs.filter((b: any) =>
- b.design_projects && ['concept', 'draft', 'revision'].includes(b.design_projects.current_stage)
- ).length}
- </div>
- </div>
- <div className="p-4 border rounded-lg bg-card">
- <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
- <FileText className="h-4 w-4" />
- <span>Completed</span>
- </div>
- <div className="text-2xl font-bold">
- {filteredBriefs.filter((b: any) =>
- b.design_projects && ['final', 'approved'].includes(b.design_projects.current_stage)
- ).length}
- </div>
- </div>
- </div>
+  if (!user) {
+    return null;
+  }
 
- {/* Briefs Table */}
- <div className="rounded-md border">
- <Table>
- <TableHeader>
- <TableRow>
- <TableHead>Title</TableHead>
- <TableHead>Status</TableHead>
- <TableHead>Designer</TableHead>
- <TableHead>Created Date</TableHead>
- <TableHead>Target Market</TableHead>
- <TableHead className="text-right">Actions</TableHead>
- </TableRow>
- </TableHeader>
- <TableBody>
- {isLoading ? (
- <TableRow>
- <TableCell colSpan={6} className="text-center py-8">Loading design briefs...</TableCell>
- </TableRow>
- ) : filteredBriefs.length === 0 ? (
- <TableRow>
- <TableCell colSpan={6} className="text-center py-8">
- <div className="space-y-2">
- <p className="text-muted-foreground">No design briefs found</p>
- <Link href="/design/briefs/new">
- <Button variant="outline" size="sm">
- <Plus className="mr-2 h-4 w-4" />
- Create your first brief
- </Button>
- </Link>
- </div>
- </TableCell>
- </TableRow>
- ) : (
- filteredBriefs.map((brief: any) => (
- <TableRow key={brief.id}>
- <TableCell>
- <Link href={`/design/briefs/${brief.id}`} className="font-medium text-info hover:underline">
- {brief.title}
- </Link>
- {brief.description && (
- <p className="text-sm text-muted-foreground line-clamp-1">{brief.description}</p>
- )}
- </TableCell>
- <TableCell>{getStatusBadge(brief)}</TableCell>
- <TableCell>
- {brief.design_projects?.designers?.name || "—"}
- </TableCell>
- <TableCell>
- <div className="flex items-center gap-2 text-sm">
- <Calendar className="h-4 w-4 text-muted-foreground" />
- {brief.created_at ? new Date(brief.created_at).toLocaleDateString() : "—"}
- </div>
- </TableCell>
- <TableCell>
- {brief.target_market || "—"}
- </TableCell>
- <TableCell className="text-right">
- <Link href={`/design/briefs/${brief.id}`}>
- <Button variant="outline" size="sm">
- View Details
- </Button>
- </Link>
- </TableCell>
- </TableRow>
- ))
- )}
- </TableBody>
- </Table>
- </div>
- </div>
- );
+  return (
+    <div className="page-container">
+      {/* Page Header */}
+      <PageHeader
+        title="Design Briefs"
+        subtitle="Manage design briefs and requirements for new product development"
+        actions={[
+          {
+            label: 'Create Brief',
+            icon: Plus,
+            onClick: () => router.push('/design/briefs/new'),
+          },
+        ]}
+      />
+
+      {/* Summary Stats */}
+      <StatsGrid stats={stats} columns={4} />
+
+      {/* Briefs DataTable */}
+      {isLoading ? (
+        <LoadingState message="Loading design briefs..." size="lg" />
+      ) : filteredBriefs.length === 0 ? (
+        <EmptyState
+          icon={FileText}
+          title="No design briefs found"
+          description="Create your first design brief to get started."
+          action={{
+            label: 'Create Brief',
+            onClick: () => router.push('/design/briefs/new'),
+            icon: Plus,
+          }}
+        />
+      ) : (
+        <DataTable
+          data={filteredBriefs}
+          columns={columns}
+          filters={filters}
+          onRowClick={(row) => router.push(`/design/briefs/${row.id}`)}
+          pagination={{ pageSize: 20, showSizeSelector: true }}
+          emptyState={{
+            icon: FileText,
+            title: 'No briefs match your filters',
+            description: 'Try adjusting your search or filter criteria',
+          }}
+        />
+      )}
+    </div>
+  );
 }

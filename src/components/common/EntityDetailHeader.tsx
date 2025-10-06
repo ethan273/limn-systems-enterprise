@@ -7,9 +7,12 @@ import { Button } from '@/components/ui/button';
 export interface EntityMetadataItem {
   icon: React.ComponentType<{ className?: string }>;
   value: string;
+  label?: string;
   type?: 'text' | 'email' | 'phone' | 'link';
   href?: string;
 }
+
+export type EntityMetadata = EntityMetadataItem;
 
 export interface EntityDetailHeaderAction {
   label: string;

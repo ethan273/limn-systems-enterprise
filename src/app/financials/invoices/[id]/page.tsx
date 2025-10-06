@@ -7,7 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { EntityDetailHeader } from "@/components/common/EntityDetailHeader";
+import { InfoCard } from "@/components/common/InfoCard";
+import { EmptyState } from "@/components/common/EmptyState";
+import { LoadingState } from "@/components/common/LoadingState";
 import {
   Select,
   SelectContent,
@@ -23,6 +26,10 @@ import {
   XCircle,
   Clock,
   CreditCard,
+  Building2,
+  Calendar,
+  DollarSign,
+  Edit,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
@@ -101,9 +108,7 @@ export default function InvoiceDetailPage({ params }: PageProps) {
   if (isLoading) {
     return (
       <div className="page-container">
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">Loading invoice details...</p>
-        </div>
+        <LoadingState message="Loading invoice details..." size="md" />
       </div>
     );
   }
@@ -111,10 +116,16 @@ export default function InvoiceDetailPage({ params }: PageProps) {
   if (!invoice) {
     return (
       <div className="page-container">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" aria-hidden="true" />
-          <AlertDescription>Invoice not found</AlertDescription>
-        </Alert>
+        <EmptyState
+          icon={AlertCircle}
+          title="Invoice Not Found"
+          description="The invoice you're looking for doesn't exist or you don't have permission to view it."
+          action={{
+            label: 'Back to Invoices',
+            onClick: () => router.push("/financials/invoices"),
+            icon: ArrowLeft,
+          }}
+        />
       </div>
     );
   }
@@ -128,36 +139,58 @@ export default function InvoiceDetailPage({ params }: PageProps) {
 
   return (
     <div className="page-container">
-      {/* Header */}
+      {/* Header Section */}
       <div className="page-header">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => router.push("/financials/invoices")}>
-            <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
-            Back
-          </Button>
-          <div>
-            <h1 className="page-title">Invoice {invoice.id.substring(0, 8)}</h1>
-            <p className="page-description">
-              {customer?.company_name || customer?.name || "Invoice Details"}
-              {project && ` • ${project.project_name}`}
-            </p>
-          </div>
+        <Button
+          onClick={() => router.push("/financials/invoices")}
+          variant="ghost"
+          className="btn-secondary"
+        >
+          <ArrowLeft className="icon-sm" aria-hidden="true" />
+          Back
+        </Button>
+      </div>
+
+      {/* Invoice Header */}
+      <EntityDetailHeader
+        icon={FileText}
+        title={`Invoice ${invoice.id.substring(0, 8)}`}
+        subtitle={customer?.company_name || customer?.name || undefined}
+        metadata={[
+          ...(project ? [{ icon: Building2, value: project.project_name, label: 'Project' }] : []),
+          { icon: Calendar, value: format(new Date(invoice.created_at), "MMM dd, yyyy"), label: 'Created' },
+          { icon: DollarSign, value: `$${Number(invoice.total || 0).toFixed(2)}`, label: 'Total Amount' },
+        ]}
+        status={invoice.status}
+        actions={[
+          {
+            label: 'Edit Invoice',
+            icon: Edit,
+            onClick: () => router.push(`/financials/invoices/${invoice.id}/edit`),
+          },
+        ]}
+      />
+
+      {/* Status Update Control */}
+      <div className="mb-6">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Update Status:</span>
+          <Select value={invoice.status} onValueChange={handleStatusChange}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(statusConfig).map(([status, { label, icon }]) => (
+                <SelectItem key={status} value={status}>
+                  <div className="flex items-center gap-2">
+                    {icon}
+                    <span>{label}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-        <Select value={invoice.status} onValueChange={handleStatusChange}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.entries(statusConfig).map(([status, { label, icon }]) => (
-              <SelectItem key={status} value={status}>
-                <div className="flex items-center gap-2">
-                  {icon}
-                  <span>{label}</span>
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
 
       {/* Summary Cards */}
@@ -206,56 +239,35 @@ export default function InvoiceDetailPage({ params }: PageProps) {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="payments">Payments</TabsTrigger>
-          <TabsTrigger value="documents">Documents</TabsTrigger>
-          <TabsTrigger value="pdf">PDF Preview</TabsTrigger>
+        <TabsList className="tabs-list">
+          <TabsTrigger value="overview" className="tabs-trigger">Overview</TabsTrigger>
+          <TabsTrigger value="payments" className="tabs-trigger">Payments</TabsTrigger>
+          <TabsTrigger value="documents" className="tabs-trigger">Documents</TabsTrigger>
+          <TabsTrigger value="pdf" className="tabs-trigger">PDF Preview</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
           {/* Invoice Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Invoice Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Invoice ID</p>
-                  <p className="font-medium">{invoice.id}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Customer</p>
-                  <p className="font-medium">{customer?.company_name || customer?.name || "N/A"}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Project</p>
-                  <p className="font-medium">{project?.project_name || "N/A"}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Created Date</p>
-                  <p className="font-medium">{format(new Date(invoice.created_at), "MMM dd, yyyy")}</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
-                <div>
-                  <p className="text-sm text-muted-foreground">Subtotal</p>
-                  <p className="font-medium">${Number(invoice.subtotal || 0).toFixed(2)}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Tax</p>
-                  <p className="font-medium">${Number(invoice.totalTax || 0).toFixed(2)}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Total</p>
-                  <p className="font-medium text-lg">${Number(invoice.total || 0).toFixed(2)}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <InfoCard
+              title="Invoice Details"
+              items={[
+                { label: 'Invoice ID', value: invoice.id },
+                { label: 'Customer', value: customer?.company_name || customer?.name || "N/A" },
+                { label: 'Project', value: project?.project_name || "N/A" },
+                { label: 'Created Date', value: format(new Date(invoice.created_at), "MMM dd, yyyy") },
+              ]}
+            />
+            <InfoCard
+              title="Invoice Totals"
+              items={[
+                { label: 'Subtotal', value: `$${Number(invoice.subtotal || 0).toFixed(2)}` },
+                { label: 'Tax', value: `$${Number(invoice.totalTax || 0).toFixed(2)}` },
+                { label: 'Total', value: `$${Number(invoice.total || 0).toFixed(2)}` },
+              ]}
+            />
+          </div>
 
           {/* Line Items Table */}
           <Card>
@@ -297,7 +309,7 @@ export default function InvoiceDetailPage({ params }: PageProps) {
             <CardHeader>
               <CardTitle>Payment History</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="card-content-compact">
               {invoice.payment_allocations && invoice.payment_allocations.length > 0 ? (
                 <div className="space-y-2">
                   {invoice.payment_allocations.map((allocation: any) => (
@@ -320,7 +332,11 @@ export default function InvoiceDetailPage({ params }: PageProps) {
                   ))}
                 </div>
               ) : (
-                <p className="text-muted-foreground">No payments recorded yet</p>
+                <EmptyState
+                  icon={CreditCard}
+                  title="No Payments"
+                  description="No payments recorded yet"
+                />
               )}
             </CardContent>
           </Card>
@@ -332,7 +348,7 @@ export default function InvoiceDetailPage({ params }: PageProps) {
             <CardHeader>
               <CardTitle>Payment Allocations</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="card-content-compact">
               {invoice.payment_allocations && invoice.payment_allocations.length > 0 ? (
                 <div className="space-y-4">
                   {invoice.payment_allocations.map((allocation: any) => (
@@ -361,7 +377,11 @@ export default function InvoiceDetailPage({ params }: PageProps) {
                   ))}
                 </div>
               ) : (
-                <p className="text-muted-foreground">No payments allocated to this invoice</p>
+                <EmptyState
+                  icon={CreditCard}
+                  title="No Payment Allocations"
+                  description="No payments allocated to this invoice"
+                />
               )}
             </CardContent>
           </Card>
@@ -373,8 +393,12 @@ export default function InvoiceDetailPage({ params }: PageProps) {
             <CardHeader>
               <CardTitle>Related Documents</CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">No related documents</p>
+            <CardContent className="card-content-compact">
+              <EmptyState
+                icon={FileText}
+                title="No Documents"
+                description="No related documents"
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -385,13 +409,12 @@ export default function InvoiceDetailPage({ params }: PageProps) {
             <CardHeader>
               <CardTitle>PDF Preview</CardTitle>
             </CardHeader>
-            <CardContent>
-              <Alert>
-                <FileText className="h-4 w-4" aria-hidden="true" />
-                <AlertDescription>
-                  PDF generation feature will be implemented in a future update
-                </AlertDescription>
-              </Alert>
+            <CardContent className="card-content-compact">
+              <EmptyState
+                icon={FileText}
+                title="PDF Preview Coming Soon"
+                description="PDF generation feature will be implemented in a future update"
+              />
             </CardContent>
           </Card>
         </TabsContent>
