@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { generateProductSku } from "@/lib/utils/product-sku-generator";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
@@ -41,7 +41,6 @@ import {
  Eye,
  Filter,
  DollarSign,
- 
  ClipboardList,
  Target,
  CheckCircle2,
@@ -52,6 +51,11 @@ import { toast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  PageHeader,
+  StatsGrid,
+  type StatItem,
+} from "@/components/common";
 
 interface Project {
  id: string;
@@ -1784,63 +1788,48 @@ export default function ProjectsPage() {
  return filteredProjects.reduce((sum, project) => sum + (project.actual_cost || 0), 0);
  };
 
- return (
- <div className="container mx-auto py-6">
- {/* Header */}
- <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
- <div>
- <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
- <p className="text-muted-foreground">
- Manage client projects with integrated order creation and tracking
- </p>
- </div>
- <Button onClick={handleCreateProject}>
- <Plus className="mr-2 h-4 w-4" />
- Create Project
- </Button>
- </div>
+ const stats: StatItem[] = [
+    {
+      label: "Total Projects",
+      value: filteredProjects.length,
+      variant: "default",
+      icon: ClipboardList,
+    },
+    {
+      label: "Total Budget",
+      value: formatPrice(getTotalBudget()),
+      variant: "default",
+      icon: DollarSign,
+    },
+    {
+      label: "Actual Cost",
+      value: formatPrice(getTotalActualCost()),
+      variant: "default",
+      icon: Package,
+    },
+    {
+      label: "Active Projects",
+      value: filteredProjects.filter((p: any) => p.status === 'active').length,
+      variant: "default",
+      icon: Clock,
+    },
+  ];
 
- {/* Stats Cards */}
- <div className="mt-6 grid gap-4 md:grid-cols-4">
- <Card>
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
- <ClipboardList className="h-4 w-4 text-muted-foreground" />
- </CardHeader>
- <CardContent>
- <div className="text-2xl font-bold">{filteredProjects.length}</div>
- </CardContent>
- </Card>
- <Card>
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium">Total Budget</CardTitle>
- <DollarSign className="h-4 w-4 text-muted-foreground" />
- </CardHeader>
- <CardContent>
- <div className="text-2xl font-bold">{formatPrice(getTotalBudget())}</div>
- </CardContent>
- </Card>
- <Card>
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium">Actual Cost</CardTitle>
- <Package className="h-4 w-4 text-muted-foreground" />
- </CardHeader>
- <CardContent>
- <div className="text-2xl font-bold">{formatPrice(getTotalActualCost())}</div>
- </CardContent>
- </Card>
- <Card>
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
- <Clock className="h-4 w-4 text-muted-foreground" />
- </CardHeader>
- <CardContent>
- <div className="text-2xl font-bold">
- {filteredProjects.filter((p: any) => p.status === 'active').length}
- </div>
- </CardContent>
- </Card>
- </div>
+ return (
+ <div className="page-container">
+ <PageHeader
+ title="Projects"
+ description="Manage client projects with integrated order creation and tracking"
+ actions={[
+ {
+ label: "Create Project",
+ icon: Plus,
+ onClick: handleCreateProject,
+ },
+ ]}
+ />
+
+ <StatsGrid stats={stats} />
 
  {/* Filters */}
  <Card>

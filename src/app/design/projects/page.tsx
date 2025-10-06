@@ -57,6 +57,7 @@ export default function DesignProjectsPage() {
       approved: { label: 'Approved', status: 'approved' },
     };
     const config = Object.prototype.hasOwnProperty.call(stageMap, stage)
+      // eslint-disable-next-line security/detect-object-injection
       ? stageMap[stage]
       : { label: stage, status: 'pending' };
     return <StatusBadge status={config.status} label={config.label} />;
@@ -70,6 +71,7 @@ export default function DesignProjectsPage() {
       urgent: { label: 'Urgent', status: 'rejected' },
     };
     const config = Object.prototype.hasOwnProperty.call(priorityMap, priority)
+      // eslint-disable-next-line security/detect-object-injection
       ? priorityMap[priority]
       : { label: priority, status: 'inactive' };
     return <StatusBadge status={config.status} label={config.label} />;
