@@ -1,7 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -12,6 +14,12 @@ export default function DevLoginPage() {
  const [message, setMessage] = useState('');
  const [selectedUserType, setSelectedUserType] = useState('dev');
  const router = useRouter();
+ const { resolvedTheme } = useTheme();
+ const [mounted, setMounted] = useState(false);
+
+ useEffect(() => {
+ setMounted(true);
+ }, []);
 
  const handleDevLogin = async (userType: string) => {
  setSelectedUserType(userType);
@@ -84,7 +92,17 @@ export default function DevLoginPage() {
 
  <div className="text-center">
  <div className="mb-6 flex justify-center">
- <div className="text-3xl font-bold text-primary">LIMN</div>
+ {mounted ? (
+ <Image
+ src={resolvedTheme === 'dark' ? '/images/Limn_Logo_Light_Mode.png' : '/images/Limn_Logo_Dark_Mode.png'}
+ alt="Limn Systems"
+ width={180}
+ height={50}
+ priority
+ />
+ ) : (
+ <div style={{ width: 180, height: 50 }} />
+ )}
  </div>
  <h1 className="text-3xl font-bold text-primary">
  Development Login

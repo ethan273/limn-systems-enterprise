@@ -3,7 +3,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = new URL(request.url)
+  const { searchParams, origin: rawOrigin } = new URL(request.url)
+  // Fix 0.0.0.0 to localhost for browser compatibility
+  const origin = rawOrigin.replace('http://0.0.0.0:', 'http://localhost:')
   const code = searchParams.get('code')
   const token = searchParams.get('token')
   const error = searchParams.get('error')
@@ -19,6 +21,9 @@ export async function GET(request: NextRequest) {
   if (token && !code) {
     const cookieStore = await cookies();
 
+    // Track cookies to set on response
+    const cookiesToSetMagic: Array<{ name: string; value: string; options: any }> = [];
+
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -28,10 +33,10 @@ export async function GET(request: NextRequest) {
             return cookieStore.get(name)?.value;
           },
           set(name: string, value: string, options: any) {
-            cookieStore.set({ name, value, ...options });
+            cookiesToSetMagic.push({ name, value, options });
           },
           remove(name: string, options: any) {
-            cookieStore.delete({ name, ...options });
+            cookiesToSetMagic.push({ name, value: '', options: { ...options, maxAge: 0 } });
           },
         },
       }
@@ -52,17 +57,28 @@ export async function GET(request: NextRequest) {
       if (data.session) {
         const userEmail = data.session.user.email;
 
+        // Determine redirect URL
+        let redirectUrl = `${origin}/dashboard`;
+
         // For dev login, always go to dashboard
         if (userType === 'dev' || userEmail === 'dev-user@limn.us.com') {
-          return NextResponse.redirect(`${origin}/dashboard`);
+          redirectUrl = `${origin}/dashboard`;
+        } else if (userEmail?.endsWith('@limn.us.com')) {
+          // Route based on email domain for other magic link logins
+          redirectUrl = `${origin}/dashboard`;
+        } else {
+          redirectUrl = `${origin}/portal`;
         }
 
-        // Route based on email domain for other magic link logins
-        if (userEmail?.endsWith('@limn.us.com')) {
-          return NextResponse.redirect(`${origin}/dashboard`);
-        } else {
-          return NextResponse.redirect(`${origin}/portal`);
-        }
+        // Create redirect response with all cookies from Supabase
+        const response = NextResponse.redirect(redirectUrl);
+
+        // Apply all cookies that Supabase tried to set
+        cookiesToSetMagic.forEach(({ name, value, options }) => {
+          response.cookies.set(name, value, options);
+        });
+
+        return response;
       }
     } catch (error) {
       console.error('Magic link callback error:', error);
@@ -74,6 +90,9 @@ export async function GET(request: NextRequest) {
   if (code) {
     const cookieStore = await cookies();
 
+    // Track cookies to set on response
+    const cookiesToSet: Array<{ name: string; value: string; options: any }> = [];
+
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -83,10 +102,10 @@ export async function GET(request: NextRequest) {
             return cookieStore.get(name)?.value;
           },
           set(name: string, value: string, options: any) {
-            cookieStore.set({ name, value, ...options });
+            cookiesToSet.push({ name, value, options });
           },
           remove(name: string, options: any) {
-            cookieStore.delete({ name, ...options });
+            cookiesToSet.push({ name, value: '', options: { ...options, maxAge: 0 } });
           },
         },
       }
@@ -103,11 +122,14 @@ export async function GET(request: NextRequest) {
       if (data.session) {
         const userEmail = data.session.user.email
 
+        // Create response with redirect
+        let redirectUrl = `${origin}/dashboard`;
+
         // Route based on user email domain and type
         if (userType === 'employee') {
           // Verify employee has @limn.us.com email
           if (userEmail?.endsWith('@limn.us.com')) {
-            return NextResponse.redirect(`${origin}/dashboard`)
+            redirectUrl = `${origin}/dashboard`;
           } else {
             // Sign out non-company users trying to use employee login
             await supabase.auth.signOut()
@@ -119,16 +141,26 @@ export async function GET(request: NextRequest) {
             await supabase.auth.signOut()
             return NextResponse.redirect(`${origin}/login?error=employee_use_sso`)
           } else {
-            return NextResponse.redirect(`${origin}/portal`)
+            redirectUrl = `${origin}/portal`;
           }
         } else {
           // Default routing based on email domain
           if (userEmail?.endsWith('@limn.us.com')) {
-            return NextResponse.redirect(`${origin}/dashboard`)
+            redirectUrl = `${origin}/dashboard`;
           } else {
-            return NextResponse.redirect(`${origin}/portal`)
+            redirectUrl = `${origin}/portal`;
           }
         }
+
+        // Create redirect response with all cookies from Supabase
+        const response = NextResponse.redirect(redirectUrl);
+
+        // Apply all cookies that Supabase tried to set
+        cookiesToSet.forEach(({ name, value, options }) => {
+          response.cookies.set(name, value, options);
+        });
+
+        return response;
       }
     } catch (error) {
       return NextResponse.redirect(`${origin}/login?error=callback_failed`)

@@ -1,15 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Package, Plus, MoreVertical, Edit, Trash } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RefreshCw, Plus, Edit, Trash, Palette, TreePine, Hammer, Mountain, Package, Zap } from "lucide-react";
 import { toast } from "sonner";
 import {
   PageHeader,
@@ -17,256 +12,556 @@ import {
   EmptyState,
   LoadingState,
   DataTable,
-  StatsGrid,
   StatusBadge,
   type FormField,
   type DataTableColumn,
   type DataTableFilter,
-  type StatItem,
 } from "@/components/common";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreVertical } from "lucide-react";
 
-interface Material {
-  id: string;
-  name: string;
-  code: string;
-  type?: string;
-  description?: string;
-  category_id?: string;
-  active?: boolean;
-  cost_per_unit?: number;
-  unit_of_measure?: string;
-  created_at: string;
-  updated_at?: string;
-  category?: {
-    id: string;
-    name: string;
-  };
-  collections?: Array<{
-    id: string;
-    name: string;
-    prefix?: string | null;
-  }>;
-}
+// Material hierarchy configuration
+const materialCategories = [
+  {
+    key: "fabric",
+    label: "Fabrics",
+    icon: Palette,
+    description: "Brand → Collection → Color",
+    hierarchy: [
+      {
+        key: "fabric_brands",
+        label: "Brands",
+        parent: null,
+        hasColors: false,
+        procedures: {
+          get: "getFabricBrands",
+          create: "createFabricBrand",
+          update: "updateFabricBrand",
+          delete: "deleteFabricBrand",
+        },
+      },
+      {
+        key: "fabric_collections",
+        label: "Collections",
+        parent: "brand_id",
+        parentLabel: "Brand",
+        hasColors: false,
+        procedures: {
+          get: "getFabricCollections",
+          create: "createFabricCollection",
+          update: "updateFabricCollection",
+          delete: "deleteFabricCollection",
+        },
+      },
+      {
+        key: "fabric_colors",
+        label: "Colors",
+        parent: "collection_id",
+        parentLabel: "Collection",
+        hasColors: true,
+        procedures: {
+          get: "getFabricColors",
+          create: "createFabricColor",
+          update: "updateFabricColor",
+          delete: "deleteFabricColor",
+        },
+      },
+    ],
+  },
+  {
+    key: "wood",
+    label: "Wood",
+    icon: TreePine,
+    description: "Type → Finish",
+    hierarchy: [
+      {
+        key: "wood_types",
+        label: "Types",
+        parent: null,
+        hasColors: false,
+        procedures: {
+          get: "getWoodTypes",
+          create: "createWoodType",
+          update: "updateWoodType",
+          delete: "deleteWoodType",
+        },
+      },
+      {
+        key: "wood_finishes",
+        label: "Finishes",
+        parent: "wood_type_id",
+        parentLabel: "Wood Type",
+        hasColors: false,
+        procedures: {
+          get: "getWoodFinishes",
+          create: "createWoodFinish",
+          update: "updateWoodFinish",
+          delete: "deleteWoodFinish",
+        },
+      },
+    ],
+  },
+  {
+    key: "metal",
+    label: "Metal",
+    icon: Hammer,
+    description: "Type → Finish → Color",
+    hierarchy: [
+      {
+        key: "metal_types",
+        label: "Types",
+        parent: null,
+        hasColors: false,
+        procedures: {
+          get: "getMetalTypes",
+          create: "createMetalType",
+          update: "updateMetalType",
+          delete: "deleteMetalType",
+        },
+      },
+      {
+        key: "metal_finishes",
+        label: "Finishes",
+        parent: "metal_type_id",
+        parentLabel: "Metal Type",
+        hasColors: false,
+        procedures: {
+          get: "getMetalFinishes",
+          create: "createMetalFinish",
+          update: "updateMetalFinish",
+          delete: "deleteMetalFinish",
+        },
+      },
+      {
+        key: "metal_colors",
+        label: "Colors",
+        parent: "metal_finish_id",
+        parentLabel: "Metal Finish",
+        hasColors: true,
+        procedures: {
+          get: "getMetalColors",
+          create: "createMetalColor",
+          update: "updateMetalColor",
+          delete: "deleteMetalColor",
+        },
+      },
+    ],
+  },
+  {
+    key: "stone",
+    label: "Stone",
+    icon: Mountain,
+    description: "Type → Finish",
+    hierarchy: [
+      {
+        key: "stone_types",
+        label: "Types",
+        parent: null,
+        hasColors: false,
+        procedures: {
+          get: "getStoneTypes",
+          create: "createStoneType",
+          update: "updateStoneType",
+          delete: "deleteStoneType",
+        },
+      },
+      {
+        key: "stone_finishes",
+        label: "Finishes",
+        parent: "stone_type_id",
+        parentLabel: "Stone Type",
+        hasColors: false,
+        procedures: {
+          get: "getStoneFinishes",
+          create: "createStoneFinish",
+          update: "updateStoneFinish",
+          delete: "deleteStoneFinish",
+        },
+      },
+    ],
+  },
+  {
+    key: "weaving",
+    label: "Weaving",
+    icon: Package,
+    description: "Styles Only",
+    hierarchy: [
+      {
+        key: "weaving_styles",
+        label: "Styles",
+        parent: null,
+        hasColors: false,
+        procedures: {
+          get: "getWeavingStyles",
+          create: "createWeavingStyle",
+          update: "updateWeavingStyle",
+          delete: "deleteWeavingStyle",
+        },
+      },
+    ],
+  },
+  {
+    key: "carving",
+    label: "Carving",
+    icon: Zap,
+    description: "Styles Only",
+    hierarchy: [
+      {
+        key: "carving_styles",
+        label: "Styles",
+        parent: null,
+        hasColors: false,
+        procedures: {
+          get: "getCarvingStyles",
+          create: "createCarvingStyle",
+          update: "updateCarvingStyle",
+          delete: "deleteCarvingStyle",
+        },
+      },
+    ],
+  },
+];
 
-interface MaterialCategory {
-  id: string;
-  name: string;
-  icon?: string;
-  sort_order?: number;
-  active?: boolean;
-}
+type MaterialItem = Record<string, any>;
 
 export default function MaterialsPage() {
+  const [activeTab, setActiveTab] = useState("fabric");
+  const [activeSubTab, setActiveSubTab] = useState("fabric_brands");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editMaterialId, setEditMaterialId] = useState<string>("");
-  const [selectedCollectionIds, setSelectedCollectionIds] = useState<string[]>([]);
+  const [editingItem, setEditingItem] = useState<MaterialItem | null>(null);
 
-  // API queries
-  const { data: materials = [], isLoading: materialsLoading, refetch } = api.products.getAllMaterials.useQuery();
-  const { data: materialCategories = [] } = api.products.getMaterialCategories.useQuery();
-  const { data: _furnitureCollections = [] } = api.products.getAllCollections.useQuery();
+  const activeCategory = materialCategories.find((cat) => cat.key === activeTab);
+  const activeHierarchy = activeCategory?.hierarchy.find((h) => h.key === activeSubTab);
 
-  // Mutations
-  const createMaterialMutation = api.products.createMaterial.useMutation({
-    onSuccess: () => {
-      toast.success("Material created successfully");
-      setIsCreateDialogOpen(false);
-      setSelectedCollectionIds([]);
-      refetch();
-    },
-    onError: (error) => {
-      toast.error("Failed to create material: " + error.message);
-    },
+  // Dynamic API queries based on active hierarchy
+  const fabricBrands = api.materialTypes.getFabricBrands.useQuery(undefined, {
+    enabled: activeSubTab === "fabric_brands",
+  });
+  const fabricCollections = api.materialTypes.getFabricCollections.useQuery(undefined, {
+    enabled: activeSubTab === "fabric_collections",
+  });
+  const fabricColors = api.materialTypes.getFabricColors.useQuery(undefined, {
+    enabled: activeSubTab === "fabric_colors",
+  });
+  const woodTypes = api.materialTypes.getWoodTypes.useQuery(undefined, {
+    enabled: activeSubTab === "wood_types",
+  });
+  const woodFinishes = api.materialTypes.getWoodFinishes.useQuery(undefined, {
+    enabled: activeSubTab === "wood_finishes",
+  });
+  const metalTypes = api.materialTypes.getMetalTypes.useQuery(undefined, {
+    enabled: activeSubTab === "metal_types",
+  });
+  const metalFinishes = api.materialTypes.getMetalFinishes.useQuery(undefined, {
+    enabled: activeSubTab === "metal_finishes",
+  });
+  const metalColors = api.materialTypes.getMetalColors.useQuery(undefined, {
+    enabled: activeSubTab === "metal_colors",
+  });
+  const stoneTypes = api.materialTypes.getStoneTypes.useQuery(undefined, {
+    enabled: activeSubTab === "stone_types",
+  });
+  const stoneFinishes = api.materialTypes.getStoneFinishes.useQuery(undefined, {
+    enabled: activeSubTab === "stone_finishes",
+  });
+  const weavingStyles = api.materialTypes.getWeavingStyles.useQuery(undefined, {
+    enabled: activeSubTab === "weaving_styles",
+  });
+  const carvingStyles = api.materialTypes.getCarvingStyles.useQuery(undefined, {
+    enabled: activeSubTab === "carving_styles",
   });
 
-  const updateMaterialMutation = api.products.updateMaterial.useMutation({
-    onSuccess: () => {
-      toast.success("Material updated successfully");
-      setIsEditDialogOpen(false);
-      setSelectedCollectionIds([]);
-      refetch();
-    },
-    onError: (error) => {
-      toast.error("Failed to update material: " + error.message);
-    },
-  });
-
-  const deleteMaterialMutation = api.products.deleteMaterial.useMutation({
-    onSuccess: () => {
-      toast.success("Material deleted successfully");
-      refetch();
-    },
-    onError: (error) => {
-      toast.error("Failed to delete material: " + error.message);
-    },
-  });
-
-  const handleDeleteMaterial = (materialId: string, materialName: string) => {
-    if (confirm(`Are you sure you want to delete "${materialName}"? This action cannot be undone.`)) {
-      deleteMaterialMutation.mutate({ id: materialId });
+  // Get the appropriate data based on active sub-tab
+  const getCurrentData = () => {
+    switch (activeSubTab) {
+      case "fabric_brands": return fabricBrands.data || [];
+      case "fabric_collections": return fabricCollections.data || [];
+      case "fabric_colors": return fabricColors.data || [];
+      case "wood_types": return woodTypes.data || [];
+      case "wood_finishes": return woodFinishes.data || [];
+      case "metal_types": return metalTypes.data || [];
+      case "metal_finishes": return metalFinishes.data || [];
+      case "metal_colors": return metalColors.data || [];
+      case "stone_types": return stoneTypes.data || [];
+      case "stone_finishes": return stoneFinishes.data || [];
+      case "weaving_styles": return weavingStyles.data || [];
+      case "carving_styles": return carvingStyles.data || [];
+      default: return [];
     }
   };
 
-  const handleEditMaterial = (material: Material) => {
-    setEditMaterialId(material.id);
-    setSelectedCollectionIds(material.collections?.map(c => c.id) || []);
-    setIsEditDialogOpen(true);
+  const currentData = getCurrentData();
+  const isLoading =
+    fabricBrands.isLoading ||
+    fabricCollections.isLoading ||
+    fabricColors.isLoading ||
+    woodTypes.isLoading ||
+    woodFinishes.isLoading ||
+    metalTypes.isLoading ||
+    metalFinishes.isLoading ||
+    metalColors.isLoading ||
+    stoneTypes.isLoading ||
+    stoneFinishes.isLoading ||
+    weavingStyles.isLoading ||
+    carvingStyles.isLoading;
+
+  // Get parent options for child items
+  const getParentOptions = () => {
+    if (!activeHierarchy?.parent) return [];
+
+    if (activeSubTab === "fabric_collections") return fabricBrands.data || [];
+    if (activeSubTab === "fabric_colors") return fabricCollections.data || [];
+    if (activeSubTab === "wood_finishes") return woodTypes.data || [];
+    if (activeSubTab === "metal_finishes") return metalTypes.data || [];
+    if (activeSubTab === "metal_colors") return metalFinishes.data || [];
+    if (activeSubTab === "stone_finishes") return stoneTypes.data || [];
+
+    return [];
   };
 
-  // Generate unique material code
-  const generateMaterialCode = (name: string): string => {
-    const namePart = name.replace(/\s+/g, '-').substring(0, 10).toUpperCase();
-    const timestamp = Date.now().toString().slice(-6);
-    return `MAT-${namePart}-${timestamp}`;
+  const parentOptions = getParentOptions();
+
+  // Get parent name for display
+  const getParentName = useCallback((item: MaterialItem) => {
+    if (!activeHierarchy?.parent) return "";
+
+    if (activeSubTab === "fabric_collections") return item.fabric_brands?.name || "";
+    if (activeSubTab === "fabric_colors") {
+      const brand = item.fabric_collections?.fabric_brands?.name;
+      const collection = item.fabric_collections?.name;
+      return brand && collection ? `${brand} > ${collection}` : "";
+    }
+    if (activeSubTab === "wood_finishes") return item.wood_types?.name || "";
+    if (activeSubTab === "metal_finishes") return item.metal_types?.name || "";
+    if (activeSubTab === "metal_colors") {
+      const type = item.metal_finishes?.metal_types?.name;
+      const finish = item.metal_finishes?.name;
+      return type && finish ? `${type} > ${finish}` : "";
+    }
+    if (activeSubTab === "stone_finishes") return item.stone_types?.name || "";
+
+    return "";
+  }, [activeSubTab, activeHierarchy]);
+
+  // Mutations
+  const refetchCurrentData = async () => {
+    switch (activeSubTab) {
+      case "fabric_brands": await fabricBrands.refetch(); break;
+      case "fabric_collections": await fabricCollections.refetch(); break;
+      case "fabric_colors": await fabricColors.refetch(); break;
+      case "wood_types": await woodTypes.refetch(); break;
+      case "wood_finishes": await woodFinishes.refetch(); break;
+      case "metal_types": await metalTypes.refetch(); break;
+      case "metal_finishes": await metalFinishes.refetch(); break;
+      case "metal_colors": await metalColors.refetch(); break;
+      case "stone_types": await stoneTypes.refetch(); break;
+      case "stone_finishes": await stoneFinishes.refetch(); break;
+      case "weaving_styles": await weavingStyles.refetch(); break;
+      case "carving_styles": await carvingStyles.refetch(); break;
+    }
   };
 
-  // Form fields for create dialog
-  const createFormFields: FormField[] = [
-    { name: 'name', label: 'Material Name', type: 'text', required: true, placeholder: 'Enter material name' },
-    { name: 'code', label: 'Material Code', type: 'text', placeholder: 'Auto-generated if left empty' },
-    { name: 'type', label: 'Material Type', type: 'text', placeholder: 'e.g., Fabric, Wood, Metal' },
-    {
-      name: 'category_id',
-      label: 'Category',
-      type: 'select',
-      required: true,
-      options: (materialCategories as MaterialCategory[]).map(cat => ({ value: cat.id, label: cat.name })),
+  const createMutation = (api.materialTypes as any)[activeHierarchy?.procedures.create as any]?.useMutation?.({
+    onSuccess: () => {
+      toast.success(`${activeHierarchy?.label.slice(0, -1)} created successfully`);
+      setIsCreateDialogOpen(false);
+      refetchCurrentData();
     },
-    { name: 'description', label: 'Description', type: 'textarea', placeholder: 'Describe this material...' },
-    { name: 'cost_per_unit', label: 'Cost per Unit', type: 'number', placeholder: '0.00' },
-    { name: 'unit_of_measure', label: 'Unit of Measure', type: 'text', placeholder: 'e.g., yard, meter, piece' },
-    {
-      name: 'active',
-      label: 'Active Material',
-      type: 'checkbox',
-      defaultValue: 'true',
+    onError: (error: Error) => {
+      toast.error(`Failed to create: ${error.message}`);
     },
-  ];
+  });
 
-  // Form fields for edit dialog
-  const selectedMaterial = materials.find((m: Material) => m.id === editMaterialId);
-  const editFormFields: FormField[] = [
-    { name: 'name', label: 'Material Name', type: 'text', required: true, defaultValue: selectedMaterial?.name },
-    { name: 'code', label: 'Material Code', type: 'text', defaultValue: selectedMaterial?.code },
-    { name: 'type', label: 'Material Type', type: 'text', defaultValue: selectedMaterial?.type },
-    {
-      name: 'category_id',
-      label: 'Category',
-      type: 'select',
-      required: true,
-      options: (materialCategories as MaterialCategory[]).map(cat => ({ value: cat.id, label: cat.name })),
-      defaultValue: selectedMaterial?.category_id,
+  const updateMutation = (api.materialTypes as any)[activeHierarchy?.procedures.update as any]?.useMutation?.({
+    onSuccess: () => {
+      toast.success(`${activeHierarchy?.label.slice(0, -1)} updated successfully`);
+      setIsCreateDialogOpen(false);
+      setEditingItem(null);
+      refetchCurrentData();
     },
-    { name: 'description', label: 'Description', type: 'textarea', defaultValue: selectedMaterial?.description },
-    { name: 'cost_per_unit', label: 'Cost per Unit', type: 'number', defaultValue: selectedMaterial?.cost_per_unit?.toString() },
-    { name: 'unit_of_measure', label: 'Unit of Measure', type: 'text', defaultValue: selectedMaterial?.unit_of_measure },
-    {
-      name: 'active',
-      label: 'Active Material',
-      type: 'checkbox',
-      defaultValue: selectedMaterial?.active !== false ? 'true' : 'false',
+    onError: (error: Error) => {
+      toast.error(`Failed to update: ${error.message}`);
     },
-  ];
+  });
 
-  // Stats configuration
-  const stats: StatItem[] = [
-    {
-      title: 'Total Materials',
-      value: materials.length,
-      description: 'All materials in inventory',
-      icon: Package,
-      iconColor: 'info',
+  const deleteMutation = (api.materialTypes as any)[activeHierarchy?.procedures.delete as any]?.useMutation?.({
+    onSuccess: () => {
+      toast.success(`${activeHierarchy?.label.slice(0, -1)} deleted successfully`);
+      refetchCurrentData();
     },
-    {
-      title: 'Active',
-      value: materials.filter((m: Material) => m.active !== false).length,
-      description: 'Active materials',
-      icon: Package,
-      iconColor: 'success',
+    onError: (error: Error) => {
+      toast.error(`Failed to delete: ${error.message}`);
     },
-    {
-      title: 'Categories',
-      value: materialCategories.length,
-      description: 'Material categories',
-      icon: Package,
-      iconColor: 'info',
-    },
-  ];
+  });
 
-  // DataTable columns configuration
-  const columns: DataTableColumn<Material>[] = [
-    {
-      key: 'name',
-      label: 'Material',
+  const handleDelete = useCallback((item: MaterialItem) => {
+    if (confirm(`Are you sure you want to delete "${item.name}"? This action cannot be undone.`)) {
+      deleteMutation?.mutate({ id: item.id });
+    }
+  }, [deleteMutation]);
+
+  const handleEdit = useCallback((item: MaterialItem) => {
+    setEditingItem(item);
+    setIsCreateDialogOpen(true);
+  }, []);
+
+  // Form fields
+  const formFields: FormField[] = useMemo(() => {
+    const fields: FormField[] = [];
+
+    // Parent selector for child items
+    if (activeHierarchy?.parent) {
+      fields.push({
+        name: activeHierarchy.parent,
+        label: `Parent ${activeHierarchy.parentLabel}`,
+        type: "select",
+        required: true,
+        options: parentOptions.map((option: any) => ({
+          value: option.id,
+          label: option.name,
+        })),
+        defaultValue: editingItem?.[activeHierarchy.parent],
+      });
+    }
+
+    // Common fields
+    fields.push(
+      {
+        name: "name",
+        label: "Name",
+        type: "text",
+        required: true,
+        placeholder: "Enter name",
+        defaultValue: editingItem?.name,
+      },
+      {
+        name: "price_modifier",
+        label: "Price Modifier ($)",
+        type: "number",
+        placeholder: "0.00",
+        defaultValue: editingItem?.price_modifier?.toString(),
+      },
+      {
+        name: "description",
+        label: "Description",
+        type: "textarea",
+        placeholder: "Enter description (optional)",
+        defaultValue: editingItem?.description,
+      }
+    );
+
+    // Color code for color items
+    if (activeHierarchy?.hasColors) {
+      fields.push({
+        name: "hex_code",
+        label: "Color Code",
+        type: "text",
+        placeholder: "#ffffff",
+        defaultValue: editingItem?.hex_code,
+      });
+    }
+
+    // Sort order
+    fields.push({
+      name: "sort_order",
+      label: "Sort Order",
+      type: "number",
+      placeholder: "Optional",
+      defaultValue: editingItem?.sort_order?.toString(),
+    });
+
+    // Complexity level for carving
+    if (activeSubTab === "carving_styles") {
+      fields.push({
+        name: "complexity_level",
+        label: "Complexity Level",
+        type: "number",
+        placeholder: "1",
+        defaultValue: editingItem?.complexity_level?.toString(),
+      });
+    }
+
+    return fields;
+  }, [activeHierarchy, activeSubTab, editingItem, parentOptions]);
+
+  // DataTable columns
+  const columns: DataTableColumn<MaterialItem>[] = useMemo(() => {
+    const cols: DataTableColumn<MaterialItem>[] = [];
+
+    // Parent column for child items
+    if (activeHierarchy?.parent) {
+      cols.push({
+        key: "parent",
+        label: "Parent",
+        render: (_, row) => (
+          <span className="text-sm text-secondary">{getParentName(row)}</span>
+        ),
+      });
+    }
+
+    // Name column
+    cols.push({
+      key: "name",
+      label: "Name",
       sortable: true,
-      render: (_, row) => (
+      render: (value, row) => (
         <div>
-          <div className="font-medium">{row.name}</div>
+          <div className="font-medium">{value as string}</div>
           {row.description && (
             <div className="text-sm text-secondary line-clamp-1">{row.description}</div>
           )}
         </div>
       ),
-    },
-    {
-      key: 'code',
-      label: 'Code',
-      render: (value) => value ? (
-        <span className="font-mono text-sm">{value as string}</span>
-      ) : <span className="text-muted">—</span>,
-    },
-    {
-      key: 'type',
-      label: 'Type',
-      render: (value) => value ? (
-        <span className="text-sm">{value as string}</span>
-      ) : <span className="text-muted">—</span>,
-    },
-    {
-      key: 'category',
-      label: 'Category',
-      render: (value: any) => value?.name ? (
-        <span className="text-sm">{value.name}</span>
-      ) : <span className="text-muted">—</span>,
-    },
-    {
-      key: 'cost_per_unit',
-      label: 'Cost per Unit',
+    });
+
+    // Price modifier column
+    cols.push({
+      key: "price_modifier",
+      label: "Price Modifier",
       sortable: true,
-      render: (value, row) => value ? (
-        <div className="text-sm">
-          ${(value as number).toFixed(2)}
-          {row.unit_of_measure && <span className="text-muted ml-1">/ {row.unit_of_measure}</span>}
-        </div>
-      ) : <span className="text-muted">—</span>,
-    },
-    {
-      key: 'collections',
-      label: 'Available In',
-      render: (value: any) => {
-        if (value && value.length > 0) {
-          return (
-            <div className="flex flex-wrap gap-1">
-              {value.map((collection: any) => (
-                <StatusBadge key={collection.id} status={collection.prefix || collection.name} />
-              ))}
-            </div>
-          );
-        }
-        return <StatusBadge status="All Collections" />;
-      },
-    },
-    {
-      key: 'active',
-      label: 'Status',
       render: (value) => (
-        <StatusBadge status={value !== false ? 'active' : 'inactive'} />
+        <span className="text-sm">${typeof value === "number" ? value.toFixed(2) : "0.00"}</span>
       ),
-    },
-    {
-      key: 'actions',
-      label: 'Actions',
+    });
+
+    // Color swatch for color items
+    if (activeHierarchy?.hasColors) {
+      cols.push({
+        key: "hex_code",
+        label: "Color",
+        render: (value) =>
+          value ? (
+            <div className="flex items-center gap-2">
+              <div
+                className="color-swatch"
+                style={{ backgroundColor: value as string }}
+              />
+              <span className="text-sm text-secondary">{value as string}</span>
+            </div>
+          ) : (
+            <span className="text-muted">No color</span>
+          ),
+      });
+    }
+
+    // Status column
+    cols.push({
+      key: "active",
+      label: "Status",
+      render: (value) => (
+        <StatusBadge status={value !== false ? "active" : "inactive"} />
+      ),
+    });
+
+    // Actions column
+    cols.push({
+      key: "actions",
+      label: "Actions",
       render: (_, row) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
@@ -279,149 +574,195 @@ export default function MaterialsPage() {
               className="dropdown-item"
               onClick={(e) => {
                 e.stopPropagation();
-                handleEditMaterial(row);
+                handleEdit(row);
               }}
             >
               <Edit className="icon-sm" aria-hidden="true" />
-              Edit Material
+              Edit
             </DropdownMenuItem>
             <DropdownMenuItem
               className="dropdown-item-danger"
               onClick={(e) => {
                 e.stopPropagation();
-                handleDeleteMaterial(row.id, row.name);
+                handleDelete(row);
               }}
             >
               <Trash className="icon-sm" aria-hidden="true" />
-              Delete Material
+              Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       ),
+    });
+
+    return cols;
+  }, [activeHierarchy, getParentName, handleDelete, handleEdit]);
+
+  // DataTable filters
+  const filters: DataTableFilter[] = [
+    {
+      key: "search",
+      label: `Search ${activeHierarchy?.label.toLowerCase() || "items"}`,
+      type: "search",
+      placeholder: "Search by name or description...",
     },
   ];
 
-  // DataTable filters configuration
-  const filters: DataTableFilter[] = [
-    {
-      key: 'search',
-      label: 'Search materials',
-      type: 'search',
-      placeholder: 'Search by name, code, or type...',
-    },
-    {
-      key: 'category',
-      label: 'Category',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Categories' },
-        ...(materialCategories as MaterialCategory[]).map(cat => ({ value: cat.id, label: cat.name })),
-      ],
-    },
-  ];
+  // Update active sub-tab when active tab changes
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    const category = materialCategories.find((cat) => cat.key === value);
+    if (category) {
+      setActiveSubTab(category.hierarchy[0].key);
+    }
+  };
 
   return (
     <div className="page-container">
-      {/* Page Header */}
       <PageHeader
-        title="Materials"
-        subtitle="Manage your material inventory and specifications"
+        title="Materials Management"
+        subtitle="Manage all material options and their cascading relationships for order configuration"
         actions={[
           {
-            label: 'New Material',
-            icon: Plus,
-            onClick: () => {
-              setSelectedCollectionIds([]);
-              setIsCreateDialogOpen(true);
-            },
+            label: "Refresh Data",
+            icon: RefreshCw,
+            onClick: () => refetchCurrentData(),
           },
         ]}
       />
 
-      {/* Create Material Dialog */}
+      <div className="card">
+        <Tabs value={activeTab} onValueChange={handleTabChange}>
+          {/* Main material type tabs */}
+          <TabsList className="materials-tabs">
+            {materialCategories.map((category) => {
+              const Icon = category.icon;
+              return (
+                <TabsTrigger key={category.key} value={category.key} className="material-tab">
+                  <Icon className="icon-sm" />
+                  <span>{category.label}</span>
+                </TabsTrigger>
+              );
+            })}
+          </TabsList>
+
+          {materialCategories.map((category) => (
+            <TabsContent key={category.key} value={category.key} className="space-y-4">
+              {/* Sub-tabs for hierarchy levels */}
+              {category.hierarchy.length > 1 && (
+                <div className="material-subtabs">
+                  {category.hierarchy.map((level, index) => (
+                    <Button
+                      key={level.key}
+                      variant={activeSubTab === level.key ? "default" : "ghost"}
+                      size="sm"
+                      onClick={() => setActiveSubTab(level.key)}
+                      className="material-subtab-btn"
+                    >
+                      {index > 0 && <span className="text-muted mx-1">→</span>}
+                      {level.label}
+                    </Button>
+                  ))}
+                </div>
+              )}
+
+              {/* Hierarchy breadcrumb */}
+              <div className="hierarchy-breadcrumb">
+                <category.icon className="icon-sm text-primary" />
+                <span className="text-sm text-secondary">{category.description}</span>
+              </div>
+
+              {/* Add button */}
+              <div className="flex justify-end">
+                <Button
+                  onClick={() => {
+                    setEditingItem(null);
+                    setIsCreateDialogOpen(true);
+                  }}
+                >
+                  <Plus className="icon-sm" />
+                  Add {activeHierarchy?.label.slice(0, -1)}
+                </Button>
+              </div>
+
+              {/* DataTable */}
+              {isLoading ? (
+                <LoadingState message={`Loading ${activeHierarchy?.label.toLowerCase()}...`} size="lg" />
+              ) : !currentData || currentData.length === 0 ? (
+                <EmptyState
+                  icon={category.icon}
+                  title={`No ${activeHierarchy?.label.toLowerCase()} found`}
+                  description={`Start by adding your first ${activeHierarchy?.label.toLowerCase().slice(0, -1)}.`}
+                  action={{
+                    label: `Add First ${activeHierarchy?.label.slice(0, -1)}`,
+                    onClick: () => {
+                      setEditingItem(null);
+                      setIsCreateDialogOpen(true);
+                    },
+                    icon: Plus,
+                  }}
+                />
+              ) : (
+                <DataTable
+                  data={currentData as any[]}
+                  columns={columns as any}
+                  filters={filters}
+                  pagination={{ pageSize: 20, showSizeSelector: true }}
+                  emptyState={{
+                    icon: category.icon,
+                    title: `No ${activeHierarchy?.label.toLowerCase()} match your filters`,
+                    description: "Try adjusting your search criteria",
+                  }}
+                />
+              )}
+            </TabsContent>
+          ))}
+        </Tabs>
+      </div>
+
+      {/* Create/Edit Dialog */}
       <FormDialog
         open={isCreateDialogOpen}
-        onOpenChange={setIsCreateDialogOpen}
-        title="Create New Material"
-        description="Add a new material to your inventory."
-        fields={createFormFields}
+        onOpenChange={(open) => {
+          setIsCreateDialogOpen(open);
+          if (!open) setEditingItem(null);
+        }}
+        title={`${editingItem ? "Edit" : "Add New"} ${activeHierarchy?.label.slice(0, -1) || "Item"}`}
+        description={`${editingItem ? "Update" : "Create a new"} ${activeHierarchy?.label.toLowerCase().slice(0, -1) || "item"}.`}
+        fields={formFields}
         onSubmit={async (data) => {
-          const materialCode = data.code as string || generateMaterialCode(data.name as string);
-          await createMaterialMutation.mutateAsync({
+          const payload: any = {
             name: data.name as string,
-            code: materialCode,
-            type: data.type as string || undefined,
             description: data.description as string || undefined,
-            category_id: data.category_id as string,
-            hierarchy_level: 1,
-            active: data.active === 'true',
-            cost_per_unit: data.cost_per_unit ? parseFloat(data.cost_per_unit as string) : undefined,
-            unit_of_measure: data.unit_of_measure as string || undefined,
-            collection_ids: selectedCollectionIds.length > 0 ? selectedCollectionIds : undefined,
-          });
+            price_modifier: data.price_modifier ? parseFloat(data.price_modifier as string) : 0,
+            sort_order: data.sort_order ? parseInt(data.sort_order as string) : undefined,
+          };
+
+          // Add parent ID if applicable
+          if (activeHierarchy?.parent && data[activeHierarchy.parent]) {
+            payload[activeHierarchy.parent] = data[activeHierarchy.parent];
+          }
+
+          // Add hex_code for color items
+          if (activeHierarchy?.hasColors && data.hex_code) {
+            payload.hex_code = data.hex_code as string;
+          }
+
+          // Add complexity_level for carving
+          if (activeSubTab === "carving_styles" && data.complexity_level) {
+            payload.complexity_level = parseInt(data.complexity_level as string);
+          }
+
+          if (editingItem) {
+            payload.id = editingItem.id;
+            await updateMutation?.mutateAsync(payload);
+          } else {
+            await createMutation?.mutateAsync(payload);
+          }
         }}
-        submitLabel="Create Material"
-        isLoading={createMaterialMutation.isPending}
+        submitLabel={editingItem ? "Update" : "Create"}
+        isLoading={createMutation?.isPending || updateMutation?.isPending}
       />
-
-      {/* Edit Material Dialog */}
-      <FormDialog
-        open={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
-        title="Edit Material"
-        description="Update material information and details."
-        fields={editFormFields}
-        onSubmit={async (data) => {
-          await updateMaterialMutation.mutateAsync({
-            id: editMaterialId,
-            name: data.name as string,
-            code: (data.code as string) || selectedMaterial?.code || '',
-            type: data.type ? (data.type as string) : undefined,
-            description: data.description ? (data.description as string) : undefined,
-            category_id: data.category_id as string,
-            active: data.active === 'true',
-            cost_per_unit: data.cost_per_unit ? parseFloat(data.cost_per_unit as string) : undefined,
-            unit_of_measure: data.unit_of_measure ? (data.unit_of_measure as string) : undefined,
-            collection_ids: selectedCollectionIds.length > 0 ? selectedCollectionIds : undefined,
-          });
-        }}
-        submitLabel="Update Material"
-        isLoading={updateMaterialMutation.isPending}
-      />
-
-      {/* Stats */}
-      <StatsGrid stats={stats} columns={3} />
-
-      {/* Materials DataTable */}
-      {materialsLoading ? (
-        <LoadingState message="Loading materials..." size="lg" />
-      ) : !materials || materials.length === 0 ? (
-        <EmptyState
-          icon={Package}
-          title="No materials found"
-          description="Start by adding your first material to your inventory."
-          action={{
-            label: 'Add First Material',
-            onClick: () => {
-              setSelectedCollectionIds([]);
-              setIsCreateDialogOpen(true);
-            },
-            icon: Plus,
-          }}
-        />
-      ) : (
-        <DataTable
-          data={materials as any[]}
-          columns={columns as any}
-          filters={filters}
-          pagination={{ pageSize: 20, showSizeSelector: true }}
-          emptyState={{
-            icon: Package,
-            title: 'No materials match your filters',
-            description: 'Try adjusting your search or filter criteria',
-          }}
-        />
-      )}
     </div>
   );
 }

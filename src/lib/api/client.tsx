@@ -33,9 +33,21 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
  api.createClient({
  links: [
  loggerLink({
- enabled: (opts) =>
- process.env.NODE_ENV === 'development' ||
- (opts.direction === 'down' && opts.result instanceof Error),
+ enabled: (opts) => {
+ // In development, log everything except UNAUTHORIZED errors
+ if (process.env.NODE_ENV === 'development') {
+ if (opts.direction === 'down' && opts.result instanceof Error) {
+ // Suppress UNAUTHORIZED errors to reduce console noise
+ const error = opts.result as any;
+ if (error?.message === 'UNAUTHORIZED' || error?.data?.code === 'UNAUTHORIZED') {
+ return false;
+ }
+ }
+ return true;
+ }
+ // In production, only log errors
+ return opts.direction === 'down' && opts.result instanceof Error;
+ },
  }),
  httpBatchLink({
  url: `${getBaseUrl()}/api/trpc`,

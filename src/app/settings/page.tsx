@@ -18,7 +18,7 @@ import { PageHeader } from "@/components/common";
 export default function SettingsPage() {
   const { toast } = useToast();
   const { data: user } = api.userProfile.getCurrentUser.useQuery();
-  const { data: preferences } = api.userProfile.getPreferences.useQuery();
+  const { data: preferences, isLoading: prefsLoading } = api.userProfile.getPreferences.useQuery();
 
   const userData = user as any;
   const userPrefs = preferences as any;
@@ -179,53 +179,63 @@ export default function SettingsPage() {
               <p className="card-description">Manage how you receive notifications</p>
             </div>
             <div className="card-content">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="email-notifications">Email Notifications</Label>
-                    <div className="text-sm text-muted-foreground">
-                      Receive notifications via email
+              {prefsLoading ? (
+                <div className="text-sm text-muted-foreground">Loading preferences...</div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5 flex-1">
+                      <Label htmlFor="email-notifications">Email Notifications</Label>
+                      <div className="text-sm text-muted-foreground">
+                        Receive notifications via email
+                      </div>
                     </div>
+                    <Button
+                      variant={userPrefs?.notification_email ? "default" : "secondary"}
+                      size="sm"
+                      onClick={() => handleNotificationChange("notification_email", !userPrefs?.notification_email)}
+                      disabled={updatePreferences.isPending}
+                      className="min-w-[90px]"
+                    >
+                      {updatePreferences.isPending ? "..." : userPrefs?.notification_email ? "Enabled" : "Disabled"}
+                    </Button>
                   </div>
-                  <Button
-                    variant={userPrefs?.notification_email ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleNotificationChange("notification_email", !userPrefs?.notification_email)}
-                  >
-                    {userPrefs?.notification_email ? "Enabled" : "Disabled"}
-                  </Button>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="sms-notifications">SMS Notifications</Label>
-                    <div className="text-sm text-muted-foreground">
-                      Receive notifications via SMS
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5 flex-1">
+                      <Label htmlFor="sms-notifications">SMS Notifications</Label>
+                      <div className="text-sm text-muted-foreground">
+                        Receive notifications via SMS
+                      </div>
                     </div>
+                    <Button
+                      variant={userPrefs?.notification_sms ? "default" : "secondary"}
+                      size="sm"
+                      onClick={() => handleNotificationChange("notification_sms", !userPrefs?.notification_sms)}
+                      disabled={updatePreferences.isPending}
+                      className="min-w-[90px]"
+                    >
+                      {updatePreferences.isPending ? "..." : userPrefs?.notification_sms ? "Enabled" : "Disabled"}
+                    </Button>
                   </div>
-                  <Button
-                    variant={userPrefs?.notification_sms ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleNotificationChange("notification_sms", !userPrefs?.notification_sms)}
-                  >
-                    {userPrefs?.notification_sms ? "Enabled" : "Disabled"}
-                  </Button>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="in-app-notifications">In-App Notifications</Label>
-                    <div className="text-sm text-muted-foreground">
-                      Receive notifications in the application
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5 flex-1">
+                      <Label htmlFor="in-app-notifications">In-App Notifications</Label>
+                      <div className="text-sm text-muted-foreground">
+                        Receive notifications in the application
+                      </div>
                     </div>
+                    <Button
+                      variant={userPrefs?.notification_in_app ? "default" : "secondary"}
+                      size="sm"
+                      onClick={() => handleNotificationChange("notification_in_app", !userPrefs?.notification_in_app)}
+                      disabled={updatePreferences.isPending}
+                      className="min-w-[90px]"
+                    >
+                      {updatePreferences.isPending ? "..." : userPrefs?.notification_in_app ? "Enabled" : "Disabled"}
+                    </Button>
                   </div>
-                  <Button
-                    variant={userPrefs?.notification_in_app ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleNotificationChange("notification_in_app", !userPrefs?.notification_in_app)}
-                  >
-                    {userPrefs?.notification_in_app ? "Enabled" : "Disabled"}
-                  </Button>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>

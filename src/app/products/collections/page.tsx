@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Package, Plus, MoreVertical, Eye, Edit, Trash } from "lucide-react";
+import { Package, Plus, MoreVertical, Edit, Trash } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import {
@@ -40,7 +39,6 @@ interface Collection {
 }
 
 export default function CollectionsPage() {
-  const router = useRouter();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editCollectionId, setEditCollectionId] = useState<string>("");
@@ -95,14 +93,20 @@ export default function CollectionsPage() {
   // Form fields for create dialog
   const createFormFields: FormField[] = [
     { name: 'name', label: 'Collection Name', type: 'text', required: true, placeholder: 'e.g., Pacifica Collection' },
+    { name: 'prefix', label: 'Prefix', type: 'text', placeholder: 'e.g., PAC' },
+    { name: 'designer', label: 'Designer', type: 'text', placeholder: 'Designer name' },
     { name: 'description', label: 'Description', type: 'textarea', placeholder: 'Describe this collection...' },
+    { name: 'is_active', label: 'Active', type: 'checkbox', defaultValue: 'true' },
   ];
 
   // Form fields for edit dialog
   const selectedCollection = collections.find((c: Collection) => c.id === editCollectionId);
   const editFormFields: FormField[] = [
     { name: 'name', label: 'Collection Name', type: 'text', required: true, defaultValue: selectedCollection?.name },
+    { name: 'prefix', label: 'Prefix', type: 'text', defaultValue: selectedCollection?.prefix },
+    { name: 'designer', label: 'Designer', type: 'text', defaultValue: selectedCollection?.designer },
     { name: 'description', label: 'Description', type: 'textarea', defaultValue: selectedCollection?.description },
+    { name: 'is_active', label: 'Active', type: 'checkbox', defaultValue: selectedCollection?.is_active !== false ? 'true' : 'false' },
   ];
 
   // Stats configuration
@@ -198,16 +202,6 @@ export default function CollectionsPage() {
               className="dropdown-item"
               onClick={(e) => {
                 e.stopPropagation();
-                router.push(`/products/collections/${row.id}`);
-              }}
-            >
-              <Eye className="icon-sm" aria-hidden="true" />
-              View Details
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="dropdown-item"
-              onClick={(e) => {
-                e.stopPropagation();
                 handleEditCollection(row);
               }}
             >
@@ -265,7 +259,10 @@ export default function CollectionsPage() {
         onSubmit={async (data) => {
           await createMutation.mutateAsync({
             name: data.name as string,
+            prefix: data.prefix as string || undefined,
+            designer: data.designer as string || undefined,
             description: data.description as string || undefined,
+            is_active: data.is_active === 'true',
           });
         }}
         submitLabel="Create Collection"
@@ -283,7 +280,10 @@ export default function CollectionsPage() {
           await updateMutation.mutateAsync({
             id: editCollectionId,
             name: data.name as string,
+            prefix: data.prefix as string || undefined,
+            designer: data.designer as string || undefined,
             description: data.description as string || undefined,
+            is_active: data.is_active === 'true',
           });
         }}
         submitLabel="Update Collection"
@@ -312,7 +312,6 @@ export default function CollectionsPage() {
           data={collections as any[]}
           columns={columns as any}
           filters={filters}
-          onRowClick={(row) => router.push(`/products/collections/${row.id as string}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}
           emptyState={{
             icon: Package,

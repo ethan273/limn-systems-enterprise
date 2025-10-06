@@ -1,11 +1,19 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTheme } from 'next-themes'
+import Image from 'next/image'
 import { Users, Building, ShoppingCart } from 'lucide-react'
 
 export default function LoginPage() {
  const router = useRouter()
+ const { resolvedTheme } = useTheme()
+ const [mounted, setMounted] = useState(false)
+
+ useEffect(() => {
+  setMounted(true)
+ }, [])
 
  const handleUserTypeSelection = (userType: 'employee' | 'contractor' | 'customer' | 'dev') => {
  switch (userType) {
@@ -29,16 +37,18 @@ export default function LoginPage() {
  <div className="min-h-screen flex items-center justify-center p-4">
  <div className="w-full max-w-lg">
  <div className="card border shadow-lg rounded-lg px-8 py-10">
- <div className="mb-8 text-center">
- <div className="mb-6 flex justify-center">
- <div className="text-3xl font-bold text-primary">LIMN</div>
- </div>
- <h1 className="text-3xl font-bold text-primary">
- Welcome to Limn Systems
- </h1>
- <p className="text-muted-foreground mt-2">
- Please select your account type to continue
- </p>
+ <div className="mb-8 flex justify-center">
+ {mounted ? (
+ <Image
+ src={resolvedTheme === 'dark' ? '/images/Limn_Logo_Light_Mode.png' : '/images/Limn_Logo_Dark_Mode.png'}
+ alt="Limn Systems"
+ width={180}
+ height={50}
+ priority
+ />
+ ) : (
+ <div style={{ width: 180, height: 50 }} />
+ )}
  </div>
 
  <div className="space-y-4">

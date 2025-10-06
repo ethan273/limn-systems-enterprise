@@ -6,15 +6,23 @@ import { createBrowserClient } from '@supabase/ssr'
 import { ArrowLeft, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { useTheme } from 'next-themes'
+import Image from 'next/image'
 
 export default function EmployeeLoginPage() {
  const [loading, setLoading] = useState(false)
  const [error, setError] = useState('')
  const router = useRouter()
+ const { resolvedTheme } = useTheme()
+ const [mounted, setMounted] = useState(false)
  const supabase = createBrowserClient(
  process.env.NEXT_PUBLIC_SUPABASE_URL!,
  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
  )
+
+ useEffect(() => {
+ setMounted(true)
+ }, [])
 
  const checkForOAuthErrors = () => {
  const urlParams = new URLSearchParams(window.location.search)
@@ -118,7 +126,17 @@ export default function EmployeeLoginPage() {
 
  <div className="text-center">
  <div className="mb-6 flex justify-center">
- <div className="text-3xl font-bold text-primary">LIMN</div>
+ {mounted ? (
+ <Image
+ src={resolvedTheme === 'dark' ? '/images/Limn_Logo_Light_Mode.png' : '/images/Limn_Logo_Dark_Mode.png'}
+ alt="Limn Systems"
+ width={180}
+ height={50}
+ priority
+ />
+ ) : (
+ <div style={{ width: 180, height: 50 }} />
+ )}
  </div>
  <h1 className="text-3xl font-bold text-primary">
  Employee Login

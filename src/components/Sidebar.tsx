@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import {
@@ -40,6 +40,7 @@ interface NavModule {
 
 export default function Sidebar() {
  const pathname = usePathname();
+ const router = useRouter();
  const { resolvedTheme } = useTheme();
  const [isOpen, setIsOpen] = useState(false);
  const [mounted, setMounted] = useState(false);
@@ -273,7 +274,7 @@ export default function Sidebar() {
  <div className="sidebar-logo-container">
  {mounted ? (
  <Image
- src={resolvedTheme === 'dark' ? '/images/Limn_Logo_Dark_Mode.png' : '/images/Limn_Logo_Light_Mode.png'}
+ src={resolvedTheme === 'dark' ? '/images/Limn_Logo_Light_Mode.png' : '/images/Limn_Logo_Dark_Mode.png'}
  alt="Limn Systems"
  width={180}
  height={50}
@@ -284,7 +285,6 @@ export default function Sidebar() {
  <div className="sidebar-logo-image" style={{ width: 180, height: 50 }} />
  )}
  </div>
- <p className="sidebar-subtitle">Enterprise Dashboard</p>
  </div>
 
  {/* Navigation */}
@@ -352,7 +352,22 @@ export default function Sidebar() {
 
  {/* User Section */}
  <div className="sidebar-user-section">
- <div className="user-profile">
+ <div
+ className="user-profile"
+ onClick={() => {
+ router.push('/settings');
+ setIsOpen(false);
+ }}
+ role="button"
+ tabIndex={0}
+ onKeyDown={(e) => {
+ if (e.key === 'Enter' || e.key === ' ') {
+ router.push('/settings');
+ setIsOpen(false);
+ }
+ }}
+ aria-label="Open settings"
+ >
  <div className="user-avatar">
  JD
  </div>

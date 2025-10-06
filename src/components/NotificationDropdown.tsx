@@ -18,7 +18,11 @@ export default function NotificationDropdown() {
   const queryClient = useQueryClient();
 
   // Get unread count for badge
-  const { data: unreadData } = api.notifications.getUnreadCount.useQuery();
+  const { data: unreadData } = api.notifications.getUnreadCount.useQuery(undefined, {
+    retry: false,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  });
 
   // Get notifications with pagination
   const {
@@ -29,6 +33,9 @@ export default function NotificationDropdown() {
     { limit: 20 },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
+      retry: false,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
     }
   );
 

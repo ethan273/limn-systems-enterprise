@@ -402,6 +402,7 @@ body {
 
 .sidebar-nav {
   padding: 1rem;
+  padding-bottom: 6rem; /* Space for user section */
   overflow-y: auto;
   height: calc(100vh - 200px);
 }
@@ -413,6 +414,8 @@ body {
   right: 0;
   padding: 1rem;
   border-top: 1px solid hsl(var(--border));
+  background: hsl(var(--background));
+  z-index: 10;
 }
 
 /* Mobile Overlay */
@@ -7171,5 +7174,114 @@ button.bg-primary {
   .breadcrumb-home-icon {
     width: 1rem;
     height: 1rem;
+  }
+}
+
+/* ============================================
+   MATERIALS MANAGEMENT STYLES
+   ============================================ */
+
+/* Materials Tabs Container */
+.materials-tabs {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  background: transparent;
+  padding: 0;
+  height: auto;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+/* Material Tab */
+.material-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  transition: all 0.2s ease-in-out;
+}
+
+.material-tab:hover {
+  color: hsl(var(--foreground));
+  background: hsl(var(--accent));
+}
+
+.material-tab[data-state="active"] {
+  color: hsl(var(--primary));
+  background: transparent;
+  border-bottom-color: hsl(var(--primary));
+}
+
+/* Material Sub-tabs Container */
+.material-subtabs {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 1rem 1.5rem 0;
+  border-bottom: 1px solid hsl(var(--border) / 0.3);
+}
+
+/* Material Sub-tab Button */
+.material-subtab-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  height: 2rem;
+  padding: 0 0.75rem;
+  font-size: 0.875rem;
+}
+
+/* Hierarchy Breadcrumb */
+.hierarchy-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem 0;
+}
+
+/* Color Swatch */
+.color-swatch {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid hsl(var(--border));
+  flex-shrink: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .materials-tabs {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .material-tab {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .material-subtabs {
+    padding: 0.75rem 1rem 0;
+  }
+
+  .hierarchy-breadcrumb {
+    padding: 0.75rem 1rem 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .materials-tabs {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .material-tab {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.5rem;
+    flex-direction: column;
+    gap: 0.25rem;
   }
 }

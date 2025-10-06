@@ -8,6 +8,7 @@ import { crmRouter } from './routers/crm';
 import { clientsRouter } from './routers/clients';
 import { projectsRouter } from './routers/projects';
 import { collectionsRouter, itemsRouter, materialsRouter } from './routers/catalog';
+import { materialTypesRouter } from './routers/materials';
 import { productsRouter } from './routers/products';
 import { ordersRouter } from './routers/orders';
 import { orderItemsRouter } from './routers/order-items';
@@ -76,6 +77,7 @@ export const appRouter = createTRPCRouter({
   collections: collectionsRouter,
   items: itemsRouter,
   materials: materialsRouter,
+  materialTypes: materialTypesRouter,
   products: productsRouter,
 
   // Orders

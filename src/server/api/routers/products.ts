@@ -110,17 +110,22 @@ export const productsRouter = createTRPCRouter({
       z.object({
         name: z.string().min(1),
         description: z.string().optional(),
+        prefix: z.string().optional(),
+        designer: z.string().optional(),
+        is_active: z.boolean().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // Auto-generate unique prefix
-      const autoPrefix = await generateUniquePrefix(ctx.db, input.name);
+      // Auto-generate unique prefix if not provided
+      const finalPrefix = input.prefix || await generateUniquePrefix(ctx.db, input.name);
 
       return await (ctx.db as any).collections.create({
         data: {
           name: input.name,
           description: input.description,
-          prefix: autoPrefix,
+          prefix: finalPrefix,
+          designer: input.designer,
+          is_active: input.is_active ?? true,
         },
       });
     }),
@@ -132,6 +137,9 @@ export const productsRouter = createTRPCRouter({
         id: z.string(),
         name: z.string().min(1),
         description: z.string().optional(),
+        prefix: z.string().optional(),
+        designer: z.string().optional(),
+        is_active: z.boolean().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -140,6 +148,9 @@ export const productsRouter = createTRPCRouter({
         data: {
           name: input.name,
           description: input.description,
+          prefix: input.prefix,
+          designer: input.designer,
+          is_active: input.is_active,
         },
       });
     }),

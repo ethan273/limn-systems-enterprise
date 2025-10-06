@@ -89,7 +89,7 @@ export default function TaskDetailPage({ params }: PageProps) {
   const { id } = use(params);
   const router = useRouter();
   const { user } = useAuth();
-    const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("overview");
 
   const { data: task, isLoading, error, refetch } = api.tasks.getFullDetails.useQuery(
     { id: id },

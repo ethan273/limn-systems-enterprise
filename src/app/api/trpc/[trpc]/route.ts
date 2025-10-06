@@ -26,9 +26,12 @@ const handler = (req: NextRequest) =>
     onError:
       process.env.NODE_ENV === 'development'
         ? ({ path, error }) => {
-            console.error(
-              `❌ tRPC failed on ${path ?? '<no-path>'}: ${error.message}`
-            );
+            // Suppress expected UNAUTHORIZED errors to reduce console noise
+            if (error.code !== 'UNAUTHORIZED' && error.message !== 'UNAUTHORIZED') {
+              console.error(
+                `❌ tRPC failed on ${path ?? '<no-path>'}: ${error.message}`
+              );
+            }
           }
         : undefined,
   });

@@ -15,7 +15,11 @@ import Image from "next/image";
 
 export default function UserProfileDropdown() {
   const router = useRouter();
-  const { data: user } = api.userProfile.getCurrentUser.useQuery();
+  const { data: user } = api.userProfile.getCurrentUser.useQuery(undefined, {
+    retry: false,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  });
   const userData = user as any;
   const supabase = getSupabaseBrowserClient();
 
