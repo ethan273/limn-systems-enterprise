@@ -1,12 +1,11 @@
 "use client";
 
 import React, { use, useState } from "react";
-import { useRouter} from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
 import type { orders } from "@prisma/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,11 +16,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { EntityDetailHeader } from "@/components/common/EntityDetailHeader";
+import { InfoCard } from "@/components/common/InfoCard";
+import { StatusBadge } from "@/components/common/StatusBadge";
+import { EmptyState } from "@/components/common/EmptyState";
+import { LoadingState } from "@/components/common/LoadingState";
 import {
   User,
   Mail,
   Phone,
-  Building2,
   MapPin,
   Calendar,
   Activity,
@@ -59,7 +62,7 @@ export default function CustomerDetailPage({ params }: PageProps) {
   if (isLoading) {
     return (
       <div className="page-container">
-        <div className="loading-state">Loading customer details...</div>
+        <LoadingState message="Loading customer details..." size="md" />
       </div>
     );
   }
@@ -67,23 +70,22 @@ export default function CustomerDetailPage({ params }: PageProps) {
   if (error || !data) {
     return (
       <div className="page-container">
-        <div className="empty-state">
-          <AlertCircle className="empty-state-icon" aria-hidden="true" />
-          <h3 className="empty-state-title">Customer Not Found</h3>
-          <p className="empty-state-description">
-            The customer you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to view it.
-          </p>
-          <Button onClick={() => router.push("/crm/customers")} className="btn-primary">
-            <ArrowLeft className="icon-sm" aria-hidden="true" />
-            Back to Customers
-          </Button>
-        </div>
+        <EmptyState
+          icon={AlertCircle}
+          title="Customer Not Found"
+          description="The customer you're looking for doesn't exist or you don't have permission to view it."
+          action={{
+            label: 'Back to Customers',
+            onClick: () => router.push("/crm/customers"),
+            icon: ArrowLeft,
+          }}
+        />
       </div>
     );
   }
 
   const { customer: customerData, projects, productionOrders, activities, payments, analytics } = data;
-  const customer = customerData as any; // Cast to any due to db wrapper losing Prisma type information
+  const customer = customerData as any;
 
   return (
     <div className="page-container">
@@ -99,79 +101,31 @@ export default function CustomerDetailPage({ params }: PageProps) {
         </Button>
       </div>
 
-      {/* Customer Info Card */}
-      <Card className="detail-header-card">
-        <CardContent>
-          <div className="detail-header">
-            <div className="detail-avatar">
-              <User className="detail-avatar-icon" aria-hidden="true" />
-            </div>
-            <div className="detail-info">
-              <h1 className="detail-title">{customer.name || customer.company_name || "Unnamed Customer"}</h1>
-              <div className="detail-meta">
-                {customer.company_name && customer.name && (
-                  <span className="detail-meta-item">
-                    <Building2 className="icon-sm" aria-hidden="true" />
-                    {customer.company_name}
-                  </span>
-                )}
-                <Badge
-                  variant="outline"
-                  className={
-                    customer.status === "active"
-                      ? "status-completed"
-                      : customer.status === "inactive"
-                      ? "status-cancelled"
-                      : "badge-neutral"
-                  }
-                >
-                  {customer.status || "unknown"}
-                </Badge>
-                {customer.type && (
-                  <Badge variant="outline" className="badge-neutral">
-                    {customer.type}
-                  </Badge>
-                )}
-              </div>
-              <div className="detail-contact-info">
-                {customer.email && (
-                  <a href={`mailto:${customer.email}`} className="detail-contact-link">
-                    <Mail className="icon-sm" aria-hidden="true" />
-                    {customer.email}
-                  </a>
-                )}
-                {customer.phone && (
-                  <a href={`tel:${customer.phone}`} className="detail-contact-link">
-                    <Phone className="icon-sm" aria-hidden="true" />
-                    {customer.phone}
-                  </a>
-                )}
-                {(customer.billing_city || customer.billing_state) && (
-                  <span className="detail-meta-item">
-                    <MapPin className="icon-sm" aria-hidden="true" />
-                    {[customer.billing_city, customer.billing_state].filter(Boolean).join(", ")}
-                  </span>
-                )}
-              </div>
-              {customer.tags && customer.tags.length > 0 && (
-                <div className="tag-list">
-                  {customer.tags.map((tag: string, idx: number) => (
-                    <Badge key={idx} variant="outline" className="badge-neutral">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="detail-actions">
-              <Button className="btn-primary">
-                <Edit className="icon-sm" aria-hidden="true" />
-                Edit Customer
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Customer Header */}
+      <EntityDetailHeader
+        icon={User}
+        title={customer.name || customer.company_name || "Unnamed Customer"}
+        subtitle={customer.company_name && customer.name ? customer.company_name : undefined}
+        status={customer.status}
+        statusType={customer.status === "active" ? "active" : "inactive"}
+        metadata={[
+          ...(customer.email ? [{ icon: Mail, value: customer.email, type: 'email' as const }] : []),
+          ...(customer.phone ? [{ icon: Phone, value: customer.phone, type: 'phone' as const }] : []),
+          ...(customer.billing_city || customer.billing_state ? [{
+            icon: MapPin,
+            value: [customer.billing_city, customer.billing_state].filter(Boolean).join(", "),
+            type: 'text' as const
+          }] : []),
+        ]}
+        tags={customer.tags || []}
+        actions={[
+          {
+            label: 'Edit Customer',
+            icon: Edit,
+            onClick: () => router.push(`/crm/customers/${id}/edit`),
+          },
+        ]}
+      />
 
       {/* Financial Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -251,65 +205,40 @@ export default function CustomerDetailPage({ params }: PageProps) {
 
         {/* Overview Tab */}
         <TabsContent value="overview">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Customer Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Customer Information</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <dl className="detail-list">
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Email</dt>
-                    <dd className="detail-list-value">{customer.email || "—"}</dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Phone</dt>
-                    <dd className="detail-list-value">{customer.phone || "—"}</dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Company</dt>
-                    <dd className="detail-list-value">{customer.company_name || customer.company || "—"}</dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Type</dt>
-                    <dd className="detail-list-value">{customer.type || "—"}</dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Status</dt>
-                    <dd className="detail-list-value">{customer.status || "—"}</dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Credit Limit</dt>
-                    <dd className="detail-list-value">
-                      {customer.credit_limit ? `$${Number(customer.credit_limit).toLocaleString()}` : "—"}
-                    </dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Portal Access</dt>
-                    <dd className="detail-list-value">{customer.portal_access ? "Enabled" : "Disabled"}</dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Created</dt>
-                    <dd className="detail-list-value">
-                      {customer.created_at
-                        ? format(new Date(customer.created_at), "MMM d, yyyy")
-                        : "—"}
-                    </dd>
-                  </div>
-                </dl>
-              </CardContent>
-            </Card>
+            <InfoCard
+              title="Customer Information"
+              items={[
+                { label: 'Email', value: customer.email || '—', type: 'email' },
+                { label: 'Phone', value: customer.phone || '—', type: 'phone' },
+                { label: 'Company', value: customer.company_name || customer.company || '—' },
+                { label: 'Type', value: customer.type || '—' },
+                { label: 'Status', value: customer.status || '—' },
+                {
+                  label: 'Credit Limit',
+                  value: customer.credit_limit ? `$${Number(customer.credit_limit).toLocaleString()}` : '—'
+                },
+                {
+                  label: 'Portal Access',
+                  value: customer.portal_access ? 'Enabled' : 'Disabled'
+                },
+                {
+                  label: 'Created',
+                  value: customer.created_at
+                    ? format(new Date(customer.created_at), "MMM d, yyyy")
+                    : '—'
+                },
+              ]}
+            />
 
             {/* Address Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Address Information</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="address-section">
-                  <h4 className="address-section-title">Billing Address</h4>
-                  {customer.billing_address_line1 ? (
+            <InfoCard
+              title="Address Information"
+              items={[
+                {
+                  label: 'Billing Address',
+                  value: customer.billing_address_line1 ? (
                     <address className="address-content">
                       {customer.billing_address_line1}
                       {customer.billing_address_line2 && (
@@ -331,11 +260,10 @@ export default function CustomerDetailPage({ params }: PageProps) {
                     </address>
                   ) : (
                     <p className="text-muted">No billing address on file</p>
-                  )}
-                </div>
-                {/* Shipping addresses stored in separate customer_shipping_addresses table */}
-              </CardContent>
-            </Card>
+                  ),
+                },
+              ]}
+            />
           </div>
 
           {/* Analytics Section */}
@@ -403,202 +331,171 @@ export default function CustomerDetailPage({ params }: PageProps) {
         {/* Projects Tab */}
         <TabsContent value="projects">
           {projects.length === 0 ? (
-                <div className="empty-state">
-                  <Briefcase className="empty-state-icon" aria-hidden="true" />
-                  <h3 className="empty-state-title">No Projects</h3>
-                  <p className="empty-state-description">
-                    This customer hasn&apos;t been assigned to any projects yet.
-                  </p>
-                </div>
-              ) : (
-        <div className="data-table-container">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Project Name</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Budget</TableHead>
-                        <TableHead>Start Date</TableHead>
-                        <TableHead>Completion</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {projects.map((project: any) => (
-                        <TableRow
-                          key={project.id}
-                          className="table-row-clickable"
-                          onClick={() => router.push(`/crm/projects/${project.id}`)}
-                        >
-                          <TableCell className="font-medium">{project.name || "Unnamed Project"}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className="badge-neutral">
-                              {project.status || "unknown"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{project.budget ? `$${Number(project.budget).toLocaleString()}` : "—"}</TableCell>
-                          <TableCell>{project.start_date || "—"}</TableCell>
-                          <TableCell>{(project.actual_completion_date ? format(new Date(project.actual_completion_date), "PP") : (project.estimated_completion_date ? format(new Date(project.estimated_completion_date), "PP") : "Pending")) || "—"}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-
+            <EmptyState
+              icon={Briefcase}
+              title="No Projects"
+              description="This customer hasn't been assigned to any projects yet."
+            />
+          ) : (
+            <div className="data-table-container">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Project Name</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Budget</TableHead>
+                    <TableHead>Start Date</TableHead>
+                    <TableHead>Completion</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {projects.map((project: any) => (
+                    <TableRow
+                      key={project.id}
+                      className="table-row-clickable"
+                      onClick={() => router.push(`/crm/projects/${project.id}`)}
+                    >
+                      <TableCell className="font-medium">{project.name || "Unnamed Project"}</TableCell>
+                      <TableCell>
+                        <StatusBadge status={project.status || "unknown"} />
+                      </TableCell>
+                      <TableCell>{project.budget ? `$${Number(project.budget).toLocaleString()}` : "—"}</TableCell>
+                      <TableCell>{project.start_date || "—"}</TableCell>
+                      <TableCell>{(project.actual_completion_date ? format(new Date(project.actual_completion_date), "PP") : (project.estimated_completion_date ? format(new Date(project.estimated_completion_date), "PP") : "Pending")) || "—"}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </TabsContent>
 
         {/* Orders Tab */}
         <TabsContent value="orders">
           {!customer.orders || customer.orders.length === 0 ? (
-                <div className="empty-state">
-                  <ShoppingCart className="empty-state-icon" aria-hidden="true" />
-                  <h3 className="empty-state-title">No Orders</h3>
-                  <p className="empty-state-description">
-                    This customer hasn&apos;t placed any orders yet.
-                  </p>
-                </div>
-              ) : (
-        <div className="data-table-container">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Order #</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Total Amount</TableHead>
-                        <TableHead>Order Date</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {customer.orders.map((order: orders) => (
-                        <TableRow
-                          key={order.id}
-                          className="table-row-clickable"
-                          onClick={() => router.push(`/orders/${order.id}`)}
-                        >
-                          <TableCell className="font-medium">{order.order_number}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className="badge-neutral">
-                              {order.status || "unknown"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {order.total_amount ? `$${Number(order.total_amount).toLocaleString()}` : "—"}
-                          </TableCell>
-                          <TableCell>
-                            {order.created_at ? format(new Date(order.created_at), "MMM d, yyyy") : "—"}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-
+            <EmptyState
+              icon={ShoppingCart}
+              title="No Orders"
+              description="This customer hasn't placed any orders yet."
+            />
+          ) : (
+            <div className="data-table-container">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Order #</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Total Amount</TableHead>
+                    <TableHead>Order Date</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {customer.orders.map((order: orders) => (
+                    <TableRow
+                      key={order.id}
+                      className="table-row-clickable"
+                      onClick={() => router.push(`/orders/${order.id}`)}
+                    >
+                      <TableCell className="font-medium">{order.order_number}</TableCell>
+                      <TableCell>
+                        <StatusBadge status={order.status || "unknown"} />
+                      </TableCell>
+                      <TableCell>
+                        {order.total_amount ? `$${Number(order.total_amount).toLocaleString()}` : "—"}
+                      </TableCell>
+                      <TableCell>
+                        {order.created_at ? format(new Date(order.created_at), "MMM d, yyyy") : "—"}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </TabsContent>
 
         {/* Production Orders Tab */}
         <TabsContent value="production">
           {productionOrders.length === 0 ? (
-                <div className="empty-state">
-                  <Package className="empty-state-icon" aria-hidden="true" />
-                  <h3 className="empty-state-title">No Production Orders</h3>
-                  <p className="empty-state-description">
-                    No production orders exist for this customer.
-                  </p>
-                </div>
-              ) : (
-        <div className="data-table-container">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>PO #</TableHead>
-                        <TableHead>Item</TableHead>
-                        <TableHead>Quantity</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Total Cost</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {productionOrders.map((po) => (
-                        <TableRow
-                          key={po.id}
-                          className="table-row-clickable"
-                          onClick={() => router.push(`/production/orders/${po.id}`)}
-                        >
-                          <TableCell className="font-medium">{po.order_number}</TableCell>
-                          <TableCell>{po.item_name}</TableCell>
-                          <TableCell>{po.quantity}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className="badge-neutral">
-                              {po.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>${Number(po.total_cost).toLocaleString()}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-
+            <EmptyState
+              icon={Package}
+              title="No Production Orders"
+              description="No production orders exist for this customer."
+            />
+          ) : (
+            <div className="data-table-container">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>PO #</TableHead>
+                    <TableHead>Item</TableHead>
+                    <TableHead>Quantity</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Total Cost</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {productionOrders.map((po) => (
+                    <TableRow
+                      key={po.id}
+                      className="table-row-clickable"
+                      onClick={() => router.push(`/production/orders/${po.id}`)}
+                    >
+                      <TableCell className="font-medium">{po.order_number}</TableCell>
+                      <TableCell>{po.item_name}</TableCell>
+                      <TableCell>{po.quantity}</TableCell>
+                      <TableCell>
+                        <StatusBadge status={po.status} />
+                      </TableCell>
+                      <TableCell>${Number(po.total_cost).toLocaleString()}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </TabsContent>
 
         {/* Payments Tab */}
         <TabsContent value="payments">
           {payments.length === 0 ? (
-                <div className="empty-state">
-                  <CreditCard className="empty-state-icon" aria-hidden="true" />
-                  <h3 className="empty-state-title">No Payments</h3>
-                  <p className="empty-state-description">
-                    No payments have been recorded for this customer.
-                  </p>
-                </div>
-              ) : (
-        <div className="data-table-container">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Payment #</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Method</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Date</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {payments.map((payment) => (
-                        <TableRow key={payment.id}>
-                          <TableCell className="font-medium">{payment.payment_number || "—"}</TableCell>
-                          <TableCell className="stat-success font-medium">
-                            ${payment.amount ? Number(payment.amount).toLocaleString() : 0}
-                          </TableCell>
-                          <TableCell>{payment.payment_method || "—"}</TableCell>
-                          <TableCell>
-                            <Badge
-                              variant="outline"
-                              className={
-                                payment.status === "completed"
-                                  ? "status-completed"
-                                  : payment.status === "pending"
-                                  ? "status-pending"
-                                  : payment.status === "failed"
-                                  ? "status-cancelled"
-                                  : "badge-neutral"
-                              }
-                            >
-                              {payment.status || "unknown"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {payment.created_at ? format(new Date(payment.created_at), "MMM d, yyyy") : "—"}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-
+            <EmptyState
+              icon={CreditCard}
+              title="No Payments"
+              description="No payments have been recorded for this customer."
+            />
+          ) : (
+            <div className="data-table-container">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Payment #</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Method</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Date</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {payments.map((payment) => (
+                    <TableRow key={payment.id}>
+                      <TableCell className="font-medium">{payment.payment_number || "—"}</TableCell>
+                      <TableCell className="stat-success font-medium">
+                        ${payment.amount ? Number(payment.amount).toLocaleString() : 0}
+                      </TableCell>
+                      <TableCell>{payment.payment_method || "—"}</TableCell>
+                      <TableCell>
+                        <StatusBadge status={payment.status || "unknown"} />
+                      </TableCell>
+                      <TableCell>
+                        {payment.created_at ? format(new Date(payment.created_at), "MMM d, yyyy") : "—"}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </TabsContent>
 
         {/* Activities Tab */}
@@ -609,13 +506,11 @@ export default function CustomerDetailPage({ params }: PageProps) {
             </CardHeader>
             <CardContent className="card-content-compact">
               {activities.length === 0 ? (
-                <div className="empty-state">
-                  <Clock className="empty-state-icon" aria-hidden="true" />
-                  <h3 className="empty-state-title">No Activities Yet</h3>
-                  <p className="empty-state-description">
-                    Activities like calls, emails, and meetings will appear here.
-                  </p>
-                </div>
+                <EmptyState
+                  icon={Clock}
+                  title="No Activities Yet"
+                  description="Activities like calls, emails, and meetings will appear here."
+                />
               ) : (
                 <div className="activity-timeline">
                   {activities.map((activity) => (
@@ -630,18 +525,7 @@ export default function CustomerDetailPage({ params }: PageProps) {
                       <div className="activity-timeline-content">
                         <div className="activity-timeline-header">
                           <h4 className="activity-timeline-title">{activity.title || "Untitled Activity"}</h4>
-                          <Badge
-                            variant="outline"
-                            className={
-                              activity.status === "completed"
-                                ? "status-completed"
-                                : activity.status === "pending"
-                                ? "status-pending"
-                                : "badge-neutral"
-                            }
-                          >
-                            {activity.status || "unknown"}
-                          </Badge>
+                          <StatusBadge status={activity.status || "unknown"} />
                         </div>
                         {activity.type && (
                           <p className="activity-timeline-type">

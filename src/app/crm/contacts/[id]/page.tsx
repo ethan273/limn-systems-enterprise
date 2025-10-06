@@ -1,19 +1,22 @@
 "use client";
 
 import React, { use, useState } from "react";
-import { useRouter} from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { EntityDetailHeader } from "@/components/common/EntityDetailHeader";
+import { InfoCard } from "@/components/common/InfoCard";
+import { StatusBadge } from "@/components/common/StatusBadge";
+import { EmptyState } from "@/components/common/EmptyState";
+import { LoadingState } from "@/components/common/LoadingState";
 import {
   User,
   Mail,
   Phone,
   Building2,
-  Briefcase,
   Calendar,
   Activity,
   ArrowLeft,
@@ -46,7 +49,7 @@ export default function ContactDetailPage({ params }: PageProps) {
   if (isLoading) {
     return (
       <div className="page-container">
-        <div className="loading-state">Loading contact details...</div>
+        <LoadingState message="Loading contact details..." size="md" />
       </div>
     );
   }
@@ -54,17 +57,16 @@ export default function ContactDetailPage({ params }: PageProps) {
   if (error || !data) {
     return (
       <div className="page-container">
-        <div className="empty-state">
-          <AlertCircle className="empty-state-icon" aria-hidden="true" />
-          <h3 className="empty-state-title">Contact Not Found</h3>
-          <p className="empty-state-description">
-            The contact you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to view it.
-          </p>
-          <Button onClick={() => router.push("/crm/contacts")} className="btn-primary">
-            <ArrowLeft className="icon-sm" aria-hidden="true" />
-            Back to Contacts
-          </Button>
-        </div>
+        <EmptyState
+          icon={AlertCircle}
+          title="Contact Not Found"
+          description="The contact you're looking for doesn't exist or you don't have permission to view it."
+          action={{
+            label: 'Back to Contacts',
+            onClick: () => router.push("/crm/contacts"),
+            icon: ArrowLeft,
+          }}
+        />
       </div>
     );
   }
@@ -85,62 +87,25 @@ export default function ContactDetailPage({ params }: PageProps) {
         </Button>
       </div>
 
-      {/* Contact Info Card */}
-      <Card className="detail-header-card">
-        <CardContent>
-          <div className="detail-header">
-            <div className="detail-avatar">
-              <User className="detail-avatar-icon" aria-hidden="true" />
-            </div>
-            <div className="detail-info">
-              <h1 className="detail-title">{contact.name || "Unnamed Contact"}</h1>
-              <div className="detail-meta">
-                {contact.position && (
-                  <span className="detail-meta-item">
-                    <Briefcase className="icon-sm" aria-hidden="true" />
-                    {contact.position}
-                  </span>
-                )}
-                {contact.company && (
-                  <span className="detail-meta-item">
-                    <Building2 className="icon-sm" aria-hidden="true" />
-                    {contact.company}
-                  </span>
-                )}
-              </div>
-              <div className="detail-contact-info">
-                {contact.email && (
-                  <a href={`mailto:${contact.email}`} className="detail-contact-link">
-                    <Mail className="icon-sm" aria-hidden="true" />
-                    {contact.email}
-                  </a>
-                )}
-                {contact.phone && (
-                  <a href={`tel:${contact.phone}`} className="detail-contact-link">
-                    <Phone className="icon-sm" aria-hidden="true" />
-                    {contact.phone}
-                  </a>
-                )}
-              </div>
-              {contact.tags && contact.tags.length > 0 && (
-                <div className="tag-list">
-                  {contact.tags.map((tag, idx) => (
-                    <Badge key={idx} variant="outline" className="badge-neutral">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="detail-actions">
-              <Button className="btn-primary">
-                <Edit className="icon-sm" aria-hidden="true" />
-                Edit Contact
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Contact Header */}
+      <EntityDetailHeader
+        icon={User}
+        title={contact.name || "Unnamed Contact"}
+        subtitle={contact.position}
+        metadata={[
+          ...(contact.company ? [{ icon: Building2, value: contact.company, type: 'text' as const }] : []),
+          ...(contact.email ? [{ icon: Mail, value: contact.email, type: 'email' as const }] : []),
+          ...(contact.phone ? [{ icon: Phone, value: contact.phone, type: 'phone' as const }] : []),
+        ]}
+        tags={contact.tags || []}
+        actions={[
+          {
+            label: 'Edit Contact',
+            icon: Edit,
+            onClick: () => router.push(`/crm/contacts/${id}/edit`),
+          },
+        ]}
+      />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -204,67 +169,45 @@ export default function ContactDetailPage({ params }: PageProps) {
 
         {/* Overview Tab */}
         <TabsContent value="overview">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Contact Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Contact Details</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <dl className="detail-list">
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Email</dt>
-                    <dd className="detail-list-value">{contact.email || "—"}</dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Phone</dt>
-                    <dd className="detail-list-value">{contact.phone || "—"}</dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Company</dt>
-                    <dd className="detail-list-value">{contact.company || "—"}</dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Position</dt>
-                    <dd className="detail-list-value">{contact.position || "—"}</dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Source</dt>
-                    <dd className="detail-list-value">{contact.source || "—"}</dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Created</dt>
-                    <dd className="detail-list-value">
-                      {contact.created_at
-                        ? format(new Date(contact.created_at), "MMM d, yyyy h:mm a")
-                        : "—"}
-                    </dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Last Contacted</dt>
-                    <dd className="detail-list-value">
-                      {analytics.lastContactDate
-                        ? format(new Date(analytics.lastContactDate), "MMM d, yyyy")
-                        : "Never"}
-                    </dd>
-                  </div>
-                </dl>
-              </CardContent>
-            </Card>
+            <InfoCard
+              title="Contact Details"
+              items={[
+                { label: 'Email', value: contact.email || '—', type: 'email' },
+                { label: 'Phone', value: contact.phone || '—', type: 'phone' },
+                { label: 'Company', value: contact.company || '—' },
+                { label: 'Position', value: contact.position || '—' },
+                { label: 'Source', value: contact.source || '—' },
+                {
+                  label: 'Created',
+                  value: contact.created_at
+                    ? format(new Date(contact.created_at), "MMM d, yyyy h:mm a")
+                    : "—"
+                },
+                {
+                  label: 'Last Contacted',
+                  value: analytics.lastContactDate
+                    ? format(new Date(analytics.lastContactDate), "MMM d, yyyy")
+                    : "Never"
+                },
+              ]}
+            />
 
             {/* Notes Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Notes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {contact.notes ? (
-                  <p className="text-muted whitespace-pre-wrap">{contact.notes}</p>
-                ) : (
-                  <p className="text-muted">No notes available</p>
-                )}
-              </CardContent>
-            </Card>
+            <InfoCard
+              title="Notes"
+              items={[
+                {
+                  label: '',
+                  value: contact.notes ? (
+                    <p className="text-muted whitespace-pre-wrap">{contact.notes}</p>
+                  ) : (
+                    <p className="text-muted">No notes available</p>
+                  ),
+                },
+              ]}
+            />
           </div>
         </TabsContent>
 
@@ -276,13 +219,11 @@ export default function ContactDetailPage({ params }: PageProps) {
             </CardHeader>
             <CardContent className="card-content-compact">
               {activities.length === 0 ? (
-                <div className="empty-state">
-                  <Clock className="empty-state-icon" aria-hidden="true" />
-                  <h3 className="empty-state-title">No Activities Yet</h3>
-                  <p className="empty-state-description">
-                    Activities like calls, emails, and meetings will appear here.
-                  </p>
-                </div>
+                <EmptyState
+                  icon={Clock}
+                  title="No Activities Yet"
+                  description="Activities like calls, emails, and meetings will appear here."
+                />
               ) : (
                 <div className="activity-timeline">
                   {activities.map((activity: any) => (
@@ -297,18 +238,7 @@ export default function ContactDetailPage({ params }: PageProps) {
                       <div className="activity-timeline-content">
                         <div className="activity-timeline-header">
                           <h4 className="activity-timeline-title">{activity.title || "Untitled Activity"}</h4>
-                          <Badge
-                            variant="outline"
-                            className={
-                              activity.status === "completed"
-                                ? "status-completed"
-                                : activity.status === "pending"
-                                ? "status-pending"
-                                : "badge-neutral"
-                            }
-                          >
-                            {activity.status || "unknown"}
-                          </Badge>
+                          <StatusBadge status={activity.status || "unknown"} />
                         </div>
                         {activity.type && (
                           <p className="activity-timeline-type">
@@ -345,13 +275,11 @@ export default function ContactDetailPage({ params }: PageProps) {
                   <p className="whitespace-pre-wrap">{contact.notes}</p>
                 </div>
               ) : (
-                <div className="empty-state">
-                  <MessageSquare className="empty-state-icon" aria-hidden="true" />
-                  <h3 className="empty-state-title">No Notes</h3>
-                  <p className="empty-state-description">
-                    Add notes about this contact to keep track of important information.
-                  </p>
-                </div>
+                <EmptyState
+                  icon={MessageSquare}
+                  title="No Notes"
+                  description="Add notes about this contact to keep track of important information."
+                />
               )}
             </CardContent>
           </Card>

@@ -1,18 +1,21 @@
 "use client";
 
 import React, { use, useState } from "react";
-import { useRouter} from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { EntityDetailHeader } from "@/components/common/EntityDetailHeader";
+import { InfoCard } from "@/components/common/InfoCard";
+import { StatusBadge } from "@/components/common/StatusBadge";
+import { EmptyState } from "@/components/common/EmptyState";
+import { LoadingState } from "@/components/common/LoadingState";
 import {
   User,
   Mail,
   Phone,
-  Building2,
   Globe,
   Calendar,
   Activity,
@@ -37,13 +40,6 @@ const pipelineStages = [
   { value: "lost", label: "Lost", color: "status-cancelled" },
 ];
 
-const interestLevels: Record<string, { label: string; className: string }> = {
-  low: { label: "Low Interest", className: "badge-neutral" },
-  medium: { label: "Medium Interest", className: "bg-warning-muted text-warning border-warning" },
-  high: { label: "High Interest", className: "status-completed" },
-  unknown: { label: "Unknown", className: "badge-neutral" },
-};
-
 interface PageProps {
   params: Promise<{ id: string }>;
 }
@@ -62,7 +58,7 @@ export default function LeadDetailPage({ params }: PageProps) {
   if (isLoading) {
     return (
       <div className="page-container">
-        <div className="loading-state">Loading lead details...</div>
+        <LoadingState message="Loading lead details..." size="md" />
       </div>
     );
   }
@@ -70,24 +66,21 @@ export default function LeadDetailPage({ params }: PageProps) {
   if (error || !data) {
     return (
       <div className="page-container">
-        <div className="empty-state">
-          <AlertCircle className="empty-state-icon" aria-hidden="true" />
-          <h3 className="empty-state-title">Lead Not Found</h3>
-          <p className="empty-state-description">
-            The lead you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to view it.
-          </p>
-          <Button onClick={() => router.push("/crm/leads")} className="btn-primary">
-            <ArrowLeft className="icon-sm" aria-hidden="true" />
-            Back to Leads
-          </Button>
-        </div>
+        <EmptyState
+          icon={AlertCircle}
+          title="Lead Not Found"
+          description="The lead you're looking for doesn't exist or you don't have permission to view it."
+          action={{
+            label: 'Back to Leads',
+            onClick: () => router.push("/crm/leads"),
+            icon: ArrowLeft,
+          }}
+        />
       </div>
     );
   }
 
   const { lead, activities, analytics } = data;
-  const currentStage = pipelineStages.find(s => s.value === analytics.currentStage) || pipelineStages[0];
-  const interestLevel = interestLevels[analytics.interestLevel] || interestLevels.unknown;
 
   return (
     <div className="page-container">
@@ -103,68 +96,25 @@ export default function LeadDetailPage({ params }: PageProps) {
         </Button>
       </div>
 
-      {/* Lead Info Card */}
-      <Card className="detail-header-card">
-        <CardContent>
-          <div className="detail-header">
-            <div className="detail-avatar">
-              <User className="detail-avatar-icon" aria-hidden="true" />
-            </div>
-            <div className="detail-info">
-              <h1 className="detail-title">{lead.name || "Unnamed Lead"}</h1>
-              <div className="detail-meta">
-                {lead.company && (
-                  <span className="detail-meta-item">
-                    <Building2 className="icon-sm" aria-hidden="true" />
-                    {lead.company}
-                  </span>
-                )}
-                <Badge variant="outline" className={currentStage.color}>
-                  {currentStage.label}
-                </Badge>
-                <Badge variant="outline" className={interestLevel.className}>
-                  {interestLevel.label}
-                </Badge>
-              </div>
-              <div className="detail-contact-info">
-                {lead.email && (
-                  <a href={`mailto:${lead.email}`} className="detail-contact-link">
-                    <Mail className="icon-sm" aria-hidden="true" />
-                    {lead.email}
-                  </a>
-                )}
-                {lead.phone && (
-                  <a href={`tel:${lead.phone}`} className="detail-contact-link">
-                    <Phone className="icon-sm" aria-hidden="true" />
-                    {lead.phone}
-                  </a>
-                )}
-                {lead.website && (
-                  <a href={lead.website} target="_blank" rel="noopener noreferrer" className="detail-contact-link">
-                    <Globe className="icon-sm" aria-hidden="true" />
-                    {lead.website}
-                  </a>
-                )}
-              </div>
-              {lead.tags && lead.tags.length > 0 && (
-                <div className="tag-list">
-                  {lead.tags.map((tag, idx) => (
-                    <Badge key={idx} variant="outline" className="badge-neutral">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="detail-actions">
-              <Button className="btn-primary">
-                <Edit className="icon-sm" aria-hidden="true" />
-                Edit Lead
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Lead Header */}
+      <EntityDetailHeader
+        icon={User}
+        title={lead.name || "Unnamed Lead"}
+        subtitle={lead.company}
+        metadata={[
+          ...(lead.email ? [{ icon: Mail, value: lead.email, type: 'email' as const }] : []),
+          ...(lead.phone ? [{ icon: Phone, value: lead.phone, type: 'phone' as const }] : []),
+          ...(lead.website ? [{ icon: Globe, value: lead.website, type: 'link' as const, href: lead.website }] : []),
+        ]}
+        tags={lead.tags || []}
+        actions={[
+          {
+            label: 'Edit Lead',
+            icon: Edit,
+            onClick: () => router.push(`/crm/leads/${id}/edit`),
+          },
+        ]}
+      />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -231,7 +181,7 @@ export default function LeadDetailPage({ params }: PageProps) {
                   </div>
                   <div className="pipeline-stage-label">
                     <p className="pipeline-stage-title">{stage.label}</p>
-                    {isActive && <Badge className="badge-primary">Current</Badge>}
+                    {isActive && <span className="badge badge-primary">Current</span>}
                   </div>
                   {idx < pipelineStages.length - 2 && (
                     <div className={`pipeline-stage-connector ${isPassed ? "completed" : "pending"}`} />
@@ -262,75 +212,53 @@ export default function LeadDetailPage({ params }: PageProps) {
 
         {/* Overview Tab */}
         <TabsContent value="overview">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Lead Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Lead Details</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <dl className="detail-list">
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Status</dt>
-                    <dd className="detail-list-value">{lead.status || "—"}</dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Lead Source</dt>
-                    <dd className="detail-list-value">{lead.lead_source || "—"}</dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Contact Method</dt>
-                    <dd className="detail-list-value">{lead.contact_method || "—"}</dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Created</dt>
-                    <dd className="detail-list-value">
-                      {lead.created_at
-                        ? format(new Date(lead.created_at), "MMM d, yyyy h:mm a")
-                        : "—"}
-                    </dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Last Contacted</dt>
-                    <dd className="detail-list-value">
-                      {analytics.lastContactDate
-                        ? format(new Date(analytics.lastContactDate), "MMM d, yyyy")
-                        : "Never"}
-                    </dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Follow-up Date</dt>
-                    <dd className="detail-list-value">
-                      {lead.follow_up_date
-                        ? format(new Date(lead.follow_up_date), "MMM d, yyyy")
-                        : "Not scheduled"}
-                    </dd>
-                  </div>
-                  {lead.converted_at && (
-                    <div className="detail-list-item">
-                      <dt className="detail-list-label">Converted On</dt>
-                      <dd className="detail-list-value">
-                        {format(new Date(lead.converted_at), "MMM d, yyyy")}
-                      </dd>
-                    </div>
-                  )}
-                </dl>
-              </CardContent>
-            </Card>
+            <InfoCard
+              title="Lead Details"
+              items={[
+                { label: 'Status', value: lead.status || '—' },
+                { label: 'Lead Source', value: lead.lead_source || '—' },
+                { label: 'Contact Method', value: lead.contact_method || '—' },
+                {
+                  label: 'Created',
+                  value: lead.created_at
+                    ? format(new Date(lead.created_at), "MMM d, yyyy h:mm a")
+                    : '—'
+                },
+                {
+                  label: 'Last Contacted',
+                  value: analytics.lastContactDate
+                    ? format(new Date(analytics.lastContactDate), "MMM d, yyyy")
+                    : 'Never'
+                },
+                {
+                  label: 'Follow-up Date',
+                  value: lead.follow_up_date
+                    ? format(new Date(lead.follow_up_date), "MMM d, yyyy")
+                    : 'Not scheduled'
+                },
+                ...(lead.converted_at ? [{
+                  label: 'Converted On',
+                  value: format(new Date(lead.converted_at), "MMM d, yyyy")
+                }] : []),
+              ]}
+            />
 
             {/* Notes Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Notes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {lead.notes ? (
-                  <p className="text-muted whitespace-pre-wrap">{lead.notes}</p>
-                ) : (
-                  <p className="text-muted">No notes available</p>
-                )}
-              </CardContent>
-            </Card>
+            <InfoCard
+              title="Notes"
+              items={[
+                {
+                  label: '',
+                  value: lead.notes ? (
+                    <p className="text-muted whitespace-pre-wrap">{lead.notes}</p>
+                  ) : (
+                    <p className="text-muted">No notes available</p>
+                  ),
+                },
+              ]}
+            />
           </div>
         </TabsContent>
 
@@ -342,13 +270,11 @@ export default function LeadDetailPage({ params }: PageProps) {
             </CardHeader>
             <CardContent className="card-content-compact">
               {activities.length === 0 ? (
-                <div className="empty-state">
-                  <Clock className="empty-state-icon" aria-hidden="true" />
-                  <h3 className="empty-state-title">No Activities Yet</h3>
-                  <p className="empty-state-description">
-                    Activities like calls, emails, and meetings will appear here.
-                  </p>
-                </div>
+                <EmptyState
+                  icon={Clock}
+                  title="No Activities Yet"
+                  description="Activities like calls, emails, and meetings will appear here."
+                />
               ) : (
                 <div className="activity-timeline">
                   {activities.map((activity) => (
@@ -363,18 +289,7 @@ export default function LeadDetailPage({ params }: PageProps) {
                       <div className="activity-timeline-content">
                         <div className="activity-timeline-header">
                           <h4 className="activity-timeline-title">{activity.title || "Untitled Activity"}</h4>
-                          <Badge
-                            variant="outline"
-                            className={
-                              activity.status === "completed"
-                                ? "status-completed"
-                                : activity.status === "pending"
-                                ? "status-pending"
-                                : "badge-neutral"
-                            }
-                          >
-                            {activity.status || "unknown"}
-                          </Badge>
+                          <StatusBadge status={activity.status || "unknown"} />
                         </div>
                         {activity.type && (
                           <p className="activity-timeline-type">
@@ -411,13 +326,11 @@ export default function LeadDetailPage({ params }: PageProps) {
                   <p className="whitespace-pre-wrap">{lead.notes}</p>
                 </div>
               ) : (
-                <div className="empty-state">
-                  <MessageSquare className="empty-state-icon" aria-hidden="true" />
-                  <h3 className="empty-state-title">No Notes</h3>
-                  <p className="empty-state-description">
-                    Add notes about this lead to keep track of important information.
-                  </p>
-                </div>
+                <EmptyState
+                  icon={MessageSquare}
+                  title="No Notes"
+                  description="Add notes about this lead to keep track of important information."
+                />
               )}
             </CardContent>
           </Card>
