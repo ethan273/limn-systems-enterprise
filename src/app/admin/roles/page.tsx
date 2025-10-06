@@ -1,0 +1,310 @@
+"use client";
+
+import React, { useState } from "react";
+import { api } from "@/lib/api/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { UserCog, Plus, Trash2, Search } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+
+// Dynamic route configuration
+export const dynamic = 'force-dynamic';
+
+const AVAILABLE_ROLES = [
+  'admin',
+  'super_admin',
+  'manager',
+  'team_lead',
+  'developer',
+  'designer',
+  'analyst',
+  'viewer',
+];
+
+export default function RolesManagementPage() {
+  const [selectedRole, setSelectedRole] = useState<string>('');
+  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [assignData, setAssignData] = useState({
+    userId: '',
+    role: '',
+  });
+
+  // Fetch role statistics
+  const { data: roleStats, refetch: refetchStats } = api.admin.roles.getRoleStats.useQuery();
+
+  // Fetch users by role
+  const { data: roleUsers, refetch: refetchUsers } = api.admin.roles.getUsersByRole.useQuery(
+    { role: selectedRole },
+    { enabled: !!selectedRole }
+  );
+
+  // Fetch all users for assignment
+  const { data: allUsers } = api.admin.users.list.useQuery({
+    search: searchQuery || undefined,
+    limit: 50,
+    offset: 0,
+  });
+
+  // Assign role mutation
+  const assignMutation = api.admin.roles.assignRole.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Role assigned successfully",
+      });
+      refetchStats();
+      refetchUsers();
+      setIsAssignDialogOpen(false);
+      setAssignData({ userId: '', role: '' });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to assign role",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Remove role mutation
+  const removeMutation = api.admin.roles.removeRole.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Role removed successfully",
+      });
+      refetchStats();
+      refetchUsers();
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to remove role",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleAssign = () => {
+    if (!assignData.userId || !assignData.role) {
+      toast({
+        title: "Validation Error",
+        description: "User and role are required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    assignMutation.mutate({
+      userId: assignData.userId,
+      role: assignData.role,
+    });
+  };
+
+  const handleRemove = (userId: string, role: string) => {
+    if (confirm(`Are you sure you want to remove the ${role} role from this user?`)) {
+      removeMutation.mutate({ userId, role });
+    }
+  };
+
+  const displayRole = selectedRole || (roleStats && roleStats.length > 0 ? roleStats[0].role : '');
+
+  return (
+    <div className="container">
+      {/* Header */}
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Role Management</h1>
+          <p className="page-description">
+            Manage user role assignments and permissions
+          </p>
+        </div>
+        <Button onClick={() => setIsAssignDialogOpen(true)}>
+          <Plus className="icon-sm" aria-hidden="true" />
+          Assign Role
+        </Button>
+      </div>
+
+      {/* Role Stats */}
+      <div className="stats-grid">
+        {roleStats?.map((stat) => (
+          <Card key={stat.role}>
+            <CardHeader className="card-header-compact">
+              <div className="card-header-row">
+                <CardTitle className="card-title-sm">{stat.role}</CardTitle>
+                <UserCog className="icon-muted" aria-hidden="true" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="stat-value">{stat.count}</div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSelectedRole(stat.role)}
+                className="mt-2"
+              >
+                View Users
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+        {(!roleStats || roleStats.length === 0) && (
+          <Card>
+            <CardContent className="empty-state">
+              <UserCog className="icon-lg icon-muted" aria-hidden="true" />
+              <p className="empty-state-title">No Roles Assigned</p>
+              <p className="empty-state-description">
+                Start by assigning roles to users
+              </p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* Role Users Table */}
+      {displayRole && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Users with {displayRole} Role</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {roleUsers && roleUsers.length > 0 ? (
+              <div className="table-container">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>User Type</th>
+                      <th>Status</th>
+                      <th>Assigned At</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {roleUsers.map((user) => (
+                      <tr key={user.userId}>
+                        <td>{user.name || '—'}</td>
+                        <td>{user.email}</td>
+                        <td>
+                          <Badge variant="outline" className="badge-neutral">
+                            {user.userType || 'employee'}
+                          </Badge>
+                        </td>
+                        <td>
+                          {user.isActive ? (
+                            <Badge variant="outline" className="badge-success">Active</Badge>
+                          ) : (
+                            <Badge variant="outline" className="badge-neutral">Inactive</Badge>
+                          )}
+                        </td>
+                        <td>
+                          {user.assignedAt ? new Date(user.assignedAt).toLocaleDateString() : '—'}
+                        </td>
+                        <td>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemove(user.userId, displayRole)}
+                          >
+                            <Trash2 className="icon-sm icon-destructive" aria-hidden="true" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="empty-state-sm">No users with this role</div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Assign Role Dialog */}
+      <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Assign Role to User</DialogTitle>
+            <DialogDescription>
+              Select a user and role to assign
+            </DialogDescription>
+          </DialogHeader>
+          <div className="form-container">
+            <div className="form-field">
+              <Label htmlFor="user-search">Search User</Label>
+              <div className="input-group">
+                <Search className="input-icon" aria-hidden="true" />
+                <Input
+                  id="user-search"
+                  placeholder="Search by name or email..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="input-with-icon"
+                />
+              </div>
+            </div>
+            <div className="form-field">
+              <Label htmlFor="user-select">User</Label>
+              <Select value={assignData.userId} onValueChange={(value) => setAssignData({ ...assignData, userId: value })}>
+                <SelectTrigger id="user-select">
+                  <SelectValue placeholder="Select user" />
+                </SelectTrigger>
+                <SelectContent>
+                  {allUsers?.users.map((user) => (
+                    <SelectItem key={user.id} value={user.id}>
+                      {user.name || user.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="form-field">
+              <Label htmlFor="role-select">Role</Label>
+              <Select value={assignData.role} onValueChange={(value) => setAssignData({ ...assignData, role: value })}>
+                <SelectTrigger id="role-select">
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  {AVAILABLE_ROLES.map((role) => (
+                    <SelectItem key={role} value={role}>
+                      {role}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAssignDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAssign} disabled={assignMutation.isPending}>
+              Assign Role
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

@@ -36,6 +36,8 @@ import { dashboardsRouter } from './routers/dashboards';
 import { notificationsRouter } from './routers/notifications';
 import { userProfileRouter } from './routers/user-profile';
 import { adminRouter } from './routers/admin';
+import { auditRouter } from './routers/audit';
+import { exportRouter } from './routers/export';
 
 /**
  * Main API router
@@ -50,6 +52,8 @@ export const appRouter = createTRPCRouter({
 
   // Admin Portal
   admin: adminRouter,
+  audit: auditRouter,
+  export: exportRouter,
 
   // Notifications & User Profile
   notifications: notificationsRouter,

@@ -1522,7 +1522,7 @@ export default function ProjectsPage() {
  try {
  const projectData = {
  name: data.name,
- customer_id: data.client_id, // Map client_id to customer_id for API
+ customer_id: data.client_id || undefined, // Map client_id to customer_id for API, convert empty string to undefined
  description: data.description || undefined,
  status: data.status as 'planning' | 'active' | 'on_hold' | 'completed' | 'cancelled',
  priority: data.priority as 'low' | 'medium' | 'high' | 'urgent',

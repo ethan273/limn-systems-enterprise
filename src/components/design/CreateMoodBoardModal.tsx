@@ -65,7 +65,13 @@ export function CreateMoodBoardModal({ open: _open, onOpenChange, designProjectI
       return;
     }
 
-    await createMutation.mutateAsync(formData);
+    // Convert empty strings to undefined for optional UUID fields
+    const dataToSubmit = {
+      ...formData,
+      design_project_id: formData.design_project_id || undefined,
+    };
+
+    await createMutation.mutateAsync(dataToSubmit);
   };
 
   const handleCancel = () => {

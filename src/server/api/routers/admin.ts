@@ -253,6 +253,48 @@ export const adminRouter = createTRPCRouter({
           userId: updated.id,
         };
       }),
+
+    /**
+     * Create new user (placeholder - requires Supabase Auth integration)
+     */
+    create: protectedProcedure
+      .input(
+        z.object({
+          email: z.string().email(),
+          userType: userTypeSchema,
+          title: z.string().optional(),
+          department: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input: _input }) => {
+        // Note: This is a placeholder implementation
+        // In production, you would:
+        // 1. Use Supabase Admin API to create auth user
+        // 2. Send invitation email
+        // 3. Create user_profiles entry with provided data
+
+        // For now, just throw an error with instructions
+        throw new Error('User creation requires Supabase Admin API integration. Please create users through Supabase Dashboard for now.');
+
+        // Future implementation:
+        // const { data: authUser, error } = await supabase.auth.admin.createUser({
+        //   email: input.email,
+        //   email_confirm: true,
+        // });
+        //
+        // if (error) throw new Error(error.message);
+        //
+        // await prisma.user_profiles.create({
+        //   data: {
+        //     id: authUser.user.id,
+        //     user_type: input.userType as user_type_enum,
+        //     title: input.title,
+        //     department: input.department,
+        //   },
+        // });
+        //
+        // return { success: true, userId: authUser.user.id };
+      }),
   }),
 
   // ==================
@@ -459,5 +501,251 @@ export const adminRouter = createTRPCRouter({
 
         return { success: true };
       }),
+  }),
+
+  // ==================
+  // SYSTEM SETTINGS
+  // ==================
+
+  settings: createTRPCRouter({
+    /**
+     * Get all system settings grouped by category
+     */
+    getAll: protectedProcedure.query(async () => {
+      const settings = await prisma.admin_settings.findMany({
+        orderBy: [{ category: 'asc' }, { key: 'asc' }],
+      });
+
+      // Group by category
+      const grouped = settings.reduce((acc, setting) => {
+        if (!acc[setting.category]) {
+          acc[setting.category] = [];
+        }
+        acc[setting.category].push({
+          id: setting.id,
+          key: setting.key,
+          value: setting.value,
+          updatedAt: setting.updated_at,
+        });
+        return acc;
+      }, {} as Record<string, any[]>);
+
+      return grouped;
+    }),
+
+    /**
+     * Get settings for a specific category
+     */
+    getByCategory: protectedProcedure
+      .input(z.object({ category: z.string() }))
+      .query(async ({ input }) => {
+        const settings = await prisma.admin_settings.findMany({
+          where: { category: input.category },
+          orderBy: { key: 'asc' },
+        });
+
+        return settings.map((s) => ({
+          id: s.id,
+          key: s.key,
+          value: s.value,
+          updatedAt: s.updated_at,
+        }));
+      }),
+
+    /**
+     * Update a single setting
+     */
+    update: protectedProcedure
+      .input(
+        z.object({
+          category: z.string(),
+          key: z.string(),
+          value: z.any(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { category, key, value } = input;
+
+        await prisma.admin_settings.upsert({
+          where: {
+            category_key: {
+              category,
+              key,
+            },
+          },
+          update: {
+            value,
+            updated_at: new Date(),
+          },
+          create: {
+            category,
+            key,
+            value,
+          },
+        });
+
+        return { success: true };
+      }),
+
+    /**
+     * Delete a setting
+     */
+    delete: protectedProcedure
+      .input(
+        z.object({
+          category: z.string(),
+          key: z.string(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        await prisma.admin_settings.delete({
+          where: {
+            category_key: {
+              category: input.category,
+              key: input.key,
+            },
+          },
+        });
+
+        return { success: true };
+      }),
+  }),
+
+  // ==================
+  // ROLE MANAGEMENT
+  // ==================
+
+  roles: createTRPCRouter({
+    /**
+     * Get all roles for a user
+     */
+    getUserRoles: protectedProcedure
+      .input(z.object({ userId: z.string().uuid() }))
+      .query(async ({ input }) => {
+        const roles = await prisma.user_roles.findMany({
+          where: { user_id: input.userId },
+          orderBy: { created_at: 'desc' },
+        });
+
+        return roles.map((r) => ({
+          id: r.id,
+          role: r.role,
+          createdAt: r.created_at,
+          updatedAt: r.updated_at,
+        }));
+      }),
+
+    /**
+     * Assign a role to a user
+     */
+    assignRole: protectedProcedure
+      .input(
+        z.object({
+          userId: z.string().uuid(),
+          role: z.string(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { userId, role } = input;
+
+        await prisma.user_roles.create({
+          data: {
+            user_id: userId,
+            role,
+          },
+        });
+
+        return { success: true };
+      }),
+
+    /**
+     * Remove a role from a user
+     */
+    removeRole: protectedProcedure
+      .input(
+        z.object({
+          userId: z.string().uuid(),
+          role: z.string(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { userId, role } = input;
+
+        await prisma.user_roles.deleteMany({
+          where: {
+            user_id: userId,
+            role,
+          },
+        });
+
+        return { success: true };
+      }),
+
+    /**
+     * Get all users with a specific role
+     */
+    getUsersByRole: protectedProcedure
+      .input(z.object({ role: z.string() }))
+      .query(async ({ input }) => {
+        const userRoles = await prisma.user_roles.findMany({
+          where: { role: input.role },
+          include: {
+            users: {
+              select: {
+                id: true,
+                email: true,
+              },
+            },
+          },
+        });
+
+        // Get profiles for these users
+        const userIds = userRoles.map((ur) => ur.user_id).filter((id): id is string => id !== null);
+        const profiles = await prisma.user_profiles.findMany({
+          where: { id: { in: userIds } },
+          select: {
+            id: true,
+            name: true,
+            user_type: true,
+            is_active: true,
+          },
+        });
+
+        const profileMap = new Map(profiles.map((p) => [p.id, p]));
+
+        return userRoles
+          .filter((ur) => ur.user_id)
+          .map((ur) => {
+            const profile = ur.user_id ? profileMap.get(ur.user_id) : undefined;
+            return {
+              userId: ur.user_id!,
+              email: ur.users?.email || '',
+              name: profile?.name,
+              userType: profile?.user_type,
+              isActive: profile?.is_active,
+              assignedAt: ur.created_at,
+            };
+          });
+      }),
+
+    /**
+     * Get role statistics
+     */
+    getRoleStats: protectedProcedure.query(async () => {
+      const roles = await prisma.user_roles.groupBy({
+        by: ['role'],
+        _count: true,
+        orderBy: {
+          _count: {
+            role: 'desc',
+          },
+        },
+      });
+
+      return roles.map((r) => ({
+        role: r.role,
+        count: r._count,
+      }));
+    }),
   }),
 });

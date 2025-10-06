@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use }, { useState } from "react";
+import React, { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
@@ -341,15 +341,15 @@ export default function QCInspectionDetailPage({ params }: PageProps) {
  </TabsContent>
 
  <TabsContent value="defects">
- <QCDefectsList id={id} defects={inspection.qc_defects || []} onUpdate={refetch} />
+ <QCDefectsList inspectionId={id} defects={inspection.qc_defects || []} onUpdate={refetch} />
  </TabsContent>
 
  <TabsContent value="photos">
- <QCPhotoGallery id={id} photos={inspection.qc_photos || []} onUpdate={refetch} />
+ <QCPhotoGallery inspectionId={id} photos={inspection.qc_photos || []} onUpdate={refetch} />
  </TabsContent>
 
  <TabsContent value="checkpoints">
- <QCCheckpointsList id={id} onUpdate={refetch} />
+ <QCCheckpointsList inspectionId={id} onUpdate={refetch} />
  </TabsContent>
  </Tabs>
  </div>

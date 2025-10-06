@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use }, { useState } from "react";
+import React, { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
@@ -92,13 +92,13 @@ export default function OrderDetailPage({ params }: PageProps) {
 
  // Fetch order details
  const { data: order, isLoading } = api.portal.getOrderById.useQuery(
- { id },
+ { orderId: id },
  { enabled: !!id }
  );
 
  // Fetch shipments
  const { data: shipments } = api.portal.getOrderShipments.useQuery(
- { id },
+ { orderId: id },
  { enabled: !!id }
  );
 

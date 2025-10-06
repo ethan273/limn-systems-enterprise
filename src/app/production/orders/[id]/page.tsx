@@ -146,7 +146,7 @@ export default function ProductionOrderDetailPage({ params }: PageProps) {
 
  // Packing jobs query
  const { data: packingJobsData, refetch: refetchPackingJobs } = api.packing.getAllJobs.useQuery({
- id: order?.order_id,
+ orderId: order?.order_id,
  limit: 50,
  offset: 0,
  }, { enabled: !!order?.order_id });

@@ -365,7 +365,7 @@ export default function TaskDetailPage({ params }: PageProps) {
                       <span className="text-sm font-medium">Assigned Users</span>
                     </div>
                     <TaskAssignedUsers
-                      id={task.id}
+                      taskId={task.id}
                       assignedUsers={task.assigned_to || []}
                       onUpdate={handleTaskUpdate}
                     />
@@ -381,7 +381,7 @@ export default function TaskDetailPage({ params }: PageProps) {
               </CardHeader>
               <CardContent>
                 <TaskTimeTracking
-                  id={task.id}
+                  taskId={task.id}
                   onUpdate={handleTaskUpdate}
                 />
               </CardContent>
@@ -397,7 +397,7 @@ export default function TaskDetailPage({ params }: PageProps) {
             </CardHeader>
             <CardContent>
               <TaskAttachments
-                id={task.id}
+                taskId={task.id}
                 onUpdate={handleTaskUpdate}
               />
             </CardContent>
@@ -412,7 +412,7 @@ export default function TaskDetailPage({ params }: PageProps) {
             </CardHeader>
             <CardContent>
               <TaskActivities
-                id={task.id}
+                taskId={task.id}
                 onUpdate={handleTaskUpdate}
               />
             </CardContent>
@@ -427,7 +427,7 @@ export default function TaskDetailPage({ params }: PageProps) {
             </CardHeader>
             <CardContent>
               <TaskEntityLinks
-                id={task.id}
+                taskId={task.id}
                 onUpdate={handleTaskUpdate}
               />
             </CardContent>
@@ -446,7 +446,7 @@ export default function TaskDetailPage({ params }: PageProps) {
               </CardHeader>
               <CardContent>
                 <TaskTimeTracking
-                  id={task.id}
+                  taskId={task.id}
                   onUpdate={handleTaskUpdate}
                 />
               </CardContent>
@@ -461,7 +461,7 @@ export default function TaskDetailPage({ params }: PageProps) {
               </CardHeader>
               <CardContent>
                 <TaskDependencies
-                  id={task.id}
+                  taskId={task.id}
                   onUpdate={handleTaskUpdate}
                 />
               </CardContent>

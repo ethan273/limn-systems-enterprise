@@ -1,0 +1,424 @@
+/**
+ * Audit Router - Activity & Security Logging
+ *
+ * Provides endpoints for:
+ * - Admin activity logs
+ * - Security audit logs
+ * - SSO login audit logs
+ * - System-wide activity tracking
+ */
+
+import { z } from 'zod';
+import { createTRPCRouter, protectedProcedure } from '../trpc/init';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+// ============================================
+// INPUT SCHEMAS
+// ============================================
+
+// Log type schema for future use
+// const logTypeSchema = z.enum(['admin', 'security', 'login', 'all']);
+
+const actionFilterSchema = z.string().optional();
+
+const dateRangeSchema = z.object({
+  from: z.date().optional(),
+  to: z.date().optional(),
+});
+
+// ============================================
+// AUDIT ROUTER
+// ============================================
+
+export const auditRouter = createTRPCRouter({
+  // ==================
+  // ACTIVITY LOGS
+  // ==================
+
+  /**
+   * Get admin activity logs with filtering and pagination
+   */
+  getAdminLogs: protectedProcedure
+    .input(
+      z.object({
+        search: z.string().optional(),
+        action: actionFilterSchema,
+        userId: z.string().uuid().optional(),
+        resourceType: z.string().optional(),
+        dateRange: dateRangeSchema.optional(),
+        limit: z.number().min(1).max(100).default(50),
+        offset: z.number().min(0).default(0),
+      })
+    )
+    .query(async ({ input }) => {
+      const { search, action, userId, resourceType, dateRange, limit, offset } = input;
+
+      // Build where clause
+      const where: any = {};
+
+      if (search) {
+        where.OR = [
+          { action: { contains: search, mode: 'insensitive' } },
+          { user_email: { contains: search, mode: 'insensitive' } },
+          { resource_type: { contains: search, mode: 'insensitive' } },
+        ];
+      }
+
+      if (action) {
+        where.action = { contains: action, mode: 'insensitive' };
+      }
+
+      if (userId) {
+        where.user_id = userId;
+      }
+
+      if (resourceType) {
+        where.resource_type = resourceType;
+      }
+
+      if (dateRange) {
+        where.created_at = {};
+        if (dateRange.from) {
+          where.created_at.gte = dateRange.from;
+        }
+        if (dateRange.to) {
+          where.created_at.lte = dateRange.to;
+        }
+      }
+
+      const [logs, total] = await Promise.all([
+        prisma.admin_audit_log.findMany({
+          where,
+          take: limit,
+          skip: offset,
+          orderBy: { created_at: 'desc' },
+        }),
+        prisma.admin_audit_log.count({ where }),
+      ]);
+
+      return {
+        logs: logs.map((log) => ({
+          id: log.id,
+          action: log.action,
+          userId: log.user_id,
+          userEmail: log.user_email,
+          resourceType: log.resource_type,
+          resourceId: log.resource_id,
+          metadata: log.metadata,
+          ipAddress: log.ip_address,
+          createdAt: log.created_at,
+        })),
+        total,
+        hasMore: offset + limit < total,
+      };
+    }),
+
+  /**
+   * Get security audit logs
+   */
+  getSecurityLogs: protectedProcedure
+    .input(
+      z.object({
+        search: z.string().optional(),
+        action: actionFilterSchema,
+        userId: z.string().uuid().optional(),
+        tableName: z.string().optional(),
+        dateRange: dateRangeSchema.optional(),
+        limit: z.number().min(1).max(100).default(50),
+        offset: z.number().min(0).default(0),
+      })
+    )
+    .query(async ({ input }) => {
+      const { search, action, userId, tableName, dateRange, limit, offset } = input;
+
+      const where: any = {};
+
+      if (search) {
+        where.OR = [
+          { action: { contains: search, mode: 'insensitive' } },
+          { user_email: { contains: search, mode: 'insensitive' } },
+          { table_name: { contains: search, mode: 'insensitive' } },
+        ];
+      }
+
+      if (action) {
+        where.action = { contains: action, mode: 'insensitive' };
+      }
+
+      if (userId) {
+        where.user_id = userId;
+      }
+
+      if (tableName) {
+        where.table_name = tableName;
+      }
+
+      if (dateRange) {
+        where.event_time = {};
+        if (dateRange.from) {
+          where.event_time.gte = dateRange.from;
+        }
+        if (dateRange.to) {
+          where.event_time.lte = dateRange.to;
+        }
+      }
+
+      const [logs, total] = await Promise.all([
+        prisma.security_audit_log.findMany({
+          where,
+          take: limit,
+          skip: offset,
+          orderBy: { event_time: 'desc' },
+        }),
+        prisma.security_audit_log.count({ where }),
+      ]);
+
+      return {
+        logs: logs.map((log) => ({
+          id: log.id,
+          eventTime: log.event_time,
+          userId: log.user_id,
+          userEmail: log.user_email,
+          action: log.action,
+          tableName: log.table_name,
+          recordId: log.record_id,
+          oldData: log.old_data,
+          newData: log.new_data,
+          ipAddress: log.ip_address,
+          userAgent: log.user_agent,
+        })),
+        total,
+        hasMore: offset + limit < total,
+      };
+    }),
+
+  /**
+   * Get SSO login audit logs
+   */
+  getLoginLogs: protectedProcedure
+    .input(
+      z.object({
+        search: z.string().optional(),
+        userId: z.string().uuid().optional(),
+        success: z.boolean().optional(),
+        loginType: z.string().optional(),
+        dateRange: dateRangeSchema.optional(),
+        limit: z.number().min(1).max(100).default(50),
+        offset: z.number().min(0).default(0),
+      })
+    )
+    .query(async ({ input }) => {
+      const { search, userId, success, loginType, dateRange, limit, offset } = input;
+
+      const where: any = {};
+
+      if (search) {
+        where.OR = [
+          { google_email: { contains: search, mode: 'insensitive' } },
+          { ip_address: { contains: search } },
+        ];
+      }
+
+      if (userId) {
+        where.user_id = userId;
+      }
+
+      if (success !== undefined) {
+        where.success = success;
+      }
+
+      if (loginType) {
+        where.login_type = loginType;
+      }
+
+      if (dateRange) {
+        where.login_time = {};
+        if (dateRange.from) {
+          where.login_time.gte = dateRange.from;
+        }
+        if (dateRange.to) {
+          where.login_time.lte = dateRange.to;
+        }
+      }
+
+      const [logs, total] = await Promise.all([
+        prisma.sso_login_audit.findMany({
+          where,
+          take: limit,
+          skip: offset,
+          orderBy: { login_time: 'desc' },
+        }),
+        prisma.sso_login_audit.count({ where }),
+      ]);
+
+      // Get user profiles for the logs
+      const userIds = logs.map((log) => log.user_id).filter((id): id is string => id !== null);
+      const profiles = await prisma.user_profiles.findMany({
+        where: { id: { in: userIds } },
+        select: { id: true, name: true },
+      });
+      const profileMap = new Map(profiles.map((p) => [p.id, p.name]));
+
+      return {
+        logs: logs.map((log) => ({
+          id: log.id,
+          userId: log.user_id,
+          userName: log.user_id ? profileMap.get(log.user_id) || undefined : undefined,
+          googleEmail: log.google_email,
+          loginTime: log.login_time,
+          loginType: log.login_type,
+          ipAddress: log.ip_address,
+          userAgent: log.user_agent,
+          success: log.success,
+          errorMessage: log.error_message,
+          sessionId: log.session_id,
+        })),
+        total,
+        hasMore: offset + limit < total,
+      };
+    }),
+
+  // ==================
+  // ANALYTICS & STATS
+  // ==================
+
+  /**
+   * Get activity statistics for dashboard
+   */
+  getActivityStats: protectedProcedure
+    .input(
+      z.object({
+        days: z.number().min(1).max(90).default(30),
+      })
+    )
+    .query(async ({ input }) => {
+      const { days } = input;
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
+
+      // Get counts for different log types
+      const [adminLogsCount, securityLogsCount, loginLogsCount, failedLoginsCount] = await Promise.all([
+        prisma.admin_audit_log.count({
+          where: {
+            created_at: { gte: startDate },
+          },
+        }),
+        prisma.security_audit_log.count({
+          where: {
+            event_time: { gte: startDate },
+          },
+        }),
+        prisma.sso_login_audit.count({
+          where: {
+            login_time: { gte: startDate },
+          },
+        }),
+        prisma.sso_login_audit.count({
+          where: {
+            login_time: { gte: startDate },
+            success: false,
+          },
+        }),
+      ]);
+
+      // Get recent actions breakdown
+      const recentActions = await prisma.admin_audit_log.groupBy({
+        by: ['action'],
+        where: {
+          created_at: { gte: startDate },
+        },
+        _count: true,
+        orderBy: {
+          _count: {
+            action: 'desc',
+          },
+        },
+        take: 10,
+      });
+
+      // Get top users by activity
+      const topUsers = await prisma.admin_audit_log.groupBy({
+        by: ['user_email'],
+        where: {
+          created_at: { gte: startDate },
+          user_email: { not: null },
+        },
+        _count: true,
+        orderBy: {
+          _count: {
+            user_email: 'desc',
+          },
+        },
+        take: 10,
+      });
+
+      return {
+        adminLogsCount,
+        securityLogsCount,
+        loginLogsCount,
+        failedLoginsCount,
+        recentActions: recentActions.map((item) => ({
+          action: item.action,
+          count: item._count,
+        })),
+        topUsers: topUsers.map((item) => ({
+          email: item.user_email,
+          count: item._count,
+        })),
+      };
+    }),
+
+  /**
+   * Get user activity summary
+   */
+  getUserActivitySummary: protectedProcedure
+    .input(
+      z.object({
+        userId: z.string().uuid(),
+        days: z.number().min(1).max(90).default(30),
+      })
+    )
+    .query(async ({ input }) => {
+      const { userId, days } = input;
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
+
+      const [adminActions, securityEvents, loginAttempts, lastLogin] = await Promise.all([
+        prisma.admin_audit_log.count({
+          where: {
+            user_id: userId,
+            created_at: { gte: startDate },
+          },
+        }),
+        prisma.security_audit_log.count({
+          where: {
+            user_id: userId,
+            event_time: { gte: startDate },
+          },
+        }),
+        prisma.sso_login_audit.count({
+          where: {
+            user_id: userId,
+            login_time: { gte: startDate },
+          },
+        }),
+        prisma.sso_login_audit.findFirst({
+          where: {
+            user_id: userId,
+            success: true,
+          },
+          orderBy: { login_time: 'desc' },
+          select: { login_time: true },
+        }),
+      ]);
+
+      return {
+        adminActions,
+        securityEvents,
+        loginAttempts,
+        lastLoginAt: lastLogin?.login_time,
+      };
+    }),
+});

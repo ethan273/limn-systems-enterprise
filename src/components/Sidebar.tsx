@@ -208,8 +208,14 @@ export default function Sidebar() {
  label: "Admin",
  icon: Shield,
  items: [
+ { label: "Dashboard", href: "/admin/dashboard" },
  { label: "Approvals", href: "/admin/approvals" },
  { label: "Users", href: "/admin/users" },
+ { label: "Roles", href: "/admin/roles" },
+ { label: "Activity", href: "/admin/activity" },
+ { label: "Analytics", href: "/admin/analytics" },
+ { label: "Settings", href: "/admin/settings" },
+ { label: "Export", href: "/admin/export" },
  ]
  }
  ];

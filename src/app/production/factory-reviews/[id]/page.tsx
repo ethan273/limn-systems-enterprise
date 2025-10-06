@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use }, { useState } from "react";
+import React, { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { api } from "@/lib/api/client";
@@ -109,7 +109,7 @@ export default function FactoryReviewDetailPage({ params }: PageProps) {
 
  // Fetch action items
  const { data: actionItems } = api.factoryReviews.getActionItems.useQuery({
- id,
+ sessionId: id,
  resolved: false,
  });
 
@@ -201,7 +201,7 @@ export default function FactoryReviewDetailPage({ params }: PageProps) {
  }
 
  addCommentMutation.mutate({
- id,
+ sessionId: id,
  photoId: selectedPhotoId || undefined,
  commentText,
  commentType,

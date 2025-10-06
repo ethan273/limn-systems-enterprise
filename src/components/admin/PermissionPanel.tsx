@@ -2,10 +2,21 @@
 
 import { useState } from 'react';
 import { api } from '@/lib/api/client';
+import { toast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { ChevronDown, ChevronRight, X, RefreshCw } from 'lucide-react';
+import { ChevronDown, ChevronRight, X, RefreshCw, ChevronsDownUp, ChevronsUpDown, RotateCcw } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface PermissionPanelProps {
   userId: string;
@@ -36,12 +47,30 @@ const PERMISSION_LABELS = {
 
 export function PermissionPanel({ userId, onClose }: PermissionPanelProps) {
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set(['dashboards']));
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
 
   const { data: user } = api.admin.users.get.useQuery({ userId });
   const { data: permissions, refetch } = api.admin.permissions.getUserPermissions.useQuery({ userId });
   const updatePermission = api.admin.permissions.updateUserPermission.useMutation({
     onSuccess: () => {
       void refetch();
+    },
+  });
+  const resetPermissions = api.admin.permissions.resetToDefaults.useMutation({
+    onSuccess: () => {
+      toast({
+        title: 'Success',
+        description: 'Permissions reset to default values for this user type.',
+      });
+      void refetch();
+      setResetDialogOpen(false);
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to reset permissions',
+        variant: 'destructive',
+      });
     },
   });
 
@@ -90,6 +119,18 @@ export function PermissionPanel({ userId, onClose }: PermissionPanelProps) {
     return count;
   };
 
+  const handleExpandAll = () => {
+    setExpandedModules(new Set(MODULES.map((m) => m.key)));
+  };
+
+  const handleCollapseAll = () => {
+    setExpandedModules(new Set());
+  };
+
+  const handleResetConfirm = async () => {
+    await resetPermissions.mutateAsync({ userId });
+  };
+
   return (
     <Card className="permission-panel">
       <CardHeader>
@@ -106,6 +147,32 @@ export function PermissionPanel({ userId, onClose }: PermissionPanelProps) {
             </p>
           </div>
           <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={expandedModules.size === MODULES.length ? handleCollapseAll : handleExpandAll}
+            >
+              {expandedModules.size === MODULES.length ? (
+                <>
+                  <ChevronsUpDown className="h-4 w-4 mr-2" />
+                  Collapse All
+                </>
+              ) : (
+                <>
+                  <ChevronsDownUp className="h-4 w-4 mr-2" />
+                  Expand All
+                </>
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setResetDialogOpen(true)}
+              disabled={resetPermissions.isPending}
+            >
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Reset to Defaults
+            </Button>
             <Button
               variant="outline"
               size="icon"
@@ -175,6 +242,25 @@ export function PermissionPanel({ userId, onClose }: PermissionPanelProps) {
           })}
         </div>
       </CardContent>
+
+      {/* Reset Confirmation Dialog */}
+      <AlertDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset Permissions to Defaults?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will remove all custom permission overrides for this user and restore the default permissions for their user type ({user?.userType?.replace('_', ' ')}).
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleResetConfirm} disabled={resetPermissions.isPending}>
+              {resetPermissions.isPending ? 'Resetting...' : 'Reset to Defaults'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }
