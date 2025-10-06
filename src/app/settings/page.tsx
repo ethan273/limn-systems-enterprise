@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { PageHeader } from "@/components/common";
 
 export default function SettingsPage() {
   const { toast } = useToast();
@@ -80,12 +81,10 @@ export default function SettingsPage() {
   return (
     <div className="app-layout">
       <div className="app-content">
-        <div className="header-content">
-          <div className="header-title-section">
-            <h1 className="page-title">Settings</h1>
-            <p className="page-subtitle">Manage your account settings and preferences</p>
-          </div>
-        </div>
+        <PageHeader
+          title="Settings"
+          description="Manage your account settings and preferences"
+        />
 
         <div className="max-w-4xl">
           {/* Profile Section */}

@@ -8,9 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Search, Plus, Folder, Calendar, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { PageHeader, StatsGrid, LoadingState, EmptyState } from "@/components/common";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export const dynamic = 'force-dynamic';
 
@@ -78,40 +79,36 @@ export default function DesignProjectsPage() {
  };
 
  if (authLoading) {
- return (
- <div className="container mx-auto py-6">
- <div className="flex items-center justify-center h-64">
- <div className="text-center">
- <div className="animate-spin rounded-full h-12 w-12 border-b-2 border mx-auto mb-4"></div>
- <p className="text-muted-foreground">Loading...</p>
- </div>
- </div>
- </div>
- );
+ return <LoadingState message="Loading..." />;
  }
 
  if (!user) {
  return null;
  }
 
+ const stats = [
+ { title: "Total Projects", value: filteredProjects.length.toString(), icon: Folder },
+ { title: "In Progress", value: filteredProjects.filter((p: any) => ['concept', 'draft', 'revision'].includes(p.current_stage)).length.toString(), icon: Folder },
+ { title: "High Priority", value: filteredProjects.filter((p: any) => p.priority === 'high' || p.priority === 'urgent').length.toString(), icon: AlertCircle },
+ { title: "Approved", value: filteredProjects.filter((p: any) => p.current_stage === 'approved').length.toString(), icon: Folder },
+ ];
+
  return (
- <div className="container mx-auto py-6 space-y-6">
- {/* Header */}
- <div className="flex items-center justify-between">
- <div>
- <h1 className="text-3xl font-bold">Design Projects</h1>
- <p className="text-muted-foreground">
- Manage design projects from concept to final approval
- </p>
- </div>
+ <div className="app-layout">
+ <div className="app-content">
+ <PageHeader
+ title="Design Projects"
+ description="Manage design projects from concept to final approval"
+ action={
  <Button>
  <Plus className="mr-2 h-4 w-4" />
  New Project
  </Button>
- </div>
+ }
+ />
 
  {/* Filters */}
- <div className="flex gap-4 filters-section">
+ <div className="filters-bar">
  <div className="flex-1">
  <div className="relative">
  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -151,46 +148,10 @@ export default function DesignProjectsPage() {
  </Select>
  </div>
 
- {/* Summary Stats */}
- <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
- <div className="p-4 border rounded-lg bg-card">
- <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
- <Folder className="h-4 w-4" />
- <span>Total Projects</span>
- </div>
- <div className="text-2xl font-bold">{filteredProjects.length}</div>
- </div>
- <div className="p-4 border rounded-lg bg-card">
- <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
- <Folder className="h-4 w-4" />
- <span>In Progress</span>
- </div>
- <div className="text-2xl font-bold">
- {filteredProjects.filter((p: any) => ['concept', 'draft', 'revision'].includes(p.current_stage)).length}
- </div>
- </div>
- <div className="p-4 border rounded-lg bg-card">
- <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
- <AlertCircle className="h-4 w-4" />
- <span>High Priority</span>
- </div>
- <div className="text-2xl font-bold">
- {filteredProjects.filter((p: any) => p.priority === 'high' || p.priority === 'urgent').length}
- </div>
- </div>
- <div className="p-4 border rounded-lg bg-card">
- <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
- <Folder className="h-4 w-4" />
- <span>Approved</span>
- </div>
- <div className="text-2xl font-bold">
- {filteredProjects.filter((p: any) => p.current_stage === 'approved').length}
- </div>
- </div>
- </div>
+ <StatsGrid stats={stats} />
 
  {/* Projects Table */}
- <div className="rounded-md border">
+ <div className="data-table">
  <Table>
  <TableHeader>
  <TableRow>
@@ -206,25 +167,31 @@ export default function DesignProjectsPage() {
  <TableBody>
  {isLoading ? (
  <TableRow>
- <TableCell colSpan={7} className="text-center py-8">Loading design projects...</TableCell>
+ <TableCell colSpan={7} className="text-center">
+ <LoadingState message="Loading design projects..." />
+ </TableCell>
  </TableRow>
  ) : filteredProjects.length === 0 ? (
  <TableRow>
- <TableCell colSpan={7} className="text-center py-8">
- <div className="space-y-2">
- <p className="text-muted-foreground">No design projects found</p>
- <Button variant="outline" size="sm">
- <Plus className="mr-2 h-4 w-4" />
- Create your first project
- </Button>
- </div>
+ <TableCell colSpan={7} className="text-center py-12">
+ <EmptyState
+ icon={Folder}
+ title="No design projects found"
+ description="Get started by creating your first project"
+ action={{
+ label: "Create your first project",
+ onClick: () => {},
+ icon: Plus,
+ variant: "outline"
+ }}
+ />
  </TableCell>
  </TableRow>
  ) : (
  filteredProjects.map((project: any) => (
  <TableRow key={project.id}>
  <TableCell>
- <Link href={`/design/projects/${project.id}`} className="font-medium text-info hover:underline">
+ <Link href={`/design/projects/${project.id}`} className="link">
  {project.project_code || "—"}
  </Link>
  </TableCell>
@@ -261,6 +228,7 @@ export default function DesignProjectsPage() {
  )}
  </TableBody>
  </Table>
+ </div>
  </div>
  </div>
  );

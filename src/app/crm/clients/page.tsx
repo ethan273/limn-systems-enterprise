@@ -393,16 +393,18 @@ export default function ClientsPage() {
         title="Edit Client"
         description="Update client information"
         fields={editFormFields}
-        onSubmit={async (data) => {
+        onSubmit={async (formData) => {
           await updateCustomer.mutateAsync({
             id: editCustomerId,
-            name: data.name as string,
-            email: data.email as string || undefined,
-            phone: data.phone as string || undefined,
-            company: data.company as string || undefined,
-            type: data.type as CustomerType,
-            status: data.status as CustomerStatus,
-            notes: data.notes as string || undefined,
+            data: {
+              name: formData.name as string,
+              email: formData.email as string || undefined,
+              phone: formData.phone as string || undefined,
+              company: formData.company as string || undefined,
+              type: formData.type as CustomerType,
+              status: formData.status as CustomerStatus,
+              notes: formData.notes as string || undefined,
+            },
           });
         }}
         submitLabel="Update Client"

@@ -19,7 +19,9 @@ export interface PageHeaderBreadcrumb {
 
 export interface PageHeaderProps {
   title: string;
-  subtitle?: string;
+  subtitle?: string | React.ReactNode;
+  description?: string | React.ReactNode; // Alias for subtitle
+  action?: React.ReactNode; // Single action element
   actions?: PageHeaderAction[];
   breadcrumbs?: PageHeaderBreadcrumb[];
 }
@@ -27,9 +29,12 @@ export interface PageHeaderProps {
 export function PageHeader({
   title,
   subtitle,
+  description,
+  action,
   actions = [],
   breadcrumbs = [],
 }: PageHeaderProps) {
+  const displaySubtitle = subtitle || description;
   return (
     <div className="page-header">
       {/* Breadcrumbs */}
@@ -62,31 +67,31 @@ export function PageHeader({
         {/* Title and Subtitle */}
         <div className="flex-1">
           <h1 className="page-title">{title}</h1>
-          {subtitle && <p className="page-subtitle">{subtitle}</p>}
+          {displaySubtitle && <p className="page-subtitle">{displaySubtitle}</p>}
         </div>
 
         {/* Action Buttons */}
-        {actions.length > 0 && (
+        {(action || actions.length > 0) && (
           <div className="flex items-center gap-2 flex-wrap">
-            {actions.map((action, index) => {
-              const Icon = action.icon;
+            {action ? action : actions.map((actionItem, index) => {
+              const Icon = actionItem.icon;
               return (
                 <Button
                   key={index}
-                  onClick={action.onClick}
-                  variant={action.variant || 'default'}
+                  onClick={actionItem.onClick}
+                  variant={actionItem.variant || 'default'}
                   className={
-                    action.variant === 'default' || !action.variant
+                    actionItem.variant === 'default' || !actionItem.variant
                       ? 'btn-primary'
-                      : action.variant === 'secondary'
+                      : actionItem.variant === 'secondary'
                       ? 'btn-secondary'
-                      : action.variant === 'outline'
+                      : actionItem.variant === 'outline'
                       ? 'btn-outline'
                       : 'btn-destructive'
                   }
                 >
                   {Icon && <Icon className="h-4 w-4 mr-2" />}
-                  {action.label}
+                  {actionItem.label}
                 </Button>
               );
             })}

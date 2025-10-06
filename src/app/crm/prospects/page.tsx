@@ -151,7 +151,7 @@ export default function ProspectsPage() {
     value: status.count,
     description: `$${status.totalValue.toLocaleString()} total value`,
     icon: Thermometer,
-    iconColor: status.value === 'hot' ? 'error' : status.value === 'warm' ? 'warning' : 'info',
+    iconColor: status.value === 'hot' ? 'destructive' : status.value === 'warm' ? 'warning' : 'info',
   }));
 
   // DataTable columns

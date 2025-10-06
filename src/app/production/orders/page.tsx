@@ -104,12 +104,12 @@ export default function ProductionOrdersPage() {
       label: 'Payment',
       render: (_, row) => {
         if (!row.deposit_paid) {
-          return <StatusBadge status="no_deposit" label="No Deposit" />;
+          return <StatusBadge status="no deposit" />;
         }
         if (row.deposit_paid && !row.final_payment_paid) {
-          return <StatusBadge status="deposit_paid" label="Deposit Paid" />;
+          return <StatusBadge status="deposit paid" />;
         }
-        return <StatusBadge status="fully_paid" label="Fully Paid" />;
+        return <StatusBadge status="fully paid" />;
       },
     },
     {
@@ -125,7 +125,7 @@ export default function ProductionOrdersPage() {
           'shipped': 'Shipped',
           'delivered': 'Delivered',
         };
-        return <StatusBadge status={value as string} label={statusLabels[value as string]} />;
+        return <StatusBadge status={value as string} />;
       },
     },
     {

@@ -38,10 +38,10 @@ export interface EmptyStateProps {
   title: string;
 
   /**
-   * Optional description text
+   * Optional description text or React element
    * @example "Get started by adding your first customer"
    */
-  description?: string;
+  description?: string | React.ReactNode;
 
   /**
    * Optional action button configuration

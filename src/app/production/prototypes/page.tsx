@@ -18,7 +18,6 @@ import {
   Plus,
   Package,
   CheckCircle2,
-  XCircle,
   Clock,
   AlertTriangle,
   Lightbulb
@@ -45,12 +44,12 @@ const statusConfig: Record<string, {
 
 export default function PrototypesPage() {
   const router = useRouter();
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [priorityFilter, setPriorityFilter] = useState<string>("all");
-  const [typeFilter, setTypeFilter] = useState<string>("all");
-  const [designProjectFilter, setDesignProjectFilter] = useState<string>("all");
-  const [crmProjectFilter, setCrmProjectFilter] = useState<string>("all");
-  const [page, setPage] = useState(0);
+  const [statusFilter, _setStatusFilter] = useState<string>("all");
+  const [priorityFilter, _setPriorityFilter] = useState<string>("all");
+  const [typeFilter, _setTypeFilter] = useState<string>("all");
+  const [designProjectFilter, _setDesignProjectFilter] = useState<string>("all");
+  const [crmProjectFilter, _setCrmProjectFilter] = useState<string>("all");
+  const [page, _setPage] = useState(0);
   const limit = 20;
 
   // Fetch prototypes with filters
@@ -65,31 +64,31 @@ export default function PrototypesPage() {
   });
 
   // Fetch design projects for filter
-  const { data: designProjectsData } = api.designProjects.getAll.useQuery({
+  const { data: _designProjectsData } = api.designProjects.getAll.useQuery({
     limit: 100,
   });
 
   // Fetch CRM projects for filter
-  const { data: crmProjectsData } = api.projects.getAll.useQuery({
+  const { data: _crmProjectsData } = api.projects.getAll.useQuery({
     limit: 100,
   });
 
   const prototypes = data?.prototypes ?? [];
-  const total = data?.total ?? 0;
-  const hasMore = data?.hasMore ?? false;
+  const _total = data?.total ?? 0;
+  const _hasMore = data?.hasMore ?? false;
 
   // Calculate statistics
   const stats: StatItem[] = React.useMemo(() => {
     if (!data?.prototypes) return [
-      { title: 'Total Prototypes', value: 0, icon: Package },
+      { title: 'Total Prototypes', value: 0, icon: Package, iconColor: 'primary' },
       { title: 'In Progress', value: 0, icon: Clock, iconColor: 'info' },
       { title: 'Completed', value: 0, icon: CheckCircle2, iconColor: 'success' },
-      { title: 'Rejected', value: 0, icon: AlertTriangle, iconColor: 'error' },
+      { title: 'Rejected', value: 0, icon: AlertTriangle, iconColor: 'destructive' },
     ];
 
     const allPrototypes = data.prototypes;
     return [
-      { title: 'Total Prototypes', value: allPrototypes.length, icon: Package },
+      { title: 'Total Prototypes', value: allPrototypes.length, icon: Package, iconColor: 'primary' },
       {
         title: 'In Progress',
         value: allPrototypes.filter(p =>
@@ -114,7 +113,7 @@ export default function PrototypesPage() {
         title: 'Rejected',
         value: allPrototypes.filter(p => p.status === 'rejected').length,
         icon: AlertTriangle,
-        iconColor: 'error',
+        iconColor: 'destructive',
       },
     ];
   }, [data]);

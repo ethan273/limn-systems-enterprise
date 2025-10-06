@@ -91,7 +91,7 @@ export default function ContactDetailPage({ params }: PageProps) {
       <EntityDetailHeader
         icon={User}
         title={contact.name || "Unnamed Contact"}
-        subtitle={contact.position}
+        subtitle={contact.position || undefined}
         metadata={[
           ...(contact.company ? [{ icon: Building2, value: contact.company, type: 'text' as const }] : []),
           ...(contact.email ? [{ icon: Mail, value: contact.email, type: 'email' as const }] : []),

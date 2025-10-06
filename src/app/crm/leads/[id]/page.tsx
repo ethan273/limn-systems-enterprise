@@ -100,7 +100,7 @@ export default function LeadDetailPage({ params }: PageProps) {
       <EntityDetailHeader
         icon={User}
         title={lead.name || "Unnamed Lead"}
-        subtitle={lead.company}
+        subtitle={lead.company || undefined}
         metadata={[
           ...(lead.email ? [{ icon: Mail, value: lead.email, type: 'email' as const }] : []),
           ...(lead.phone ? [{ icon: Phone, value: lead.phone, type: 'phone' as const }] : []),
