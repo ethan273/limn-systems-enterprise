@@ -18,9 +18,13 @@ import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Package } from "lucide-react";
+import {
+  EntityDetailHeader,
+  LoadingState,
+  EmptyState,
+} from "@/components/common";
+import { ArrowLeft, Package, DollarSign, Tag } from "lucide-react";
 
 // Tab components (will be created next)
 import CatalogOverviewTab from "@/components/catalog/CatalogOverviewTab";
@@ -46,10 +50,7 @@ export default function CatalogDetailPage({ params }: CatalogDetailPageProps) {
   if (isLoading) {
     return (
       <div className="catalog-detail-layout">
-        <div className="loading-container">
-          <div className="spinner" />
-          <p>Loading catalog item...</p>
-        </div>
+        <LoadingState message="Loading catalog item..." size="md" />
       </div>
     );
   }
@@ -57,20 +58,16 @@ export default function CatalogDetailPage({ params }: CatalogDetailPageProps) {
   if (error || !catalogItem) {
     return (
       <div className="catalog-detail-layout">
-        <Card className="error-card">
-          <CardHeader>
-            <CardTitle>Error Loading Catalog Item</CardTitle>
-            <CardDescription>
-              {error?.message || "Catalog item not found"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={() => router.back()}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Go Back
-            </Button>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={Package}
+          title="Error Loading Catalog Item"
+          description={error?.message || "Catalog item not found"}
+          action={{
+            label: 'Go Back',
+            onClick: () => router.back(),
+            icon: ArrowLeft,
+          }}
+        />
       </div>
     );
   }
@@ -78,57 +75,29 @@ export default function CatalogDetailPage({ params }: CatalogDetailPageProps) {
   return (
     <div className="catalog-detail-layout">
       {/* Header */}
-      <div className="catalog-detail-header">
-        <div className="header-content">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push("/products/catalog")}
-            className="back-button"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Catalog
-          </Button>
-
-          <div className="header-title-section">
-            <div className="title-with-icon">
-              <Package className="title-icon" />
-              <h1 className="catalog-detail-title">{catalogItem.name}</h1>
-            </div>
-
-            <div className="header-badges">
-              {catalogItem.active && (
-                <Badge className="badge-success">Active</Badge>
-              )}
-              {catalogItem.type && (
-                <Badge variant="default">{catalogItem.type}</Badge>
-              )}
-              {catalogItem.furniture_type && (
-                <Badge variant="outline">
-                  {catalogItem.furniture_type.replace(/_/g, " ")}
-                </Badge>
-              )}
-            </div>
-          </div>
-
-          <div className="header-meta">
-            {catalogItem.base_sku && (
-              <div className="meta-item">
-                <span className="meta-label">Base SKU:</span>
-                <span className="meta-value base-sku">{catalogItem.base_sku}</span>
-              </div>
-            )}
-            {catalogItem.list_price && (
-              <div className="meta-item">
-                <span className="meta-label">List Price:</span>
-                <span className="meta-value price">
-                  ${Number(catalogItem.list_price).toLocaleString()}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
+      <div className="page-header">
+        <Button
+          variant="ghost"
+          onClick={() => router.push("/products/catalog")}
+          className="btn-secondary"
+        >
+          <ArrowLeft className="icon-sm" aria-hidden="true" />
+          Back
+        </Button>
       </div>
+
+      {/* Entity Header */}
+      <EntityDetailHeader
+        icon={Package}
+        title={catalogItem.name}
+        subtitle={catalogItem.type || undefined}
+        status={catalogItem.active ? <Badge className="badge-success">Active</Badge> : <Badge variant="outline">Inactive</Badge>}
+        metadata={[
+          ...(catalogItem.base_sku ? [{ icon: Tag, value: `SKU: ${catalogItem.base_sku}`, type: 'text' as const }] : []),
+          ...(catalogItem.list_price ? [{ icon: DollarSign, value: `$${Number(catalogItem.list_price).toLocaleString()}`, type: 'text' as const }] : []),
+          ...(catalogItem.furniture_type ? [{ icon: Package, value: catalogItem.furniture_type.replace(/_/g, " "), type: 'text' as const }] : []),
+        ]}
+      />
 
       {/* 4-Tab Interface */}
       <div className="catalog-detail-tabs">

@@ -9,10 +9,16 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import {
+  EntityDetailHeader,
+  InfoCard,
+  StatusBadge,
+  LoadingState,
+  EmptyState,
+} from "@/components/common";
+import {
   User,
   Mail,
   Phone,
-  Building2,
   Calendar,
   ArrowLeft,
   Edit,
@@ -84,7 +90,7 @@ export default function ProspectDetailPage({ params }: PageProps) {
   if (isLoading) {
     return (
       <div className="page-container">
-        <div className="loading-state">Loading prospect details...</div>
+        <LoadingState message="Loading prospect details..." size="md" />
       </div>
     );
   }
@@ -92,17 +98,16 @@ export default function ProspectDetailPage({ params }: PageProps) {
   if (error || !data || !data.lead) {
     return (
       <div className="page-container">
-        <div className="empty-state">
-          <AlertCircle className="empty-state-icon" aria-hidden="true" />
-          <h3 className="empty-state-title">Prospect Not Found</h3>
-          <p className="empty-state-description">
-            The prospect you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to view it.
-          </p>
-          <Button onClick={() => router.push("/crm/prospects")} className="btn-primary">
-            <ArrowLeft className="icon-sm" aria-hidden="true" />
-            Back to Prospects
-          </Button>
-        </div>
+        <EmptyState
+          icon={AlertCircle}
+          title="Prospect Not Found"
+          description="The prospect you're looking for doesn't exist or you don't have permission to view it."
+          action={{
+            label: 'Back to Prospects',
+            onClick: () => router.push("/crm/prospects"),
+            icon: ArrowLeft,
+          }}
+        />
       </div>
     );
   }
@@ -152,76 +157,38 @@ export default function ProspectDetailPage({ params }: PageProps) {
         </Button>
       </div>
 
-      {/* Prospect Info Card */}
-      <Card className="detail-header-card">
-        <CardContent>
-          <div className="detail-header">
-            <div className="detail-avatar">
-              <User className="detail-avatar-icon" aria-hidden="true" />
-            </div>
-            <div className="detail-info">
-              <h1 className="detail-title">{prospect.name || "Unnamed Prospect"}</h1>
-              <div className="detail-meta">
-                {prospect.company && (
-                  <span className="detail-meta-item">
-                    <Building2 className="icon-sm" aria-hidden="true" />
-                    {prospect.company}
-                  </span>
-                )}
-                {prospectConfig && (
-                  <Badge variant="outline" className={prospectConfig.className}>
-                    <Thermometer className="icon-xs" aria-hidden="true" />
-                    {prospectConfig.label}
-                  </Badge>
-                )}
-                <div className="flex items-center gap-1">
-                  <Star className={`icon-sm ${priority >= 5 ? 'text-warning' : 'text-muted-foreground'}`} aria-hidden="true" />
-                  <span className="text-sm">Priority: {priority}/10</span>
-                </div>
-              </div>
-              <div className="detail-contact-info">
-                {prospect.email && (
-                  <a href={`mailto:${prospect.email}`} className="detail-contact-link">
-                    <Mail className="icon-sm" aria-hidden="true" />
-                    {prospect.email}
-                  </a>
-                )}
-                {prospect.phone && (
-                  <a href={`tel:${prospect.phone}`} className="detail-contact-link">
-                    <Phone className="icon-sm" aria-hidden="true" />
-                    {prospect.phone}
-                  </a>
-                )}
-                {prospect.website && (
-                  <a href={prospect.website} target="_blank" rel="noopener noreferrer" className="detail-contact-link">
-                    <Globe className="icon-sm" aria-hidden="true" />
-                    {prospect.website}
-                  </a>
-                )}
-              </div>
-              {prospect.tags && prospect.tags.length > 0 && (
-                <div className="tag-list">
-                  {prospect.tags.map((tag: string, idx: number) => (
-                    <Badge key={idx} variant="outline" className="badge-neutral">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="detail-actions">
-              <Button className="btn-primary">
-                <Edit className="icon-sm" aria-hidden="true" />
-                Edit Prospect
-              </Button>
-              <Button onClick={handleConvertToClient} className="btn-success">
-                <ArrowRight className="icon-sm" aria-hidden="true" />
-                Convert to Client
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Prospect Header */}
+      <EntityDetailHeader
+        icon={User}
+        title={prospect.name || "Unnamed Prospect"}
+        subtitle={prospect.company || undefined}
+        status={prospectConfig && (
+          <Badge variant="outline" className={prospectConfig.className}>
+            <Thermometer className="icon-xs" aria-hidden="true" />
+            {prospectConfig.label}
+          </Badge>
+        )}
+        metadata={[
+          ...(prospect.email ? [{ icon: Mail, value: prospect.email, type: 'email' as const }] : []),
+          ...(prospect.phone ? [{ icon: Phone, value: prospect.phone, type: 'phone' as const }] : []),
+          ...(prospect.website ? [{ icon: Globe, value: prospect.website, type: 'url' as const }] : []),
+          { icon: Star, value: `Priority: ${priority}/10`, type: 'text' as const },
+        ]}
+        tags={prospect.tags || []}
+        actions={[
+          {
+            label: 'Edit Prospect',
+            icon: Edit,
+            onClick: () => router.push(`/crm/prospects/${id}/edit`),
+          },
+          {
+            label: 'Convert to Client',
+            icon: ArrowRight,
+            onClick: handleConvertToClient,
+            variant: 'default' as const,
+          },
+        ]}
+      />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -289,57 +256,19 @@ export default function ProspectDetailPage({ params }: PageProps) {
         <TabsContent value="overview">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Prospect Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Prospect Details</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <dl className="detail-list">
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Email</dt>
-                    <dd className="detail-list-value">{prospect.email || "—"}</dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Phone</dt>
-                    <dd className="detail-list-value">{prospect.phone || "—"}</dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Company</dt>
-                    <dd className="detail-list-value">{prospect.company || "—"}</dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Website</dt>
-                    <dd className="detail-list-value">
-                      {prospect.website ? (
-                        <a href={prospect.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                          {prospect.website}
-                        </a>
-                      ) : "—"}
-                    </dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Lead Source</dt>
-                    <dd className="detail-list-value">{prospect.lead_source || "—"}</dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Interest Level</dt>
-                    <dd className="detail-list-value">{prospect.interest_level || "—"}</dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Contact Method</dt>
-                    <dd className="detail-list-value">{prospect.contact_method || "—"}</dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Created</dt>
-                    <dd className="detail-list-value">
-                      {prospect.created_at
-                        ? format(new Date(prospect.created_at), "MMM d, yyyy h:mm a")
-                        : "—"}
-                    </dd>
-                  </div>
-                </dl>
-              </CardContent>
-            </Card>
+            <InfoCard
+              title="Prospect Details"
+              items={[
+                { label: 'Email', value: prospect.email || '—', type: 'email' },
+                { label: 'Phone', value: prospect.phone || '—', type: 'phone' },
+                { label: 'Company', value: prospect.company || '—' },
+                { label: 'Website', value: prospect.website || '—', type: 'url' },
+                { label: 'Lead Source', value: prospect.lead_source || '—' },
+                { label: 'Interest Level', value: prospect.interest_level || '—' },
+                { label: 'Contact Method', value: prospect.contact_method || '—' },
+                { label: 'Created', value: prospect.created_at ? format(new Date(prospect.created_at), "MMM d, yyyy h:mm a") : '—' },
+              ]}
+            />
 
             {/* Prospect Management */}
             <Card>
@@ -381,18 +310,12 @@ export default function ProspectDetailPage({ params }: PageProps) {
             </Card>
 
             {/* Notes Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Notes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {prospect.notes ? (
-                  <p className="text-muted whitespace-pre-wrap">{prospect.notes}</p>
-                ) : (
-                  <p className="text-muted">No notes available</p>
-                )}
-              </CardContent>
-            </Card>
+            <InfoCard
+              title="Notes"
+              items={[
+                { label: '', value: prospect.notes ? <p className="text-muted whitespace-pre-wrap">{prospect.notes}</p> : <p className="text-muted">No notes available</p> },
+              ]}
+            />
           </div>
         </TabsContent>
 
@@ -404,13 +327,11 @@ export default function ProspectDetailPage({ params }: PageProps) {
             </CardHeader>
             <CardContent className="card-content-compact">
               {!activities || activities.length === 0 ? (
-                <div className="empty-state">
-                  <Clock className="empty-state-icon" aria-hidden="true" />
-                  <h3 className="empty-state-title">No Activities Yet</h3>
-                  <p className="empty-state-description">
-                    Activities like calls, emails, and meetings will appear here.
-                  </p>
-                </div>
+                <EmptyState
+                  icon={Clock}
+                  title="No Activities Yet"
+                  description="Activities like calls, emails, and meetings will appear here."
+                />
               ) : (
                 <div className="activity-timeline">
                   {activities.map((activity: any) => (
@@ -425,18 +346,7 @@ export default function ProspectDetailPage({ params }: PageProps) {
                       <div className="activity-timeline-content">
                         <div className="activity-timeline-header">
                           <h4 className="activity-timeline-title">{activity.title || "Untitled Activity"}</h4>
-                          <Badge
-                            variant="outline"
-                            className={
-                              activity.status === "completed"
-                                ? "status-completed"
-                                : activity.status === "pending"
-                                ? "status-pending"
-                                : "badge-neutral"
-                            }
-                          >
-                            {activity.status || "unknown"}
-                          </Badge>
+                          <StatusBadge status={activity.status || "unknown"} />
                         </div>
                         {activity.type && (
                           <p className="activity-timeline-type">
@@ -473,13 +383,11 @@ export default function ProspectDetailPage({ params }: PageProps) {
                   <p className="whitespace-pre-wrap">{prospect.notes}</p>
                 </div>
               ) : (
-                <div className="empty-state">
-                  <MessageSquare className="empty-state-icon" aria-hidden="true" />
-                  <h3 className="empty-state-title">No Notes</h3>
-                  <p className="empty-state-description">
-                    Add notes about this prospect to keep track of important information.
-                  </p>
-                </div>
+                <EmptyState
+                  icon={MessageSquare}
+                  title="No Notes"
+                  description="Add notes about this prospect to keep track of important information."
+                />
               )}
             </CardContent>
           </Card>

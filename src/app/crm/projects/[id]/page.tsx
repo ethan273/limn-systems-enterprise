@@ -17,6 +17,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  EntityDetailHeader,
+  InfoCard,
+  StatusBadge,
+  LoadingState,
+  EmptyState,
+} from "@/components/common";
+import {
   User,
   Mail,
   Phone,
@@ -52,7 +59,7 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
   if (isLoading) {
     return (
       <div className="page-container">
-        <div className="loading-state">Loading project details...</div>
+        <LoadingState message="Loading project details..." size="md" />
       </div>
     );
   }
@@ -60,34 +67,21 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
   if (error || !data) {
     return (
       <div className="page-container">
-        <div className="empty-state">
-          <AlertCircle className="empty-state-icon" aria-hidden="true" />
-          <h3 className="empty-state-title">Project Not Found</h3>
-          <p className="empty-state-description">
-            The project you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to view it.
-          </p>
-          <Button onClick={() => router.push("/crm/projects")} className="btn-primary">
-            <ArrowLeft className="icon-sm" aria-hidden="true" />
-            Back to Projects
-          </Button>
-        </div>
+        <EmptyState
+          icon={AlertCircle}
+          title="Project Not Found"
+          description="The project you're looking for doesn't exist or you don't have permission to view it."
+          action={{
+            label: 'Back to Projects',
+            onClick: () => router.push("/crm/projects"),
+            icon: ArrowLeft,
+          }}
+        />
       </div>
     );
   }
 
   const { project, customer, orders, orderedItems, analytics } = data;
-
-  const getStatusColor = (status: string) => {
-    const statusColors: Record<string, string> = {
-      planning: "btn-primary text-info dark:btn-primary dark:text-info",
-      active: "bg-success-muted text-success dark:bg-success-muted dark:text-success",
-      review: "btn-secondary text-secondary dark:btn-secondary dark:text-secondary",
-      completed: "status-completed",
-      on_hold: "bg-orange-100 text-warning dark:bg-orange-900 dark:text-warning",
-      cancelled: "status-cancelled",
-    };
-    return statusColors[status as keyof typeof statusColors] || "badge-neutral";
-  };
 
   const getPriorityColor = (priority: string) => {
     const priorityColors: Record<string, string> = {
@@ -113,62 +107,27 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
         </Button>
       </div>
 
-      {/* Project Info Card */}
-      <Card className="detail-header-card">
-        <CardContent>
-          <div className="detail-header">
-            <div className="detail-avatar">
-              <Briefcase className="detail-avatar-icon" aria-hidden="true" />
-            </div>
-            <div className="detail-info">
-              <h1 className="detail-title">{project.name || "Unnamed Project"}</h1>
-              <div className="detail-meta">
-                <span className="detail-meta-item">
-                  <User className="icon-sm" aria-hidden="true" />
-                  {customer?.name || "No customer"}
-                </span>
-                {customer?.company && (
-                  <span className="detail-meta-item">
-                    <Building2 className="icon-sm" aria-hidden="true" />
-                    {customer.company}
-                  </span>
-                )}
-                <Badge variant="outline" className={getStatusColor(project.status || "planning")}>
-                  {project.status || "unknown"}
-                </Badge>
-                <Badge variant="outline" className={getPriorityColor(project.priority || "medium")}>
-                  {project.priority || "medium"}
-                </Badge>
-              </div>
-              {project.description && (
-                <p className="detail-description mt-2">{project.description}</p>
-              )}
-              {customer && (
-                <div className="detail-contact-info">
-                  {customer.email && (
-                    <a href={`mailto:${customer.email}`} className="detail-contact-link">
-                      <Mail className="icon-sm" aria-hidden="true" />
-                      {customer.email}
-                    </a>
-                  )}
-                  {customer.phone && (
-                    <a href={`tel:${customer.phone}`} className="detail-contact-link">
-                      <Phone className="icon-sm" aria-hidden="true" />
-                      {customer.phone}
-                    </a>
-                  )}
-                </div>
-              )}
-            </div>
-            <div className="detail-actions">
-              <Button className="btn-primary">
-                <Edit className="icon-sm" aria-hidden="true" />
-                Edit Project
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Project Header */}
+      <EntityDetailHeader
+        icon={Briefcase}
+        title={project.name || "Unnamed Project"}
+        subtitle={project.description || customer?.company || undefined}
+        status={<StatusBadge status={project.status || "planning"} />}
+        metadata={[
+          { icon: User, value: customer?.name || "No customer", type: 'text' as const },
+          ...(customer?.company ? [{ icon: Building2, value: customer.company, type: 'text' as const }] : []),
+          ...(customer?.email ? [{ icon: Mail, value: customer.email, type: 'email' as const }] : []),
+          ...(customer?.phone ? [{ icon: Phone, value: customer.phone, type: 'phone' as const }] : []),
+          ...(project.priority ? [{ icon: Activity, value: `Priority: ${project.priority}`, type: 'text' as const }] : []),
+        ]}
+        actions={[
+          {
+            label: 'Edit Project',
+            icon: Edit,
+            onClick: () => router.push(`/crm/projects/${id}/edit`),
+          },
+        ]}
+      />
 
       {/* Financial Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -238,123 +197,54 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
         <TabsContent value="overview">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Project Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Project Information</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <dl className="detail-list">
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Status</dt>
-                    <dd className="detail-list-value">{project.status || "—"}</dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Priority</dt>
-                    <dd className="detail-list-value">{project.priority || "—"}</dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Budget</dt>
-                    <dd className="detail-list-value">
-                      {project.budget ? `$${Number(project.budget).toLocaleString()}` : "—"}
-                    </dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Actual Cost</dt>
-                    <dd className="detail-list-value">
-                      {project.actual_cost ? `$${Number(project.actual_cost).toLocaleString()}` : "—"}
-                    </dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Start Date</dt>
-                    <dd className="detail-list-value">
-                      {project.start_date
-                        ? format(new Date(project.start_date), "MMM d, yyyy")
-                        : "—"}
-                    </dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">End Date</dt>
-                    <dd className="detail-list-value">
-                      {project.end_date
-                        ? format(new Date(project.end_date), "MMM d, yyyy")
-                        : "—"}
-                    </dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Completion</dt>
-                    <dd className="detail-list-value">{project.completion_percentage || 0}%</dd>
-                  </div>
-                  <div className="detail-list-item">
-                    <dt className="detail-list-label">Created</dt>
-                    <dd className="detail-list-value">
-                      {project.created_at
-                        ? format(new Date(project.created_at), "MMM d, yyyy")
-                        : "—"}
-                    </dd>
-                  </div>
-                </dl>
-              </CardContent>
-            </Card>
+            <InfoCard
+              title="Project Information"
+              items={[
+                { label: 'Status', value: project.status || '—' },
+                { label: 'Priority', value: project.priority || '—' },
+                { label: 'Budget', value: project.budget ? `$${Number(project.budget).toLocaleString()}` : '—' },
+                { label: 'Actual Cost', value: project.actual_cost ? `$${Number(project.actual_cost).toLocaleString()}` : '—' },
+                { label: 'Start Date', value: project.start_date ? format(new Date(project.start_date), "MMM d, yyyy") : '—' },
+                { label: 'End Date', value: project.end_date ? format(new Date(project.end_date), "MMM d, yyyy") : '—' },
+                { label: 'Completion', value: `${project.completion_percentage || 0}%` },
+                { label: 'Created', value: project.created_at ? format(new Date(project.created_at), "MMM d, yyyy") : '—' },
+              ]}
+            />
 
             {/* Customer Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Customer Information</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {customer ? (
-                  <dl className="detail-list">
-                    <div className="detail-list-item">
-                      <dt className="detail-list-label">Name</dt>
-                      <dd className="detail-list-value">{customer.name || "—"}</dd>
-                    </div>
-                    <div className="detail-list-item">
-                      <dt className="detail-list-label">Company</dt>
-                      <dd className="detail-list-value">{customer.company || "—"}</dd>
-                    </div>
-                    <div className="detail-list-item">
-                      <dt className="detail-list-label">Email</dt>
-                      <dd className="detail-list-value">{customer.email || "—"}</dd>
-                    </div>
-                    <div className="detail-list-item">
-                      <dt className="detail-list-label">Phone</dt>
-                      <dd className="detail-list-value">{customer.phone || "—"}</dd>
-                    </div>
-                    <div className="detail-list-item">
-                      <dt className="detail-list-label">Status</dt>
-                      <dd className="detail-list-value">{customer.status || "—"}</dd>
-                    </div>
-                  </dl>
-                ) : (
-                  <p className="text-muted">No customer assigned</p>
-                )}
-              </CardContent>
-            </Card>
+            <InfoCard
+              title="Customer Information"
+              items={customer ? [
+                { label: 'Name', value: customer.name || '—' },
+                { label: 'Company', value: customer.company || '—' },
+                { label: 'Email', value: customer.email || '—', type: 'email' },
+                { label: 'Phone', value: customer.phone || '—', type: 'phone' },
+                { label: 'Status', value: customer.status || '—' },
+              ] : [
+                { label: '', value: <p className="text-muted">No customer assigned</p> },
+              ]}
+            />
           </div>
 
           {/* Notes Section */}
           {project.notes && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Notes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="whitespace-pre-wrap">{project.notes}</p>
-              </CardContent>
-            </Card>
+            <InfoCard
+              title="Notes"
+              items={[
+                { label: '', value: <p className="whitespace-pre-wrap">{project.notes}</p> },
+              ]}
+            />
           )}
         </TabsContent>
 
         {/* Orders Tab */}
         <TabsContent value="orders">
           {orders.length === 0 ? (
-            <div className="empty-state">
-              <ShoppingCart className="empty-state-icon" aria-hidden="true" />
-              <h3 className="empty-state-title">No Orders</h3>
-              <p className="empty-state-description">
-                This project hasn&apos;t had any orders placed yet.
-              </p>
-            </div>
+            <EmptyState
+              icon={ShoppingCart}
+              title="No Orders"
+              description="This project hasn't had any orders placed yet."
+            />
           ) : (
             <div className="data-table-container">
               <Table>
@@ -402,13 +292,11 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
         {/* Ordered Items Tab */}
         <TabsContent value="items">
           {orderedItems.length === 0 ? (
-            <div className="empty-state">
-              <Package className="empty-state-icon" aria-hidden="true" />
-              <h3 className="empty-state-title">No Items Ordered</h3>
-              <p className="empty-state-description">
-                No items have been ordered for this project yet.
-              </p>
-            </div>
+            <EmptyState
+              icon={Package}
+              title="No Items Ordered"
+              description="No items have been ordered for this project yet."
+            />
           ) : (
             <div className="data-table-container">
               <Table>
