@@ -123,7 +123,7 @@ export default function LeadDetailPage({ params }: PageProps) {
             <CardTitle className="card-title-sm">Lead Value</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value stat-success">${analytics.leadValue.toLocaleString()}</div>
+            <div className="stat-value stat-success">${(analytics?.leadValue || 0).toLocaleString()}</div>
             <p className="stat-label">Estimated value</p>
           </CardContent>
         </Card>
@@ -133,7 +133,7 @@ export default function LeadDetailPage({ params }: PageProps) {
             <CardTitle className="card-title-sm">Days in Pipeline</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value">{analytics.daysInPipeline}</div>
+            <div className="stat-value">{analytics?.daysInPipeline || 0}</div>
             <p className="stat-label">Since creation</p>
           </CardContent>
         </Card>
@@ -143,7 +143,7 @@ export default function LeadDetailPage({ params }: PageProps) {
             <CardTitle className="card-title-sm">Pipeline Progress</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value">{analytics.pipelineProgress}%</div>
+            <div className="stat-value">{analytics?.pipelineProgress || 0}%</div>
             <p className="stat-label">Completion</p>
           </CardContent>
         </Card>
@@ -153,8 +153,8 @@ export default function LeadDetailPage({ params }: PageProps) {
             <CardTitle className="card-title-sm">Total Activities</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value">{analytics.totalActivities}</div>
-            <p className="stat-label">{analytics.completedActivities} completed</p>
+            <div className="stat-value">{analytics?.totalActivities || 0}</div>
+            <p className="stat-label">{analytics?.completedActivities || 0} completed</p>
           </CardContent>
         </Card>
       </div>
@@ -167,8 +167,8 @@ export default function LeadDetailPage({ params }: PageProps) {
         <CardContent>
           <div className="pipeline-visual">
             {pipelineStages.filter(s => s.value !== "lost").map((stage, idx) => {
-              const isActive = stage.value === analytics.currentStage;
-              const isPassed = pipelineStages.findIndex(s => s.value === analytics.currentStage) > idx;
+              const isActive = stage.value === analytics?.currentStage;
+              const isPassed = pipelineStages.findIndex(s => s.value === analytics?.currentStage) > idx;
 
               return (
                 <div key={stage.value} className="pipeline-stage">
@@ -228,7 +228,7 @@ export default function LeadDetailPage({ params }: PageProps) {
                 },
                 {
                   label: 'Last Contacted',
-                  value: analytics.lastContactDate
+                  value: analytics?.lastContactDate
                     ? format(new Date(analytics.lastContactDate), "MMM d, yyyy")
                     : 'Never'
                 },

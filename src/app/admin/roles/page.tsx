@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { UserCog, Plus, Trash2, Search } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { DataTable, type DataTableColumn } from "@/components/common";
 
 // Dynamic route configuration
 export const dynamic = 'force-dynamic';
@@ -128,6 +129,60 @@ export default function RolesManagementPage() {
 
   const displayRole = selectedRole || (roleStats && roleStats.length > 0 ? roleStats[0].role : '');
 
+  // DataTable columns configuration
+  const columns: DataTableColumn<any>[] = [
+    {
+      key: 'name',
+      label: 'Name',
+      sortable: true,
+      render: (value) => <span className="font-medium">{(value as string) || '—'}</span>,
+    },
+    {
+      key: 'email',
+      label: 'Email',
+      sortable: true,
+    },
+    {
+      key: 'userType',
+      label: 'User Type',
+      render: (value) => (
+        <Badge variant="outline" className="badge-neutral">
+          {(value as string) || 'employee'}
+        </Badge>
+      ),
+    },
+    {
+      key: 'isActive',
+      label: 'Status',
+      render: (value) => (
+        value ? (
+          <Badge variant="outline" className="badge-success">Active</Badge>
+        ) : (
+          <Badge variant="outline" className="badge-neutral">Inactive</Badge>
+        )
+      ),
+    },
+    {
+      key: 'assignedAt',
+      label: 'Assigned At',
+      sortable: true,
+      render: (value) => value ? new Date(value as string).toLocaleDateString() : '—',
+    },
+    {
+      key: 'userId',
+      label: 'Actions',
+      render: (_value, row) => (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => handleRemove(row.userId as string, displayRole)}
+        >
+          <Trash2 className="icon-sm icon-destructive" aria-hidden="true" />
+        </Button>
+      ),
+    },
+  ];
+
   return (
     <div className="container">
       {/* Header */}
@@ -187,56 +242,15 @@ export default function RolesManagementPage() {
             <CardTitle>Users with {displayRole} Role</CardTitle>
           </CardHeader>
           <CardContent>
-            {roleUsers && roleUsers.length > 0 ? (
-              <div className="table-container">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Email</th>
-                      <th>User Type</th>
-                      <th>Status</th>
-                      <th>Assigned At</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {roleUsers.map((user) => (
-                      <tr key={user.userId}>
-                        <td>{user.name || '—'}</td>
-                        <td>{user.email}</td>
-                        <td>
-                          <Badge variant="outline" className="badge-neutral">
-                            {user.userType || 'employee'}
-                          </Badge>
-                        </td>
-                        <td>
-                          {user.isActive ? (
-                            <Badge variant="outline" className="badge-success">Active</Badge>
-                          ) : (
-                            <Badge variant="outline" className="badge-neutral">Inactive</Badge>
-                          )}
-                        </td>
-                        <td>
-                          {user.assignedAt ? new Date(user.assignedAt).toLocaleDateString() : '—'}
-                        </td>
-                        <td>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleRemove(user.userId, displayRole)}
-                          >
-                            <Trash2 className="icon-sm icon-destructive" aria-hidden="true" />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="empty-state-sm">No users with this role</div>
-            )}
+            <DataTable
+              data={roleUsers || []}
+              columns={columns}
+              emptyState={{
+                icon: UserCog,
+                title: 'No users with this role',
+                description: 'Assign roles to users to see them here',
+              }}
+            />
           </CardContent>
         </Card>
       )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -70,8 +70,6 @@ const statusConfig = {
 
 export default function TasksKanbanPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [users, setUsers] = useState<Record<string, { name: string; initials: string; avatar: string | null }>>({});
-  const [_loadingUsers, setLoadingUsers] = useState(true);
 
   const { data: tasksData, isLoading, refetch } = api.tasks.getAllTasks.useQuery({
     limit: 100,
@@ -80,30 +78,32 @@ export default function TasksKanbanPage() {
     sortOrder: 'desc',
   });
 
+  // Fetch users data
+  const { data: usersData } = api.users.getAllUsers.useQuery({
+    limit: 100,
+    offset: 0,
+  });
+
+  // Process users data into lookup map
+  const users = usersData?.users?.reduce((acc: Record<string, { name: string; initials: string; avatar: string | null }>, user: any) => {
+    const names = user.name?.split(' ') || ['Unknown'];
+    const initials = names.length > 1
+      ? `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase()
+      : names[0].substring(0, 2).toUpperCase();
+
+    acc[user.id] = {
+      name: user.name || 'Unknown User',
+      initials,
+      avatar: user.avatar || null,
+    };
+    return acc;
+  }, {}) || {};
+
   const updateStatusMutation = api.tasks.updateStatus.useMutation({
     onSuccess: () => {
       refetch();
     },
   });
-
-  // Fetch users data
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        // TODO: Implement proper tRPC client call
-        // const result = await api.users.getAllUsers.fetch({ limit: 100 });
-        console.log('TODO: Load users data via tRPC');
-        // TODO: Process user data when API is properly implemented
-        setUsers({});
-      } catch (error) {
-        console.error('Failed to fetch users:', error);
-      } finally {
-        setLoadingUsers(false);
-      }
-    };
-
-    fetchUsers();
-  }, []);
 
   const handleStatusChange = (taskId: string, newStatus: TaskStatus) => {
     updateStatusMutation.mutate({ id: taskId, status: newStatus });

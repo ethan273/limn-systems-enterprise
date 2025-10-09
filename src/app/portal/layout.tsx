@@ -1,12 +1,12 @@
 'use client';
 
 /**
- * Customer Portal Layout
+ * Client Portal Layout
  * Phase 3: Customer Self-Service Portal
  * Provides navigation, authentication, and layout structure
  */
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
@@ -34,73 +34,22 @@ interface LayoutProps {
 export default function PortalLayout({ children }: LayoutProps) {
  const router = useRouter();
  const pathname = usePathname();
- const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
- const [loading, setLoading] = useState(true);
  const [sidebarOpen, setSidebarOpen] = useState(false);
  const [signingOut, setSigningOut] = useState(false);
 
+ // Get user info from tRPC - middleware already validated auth
+ const { data: userInfo } = api.portal.getCurrentUser.useQuery();
+
  // Fetch portal settings to determine navigation
- const { data: portalSettings } = api.portal.getPortalSettings.useQuery(undefined, {
- enabled: !!user,
- });
+ const { data: portalSettings } = api.portal.getPortalSettings.useQuery();
 
  // Fetch notification count
  const { data: notificationData } = api.portal.getNotifications.useQuery(
  { limit: 1, offset: 0, read: false },
  {
- enabled: !!user,
  refetchInterval: 30000, // Refetch every 30 seconds
  }
  );
-
- useEffect(() => {
- checkAuth();
- // eslint-disable-next-line react-hooks/exhaustive-deps
- }, []);
-
- const checkAuth = async () => {
- try {
- const supabase = createClient();
-
- // Use getUser() instead of getSession() for security - validates with Supabase server
- const {
- data: { user },
- error: userError,
- } = await supabase.auth.getUser();
-
- if (userError || !user) {
- // Not authenticated, redirect to login
- if (pathname !== '/portal/login') {
- router.push('/portal/login');
- }
- return;
- }
-
- // Check portal access
- const { data: portalAccess } = await supabase
- .from('customer_portal_access')
- .select('*')
- .eq('user_id', user.id)
- .eq('is_active', true)
- .single();
-
- if (!portalAccess && pathname !== '/portal/login') {
- // No portal access, redirect to login
- await supabase.auth.signOut();
- router.push('/portal/login');
- return;
- }
-
- setUser(user);
- } catch (error) {
- console.error('Auth error:', error);
- if (pathname !== '/portal/login') {
- router.push('/portal/login');
- }
- } finally {
- setLoading(false);
- }
- };
 
  const handleSignOut = async () => {
  try {
@@ -118,23 +67,6 @@ export default function PortalLayout({ children }: LayoutProps) {
  // Don't show layout on login page
  if (pathname === '/portal/login') {
  return <>{children}</>;
- }
-
- // Loading state
- if (loading) {
- return (
- <div className="min-h-screen card flex items-center justify-center">
- <div className="text-center">
- <Loader2 className="w-12 h-12 animate-spin text-[#91bdbd] mx-auto mb-4" />
- <p className="text-secondary">Loading portal...</p>
- </div>
- </div>
- );
- }
-
- // Not authenticated
- if (!user) {
- return null;
  }
 
  const navigation = [
@@ -222,12 +154,12 @@ export default function PortalLayout({ children }: LayoutProps) {
  <div className="flex items-center space-x-3 mb-3">
  <div className="w-10 h-10 bg-[#91bdbd] rounded-full flex items-center justify-center">
  <span className="text-foreground text-sm font-medium">
- {user.email?.[0]?.toUpperCase()}
+ {userInfo?.email?.[0]?.toUpperCase() || '?'}
  </span>
  </div>
  <div className="flex-1 min-w-0">
- <div className="text-sm font-medium truncate">{user.email}</div>
- <div className="text-xs text-secondary">Customer Portal</div>
+ <div className="text-sm font-medium truncate">{userInfo?.email || 'Loading...'}</div>
+ <div className="text-xs text-secondary">Client Portal</div>
  </div>
  </div>
  <Button

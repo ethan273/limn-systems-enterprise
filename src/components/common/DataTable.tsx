@@ -15,6 +15,8 @@ export interface DataTableColumn<T> {
   type?: 'text' | 'badge' | 'currency' | 'date' | 'custom';
   render?: (_value: unknown, _row: T) => React.ReactNode;
   badgeVariant?: (_value: unknown) => string;
+  mobileHidden?: boolean; // Hide column on mobile (< 768px)
+  priority?: 'high' | 'medium' | 'low'; // Column priority for responsive display
 }
 
 export interface DataTableFilter {
@@ -253,52 +255,64 @@ export function DataTable<T extends Record<string, unknown>>({
         </div>
       )}
 
-      {/* Table */}
+      {/* Table - Mobile Responsive with Horizontal Scroll */}
       <div className="card-content-compact">
-        <Table>
-          <TableHeader>
-            <TableRow className="table-header">
-              {columns.map((column) => (
-                <TableHead key={String(column.key)} className="table-header-cell">
-                  {column.sortable ? (
-                    <button
-                      onClick={() => handleSort(String(column.key))}
-                      className="flex items-center gap-2 hover:text-foreground transition-colors"
+        {/* Horizontal scroll wrapper for mobile */}
+        <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+          {/* Scroll indicator shadow */}
+          <div className="relative">
+            <Table>
+              <TableHeader>
+                <TableRow className="table-header">
+                  {columns.map((column) => (
+                    <TableHead
+                      key={String(column.key)}
+                      className={`table-header-cell ${column.mobileHidden ? 'hidden md:table-cell' : ''}`}
                     >
-                      {column.label}
-                      {sortColumn === String(column.key) ? (
-                        sortDirection === 'asc' ? (
-                          <ArrowUp className="h-4 w-4" />
-                        ) : (
-                          <ArrowDown className="h-4 w-4" />
-                        )
+                      {column.sortable ? (
+                        <button
+                          onClick={() => handleSort(String(column.key))}
+                          className="flex items-center gap-2 hover:text-foreground transition-colors whitespace-nowrap"
+                        >
+                          {column.label}
+                          {sortColumn === String(column.key) ? (
+                            sortDirection === 'asc' ? (
+                              <ArrowUp className="h-4 w-4" />
+                            ) : (
+                              <ArrowDown className="h-4 w-4" />
+                            )
+                          ) : (
+                            <ArrowUpDown className="h-4 w-4 opacity-50" />
+                          )}
+                        </button>
                       ) : (
-                        <ArrowUpDown className="h-4 w-4 opacity-50" />
+                        <span className="whitespace-nowrap">{column.label}</span>
                       )}
-                    </button>
-                  ) : (
-                    column.label
-                  )}
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginatedData.map((row, index) => (
-              <TableRow
-                key={index}
-                className={onRowClick ? 'table-row-clickable' : 'table-row'}
-                onClick={() => onRowClick?.(row)}
-              >
-                {columns.map((column) => (
-                  <TableCell key={String(column.key)} className="table-cell">
-                    {renderCell(column, row)}
-                  </TableCell>
+                    </TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedData.map((row, index) => (
+                  <TableRow
+                    key={index}
+                    className={onRowClick ? 'table-row-clickable' : 'table-row'}
+                    onClick={() => onRowClick?.(row)}
+                  >
+                    {columns.map((column) => (
+                      <TableCell
+                        key={String(column.key)}
+                        className={`table-cell ${column.mobileHidden ? 'hidden md:table-cell' : ''}`}
+                      >
+                        {renderCell(column, row)}
+                      </TableCell>
+                    ))}
+                  </TableRow>
                 ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+              </TableBody>
+            </Table>
+          </div>
+        </div>
       </div>
 
       {/* Pagination */}

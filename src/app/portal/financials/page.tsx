@@ -23,6 +23,7 @@ import {
   type DataTableFilter,
   type StatItem,
 } from "@/components/common";
+import { QuickBooksPaymentButton } from "@/components/portal";
 
 export const dynamic = 'force-dynamic';
 
@@ -208,6 +209,21 @@ export default function FinancialsPage() {
           {format(new Date(value as string), "MMM d, yyyy")}
         </div>
       ) : <span className="text-sm text-muted-foreground">—</span>,
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      render: (_, row) => (
+        <QuickBooksPaymentButton
+          invoiceId={row.id}
+          invoiceNumber={row.invoice_number}
+          amountDue={Number(row.amount_due)}
+          onPaymentSuccess={() => {
+            // Refetch invoice data after payment
+            window.location.reload();
+          }}
+        />
+      ),
     },
   ];
 

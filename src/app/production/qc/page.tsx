@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { Badge } from "@/components/ui/badge";
+import { useQualityInspectionsRealtime } from "@/hooks/useRealtimeSubscription";
 import {
   ClipboardCheck,
   AlertCircle,
@@ -70,6 +71,11 @@ export default function QCInspectionsPage() {
   });
 
   const inspections = data?.inspections || [];
+
+  // Subscribe to realtime updates for quality inspections
+  useQualityInspectionsRealtime({
+    queryKey: ['qc', 'getAllInspections'],
+  });
 
   const filteredInspections = inspections.filter((inspection) => {
     if (!searchQuery) return true;

@@ -747,5 +747,194 @@ export const adminRouter = createTRPCRouter({
         count: r._count,
       }));
     }),
+
+    /**
+     * Get all portal users across all portal types
+     * For portal management dashboard
+     */
+    getAllPortalUsers: protectedProcedure.query(async () => {
+      const portalUsers = await prisma.customer_portal_access.findMany({
+        include: {
+          users_customer_portal_access_user_idTousers: {
+            select: {
+              email: true,
+            },
+          },
+          customers: {
+            select: {
+              company_name: true,
+            },
+          },
+        },
+        orderBy: {
+          created_at: 'desc',
+        },
+      });
+
+      return portalUsers;
+    }),
+  }),
+
+  // ==========================================
+  // PORTAL MODULE MANAGEMENT
+  // ==========================================
+
+  /**
+   * Manage portal module visibility and permissions across all portal types
+   */
+  portalModules: createTRPCRouter({
+    /**
+     * Get module settings for a specific portal type and entity
+     */
+    getSettings: protectedProcedure
+      .input(
+        z.object({
+          portalType: z.enum(['customer', 'designer', 'factory', 'qc']),
+          entityId: z.string().uuid().optional(), // NULL = defaults
+        })
+      )
+      .query(async ({ input }) => {
+        const settings = await prisma.portal_module_settings.findMany({
+          where: {
+            portal_type: input.portalType,
+            entity_id: input.entityId || null,
+          },
+          orderBy: {
+            module_key: 'asc',
+          },
+        });
+
+        return settings.map((s) => ({
+          moduleKey: s.module_key,
+          isEnabled: s.is_enabled,
+          permissions: s.permissions as Record<string, boolean> | null,
+        }));
+      }),
+
+    /**
+     * Update module settings for a portal type and entity
+     */
+    updateSettings: protectedProcedure
+      .input(
+        z.object({
+          portalType: z.enum(['customer', 'designer', 'factory', 'qc']),
+          entityId: z.string().uuid().optional(),
+          modules: z.array(
+            z.object({
+              moduleKey: z.string(),
+              isEnabled: z.boolean(),
+              permissions: z.record(z.boolean()).optional(),
+            })
+          ),
+        })
+      )
+      .mutation(async ({ input }) => {
+        // Upsert each module setting
+        await Promise.all(
+          input.modules.map((mod) =>
+            prisma.portal_module_settings.upsert({
+              where: {
+                portal_type_entity_id_module_key: {
+                  portal_type: input.portalType,
+                  // @ts-expect-error - Prisma nullable unique constraint type issue
+                  entity_id: input.entityId || null,
+                  module_key: mod.moduleKey,
+                },
+              },
+              create: {
+                portal_type: input.portalType,
+                entity_id: input.entityId ?? null,
+                module_key: mod.moduleKey,
+                is_enabled: mod.isEnabled,
+                permissions: mod.permissions || {},
+              },
+              update: {
+                is_enabled: mod.isEnabled,
+                permissions: mod.permissions || {},
+                updated_at: new Date(),
+              },
+            })
+          )
+        );
+
+        return { success: true };
+      }),
+
+    /**
+     * Get available modules for a specific portal type
+     */
+    getAvailableModules: protectedProcedure
+      .input(
+        z.object({
+          portalType: z.enum(['customer', 'designer', 'factory', 'qc']),
+        })
+      )
+      .query(({ input }) => {
+        const modulesByPortal = {
+          customer: [
+            { key: 'orders', label: 'Orders', alwaysVisible: false },
+            { key: 'shipping', label: 'Shipping', alwaysVisible: false },
+            { key: 'financials', label: 'Financials', alwaysVisible: false },
+            { key: 'documents', label: 'Documents', alwaysVisible: true },
+            { key: 'profile', label: 'Profile', alwaysVisible: true },
+          ],
+          designer: [
+            { key: 'projects', label: 'Projects', alwaysVisible: false },
+            { key: 'documents', label: 'Documents', alwaysVisible: false },
+            { key: 'quality', label: 'Quality', alwaysVisible: false },
+          ],
+          factory: [
+            { key: 'orders', label: 'Production Orders', alwaysVisible: false },
+            { key: 'shipping', label: 'Shipping', alwaysVisible: false },
+            { key: 'documents', label: 'Documents', alwaysVisible: false },
+            { key: 'quality', label: 'Quality', alwaysVisible: false },
+          ],
+          qc: [
+            { key: 'quality_checks', label: 'Quality Checks', alwaysVisible: false },
+            { key: 'documents', label: 'Documents', alwaysVisible: false },
+            { key: 'reports', label: 'Reports', alwaysVisible: false },
+          ],
+        };
+
+        return modulesByPortal[input.portalType] || [];
+      }),
+
+    /**
+     * Get all customers for portal configuration dropdown
+     */
+    getCustomers: protectedProcedure.query(async () => {
+      const customers = await prisma.customers.findMany({
+        select: {
+          id: true,
+          company_name: true,
+        },
+        orderBy: {
+          company_name: 'asc',
+        },
+      });
+
+      return customers;
+    }),
+
+    /**
+     * Get all partners for portal configuration dropdown
+     */
+    getPartners: protectedProcedure.query(async () => {
+      const partners = await prisma.partners.findMany({
+        select: {
+          id: true,
+          company_name: true,
+          type: true,
+        },
+        orderBy: {
+          company_name: 'asc',
+        },
+      });
+
+      return partners.map(p => ({
+        ...p,
+        partner_type: p.type, // Alias for backwards compatibility with UI
+      }));
+    }),
   }),
 });

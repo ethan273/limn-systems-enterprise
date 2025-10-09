@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
+import { useInvoicesRealtime } from "@/hooks/useRealtimeSubscription";
 import { FileText, DollarSign, Clock, CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";
 import {
@@ -56,6 +57,12 @@ export default function InvoicesPage() {
     countPartial: 0,
     countPending: 0,
   };
+
+  // Subscribe to realtime updates for invoices
+  useInvoicesRealtime({
+    queryKey: ['invoices', 'getAll'],
+    enabled: !!user,
+  });
 
   // Stats configuration
   const statItems: StatItem[] = [

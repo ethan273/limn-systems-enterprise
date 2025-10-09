@@ -27,12 +27,19 @@ export default function ConceptsPage() {
   const router = useRouter();
 
   // Query items filtered by concept status
-  const { data, isLoading } = api.items.getAll.useQuery({
+  const { data, isLoading, refetch } = api.items.getAll.useQuery({
     limit: 100,
     offset: 0,
   });
 
   const items = data?.items || [];
+
+  // Delete mutation
+  const deleteMutation = api.items.delete.useMutation({
+    onSuccess: () => {
+      refetch();
+    },
+  });
 
   // Filter to only show concept items
   const conceptItems = items.filter((item: any) =>
@@ -168,9 +175,16 @@ export default function ConceptsPage() {
             </DropdownMenuItem>
             <DropdownMenuItem
               className="dropdown-item-danger"
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.stopPropagation();
-                // TODO: Add delete handler
+                if (window.confirm(`Are you sure you want to delete "${row.name}"? This action cannot be undone.`)) {
+                  try {
+                    await deleteMutation.mutateAsync({ id: row.id });
+                  } catch (error) {
+                    console.error('Failed to delete item:', error);
+                    alert('Failed to delete item. Please try again.');
+                  }
+                }
               }}
             >
               <Trash className="icon-sm" aria-hidden="true" />

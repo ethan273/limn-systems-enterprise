@@ -1615,11 +1615,26 @@ export default function ProjectsPage() {
  let totalCost = 0;
 
  for (const item of orderItems) {
+ // Determine product type from base SKU prefix
+ // If base_sku starts with collection prefix (e.g., "XX-"), it's a catalog item
+ // Otherwise, it's a custom item
+ const isCustomItem = !item.base_sku || item.base_sku.startsWith('TEMP-') || item.base_sku.startsWith('CUSTOM-');
+ const productType = isCustomItem ? 'custom' : 'catalog';
+
+ // Try to find catalog item ID by matching base_sku
+ let catalogItemId: string | undefined;
+ if (!isCustomItem) {
+ // Query catalog items via tRPC to find matching SKU
+ // Note: This would require adding a catalog item lookup by SKU to tRPC API
+ // For now, we'll leave as undefined and handle in production order detail view
+ catalogItemId = undefined;
+ }
+
  const result = await createProductionOrderMutation.mutateAsync({
  order_id: crmOrderId, // CRITICAL: Links back to CRM order for grouping/shipping
  project_id: projectId,
- product_type: 'catalog', // TODO: Determine from base_sku or item type
- catalog_item_id: undefined, // TODO: Map from catalog if available
+ product_type: productType,
+ catalog_item_id: catalogItemId,
  item_name: item.product_name,
  item_description: `${item.project_sku} - ${item.custom_specifications || ''}`,
  quantity: item.quantity,

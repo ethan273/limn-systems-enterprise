@@ -40,11 +40,13 @@ export default function LoginPage() {
  <div className="mb-8 flex justify-center">
  {mounted ? (
  <Image
- src={resolvedTheme === 'dark' ? '/images/Limn_Logo_Light_Mode.png' : '/images/Limn_Logo_Dark_Mode.png'}
+ key={resolvedTheme}
+ src={resolvedTheme === 'dark' ? '/images/Limn_Logo_Dark_Mode.png' : '/images/Limn_Logo_Light_Mode.png'}
  alt="Limn Systems"
  width={180}
  height={50}
  priority
+ unoptimized
  />
  ) : (
  <div style={{ width: 180, height: 50 }} />

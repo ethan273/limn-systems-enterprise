@@ -114,7 +114,7 @@ export default function ContactDetailPage({ params }: PageProps) {
             <CardTitle className="card-title-sm">Total Activities</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value">{analytics.totalActivities}</div>
+            <div className="stat-value">{analytics?.totalActivities || 0}</div>
             <p className="stat-label">All time</p>
           </CardContent>
         </Card>
@@ -124,7 +124,7 @@ export default function ContactDetailPage({ params }: PageProps) {
             <CardTitle className="card-title-sm">Completed</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value stat-success">{analytics.completedActivities}</div>
+            <div className="stat-value stat-success">{analytics?.completedActivities || 0}</div>
             <p className="stat-label">Activities completed</p>
           </CardContent>
         </Card>
@@ -134,7 +134,7 @@ export default function ContactDetailPage({ params }: PageProps) {
             <CardTitle className="card-title-sm">Pending</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value stat-warning">{analytics.pendingActivities}</div>
+            <div className="stat-value stat-warning">{analytics?.pendingActivities || 0}</div>
             <p className="stat-label">Awaiting action</p>
           </CardContent>
         </Card>
@@ -144,7 +144,7 @@ export default function ContactDetailPage({ params }: PageProps) {
             <CardTitle className="card-title-sm">Engagement Score</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value">{analytics.engagementScore}</div>
+            <div className="stat-value">{analytics?.engagementScore || 0}</div>
             <p className="stat-label">Out of 100</p>
           </CardContent>
         </Card>
@@ -187,7 +187,7 @@ export default function ContactDetailPage({ params }: PageProps) {
                 },
                 {
                   label: 'Last Contacted',
-                  value: analytics.lastContactDate
+                  value: analytics?.lastContactDate
                     ? format(new Date(analytics.lastContactDate), "MMM d, yyyy")
                     : "Never"
                 },

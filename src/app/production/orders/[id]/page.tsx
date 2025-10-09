@@ -18,6 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { DollarSign, Package, Truck, AlertCircle, CheckCircle, ArrowLeft, Settings, Trash2, Ship, Clock, PackageCheck } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
+import { useProductionOrdersRealtime, useShipmentsRealtime } from "@/hooks/useRealtimeSubscription";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -142,6 +143,20 @@ export default function ProductionOrderDetailPage({ params }: PageProps) {
 
  const { data: shipments } = api.shipping.getShipmentsByOrder.useQuery({
  production_order_id: id as string,
+ });
+
+ // Subscribe to realtime updates for this specific production order
+ useProductionOrdersRealtime({
+ orderId: id as string,
+ queryKey: ['productionOrders', 'getById', { id }],
+ enabled: !authLoading && !!user,
+ });
+
+ // Subscribe to realtime updates for shipments
+ useShipmentsRealtime({
+ orderId: id as string,
+ queryKey: ['shipping', 'getShipmentsByOrder', { production_order_id: id }],
+ enabled: !authLoading && !!user,
  });
 
  // Packing jobs query

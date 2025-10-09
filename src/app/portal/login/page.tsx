@@ -1,12 +1,14 @@
 'use client';
 
 /**
- * Customer Portal Login Page
+ * Client Portal Login Page
  * Phase 3: Customer Self-Service Portal
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
+import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,10 +18,16 @@ import { Loader2, Lock, Mail } from 'lucide-react';
 
 export default function PortalLoginPage() {
  const router = useRouter();
+ const { resolvedTheme } = useTheme();
+ const [mounted, setMounted] = useState(false);
  const [email, setEmail] = useState('');
  const [password, setPassword] = useState('');
  const [loading, setLoading] = useState(false);
  const [error, setError] = useState('');
+
+ useEffect(() => {
+  setMounted(true);
+ }, []);
 
  const handleLogin = async (e: React.FormEvent) => {
  e.preventDefault();
@@ -53,7 +61,7 @@ export default function PortalLoginPage() {
 
  if (!portalAccess) {
  await supabase.auth.signOut();
- throw new Error('You do not have access to the customer portal. Please contact support.');
+ throw new Error('You do not have access to the client portal. Please contact support.');
  }
 
  // Redirect to portal dashboard
@@ -67,19 +75,33 @@ export default function PortalLoginPage() {
  };
 
  return (
- <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
+ <div className="min-h-screen flex items-center justify-center p-4">
  <div className="w-full max-w-md">
- {/* Logo/Brand */}
- <div className="text-center mb-8">
- <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#91bdbd] mb-4">
- <Lock className="w-8 h-8 text-foreground" />
+ {/* Logo */}
+ <div className="mb-8 flex justify-center">
+ {mounted ? (
+ <Image
+ key={resolvedTheme}
+ src={resolvedTheme === 'dark' ? '/images/Limn_Logo_Dark_Mode.png' : '/images/Limn_Logo_Light_Mode.png'}
+ alt="Limn Systems"
+ width={180}
+ height={50}
+ priority
+ unoptimized
+ />
+ ) : (
+ <div style={{ width: 180, height: 50 }} />
+ )}
  </div>
- <h1 className="text-3xl font-bold">Customer Portal</h1>
- <p className=" mt-2">Sign in to access your orders and documents</p>
+
+ {/* Portal Title */}
+ <div className="text-center mb-6">
+ <h1 className="text-2xl font-bold text-primary">Client Portal</h1>
+ <p className="text-sm page-subtitle mt-2">Sign in to access your orders and documents</p>
  </div>
 
  {/* Login Form */}
- <div className="bg-card rounded-lg shadow-xl p-8">
+ <div className="card border shadow-lg rounded-lg px-8 py-10">
  <form onSubmit={handleLogin} className="space-y-6">
  {error && (
  <Alert variant="destructive">
@@ -94,7 +116,7 @@ export default function PortalLoginPage() {
  <Input
  id="email"
  type="email"
- placeholder="customer@example.com"
+ placeholder="client@example.com"
  value={email}
  onChange={(e) => setEmail(e.target.value)}
  required
@@ -124,7 +146,7 @@ export default function PortalLoginPage() {
  <Button
  type="submit"
  disabled={loading}
- className="w-full bg-[#91bdbd] hover:bg-[#7da9a9] text-foreground"
+ className="w-full"
  >
  {loading ? (
  <>
@@ -137,32 +159,17 @@ export default function PortalLoginPage() {
  </Button>
  </form>
 
- {/* Test Credentials (Development Only) */}
- {process.env.NODE_ENV === 'development' && (
- <div className="mt-6 p-4 btn-primary border border-primary rounded-lg">
- <p className="text-sm font-medium text-info mb-2">Test Credentials:</p>
- <p className="text-xs text-info">Email: customer@test.com</p>
- <p className="text-xs text-info">Password: (Use Supabase Auth)</p>
- </div>
- )}
-
- {/* Footer Links */}
- <div className="mt-6 text-center text-sm ">
- <a href="/portal/forgot-password" className="text-[#91bdbd] hover:underline">
- Forgot your password?
- </a>
- </div>
- <div className="mt-2 text-center text-sm ">
- Need help?{' '}
- <a href="mailto:support@limnsystems.com" className="text-[#91bdbd] hover:underline">
+ <div className="mt-8 pt-6 border-t">
+ <p className="text-xs text-tertiary text-center">
+ Need help accessing your account?{' '}
+ <a
+ href="mailto:support@limnsystems.com"
+ className="text-info hover:text-info font-medium"
+ >
  Contact Support
  </a>
+ </p>
  </div>
- </div>
-
- {/* Footer */}
- <div className="mt-8 text-center text-sm text-tertiary">
- © {new Date().getFullYear()} Limn Systems. All rights reserved.
  </div>
  </div>
  </div>

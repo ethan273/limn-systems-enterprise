@@ -444,6 +444,7 @@ model users {
   pwa_devices                                                           pwa_devices[]
   pwa_subscriptions                                                     pwa_subscriptions[]
   qc_issue_comments                                                     qc_issue_comments[]
+  qc_testers                                                            qc_testers[]
   quickbooks_auth                                                       quickbooks_auth[]
   quickbooks_connections                                                quickbooks_connections[]
   quickbooks_oauth_states                                               quickbooks_oauth_states[]
@@ -1151,6 +1152,9 @@ model customer_portal_access {
   accepted_at                                    DateTime?  @db.Timestamptz(6)
   created_at                                     DateTime?  @default(now()) @db.Timestamptz(6)
   updated_at                                     DateTime?  @default(now()) @db.Timestamptz(6)
+  portal_type                                    String?    @default("customer") @db.VarChar(20)
+  entity_type                                    String?    @db.VarChar(20)
+  entity_id                                      String?    @db.Uuid
   customers                                      customers? @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   users_customer_portal_access_invited_byTousers users?     @relation("customer_portal_access_invited_byTousers", fields: [invited_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
   users_customer_portal_access_user_idTousers    users?     @relation("customer_portal_access_user_idTousers", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -4170,6 +4174,23 @@ model portal_settings {
   @@schema("public")
 }
 
+/// Universal portal module visibility and permission control for all portal types
+/// Supports customer, designer, factory, QC portals and future portal types
+model portal_module_settings {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  portal_type String    @db.VarChar(50) // 'customer', 'designer', 'factory', 'qc'
+  entity_id   String?   @db.Uuid // customer_id, partner_id, or NULL for defaults
+  module_key  String    @db.VarChar(100) // 'orders', 'shipping', 'financials', 'projects', 'quality', etc.
+  is_enabled  Boolean   @default(true)
+  permissions Json?     @default("{}") // Optional per-module permissions
+  created_at  DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@unique([portal_type, entity_id, module_key])
+  @@index([portal_type, entity_id])
+  @@schema("public")
+}
+
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model portal_users {
@@ -4375,12 +4396,18 @@ model production_orders {
   quantity                                       Int
   unit_price                                     Decimal                    @db.Decimal(10, 2)
   total_cost                                     Decimal                    @db.Decimal(10, 2)
+  deposit_amount                                 Decimal?                   @db.Decimal(10, 2)
   deposit_paid                                   Boolean                    @default(false)
+  balance_amount                                 Decimal?                   @db.Decimal(10, 2)
   final_payment_paid                             Boolean                    @default(false)
   status                                         String                     @default("awaiting_deposit")
   order_date                                     DateTime                   @default(now()) @db.Timestamptz(6)
+  production_start_date                          DateTime?                  @db.Date
+  estimated_completion_date                      DateTime?                  @db.Date
   estimated_ship_date                            DateTime?                  @db.Date
   actual_ship_date                               DateTime?                  @db.Date
+  shipped_date                                   DateTime?                  @db.Date
+  delivered_date                                 DateTime?                  @db.Date
   factory_id                                     String?                    @db.Uuid
   factory_notes                                  String?
   created_at                                     DateTime                   @default(now()) @db.Timestamptz(6)
@@ -7024,6 +7051,33 @@ model expenses {
   @@index([category], map: "idx_expenses_category")
   @@index([created_at], map: "idx_expenses_created_at")
   @@index([expense_date], map: "idx_expenses_expense_date")
+  @@schema("public")
+}
+
+model qc_testers {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_name    String
+  primary_contact String?
+  primary_email   String
+  phone           String?
+  address_line1   String?
+  address_line2   String?
+  city            String?
+  state           String?
+  postal_code     String?
+  country         String?
+  certifications  String[]
+  specializations String[]
+  status          String?   @default("active")
+  portal_enabled  Boolean?  @default(true)
+  portal_user_id  String?   @db.Uuid
+  notes           String?
+  tags            String[]
+  created_at      DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime? @default(now()) @db.Timestamptz(6)
+  users           users?    @relation(fields: [portal_user_id], references: [id], onUpdate: NoAction)
+
+  @@index([portal_user_id], map: "idx_qc_testers_portal_user_id")
   @@schema("public")
 }
 

@@ -996,24 +996,24 @@ body {
 }
 
 .btn-primary {
-  background: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-  border-color: hsl(var(--primary));
+  background: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+  border-color: hsl(var(--primary)) !important;
 }
 
 .btn-primary:hover {
-  background: hsl(var(--primary) / 0.9);
+  background: hsl(var(--primary) / 0.9) !important;
 }
 
 .btn-secondary {
-  background: hsl(var(--secondary));
-  color: hsl(var(--foreground)); /* Use foreground for high contrast - was secondary-foreground */
-  border-color: hsl(var(--border));
+  background: hsl(var(--secondary)) !important;
+  color: hsl(var(--foreground)) !important; /* Use foreground for high contrast - was secondary-foreground */
+  border-color: hsl(var(--border)) !important;
 }
 
 .btn-secondary:hover {
-  background: hsl(var(--muted));
-  color: hsl(var(--foreground));
+  background: hsl(var(--muted)) !important;
+  color: hsl(var(--foreground)) !important;
 }
 
 .btn-outline {
@@ -3526,6 +3526,17 @@ button.bg-primary {
   background: hsl(38 92% 45%);
 }
 
+/* Button Info - Blue info button */
+.btn-info {
+  background: hsl(210 100% 50%) !important;
+  color: white !important;
+  border-color: hsl(210 100% 50%) !important;
+}
+
+.btn-info:hover {
+  background: hsl(210 100% 45%) !important;
+}
+
 /* ============================================
    MOOD BOARDS - Design inspiration boards
    ============================================ */
@@ -4492,6 +4503,15 @@ button.bg-primary {
   font-size: 0.875rem;
   font-weight: 600;
   color: hsl(var(--foreground));
+}
+
+/* Ensure proper text contrast for quick actions in light mode */
+:root .quick-action-label {
+  color: hsl(var(--primary)) !important;
+}
+
+.dark .quick-action-label {
+  color: hsl(var(--foreground)) !important;
 }
 
 /* Empty States */
@@ -7283,5 +7303,692 @@ button.bg-primary {
     padding: 0.5rem 0.5rem;
     flex-direction: column;
     gap: 0.25rem;
+  }
+}
+
+/* ============================================================================
+   QUICKBOOKS INTEGRATION STYLES
+   ============================================================================ */
+
+.quickbooks-integration-page {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.page-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 0.5rem;
+}
+
+.page-description {
+  color: var(--muted-foreground);
+  font-size: 1rem;
+}
+
+.alert {
+  padding: 1rem 1.5rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.alert-error {
+  background: hsl(var(--destructive) / 0.1);
+  border: 1px solid hsl(var(--destructive));
+  color: hsl(var(--destructive));
+}
+
+.alert-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: inherit;
+  padding: 0 0.5rem;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.loading-spinner {
+  border: 3px solid hsl(var(--muted));
+  border-top: 3px solid hsl(var(--primary));
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.connection-status-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.connection-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  padding: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.connection-card.not-connected {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.connection-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.connection-card h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 0.5rem;
+}
+
+.connection-card p {
+  color: var(--muted-foreground);
+  margin-bottom: 1.5rem;
+}
+
+.connections-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.connections-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.connections-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.connection-card.connected {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+}
+
+.connection-details {
+  flex: 1;
+}
+
+.connection-name {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.connection-name h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.status-badge.active {
+  background: hsl(142 76% 36% / 0.1);
+  color: hsl(142 76% 36%);
+}
+
+.status-badge.expired {
+  background: hsl(48 96% 53% / 0.1);
+  color: hsl(48 96% 53%);
+}
+
+.status-badge.inactive {
+  background: hsl(var(--muted));
+  color: var(--muted-foreground);
+}
+
+.connection-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.info-row {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.info-label {
+  color: var(--muted-foreground);
+  font-weight: 500;
+  min-width: 120px;
+}
+
+.info-value {
+  color: var(--foreground);
+}
+
+.connection-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.inactive-connections {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: hsl(var(--muted) / 0.3);
+  border-radius: 0.5rem;
+}
+
+.inactive-connections summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--foreground);
+  padding: 0.5rem;
+}
+
+.connection-card.inactive {
+  padding: 1rem;
+  margin-top: 0.5rem;
+  background: hsl(var(--background));
+}
+
+.connection-card.inactive h4 {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.integration-features {
+  background: hsl(var(--muted) / 0.3);
+  border-radius: 0.75rem;
+  padding: 2rem;
+}
+
+.integration-features h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 1rem;
+}
+
+.features-list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 0.75rem;
+}
+
+.features-list li {
+  color: var(--foreground);
+  font-size: 0.9375rem;
+}
+
+.integration-help {
+  background: hsl(var(--primary) / 0.05);
+  border: 1px solid hsl(var(--primary) / 0.2);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+}
+
+.integration-help h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 0.5rem;
+}
+
+.integration-help p {
+  color: var(--muted-foreground);
+  font-size: 0.9375rem;
+}
+
+.link {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.link:hover {
+  text-decoration: none;
+}
+
+/* Button styles (if not already defined) */
+.btn {
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: hsl(var(--primary) / 0.9);
+}
+
+.btn-secondary {
+  background: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+  border: 1px solid hsl(var(--border));
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: hsl(var(--secondary) / 0.8);
+}
+
+.btn-danger {
+  background: hsl(var(--destructive));
+  color: hsl(var(--destructive-foreground));
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: hsl(var(--destructive) / 0.9);
+}
+
+.btn-warning {
+  background: hsl(48 96% 53%);
+  color: hsl(0 0% 15%);
+}
+
+.btn-warning:hover:not(:disabled) {
+  background: hsl(48 96% 53% / 0.9);
+}
+
+/* ============================================================================
+   ANALYTICS DASHBOARD STYLES
+   ============================================================================ */
+
+.analytics-page {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.analytics-page .page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.analytics-page h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.analytics-page .page-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.filter-bar {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.filter-group label {
+  font-weight: 500;
+  color: var(--foreground);
+  font-size: 0.9375rem;
+}
+
+.btn-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+.form-select {
+  padding: 0.5rem 1rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  background: hsl(var(--background));
+  color: var(--foreground);
+  font-size: 0.9375rem;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.kpi-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.kpi-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.kpi-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 0.5rem;
+}
+
+.kpi-value.green {
+  color: hsl(142 76% 36%);
+}
+
+.kpi-value.orange {
+  color: hsl(48 96% 53%);
+}
+
+.kpi-value.red {
+  color: hsl(0 72% 51%);
+}
+
+.kpi-value.blue {
+  color: hsl(var(--primary));
+}
+
+.kpi-meta {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.chart-container {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.chart-container h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 1.5rem;
+}
+
+.customers-grid,
+.categories-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.customers-table table,
+.categories-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.customers-table th,
+.categories-table th {
+  text-align: left;
+  padding: 0.75rem;
+  background: hsl(var(--muted));
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--foreground);
+  border-bottom: 2px solid hsl(var(--border));
+}
+
+.customers-table td,
+.categories-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid hsl(var(--border));
+  font-size: 0.9375rem;
+  color: var(--foreground);
+}
+
+.customer-rank,
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: white;
+  font-weight: 600;
+  font-size: 0.75rem;
+  margin-right: 0.5rem;
+}
+
+.customers-table .amount,
+.categories-table .amount {
+  font-weight: 600;
+  text-align: right;
+}
+
+.efficiency-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.efficiency-card {
+  text-align: center;
+  padding: 1.5rem;
+  background: hsl(var(--muted) / 0.3);
+  border-radius: 0.75rem;
+}
+
+.efficiency-icon {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+}
+
+.efficiency-icon.green {
+  color: hsl(142 76% 36%);
+}
+
+.efficiency-icon.red {
+  color: hsl(0 72% 51%);
+}
+
+.efficiency-icon.orange {
+  color: hsl(48 96% 53%);
+}
+
+.efficiency-icon.blue {
+  color: hsl(var(--primary));
+}
+
+.efficiency-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+}
+
+.efficiency-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 0.25rem;
+}
+
+.efficiency-percentage {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.efficiency-percentage.green {
+  color: hsl(142 76% 36%);
+}
+
+.efficiency-percentage.red {
+  color: hsl(0 72% 51%);
+}
+
+.insights-container {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.insights-container h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 1.5rem;
+}
+
+.insights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.insight-card {
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: hsl(var(--muted) / 0.2);
+  border-left: 4px solid hsl(var(--primary));
+  border-radius: 0.5rem;
+}
+
+.insight-card.success {
+  border-left-color: hsl(142 76% 36%);
+  background: hsl(142 76% 36% / 0.1);
+}
+
+.insight-card.warning {
+  border-left-color: hsl(48 96% 53%);
+  background: hsl(48 96% 53% / 0.1);
+}
+
+.insight-card.error {
+  border-left-color: hsl(0 72% 51%);
+  background: hsl(0 72% 51% / 0.1);
+}
+
+.insight-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.insight-content h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 0.5rem;
+}
+
+.insight-content p {
+  font-size: 0.9375rem;
+  color: var(--muted-foreground);
+  line-height: 1.5;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: var(--muted-foreground);
+  font-size: 1rem;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 2rem;
+  color: var(--muted-foreground);
+  font-size: 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .filter-bar {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .customers-grid,
+  .categories-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .insights-grid {
+    grid-template-columns: 1fr;
   }
 }

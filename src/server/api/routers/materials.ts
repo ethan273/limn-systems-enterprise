@@ -1,10 +1,34 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc/init";
+import { TRPCError } from "@trpc/server";
 
 // ========================================
 // HIERARCHICAL MATERIALS ROUTER
 // For cascading material management: Fabrics, Wood, Metal, Stone, Weaving, Carving
 // ========================================
+
+// Helper to handle Prisma errors with user-friendly messages
+const handlePrismaError = (error: any, itemType: string) => {
+  if (error.code === 'P2002') {
+    // Unique constraint violation
+    throw new TRPCError({
+      code: 'CONFLICT',
+      message: `A ${itemType} with this name already exists. Please use a different name.`,
+    });
+  }
+  if (error.code === 'P2025') {
+    // Record not found
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: `${itemType} not found.`,
+    });
+  }
+  // Generic error
+  throw new TRPCError({
+    code: 'INTERNAL_SERVER_ERROR',
+    message: `Failed to process ${itemType}: ${error.message}`,
+  });
+};
 
 export const materialTypesRouter = createTRPCRouter({
   // Fabric Brands
@@ -31,15 +55,19 @@ export const materialTypesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      return await (ctx.db as any).fabric_brands.create({
-        data: {
-          name: input.name,
-          description: input.description,
-          price_modifier: input.price_modifier,
-          sort_order: input.sort_order,
-          active: true,
-        },
-      });
+      try {
+        return await (ctx.db as any).fabric_brands.create({
+          data: {
+            name: input.name,
+            description: input.description,
+            price_modifier: input.price_modifier,
+            sort_order: input.sort_order,
+            active: true,
+          },
+        });
+      } catch (error) {
+        handlePrismaError(error, 'fabric brand');
+      }
     }),
 
   updateFabricBrand: publicProcedure
@@ -54,19 +82,27 @@ export const materialTypesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, ...data } = input;
-      return await (ctx.db as any).fabric_brands.update({
-        where: { id },
-        data,
-      });
+      try {
+        const { id, ...data } = input;
+        return await (ctx.db as any).fabric_brands.update({
+          where: { id },
+          data,
+        });
+      } catch (error) {
+        handlePrismaError(error, 'fabric brand');
+      }
     }),
 
   deleteFabricBrand: publicProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      return await (ctx.db as any).fabric_brands.delete({
-        where: { id: input.id },
-      });
+      try {
+        return await (ctx.db as any).fabric_brands.delete({
+          where: { id: input.id },
+        });
+      } catch (error) {
+        handlePrismaError(error, 'fabric brand');
+      }
     }),
 
   // Fabric Collections
@@ -93,16 +129,20 @@ export const materialTypesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      return await (ctx.db as any).fabric_collections.create({
-        data: {
-          name: input.name,
-          brand_id: input.brand_id,
-          description: input.description,
-          price_modifier: input.price_modifier,
-          sort_order: input.sort_order,
-          active: true,
-        },
-      });
+      try {
+        return await (ctx.db as any).fabric_collections.create({
+          data: {
+            name: input.name,
+            brand_id: input.brand_id,
+            description: input.description,
+            price_modifier: input.price_modifier,
+            sort_order: input.sort_order,
+            active: true,
+          },
+        });
+      } catch (error) {
+        handlePrismaError(error, 'fabric collection');
+      }
     }),
 
   updateFabricCollection: publicProcedure
@@ -118,19 +158,27 @@ export const materialTypesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, ...data } = input;
-      return await (ctx.db as any).fabric_collections.update({
-        where: { id },
-        data,
-      });
+      try {
+        const { id, ...data } = input;
+        return await (ctx.db as any).fabric_collections.update({
+          where: { id },
+          data,
+        });
+      } catch (error) {
+        handlePrismaError(error, 'fabric collection');
+      }
     }),
 
   deleteFabricCollection: publicProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      return await (ctx.db as any).fabric_collections.delete({
-        where: { id: input.id },
-      });
+      try {
+        return await (ctx.db as any).fabric_collections.delete({
+          where: { id: input.id },
+        });
+      } catch (error) {
+        handlePrismaError(error, 'fabric collection');
+      }
     }),
 
   // Fabric Colors
@@ -163,17 +211,21 @@ export const materialTypesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      return await (ctx.db as any).fabric_colors.create({
-        data: {
-          name: input.name,
-          collection_id: input.collection_id,
-          hex_code: input.hex_code,
-          description: input.description,
-          price_modifier: input.price_modifier,
-          sort_order: input.sort_order,
-          active: true,
-        },
-      });
+      try {
+        return await (ctx.db as any).fabric_colors.create({
+          data: {
+            name: input.name,
+            collection_id: input.collection_id,
+            hex_code: input.hex_code,
+            description: input.description,
+            price_modifier: input.price_modifier,
+            sort_order: input.sort_order,
+            active: true,
+          },
+        });
+      } catch (error) {
+        handlePrismaError(error, 'fabric color');
+      }
     }),
 
   updateFabricColor: publicProcedure
@@ -190,19 +242,27 @@ export const materialTypesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, ...data } = input;
-      return await (ctx.db as any).fabric_colors.update({
-        where: { id },
-        data,
-      });
+      try {
+        const { id, ...data } = input;
+        return await (ctx.db as any).fabric_colors.update({
+          where: { id },
+          data,
+        });
+      } catch (error) {
+        handlePrismaError(error, 'fabric color');
+      }
     }),
 
   deleteFabricColor: publicProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      return await (ctx.db as any).fabric_colors.delete({
-        where: { id: input.id },
-      });
+      try {
+        return await (ctx.db as any).fabric_colors.delete({
+          where: { id: input.id },
+        });
+      } catch (error) {
+        handlePrismaError(error, 'fabric color');
+      }
     }),
 
   // ========================================
@@ -229,15 +289,19 @@ export const materialTypesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      return await (ctx.db as any).wood_types.create({
-        data: {
-          name: input.name,
-          description: input.description,
-          price_modifier: input.price_modifier,
-          sort_order: input.sort_order,
-          active: true,
-        },
-      });
+      try {
+        return await (ctx.db as any).wood_types.create({
+          data: {
+            name: input.name,
+            description: input.description,
+            price_modifier: input.price_modifier,
+            sort_order: input.sort_order,
+            active: true,
+          },
+        });
+      } catch (error) {
+        handlePrismaError(error, 'wood type');
+      }
     }),
 
   updateWoodType: publicProcedure
@@ -252,19 +316,27 @@ export const materialTypesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, ...data } = input;
-      return await (ctx.db as any).wood_types.update({
-        where: { id },
-        data,
-      });
+      try {
+        const { id, ...data } = input;
+        return await (ctx.db as any).wood_types.update({
+          where: { id },
+          data,
+        });
+      } catch (error) {
+        handlePrismaError(error, 'wood type');
+      }
     }),
 
   deleteWoodType: publicProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      return await (ctx.db as any).wood_types.delete({
-        where: { id: input.id },
-      });
+      try {
+        return await (ctx.db as any).wood_types.delete({
+          where: { id: input.id },
+        });
+      } catch (error) {
+        handlePrismaError(error, 'wood type');
+      }
     }),
 
   // Wood Finishes
@@ -290,16 +362,20 @@ export const materialTypesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      return await (ctx.db as any).wood_finishes.create({
-        data: {
-          name: input.name,
-          wood_type_id: input.wood_type_id,
-          description: input.description,
-          price_modifier: input.price_modifier,
-          sort_order: input.sort_order,
-          active: true,
-        },
-      });
+      try {
+        return await (ctx.db as any).wood_finishes.create({
+          data: {
+            name: input.name,
+            wood_type_id: input.wood_type_id,
+            description: input.description,
+            price_modifier: input.price_modifier,
+            sort_order: input.sort_order,
+            active: true,
+          },
+        });
+      } catch (error) {
+        handlePrismaError(error, 'wood finish');
+      }
     }),
 
   updateWoodFinish: publicProcedure
@@ -315,19 +391,27 @@ export const materialTypesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, ...data } = input;
-      return await (ctx.db as any).wood_finishes.update({
-        where: { id },
-        data,
-      });
+      try {
+        const { id, ...data } = input;
+        return await (ctx.db as any).wood_finishes.update({
+          where: { id },
+          data,
+        });
+      } catch (error) {
+        handlePrismaError(error, 'wood finish');
+      }
     }),
 
   deleteWoodFinish: publicProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      return await (ctx.db as any).wood_finishes.delete({
-        where: { id: input.id },
-      });
+      try {
+        return await (ctx.db as any).wood_finishes.delete({
+          where: { id: input.id },
+        });
+      } catch (error) {
+        handlePrismaError(error, 'wood finish');
+      }
     }),
 
   // ========================================
@@ -358,15 +442,19 @@ export const materialTypesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      return await (ctx.db as any).metal_types.create({
-        data: {
-          name: input.name,
-          description: input.description,
-          price_modifier: input.price_modifier,
-          sort_order: input.sort_order,
-          active: true,
-        },
-      });
+      try {
+        return await (ctx.db as any).metal_types.create({
+          data: {
+            name: input.name,
+            description: input.description,
+            price_modifier: input.price_modifier,
+            sort_order: input.sort_order,
+            active: true,
+          },
+        });
+      } catch (error) {
+        handlePrismaError(error, 'metal type');
+      }
     }),
 
   updateMetalType: publicProcedure
@@ -381,19 +469,27 @@ export const materialTypesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, ...data } = input;
-      return await (ctx.db as any).metal_types.update({
-        where: { id },
-        data,
-      });
+      try {
+        const { id, ...data } = input;
+        return await (ctx.db as any).metal_types.update({
+          where: { id },
+          data,
+        });
+      } catch (error) {
+        handlePrismaError(error, 'metal type');
+      }
     }),
 
   deleteMetalType: publicProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      return await (ctx.db as any).metal_types.delete({
-        where: { id: input.id },
-      });
+      try {
+        return await (ctx.db as any).metal_types.delete({
+          where: { id: input.id },
+        });
+      } catch (error) {
+        handlePrismaError(error, 'metal type');
+      }
     }),
 
   // Metal Finishes
@@ -420,16 +516,20 @@ export const materialTypesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      return await (ctx.db as any).metal_finishes.create({
-        data: {
-          name: input.name,
-          metal_type_id: input.metal_type_id,
-          description: input.description,
-          price_modifier: input.price_modifier,
-          sort_order: input.sort_order,
-          active: true,
-        },
-      });
+      try {
+        return await (ctx.db as any).metal_finishes.create({
+          data: {
+            name: input.name,
+            metal_type_id: input.metal_type_id,
+            description: input.description,
+            price_modifier: input.price_modifier,
+            sort_order: input.sort_order,
+            active: true,
+          },
+        });
+      } catch (error) {
+        handlePrismaError(error, 'metal finish');
+      }
     }),
 
   updateMetalFinish: publicProcedure
@@ -445,19 +545,27 @@ export const materialTypesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, ...data } = input;
-      return await (ctx.db as any).metal_finishes.update({
-        where: { id },
-        data,
-      });
+      try {
+        const { id, ...data } = input;
+        return await (ctx.db as any).metal_finishes.update({
+          where: { id },
+          data,
+        });
+      } catch (error) {
+        handlePrismaError(error, 'metal finish');
+      }
     }),
 
   deleteMetalFinish: publicProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      return await (ctx.db as any).metal_finishes.delete({
-        where: { id: input.id },
-      });
+      try {
+        return await (ctx.db as any).metal_finishes.delete({
+          where: { id: input.id },
+        });
+      } catch (error) {
+        handlePrismaError(error, 'metal finish');
+      }
     }),
 
   // Metal Colors
@@ -490,17 +598,21 @@ export const materialTypesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      return await (ctx.db as any).metal_colors.create({
-        data: {
-          name: input.name,
-          metal_finish_id: input.metal_finish_id,
-          hex_code: input.hex_code,
-          description: input.description,
-          price_modifier: input.price_modifier,
-          sort_order: input.sort_order,
-          active: true,
-        },
-      });
+      try {
+        return await (ctx.db as any).metal_colors.create({
+          data: {
+            name: input.name,
+            metal_finish_id: input.metal_finish_id,
+            hex_code: input.hex_code,
+            description: input.description,
+            price_modifier: input.price_modifier,
+            sort_order: input.sort_order,
+            active: true,
+          },
+        });
+      } catch (error) {
+        handlePrismaError(error, 'metal color');
+      }
     }),
 
   updateMetalColor: publicProcedure
@@ -517,19 +629,27 @@ export const materialTypesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, ...data } = input;
-      return await (ctx.db as any).metal_colors.update({
-        where: { id },
-        data,
-      });
+      try {
+        const { id, ...data } = input;
+        return await (ctx.db as any).metal_colors.update({
+          where: { id },
+          data,
+        });
+      } catch (error) {
+        handlePrismaError(error, 'metal color');
+      }
     }),
 
   deleteMetalColor: publicProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      return await (ctx.db as any).metal_colors.delete({
-        where: { id: input.id },
-      });
+      try {
+        return await (ctx.db as any).metal_colors.delete({
+          where: { id: input.id },
+        });
+      } catch (error) {
+        handlePrismaError(error, 'metal color');
+      }
     }),
 
   // ========================================
@@ -556,15 +676,19 @@ export const materialTypesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      return await (ctx.db as any).stone_types.create({
-        data: {
-          name: input.name,
-          description: input.description,
-          price_modifier: input.price_modifier,
-          sort_order: input.sort_order,
-          active: true,
-        },
-      });
+      try {
+        return await (ctx.db as any).stone_types.create({
+          data: {
+            name: input.name,
+            description: input.description,
+            price_modifier: input.price_modifier,
+            sort_order: input.sort_order,
+            active: true,
+          },
+        });
+      } catch (error) {
+        handlePrismaError(error, 'stone type');
+      }
     }),
 
   updateStoneType: publicProcedure
@@ -579,19 +703,27 @@ export const materialTypesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, ...data } = input;
-      return await (ctx.db as any).stone_types.update({
-        where: { id },
-        data,
-      });
+      try {
+        const { id, ...data } = input;
+        return await (ctx.db as any).stone_types.update({
+          where: { id },
+          data,
+        });
+      } catch (error) {
+        handlePrismaError(error, 'stone type');
+      }
     }),
 
   deleteStoneType: publicProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      return await (ctx.db as any).stone_types.delete({
-        where: { id: input.id },
-      });
+      try {
+        return await (ctx.db as any).stone_types.delete({
+          where: { id: input.id },
+        });
+      } catch (error) {
+        handlePrismaError(error, 'stone type');
+      }
     }),
 
   // Stone Finishes
@@ -617,16 +749,20 @@ export const materialTypesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      return await (ctx.db as any).stone_finishes.create({
-        data: {
-          name: input.name,
-          stone_type_id: input.stone_type_id,
-          description: input.description,
-          price_modifier: input.price_modifier,
-          sort_order: input.sort_order,
-          active: true,
-        },
-      });
+      try {
+        return await (ctx.db as any).stone_finishes.create({
+          data: {
+            name: input.name,
+            stone_type_id: input.stone_type_id,
+            description: input.description,
+            price_modifier: input.price_modifier,
+            sort_order: input.sort_order,
+            active: true,
+          },
+        });
+      } catch (error) {
+        handlePrismaError(error, 'stone finish');
+      }
     }),
 
   updateStoneFinish: publicProcedure
@@ -642,19 +778,27 @@ export const materialTypesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, ...data } = input;
-      return await (ctx.db as any).stone_finishes.update({
-        where: { id },
-        data,
-      });
+      try {
+        const { id, ...data } = input;
+        return await (ctx.db as any).stone_finishes.update({
+          where: { id },
+          data,
+        });
+      } catch (error) {
+        handlePrismaError(error, 'stone finish');
+      }
     }),
 
   deleteStoneFinish: publicProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      return await (ctx.db as any).stone_finishes.delete({
-        where: { id: input.id },
-      });
+      try {
+        return await (ctx.db as any).stone_finishes.delete({
+          where: { id: input.id },
+        });
+      } catch (error) {
+        handlePrismaError(error, 'stone finish');
+      }
     }),
 
   // ========================================
@@ -662,7 +806,7 @@ export const materialTypesRouter = createTRPCRouter({
   // ========================================
 
   getWeavingStyles: publicProcedure.query(async ({ ctx }) => {
-    return await (ctx.db as any).weaving_styles.findMany({
+    return await (ctx.db as any).weaving_patterns.findMany({
       orderBy: { name: "asc" },
     });
   }),
@@ -677,15 +821,19 @@ export const materialTypesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      return await (ctx.db as any).weaving_styles.create({
-        data: {
-          name: input.name,
-          description: input.description,
-          price_modifier: input.price_modifier,
-          sort_order: input.sort_order,
-          active: true,
-        },
-      });
+      try {
+        return await (ctx.db as any).weaving_patterns.create({
+          data: {
+            name: input.name,
+            description: input.description,
+            price_modifier: input.price_modifier,
+            sort_order: input.sort_order,
+            active: true,
+          },
+        });
+      } catch (error) {
+        handlePrismaError(error, 'weaving style');
+      }
     }),
 
   updateWeavingStyle: publicProcedure
@@ -700,19 +848,27 @@ export const materialTypesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, ...data } = input;
-      return await (ctx.db as any).weaving_styles.update({
-        where: { id },
-        data,
-      });
+      try {
+        const { id, ...data } = input;
+        return await (ctx.db as any).weaving_patterns.update({
+          where: { id },
+          data,
+        });
+      } catch (error) {
+        handlePrismaError(error, 'weaving style');
+      }
     }),
 
   deleteWeavingStyle: publicProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      return await (ctx.db as any).weaving_styles.delete({
-        where: { id: input.id },
-      });
+      try {
+        return await (ctx.db as any).weaving_patterns.delete({
+          where: { id: input.id },
+        });
+      } catch (error) {
+        handlePrismaError(error, 'weaving style');
+      }
     }),
 
   // ========================================
@@ -736,16 +892,20 @@ export const materialTypesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      return await (ctx.db as any).carving_styles.create({
-        data: {
-          name: input.name,
-          description: input.description,
-          price_modifier: input.price_modifier,
-          sort_order: input.sort_order,
-          complexity_level: input.complexity_level,
-          active: true,
-        },
-      });
+      try {
+        return await (ctx.db as any).carving_styles.create({
+          data: {
+            name: input.name,
+            description: input.description,
+            price_modifier: input.price_modifier,
+            sort_order: input.sort_order,
+            complexity_level: input.complexity_level,
+            active: true,
+          },
+        });
+      } catch (error) {
+        handlePrismaError(error, 'carving style');
+      }
     }),
 
   updateCarvingStyle: publicProcedure
@@ -761,18 +921,26 @@ export const materialTypesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, ...data } = input;
-      return await (ctx.db as any).carving_styles.update({
-        where: { id },
-        data,
-      });
+      try {
+        const { id, ...data } = input;
+        return await (ctx.db as any).carving_styles.update({
+          where: { id },
+          data,
+        });
+      } catch (error) {
+        handlePrismaError(error, 'carving style');
+      }
     }),
 
   deleteCarvingStyle: publicProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      return await (ctx.db as any).carving_styles.delete({
-        where: { id: input.id },
-      });
+      try {
+        return await (ctx.db as any).carving_styles.delete({
+          where: { id: input.id },
+        });
+      } catch (error) {
+        handlePrismaError(error, 'carving style');
+      }
     }),
 });

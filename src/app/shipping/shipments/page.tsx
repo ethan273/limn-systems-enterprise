@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
+import { useShipmentsRealtime } from "@/hooks/useRealtimeSubscription";
 import { Badge } from "@/components/ui/badge";
 import { ShippingStatusBadge } from "@/components/ui/status-badge";
 import {
@@ -43,6 +44,12 @@ export default function ShipmentsPage() {
   );
 
   const shipments = data?.items || [];
+
+  // Subscribe to realtime updates for shipments
+  useShipmentsRealtime({
+    queryKey: ['shipping', 'getAllShipments'],
+    enabled: !!user,
+  });
 
   const stats: StatItem[] = [
     {

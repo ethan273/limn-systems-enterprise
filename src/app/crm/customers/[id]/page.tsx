@@ -134,7 +134,7 @@ export default function CustomerDetailPage({ params }: PageProps) {
             <CardTitle className="card-title-sm">Lifetime Value</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value stat-success">${analytics.lifetimeValue.toLocaleString()}</div>
+            <div className="stat-value stat-success">${(analytics?.lifetimeValue || 0).toLocaleString()}</div>
             <p className="stat-label">Total order value</p>
           </CardContent>
         </Card>
@@ -144,10 +144,10 @@ export default function CustomerDetailPage({ params }: PageProps) {
             <CardTitle className="card-title-sm">Outstanding Balance</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className={`stat-value ${analytics.outstandingBalance > 0 ? 'stat-warning' : 'stat-success'}`}>
-              ${analytics.outstandingBalance.toLocaleString()}
+            <div className={`stat-value ${(analytics?.outstandingBalance || 0) > 0 ? 'stat-warning' : 'stat-success'}`}>
+              ${(analytics?.outstandingBalance || 0).toLocaleString()}
             </div>
-            <p className="stat-label">${analytics.totalPaid.toLocaleString()} paid</p>
+            <p className="stat-label">${(analytics?.totalPaid || 0).toLocaleString()} paid</p>
           </CardContent>
         </Card>
 
@@ -156,9 +156,9 @@ export default function CustomerDetailPage({ params }: PageProps) {
             <CardTitle className="card-title-sm">Total Orders</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value">{analytics.totalOrders}</div>
+            <div className="stat-value">{analytics?.totalOrders || 0}</div>
             <p className="stat-label">
-              Avg: ${analytics.averageOrderValue > 0 ? analytics.averageOrderValue.toLocaleString() : 0}
+              Avg: ${(analytics?.averageOrderValue || 0) > 0 ? (analytics?.averageOrderValue || 0).toLocaleString() : 0}
             </p>
           </CardContent>
         </Card>
@@ -168,7 +168,7 @@ export default function CustomerDetailPage({ params }: PageProps) {
             <CardTitle className="card-title-sm">Customer Since</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value">{analytics.daysAsCustomer}</div>
+            <div className="stat-value">{analytics?.daysAsCustomer || 0}</div>
             <p className="stat-label">Days</p>
           </CardContent>
         </Card>
@@ -279,7 +279,7 @@ export default function CustomerDetailPage({ params }: PageProps) {
                   </div>
                   <div className="analytics-content">
                     <p className="analytics-label">Total Orders</p>
-                    <p className="analytics-value">{analytics.totalOrders}</p>
+                    <p className="analytics-value">{analytics?.totalOrders || 0}</p>
                   </div>
                 </div>
                 <div className="analytics-item">
@@ -288,7 +288,7 @@ export default function CustomerDetailPage({ params }: PageProps) {
                   </div>
                   <div className="analytics-content">
                     <p className="analytics-label">Total Projects</p>
-                    <p className="analytics-value">{analytics.totalProjects}</p>
+                    <p className="analytics-value">{analytics?.totalProjects || 0}</p>
                   </div>
                 </div>
                 <div className="analytics-item">
@@ -297,7 +297,7 @@ export default function CustomerDetailPage({ params }: PageProps) {
                   </div>
                   <div className="analytics-content">
                     <p className="analytics-label">Production Orders</p>
-                    <p className="analytics-value">{analytics.totalProductionOrders}</p>
+                    <p className="analytics-value">{analytics?.totalProductionOrders || 0}</p>
                   </div>
                 </div>
                 <div className="analytics-item">
@@ -307,7 +307,7 @@ export default function CustomerDetailPage({ params }: PageProps) {
                   <div className="analytics-content">
                     <p className="analytics-label">Activities</p>
                     <p className="analytics-value">
-                      {analytics.completedActivities} / {analytics.totalActivities}
+                      {analytics?.completedActivities || 0} / {analytics?.totalActivities || 0}
                     </p>
                   </div>
                 </div>

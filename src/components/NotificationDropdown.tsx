@@ -10,8 +10,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { formatDistanceToNow } from "date-fns";
-import { useEffect } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useNotificationsRealtime } from "@/hooks/useRealtimeSubscription";
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function NotificationDropdown() {
@@ -54,30 +53,11 @@ export default function NotificationDropdown() {
     },
   });
 
-  // Real-time subscription for new notifications
-  useEffect(() => {
-    const supabase = createClient();
-
-    const channel = supabase
-      .channel('notifications-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-        },
-        () => {
-          // Refetch notifications and count when new notification arrives
-          queryClient.invalidateQueries({ queryKey: [['notifications']] });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      channel.unsubscribe();
-    };
-  }, [queryClient]);
+  // Subscribe to realtime notification updates
+  useNotificationsRealtime({
+    queryKey: ['notifications'],
+    event: 'INSERT', // Only listen for new notifications
+  });
 
   const allNotifications = (data?.pages.flatMap((page) => page.notifications) || []) as any[];
   const unreadCount = (unreadData?.count || 0) as number;

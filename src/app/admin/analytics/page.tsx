@@ -20,6 +20,7 @@ import {
   CheckCircle2,
   XCircle,
 } from "lucide-react";
+import { DataTable, type DataTableColumn } from "@/components/common";
 
 // Dynamic route configuration
 export const dynamic = 'force-dynamic';
@@ -43,6 +44,72 @@ export default function AnalyticsDashboardPage() {
   const totalUsers = usersData?.total || 0;
 
   const isLoading = isLoadingStats || isLoadingUsers;
+
+  // Prepare recently active users data
+  const recentlyActiveUsers = usersData?.users
+    ? usersData.users
+        .filter((u) => u.lastSignInAt)
+        .sort((a, b) => {
+          const dateA = a.lastSignInAt ? new Date(a.lastSignInAt).getTime() : 0;
+          const dateB = b.lastSignInAt ? new Date(b.lastSignInAt).getTime() : 0;
+          return dateB - dateA;
+        })
+        .slice(0, 10)
+    : [];
+
+  // DataTable columns configuration
+  const columns: DataTableColumn<any>[] = [
+    {
+      key: 'name',
+      label: 'User',
+      sortable: true,
+      render: (value) => <span className="font-medium">{(value as string) || '—'}</span>,
+    },
+    {
+      key: 'email',
+      label: 'Email',
+      sortable: true,
+    },
+    {
+      key: 'userType',
+      label: 'Type',
+      render: (value) => (
+        <Badge variant="outline" className="badge-neutral">
+          {value as string}
+        </Badge>
+      ),
+    },
+    {
+      key: 'department',
+      label: 'Department',
+      render: (value) => (value as string) || '—',
+    },
+    {
+      key: 'lastSignInAt',
+      label: 'Last Sign In',
+      sortable: true,
+      render: (value) => {
+        if (!value) return '—';
+        return (
+          <div className="flex items-center gap-2">
+            <Clock className="icon-sm icon-muted" aria-hidden="true" />
+            <span>{new Date(value as string).toLocaleDateString()}</span>
+          </div>
+        );
+      },
+    },
+    {
+      key: 'isActive',
+      label: 'Status',
+      render: (value) => (
+        value ? (
+          <Badge variant="outline" className="badge-success">Active</Badge>
+        ) : (
+          <Badge variant="outline" className="badge-neutral">Inactive</Badge>
+        )
+      ),
+    },
+  ];
 
   return (
     <div className="container">
@@ -262,65 +329,15 @@ export default function AnalyticsDashboardPage() {
               <CardTitle>Recently Active Users</CardTitle>
             </CardHeader>
             <CardContent>
-              {usersData?.users && usersData.users.length > 0 ? (
-                <div className="table-container">
-                  <table className="data-table">
-                    <thead>
-                      <tr>
-                        <th>User</th>
-                        <th>Email</th>
-                        <th>Type</th>
-                        <th>Department</th>
-                        <th>Last Sign In</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {usersData.users
-                        .filter((u) => u.lastSignInAt)
-                        .sort((a, b) => {
-                          const dateA = a.lastSignInAt ? new Date(a.lastSignInAt).getTime() : 0;
-                          const dateB = b.lastSignInAt ? new Date(b.lastSignInAt).getTime() : 0;
-                          return dateB - dateA;
-                        })
-                        .slice(0, 10)
-                        .map((user) => (
-                          <tr key={user.id}>
-                            <td>{user.name || '—'}</td>
-                            <td>{user.email}</td>
-                            <td>
-                              <Badge variant="outline" className="badge-neutral">
-                                {user.userType}
-                              </Badge>
-                            </td>
-                            <td>{user.department || '—'}</td>
-                            <td>
-                              {user.lastSignInAt ? (
-                                <div className="flex items-center gap-2">
-                                  <Clock className="icon-sm icon-muted" aria-hidden="true" />
-                                  <span>
-                                    {new Date(user.lastSignInAt).toLocaleDateString()}
-                                  </span>
-                                </div>
-                              ) : (
-                                '—'
-                              )}
-                            </td>
-                            <td>
-                              {user.isActive ? (
-                                <Badge variant="outline" className="badge-success">Active</Badge>
-                              ) : (
-                                <Badge variant="outline" className="badge-neutral">Inactive</Badge>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="empty-state">No users found</div>
-              )}
+              <DataTable
+                data={recentlyActiveUsers}
+                columns={columns}
+                emptyState={{
+                  icon: Users,
+                  title: 'No users found',
+                  description: 'No user activity recorded yet',
+                }}
+              />
             </CardContent>
           </Card>
         </>

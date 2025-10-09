@@ -65,14 +65,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
  }
  };
 
- // Add timeout to prevent infinite loading (5 seconds)
+ // Add timeout to prevent infinite loading (10 seconds - increased for slower connections)
+ // NOTE: This only affects loading state, not user state
+ // Middleware already validates auth on server side
  useEffect(() => {
  const timeout = setTimeout(() => {
  if (loading) {
- console.warn('Auth initialization timeout after 5s - proceeding without authentication');
+ console.warn('Auth initialization timeout after 10s - proceeding with current auth state');
  setLoading(false);
  }
- }, 5000);
+ }, 10000);
 
  return () => clearTimeout(timeout);
  }, [loading]);
@@ -99,7 +101,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
  const initAuth = async () => {
  try {
- const { data: { user } } = await supabase.auth.getUser();
+ // Use getSession() with timeout wrapper - prevents hanging
+ // Middleware already validated auth on server side
+ const sessionPromise = supabase.auth.getSession();
+ const timeoutPromise = new Promise<{ data: { session: null }, error: null }>((resolve) =>
+ setTimeout(() => resolve({ data: { session: null }, error: null }), 3000)
+ );
+
+ const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]);
+ const user = session?.user ?? null;
  setUser(user);
 
  if (user) {

@@ -208,7 +208,7 @@ export default function DesignProjectsPage() {
           {
             label: 'New Project',
             icon: Plus,
-            onClick: () => {}, // TODO: Add navigation
+            onClick: () => router.push('/design/projects/new'),
           },
         ]}
       />
@@ -225,7 +225,7 @@ export default function DesignProjectsPage() {
           description="Get started by creating your first project"
           action={{
             label: 'Create your first project',
-            onClick: () => {},
+            onClick: () => router.push('/design/projects/new'),
             icon: Plus,
             variant: 'outline',
           }}

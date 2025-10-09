@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
           name: 'Development User',
           first_name: 'Development',
           last_name: 'User',
-          user_type: 'employee',
+          user_type: 'admin',
           department: 'development',
           job_title: 'Developer'
         }
@@ -41,11 +41,59 @@ export async function POST(request: NextRequest) {
           department: 'design',
           job_title: 'Senior Designer'
         }
+      },
+      customer: {
+        email: 'customer-user@limn.us.com',
+        userId: '550e8400-e29b-41d4-a716-446655440002',
+        profile: {
+          name: 'Customer User',
+          first_name: 'Customer',
+          last_name: 'User',
+          user_type: 'customer',
+          department: null,
+          job_title: null
+        }
+      },
+      factory: {
+        email: 'factory-user@limn.us.com',
+        userId: '550e8400-e29b-41d4-a716-446655440003',
+        profile: {
+          name: 'Factory User',
+          first_name: 'Factory',
+          last_name: 'User',
+          user_type: 'employee',
+          department: 'manufacturing',
+          job_title: 'Production Manager'
+        }
+      },
+      contractor: {
+        email: 'contractor-user@limn.us.com',
+        userId: '550e8400-e29b-41d4-a716-446655440004',
+        profile: {
+          name: 'Contractor User',
+          first_name: 'Contractor',
+          last_name: 'User',
+          user_type: 'contractor',
+          department: null,
+          job_title: 'Independent Contractor'
+        }
+      },
+      user: {
+        email: 'regular-user@limn.us.com',
+        userId: '550e8400-e29b-41d4-a716-446655440005',
+        profile: {
+          name: 'Regular User',
+          first_name: 'Regular',
+          last_name: 'User',
+          user_type: 'employee',
+          department: 'operations',
+          job_title: 'Staff Member'
+        }
       }
     };
 
     // Validate userType to prevent object injection
-    const allowedUserTypes = ['dev', 'designer'] as const;
+    const allowedUserTypes = ['dev', 'designer', 'customer', 'factory', 'contractor', 'user'] as const;
     const validUserType = allowedUserTypes.includes(userType as typeof allowedUserTypes[number]) ? userType : 'dev';
     const selectedUser = testUsers[validUserType as keyof typeof testUsers];
     const testEmail = selectedUser.email;
@@ -87,7 +135,7 @@ export async function POST(request: NextRequest) {
 
     if (getProfileError && getProfileError.code === 'PGRST116') {
       // User profile doesn't exist, create it
-      const { error: createProfileError } = await supabase
+      const { error: createProfileError} = await supabase
         .from('user_profiles')
         .insert({
           id: actualUserId,
@@ -106,6 +154,35 @@ export async function POST(request: NextRequest) {
       if (createProfileError) {
         console.error('Error creating user profile:', createProfileError);
         return NextResponse.json({ error: 'Failed to create user profile' }, { status: 500 });
+      }
+    }
+
+    // Create portal access for portal users (designer, customer, factory)
+    if (['designer', 'customer', 'factory'].includes(userType as string)) {
+      // Check if portal access already exists
+      const { data: existingAccess } = await supabase
+        .from('customer_portal_access')
+        .select('*')
+        .eq('user_id', actualUserId)
+        .eq('portal_type', userType)
+        .single();
+
+      if (!existingAccess) {
+        // Create portal access
+        const { error: portalAccessError } = await supabase
+          .from('customer_portal_access')
+          .insert({
+            user_id: actualUserId,
+            portal_type: userType,
+            is_active: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          } as any);
+
+        if (portalAccessError) {
+          console.error(`Error creating ${userType} portal access:`, portalAccessError);
+          // Don't fail the request, just log the error
+        }
       }
     }
 

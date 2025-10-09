@@ -1,6 +1,11 @@
 import { expect, afterEach, beforeAll, afterAll, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import * as matchers from '@testing-library/jest-dom/matchers';
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Load test environment variables
+dotenv.config({ path: path.resolve(process.cwd(), '.env.test') });
 
 // Extend expect with jest-dom matchers
 expect.extend(matchers);

@@ -6,6 +6,7 @@ import { Package, DollarSign, AlertCircle, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
+import { useProductionOrdersRealtime } from "@/hooks/useRealtimeSubscription";
 import {
   PageHeader,
   EmptyState,
@@ -36,6 +37,12 @@ export default function ProductionOrdersPage() {
   );
 
   const orders = data?.items || [];
+
+  // Subscribe to realtime updates for production orders
+  useProductionOrdersRealtime({
+    queryKey: ['productionOrders', 'getAll'],
+    enabled: !authLoading && !!user,
+  });
 
 
   // Stats configuration

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/components/providers/ThemeProvider";
 import { useEffect, useState } from "react";
 import {
  BarChart3,
@@ -212,6 +212,7 @@ export default function Sidebar() {
  { label: "Dashboard", href: "/admin/dashboard" },
  { label: "Approvals", href: "/admin/approvals" },
  { label: "Users", href: "/admin/users" },
+ { label: "Portal Management", href: "/admin/portals" },
  { label: "Roles", href: "/admin/roles" },
  { label: "Activity", href: "/admin/activity" },
  { label: "Analytics", href: "/admin/analytics" },
@@ -272,17 +273,18 @@ export default function Sidebar() {
  {/* Logo */}
  <div className="sidebar-logo-section">
  <div className="sidebar-logo-container">
- {mounted ? (
+ {!mounted && <div className="sidebar-logo-image" style={{ width: 180, height: 50 }} />}
+ {mounted && (
  <Image
- src={resolvedTheme === 'dark' ? '/images/Limn_Logo_Light_Mode.png' : '/images/Limn_Logo_Dark_Mode.png'}
+ key={`sidebar-logo-${resolvedTheme}`}
+ src={resolvedTheme === 'dark' ? '/images/Limn_Logo_Dark_Mode.png' : '/images/Limn_Logo_Light_Mode.png'}
  alt="Limn Systems"
  width={180}
  height={50}
- priority
  className="sidebar-logo-image"
+ priority
+ unoptimized
  />
- ) : (
- <div className="sidebar-logo-image" style={{ width: 180, height: 50 }} />
  )}
  </div>
  </div>

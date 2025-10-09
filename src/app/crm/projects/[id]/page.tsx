@@ -157,9 +157,9 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
             <CardTitle className="card-title-sm">Total Orders</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value">{analytics.totalOrders}</div>
+            <div className="stat-value">{analytics?.totalOrders || 0}</div>
             <p className="stat-label">
-              ${(analytics.totalOrderValue || 0).toLocaleString()} value
+              ${(analytics?.totalOrderValue || 0).toLocaleString()} value
             </p>
           </CardContent>
         </Card>
@@ -203,8 +203,18 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
                 { label: 'Priority', value: project.priority || '—' },
                 { label: 'Budget', value: project.budget ? `$${Number(project.budget).toLocaleString()}` : '—' },
                 { label: 'Actual Cost', value: project.actual_cost ? `$${Number(project.actual_cost).toLocaleString()}` : '—' },
-                { label: 'Start Date', value: project.start_date ? format(new Date(project.start_date), "MMM d, yyyy") : '—' },
-                { label: 'End Date', value: project.end_date ? format(new Date(project.end_date), "MMM d, yyyy") : '—' },
+                {
+                  label: 'Start Date',
+                  value: project.start_date && !isNaN(new Date(project.start_date).getTime())
+                    ? format(new Date(project.start_date), "MMM d, yyyy")
+                    : '—'
+                },
+                {
+                  label: 'End Date',
+                  value: project.end_date && !isNaN(new Date(project.end_date).getTime())
+                    ? format(new Date(project.end_date), "MMM d, yyyy")
+                    : '—'
+                },
                 { label: 'Completion', value: `${project.completion_percentage || 0}%` },
                 { label: 'Created', value: project.created_at ? format(new Date(project.created_at), "MMM d, yyyy") : '—' },
               ]}

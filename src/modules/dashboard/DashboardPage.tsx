@@ -170,20 +170,20 @@ export default function DashboardPage() {
  <CardContent>
  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
  <Link href="/admin/approvals">
- <Button className="w-full btn-info">
+ <Button variant="default" className="w-full bg-[hsl(210,100%,50%)] text-white hover:bg-[hsl(210,100%,45%)] transition-all">
  <UserPlus className="w-4 h-4 mr-2" />
  Manage Access
  </Button>
  </Link>
- <Button className="w-full btn-secondary">
+ <Button variant="secondary" className="w-full hover:bg-primary/10 transition-all">
  <ShoppingCart className="w-4 h-4 mr-2" />
  View Orders
  </Button>
- <Button className="w-full btn-secondary">
+ <Button variant="secondary" className="w-full hover:bg-primary/10 transition-all">
  <Package className="w-4 h-4 mr-2" />
  Production
  </Button>
- <Button className="w-full btn-secondary">
+ <Button variant="secondary" className="w-full hover:bg-primary/10 transition-all">
  <BarChart className="w-4 h-4 mr-2" />
  Reports
  </Button>

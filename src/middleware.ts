@@ -61,11 +61,7 @@ export async function middleware(request: NextRequest) {
           return request.cookies.get(name)?.value;
         },
         set(name: string, value: string, options: CookieOptions) {
-          request.cookies.set({
-            name,
-            value,
-            ...options,
-          });
+          // Next.js 15: request.cookies are readonly, only modify response
           response = NextResponse.next({
             request: {
               headers: request.headers,
@@ -78,11 +74,7 @@ export async function middleware(request: NextRequest) {
           });
         },
         remove(name: string, options: CookieOptions) {
-          request.cookies.set({
-            name,
-            value: '',
-            ...options,
-          });
+          // Next.js 15: request.cookies are readonly, only modify response
           response = NextResponse.next({
             request: {
               headers: request.headers,
@@ -110,6 +102,51 @@ export async function middleware(request: NextRequest) {
     redirectUrl.pathname = '/login';
     redirectUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(redirectUrl);
+  }
+
+  // Admin access control - only admins can access /admin routes
+  if (pathname.startsWith('/admin')) {
+    const { data: userData } = await supabase
+      .from('user_profiles')
+      .select('user_type')
+      .eq('id', user.id)
+      .single();
+
+    const isAdmin = userData?.user_type === 'admin' || userData?.user_type === 'super_admin';
+
+    if (!isAdmin) {
+      console.log(`🚫 Middleware: User ${user.id} denied access to admin area (user_type: ${userData?.user_type})`);
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = '/dashboard';
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    console.log(`✅ Middleware: User ${user.id} has admin access (user_type: ${userData?.user_type})`);
+  }
+
+  // Portal access control - verify user has access to specific portal type
+  const portalMatch = pathname.match(/^\/portal\/(customer|designer|factory|qc)(?:\/|$)/);
+  if (portalMatch) {
+    const requestedPortalType = portalMatch[1];
+
+    // Query customer_portal_access to check if user has access to this portal type
+    const { data: portalAccess } = await supabase
+      .from('customer_portal_access')
+      .select('portal_type, is_active')
+      .eq('user_id', user.id)
+      .eq('portal_type', requestedPortalType)
+      .eq('is_active', true)
+      .single();
+
+    if (!portalAccess) {
+      console.log(`🚫 Middleware: User ${user.id} denied access to ${requestedPortalType} portal`);
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = '/login';
+      redirectUrl.searchParams.set('error', 'unauthorized_portal');
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    console.log(`✅ Middleware: User ${user.id} has valid ${requestedPortalType} portal access`);
   }
 
   console.log(`✅ Middleware: Allowing authenticated user (${user.id}) to access ${pathname}`);

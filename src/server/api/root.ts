@@ -39,6 +39,7 @@ import { userProfileRouter } from './routers/user-profile';
 import { adminRouter } from './routers/admin';
 import { auditRouter } from './routers/audit';
 import { exportRouter } from './routers/export';
+import { analyticsRouter } from './routers/analytics';
 
 /**
  * Main API router
@@ -47,6 +48,7 @@ import { exportRouter } from './routers/export';
 export const appRouter = createTRPCRouter({
   // Dashboards & Analytics
   dashboards: dashboardsRouter,
+  analytics: analyticsRouter,
 
   // Authentication & Access Control
   auth: authRouter,
