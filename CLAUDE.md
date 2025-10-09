@@ -187,39 +187,96 @@ When finding ANY error:
 
 **PRISMA SCHEMA AND DATABASE MUST ALWAYS BE IN PERFECT SYNC - NO EXCEPTIONS**
 
+### **⚠️ THE PROBLEM:**
+Schema drift causes:
+- TypeScript errors from mismatched types
+- Runtime failures despite passing type checks
+- Database queries returning unexpected results
+- Hours of debugging time wasted
+- Test failures from missing tables/columns
+
+**THIS KEEPS HAPPENING. WE HAVE NOW IMPLEMENTED AUTOMATED PREVENTION.**
+
+### **✅ THE SOLUTION: Automated Pre-Flight Schema Check**
+
+**MANDATORY BEFORE EVERY SESSION:**
+```bash
+# Run schema check (auto-fixes if out of sync)
+npm run schema:check
+
+# Or check without auto-fix
+npm run schema:check:fast
+```
+
+**What it does:**
+1. Compares prisma/schema.prisma against actual database tables
+2. Detects missing tables immediately
+3. **AUTO-RUNS** `prisma db push` + `prisma generate` if needed
+4. Verifies sync successful before allowing you to continue
+
+**File:** `/scripts/check-schema-sync.ts`
+
+### **Integration Points:**
+
+**✅ Overnight Test Runner** - Runs schema check as Phase 0 (pre-flight)
+```typescript
+// scripts/run-overnight-tests.ts
+logSection('PHASE 0: PRE-FLIGHT CHECKS');
+await execAsync('npm run schema:check'); // AUTO-FIXES BEFORE TESTS RUN
+```
+
+**✅ Package.json Commands:**
+```json
+{
+  "schema:check": "npx tsx scripts/check-schema-sync.ts",        // Check + auto-fix
+  "schema:check:fast": "npx tsx scripts/check-schema-sync.ts --no-fix",  // Check only
+  "schema:sync": "npm run schema:check"                          // Alias
+}
+```
+
 ### **After EVERY schema change:**
 ```bash
 # 1. Update prisma/schema.prisma with new models/fields
-# 2. Push changes to database IMMEDIATELY
-npx prisma db push
 
-# 3. Regenerate Prisma Client
-npx prisma generate
+# 2. Run schema check (auto-syncs to database)
+npm run schema:check
 
-# 4. Verify sync completed successfully
+# 3. Verify sync completed successfully
+# (Script will exit with error if sync failed)
 ```
 
 ### **Rules for Schema Changes:**
-1. **NEVER** modify schema without pushing to database
-2. **NEVER** modify database without updating schema.prisma
-3. **ALWAYS** run `prisma db push` after schema edits
-4. **ALWAYS** run `prisma generate` after db push
-5. **VERIFY** changes applied successfully before continuing
+1. **NEVER** modify schema without running `npm run schema:check`
+2. **NEVER** modify database without updating schema.prisma first
+3. **ALWAYS** run `npm run schema:check` after schema edits
+4. **ALWAYS** verify the script reports "✅ Schema in sync"
+5. **RUN** `npm run schema:check` at START of EVERY session
 
 ### **Schema Sync Checklist:**
 - ✅ Edit prisma/schema.prisma
-- ✅ Run `npx prisma db push`
-- ✅ Run `npx prisma generate`
+- ✅ Run `npm run schema:check` (auto-runs db push + generate)
+- ✅ Verify "✅ Schema in sync" message
 - ✅ Verify TypeScript types updated
 - ✅ Test new fields/models work
+
+### **Expected Tables (16 total):**
+```
+user_profiles, user_permissions, default_permissions, contacts,
+customers, leads, projects, production_orders, qc_inspections,
+products, prototypes, design_briefs, shipments, invoices, tasks,
+notifications
+```
 
 **WHY THIS MATTERS:**
 - Mismatched schemas cause TypeScript errors
 - Features fail at runtime despite passing type checks
 - Database queries return unexpected results
 - Impossible to debug when schema is out of sync
+- **WASTED HOURS** fixing issues that could be prevented
 
-**THIS IS NON-NEGOTIABLE. KEEP SCHEMAS SYNCHRONIZED AT ALL TIMES.**
+**THIS IS NON-NEGOTIABLE. SCHEMAS MUST BE SYNCHRONIZED AT ALL TIMES.**
+
+**NEVER SKIP `npm run schema:check` - IT SAVES HOURS OF DEBUGGING.**
 
 ## 🚨 COMMIT REQUIREMENTS
 

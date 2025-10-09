@@ -978,6 +978,19 @@ async function main() {
   log(`Project: ${PROJECT_ROOT}`, '📁');
   log(`Reports: ${REPORTS_DIR}`, '📁');
 
+  // Phase 0: Pre-flight schema sync check
+  logSection('PHASE 0: PRE-FLIGHT CHECKS');
+
+  log('Checking Prisma/Database schema sync...', '🔍');
+  try {
+    await execAsync('npm run schema:check', { cwd: PROJECT_ROOT, timeout: 120000 });
+    log('✅ Schema in sync', '✅');
+  } catch (error: any) {
+    log('❌ Schema sync failed', '❌');
+    console.error(error.stdout || error.message);
+    throw new Error('Pre-flight schema check failed. Fix schema before running tests.');
+  }
+
   // Phase 1: Run all tests
   const results = await runAllTests();
 

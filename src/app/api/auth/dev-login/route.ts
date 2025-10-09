@@ -186,39 +186,39 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // For development, create a session token directly
-    // This is simpler and more reliable than magic links for testing
-    const { data: sessionData, error: sessionError } = await supabase.auth.admin.generateLink({
-      type: 'magiclink',
-      email: testEmail,
-      options: {
-        redirectTo: `${request.nextUrl.origin}/auth/callback?type=dev`
-      }
+    // Update user password to enable password-based login (bypasses rate limits!)
+    const testPassword = 'TestPassword123!@#Secure';
+
+    const { error: passwordError } = await supabase.auth.admin.updateUserById(actualUserId, {
+      password: testPassword
     });
 
-    if (sessionError) {
-      console.error('Error generating session:', sessionError);
-      return NextResponse.json({ error: 'Failed to generate session' }, { status: 500 });
+    if (passwordError) {
+      console.warn('Could not set password:', passwordError.message);
+      // Continue anyway - user might already have password set
     }
 
-    // Extract the token from the magic link
-    const magicLink = sessionData.properties?.action_link;
-    const tokenMatch = magicLink?.match(/token=([^&]+)/);
-    const token = tokenMatch ? tokenMatch[1] : null;
+    // Use password-based sign-in (NO rate limiting on signInWithPassword!)
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email: testEmail,
+      password: testPassword
+    });
 
-    if (!token) {
-      console.error('No token found in magic link');
-      return NextResponse.json({ error: 'Failed to extract auth token' }, { status: 500 });
+    if (signInError || !signInData?.session) {
+      console.error('Error signing in:', signInError);
+      return NextResponse.json({ error: 'Failed to sign in' }, { status: 500 });
     }
 
+    // Return the session tokens
     return NextResponse.json({
       message: `${selectedUser.profile.name} authenticated`,
       user_id: actualUserId,
       user_type: userType,
       email: testEmail,
-      token: token,
-      magic_link: magicLink,
-      redirect_url: `/auth/callback?token=${token}&type=${userType}`
+      access_token: signInData.session.access_token,
+      refresh_token: signInData.session.refresh_token,
+      expires_at: signInData.session.expires_at,
+      redirect_url: `/auth/set-session?access_token=${signInData.session.access_token}&refresh_token=${signInData.session.refresh_token}`
     });
 
   } catch (error) {

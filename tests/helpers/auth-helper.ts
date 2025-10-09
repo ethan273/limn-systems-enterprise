@@ -128,13 +128,11 @@ export async function login(page: Page, email: string, password: string) {
 
   const data = await response.json();
 
-  // Navigate to the callback URL with the token (this sets up the session)
+  // Navigate to the set-session URL (this sets up the session WITHOUT verification!)
   if (data.redirect_url) {
     await page.goto(`${TEST_CONFIG.BASE_URL}${data.redirect_url}`, { waitUntil: 'domcontentloaded' });
-  } else if (data.magic_link) {
-    await page.goto(data.magic_link, { waitUntil: 'domcontentloaded' });
   } else {
-    throw new Error('No redirect_url or magic_link in API response');
+    throw new Error('No redirect_url in API response');
   }
 
   // Wait for callback to process and redirect

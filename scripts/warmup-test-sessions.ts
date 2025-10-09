@@ -80,13 +80,11 @@ async function createSession(browser: Browser, userType: string): Promise<void> 
     const data = await response.json();
     console.log(`   ✅ API response: ${data.message}`);
 
-    // Step 2: Navigate to callback URL
-    const callbackUrl = data.redirect_url
-      ? `${BASE_URL}${data.redirect_url}`
-      : data.magic_link;
+    // Step 2: Navigate to set-session URL (no verification needed - bypasses rate limits!)
+    const sessionUrl = `${BASE_URL}${data.redirect_url}`;
 
-    console.log(`   🌐 Navigating to callback...`);
-    await page.goto(callbackUrl, {
+    console.log(`   🌐 Setting session...`);
+    await page.goto(sessionUrl, {
       waitUntil: 'domcontentloaded',
       timeout: 15000
     });
