@@ -875,7 +875,7 @@ model client_projects {
 model clients {
   id                       String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   name                     String    @db.VarChar
-  email                    String?   @db.VarChar
+  email                    String?   @unique @db.VarChar
   phone                    String?   @db.VarChar
   address                  String?
   city                     String?   @db.VarChar
@@ -975,6 +975,7 @@ model collections {
   @@schema("public")
 }
 
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model concepts {
   id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name           String       @db.VarChar(255)
@@ -1012,7 +1013,7 @@ model concepts {
 model contacts {
   id                   String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   name                 String?
-  email                String?
+  email                String?   @unique
   phone                String?
   company              String?
   position             String?
@@ -1027,6 +1028,7 @@ model contacts {
   score                Decimal?  @default(0) @db.Decimal
   assigned_to          String?   @db.Uuid
   last_activity_date   DateTime? @db.Timestamptz(6)
+  status               String?   @default("active")
 
   @@index([company], map: "idx_contacts_company")
   @@index([created_at], map: "idx_contacts_created_at")
@@ -1424,6 +1426,25 @@ model deals {
   @@schema("public")
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model default_permissions {
+  id          String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_type   user_type_enum
+  module      String         @db.VarChar(50)
+  can_view    Boolean?       @default(false)
+  can_create  Boolean?       @default(false)
+  can_edit    Boolean?       @default(false)
+  can_delete  Boolean?       @default(false)
+  can_approve Boolean?       @default(false)
+  created_at  DateTime?      @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime?      @default(now()) @db.Timestamptz(6)
+
+  @@unique([user_type, module])
+  @@index([user_type], map: "idx_default_permissions_user_type")
+  @@schema("public")
+}
+
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model delivery_addresses {
   id             String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -1504,6 +1525,7 @@ model design_briefs {
   approved_by                            String?          @db.Uuid
   created_at                             DateTime?        @default(now()) @db.Timestamp(6)
   updated_at                             DateTime?        @default(now()) @db.Timestamp(6)
+  status                                 String?          @default("draft")
   users_design_briefs_approved_byTousers users?           @relation("design_briefs_approved_byTousers", fields: [approved_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
   users_design_briefs_created_byTousers  users?           @relation("design_briefs_created_byTousers", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
   design_projects                        design_projects? @relation(fields: [design_project_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -1977,7 +1999,7 @@ model documents {
   user_profiles_documents_uploaded_by_userTouser_profiles user_profiles?          @relation("documents_uploaded_by_userTouser_profiles", fields: [uploaded_by_user], references: [id], onDelete: NoAction, onUpdate: NoAction)
   concepts                                                concepts?               @relation(fields: [concept_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_documents_concepts")
   prototypes                                              prototypes?             @relation(fields: [prototype_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_documents_prototypes")
-  production_orders                                       production_orders[]     @relation("documentsToproduction_orders")
+  production_orders                                       production_orders[]
 
   @@index([catalog_item_id], map: "idx_documents_catalog_item_id")
   @@index([concept_id], map: "idx_documents_concept_id")
@@ -2078,6 +2100,31 @@ model email_tracking {
   email_campaigns email_campaigns? @relation(fields: [campaign_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([campaign_id], map: "idx_email_tracking_campaign_id")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model expenses {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  category         String    @db.VarChar(255)
+  subcategory      String?   @db.VarChar(255)
+  amount           Decimal   @db.Decimal(12, 2)
+  description      String?
+  vendor           String?   @db.VarChar(255)
+  payment_method   String?   @db.VarChar(100)
+  reference_number String?   @db.VarChar(100)
+  expense_date     DateTime  @db.Date
+  created_at       DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime? @default(now()) @db.Timestamptz(6)
+  created_by       String?   @db.Uuid
+  approved_by      String?   @db.Uuid
+  approval_status  String?   @default("pending") @db.VarChar(50)
+
+  @@index([approval_status], map: "idx_expenses_approval_status")
+  @@index([category], map: "idx_expenses_category")
+  @@index([created_at], map: "idx_expenses_created_at")
+  @@index([expense_date], map: "idx_expenses_expense_date")
   @@schema("public")
 }
 
@@ -3205,7 +3252,6 @@ model materials {
   @@index([category_id], map: "idx_materials_category_id_fk")
   @@index([hierarchy_level], map: "idx_materials_hierarchy_level")
   @@index([parent_material_id], map: "idx_materials_parent")
-  @@index([parent_material_id], map: "idx_materials_parent_material_id")
   @@index([type], map: "idx_materials_type")
   @@schema("public")
 }
@@ -3382,6 +3428,7 @@ model notification_queue {
   @@schema("public")
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model notifications {
   id          String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
@@ -3840,6 +3887,8 @@ model partners {
   tags                  String[]
   created_at            DateTime               @default(now()) @db.Timestamptz(6)
   updated_at            DateTime               @default(now()) @db.Timestamptz(6)
+  is_verified           Boolean                @default(false)
+  partner_code          String?                @unique
   partner_contacts      partner_contacts[]
   partner_documents     partner_documents[]
   partner_performance   partner_performance[]
@@ -4132,6 +4181,22 @@ model portal_invitations {
   @@schema("public")
 }
 
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model portal_module_settings {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  portal_type String    @db.VarChar(50)
+  entity_id   String?   @db.Uuid
+  module_key  String    @db.VarChar(100)
+  is_enabled  Boolean   @default(true)
+  permissions Json?     @default("{}")
+  created_at  DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@unique([portal_type, entity_id, module_key])
+  @@index([portal_type, entity_id])
+  @@schema("public")
+}
+
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model portal_sessions {
@@ -4171,23 +4236,6 @@ model portal_settings {
   updated_at               DateTime?  @default(now()) @db.Timestamptz(6)
   customers                customers? @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  @@schema("public")
-}
-
-/// Universal portal module visibility and permission control for all portal types
-/// Supports customer, designer, factory, QC portals and future portal types
-model portal_module_settings {
-  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  portal_type String    @db.VarChar(50) // 'customer', 'designer', 'factory', 'qc'
-  entity_id   String?   @db.Uuid // customer_id, partner_id, or NULL for defaults
-  module_key  String    @db.VarChar(100) // 'orders', 'shipping', 'financials', 'projects', 'quality', etc.
-  is_enabled  Boolean   @default(true)
-  permissions Json?     @default("{}") // Optional per-module permissions
-  created_at  DateTime? @default(now()) @db.Timestamptz(6)
-  updated_at  DateTime? @default(now()) @db.Timestamptz(6)
-
-  @@unique([portal_type, entity_id, module_key])
-  @@index([portal_type, entity_id])
   @@schema("public")
 }
 
@@ -4396,24 +4444,24 @@ model production_orders {
   quantity                                       Int
   unit_price                                     Decimal                    @db.Decimal(10, 2)
   total_cost                                     Decimal                    @db.Decimal(10, 2)
-  deposit_amount                                 Decimal?                   @db.Decimal(10, 2)
   deposit_paid                                   Boolean                    @default(false)
-  balance_amount                                 Decimal?                   @db.Decimal(10, 2)
   final_payment_paid                             Boolean                    @default(false)
   status                                         String                     @default("awaiting_deposit")
   order_date                                     DateTime                   @default(now()) @db.Timestamptz(6)
-  production_start_date                          DateTime?                  @db.Date
-  estimated_completion_date                      DateTime?                  @db.Date
   estimated_ship_date                            DateTime?                  @db.Date
   actual_ship_date                               DateTime?                  @db.Date
-  shipped_date                                   DateTime?                  @db.Date
-  delivered_date                                 DateTime?                  @db.Date
   factory_id                                     String?                    @db.Uuid
   factory_notes                                  String?
   created_at                                     DateTime                   @default(now()) @db.Timestamptz(6)
   updated_at                                     DateTime                   @default(now()) @db.Timestamptz(6)
   created_by                                     String?                    @db.Uuid
   order_id                                       String?                    @db.Uuid
+  delivered_date                                 DateTime?                  @db.Date
+  estimated_completion_date                      DateTime?                  @db.Date
+  production_start_date                          DateTime?                  @db.Date
+  shipped_date                                   DateTime?                  @db.Date
+  balance_amount                                 Decimal?                   @db.Decimal(10, 2)
+  deposit_amount                                 Decimal?                   @db.Decimal(10, 2)
   ordered_items_production                       ordered_items_production[]
   production_invoices                            production_invoices[]
   production_milestones                          production_milestones[]
@@ -4422,13 +4470,13 @@ model production_orders {
   users                                          users?                     @relation(fields: [created_by], references: [id], onUpdate: NoAction)
   manufacturers                                  manufacturers?             @relation(fields: [factory_id], references: [id], onUpdate: NoAction)
   orders                                         orders?                    @relation(fields: [order_id], references: [id], onUpdate: NoAction)
-  factory_partner                                partners?                  @relation(fields: [factory_id], references: [id], onUpdate: NoAction, map: "production_orders_partner_factory_id_fkey")
+  partners                                       partners?                  @relation(fields: [factory_id], references: [id], onUpdate: NoAction, map: "production_orders_partner_factory_id_fkey")
   projects                                       projects?                  @relation(fields: [project_id], references: [id], onUpdate: NoAction)
   items_production_orders_prototype_idToitems    items?                     @relation("production_orders_prototype_idToitems", fields: [prototype_id], references: [id], onUpdate: NoAction)
   production_payments                            production_payments[]
   shipping_quotes                                shipping_quotes[]
   shop_drawings                                  shop_drawings[]
-  documents                                      documents[]                @relation("documentsToproduction_orders")
+  documents                                      documents[]
 
   @@index([catalog_item_id], map: "idx_production_orders_catalog_item_id")
   @@index([factory_id], map: "idx_production_orders_factory_id")
@@ -5209,6 +5257,34 @@ model qc_photos {
 
   @@index([qc_defect_id], map: "idx_qc_photos_qc_defect_id")
   @@index([qc_inspection_id], map: "idx_qc_photos_qc_inspection_id")
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model qc_testers {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_name    String
+  primary_contact String?
+  primary_email   String
+  phone           String?
+  address_line1   String?
+  address_line2   String?
+  city            String?
+  state           String?
+  postal_code     String?
+  country         String?
+  certifications  String[]
+  specializations String[]
+  status          String?   @default("active")
+  portal_enabled  Boolean?  @default(true)
+  portal_user_id  String?   @db.Uuid
+  notes           String?
+  tags            String[]
+  created_at      DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime? @default(now()) @db.Timestamptz(6)
+  users           users?    @relation(fields: [portal_user_id], references: [id], onUpdate: NoAction)
+
+  @@index([portal_user_id], map: "idx_qc_testers_portal_user_id")
   @@schema("public")
 }
 
@@ -6344,12 +6420,13 @@ model task_entity_links {
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model task_templates {
   id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name          String
+  name          String    @unique
   description   String?
   template_data Json
   category      String?
   is_active     Boolean?  @default(true)
   created_at    DateTime? @default(now()) @db.Timestamp(6)
+  updated_at    DateTime? @default(now()) @db.Timestamp(6)
 
   @@schema("public")
 }
@@ -6385,6 +6462,7 @@ model tasks {
   archived_at       DateTime?           @db.Timestamptz(6)
   archived_by       String?             @db.Uuid
   last_activity_at  DateTime?           @default(now()) @db.Timestamptz(6)
+  is_completed      Boolean?            @default(false)
   task_activities   task_activities[]
   task_attachments  task_attachments[]
   task_entity_links task_entity_links[]
@@ -6542,6 +6620,7 @@ model user_feature_overrides {
   @@schema("public")
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model user_permissions {
   id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -6558,23 +6637,6 @@ model user_permissions {
 
   @@unique([user_id, module])
   @@index([user_id, module], map: "idx_user_permissions_user_module")
-  @@schema("public")
-}
-
-model default_permissions {
-  id          String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_type   user_type_enum
-  module      String         @db.VarChar(50)
-  can_view    Boolean?       @default(false)
-  can_create  Boolean?       @default(false)
-  can_edit    Boolean?       @default(false)
-  can_delete  Boolean?       @default(false)
-  can_approve Boolean?       @default(false)
-  created_at  DateTime?      @default(now()) @db.Timestamptz(6)
-  updated_at  DateTime?      @default(now()) @db.Timestamptz(6)
-
-  @@unique([user_type, module])
-  @@index([user_type], map: "idx_default_permissions_user_type")
   @@schema("public")
 }
 
@@ -7027,57 +7089,6 @@ model workflows {
   @@index([category], map: "idx_workflows_category")
   @@index([department_id], map: "idx_workflows_department")
   @@index([trigger_type], map: "idx_workflows_trigger_type")
-  @@schema("public")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model expenses {
-  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  category         String    @db.VarChar(255)
-  subcategory      String?   @db.VarChar(255)
-  amount           Decimal   @db.Decimal(12, 2)
-  description      String?
-  vendor           String?   @db.VarChar(255)
-  payment_method   String?   @db.VarChar(100)
-  reference_number String?   @db.VarChar(100)
-  expense_date     DateTime  @db.Date
-  created_at       DateTime? @default(now()) @db.Timestamptz(6)
-  updated_at       DateTime? @default(now()) @db.Timestamptz(6)
-  created_by       String?   @db.Uuid
-  approved_by      String?   @db.Uuid
-  approval_status  String?   @default("pending") @db.VarChar(50)
-
-  @@index([approval_status], map: "idx_expenses_approval_status")
-  @@index([category], map: "idx_expenses_category")
-  @@index([created_at], map: "idx_expenses_created_at")
-  @@index([expense_date], map: "idx_expenses_expense_date")
-  @@schema("public")
-}
-
-model qc_testers {
-  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  company_name    String
-  primary_contact String?
-  primary_email   String
-  phone           String?
-  address_line1   String?
-  address_line2   String?
-  city            String?
-  state           String?
-  postal_code     String?
-  country         String?
-  certifications  String[]
-  specializations String[]
-  status          String?   @default("active")
-  portal_enabled  Boolean?  @default(true)
-  portal_user_id  String?   @db.Uuid
-  notes           String?
-  tags            String[]
-  created_at      DateTime? @default(now()) @db.Timestamptz(6)
-  updated_at      DateTime? @default(now()) @db.Timestamptz(6)
-  users           users?    @relation(fields: [portal_user_id], references: [id], onUpdate: NoAction)
-
-  @@index([portal_user_id], map: "idx_qc_testers_portal_user_id")
   @@schema("public")
 }
 
