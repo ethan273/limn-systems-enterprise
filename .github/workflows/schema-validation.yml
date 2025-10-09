@@ -1,0 +1,48 @@
+name: Schema Validation
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  validate-schema:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check for schema drift
+        run: |
+          npx prisma db pull --force
+          if git diff --exit-code prisma/schema.prisma; then
+            echo "✅ No schema drift detected"
+          else
+            echo "❌ Schema drift detected!"
+            echo "Run 'npx prisma db pull --force' locally and commit changes"
+            exit 1
+          fi
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Validate schema references
+        run: npm run schema:validate
+
+      - name: Upload violation report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: schema-violations-report
+          path: SCHEMA-VIOLATIONS-REPORT.md
+          retention-days: 30
