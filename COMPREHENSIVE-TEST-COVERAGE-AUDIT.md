@@ -409,9 +409,41 @@
 
 ## 🚀 ACTION ITEMS
 
+### 🚨 MANDATORY FIRST STEP - BEFORE ANY WORK:
+
+**⚠️ CRITICAL REQUIREMENT: DOCUMENTATION REVIEW**
+
+Before implementing ANY tests or fixing ANY issues, you MUST:
+
+1. **RE-READ ALL CRITICAL DOCUMENTATION**:
+   - `/Users/eko3/limn-systems-enterprise/CLAUDE.md` - Development standards, architecture, quality requirements
+   - `/Users/eko3/limn-systems-enterprise-docs/01-ARCHITECTURE/` - System architecture, patterns, design decisions
+   - `/Users/eko3/limn-systems-enterprise-docs/02-TESTING/` - Testing standards, methodologies, frameworks
+   - `/Users/eko3/limn-systems-enterprise-docs/03-DESIGN/` - UI/UX patterns, component library, styling guidelines
+   - `/Users/eko3/limn-systems-enterprise-docs/materials/` - Any reference materials
+
+2. **CONFIRM UNDERSTANDING** of:
+   - Development philosophy (no compromises, excellence in every detail)
+   - Testing methodology (100% means 100%, fix everything permanently)
+   - Architecture patterns (tRPC, Prisma, Next.js 15, App Router)
+   - UI/UX standards (global CSS, semantic class names, component patterns)
+   - Database schema (16 tables, all fields, relationships)
+   - Portal system (4 portals, module-based access control)
+   - Authentication flow (Supabase Auth, session management)
+
+3. **ONLY AFTER** confirming you have re-read and understood all documentation, proceed with implementation.
+
+**WHY THIS MATTERS**:
+- Standards must be followed consistently
+- Tests must validate correct patterns, not incorrect implementations
+- Fixes must align with architecture decisions
+- No shortcuts, no workarounds - only production-quality code
+
+---
+
 ### IMMEDIATE (This Week):
 1. ✅ **STOP using functional test** - It's giving false confidence
-2. ✅ **Create REAL functional test** for top 10 critical pages:
+2. ✅ **CREATE REAL functional test** for top 10 critical pages:
    - `/crm/customers` (list + detail + edit + new)
    - `/crm/leads` (list + detail + edit + new)
    - `/production/orders` (list + detail)

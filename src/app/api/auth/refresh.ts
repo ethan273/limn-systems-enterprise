@@ -28,7 +28,8 @@ export default async function handler(
     
     // Find session with this refresh token
     const { data: sessions } = await supabase
-      .from('auth_sessions')      .select('*')
+      .from('sessions')
+      .select('*')
       .eq('user_id', decoded.userId)
       .is('revoked_at', null)
       .single();
@@ -57,8 +58,9 @@ export default async function handler(
 
     // Update session with new token
     await supabase
-      .from('auth_sessions')
-      .update({        token_hash: await bcrypt.hash(newAccessToken, 10),
+      .from('sessions')
+      .update({
+        token_hash: await bcrypt.hash(newAccessToken, 10),
         expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
       })
       .eq('id', sessions.id);

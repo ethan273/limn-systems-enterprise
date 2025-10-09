@@ -108,15 +108,16 @@ export async function portalLogin(page: Page, email: string, password: string, p
   }
 
   const data = await response.json();
-  const token = data.token;
+  const accessToken = data.access_token;
+  const refreshToken = data.refresh_token;
 
-  if (!token) {
+  if (!accessToken) {
     throw new Error('No auth token returned from API');
   }
 
-  // Navigate to auth callback with token to establish session
+  // Navigate to auth set-session endpoint to establish session
   // Use 'load' instead of 'networkidle' because the page redirects immediately
-  await page.goto(`${TEST_CONFIG.BASE_URL}/auth/callback?token=${token}&type=${userType}`, {
+  await page.goto(`${TEST_CONFIG.BASE_URL}/auth/set-session?access_token=${accessToken}&refresh_token=${refreshToken}`, {
     waitUntil: 'load',
     timeout: 30000
   });
@@ -145,15 +146,23 @@ export async function portalLogin(page: Page, email: string, password: string, p
     throw new Error(`Portal login may have failed - no authenticated content found for ${email} after 30s`);
   });
 
-  // Cache the session to reuse across tests
+  // Save session to file for reuse across tests (ZERO rate limiting!)
   try {
     const cookies = await page.context().cookies();
     const storageState = await page.context().storageState();
-    portalSessionCache.set(cacheKey, {
+    const sessionData: SessionData = {
       cookies,
       storageState,
       timestamp: Date.now()
-    });
+    };
+
+    // Ensure session directory exists
+    if (!fs.existsSync(SESSION_DIR)) {
+      fs.mkdirSync(SESSION_DIR, { recursive: true });
+    }
+
+    // Write session to file
+    fs.writeFileSync(getSessionFilePath(userType), JSON.stringify(sessionData, null, 2));
   } catch (e) {
     // Ignore caching errors
   }

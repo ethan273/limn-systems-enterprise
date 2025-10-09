@@ -8,7 +8,7 @@ dotenv.config({ path: path.resolve(__dirname, '.env.test') });
 export default defineConfig({
   testDir: './tests',
   // ONLY match our numbered spec files, exclude all other test files
-  testMatch: '**/{0,1}[0-9]-*.spec.ts',
+  testMatch: '**/*[0-9]-*.spec.ts',
   // Ignore all subdirectories to avoid Vitest files
   testIgnore: [
     '**/api/**',

@@ -9,6 +9,127 @@
 - Excellence in every detail
 - Zero tolerance for technical debt
 
+## 🚨 NEVER ASSUME - ALWAYS VERIFY (ABSOLUTE REQUIREMENT)
+
+**MANDATORY: Apply to EVERY aspect of development - coding, testing, debugging, schema design.**
+
+### **The Problem:**
+Assumptions waste hours/days debugging issues that could have been prevented by 5 minutes of verification.
+
+**Example (Database Schema Mismatches - 2025-10-09):**
+- Tests assumed `partners.partner_name` field existed
+- Reality: Field is called `company_name` + 13 additional required fields
+- Result: 49 failing tests, hours of systematic fixes
+- **ROOT CAUSE**: Tests written from assumptions, not verified against actual database
+
+### **The Solution: ALWAYS Verify Reality First**
+
+**BEFORE writing ANY code, tests, or making changes:**
+
+1. **Database/Schema Work** → Verify Actual Schema:
+   ```bash
+   # ALWAYS check actual database structure FIRST
+   npx prisma db pull --force
+   npx prisma generate
+
+   # Query actual table structure
+   SELECT column_name, is_nullable, column_default
+   FROM information_schema.columns
+   WHERE table_schema = 'public' AND table_name = '[table]'
+   ORDER BY ordinal_position;
+   ```
+
+2. **API/Endpoint Work** → Test Actual Response:
+   ```bash
+   # ALWAYS test actual endpoint before writing code
+   curl http://localhost:3000/api/[endpoint]
+   ```
+
+3. **Component/UI Work** → Check Actual Browser:
+   ```bash
+   # ALWAYS open browser console and verify actual behavior
+   # Don't assume - actually click buttons, submit forms, check network tab
+   ```
+
+4. **Test Writing** → Verify Actual Application Behavior:
+   ```bash
+   # NEVER write tests based on "what should work"
+   # ALWAYS verify actual application behavior first
+   # Then write tests that validate REALITY
+   ```
+
+### **NEVER:**
+- ❌ Assume field names based on camelCase conventions
+- ❌ Assume schema structure without querying database
+- ❌ Assume API responses without testing endpoints
+- ❌ Assume component behavior without browser verification
+- ❌ Write tests based on documentation/specs alone
+- ❌ Trust previous code comments without verification
+- ❌ Assume "it should work like this" without proof
+
+### **ALWAYS:**
+- ✅ Query actual database before writing schema-dependent code
+- ✅ Test actual API endpoints before writing integration code
+- ✅ Check actual browser console before claiming "it works"
+- ✅ Verify actual file exists before referencing it
+- ✅ Confirm actual environment variable is set before using it
+- ✅ Test actual user flow before writing tests
+- ✅ Spend time upfront verifying reality vs. debugging assumptions later
+
+### **Verification Commands (Use These Proactively):**
+
+```bash
+# Database Schema
+npx prisma db pull && npx prisma generate
+
+# Table Structure
+npx ts-node -e "
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
+prisma.\$queryRaw\`
+  SELECT column_name, is_nullable
+  FROM information_schema.columns
+  WHERE table_name='[table]'
+\`.then(console.log);
+"
+
+# API Endpoint
+curl -X GET http://localhost:3000/api/[endpoint]
+
+# Environment Variables
+echo \$DATABASE_URL
+
+# File Exists
+ls -la /path/to/file
+
+# Process Running
+lsof -i :3000
+```
+
+### **Time Investment vs. Cost:**
+
+**5 minutes of verification** saves **hours/days of debugging**
+
+**Example Timeline:**
+- Assumption-based approach: 30 min writing code + 4 hours debugging wrong assumptions = **4.5 hours**
+- Verification-first approach: 5 min verification + 30 min writing correct code = **35 minutes**
+
+**RATIO**: 7.7x faster by verifying first
+
+### **This Applies To:**
+- ✅ Database schema and table structures
+- ✅ API endpoints and responses
+- ✅ Component props and state
+- ✅ Environment variables and configuration
+- ✅ File paths and existence
+- ✅ Third-party library APIs
+- ✅ User permissions and auth flows
+- ✅ Test data and fixtures
+
+**IF YOU DON'T KNOW - VERIFY. NEVER GUESS.**
+
+**THIS IS NON-NEGOTIABLE. VERIFICATION IS MANDATORY.**
+
 ## 🚨 RIGOROUS TESTING METHODOLOGY (SUPREME DIRECTIVE)
 
 **MANDATORY: Apply to EVERY test suite and EVERY feature across the ENTIRE application.**

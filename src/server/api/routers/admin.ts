@@ -8,7 +8,7 @@
  */
 
 import { z } from 'zod';
-import { createTRPCRouter, protectedProcedure } from '../trpc/init';
+import { createTRPCRouter, adminProcedure } from '../trpc/init';
 import { PrismaClient, user_type_enum } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -62,7 +62,7 @@ export const adminRouter = createTRPCRouter({
    * List all users with optional search and filtering
    */
   users: createTRPCRouter({
-    list: protectedProcedure
+    list: adminProcedure
       .input(
         z.object({
           search: z.string().optional(),
@@ -162,7 +162,7 @@ export const adminRouter = createTRPCRouter({
     /**
      * Get single user with full details and permissions
      */
-    get: protectedProcedure
+    get: adminProcedure
       .input(z.object({ userId: z.string().uuid() }))
       .query(async ({ input }) => {
         const [user, profile, permissions] = await Promise.all([
@@ -222,7 +222,7 @@ export const adminRouter = createTRPCRouter({
     /**
      * Update user profile (title, type, department, active status)
      */
-    update: protectedProcedure
+    update: adminProcedure
       .input(
         z.object({
           userId: z.string().uuid(),
@@ -257,7 +257,7 @@ export const adminRouter = createTRPCRouter({
     /**
      * Create new user (placeholder - requires Supabase Auth integration)
      */
-    create: protectedProcedure
+    create: adminProcedure
       .input(
         z.object({
           email: z.string().email(),
@@ -305,7 +305,7 @@ export const adminRouter = createTRPCRouter({
     /**
      * Get user's permissions (with default fallback)
      */
-    getUserPermissions: protectedProcedure
+    getUserPermissions: adminProcedure
       .input(z.object({ userId: z.string().uuid() }))
       .query(async ({ input }) => {
         const { userId } = input;
@@ -368,7 +368,7 @@ export const adminRouter = createTRPCRouter({
     /**
      * Update a single permission for a user
      */
-    updateUserPermission: protectedProcedure
+    updateUserPermission: adminProcedure
       .input(
         z.object({
           userId: z.string().uuid(),
@@ -421,7 +421,7 @@ export const adminRouter = createTRPCRouter({
     /**
      * Bulk update permissions for a user
      */
-    bulkUpdatePermissions: protectedProcedure
+    bulkUpdatePermissions: adminProcedure
       .input(
         z.object({
           userId: z.string().uuid(),
@@ -471,7 +471,7 @@ export const adminRouter = createTRPCRouter({
     /**
      * Get default permissions for a user type
      */
-    getDefaultPermissions: protectedProcedure
+    getDefaultPermissions: adminProcedure
       .input(z.object({ userType: userTypeSchema }))
       .query(async ({ input }) => {
         const permissions = await prisma.default_permissions.findMany({
@@ -492,7 +492,7 @@ export const adminRouter = createTRPCRouter({
     /**
      * Reset user permissions to defaults (delete all overrides)
      */
-    resetToDefaults: protectedProcedure
+    resetToDefaults: adminProcedure
       .input(z.object({ userId: z.string().uuid() }))
       .mutation(async ({ input }) => {
         await prisma.user_permissions.deleteMany({
@@ -511,7 +511,7 @@ export const adminRouter = createTRPCRouter({
     /**
      * Get all system settings grouped by category
      */
-    getAll: protectedProcedure.query(async () => {
+    getAll: adminProcedure.query(async () => {
       const settings = await prisma.admin_settings.findMany({
         orderBy: [{ category: 'asc' }, { key: 'asc' }],
       });
@@ -536,7 +536,7 @@ export const adminRouter = createTRPCRouter({
     /**
      * Get settings for a specific category
      */
-    getByCategory: protectedProcedure
+    getByCategory: adminProcedure
       .input(z.object({ category: z.string() }))
       .query(async ({ input }) => {
         const settings = await prisma.admin_settings.findMany({
@@ -555,7 +555,7 @@ export const adminRouter = createTRPCRouter({
     /**
      * Update a single setting
      */
-    update: protectedProcedure
+    update: adminProcedure
       .input(
         z.object({
           category: z.string(),
@@ -590,7 +590,7 @@ export const adminRouter = createTRPCRouter({
     /**
      * Delete a setting
      */
-    delete: protectedProcedure
+    delete: adminProcedure
       .input(
         z.object({
           category: z.string(),
@@ -619,7 +619,7 @@ export const adminRouter = createTRPCRouter({
     /**
      * Get all roles for a user
      */
-    getUserRoles: protectedProcedure
+    getUserRoles: adminProcedure
       .input(z.object({ userId: z.string().uuid() }))
       .query(async ({ input }) => {
         const roles = await prisma.user_roles.findMany({
@@ -638,7 +638,7 @@ export const adminRouter = createTRPCRouter({
     /**
      * Assign a role to a user
      */
-    assignRole: protectedProcedure
+    assignRole: adminProcedure
       .input(
         z.object({
           userId: z.string().uuid(),
@@ -661,7 +661,7 @@ export const adminRouter = createTRPCRouter({
     /**
      * Remove a role from a user
      */
-    removeRole: protectedProcedure
+    removeRole: adminProcedure
       .input(
         z.object({
           userId: z.string().uuid(),
@@ -684,7 +684,7 @@ export const adminRouter = createTRPCRouter({
     /**
      * Get all users with a specific role
      */
-    getUsersByRole: protectedProcedure
+    getUsersByRole: adminProcedure
       .input(z.object({ role: z.string() }))
       .query(async ({ input }) => {
         const userRoles = await prisma.user_roles.findMany({
@@ -731,7 +731,7 @@ export const adminRouter = createTRPCRouter({
     /**
      * Get role statistics
      */
-    getRoleStats: protectedProcedure.query(async () => {
+    getRoleStats: adminProcedure.query(async () => {
       const roles = await prisma.user_roles.groupBy({
         by: ['role'],
         _count: true,
@@ -752,7 +752,7 @@ export const adminRouter = createTRPCRouter({
      * Get all portal users across all portal types
      * For portal management dashboard
      */
-    getAllPortalUsers: protectedProcedure.query(async () => {
+    getAllPortalUsers: adminProcedure.query(async () => {
       const portalUsers = await prisma.customer_portal_access.findMany({
         include: {
           users_customer_portal_access_user_idTousers: {
@@ -786,7 +786,7 @@ export const adminRouter = createTRPCRouter({
     /**
      * Get module settings for a specific portal type and entity
      */
-    getSettings: protectedProcedure
+    getSettings: adminProcedure
       .input(
         z.object({
           portalType: z.enum(['customer', 'designer', 'factory', 'qc']),
@@ -814,7 +814,7 @@ export const adminRouter = createTRPCRouter({
     /**
      * Update module settings for a portal type and entity
      */
-    updateSettings: protectedProcedure
+    updateSettings: adminProcedure
       .input(
         z.object({
           portalType: z.enum(['customer', 'designer', 'factory', 'qc']),
@@ -830,31 +830,39 @@ export const adminRouter = createTRPCRouter({
       )
       .mutation(async ({ input }) => {
         // Upsert each module setting
+        // Note: Prisma doesn't support null in unique constraint where clauses
+        // So we need to handle this with findFirst + create/update
         await Promise.all(
-          input.modules.map((mod) =>
-            prisma.portal_module_settings.upsert({
+          input.modules.map(async (mod) => {
+            const existing = await prisma.portal_module_settings.findFirst({
               where: {
-                portal_type_entity_id_module_key: {
-                  portal_type: input.portalType,
-                  // @ts-expect-error - Prisma nullable unique constraint type issue
-                  entity_id: input.entityId || null,
-                  module_key: mod.moduleKey,
-                },
-              },
-              create: {
                 portal_type: input.portalType,
-                entity_id: input.entityId ?? null,
+                entity_id: input.entityId || null,
                 module_key: mod.moduleKey,
-                is_enabled: mod.isEnabled,
-                permissions: mod.permissions || {},
               },
-              update: {
-                is_enabled: mod.isEnabled,
-                permissions: mod.permissions || {},
-                updated_at: new Date(),
-              },
-            })
-          )
+            });
+
+            if (existing) {
+              await prisma.portal_module_settings.update({
+                where: { id: existing.id },
+                data: {
+                  is_enabled: mod.isEnabled,
+                  permissions: mod.permissions || {},
+                  updated_at: new Date(),
+                },
+              });
+            } else {
+              await prisma.portal_module_settings.create({
+                data: {
+                  portal_type: input.portalType,
+                  entity_id: input.entityId ?? null,
+                  module_key: mod.moduleKey,
+                  is_enabled: mod.isEnabled,
+                  permissions: mod.permissions || {},
+                },
+              });
+            }
+          })
         );
 
         return { success: true };
@@ -863,7 +871,7 @@ export const adminRouter = createTRPCRouter({
     /**
      * Get available modules for a specific portal type
      */
-    getAvailableModules: protectedProcedure
+    getAvailableModules: adminProcedure
       .input(
         z.object({
           portalType: z.enum(['customer', 'designer', 'factory', 'qc']),
@@ -902,7 +910,7 @@ export const adminRouter = createTRPCRouter({
     /**
      * Get all customers for portal configuration dropdown
      */
-    getCustomers: protectedProcedure.query(async () => {
+    getCustomers: adminProcedure.query(async () => {
       const customers = await prisma.customers.findMany({
         select: {
           id: true,
@@ -919,7 +927,7 @@ export const adminRouter = createTRPCRouter({
     /**
      * Get all partners for portal configuration dropdown
      */
-    getPartners: protectedProcedure.query(async () => {
+    getPartners: adminProcedure.query(async () => {
       const partners = await prisma.partners.findMany({
         select: {
           id: true,

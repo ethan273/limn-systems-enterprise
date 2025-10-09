@@ -56,9 +56,10 @@ export default async function handler(
 
       case 'magic-link':
         const { data: magicLink } = await supabase
-          .from('magic_links')
+          .from('magic_link_tokens')
           .select('*')
-          .eq('email', body.email)          .eq('used', false)
+          .eq('email', body.email)
+          .eq('used', false)
           .gt('expires_at', new Date().toISOString())
           .single();
 
@@ -77,7 +78,7 @@ export default async function handler(
 
         // Mark magic link as used
         await supabase
-          .from('magic_links')
+          .from('magic_link_tokens')
           .update({ used: true })
           .eq('id', magicLink.id);
 
@@ -142,7 +143,7 @@ export default async function handler(
 
     // Store session
     const { error: sessionError } = await supabase
-      .from('auth_sessions')
+      .from('sessions')
       .insert({
         user_id: user.id,
         token_hash: await bcrypt.hash(accessToken, 10),
@@ -150,7 +151,8 @@ export default async function handler(
         expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
         device_info: {
           userAgent: req.headers['user-agent'],
-          platform: req.headers['sec-ch-ua-platform'],        },
+          platform: req.headers['sec-ch-ua-platform'],
+        },
         ip_address: req.socket.remoteAddress,
       });
 
@@ -166,7 +168,7 @@ export default async function handler(
       .eq('id', user.id);
 
     // Log audit event
-    await supabase.from('auth_audit_logs').insert({
+    await supabase.from('admin_audit_log').insert({
       user_id: user.id,
       action: 'signin',
       details: { method: body.method },
