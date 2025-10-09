@@ -94,7 +94,7 @@ export default function ProductionAnalyticsPage() {
   };
 
   // Prepare status breakdown for pie chart
-  const statusData = overview?.statusBreakdown.map(s => ({
+  const statusData = overview?.statusBreakdown.map((s: { status: string; count: number }) => ({
     name: s.status.replace(/_/g, ' ').toUpperCase(),
     value: s.count,
     fill: STATUS_COLORS[s.status] || '#64748B',
@@ -209,9 +209,9 @@ export default function ProductionAnalyticsPage() {
                 cx="50%"
                 cy="50%"
                 outerRadius={120}
-                label={(entry) => `${entry.name}: ${entry.value}`}
+                label={(entry: { name: string; value: number }) => `${entry.name}: ${entry.value}`}
               >
-                {statusData.map((entry, index) => (
+                {statusData.map((entry: { fill: string }, index: number) => (
                   <Cell key={`cell-${index}`} fill={entry.fill} />
                 ))}
               </Pie>
