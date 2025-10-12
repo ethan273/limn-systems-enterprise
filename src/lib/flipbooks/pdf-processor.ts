@@ -2,11 +2,22 @@
  * PDF Processing Utilities
  *
  * Handles PDF parsing and conversion to images for flipbook pages
- * Uses pdf-lib for PDF manipulation and sharp for image processing
+ * Uses pdfjs-dist for PDF rendering and sharp for image processing
  */
 
 import { PDFDocument } from "pdf-lib";
 import sharp from "sharp";
+import { createCanvas } from "canvas";
+
+// Dynamic import for pdfjs-dist (server-side only)
+// We'll import it lazily to avoid SSR issues
+const pdfjsLib = require("pdfjs-dist/legacy/build/pdf.js");
+
+// Configure PDF.js worker
+if (typeof window === "undefined") {
+  // Server-side: use node worker
+  const pdfjsWorker = require("pdfjs-dist/legacy/build/pdf.worker.js");
+}
 
 export interface PdfProcessResult {
   pageCount: number;
@@ -22,29 +33,42 @@ export interface PdfProcessResult {
  * Process a PDF file and extract pages as images
  */
 export async function processPdf(pdfBuffer: Buffer): Promise<PdfProcessResult> {
-  // Load PDF document
+  // Load PDF document with pdf-lib for metadata
   const pdfDoc = await PDFDocument.load(pdfBuffer);
-  const pageCount = pdfDoc.getPageCount();
-
-  // Extract metadata
   const title = pdfDoc.getTitle();
   const author = pdfDoc.getAuthor();
 
-  // Note: Actual PDF to image conversion would require additional libraries
-  // like pdf2pic or node-canvas. For now, we'll return a placeholder
-  // In production, you would:
-  // 1. Use pdf2pic to convert each page to an image
-  // 2. Use sharp to optimize and resize images
-  // 3. Return the processed image buffers
+  // Load PDF with pdfjs-dist for rendering
+  const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(pdfBuffer) });
+  const pdf = await loadingTask.promise;
+  const pageCount = pdf.numPages;
 
   const pages: Buffer[] = [];
 
-  // Placeholder: In real implementation, convert each page to image
-  for (let i = 0; i < pageCount; i++) {
-    // This would be the actual page image buffer
-    // For now, create a placeholder
-    const placeholderImage = await createPlaceholderPageImage(i + 1);
-    pages.push(placeholderImage);
+  // Render each page to image
+  for (let i = 1; i <= pageCount; i++) {
+    const page = await pdf.getPage(i);
+    const viewport = page.getViewport({ scale: 2.0 }); // 2x scale for quality
+
+    // Create canvas using node-canvas
+    const canvas = createCanvas(viewport.width, viewport.height);
+    const context = canvas.getContext("2d");
+
+    // Render PDF page to canvas
+    await page.render({
+      canvasContext: context as any,
+      viewport: viewport,
+    }).promise;
+
+    // Convert canvas to buffer
+    const imageBuffer = canvas.toBuffer("image/png");
+
+    // Convert to JPEG with sharp for better compression
+    const jpegBuffer = await sharp(imageBuffer)
+      .jpeg({ quality: 90, progressive: true })
+      .toBuffer();
+
+    pages.push(jpegBuffer);
   }
 
   return {
