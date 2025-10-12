@@ -96,8 +96,9 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Insert page records into database
+    // Insert page records into database (flipbook schema)
     const { data: pages, error: pagesError } = await supabase
+      .schema("flipbook")
       .from("flipbook_pages")
       .insert(pageRecords)
       .select();
@@ -110,8 +111,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update flipbook with metadata
+    // Update flipbook with metadata (flipbook schema)
     const { error: updateError } = await supabase
+      .schema("flipbook")
       .from("flipbooks")
       .update({
         pdf_source_url: pdfUpload.cdnUrl,

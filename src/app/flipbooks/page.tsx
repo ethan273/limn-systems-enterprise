@@ -4,7 +4,7 @@ import { features } from "@/lib/features";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
-import { Plus, BookOpen, Eye, Pencil, Trash2 } from "lucide-react";
+import { Plus, BookOpen, Eye, Pencil, Trash2, Upload } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -253,9 +253,16 @@ export default function FlipbooksPage() {
         subtitle="Create and manage interactive flipbooks"
         actions={[
           {
+            label: 'Upload PDF',
+            icon: Upload,
+            onClick: () => router.push("/flipbooks/upload"),
+            variant: 'default',
+          },
+          {
             label: 'New Flipbook',
             icon: Plus,
             onClick: () => setIsFormOpen(true),
+            variant: 'outline',
           },
         ]}
       />
