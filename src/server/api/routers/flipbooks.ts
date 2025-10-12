@@ -370,4 +370,251 @@ export const flipbooksRouter = createTRPCRouter({
         totalViews: flipbook.view_count || 0,
       };
     }),
+
+  // ========================================
+  // PAGE MANAGEMENT ENDPOINTS
+  // ========================================
+
+  /**
+   * Delete a page from flipbook
+   */
+  deletePage: protectedProcedure
+    .input(z.object({ pageId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      if (!features.flipbooks) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Flipbooks feature is not enabled",
+        });
+      }
+
+      // Get page with flipbook info for permission check
+      const page = await ctx.db.flipbook_pages.findUnique({
+        where: { id: input.pageId },
+        include: { flipbook: { select: { created_by_id: true } } },
+      });
+
+      if (!page) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Page not found",
+        });
+      }
+
+      if (page.flipbook.created_by_id !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have permission to delete this page",
+        });
+      }
+
+      await ctx.db.flipbook_pages.delete({
+        where: { id: input.pageId },
+      });
+
+      return { success: true };
+    }),
+
+  /**
+   * Reorder pages
+   */
+  reorderPages: protectedProcedure
+    .input(z.object({
+      flipbookId: z.string().uuid(),
+      pageIds: z.array(z.string().uuid()),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      if (!features.flipbooks) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Flipbooks feature is not enabled",
+        });
+      }
+
+      // Check permissions
+      const flipbook = await ctx.db.flipbooks.findUnique({
+        where: { id: input.flipbookId },
+        select: { created_by_id: true },
+      });
+
+      if (!flipbook || flipbook.created_by_id !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have permission to reorder pages",
+        });
+      }
+
+      // Update page numbers based on new order
+      for (let i = 0; i < input.pageIds.length; i++) {
+        await ctx.db.flipbook_pages.update({
+          where: { id: input.pageIds[i] },
+          data: { page_number: i + 1 },
+        });
+      }
+
+      return { success: true };
+    }),
+
+  // ========================================
+  // HOTSPOT MANAGEMENT ENDPOINTS
+  // ========================================
+
+  /**
+   * Create a hotspot on a page
+   */
+  createHotspot: protectedProcedure
+    .input(z.object({
+      pageId: z.string().uuid(),
+      productId: z.string().uuid(),
+      xPercent: z.number().min(0).max(100),
+      yPercent: z.number().min(0).max(100),
+      width: z.number().min(1).max(100).default(10),
+      height: z.number().min(1).max(100).default(10),
+      label: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      if (!features.flipbooks) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Flipbooks feature is not enabled",
+        });
+      }
+
+      // Check permissions via page
+      const page = await ctx.db.flipbook_pages.findUnique({
+        where: { id: input.pageId },
+        include: { flipbook: { select: { created_by_id: true } } },
+      });
+
+      if (!page || page.flipbook.created_by_id !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have permission to add hotspots",
+        });
+      }
+
+      const hotspot = await ctx.db.hotspots.create({
+        data: {
+          page_id: input.pageId,
+          product_id: input.productId,
+          x_percent: input.xPercent,
+          y_percent: input.yPercent,
+          width: input.width,
+          height: input.height,
+          label: input.label,
+          type: "PRODUCT",
+          action: "VIEW_PRODUCT",
+        },
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+              sku: true,
+              thumbnail_url: true,
+            },
+          },
+        },
+      });
+
+      return hotspot;
+    }),
+
+  /**
+   * Update hotspot
+   */
+  updateHotspot: protectedProcedure
+    .input(z.object({
+      hotspotId: z.string().uuid(),
+      xPercent: z.number().min(0).max(100).optional(),
+      yPercent: z.number().min(0).max(100).optional(),
+      width: z.number().min(1).max(100).optional(),
+      height: z.number().min(1).max(100).optional(),
+      label: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      if (!features.flipbooks) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Flipbooks feature is not enabled",
+        });
+      }
+
+      const { hotspotId, ...updateData } = input;
+
+      // Check permissions
+      const hotspot = await ctx.db.hotspots.findUnique({
+        where: { id: hotspotId },
+        include: {
+          page: {
+            include: {
+              flipbook: { select: { created_by_id: true } },
+            },
+          },
+        },
+      });
+
+      if (!hotspot || hotspot.page.flipbook.created_by_id !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have permission to update this hotspot",
+        });
+      }
+
+      const updated = await ctx.db.hotspots.update({
+        where: { id: hotspotId },
+        data: updateData,
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+              sku: true,
+              thumbnail_url: true,
+            },
+          },
+        },
+      });
+
+      return updated;
+    }),
+
+  /**
+   * Delete hotspot
+   */
+  deleteHotspot: protectedProcedure
+    .input(z.object({ hotspotId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      if (!features.flipbooks) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Flipbooks feature is not enabled",
+        });
+      }
+
+      // Check permissions
+      const hotspot = await ctx.db.hotspots.findUnique({
+        where: { id: input.hotspotId },
+        include: {
+          page: {
+            include: {
+              flipbook: { select: { created_by_id: true } },
+            },
+          },
+        },
+      });
+
+      if (!hotspot || hotspot.page.flipbook.created_by_id !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have permission to delete this hotspot",
+        });
+      }
+
+      await ctx.db.hotspots.delete({
+        where: { id: input.hotspotId },
+      });
+
+      return { success: true };
+    }),
 });
