@@ -142,8 +142,7 @@ export const appRouter = createTRPCRouter({
   portal: portalRouter,
 
   // Flipbooks (Feature Flag Protected)
-  // Only loaded if NEXT_PUBLIC_ENABLE_FLIPBOOKS=true
-  ...(features.flipbooks && { flipbooks: flipbooksRouter }),
+  flipbooks: flipbooksRouter,
 });
 
 // Export type for client
