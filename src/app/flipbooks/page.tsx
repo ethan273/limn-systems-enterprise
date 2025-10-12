@@ -15,7 +15,6 @@ import {
   LoadingState,
   DataTable,
   StatsGrid,
-  FormDialog,
   type DataTableColumn,
   type DataTableFilter,
   type DataTableRowAction,
@@ -45,7 +44,6 @@ export default function FlipbooksPage() {
   const queryClient = useQueryClient();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [flipbookToDelete, setFlipbookToDelete] = useState<any>(null);
-  const [isFormOpen, setIsFormOpen] = useState(false);
 
   // Redirect if feature is disabled
   useEffect(() => {
@@ -65,19 +63,6 @@ export default function FlipbooksPage() {
   });
 
   const flipbooks = data?.flipbooks || [];
-
-  // Create mutation
-  const createMutation = api.flipbooks.create.useMutation({
-    onSuccess: () => {
-      toast.success("Flipbook created successfully");
-      queryClient.invalidateQueries({ queryKey: ['flipbooks'] });
-      refetch();
-      setIsFormOpen(false);
-    },
-    onError: (error) => {
-      toast.error("Failed to create flipbook: " + error.message);
-    },
-  });
 
   // Delete mutation
   const deleteMutation = api.flipbooks.delete.useMutation({
@@ -258,12 +243,6 @@ export default function FlipbooksPage() {
             onClick: () => router.push("/flipbooks/upload"),
             variant: 'default',
           },
-          {
-            label: 'New Flipbook',
-            icon: Plus,
-            onClick: () => setIsFormOpen(true),
-            variant: 'outline',
-          },
         ]}
       />
 
@@ -277,11 +256,11 @@ export default function FlipbooksPage() {
         <EmptyState
           icon={BookOpen}
           title="No flipbooks found"
-          description="Get started by creating your first flipbook."
+          description="Get started by uploading your first PDF."
           action={{
-            label: 'Create First Flipbook',
-            onClick: () => setIsFormOpen(true),
-            icon: Plus,
+            label: 'Upload PDF',
+            onClick: () => router.push("/flipbooks/upload"),
+            icon: Upload,
           }}
         />
       ) : (
@@ -322,22 +301,6 @@ export default function FlipbooksPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Create Flipbook Form Dialog */}
-      <FormDialog
-        open={isFormOpen}
-        onOpenChange={setIsFormOpen}
-        title="Create New Flipbook"
-        description="Add a new flipbook to your library"
-        fields={[
-          { name: 'title', label: 'Title', type: 'text', required: true, placeholder: 'Spring Collection 2025' },
-          { name: 'description', label: 'Description', type: 'textarea', placeholder: 'Brief description of the flipbook' },
-          { name: 'pdf_source_url', label: 'PDF Source URL (optional)', type: 'text', placeholder: 'https://...' },
-        ]}
-        onSubmit={async (data) => {
-          await createMutation.mutateAsync(data);
-        }}
-      />
     </div>
   );
 }
