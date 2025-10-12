@@ -9,7 +9,7 @@
  */
 
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc/init";
 import { TRPCError } from "@trpc/server";
 import { features } from "@/lib/features";
 
