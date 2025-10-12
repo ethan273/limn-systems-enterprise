@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { useAuthContext } from "@/lib/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 import {
   PageHeader,
   DataTable,
@@ -14,29 +15,56 @@ import {
   LoadingState,
   type DataTableColumn,
   type DataTableFilter,
+  type DataTableRowAction,
   type StatItem,
 } from "@/components/common";
-import { Plus, FileText, Calendar } from "lucide-react";
+import { Plus, FileText, Calendar, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export const dynamic = 'force-dynamic';
 
 export default function DesignBriefsPage() {
   const { user, loading: authLoading } = useAuthContext();
   const router = useRouter();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [briefToDelete, setBriefToDelete] = useState<any>(null);
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push("/login");
-    }
-  }, [authLoading, user, router]);
+  // Auth is handled by middleware - no client-side redirect needed
 
-  const { data, isLoading } = api.designBriefs.getAll.useQuery(
+  const { data, isLoading, refetch } = api.designBriefs.getAll.useQuery(
     {
       limit: 50,
     },
     { enabled: !authLoading && !!user }
   );
+
+  const deleteBrief = api.designBriefs.delete.useMutation({
+    onSuccess: () => {
+      toast.success("Design brief deleted successfully");
+      refetch();
+      setDeleteDialogOpen(false);
+      setBriefToDelete(null);
+    },
+    onError: (error) => {
+      toast.error("Failed to delete design brief: " + error.message);
+    },
+  });
+
+  const handleConfirmDelete = () => {
+    if (briefToDelete) {
+      deleteBrief.mutate({ id: briefToDelete.id });
+    }
+  };
 
   const filteredBriefs = data?.briefs || [];
 
@@ -148,17 +176,6 @@ export default function DesignBriefsPage() {
       label: 'Target Market',
       render: (value) => value as string || "—",
     },
-    {
-      key: 'actions',
-      label: 'Actions',
-      render: (_, row) => (
-        <Link href={`/design/briefs/${row.id}`}>
-          <Button variant="outline" size="sm">
-            View Details
-          </Button>
-        </Link>
-      ),
-    },
   ];
 
   // DataTable filters configuration
@@ -181,6 +198,25 @@ export default function DesignBriefsPage() {
         { value: 'in_progress', label: 'In Progress' },
         { value: 'completed', label: 'Completed' },
       ],
+    },
+  ];
+
+  // Row actions configuration
+  const rowActions: DataTableRowAction<any>[] = [
+    {
+      label: 'View Details',
+      icon: Pencil,
+      onClick: (row) => router.push(`/design/briefs/${row.id}`),
+    },
+    {
+      label: 'Delete',
+      icon: Trash2,
+      variant: 'destructive',
+      separator: true,
+      onClick: (row) => {
+        setBriefToDelete(row);
+        setDeleteDialogOpen(true);
+      },
     },
   ];
 
@@ -233,6 +269,7 @@ export default function DesignBriefsPage() {
           data={filteredBriefs}
           columns={columns}
           filters={filters}
+          rowActions={rowActions}
           onRowClick={(row) => router.push(`/design/briefs/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}
           emptyState={{
@@ -242,6 +279,28 @@ export default function DesignBriefsPage() {
           }}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Design Brief</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{briefToDelete?.title}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteBrief.isPending}
+            >
+              {deleteBrief.isPending ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { use,  useEffect } from "react";
+import { use,  useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { useAuthContext } from "@/lib/auth/AuthProvider";
@@ -10,30 +10,128 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EntityDetailHeader } from "@/components/common/EntityDetailHeader";
-import { InfoCard } from "@/components/common/InfoCard";
 import { EmptyState } from "@/components/common/EmptyState";
 import { LoadingState } from "@/components/common/LoadingState";
+import { EditableFieldGroup, EditableField } from "@/components/common/EditableField";
 import { toast } from "@/hooks/use-toast";
-import { ArrowLeft, Calendar, DollarSign, FileText, Image, Layers, Briefcase, User, Edit } from "lucide-react";
+import { ArrowLeft, Calendar, DollarSign, FileText, Image, Layers, Briefcase, User, Edit, Check, X, Target, MessageSquare } from "lucide-react";
 import Link from "next/link";
+import { format } from "date-fns";
 
 export const dynamic = 'force-dynamic';
+
+const PROJECT_TYPES = [
+  { value: 'furniture', label: 'Furniture' },
+  { value: 'textile', label: 'Textile' },
+  { value: 'lighting', label: 'Lighting' },
+  { value: 'accessory', label: 'Accessory' },
+];
+
+const PROJECT_PRIORITIES = [
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' },
+  { value: 'urgent', label: 'Urgent' },
+];
 
 export default function DesignProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
  const router = useRouter();
  const { user, loading: authLoading } = useAuthContext();
+ const [isEditing, setIsEditing] = useState(false);
+ const [formData, setFormData] = useState({
+   project_name: '',
+   project_code: '',
+   description: '',
+   project_type: 'furniture',
+   priority: 'medium',
+   target_launch_date: '',
+   budget: 0,
+   next_action: '',
+ });
 
- useEffect(() => {
- if (!authLoading && !user) {
- router.push("/login");
- }
- }, [authLoading, user, router]);
+ // Auth is handled by middleware - no client-side redirect needed
 
- const { data: project, isLoading } = api.designProjects.getById.useQuery(
+ const { data: project, isLoading, refetch } = api.designProjects.getById.useQuery(
  { id: id },
  { enabled: !authLoading && !!user && !!id }
  );
+
+ // Sync formData with fetched project data
+ useEffect(() => {
+   if (project) {
+     setFormData({
+       project_name: project.project_name || '',
+       project_code: project.project_code || '',
+       description: project.description || '',
+       project_type: project.project_type || 'furniture',
+       priority: project.priority || 'medium',
+       target_launch_date: project.target_launch_date ? format(new Date(project.target_launch_date), "yyyy-MM-dd") : '',
+       budget: project.budget ? Number(project.budget) : 0,
+       next_action: project.next_action || '',
+     });
+   }
+ }, [project]);
+
+ // Update mutation
+ const updateMutation = api.designProjects.update.useMutation({
+   onSuccess: () => {
+     toast({
+       title: "Success",
+       description: "Design project updated successfully",
+     });
+     setIsEditing(false);
+     refetch();
+   },
+   onError: (error) => {
+     toast({
+       title: "Error",
+       description: error.message || "Failed to update design project",
+       variant: "destructive",
+     });
+   },
+ });
+
+ const handleSave = () => {
+   if (!formData.project_name) {
+     toast({
+       title: "Error",
+       description: "Project name is required",
+       variant: "destructive",
+     });
+     return;
+   }
+
+   updateMutation.mutate({
+     id: id,
+     data: {
+       project_name: formData.project_name,
+       project_code: formData.project_code || undefined,
+       description: formData.description || undefined,
+       project_type: formData.project_type,
+       priority: formData.priority,
+       target_launch_date: formData.target_launch_date || undefined,
+       budget: formData.budget || undefined,
+       next_action: formData.next_action || undefined,
+     },
+   });
+ };
+
+ const handleCancel = () => {
+   if (project) {
+     setFormData({
+       project_name: project.project_name || '',
+       project_code: project.project_code || '',
+       description: project.description || '',
+       project_type: project.project_type || 'furniture',
+       priority: project.priority || 'medium',
+       target_launch_date: project.target_launch_date ? format(new Date(project.target_launch_date), "yyyy-MM-dd") : '',
+       budget: project.budget ? Number(project.budget) : 0,
+       next_action: project.next_action || '',
+     });
+   }
+   setIsEditing(false);
+ };
 
  const updateProgressMutation = api.designProjects.updateProgress.useMutation();
 
@@ -122,13 +220,16 @@ export default function DesignProjectDetailPage({ params }: { params: Promise<{ 
  ...(project.budget ? [{ icon: DollarSign, value: `$${Number(project.budget).toFixed(2)}`, label: 'Budget' }] : []),
  ]}
  status={project.current_stage}
- actions={[
- {
- label: 'Edit Project',
- icon: Edit,
- onClick: () => router.push(`/design/projects/${project.id}/edit`),
- },
- ]}
+ actions={
+   isEditing
+     ? [
+         { label: 'Cancel', icon: X, onClick: handleCancel },
+         { label: 'Save Changes', icon: Check, onClick: handleSave },
+       ]
+     : [
+         { label: 'Edit Project', icon: Edit, onClick: () => setIsEditing(true) },
+       ]
+ }
  />
 
  {/* Stage Update Control */}
@@ -191,37 +292,92 @@ export default function DesignProjectDetailPage({ params }: { params: Promise<{ 
 
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
  {/* Project Details */}
- <InfoCard
- title="Project Details"
- items={[
- { label: 'Designer', value: project.designers?.name || "Not assigned" },
- { label: 'Collection', value: project.furniture_collections?.name || "—" },
- { label: 'Project Type', value: project.project_type || "—" },
- { label: 'Priority', value: <Badge variant="outline" className="capitalize">{project.priority}</Badge> },
- { label: 'Days in Stage', value: `${project.days_in_stage || 0} days` },
- ]}
- />
+ <EditableFieldGroup title="Project Details" isEditing={isEditing}>
+   <EditableField
+     label="Project Name"
+     value={formData.project_name}
+     isEditing={isEditing}
+     onChange={(value) => setFormData({ ...formData, project_name: value })}
+     required
+     icon={Briefcase}
+   />
+   <EditableField
+     label="Project Code"
+     value={formData.project_code}
+     isEditing={isEditing}
+     onChange={(value) => setFormData({ ...formData, project_code: value })}
+     type="text"
+   />
+   <EditableField
+     label="Description"
+     value={formData.description}
+     isEditing={isEditing}
+     onChange={(value) => setFormData({ ...formData, description: value })}
+     type="textarea"
+   />
+   <EditableField
+     label="Designer"
+     value={project.designers?.name || "Not assigned"}
+     isEditing={false}
+     icon={User}
+   />
+   <EditableField
+     label="Collection"
+     value={project.furniture_collections?.name || "—"}
+     isEditing={false}
+     icon={Layers}
+   />
+   <EditableField
+     label="Project Type"
+     value={formData.project_type}
+     isEditing={isEditing}
+     onChange={(value) => setFormData({ ...formData, project_type: value })}
+     type="select"
+     options={PROJECT_TYPES}
+   />
+   <EditableField
+     label="Priority"
+     value={formData.priority}
+     isEditing={isEditing}
+     onChange={(value) => setFormData({ ...formData, priority: value })}
+     type="select"
+     options={PROJECT_PRIORITIES}
+     icon={Target}
+   />
+   <EditableField
+     label="Days in Stage"
+     value={`${project.days_in_stage || 0} days`}
+     isEditing={false}
+   />
+ </EditableFieldGroup>
 
  {/* Timeline & Budget */}
- <InfoCard
- title="Timeline & Budget"
- items={[
- ...(project.target_launch_date ? [{
- label: 'Target Launch',
- value: new Date(project.target_launch_date).toLocaleDateString(),
- icon: Calendar,
- }] : []),
- ...(project.budget ? [{
- label: 'Budget',
- value: `$${Number(project.budget).toFixed(2)}`,
- icon: DollarSign,
- }] : []),
- ...(project.next_action ? [{
- label: 'Next Action',
- value: project.next_action,
- }] : []),
- ]}
- />
+ <EditableFieldGroup title="Timeline & Budget" isEditing={isEditing}>
+   <EditableField
+     label="Target Launch"
+     value={formData.target_launch_date}
+     isEditing={isEditing}
+     onChange={(value) => setFormData({ ...formData, target_launch_date: value })}
+     type="date"
+     icon={Calendar}
+   />
+   <EditableField
+     label="Budget"
+     value={String(formData.budget || 0)}
+     isEditing={isEditing}
+     onChange={(value) => setFormData({ ...formData, budget: parseFloat(value) || 0 })}
+     type="text"
+     icon={DollarSign}
+   />
+   <EditableField
+     label="Next Action"
+     value={formData.next_action}
+     isEditing={isEditing}
+     onChange={(value) => setFormData({ ...formData, next_action: value })}
+     type="textarea"
+     icon={MessageSquare}
+   />
+ </EditableFieldGroup>
  </div>
 
  {/* Milestones */}

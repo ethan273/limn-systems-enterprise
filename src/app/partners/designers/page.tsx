@@ -126,7 +126,10 @@ export default function DesignersPage() {
       key: 'specializations',
       label: 'Specializations',
       render: (value) => {
-        const specs = value as string[];
+        const specs = (value as string[]) || [];
+        if (specs.length === 0) {
+          return <span className="text-muted">—</span>;
+        }
         return (
           <div className="flex flex-wrap gap-1">
             {specs.slice(0, 2).map((spec: string, idx: number) => (

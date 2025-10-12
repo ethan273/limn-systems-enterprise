@@ -183,7 +183,7 @@ export default function SystemSettingsPage() {
           {/* Categories Sidebar */}
           <Card>
             <CardHeader>
-              <CardTitle className="card-title-sm">Categories</CardTitle>
+              <CardTitle>Categories</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="list-container">

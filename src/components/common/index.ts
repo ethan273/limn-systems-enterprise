@@ -1,6 +1,6 @@
 // Phase 1 Foundation Components - UI Component Library
 export { DataTable } from './DataTable';
-export type { DataTableColumn, DataTableFilter, DataTableProps } from './DataTable';
+export type { DataTableColumn, DataTableFilter, DataTableProps, DataTableRowAction } from './DataTable';
 
 export { PageHeader } from './PageHeader';
 export type { PageHeaderAction, PageHeaderBreadcrumb, PageHeaderProps } from './PageHeader';
@@ -31,6 +31,9 @@ export {
 export { LoadingStateDemo } from './LoadingStateDemo';
 
 export { StatusBadge, PriorityBadge, DepartmentBadge } from './StatusBadge';
+
+export { EditableField, EditableFieldGroup } from './EditableField';
+export type { EditableFieldProps, EditableFieldGroupProps } from './EditableField';
 
 export { Breadcrumbs } from './Breadcrumbs';
 export type { BreadcrumbsProps, BreadcrumbItem } from './Breadcrumbs';

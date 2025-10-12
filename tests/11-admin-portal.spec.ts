@@ -285,7 +285,11 @@ test.describe('⚙️ ADMIN PORTAL TESTS @admin-portal', () => {
             await page.waitForTimeout(1000);
 
             // Should see success message
-            const hasSuccess = await page.locator('text=/success/i, text=/saved/i, text=/updated/i').count() > 0;
+            const hasSuccess = await (
+      await page.locator('text=/success/i').count() > 0 ||
+      await page.locator('text=/saved/i').count() > 0 ||
+      await page.locator('text=/updated/i').count() > 0
+    ) > 0;
             expect(hasSuccess || true).toBeTruthy();
           }
         }

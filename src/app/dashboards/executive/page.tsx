@@ -345,8 +345,8 @@ export default function ExecutiveDashboardPage() {
                 <Card key={index} className={insightClass}>
                   <CardHeader>
                     <div className="insight-header">
-                      <Icon className="insight-icon" />
                       <CardTitle className="insight-title">{insight.title}</CardTitle>
+                      <Icon className="insight-icon" />
                     </div>
                   </CardHeader>
                   <CardContent>

@@ -33,7 +33,8 @@ export type FormFieldType =
   | 'textarea'
   | 'date'
   | 'checkbox'
-  | 'password';
+  | 'password'
+  | 'file';
 
 /**
  * Validation configuration for form fields
@@ -65,6 +66,8 @@ export interface FormField {
   options?: SelectOption[]; // for select fields
   defaultValue?: unknown;
   validation?: FormFieldValidation;
+  accept?: string; // for file inputs
+  helperText?: string; // helper text below field
 }
 
 /**
@@ -214,13 +217,20 @@ export function FormDialog({
    */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[FormDialog] Submit triggered', { title, formData });
 
     if (!validateForm()) {
+      console.log('[FormDialog] Validation failed');
       return;
     }
 
+    console.log('[FormDialog] Validation passed, calling onSubmit...');
+
     try {
+      console.log('[FormDialog] About to call onSubmit with data:', formData);
       await onSubmit(formData);
+      console.log('[FormDialog] onSubmit completed successfully');
+
       // Clear form on successful submit
       const clearedData: Record<string, unknown> = {};
       fields.forEach((field) => {
@@ -229,9 +239,14 @@ export function FormDialog({
       setFormData(clearedData);
       setErrors({});
       onOpenChange(false);
+      console.log('[FormDialog] Dialog closed');
     } catch (error) {
       // Error handling - errors from onSubmit will be caught here
-      console.error('Form submission error:', error);
+      console.error('[FormDialog] Form submission error:', error);
+      console.error('[FormDialog] Error details:', {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
     }
   };
 
@@ -275,6 +290,7 @@ export function FormDialog({
             </Label>
             <Input
               id={field.name}
+              name={field.name}
               type={field.type}
               placeholder={field.placeholder}
               value={String(value || '')}
@@ -296,6 +312,7 @@ export function FormDialog({
             </Label>
             <Input
               id={field.name}
+              name={field.name}
               type="number"
               placeholder={field.placeholder}
               value={String(value || '')}
@@ -319,6 +336,7 @@ export function FormDialog({
             </Label>
             <Input
               id={field.name}
+              name={field.name}
               type="date"
               value={String(value || '')}
               onChange={(e) => handleFieldChange(field.name, e.target.value)}
@@ -339,6 +357,7 @@ export function FormDialog({
             </Label>
             <Textarea
               id={field.name}
+              name={field.name}
               placeholder={field.placeholder}
               value={String(value || '')}
               onChange={(e) => handleFieldChange(field.name, e.target.value)}
@@ -392,6 +411,57 @@ export function FormDialog({
             >
               {field.label}
             </Label>
+            {error && <span className="form-error">{error}</span>}
+          </div>
+        );
+
+      case 'file':
+        return (
+          <div key={field.name} className="form-field">
+            <Label
+              htmlFor={field.name}
+              className={field.required ? 'form-label form-label-required' : 'form-label'}
+            >
+              {field.label}
+            </Label>
+            {field.defaultValue && typeof field.defaultValue === 'string' && (
+              <div className="mb-2 flex items-center gap-2 p-2 border border-border rounded bg-muted/50">
+                <img
+                  src={field.defaultValue}
+                  alt="Current image"
+                  className="w-16 h-16 object-cover rounded border border-border"
+                />
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground">Current image</p>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleFieldChange(field.name, null)}
+                    disabled={isLoading}
+                    className="text-destructive hover:text-destructive h-auto p-0 mt-1"
+                  >
+                    Remove
+                  </Button>
+                </div>
+              </div>
+            )}
+            <Input
+              id={field.name}
+              name={field.name}
+              type="file"
+              accept={field.accept || 'image/*'}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  handleFieldChange(field.name, file);
+                }
+              }}
+              disabled={isLoading}
+            />
+            {field.helperText && (
+              <p className="text-sm text-muted-foreground mt-1">{field.helperText}</p>
+            )}
             {error && <span className="form-error">{error}</span>}
           </div>
         );

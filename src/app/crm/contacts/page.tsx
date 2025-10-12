@@ -3,25 +3,17 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Plus,
-  MoreVertical,
   Building,
   Mail,
   Phone,
   User,
   Tag,
-  Edit,
-  Trash,
-  Eye,
   Users,
+  Pencil,
+  Trash2,
+  Eye,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
@@ -34,14 +26,27 @@ import {
   type FormField,
   type DataTableColumn,
   type DataTableFilter,
+  type DataTableRowAction,
 } from "@/components/common";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function ContactsPage() {
   const router = useRouter();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editContactId, setEditContactId] = useState<string>("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [contactToDelete, setContactToDelete] = useState<any>(null);
 
   const { data: contactsData, isLoading, refetch } = api.crm.contacts.getAll.useQuery({
     limit: 100,
@@ -75,15 +80,19 @@ export default function ContactsPage() {
     onSuccess: () => {
       toast.success("Contact deleted successfully");
       refetch();
+      setDeleteDialogOpen(false);
+      setContactToDelete(null);
     },
     onError: (error) => {
       toast.error("Failed to delete contact: " + error.message);
     },
   });
 
-  const handleDeleteContact = (contactId: string) => {
-    if (confirm("Are you sure you want to delete this contact?")) {
-      deleteContactMutation.mutate({ id: contactId });
+  const handleConfirmDelete = () => {
+    if (contactToDelete) {
+      console.log('[ContactsPage] DELETE triggered for contactId:', contactToDelete.id);
+      deleteContactMutation.mutate({ id: contactToDelete.id });
+      console.log('[ContactsPage] deleteContactMutation.mutate called');
     }
   };
 
@@ -205,61 +214,6 @@ export default function ContactsPage() {
         </span>
       ) : null,
     },
-    {
-      key: 'actions',
-      label: 'Actions',
-      render: (_, row) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-            <Button variant="ghost" size="sm" className="btn-icon">
-              <MoreVertical className="icon-sm" aria-hidden="true" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="card">
-            <DropdownMenuItem
-              className="dropdown-item"
-              onClick={(e) => {
-                e.stopPropagation();
-                router.push(`/crm/contacts/${row.id}`);
-              }}
-            >
-              <Eye className="icon-sm" aria-hidden="true" />
-              View Details
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="dropdown-item"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleEditContact(row);
-              }}
-            >
-              <Edit className="icon-sm" aria-hidden="true" />
-              Edit Contact
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="dropdown-item"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleSendEmail(row);
-              }}
-            >
-              <Mail className="icon-sm" aria-hidden="true" />
-              Send Email
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="dropdown-item-danger"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDeleteContact(row.id);
-              }}
-            >
-              <Trash className="icon-sm" aria-hidden="true" />
-              Delete Contact
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
-    },
   ];
 
   // DataTable filters configuration
@@ -279,6 +233,33 @@ export default function ContactsPage() {
         { value: 'with_company', label: 'With Company' },
         { value: 'no_company', label: 'No Company' },
       ],
+    },
+  ];
+
+  // Row actions configuration
+  const rowActions: DataTableRowAction<any>[] = [
+    {
+      label: 'View Details',
+      icon: Eye,
+      onClick: (row) => router.push(`/crm/contacts/${row.id}`),
+    },
+    {
+      label: 'Quick Edit',
+      icon: Pencil,
+      onClick: (row) => {
+        setEditContactId(row.id);
+        setIsEditDialogOpen(true);
+      },
+    },
+    {
+      label: 'Delete',
+      icon: Trash2,
+      variant: 'destructive',
+      separator: true,
+      onClick: (row) => {
+        setContactToDelete(row);
+        setDeleteDialogOpen(true);
+      },
     },
   ];
 
@@ -305,7 +286,8 @@ export default function ContactsPage() {
         description="Add a new contact to your CRM system."
         fields={createFormFields}
         onSubmit={async (data) => {
-          await createContactMutation.mutateAsync({
+          console.log('[ContactsPage] CREATE onSubmit called with data:', data);
+          const mutationData = {
             name: data.name as string,
             email: data.email as string || undefined,
             phone: data.phone as string || undefined,
@@ -313,7 +295,10 @@ export default function ContactsPage() {
             position: data.position as string || undefined,
             notes: data.notes as string || undefined,
             tags: [],
-          });
+          };
+          console.log('[ContactsPage] Calling createContactMutation.mutateAsync with:', mutationData);
+          await createContactMutation.mutateAsync(mutationData);
+          console.log('[ContactsPage] createContactMutation completed');
         }}
         submitLabel="Create Contact"
         isLoading={createContactMutation.isPending}
@@ -327,7 +312,8 @@ export default function ContactsPage() {
         description="Update contact information."
         fields={editFormFields}
         onSubmit={async (data) => {
-          await updateContactMutation.mutateAsync({
+          console.log('[ContactsPage] UPDATE onSubmit called with data:', data, 'contactId:', editContactId);
+          const mutationData = {
             id: editContactId,
             data: {
               name: data.name as string,
@@ -337,7 +323,10 @@ export default function ContactsPage() {
               position: data.position as string || undefined,
               notes: data.notes as string || undefined,
             },
-          });
+          };
+          console.log('[ContactsPage] Calling updateContactMutation.mutateAsync with:', mutationData);
+          await updateContactMutation.mutateAsync(mutationData);
+          console.log('[ContactsPage] updateContactMutation completed');
         }}
         submitLabel="Update Contact"
         isLoading={updateContactMutation.isPending}
@@ -362,6 +351,7 @@ export default function ContactsPage() {
           data={contactsData.items}
           columns={columns}
           filters={filters}
+          rowActions={rowActions}
           onRowClick={(row) => router.push(`/crm/contacts/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}
           emptyState={{
@@ -371,6 +361,29 @@ export default function ContactsPage() {
           }}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Contact</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {contactToDelete?.name}? This action cannot be undone.
+              All associated activities will be preserved but unlinked.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteContactMutation.isPending}
+            >
+              {deleteContactMutation.isPending ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -3,28 +3,19 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Plus,
-  MoreVertical,
   Building,
   Mail,
   Phone,
   DollarSign,
-  Edit,
-  Trash,
   Eye,
   Users,
   TrendingUp,
   Target,
   ArrowRight,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
@@ -39,8 +30,19 @@ import {
   type FormField,
   type DataTableColumn,
   type DataTableFilter,
+  type DataTableRowAction,
   type StatItem,
 } from "@/components/common";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type LeadStatus = 'new' | 'contacted' | 'qualified' | 'proposal' | 'negotiation' | 'won' | 'lost';
 type ProspectStatus = 'cold' | 'warm' | 'hot';
@@ -68,6 +70,8 @@ export default function LeadsPage() {
   const [isConvertDialogOpen, setIsConvertDialogOpen] = useState(false);
   const [selectedLeadForConversion, setSelectedLeadForConversion] = useState<any>(null);
   const [editLeadId, setEditLeadId] = useState<string>("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [leadToDelete, setLeadToDelete] = useState<any>(null);
 
   const { data: leadsData, isLoading, refetch } = api.crm.leads.getAll.useQuery({
     limit: 100,
@@ -103,6 +107,8 @@ export default function LeadsPage() {
     onSuccess: () => {
       toast.success("Lead deleted successfully");
       refetch();
+      setDeleteDialogOpen(false);
+      setLeadToDelete(null);
     },
     onError: (error) => {
       toast.error("Failed to delete lead: " + error.message);
@@ -121,9 +127,9 @@ export default function LeadsPage() {
     },
   });
 
-  const handleDeleteLead = (leadId: string) => {
-    if (confirm("Are you sure you want to delete this lead?")) {
-      deleteLeadMutation.mutate({ id: leadId });
+  const handleConfirmDelete = () => {
+    if (leadToDelete) {
+      deleteLeadMutation.mutate({ id: leadToDelete.id });
     }
   };
 
@@ -149,7 +155,7 @@ export default function LeadsPage() {
       label: 'Prospect Status',
       type: 'select',
       options: [
-        { value: '', label: 'No prospect status' },
+        { value: 'none', label: 'No prospect status' },
         ...PROSPECT_STATUSES.map(s => ({ value: s.value, label: s.label })),
       ],
     },
@@ -175,10 +181,10 @@ export default function LeadsPage() {
       label: 'Prospect Status',
       type: 'select',
       options: [
-        { value: '', label: 'No prospect status' },
+        { value: 'none', label: 'No prospect status' },
         ...PROSPECT_STATUSES.map(s => ({ value: s.value, label: s.label })),
       ],
-      defaultValue: selectedLead?.prospect_status,
+      defaultValue: selectedLead?.prospect_status || 'none',
     },
     { name: 'lead_value', label: 'Lead Value', type: 'number', defaultValue: selectedLead?.lead_value?.toString() },
     { name: 'notes', label: 'Notes', type: 'textarea', defaultValue: selectedLead?.notes },
@@ -302,62 +308,6 @@ export default function LeadsPage() {
         </span>
       ) : null,
     },
-    {
-      key: 'actions',
-      label: 'Actions',
-      render: (_, row) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-            <Button variant="ghost" size="sm" className="btn-icon">
-              <MoreVertical className="icon-sm" aria-hidden="true" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="card">
-            <DropdownMenuItem
-              className="dropdown-item"
-              onClick={(e) => {
-                e.stopPropagation();
-                router.push(`/crm/leads/${row.id}`);
-              }}
-            >
-              <Eye className="icon-sm" aria-hidden="true" />
-              View Details
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="dropdown-item"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleEditLead(row);
-              }}
-            >
-              <Edit className="icon-sm" aria-hidden="true" />
-              Edit Lead
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="dropdown-item"
-              onClick={(e) => {
-                e.stopPropagation();
-                openConversionDialog(row);
-              }}
-            >
-              <ArrowRight className="icon-sm" aria-hidden="true" />
-              Convert to Client
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="dropdown-item-danger"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDeleteLead(row.id);
-              }}
-            >
-              <Trash className="icon-sm" aria-hidden="true" />
-              Delete Lead
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
-    },
   ];
 
   // DataTable filters configuration
@@ -401,6 +351,36 @@ export default function LeadsPage() {
     },
   ];
 
+  // Row actions configuration
+  const rowActions: DataTableRowAction<any>[] = [
+    {
+      label: 'View Details',
+      icon: Eye,
+      onClick: (row) => router.push(`/crm/leads/${row.id}`),
+    },
+    {
+      label: 'Edit',
+      icon: Pencil,
+      onClick: (row) => handleEditLead(row),
+    },
+    {
+      label: 'Convert to Client',
+      icon: ArrowRight,
+      separator: true,
+      onClick: (row) => openConversionDialog(row),
+    },
+    {
+      label: 'Delete',
+      icon: Trash2,
+      variant: 'destructive',
+      separator: true,
+      onClick: (row) => {
+        setLeadToDelete(row);
+        setDeleteDialogOpen(true);
+      },
+    },
+  ];
+
   return (
     <div className="page-container">
       {/* Page Header */}
@@ -432,7 +412,7 @@ export default function LeadsPage() {
             status: 'new',
             source: 'manual',
             value: data.value ? parseFloat(data.value as string) : undefined,
-            prospect_status: data.prospect_status as ProspectStatus || undefined,
+            prospect_status: (data.prospect_status === "none") ? undefined : data.prospect_status as ProspectStatus || undefined,
             notes: data.notes as string || undefined,
             tags: [],
           });
@@ -457,7 +437,7 @@ export default function LeadsPage() {
               phone: data.phone as string || undefined,
               company: data.company as string || undefined,
               status: data.status as string || undefined,
-              prospect_status: data.prospect_status === "" ? undefined : data.prospect_status as string || undefined,
+              prospect_status: (data.prospect_status === "" || data.prospect_status === "none") ? undefined : data.prospect_status as string || undefined,
               lead_value: data.lead_value ? parseFloat(data.lead_value as string) : undefined,
               notes: data.notes as string || undefined,
             },
@@ -513,6 +493,7 @@ export default function LeadsPage() {
           data={leadsData.items}
           columns={columns}
           filters={filters}
+          rowActions={rowActions}
           onRowClick={(row) => router.push(`/crm/leads/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}
           emptyState={{
@@ -522,6 +503,29 @@ export default function LeadsPage() {
           }}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Lead</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {leadToDelete?.name} from {leadToDelete?.company}? This action cannot be undone.
+              All associated activities will be preserved but unlinked.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteLeadMutation.isPending}
+            >
+              {deleteLeadMutation.isPending ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

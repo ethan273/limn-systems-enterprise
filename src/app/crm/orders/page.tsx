@@ -22,12 +22,7 @@ export default function CRMOrdersPage() {
  const router = useRouter();
  const { toast } = useToast();
 
- // Redirect to login if not authenticated
- useEffect(() => {
- if (!authLoading && !user) {
- router.push("/login");
- }
- }, [authLoading, user, router]);
+ // Auth is handled by middleware - no client-side redirect needed
 
  // Query CRM ORDERS with production details, invoices, and payments
  const { data, isLoading, refetch } = api.orders.getWithProductionDetails.useQuery(
@@ -376,6 +371,8 @@ export default function CRMOrdersPage() {
  <div className="flex items-center justify-between mb-3">
  <h4 className="font-medium text-sm">Invoices & Payments</h4>
  <div className="flex gap-2">
+ {productionOrderCount > 0 ? (
+ <>
  {!order.production_invoices?.find((inv: any) => inv.invoice_type === 'deposit') && (
  <Button
  variant="outline"
@@ -396,6 +393,12 @@ export default function CRMOrdersPage() {
  >
  Generate Final Invoice
  </Button>
+ )}
+ </>
+ ) : (
+ <div className="text-sm text-muted-foreground italic">
+ Create production orders first to generate invoices
+ </div>
  )}
  </div>
  </div>

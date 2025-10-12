@@ -4,7 +4,7 @@ import { useState, useMemo, useCallback } from "react";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RefreshCw, Plus, Edit, Trash, Palette, TreePine, Hammer, Mountain, Package, Zap } from "lucide-react";
+import { RefreshCw, Plus, Palette, TreePine, Hammer, Mountain, Package, Zap, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   PageHeader,
@@ -16,14 +16,18 @@ import {
   type FormField,
   type DataTableColumn,
   type DataTableFilter,
+  type DataTableRowAction,
 } from "@/components/common";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { MoreVertical } from "lucide-react";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // Material hierarchy configuration
 const materialCategories = [
@@ -96,7 +100,7 @@ const materialCategories = [
         label: "Finishes",
         parent: "wood_type_id",
         parentLabel: "Wood Type",
-        hasColors: false,
+        hasColors: true, // Changed to enable swatch upload
         procedures: {
           get: "getWoodFinishes",
           create: "createWoodFinish",
@@ -175,7 +179,7 @@ const materialCategories = [
         label: "Finishes",
         parent: "stone_type_id",
         parentLabel: "Stone Type",
-        hasColors: false,
+        hasColors: true, // Changed to enable swatch upload
         procedures: {
           get: "getStoneFinishes",
           create: "createStoneFinish",
@@ -195,7 +199,7 @@ const materialCategories = [
         key: "weaving_styles",
         label: "Styles",
         parent: null,
-        hasColors: false,
+        hasColors: true, // Changed to enable swatch upload
         procedures: {
           get: "getWeavingStyles",
           create: "createWeavingStyle",
@@ -215,7 +219,7 @@ const materialCategories = [
         key: "carving_styles",
         label: "Styles",
         parent: null,
-        hasColors: false,
+        hasColors: true, // Changed to enable swatch upload
         procedures: {
           get: "getCarvingStyles",
           create: "createCarvingStyle",
@@ -234,6 +238,8 @@ export default function MaterialsPage() {
   const [activeSubTab, setActiveSubTab] = useState("fabric_brands");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MaterialItem | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<MaterialItem | null>(null);
 
   const activeCategory = materialCategories.find((cat) => cat.key === activeTab);
   const activeHierarchy = activeCategory?.hierarchy.find((h) => h.key === activeSubTab);
@@ -393,17 +399,19 @@ export default function MaterialsPage() {
     onSuccess: () => {
       toast.success(`${activeHierarchy?.label.slice(0, -1)} deleted successfully`);
       refetchCurrentData();
+      setDeleteDialogOpen(false);
+      setItemToDelete(null);
     },
     onError: (error: Error) => {
       toast.error(`Failed to delete: ${error.message}`);
     },
   });
 
-  const handleDelete = useCallback((item: MaterialItem) => {
-    if (confirm(`Are you sure you want to delete "${item.name}"? This action cannot be undone.`)) {
-      deleteMutation?.mutate({ id: item.id });
+  const handleConfirmDelete = () => {
+    if (itemToDelete) {
+      deleteMutation?.mutate({ id: itemToDelete.id });
     }
-  }, [deleteMutation]);
+  };
 
   const handleEdit = useCallback((item: MaterialItem) => {
     setEditingItem(item);
@@ -455,14 +463,24 @@ export default function MaterialsPage() {
       }
     );
 
-    // Color code for color items
+    // Fabric SKU and Swatch for color items
     if (activeHierarchy?.hasColors) {
       fields.push({
         name: "hex_code",
-        label: "Color Code",
+        label: "Fabric SKU",
         type: "text",
-        placeholder: "#ffffff",
+        placeholder: "Enter fabric SKU",
         defaultValue: editingItem?.hex_code,
+      });
+
+      fields.push({
+        name: "swatch_url",
+        label: "Color Swatch Image",
+        type: "file",
+        accept: "image/*",
+        placeholder: "Upload swatch image",
+        defaultValue: editingItem?.swatch_url,
+        helperText: editingItem?.swatch_url ? "Current swatch image will be replaced if you upload a new one" : undefined,
       });
     }
 
@@ -529,22 +547,34 @@ export default function MaterialsPage() {
       ),
     });
 
-    // Color swatch for color items
+    // Fabric SKU and Swatch for color items
     if (activeHierarchy?.hasColors) {
       cols.push({
         key: "hex_code",
-        label: "Color",
+        label: "Fabric SKU",
         render: (value) =>
           value ? (
+            <span className="text-sm font-mono">{value as string}</span>
+          ) : (
+            <span className="text-muted">No SKU</span>
+          ),
+      });
+
+      // Swatch column
+      cols.push({
+        key: "swatch_url",
+        label: "Swatch",
+        render: (value, row) =>
+          value ? (
             <div className="flex items-center gap-2">
-              <div
-                className="color-swatch"
-                style={{ backgroundColor: value as string }}
+              <img
+                src={value as string}
+                alt={`Swatch for ${row.name}`}
+                className="w-12 h-12 object-cover rounded border border-border"
               />
-              <span className="text-sm text-secondary">{value as string}</span>
             </div>
           ) : (
-            <span className="text-muted">No color</span>
+            <span className="text-muted text-sm">No swatch</span>
           ),
       });
     }
@@ -558,45 +588,8 @@ export default function MaterialsPage() {
       ),
     });
 
-    // Actions column
-    cols.push({
-      key: "actions",
-      label: "Actions",
-      render: (_, row) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-            <Button variant="ghost" size="sm" className="btn-icon">
-              <MoreVertical className="icon-sm" aria-hidden="true" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="card">
-            <DropdownMenuItem
-              className="dropdown-item"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleEdit(row);
-              }}
-            >
-              <Edit className="icon-sm" aria-hidden="true" />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="dropdown-item-danger"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDelete(row);
-              }}
-            >
-              <Trash className="icon-sm" aria-hidden="true" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
-    });
-
     return cols;
-  }, [activeHierarchy, getParentName, handleDelete, handleEdit]);
+  }, [activeHierarchy, getParentName, handleEdit]);
 
   // DataTable filters
   const filters: DataTableFilter[] = [
@@ -605,6 +598,25 @@ export default function MaterialsPage() {
       label: `Search ${activeHierarchy?.label.toLowerCase() || "items"}`,
       type: "search",
       placeholder: "Search by name or description...",
+    },
+  ];
+
+  // Row actions configuration
+  const rowActions: DataTableRowAction<MaterialItem>[] = [
+    {
+      label: 'Edit',
+      icon: Pencil,
+      onClick: (row) => handleEdit(row),
+    },
+    {
+      label: 'Delete',
+      icon: Trash2,
+      variant: 'destructive',
+      separator: true,
+      onClick: (row) => {
+        setItemToDelete(row);
+        setDeleteDialogOpen(true);
+      },
     },
   ];
 
@@ -707,6 +719,7 @@ export default function MaterialsPage() {
                   data={currentData as any[]}
                   columns={columns as any}
                   filters={filters}
+                  rowActions={rowActions as any}
                   pagination={{ pageSize: 20, showSizeSelector: true }}
                   emptyState={{
                     icon: category.icon,
@@ -719,6 +732,28 @@ export default function MaterialsPage() {
           ))}
         </Tabs>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {activeHierarchy?.label.slice(0, -1)}</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{itemToDelete?.name}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteMutation?.isPending}
+            >
+              {deleteMutation?.isPending ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Create/Edit Dialog */}
       <FormDialog
@@ -746,6 +781,41 @@ export default function MaterialsPage() {
           // Add hex_code for color items
           if (activeHierarchy?.hasColors && data.hex_code) {
             payload.hex_code = data.hex_code as string;
+          }
+
+          // Handle swatch image upload
+          if (activeHierarchy?.hasColors && data.swatch_url) {
+            if (data.swatch_url instanceof File) {
+              // Upload new file to materials bucket
+              const formData = new FormData();
+              formData.append('file', data.swatch_url);
+              formData.append('bucket', 'materials');
+              formData.append('category', 'fabric-swatches');
+              formData.append('projectId', activeHierarchy.key);
+
+              const uploadResponse = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData,
+              });
+
+              if (!uploadResponse.ok) {
+                throw new Error(`Upload failed: ${uploadResponse.statusText}`);
+              }
+
+              const uploadResult = await uploadResponse.json();
+
+              if (!uploadResult.success) {
+                throw new Error(uploadResult.error || 'Upload failed');
+              }
+
+              payload.swatch_url = uploadResult.publicUrl;
+            } else if (data.swatch_url === null) {
+              // Remove existing image
+              payload.swatch_url = null;
+            } else {
+              // Keep existing image URL
+              payload.swatch_url = editingItem?.swatch_url;
+            }
           }
 
           // Add complexity_level for carving

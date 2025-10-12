@@ -4,26 +4,17 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Plus,
-  MoreVertical,
   Building,
   Mail,
   Phone,
-  Edit,
-  Trash,
-  Eye,
   Package,
   Users,
   DollarSign,
   TrendingUp,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import {
@@ -37,8 +28,19 @@ import {
   type FormField,
   type DataTableColumn,
   type DataTableFilter,
+  type DataTableRowAction,
   type StatItem,
 } from "@/components/common";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type CustomerStatus = "active" | "inactive" | "pending" | "suspended";
 type CustomerType = "individual" | "business" | "enterprise";
@@ -48,6 +50,8 @@ export default function ClientsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editCustomerId, setEditCustomerId] = useState<string>("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [clientToDelete, setClientToDelete] = useState<any>(null);
 
   const { data: customersData, isLoading, refetch } = api.crm.customers.getAll.useQuery({
     limit: 100,
@@ -82,15 +86,17 @@ export default function ClientsPage() {
     onSuccess: () => {
       toast.success("Client deleted successfully");
       refetch();
+      setDeleteDialogOpen(false);
+      setClientToDelete(null);
     },
     onError: (error) => {
       toast.error("Error deleting client: " + error.message);
     },
   });
 
-  const handleDeleteCustomer = (customerId: string) => {
-    if (confirm("Are you sure you want to delete this client?")) {
-      deleteCustomer.mutate({ id: customerId });
+  const handleConfirmDelete = () => {
+    if (clientToDelete) {
+      deleteCustomer.mutate({ id: clientToDelete.id });
     }
   };
 
@@ -269,51 +275,6 @@ export default function ClientsPage() {
         </span>
       ) : null,
     },
-    {
-      key: 'actions',
-      label: 'Actions',
-      render: (_, row) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-            <Button variant="ghost" size="sm" className="btn-icon">
-              <MoreVertical className="icon-sm" aria-hidden="true" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="card">
-            <DropdownMenuItem
-              className="dropdown-item"
-              onClick={(e) => {
-                e.stopPropagation();
-                router.push(`/crm/customers/${row.id}`);
-              }}
-            >
-              <Eye className="icon-sm" aria-hidden="true" />
-              View Details
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="dropdown-item"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleEditCustomer(row);
-              }}
-            >
-              <Edit className="icon-sm" aria-hidden="true" />
-              Edit Client
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="dropdown-item-danger"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDeleteCustomer(row.id);
-              }}
-            >
-              <Trash className="icon-sm" aria-hidden="true" />
-              Delete Client
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
-    },
   ];
 
   // DataTable filters configuration
@@ -346,6 +307,25 @@ export default function ClientsPage() {
         { value: 'business', label: 'Business' },
         { value: 'enterprise', label: 'Enterprise' },
       ],
+    },
+  ];
+
+  // Row actions configuration
+  const rowActions: DataTableRowAction<any>[] = [
+    {
+      label: 'Edit',
+      icon: Pencil,
+      onClick: (row) => handleEditCustomer(row),
+    },
+    {
+      label: 'Delete',
+      icon: Trash2,
+      variant: 'destructive',
+      separator: true,
+      onClick: (row) => {
+        setClientToDelete(row);
+        setDeleteDialogOpen(true);
+      },
     },
   ];
 
@@ -433,6 +413,7 @@ export default function ClientsPage() {
           data={customers}
           columns={columns}
           filters={filters}
+          rowActions={rowActions}
           onRowClick={(row) => router.push(`/crm/customers/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}
           emptyState={{
@@ -442,6 +423,29 @@ export default function ClientsPage() {
           }}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Client</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {clientToDelete?.name}? This action cannot be undone.
+              All associated orders, invoices, and activities will be preserved but unlinked.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteCustomer.isPending}
+            >
+              {deleteCustomer.isPending ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

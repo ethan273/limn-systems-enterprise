@@ -481,6 +481,17 @@ export class DatabaseClient {
   design_files = prisma.design_files;
   design_revisions = prisma.design_revisions;
 
+  // Design Boards (collaborative whiteboards)
+  design_boards = prisma.design_boards;
+  board_objects = prisma.board_objects;
+  board_collaborators = prisma.board_collaborators;
+  board_comments = prisma.board_comments;
+  board_versions = prisma.board_versions;
+  board_votes = prisma.board_votes;
+  board_activity_log = prisma.board_activity_log;
+  board_templates = prisma.board_templates;
+  board_snapshots = prisma.board_snapshots;
+
   // Shipping & Logistics
   shipping_carriers = prisma.shipping_carriers;
   shipping_events = prisma.shipping_events;
@@ -538,6 +549,13 @@ export class DatabaseClient {
   weaving_patterns = prisma.weaving_patterns;  // Note: Called "styles" in UI, stored as "patterns" in DB
   carving_styles = prisma.carving_styles;
   documents = prisma.documents;
+
+  // API Credentials Management
+  api_credentials = prisma.api_credentials;
+  api_usage_logs = prisma.api_usage_logs;
+
+  // User Management
+  user_profiles = prisma.user_profiles;
 
   // =====================================================
   // TRANSACTION SUPPORT

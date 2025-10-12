@@ -7,12 +7,13 @@
  * Week 13-15 Day 9: Updated with real API integration.
  */
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/lib/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -21,6 +22,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   PageHeader,
   DataTable,
   StatsGrid,
@@ -28,6 +39,7 @@ import {
   LoadingState,
   type DataTableColumn,
   type DataTableFilter,
+  type DataTableRowAction,
   type StatItem,
 } from "@/components/common";
 import {
@@ -48,6 +60,8 @@ export const dynamic = 'force-dynamic';
 
 function DesignDocumentsContent() {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [fileToDelete, setFileToDelete] = useState<any>(null);
 
   const { user, loading: authLoading } = useAuthContext();
   const router = useRouter();
@@ -71,22 +85,22 @@ function DesignDocumentsContent() {
   // Delete file mutation
   const deleteFile = api.storage.deleteFile.useMutation({
     onSuccess: () => {
+      toast.success("Document deleted successfully");
       void refetchFiles();
+      setDeleteDialogOpen(false);
+      setFileToDelete(null);
+    },
+    onError: (error) => {
+      toast.error("Failed to delete document: " + error.message);
     },
   });
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push("/login");
-    }
-  }, [authLoading, user, router]);
+  // Auth is handled by middleware - no client-side redirect needed
 
-  const handleDelete = async (fileId: string) => {
-    if (!confirm('Are you sure you want to delete this file?')) {
-      return;
+  const handleConfirmDelete = () => {
+    if (fileToDelete) {
+      void deleteFile.mutateAsync({ fileId: fileToDelete.id });
     }
-
-    await deleteFile.mutateAsync({ fileId });
   };
 
   const getStorageBadge = (storageType: string) => {
@@ -209,36 +223,6 @@ function DesignDocumentsContent() {
         </span>
       ),
     },
-    {
-      key: 'actions',
-      label: 'Actions',
-      render: (_, row) => (
-        <div className="flex items-center justify-end gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              if (row.google_drive_url) {
-                window.open(row.google_drive_url, '_blank');
-              }
-            }}
-          >
-            <Eye className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              void handleDelete(row.id);
-            }}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-      ),
-    },
   ];
 
   // DataTable filters configuration
@@ -271,6 +255,29 @@ function DesignDocumentsContent() {
         { value: 'video', label: 'Videos' },
         { value: 'file', label: 'Other Files' },
       ],
+    },
+  ];
+
+  // Row actions configuration
+  const rowActions: DataTableRowAction<any>[] = [
+    {
+      label: 'View',
+      icon: Eye,
+      onClick: (row) => {
+        if (row.google_drive_url) {
+          window.open(row.google_drive_url, '_blank');
+        }
+      },
+    },
+    {
+      label: 'Delete',
+      icon: Trash2,
+      variant: 'destructive',
+      separator: true,
+      onClick: (row) => {
+        setFileToDelete(row);
+        setDeleteDialogOpen(true);
+      },
     },
   ];
 
@@ -339,6 +346,7 @@ function DesignDocumentsContent() {
           data={files}
           columns={columns}
           filters={filters}
+          rowActions={rowActions}
           pagination={{ pageSize: 20, showSizeSelector: true }}
           emptyState={{
             icon: FileText,
@@ -347,6 +355,28 @@ function DesignDocumentsContent() {
           }}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Document</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{fileToDelete?.file_name}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteFile.isPending}
+            >
+              {deleteFile.isPending ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Upload Dialog */}
       <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>

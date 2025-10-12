@@ -407,10 +407,6 @@ export const dashboardsRouter = createTRPCRouter({
         return sum + (order.total_amount ? Number(order.total_amount) : 0);
       }, 0);
 
-      // WORKAROUND: Removed previousOrders query to avoid Supabase timezone bug with range queries
-      // For now, show simple growth metrics based on current period only
-      const revenueGrowth = 0; // TODO: Calculate from historical data when timezone issue is resolved
-
       // Calculate average order value
       const avgOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0;
 
@@ -435,8 +431,29 @@ export const dashboardsRouter = createTRPCRouter({
         };
       });
 
-      // Customer growth - simplified for now
-      const customerGrowth = 0; // TODO: Calculate from historical customer data
+      // Calculate revenue growth (current month vs previous month)
+      const currentMonthRevenue = revenueByMonth[revenueByMonth.length - 1]?.revenue || 0;
+      const previousMonthRevenue = revenueByMonth[revenueByMonth.length - 2]?.revenue || 0;
+      const revenueGrowth = previousMonthRevenue > 0
+        ? ((currentMonthRevenue - previousMonthRevenue) / previousMonthRevenue) * 100
+        : 0;
+
+      // Calculate customer growth (new customers this month vs last month)
+      const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+
+      const currentMonthCustomers = customers.filter(c =>
+        c.created_at && new Date(c.created_at) >= currentMonthStart
+      ).length;
+
+      const lastMonthCustomers = customers.filter(c =>
+        c.created_at && new Date(c.created_at) >= lastMonthStart && new Date(c.created_at) <= lastMonthEnd
+      ).length;
+
+      const customerGrowth = lastMonthCustomers > 0
+        ? ((currentMonthCustomers - lastMonthCustomers) / lastMonthCustomers) * 100
+        : 0;
 
       // Order status distribution
       const orderStatusCounts = orders.reduce((acc, order) => {
@@ -1359,11 +1376,11 @@ export const dashboardsRouter = createTRPCRouter({
           customers,
           allExpenses,
         ] = await Promise.all([
-          ctx.db.invoices.findMany(),
-          ctx.db.payments.findMany(),
-          ctx.db.orders.findMany(),
-          ctx.db.customers.findMany(),
-          ctx.db.expenses.findMany(),
+          ctx.db.invoices.findMany({ limit: 10000 }),
+          ctx.db.payments.findMany({ limit: 10000 }),
+          ctx.db.orders.findMany({ limit: 10000 }),
+          ctx.db.customers.findMany({ limit: 10000 }), // Must fetch all customers for revenue calculation
+          ctx.db.expenses.findMany({ limit: 10000 }),
         ]);
 
         // Filter by date range
@@ -1499,10 +1516,12 @@ export const dashboardsRouter = createTRPCRouter({
           .slice(0, 10)
           .map(([customerId, revenue]) => {
             const customer = customers.find((c: any) => c.id === customerId);
-            // Better customer display: name > email > truncated ID
+            // Better customer display: name > company_name > email > truncated ID
             let displayName = 'Unknown Customer';
             if (customer?.name) {
               displayName = customer.name;
+            } else if (customer?.company_name) {
+              displayName = customer.company_name;
             } else if (customer?.email) {
               displayName = customer.email;
             } else if (customerId) {

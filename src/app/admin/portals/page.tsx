@@ -146,49 +146,49 @@ export default function PortalManagementPage() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Users</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{portalUsers?.length || 0}</div>
-            <p className="text-xs text-muted-foreground">Across all portals</p>
+            <div className="text-2xl font-bold text-foreground">{portalUsers?.length || 0}</div>
+            <p className="text-xs text-muted-foreground mt-1">Across all portals</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Active Users</CardTitle>
             <Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold text-foreground">
               {portalUsers?.filter((u: any) => u.is_active).length || 0}
             </div>
-            <p className="text-xs text-muted-foreground">Currently active</p>
+            <p className="text-xs text-muted-foreground mt-1">Currently active</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Portal Types</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Portal Types</CardTitle>
             <Settings className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">4</div>
-            <p className="text-xs text-muted-foreground">Customer, Designer, Factory, QC</p>
+            <div className="text-2xl font-bold text-foreground">4</div>
+            <p className="text-xs text-muted-foreground mt-1">Customer, Designer, Factory, QC</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Admins</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Admins</CardTitle>
             <Shield className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold text-foreground">
               {portalUsers?.filter((u: any) => u.portal_role === 'admin').length || 0}
             </div>
-            <p className="text-xs text-muted-foreground">Admin access level</p>
+            <p className="text-xs text-muted-foreground mt-1">Admin access level</p>
           </CardContent>
         </Card>
       </div>

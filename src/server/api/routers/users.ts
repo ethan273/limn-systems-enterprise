@@ -39,4 +39,23 @@ export const usersRouter = createTRPCRouter({
     .query(async ({ ctx: _ctx, input }) => {
       return await db.findUsersByIds(input.ids);
     }),
+
+  // Find user by email (for invitations)
+  findByEmail: publicProcedure
+    .input(z.object({
+      email: z.string().email(),
+    }))
+    .query(async ({ ctx, input }) => {
+      const users = await ctx.db.user_profiles.findMany({
+        where: {
+          email: {
+            equals: input.email,
+            mode: 'insensitive', // Case-insensitive search
+          },
+        },
+        take: 1,
+      });
+
+      return users;
+    }),
 });

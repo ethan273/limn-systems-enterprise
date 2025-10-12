@@ -136,7 +136,6 @@ export const flipbooksRouter = createTRPCRouter({
                       id: true,
                       name: true,
                       sku: true,
-                      thumbnail_url: true,
                     },
                   },
                 },

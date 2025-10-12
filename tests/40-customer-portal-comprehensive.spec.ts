@@ -51,7 +51,10 @@ test.describe('Customer Portal - Access Control', () => {
     // Should redirect away from customer portal (to dashboard or access denied)
     const isNotCustomerPortal = !page.url().includes('/portal/customer') ||
                                  page.url().includes('/dashboard') ||
-                                 await page.locator('text=/access denied/i, text=/unauthorized/i').count() > 0;
+                                 await (
+      await page.locator('text=/access denied/i').count() > 0 ||
+      await page.locator('text=/unauthorized/i').count() > 0
+    ) > 0;
 
     expect(isNotCustomerPortal).toBe(true);
   });
@@ -114,7 +117,10 @@ test.describe('Customer Portal - Orders List', () => {
     // Check for data display (table or cards)
     const hasTable = await page.locator('table').count() > 0;
     const hasCards = await page.locator('[class*="card"]').count() > 0;
-    const hasEmptyState = await page.locator('text=/no orders/i, text=/empty/i').count() > 0;
+    const hasEmptyState = await (
+      await page.locator('text=/no orders/i').count() > 0 ||
+      await page.locator('text=/empty/i').count() > 0
+    ) > 0;
 
     expect(hasTable || hasCards || hasEmptyState).toBe(true);
   });
@@ -253,7 +259,10 @@ test.describe('Customer Portal - Financials', () => {
     // Check for financial data (invoices, payments, balance)
     const hasTable = await page.locator('table').count() > 0;
     const hasCards = await page.locator('[class*="card"], [class*="summary"]').count() > 0;
-    const hasEmptyState = await page.locator('text=/no invoices/i, text=/no payments/i').count() > 0;
+    const hasEmptyState = await (
+      await page.locator('text=/no invoices/i').count() > 0 ||
+      await page.locator('text=/no payments/i').count() > 0
+    ) > 0;
 
     expect(hasTable || hasCards || hasEmptyState).toBe(true);
   });
@@ -275,7 +284,10 @@ test.describe('Customer Portal - Shipping', () => {
 
     // Check for shipping data (addresses, shipments, tracking)
     const hasContent = await page.locator('table, [class*="card"], [class*="address"]').count() > 0;
-    const hasEmptyState = await page.locator('text=/no shipments/i, text=/no addresses/i').count() > 0;
+    const hasEmptyState = await (
+      await page.locator('text=/no shipments/i').count() > 0 ||
+      await page.locator('text=/no addresses/i').count() > 0
+    ) > 0;
 
     expect(hasContent || hasEmptyState).toBe(true);
   });

@@ -29,12 +29,7 @@ export default function ProductionOrderDetailPage({ params }: PageProps) {
  const router = useRouter();
  const { user, loading: authLoading } = useAuth();
 
- // Redirect to login if not authenticated
- useEffect(() => {
- if (!authLoading && !user) {
- router.push("/login");
- }
- }, [authLoading, user, router]);
+ // Auth is handled by middleware - no client-side redirect needed
  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);

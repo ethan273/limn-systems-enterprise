@@ -1,0 +1,428 @@
+"use client";
+
+import { use,  useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { api } from "@/lib/api/client";
+import { useAuthContext } from "@/lib/auth/AuthProvider";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "@/hooks/use-toast";
+import {
+  EntityDetailHeader,
+  InfoCard,
+  LoadingState,
+  EmptyState,
+  type EntityMetadata,
+} from "@/components/common";
+import { EditableFieldGroup, EditableField } from "@/components/common/EditableField";
+import { ArrowLeft, Share2, Copy, Image as ImageIcon, Calendar, Layers, Upload, Edit, Check, X, MessageSquare } from "lucide-react";
+import Link from "next/link";
+import { format } from "date-fns";
+
+export const dynamic = 'force-dynamic';
+
+const BOARD_TYPES = [
+  { value: 'concept', label: 'Concept' },
+  { value: 'inspiration', label: 'Inspiration' },
+  { value: 'materials', label: 'Materials' },
+  { value: 'colors', label: 'Colors' },
+];
+
+const BOARD_STATUSES = [
+  { value: 'draft', label: 'Draft' },
+  { value: 'in_review', label: 'In Review' },
+  { value: 'approved', label: 'Approved' },
+  { value: 'archived', label: 'Archived' },
+];
+
+export default function MoodBoardDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+ const router = useRouter();
+ const { user, loading: authLoading } = useAuthContext();
+ const [shareUrl, setShareUrl] = useState<string>("");
+ const [isEditing, setIsEditing] = useState(false);
+ const [formData, setFormData] = useState({
+   name: '',
+   description: '',
+   board_type: 'concept',
+   status: 'draft',
+   notes: '',
+ });
+ const fileInputRef = useRef<HTMLInputElement>(null);
+
+ // Auth is handled by middleware - no client-side redirect needed
+
+ const { data: board, isLoading, refetch } = api.moodBoards.getById.useQuery(
+ { id: id },
+ { enabled: !authLoading && !!user && !!id }
+ );
+
+ // Sync formData with fetched board data
+ useEffect(() => {
+   if (board) {
+     setFormData({
+       name: board.name || '',
+       description: board.description || '',
+       board_type: board.board_type || 'concept',
+       status: board.status || 'draft',
+       notes: board.notes || '',
+     });
+   }
+ }, [board]);
+
+ // Update mutation
+ const updateMutation = api.moodBoards.update.useMutation({
+   onSuccess: () => {
+     toast({
+       title: "Success",
+       description: "Mood board updated successfully",
+     });
+     setIsEditing(false);
+     refetch();
+   },
+   onError: (error) => {
+     toast({
+       title: "Error",
+       description: error.message || "Failed to update mood board",
+       variant: "destructive",
+     });
+   },
+ });
+
+ const handleSave = () => {
+   if (!formData.name) {
+     toast({
+       title: "Error",
+       description: "Name is required",
+       variant: "destructive",
+     });
+     return;
+   }
+
+   updateMutation.mutate({
+     id: id,
+     data: {
+       name: formData.name,
+       description: formData.description || undefined,
+       board_type: formData.board_type,
+       status: formData.status,
+       notes: formData.notes || undefined,
+     },
+   });
+ };
+
+ const handleCancel = () => {
+   if (board) {
+     setFormData({
+       name: board.name || '',
+       description: board.description || '',
+       board_type: board.board_type || 'concept',
+       status: board.status || 'draft',
+       notes: board.notes || '',
+     });
+   }
+   setIsEditing(false);
+ };
+
+ const generateShareLinkMutation = api.moodBoards.generateShareLink.useMutation();
+ const revokeShareLinkMutation = api.moodBoards.revokeShareLink.useMutation();
+
+ const handleGenerateShareLink = async () => {
+ try {
+ const result = await generateShareLinkMutation.mutateAsync({
+ id: id,
+ expiresInDays: 30,
+ });
+ setShareUrl(result.share_url);
+ toast({
+ title: "Success",
+ description: "Share link generated successfully!",
+ });
+ } catch (error) {
+ toast({
+ title: "Error",
+ description: "Failed to generate share link. Please try again.",
+ variant: "destructive",
+ });
+ }
+ };
+
+ const handleCopyShareLink = () => {
+ if (shareUrl) {
+ navigator.clipboard.writeText(shareUrl);
+ toast({
+ title: "Copied",
+ description: "Share link copied to clipboard!",
+ });
+ }
+ };
+
+ const handleRevokeShareLink = async () => {
+ try {
+ await revokeShareLinkMutation.mutateAsync({ id: id });
+ setShareUrl("");
+ toast({
+ title: "Success",
+ description: "Share link revoked successfully!",
+ });
+ window.location.reload();
+ } catch (error) {
+ toast({
+ title: "Error",
+ description: "Failed to revoke share link. Please try again.",
+ variant: "destructive",
+ });
+ }
+ };
+
+ const handleAddImagesClick = () => {
+ fileInputRef.current?.click();
+ };
+
+ const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+ const files = event.target.files;
+ if (!files || files.length === 0) return;
+
+ toast({
+ title: "Upload Feature Coming Soon",
+ description: "Image upload functionality is being implemented. For now, you can add image URLs directly in the database.",
+ });
+
+ // Reset the file input
+ if (fileInputRef.current) {
+ fileInputRef.current.value = '';
+ }
+ };
+
+ if (authLoading || isLoading) {
+ return (
+ <div className="page-container">
+ <LoadingState message="Loading mood board details..." size="lg" />
+ </div>
+ );
+ }
+
+ if (!user || !board) {
+ return (
+ <div className="page-container">
+ <EmptyState
+ icon={ImageIcon}
+ title="Mood Board Not Found"
+ description="The mood board you're looking for doesn't exist or you don't have permission to view it."
+ action={{
+ label: 'Back to Boards',
+ onClick: () => router.push("/design/boards"),
+ icon: ArrowLeft,
+ }}
+ />
+ </div>
+ );
+ }
+
+ const images = (board.images as any[]) || [];
+
+ const metadata: EntityMetadata[] = [
+ { icon: Layers, value: board.board_type, label: 'Type' },
+ { icon: ImageIcon, value: `${images.length} images`, label: 'Images' },
+ { icon: Calendar, value: board.created_at ? format(new Date(board.created_at), "MMM dd, yyyy") : "N/A", label: 'Created' },
+ ];
+
+ return (
+ <div className="page-container">
+ {/* Header */}
+ <div className="page-header">
+ <Button variant="ghost" onClick={() => router.push("/design/boards")} className="btn-secondary">
+ <ArrowLeft className="icon-sm" aria-hidden="true" />
+ Back
+ </Button>
+ </div>
+
+ <EntityDetailHeader
+ icon={ImageIcon}
+ title={board.name}
+ subtitle={board.description || "No description provided"}
+ metadata={metadata}
+ status={board.status}
+ actions={
+   isEditing
+     ? [
+         { label: 'Cancel', icon: X, onClick: handleCancel },
+         { label: 'Save Changes', icon: Check, onClick: handleSave },
+       ]
+     : [
+         {
+           label: board.is_shared ? 'Revoke Share' : 'Share Board',
+           icon: Share2,
+           onClick: board.is_shared ? handleRevokeShareLink : handleGenerateShareLink,
+           variant: board.is_shared ? 'outline' : 'default',
+         },
+         { label: 'Edit Board', icon: Edit, onClick: () => setIsEditing(true) },
+       ]
+ }
+ />
+
+ {/* Share Link Display */}
+ {(shareUrl || board.is_shared) && (
+ <Card className="mb-6">
+ <CardHeader>
+ <CardTitle className="text-lg">Share Link</CardTitle>
+ <CardDescription>
+ Anyone with this link can view the mood board (expires in 30 days)
+ </CardDescription>
+ </CardHeader>
+ <CardContent>
+ <div className="flex gap-2">
+ <div className="flex-1 p-3 bg-muted rounded border font-mono text-sm break-all">
+ {shareUrl || `${window.location.origin}/boards/shared/${board.share_token}`}
+ </div>
+ <Button variant="outline" onClick={handleCopyShareLink}>
+ <Copy className="h-4 w-4" />
+ </Button>
+ </div>
+ </CardContent>
+ </Card>
+ )}
+
+ {/* Board Details */}
+ <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+ <EditableFieldGroup title="Board Information" isEditing={isEditing}>
+   <EditableField
+     label="Name"
+     value={formData.name}
+     isEditing={isEditing}
+     onChange={(value) => setFormData({ ...formData, name: value })}
+     required
+     icon={ImageIcon}
+   />
+   <EditableField
+     label="Description"
+     value={formData.description}
+     isEditing={isEditing}
+     onChange={(value) => setFormData({ ...formData, description: value })}
+     type="textarea"
+   />
+   <EditableField
+     label="Board Number"
+     value={board.board_number}
+     isEditing={false}
+   />
+   <EditableField
+     label="Board Type"
+     value={formData.board_type}
+     isEditing={isEditing}
+     onChange={(value) => setFormData({ ...formData, board_type: value })}
+     type="select"
+     options={BOARD_TYPES}
+     icon={Layers}
+   />
+   <EditableField
+     label="Status"
+     value={formData.status}
+     isEditing={isEditing}
+     onChange={(value) => setFormData({ ...formData, status: value })}
+     type="select"
+     options={BOARD_STATUSES}
+   />
+   <EditableField
+     label="Images"
+     value={`${images.length}`}
+     isEditing={false}
+   />
+   <EditableField
+     label="Shared"
+     value={board.is_shared ? "Yes" : "No"}
+     isEditing={false}
+   />
+   <EditableField
+     label="Created"
+     value={board.created_at ? format(new Date(board.created_at), "MMM dd, yyyy") : "N/A"}
+     isEditing={false}
+     icon={Calendar}
+   />
+ </EditableFieldGroup>
+
+ {board.designers && (
+ <InfoCard
+ title="Designer"
+ items={[
+ { label: 'Name', value: board.designers.name },
+ { label: 'Company', value: board.designers.company_name || "N/A" },
+ ]}
+ />
+ )}
+
+ {board.design_projects && (
+ <InfoCard
+ title="Associated Project"
+ items={[
+ { label: 'Project Name', value: board.design_projects.project_name },
+ { label: 'Project Code', value: board.design_projects.project_code || "No code" },
+ { label: '', value: <Link href={`/design/projects/${board.design_projects.id}`}><Button variant="outline" size="sm">View Project</Button></Link> },
+ ]}
+ />
+ )}
+ </div>
+
+ <div className="grid grid-cols-1 gap-6">
+ <Card>
+ <CardHeader>
+ <CardTitle>Board Images</CardTitle>
+ <CardDescription>Visual references and inspiration</CardDescription>
+ </CardHeader>
+ <CardContent>
+ {images.length > 0 ? (
+ <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+ {images.map((image: any, index: number) => (
+ <div
+ key={index}
+ className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center overflow-hidden"
+ >
+ {image.url ? (
+ // eslint-disable-next-line @next/next/no-img-element
+ <img
+ src={image.url}
+ alt={image.title || `Image ${index + 1}`}
+ className="w-full h-full object-cover"
+ />
+ ) : (
+ <ImageIcon className="h-12 w-12 text-secondary" />
+ )}
+ </div>
+ ))}
+ </div>
+ ) : (
+ <div className="py-12 text-center">
+ <ImageIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+ <p className="text-muted-foreground">No images added to this board yet</p>
+ <Button variant="outline" size="sm" className="mt-4" onClick={handleAddImagesClick}>
+ <Upload className="w-4 h-4 mr-2" />
+ Add Images
+ </Button>
+ <input
+ ref={fileInputRef}
+ type="file"
+ accept="image/*"
+ multiple
+ className="hidden"
+ onChange={handleFileChange}
+ />
+ </div>
+ )}
+ </CardContent>
+ </Card>
+
+ {/* Notes Section */}
+ <EditableFieldGroup title="Notes" isEditing={isEditing}>
+   <EditableField
+     label="Notes"
+     value={formData.notes}
+     isEditing={isEditing}
+     onChange={(value) => setFormData({ ...formData, notes: value })}
+     type="textarea"
+     icon={MessageSquare}
+   />
+ </EditableFieldGroup>
+ </div>
+ </div>
+ );
+}

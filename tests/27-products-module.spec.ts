@@ -39,7 +39,9 @@ test.describe('📦 PRODUCTS MODULE TESTS @products', () => {
   test.describe('Product Catalog', () => {
     test('Product catalog page loads and displays products', async ({ page }) => {
       await page.goto(`${TEST_CONFIG.BASE_URL}/products/catalog`);
-      await page.waitForLoadState('domcontentloaded');
+
+      // Wait for DataTable to render (after auth + tRPC query completes)
+      await page.waitForSelector('[data-testid="data-table"]', { timeout: 15000 });
 
       // Check for page title
       const hasTitle = await page.locator('h1').count() > 0;
@@ -217,7 +219,9 @@ test.describe('📦 PRODUCTS MODULE TESTS @products', () => {
   test.describe('Product Concepts', () => {
     test('Product concepts page loads', async ({ page }) => {
       await page.goto(`${TEST_CONFIG.BASE_URL}/products/concepts`);
-      await page.waitForLoadState('domcontentloaded');
+
+      // Wait for DataTable to render (after auth + tRPC query completes)
+      await page.waitForSelector('[data-testid="data-table"]', { timeout: 15000 });
 
       const hasTitle = await page.locator('h1').count() > 0;
       if (hasTitle) {
@@ -341,7 +345,9 @@ test.describe('📦 PRODUCTS MODULE TESTS @products', () => {
   test.describe('Product Prototypes', () => {
     test('Product prototypes page loads', async ({ page }) => {
       await page.goto(`${TEST_CONFIG.BASE_URL}/products/prototypes`);
-      await page.waitForLoadState('domcontentloaded');
+
+      // Wait for DataTable to render (after auth + tRPC query completes)
+      await page.waitForSelector('[data-testid="data-table"]', { timeout: 15000 });
 
       const hasTitle = await page.locator('h1').count() > 0;
       if (hasTitle) {

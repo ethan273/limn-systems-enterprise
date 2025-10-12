@@ -216,8 +216,9 @@ export const portalRouter = createTRPCRouter({
 
   /**
    * Get Portal Settings
+   * NOTE: Uses protectedProcedure (not portalProcedure) since it handles all portal types
    */
-  getPortalSettings: portalProcedure
+  getPortalSettings: protectedProcedure
     .query(async ({ ctx }) => {
       // Determine portal type from portal access (default to 'customer' for backward compatibility)
       const portalAccess = await prisma.customer_portal_access.findFirst({
@@ -228,7 +229,7 @@ export const portalRouter = createTRPCRouter({
       });
 
       const portalType = portalAccess?.portal_type || 'customer';
-      const entityId = portalAccess?.entity_id || ctx.customerId;
+      const entityId = portalAccess?.entity_id || portalAccess?.customer_id;
 
       // Fetch universal module settings from portal_module_settings table
       const moduleSettings = await prisma.portal_module_settings.findMany({
@@ -312,8 +313,9 @@ export const portalRouter = createTRPCRouter({
 
   /**
    * Get Current User Info (for display in UI)
+   * NOTE: Uses protectedProcedure (not portalProcedure) since it only needs session data
    */
-  getCurrentUser: portalProcedure
+  getCurrentUser: protectedProcedure
     .query(async ({ ctx }) => {
       return {
         id: ctx.session.user.id,

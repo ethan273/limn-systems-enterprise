@@ -19,7 +19,11 @@ test.describe('🗄️ DATABASE INTEGRITY TESTS @database', () => {
     // Check that either data loaded or "no tasks" message shows
     // Both indicate successful database connection
     const hasTable = await page.locator('table, [role="table"]').count() > 0;
-    const hasNoData = await page.locator('text=/no tasks/i, text=/no data/i, text=/empty/i').count() > 0;
+    const hasNoData = await (
+      await page.locator('text=/no tasks/i').count() > 0 ||
+      await page.locator('text=/no data/i').count() > 0 ||
+      await page.locator('text=/empty/i').count() > 0
+    ) > 0;
     const hasData = await page.locator('tbody tr, [role="row"]').count() > 0;
 
     // Success if we have a table structure OR a "no data" message (both prove DB connectivity)

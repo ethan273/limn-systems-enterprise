@@ -123,54 +123,46 @@ export default function DataExportPage() {
       {/* Export Stats */}
       <div className="stats-grid">
         <Card>
-          <CardHeader className="card-header-compact">
-            <div className="card-header-row">
-              <CardTitle className="card-title-sm">Users</CardTitle>
-              <Users className="icon-muted" aria-hidden="true" />
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Users</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           </CardHeader>
           <CardContent>
-            <div className="stat-value">{stats?.users || 0}</div>
-            <p className="stat-label">Total records</p>
+            <div className="text-2xl font-bold text-foreground">{stats?.users || 0}</div>
+            <p className="text-xs text-muted-foreground mt-1">Total records</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="card-header-compact">
-            <div className="card-header-row">
-              <CardTitle className="card-title-sm">Admin Logs</CardTitle>
-              <Activity className="icon-muted" aria-hidden="true" />
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Admin Logs</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           </CardHeader>
           <CardContent>
-            <div className="stat-value">{stats?.adminLogs || 0}</div>
-            <p className="stat-label">Total records</p>
+            <div className="text-2xl font-bold text-foreground">{stats?.adminLogs || 0}</div>
+            <p className="text-xs text-muted-foreground mt-1">Total records</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="card-header-compact">
-            <div className="card-header-row">
-              <CardTitle className="card-title-sm">Security Logs</CardTitle>
-              <Database className="icon-muted" aria-hidden="true" />
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Security Logs</CardTitle>
+            <Database className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           </CardHeader>
           <CardContent>
-            <div className="stat-value">{stats?.securityLogs || 0}</div>
-            <p className="stat-label">Total records</p>
+            <div className="text-2xl font-bold text-foreground">{stats?.securityLogs || 0}</div>
+            <p className="text-xs text-muted-foreground mt-1">Total records</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="card-header-compact">
-            <div className="card-header-row">
-              <CardTitle className="card-title-sm">Settings</CardTitle>
-              <SettingsIcon className="icon-muted" aria-hidden="true" />
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Settings</CardTitle>
+            <SettingsIcon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           </CardHeader>
           <CardContent>
-            <div className="stat-value">{stats?.settings || 0}</div>
-            <p className="stat-label">Total records</p>
+            <div className="text-2xl font-bold text-foreground">{stats?.settings || 0}</div>
+            <p className="text-xs text-muted-foreground mt-1">Total records</p>
           </CardContent>
         </Card>
       </div>

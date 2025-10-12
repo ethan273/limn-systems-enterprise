@@ -6,23 +6,15 @@ export const dynamic = 'force-dynamic';
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Dialog,
 } from "@/components/ui/dialog";
 import TaskCreateForm from "@/components/TaskCreateForm";
 import {
   Plus,
-  MoreVertical,
   Calendar,
   FolderOpen,
-  Eye,
-  Edit,
-  Trash,
+  Pencil,
+  Trash2,
   CheckSquare,
   ListTodo,
   CircleDot,
@@ -42,8 +34,19 @@ import {
   DepartmentBadge,
   type DataTableColumn,
   type DataTableFilter,
+  type DataTableRowAction,
   type StatItem,
 } from "@/components/common";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type TaskStatus = 'todo' | 'in_progress' | 'completed' | 'cancelled';
 
@@ -82,6 +85,8 @@ const TASK_STATUSES: {
 export default function TasksPage() {
   const router = useRouter();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<any>(null);
 
   const { data: tasksData, isLoading, refetch } = api.tasks.getAllTasks.useQuery({
     limit: 100,
@@ -92,15 +97,17 @@ export default function TasksPage() {
     onSuccess: () => {
       toast.success("Task deleted successfully");
       refetch();
+      setDeleteDialogOpen(false);
+      setTaskToDelete(null);
     },
     onError: (error: any) => {
       toast.error("Failed to delete task: " + error.message);
     },
   });
 
-  const handleDeleteTask = (taskId: string) => {
-    if (confirm("Are you sure you want to delete this task?")) {
-      deleteTaskMutation.mutate({ id: taskId });
+  const handleConfirmDelete = () => {
+    if (taskToDelete) {
+      deleteTaskMutation.mutate({ id: taskToDelete.id });
     }
   };
 
@@ -227,45 +234,6 @@ export default function TasksPage() {
         </div>
       ) : <span className="text-muted">—</span>,
     },
-    {
-      key: 'actions',
-      label: 'Actions',
-      render: (_, row) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-            <Button variant="ghost" size="sm" className="btn-icon">
-              <MoreVertical className="icon-sm" aria-hidden="true" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="card">
-            <DropdownMenuItem
-              className="dropdown-item"
-              onClick={(e) => {
-                e.stopPropagation();
-                router.push(`/tasks/${row.id}`);
-              }}
-            >
-              <Eye className="icon-sm" aria-hidden="true" />
-              View Details
-            </DropdownMenuItem>
-            <DropdownMenuItem className="dropdown-item">
-              <Edit className="icon-sm" aria-hidden="true" />
-              Edit Task
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="dropdown-item-danger"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDeleteTask(row.id);
-              }}
-            >
-              <Trash className="icon-sm" aria-hidden="true" />
-              Delete Task
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
-    },
   ];
 
   // DataTable filters configuration
@@ -307,6 +275,25 @@ export default function TasksPage() {
         { value: 'design', label: 'Design' },
         { value: 'sales', label: 'Sales' },
       ],
+    },
+  ];
+
+  // Row actions configuration
+  const rowActions: DataTableRowAction<any>[] = [
+    {
+      label: 'Edit',
+      icon: Pencil,
+      onClick: (row) => router.push(`/tasks/${row.id}`),
+    },
+    {
+      label: 'Delete',
+      icon: Trash2,
+      variant: 'destructive',
+      separator: true,
+      onClick: (row) => {
+        setTaskToDelete(row);
+        setDeleteDialogOpen(true);
+      },
     },
   ];
 
@@ -368,6 +355,7 @@ export default function TasksPage() {
           data={tasks}
           columns={columns}
           filters={filters}
+          rowActions={rowActions}
           onRowClick={(row) => router.push(`/tasks/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}
           emptyState={{
@@ -377,6 +365,28 @@ export default function TasksPage() {
           }}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Task</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{taskToDelete?.title}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteTaskMutation.isPending}
+            >
+              {deleteTaskMutation.isPending ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

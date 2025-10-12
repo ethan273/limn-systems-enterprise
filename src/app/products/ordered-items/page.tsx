@@ -744,13 +744,6 @@ export default function OrderedItemsPage() {
       <PageHeader
         title="Ordered Items"
         description="Track and manage individual ordered items with material specifications"
-        actions={[
-          {
-            label: "Add Ordered Item",
-            icon: Plus,
-            onClick: handleCreateItem,
-          },
-        ]}
       />
 
       <StatsGrid stats={stats} />
@@ -926,7 +919,6 @@ export default function OrderedItemsPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent>
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuItem onClick={(e) => {
                               e.stopPropagation();
                               handleEditItem(item);

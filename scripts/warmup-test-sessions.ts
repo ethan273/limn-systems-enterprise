@@ -96,19 +96,25 @@ async function createSession(browser: Browser, userType: string): Promise<void> 
     let retries = 3;
     let currentUrl = page.url();
 
-    while (retries > 0 && (currentUrl.includes('/auth/callback') || currentUrl.includes('/login'))) {
+    while (retries > 0 && (currentUrl.includes('/auth/callback') || currentUrl.includes('/login') || currentUrl.includes('/auth/dev'))) {
       console.log(`   ⏳ Waiting for auth to complete... (${retries} retries left)`);
-      await page.goto(`${BASE_URL}/dashboard`, {
-        waitUntil: 'domcontentloaded',
-        timeout: 10000
-      }).catch(() => {});
-      await page.waitForTimeout(1500);
+
+      // If still on callback or login page, navigate to dashboard
+      if (currentUrl.includes('/auth/callback') || currentUrl.includes('/login') || currentUrl.includes('/auth/dev')) {
+        await page.goto(`${BASE_URL}/dashboard`, {
+          waitUntil: 'domcontentloaded',
+          timeout: 10000
+        }).catch(() => {});
+        await page.waitForTimeout(1500);
+      }
+
       currentUrl = page.url();
       retries--;
-    }
 
-    if (currentUrl.includes('/login') || currentUrl.includes('/auth/dev')) {
-      throw new Error('Auth failed - still on login page after retries');
+      // Only throw error if we've exhausted retries AND still on login/auth page
+      if (retries === 0 && (currentUrl.includes('/login') || currentUrl.includes('/auth/dev'))) {
+        throw new Error('Auth failed - session not established after retries');
+      }
     }
 
     // Step 5: Wait for page content to confirm auth

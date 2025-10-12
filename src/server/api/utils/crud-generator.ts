@@ -136,8 +136,12 @@ export function createCrudRouter<_T>(options: CrudOptions<_T>) {
     create: procedure
       .input(createSchema || z.object({}))
       .mutation(async ({ ctx, input }) => {
+        console.log(`[CRUD Generator] CREATE ${name} called with input:`, input);
+
         // Type-safe model access with explicit any for dynamic access
         const modelAccess = (ctx.db as any)[model as string];
+
+        console.log(`[CRUD Generator] About to create ${name} in database...`);
         const item = await modelAccess.create({
           data: {
             ...input,
@@ -146,7 +150,8 @@ export function createCrudRouter<_T>(options: CrudOptions<_T>) {
           },
           include: defaultInclude,
         });
-        
+
+        console.log(`[CRUD Generator] ${name} created successfully:`, { id: item.id });
         return item;
       }),
 
@@ -157,8 +162,21 @@ export function createCrudRouter<_T>(options: CrudOptions<_T>) {
         data: updateSchema || z.object({}),
       }))
       .mutation(async ({ ctx, input }) => {
+        console.log(`[CRUD Generator] ========== UPDATE ${name} START ==========`);
+        console.log(`[CRUD Generator] UPDATE ${name} called with:`, JSON.stringify({ id: input.id, data: input.data }, null, 2));
+
         // Type-safe model access with explicit any for dynamic access
         const modelAccess = (ctx.db as any)[model as string];
+
+        console.log(`[CRUD Generator] Model access obtained for: ${model as string}`);
+        console.log(`[CRUD Generator] About to update ${name} in database...`);
+
+        // Read current record first
+        const beforeUpdate = await modelAccess.findUnique({
+          where: { id: input.id },
+        });
+        console.log(`[CRUD Generator] Record BEFORE update:`, JSON.stringify(beforeUpdate, null, 2));
+
         const item = await modelAccess.update({
           where: { id: input.id },
           data: {
@@ -167,7 +185,10 @@ export function createCrudRouter<_T>(options: CrudOptions<_T>) {
           },
           include: defaultInclude,
         });
-        
+
+        console.log(`[CRUD Generator] Record AFTER update:`, JSON.stringify(item, null, 2));
+        console.log(`[CRUD Generator] ${name} updated successfully:`, { id: item.id });
+        console.log(`[CRUD Generator] ========== UPDATE ${name} END ==========`);
         return item;
       }),
 
@@ -175,12 +196,17 @@ export function createCrudRouter<_T>(options: CrudOptions<_T>) {
     delete: procedure
       .input(z.object({ id: z.string().uuid() }))
       .mutation(async ({ ctx, input }) => {
+        console.log(`[CRUD Generator] DELETE ${name} called with id:`, input.id);
+
         // Type-safe model access with explicit any for dynamic access
         const modelAccess = (ctx.db as any)[model as string];
+
+        console.log(`[CRUD Generator] About to delete ${name} from database...`);
         await modelAccess.delete({
           where: { id: input.id },
         });
-        
+
+        console.log(`[CRUD Generator] ${name} deleted successfully:`, input.id);
         return { success: true, id: input.id };
       }),
 

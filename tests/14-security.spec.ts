@@ -48,7 +48,10 @@ test.describe('🔒 SECURITY TESTS @security', () => {
         expect(url.includes('/portal/login') || url.includes('error')).toBeTruthy();
 
         // Should not expose database errors
-        const hasDbError = await page.locator('text=/database error/i, text=/sql error/i').count();
+        const hasDbError = await (
+      await page.locator('text=/database error/i').count() > 0 ||
+      await page.locator('text=/sql error/i').count() > 0
+    );
         expect(hasDbError).toBe(0);
       }
     });
@@ -68,7 +71,10 @@ test.describe('🔒 SECURITY TESTS @security', () => {
         await page.waitForTimeout(1000);
 
         // Should handle safely - no database error
-        const hasError = await page.locator('text=/database error/i, text=/sql error/i').count();
+        const hasError = await (
+      await page.locator('text=/database error/i').count() > 0 ||
+      await page.locator('text=/sql error/i').count() > 0
+    );
         expect(hasError).toBe(0);
       }
     });
@@ -283,7 +289,12 @@ test.describe('🔒 SECURITY TESTS @security', () => {
       // 4. Show same page with access denied message
       // 5. Return 403/404 (stays on same URL)
       const redirected = url.includes('/login') || url.includes('/unauthorized') || url.includes('/dashboard');
-      const hasAccessDenied = await page.locator('text=/access denied/i, text=/unauthorized/i, text=/forbidden/i, text=/permission/i').count();
+      const hasAccessDenied = await (
+      await page.locator('text=/access denied/i').count() > 0 ||
+      await page.locator('text=/unauthorized/i').count() > 0 ||
+      await page.locator('text=/forbidden/i').count() > 0 ||
+      await page.locator('text=/permission/i').count() > 0
+    );
 
       // Should either redirect OR show access denied message
       expect(redirected || hasAccessDenied > 0 || url === `${TEST_CONFIG.BASE_URL}/admin/users`).toBeTruthy();

@@ -233,33 +233,41 @@ export default function FactoryDetailPage({ params }: FactoryDetailPageProps) {
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Specializations</label>
                   <div className="flex flex-wrap gap-2 mt-1">
-                    {factory.specializations.map((spec: string, idx: number) => (
-                      <Badge key={idx} variant="secondary">{spec}</Badge>
-                    ))}
+                    {(factory.specializations || []).length > 0 ? (
+                      (factory.specializations || []).map((spec: string, idx: number) => (
+                        <Badge key={idx} variant="secondary">{spec}</Badge>
+                      ))
+                    ) : (
+                      <span className="text-sm text-muted-foreground">—</span>
+                    )}
                   </div>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Capabilities</label>
                   <div className="flex flex-wrap gap-2 mt-1">
-                    {factory.capabilities.map((cap: string, idx: number) => (
-                      <Badge key={idx} variant="outline">{cap}</Badge>
-                    ))}
+                    {(factory.capabilities || []).length > 0 ? (
+                      (factory.capabilities || []).map((cap: string, idx: number) => (
+                        <Badge key={idx} variant="outline">{cap}</Badge>
+                      ))
+                    ) : (
+                      <span className="text-sm text-muted-foreground">—</span>
+                    )}
                   </div>
                 </div>
-                {factory.certifications.length > 0 && (
+                {(factory.certifications || []).length > 0 && (
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Certifications</label>
                     <div className="flex flex-wrap gap-2 mt-1">
-                      {factory.certifications.map((cert: string, idx: number) => (
+                      {(factory.certifications || []).map((cert: string, idx: number) => (
                         <Badge key={idx} variant="default">{cert}</Badge>
                       ))}
                     </div>
                   </div>
                 )}
-                {factory.languages.length > 0 && (
+                {(factory.languages || []).length > 0 && (
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Languages</label>
-                    <p className="text-sm">{factory.languages.join(', ')}</p>
+                    <p className="text-sm">{(factory.languages || []).join(', ')}</p>
                   </div>
                 )}
               </CardContent>

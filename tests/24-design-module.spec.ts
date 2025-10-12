@@ -28,7 +28,9 @@ test.describe('🎨 DESIGN MODULE TESTS @design', () => {
 
     test('Design projects page loads and displays list', async ({ page }) => {
       await page.goto(`${TEST_CONFIG.BASE_URL}/design/projects`);
-      await page.waitForLoadState('domcontentloaded');
+
+      // Wait for DataTable to render (after auth + tRPC query completes)
+      await page.waitForSelector('[data-testid="data-table"]', { timeout: 15000 });
 
       // Verify page title
       await expect(page.locator('h1')).toContainText(/design.*projects|projects/i);
@@ -701,7 +703,9 @@ test.describe('🎨 DESIGN MODULE TESTS @design', () => {
 
     test('Design concepts page loads correctly', async ({ page }) => {
       await page.goto(`${TEST_CONFIG.BASE_URL}/products/concepts`);
-      await page.waitForLoadState('domcontentloaded');
+
+      // Wait for DataTable to render (after auth + tRPC query completes)
+      await page.waitForSelector('[data-testid="data-table"]', { timeout: 15000 });
 
       // Verify page loaded
       const hasContent = await page.locator('h1, h2, main').count() > 0;
@@ -736,7 +740,9 @@ test.describe('🎨 DESIGN MODULE TESTS @design', () => {
 
     test('Prototypes page loads correctly', async ({ page }) => {
       await page.goto(`${TEST_CONFIG.BASE_URL}/products/prototypes`);
-      await page.waitForLoadState('domcontentloaded');
+
+      // Wait for DataTable to render (after auth + tRPC query completes)
+      await page.waitForSelector('[data-testid="data-table"]', { timeout: 15000 });
 
       // Verify page loaded
       const hasContent = await page.locator('h1, h2, main').count() > 0;

@@ -24,22 +24,20 @@ const prisma = new PrismaClient();
 
 // Test data
 const testContact = {
-  firstName: 'John',
-  lastName: 'Doe',
+  name: 'John Doe',
   email: 'john.doe@test.com',
   phone: '555-1234',
   company: 'Test Company',
-  title: 'CEO',
+  position: 'CEO',
   notes: 'Test contact for comprehensive testing',
 };
 
 const updatedContact = {
-  firstName: 'Jane',
-  lastName: 'Smith',
+  name: 'Jane Smith',
   email: 'jane.smith@test.com',
   phone: '555-5678',
   company: 'Updated Company',
-  title: 'CTO',
+  position: 'CTO',
   notes: 'Updated contact information',
 };
 
@@ -268,11 +266,12 @@ test.describe('CRM Contacts - Read (CRUD: READ)', () => {
     if (!createdContactId) {
       const contact = await prisma.contacts.create({
         data: {
-          firstName: testContact.firstName,
-          lastName: testContact.lastName,
+          name: testContact.name,
           email: testContact.email,
           phone: testContact.phone,
           company: testContact.company,
+          position: testContact.position,
+          notes: testContact.notes,
         },
       });
       createdContactId = contact.id;
@@ -453,7 +452,10 @@ test.describe('CRM Contacts - Error Handling', () => {
     await page.waitForTimeout(2000);
 
     // Should show error or redirect to list
-    const hasError = await page.locator('text=/not found/i, text=/error/i').count() > 0;
+    const hasError = await (
+      await page.locator('text=/not found/i').count() > 0 ||
+      await page.locator('text=/error/i').count() > 0
+    ) > 0;
     const redirectedToList = page.url().includes('/crm/contacts') && !page.url().includes('00000000');
 
     expect(hasError || redirectedToList).toBe(true);

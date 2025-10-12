@@ -27,13 +27,12 @@ test.describe('🚚 SHIPPING MODULE TESTS @shipping', () => {
 
     test('Shipments page loads and displays list', async ({ page }) => {
       await page.goto(`${TEST_CONFIG.BASE_URL}/shipping/shipments`);
-      await page.waitForLoadState('domcontentloaded');
+
+      // Wait for DataTable to render (after auth + tRPC query completes)
+      await page.waitForSelector('[data-testid="data-table"]', { timeout: 15000 });
 
       // Verify page title
       await expect(page.locator('h1')).toContainText(/shipments/i);
-
-      // Wait for DataTable or data display to load (tRPC data fetch)
-      await page.waitForSelector('[data-testid="data-table"], .data-table, table', { timeout: 10000 }).catch(() => {});
 
       // Check for DataTable or data display
       const hasDataTable = await page.locator('[data-testid="data-table"], .data-table, table').count() > 0;
@@ -215,7 +214,9 @@ test.describe('🚚 SHIPPING MODULE TESTS @shipping', () => {
 
     test('Tracking page loads correctly', async ({ page }) => {
       await page.goto(`${TEST_CONFIG.BASE_URL}/shipping/tracking`);
-      await page.waitForLoadState('domcontentloaded');
+
+      // Wait for DataTable to render (after auth + tRPC query completes)
+      await page.waitForSelector('[data-testid="data-table"]', { timeout: 15000 });
 
       // Verify page loaded
       const hasContent = await page.locator('h1, h2, main').count() > 0;

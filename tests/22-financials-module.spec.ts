@@ -26,13 +26,15 @@ test.describe('💰 FINANCIALS MODULE TESTS @financials', () => {
 
     test('Invoices page loads and displays list', async ({ page }) => {
       await page.goto(`${TEST_CONFIG.BASE_URL}/financials/invoices`);
-      await page.waitForLoadState('domcontentloaded');
+
+      // Wait for DataTable to render (after auth + tRPC query completes)
+      await page.waitForSelector('[data-testid="data-table"]', { timeout: 15000 });
 
       // Verify page title
       await expect(page.locator('h1')).toContainText(/invoices/i);
 
-      // Check for DataTable or data display
-      const hasDataTable = await page.locator('[data-testid="data-table"], .data-table, table').count() > 0;
+      // Verify DataTable is present
+      const hasDataTable = await page.locator('[data-testid="data-table"]').count() > 0;
       expect(hasDataTable).toBeTruthy();
 
       await page.screenshot({
@@ -263,7 +265,9 @@ test.describe('💰 FINANCIALS MODULE TESTS @financials', () => {
 
     test('Payments page loads and displays list', async ({ page }) => {
       await page.goto(`${TEST_CONFIG.BASE_URL}/financials/payments`);
-      await page.waitForLoadState('domcontentloaded');
+
+      // Wait for DataTable to render (after auth + tRPC query completes)
+      await page.waitForSelector('[data-testid="data-table"]', { timeout: 15000 });
 
       // Verify page title
       await expect(page.locator('h1')).toContainText(/payments/i);
@@ -457,7 +461,9 @@ test.describe('💰 FINANCIALS MODULE TESTS @financials', () => {
 
     test('Expenses page loads and displays list', async ({ page }) => {
       await page.goto(`${TEST_CONFIG.BASE_URL}/financials/expenses`);
-      await page.waitForLoadState('domcontentloaded');
+
+      // Wait for DataTable to render (after auth + tRPC query completes)
+      await page.waitForSelector('[data-testid="data-table"]', { timeout: 15000 });
 
       // Verify page title
       await expect(page.locator('h1')).toContainText(/expenses/i);
@@ -631,7 +637,9 @@ test.describe('💰 FINANCIALS MODULE TESTS @financials', () => {
 
     test('Reports page loads correctly', async ({ page }) => {
       await page.goto(`${TEST_CONFIG.BASE_URL}/financials/reports`);
-      await page.waitForLoadState('domcontentloaded');
+
+      // Wait for DataTable to render (after auth + tRPC query completes)
+      await page.waitForSelector('[data-testid="data-table"]', { timeout: 15000 });
 
       // Verify page title
       await expect(page.locator('h1')).toContainText(/reports|financial/i);

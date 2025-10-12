@@ -46,8 +46,9 @@ test.describe('🔒 SECURITY & DATA ISOLATION TESTS @security', () => {
 
   test.describe('Row-Level Security (RLS) Policies', () => {
     test('Customer A cannot access Customer B orders', async ({ page }) => {
-      const userA = await createTestUser('customer', '550e8400-e29b-41d4-a716-446655440002');
-      const userB = await createTestUser('customer', '550e8400-e29b-41d4-a716-446655440003');
+      // Don't use hardcoded IDs - let them be generated dynamically
+      const userA = await createTestUser('customer');
+      const userB = await createTestUser('customer');
 
       // Test RLS isolation for orders table
       const isIsolated = await testRLSIsolation('orders', userA.id, userB.id, {
@@ -64,8 +65,9 @@ test.describe('🔒 SECURITY & DATA ISOLATION TESTS @security', () => {
     });
 
     test('Customer A cannot access Customer B invoices', async ({ page }) => {
-      const userA = await createTestUser('customer', '550e8400-e29b-41d4-a716-446655440002');
-      const userB = await createTestUser('customer', '550e8400-e29b-41d4-a716-446655440003');
+      // Don't use hardcoded IDs - let them be generated dynamically
+      const userA = await createTestUser('customer');
+      const userB = await createTestUser('customer');
 
       const isIsolated = await testRLSIsolation('invoices', userA.id, userB.id, {
         invoice_number: `INV-RLS-${Date.now()}`,
@@ -80,8 +82,9 @@ test.describe('🔒 SECURITY & DATA ISOLATION TESTS @security', () => {
     });
 
     test('Customer A cannot access Customer B shipments', async ({ page }) => {
-      const userA = await createTestUser('customer', '550e8400-e29b-41d4-a716-446655440002');
-      const userB = await createTestUser('customer', '550e8400-e29b-41d4-a716-446655440003');
+      // Don't use hardcoded IDs - let them be generated dynamically
+      const userA = await createTestUser('customer');
+      const userB = await createTestUser('customer');
 
       const isIsolated = await testRLSIsolation('shipments', userA.id, userB.id, {
         tracking_number: `TRACK-RLS-${Date.now()}`,
@@ -96,13 +99,13 @@ test.describe('🔒 SECURITY & DATA ISOLATION TESTS @security', () => {
 
     test('Designer can only see assigned projects', async ({ page }) => {
       // Create designer with portal access
-      const { userId: designerUserId, accessToken } = await createTestCustomerWithPortal('designer');
+      const { userId: designerUserId, accessToken, refreshToken } = await createTestCustomerWithPortal('designer');
 
       // Create test data for designer
       const testData = await createTestDataForRLS(designerUserId);
 
       // Query as designer - should see own projects
-      const projects = await queryAsUser('projects', accessToken, {
+      const projects = await queryAsUser('projects', accessToken, refreshToken, {
         user_id: designerUserId,
       });
 
@@ -113,12 +116,12 @@ test.describe('🔒 SECURITY & DATA ISOLATION TESTS @security', () => {
     });
 
     test('Factory can only see assigned production orders', async ({ page }) => {
-      const { userId: factoryUserId, accessToken } = await createTestCustomerWithPortal('factory');
+      const { userId: factoryUserId, accessToken, refreshToken } = await createTestCustomerWithPortal('factory');
 
       const testData = await createTestDataForRLS(factoryUserId);
 
       // Query as factory user - should see own production orders
-      const prodOrders = await queryAsUser('production_orders', accessToken, {});
+      const prodOrders = await queryAsUser('production_orders', accessToken, refreshToken, {});
 
       // RLS should limit results to assigned orders only
       expect(Array.isArray(prodOrders)).toBeTruthy();
@@ -127,15 +130,15 @@ test.describe('🔒 SECURITY & DATA ISOLATION TESTS @security', () => {
     });
 
     test('Admin can see all data (no RLS restrictions)', async ({ page }) => {
-      const admin = await createTestUser('admin');
+      const admin = await createTestUser('super_admin');
       const customer = await createTestUser('customer');
 
       // Create data as customer
       await createTestDataForRLS(customer.id);
 
       // Admin should see all data
-      const adminToken = await getTestUserAccessToken(admin.id);
-      const allOrders = await queryAsUser('orders', adminToken, {});
+      const adminTokens = await getTestUserAccessToken(admin.id);
+      const allOrders = await queryAsUser('orders', adminTokens.accessToken, adminTokens.refreshToken, {});
 
       // Admin sees all orders (RLS not applied for admin)
       expect(Array.isArray(allOrders)).toBeTruthy();
@@ -161,7 +164,7 @@ test.describe('🔒 SECURITY & DATA ISOLATION TESTS @security', () => {
     });
 
     test('Admin user allowed to access /admin routes', async ({ page }) => {
-      const admin = await createTestUser('admin');
+      const admin = await createTestUser('super_admin');
 
       await switchUserContext(page, admin.id);
       await page.goto(`${TEST_CONFIG.BASE_URL}/admin/users`);
@@ -221,7 +224,7 @@ test.describe('🔒 SECURITY & DATA ISOLATION TESTS @security', () => {
     });
 
     test('user_type verification in middleware', async ({ page }) => {
-      const admin = await createTestUser('admin');
+      const admin = await createTestUser('super_admin');
       const employee = await createTestUser('employee');
 
       // Admin should access admin area
@@ -258,11 +261,11 @@ test.describe('🔒 SECURITY & DATA ISOLATION TESTS @security', () => {
       const customerB = await createTestUser('customer');
 
       const dataA = await createTestDataForRLS(customerA.id);
-      const tokenB = await getTestUserAccessToken(customerB.id);
+      const tokensB = await getTestUserAccessToken(customerB.id);
 
       // Customer B tries to access Customer A's invoice
       const endpoint = `${TEST_CONFIG.BASE_URL}/api/trpc/invoices.getById?input={"id":"${dataA.invoiceId}"}`;
-      const allowed = await testAPIPermission(endpoint, tokenB, false);
+      const allowed = await testAPIPermission(endpoint, tokensB.accessToken, false);
 
       expect(allowed).toBeTruthy(); // Should be blocked
 
@@ -272,13 +275,13 @@ test.describe('🔒 SECURITY & DATA ISOLATION TESTS @security', () => {
 
     test('orders.getAll returns only own orders for customer', async ({ page }) => {
       const customer = await createTestUser('customer');
-      const token = await getTestUserAccessToken(customer.id);
+      const tokens = await getTestUserAccessToken(customer.id);
 
       // Create test data
       await createTestDataForRLS(customer.id);
 
       // Query own orders
-      const ownOrders = await queryAsUser('orders', token, {});
+      const ownOrders = await queryAsUser('orders', tokens.accessToken, tokens.refreshToken, {});
 
       // Should only see own orders (RLS enforced)
       ownOrders.forEach((order: any) => {
@@ -290,11 +293,11 @@ test.describe('🔒 SECURITY & DATA ISOLATION TESTS @security', () => {
 
     test('shipments.getAll returns only own shipments', async ({ page }) => {
       const customer = await createTestUser('customer');
-      const token = await getTestUserAccessToken(customer.id);
+      const tokens = await getTestUserAccessToken(customer.id);
 
       await createTestDataForRLS(customer.id);
 
-      const ownShipments = await queryAsUser('shipments', token, {});
+      const ownShipments = await queryAsUser('shipments', tokens.accessToken, tokens.refreshToken, {});
 
       // RLS should filter to only customer's shipments
       expect(Array.isArray(ownShipments)).toBeTruthy();
@@ -304,10 +307,10 @@ test.describe('🔒 SECURITY & DATA ISOLATION TESTS @security', () => {
 
     test('admin.users.list blocked for non-admin', async ({ page }) => {
       const employee = await createTestUser('employee');
-      const token = await getTestUserAccessToken(employee.id);
+      const tokens = await getTestUserAccessToken(employee.id);
 
       const endpoint = `${TEST_CONFIG.BASE_URL}/api/trpc/admin.users.list`;
-      const allowed = await testAPIPermission(endpoint, token, false);
+      const allowed = await testAPIPermission(endpoint, tokens.accessToken, false);
 
       expect(allowed).toBeTruthy(); // Should be blocked (401/403)
 
@@ -315,11 +318,11 @@ test.describe('🔒 SECURITY & DATA ISOLATION TESTS @security', () => {
     });
 
     test('admin.users.list allowed for admin', async ({ page }) => {
-      const admin = await createTestUser('admin');
-      const token = await getTestUserAccessToken(admin.id);
+      const admin = await createTestUser('super_admin');
+      const tokens = await getTestUserAccessToken(admin.id);
 
       const endpoint = `${TEST_CONFIG.BASE_URL}/api/trpc/admin.users.list`;
-      const allowed = await testAPIPermission(endpoint, token, true);
+      const allowed = await testAPIPermission(endpoint, tokens.accessToken, true);
 
       expect(allowed).toBeTruthy(); // Should be allowed
 
@@ -327,10 +330,10 @@ test.describe('🔒 SECURITY & DATA ISOLATION TESTS @security', () => {
     });
 
     test('Portal API checks portal_type in customer_portal_access', async ({ page }) => {
-      const { userId, accessToken } = await createTestCustomerWithPortal('customer');
+      const { userId, accessToken, refreshToken } = await createTestCustomerWithPortal('customer');
 
       // Query portal access
-      const access = await queryAsUser('customer_portal_access', accessToken, {
+      const access = await queryAsUser('customer_portal_access', accessToken, refreshToken, {
         user_id: userId,
       });
 
@@ -369,7 +372,7 @@ test.describe('🔒 SECURITY & DATA ISOLATION TESTS @security', () => {
     });
 
     test('Search inputs prevent SQL injection', async ({ page }) => {
-      const admin = await createTestUser('admin');
+      const admin = await createTestUser('super_admin');
       await switchUserContext(page, admin.id);
 
       await page.goto(`${TEST_CONFIG.BASE_URL}/crm/customers`);
@@ -401,7 +404,7 @@ test.describe('🔒 SECURITY & DATA ISOLATION TESTS @security', () => {
     });
 
     test('Order filter prevents SQL injection', async ({ page }) => {
-      const admin = await createTestUser('admin');
+      const admin = await createTestUser('super_admin');
       await switchUserContext(page, admin.id);
 
       await page.goto(`${TEST_CONFIG.BASE_URL}/crm/orders`);
@@ -504,14 +507,14 @@ test.describe('🔒 SECURITY & DATA ISOLATION TESTS @security', () => {
       const userA = await createTestUser('customer');
       const userB = await createTestUser('customer');
 
-      const tokenA = await getTestUserAccessToken(userA.id);
+      const tokensA = await getTestUserAccessToken(userA.id);
 
       // Try to access user B's data with user A's token
       const endpoint = `${TEST_CONFIG.BASE_URL}/api/trpc/user.getById?input={"id":"${userB.id}"}`;
 
       const response = await fetch(endpoint, {
         headers: {
-          Authorization: `Bearer ${tokenA}`,
+          Authorization: `Bearer ${tokensA.accessToken}`,
         },
       });
 

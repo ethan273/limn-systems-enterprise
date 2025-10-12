@@ -48,8 +48,8 @@ test.describe('📊 DASHBOARDS MODULE TESTS @dashboards', () => {
         await expect(page.locator('h1')).toContainText(/dashboard|overview/i);
       }
 
-      // Check for dashboard content (widgets, cards, stats)
-      const hasDashboardContent = await page.locator('[data-testid="dashboard"], .dashboard, .widget, .stat-card').count() > 0;
+      // Check for dashboard content (stat cards, quick actions)
+      const hasDashboardContent = await page.locator('[data-testid="dashboard"], .dashboard, .stat-card, .card').count() > 0;
       expect(hasDashboardContent).toBeTruthy();
 
       await page.screenshot({
@@ -135,7 +135,7 @@ test.describe('📊 DASHBOARDS MODULE TESTS @dashboards', () => {
       await page.goto(`${TEST_CONFIG.BASE_URL}/dashboard`);
       await page.waitForLoadState('domcontentloaded');
 
-      const ordersWidget = page.locator('[data-testid="orders-widget"], h2:has-text("Orders"), text=/orders/i').first();
+      const ordersWidget = page.locator('[data-testid="orders-widget"], h2:has-text("Orders"), :text("Orders"), :text("Active Orders")').first();
       const hasOrders = await ordersWidget.count() > 0;
 
       if (hasOrders) {

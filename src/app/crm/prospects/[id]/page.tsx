@@ -1,19 +1,19 @@
 "use client";
 
-import React, { use, useState } from "react";
+import React, { use, useState, useEffect } from "react";
 import { useRouter} from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import {
   EntityDetailHeader,
-  InfoCard,
   StatusBadge,
   LoadingState,
   EmptyState,
+  EditableFieldGroup,
+  EditableField,
 } from "@/components/common";
 import {
   User,
@@ -31,8 +31,14 @@ import {
   Globe,
   Activity,
   ArrowRight,
+  Check,
+  X,
+  Building2,
+  TrendingUp,
+  Target,
 } from "lucide-react";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 // Dynamic route configuration
 export const dynamic = 'force-dynamic';
@@ -65,6 +71,30 @@ const PROSPECT_STATUSES: {
   },
 ];
 
+const LEAD_STATUSES = [
+  { value: 'new', label: 'New' },
+  { value: 'contacted', label: 'Contacted' },
+  { value: 'qualified', label: 'Qualified' },
+  { value: 'proposal', label: 'Proposal' },
+  { value: 'negotiation', label: 'Negotiation' },
+  { value: 'won', label: 'Won' },
+  { value: 'lost', label: 'Lost' },
+];
+
+const LEAD_SOURCES = [
+  { value: 'website', label: 'Website' },
+  { value: 'referral', label: 'Referral' },
+  { value: 'social', label: 'Social Media' },
+  { value: 'ads', label: 'Advertising' },
+  { value: 'manual', label: 'Manual Entry' },
+];
+
+const INTEREST_LEVELS = [
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' },
+];
+
 interface PageProps {
   params: Promise<{ id: string }>;
 }
@@ -74,11 +104,101 @@ export default function ProspectDetailPage({ params }: PageProps) {
   const router = useRouter();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    company: '',
+    website: '',
+    status: 'new',
+    prospect_status: 'cold' as ProspectStatus,
+    lead_source: 'manual',
+    interest_level: 'medium',
+    lead_value: 0,
+    notes: '',
+  });
 
-  const { data, isLoading, error } = api.crm.leads.getById.useQuery(
+  const { data, isLoading, error, refetch } = api.crm.leads.getById.useQuery(
     { id: id },
     { enabled: !!user && !!id }
   );
+
+  // Sync formData with fetched prospect data
+  useEffect(() => {
+    if (data?.lead) {
+      const prospect = data.lead;
+      setFormData({
+        name: prospect.name || '',
+        email: prospect.email || '',
+        phone: prospect.phone || '',
+        company: prospect.company || '',
+        website: prospect.website || '',
+        status: prospect.status || 'new',
+        prospect_status: (prospect.prospect_status as ProspectStatus) || 'cold',
+        lead_source: prospect.lead_source || 'manual',
+        interest_level: prospect.interest_level || 'medium',
+        lead_value: prospect.lead_value || 0,
+        notes: prospect.notes || '',
+      });
+    }
+  }, [data]);
+
+  // Update mutation
+  const updateMutation = api.crm.leads.update.useMutation({
+    onSuccess: () => {
+      toast.success("Prospect updated successfully");
+      setIsEditing(false);
+      refetch();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update prospect");
+    },
+  });
+
+  const handleSave = () => {
+    if (!formData.name || !formData.email) {
+      toast.error("Name and email are required");
+      return;
+    }
+
+    updateMutation.mutate({
+      id: id,
+      data: {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone || undefined,
+        company: formData.company || undefined,
+        website: formData.website || undefined,
+        status: formData.status,
+        prospect_status: formData.prospect_status,
+        lead_source: formData.lead_source || undefined,
+        interest_level: formData.interest_level || undefined,
+        lead_value: formData.lead_value || undefined,
+        notes: formData.notes || undefined,
+      },
+    });
+  };
+
+  const handleCancel = () => {
+    if (data?.lead) {
+      const prospect = data.lead;
+      setFormData({
+        name: prospect.name || '',
+        email: prospect.email || '',
+        phone: prospect.phone || '',
+        company: prospect.company || '',
+        website: prospect.website || '',
+        status: prospect.status || 'new',
+        prospect_status: (prospect.prospect_status as ProspectStatus) || 'cold',
+        lead_source: prospect.lead_source || 'manual',
+        interest_level: prospect.interest_level || 'medium',
+        lead_value: prospect.lead_value || 0,
+        notes: prospect.notes || '',
+      });
+    }
+    setIsEditing(false);
+  };
 
   // Convert to client mutation
   const convertToClientMutation = api.crm.leads.convertToClient.useMutation({
@@ -170,19 +290,17 @@ export default function ProspectDetailPage({ params }: PageProps) {
           { icon: Star, value: `Priority: ${priority}/10`, type: 'text' as const },
         ]}
         tags={prospect.tags || []}
-        actions={[
-          {
-            label: 'Edit Prospect',
-            icon: Edit,
-            onClick: () => router.push(`/crm/prospects/${id}/edit`),
-          },
-          {
-            label: 'Convert to Client',
-            icon: ArrowRight,
-            onClick: handleConvertToClient,
-            variant: 'default' as const,
-          },
-        ]}
+        actions={
+          isEditing
+            ? [
+                { label: 'Cancel', icon: X, onClick: handleCancel },
+                { label: 'Save Changes', icon: Check, onClick: handleSave },
+              ]
+            : [
+                { label: 'Edit Prospect', icon: Edit, onClick: () => setIsEditing(true) },
+                { label: 'Convert to Client', icon: ArrowRight, onClick: handleConvertToClient, variant: 'default' as const },
+              ]
+        }
       />
 
       {/* Stats Cards */}
@@ -251,66 +369,117 @@ export default function ProspectDetailPage({ params }: PageProps) {
         <TabsContent value="overview">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Prospect Details */}
-            <InfoCard
-              title="Prospect Details"
-              items={[
-                { label: 'Email', value: prospect.email || '—', type: 'email' },
-                { label: 'Phone', value: prospect.phone || '—', type: 'phone' },
-                { label: 'Company', value: prospect.company || '—' },
-                { label: 'Website', value: prospect.website || '—', type: prospect.website ? 'link' : 'text', ...(prospect.website && { href: prospect.website }) },
-                { label: 'Lead Source', value: prospect.lead_source || '—' },
-                { label: 'Interest Level', value: prospect.interest_level || '—' },
-                { label: 'Contact Method', value: prospect.contact_method || '—' },
-                { label: 'Created', value: prospect.created_at ? format(new Date(prospect.created_at), "MMM d, yyyy h:mm a") : '—' },
-              ]}
-            />
+            <EditableFieldGroup title="Prospect Information" isEditing={isEditing}>
+              <EditableField
+                label="Name"
+                value={formData.name}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, name: value })}
+                required
+                icon={User}
+              />
+              <EditableField
+                label="Email"
+                value={formData.email}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, email: value })}
+                type="email"
+                required
+                icon={Mail}
+              />
+              <EditableField
+                label="Phone"
+                value={formData.phone}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, phone: value })}
+                type="phone"
+                icon={Phone}
+              />
+              <EditableField
+                label="Company"
+                value={formData.company}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, company: value })}
+                icon={Building2}
+              />
+              <EditableField
+                label="Website"
+                value={formData.website}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, website: value })}
+                icon={Globe}
+              />
+              <EditableField
+                label="Lead Source"
+                value={formData.lead_source}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, lead_source: value })}
+                type="select"
+                options={LEAD_SOURCES}
+                icon={TrendingUp}
+              />
+              <EditableField
+                label="Interest Level"
+                value={formData.interest_level}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, interest_level: value })}
+                type="select"
+                options={INTEREST_LEVELS}
+                icon={Target}
+              />
+              <EditableField
+                label="Created"
+                value={prospect.created_at ? format(new Date(prospect.created_at), "MMM d, yyyy h:mm a") : '—'}
+                isEditing={false}
+                icon={Calendar}
+              />
+            </EditableFieldGroup>
 
-            {/* Prospect Management */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Prospect Status</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {prospectConfig && (
-                    <div className="p-4 border border-border rounded-lg">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Thermometer className={`icon-md ${prospectConfig.className}`} aria-hidden="true" />
-                        <h3 className="font-semibold">{prospectConfig.label} Prospect</h3>
-                      </div>
-                      <p className="text-sm text-muted-foreground">{prospectConfig.description}</p>
-                    </div>
-                  )}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Priority Score:</span>
-                      <div className="flex items-center gap-1">
-                        <Star className={`icon-sm ${priority >= 5 ? 'text-warning' : 'text-muted-foreground'}`} aria-hidden="true" />
-                        <span className="font-semibold">{priority}/10</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Lead Value:</span>
-                      <span className="font-semibold">${prospect.lead_value?.toLocaleString() || "0"}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Pipeline Stage:</span>
-                      <Badge variant="outline" className="badge-neutral">
-                        {prospect.pipeline_stage || prospect.status || "N/A"}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            {/* Prospect Status */}
+            <EditableFieldGroup title="Prospect Status" isEditing={isEditing}>
+              <EditableField
+                label="Prospect Status"
+                value={formData.prospect_status}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, prospect_status: value as ProspectStatus })}
+                type="select"
+                options={PROSPECT_STATUSES.map(s => ({ value: s.value, label: s.label }))}
+                icon={Thermometer}
+              />
+              <EditableField
+                label="Lead Value"
+                value={String(formData.lead_value || 0)}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, lead_value: parseFloat(value) || 0 })}
+                type="text"
+              />
+              <EditableField
+                label="Pipeline Status"
+                value={formData.status}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, status: value })}
+                type="select"
+                options={LEAD_STATUSES}
+              />
+              <EditableField
+                label="Priority Score"
+                value={`${priority}/10`}
+                isEditing={false}
+                icon={Star}
+              />
+            </EditableFieldGroup>
 
             {/* Notes Section */}
-            <InfoCard
-              title="Notes"
-              items={[
-                { label: '', value: prospect.notes ? <p className="text-muted whitespace-pre-wrap">{prospect.notes}</p> : <p className="text-muted">No notes available</p> },
-              ]}
-            />
+            <EditableFieldGroup title="Notes" isEditing={isEditing}>
+              <EditableField
+                label="Notes"
+                value={formData.notes}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, notes: value })}
+                type="textarea"
+                icon={MessageSquare}
+              />
+            </EditableFieldGroup>
           </div>
         </TabsContent>
 
@@ -373,17 +542,14 @@ export default function ProspectDetailPage({ params }: PageProps) {
               <CardTitle>Prospect Notes</CardTitle>
             </CardHeader>
             <CardContent>
-              {prospect.notes ? (
-                <div className="notes-content">
-                  <p className="whitespace-pre-wrap">{prospect.notes}</p>
-                </div>
-              ) : (
-                <EmptyState
-                  icon={MessageSquare}
-                  title="No Notes"
-                  description="Add notes about this prospect to keep track of important information."
-                />
-              )}
+              <EditableField
+                label="Notes"
+                value={formData.notes}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, notes: value })}
+                type="textarea"
+                icon={MessageSquare}
+              />
             </CardContent>
           </Card>
         </TabsContent>

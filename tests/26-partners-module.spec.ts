@@ -39,7 +39,9 @@ test.describe('🤝 PARTNERS MODULE TESTS @partners', () => {
   test.describe('Partner List View', () => {
     test('Partners page loads and displays list', async ({ page }) => {
       await page.goto(`${TEST_CONFIG.BASE_URL}/partners`);
-      await page.waitForLoadState('domcontentloaded');
+
+      // Wait for DataTable to render (after auth + tRPC query completes)
+      await page.waitForSelector('[data-testid="data-table"]', { timeout: 15000 });
 
       // Check for page title
       const hasTitle = await page.locator('h1').count() > 0;

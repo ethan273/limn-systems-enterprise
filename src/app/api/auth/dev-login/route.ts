@@ -1,8 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
-// Development-only authentication endpoint
-// This bypasses normal OAuth flow for testing purposes
+/**
+ * ⚠️ DEVELOPMENT-ONLY AUTHENTICATION ENDPOINT ⚠️
+ *
+ * This endpoint bypasses normal OAuth flow for Playwright E2E testing.
+ * Creates 6 fixed test users and generates session files.
+ *
+ * SECURITY NOTES:
+ * - ✅ Protected by NODE_ENV check (returns 404 in production)
+ * - ✅ Test users should NOT exist in production (run delete-fixed-test-users.ts)
+ * - ✅ Session files are gitignored and never deployed
+ *
+ * See: /PRODUCTION-CHECKLIST.md - Critical Issue #1 for production security requirements
+ */
 export async function POST(request: NextRequest) {
   // Only allow in development
   if (process.env.NODE_ENV === 'production') {
@@ -25,7 +36,7 @@ export async function POST(request: NextRequest) {
           name: 'Development User',
           first_name: 'Development',
           last_name: 'User',
-          user_type: 'admin',
+          user_type: 'employee', // Admin role managed via permissions, not user_type enum
           department: 'development',
           job_title: 'Developer'
         }
@@ -99,10 +110,38 @@ export async function POST(request: NextRequest) {
     const testEmail = selectedUser.email;
     const testUserId = selectedUser.userId;
 
-    // First, try to find user by email to see if one already exists
-    const { data: existingUsers, error: _listUsersError } = await supabase.auth.admin.listUsers();
-    const existingUser = existingUsers?.users?.find(user => user.email === testEmail);
+    // Helper function to find user by email with pagination
+    async function findUserByEmail(email: string) {
+      let page = 1;
+      const perPage = 50;
+      const maxPages = 20; // Search up to 1000 users max
 
+      while (page <= maxPages) {
+        const { data, error } = await supabase.auth.admin.listUsers({ page, perPage });
+
+        if (error) {
+          console.warn(`Error listing users page ${page}:`, error);
+          break;
+        }
+
+        const user = data?.users?.find(u => u.email === email);
+        if (user) {
+          return user;
+        }
+
+        // If we got less than perPage users, we've reached the end
+        if (!data?.users || data.users.length < perPage) {
+          break;
+        }
+
+        page++;
+      }
+
+      return null;
+    }
+
+    // First, try to find user by email (search all pages)
+    let existingUser = await findUserByEmail(testEmail);
     let actualUserId = testUserId;
 
     if (!existingUser) {
@@ -118,12 +157,27 @@ export async function POST(request: NextRequest) {
       });
 
       if (createUserError) {
-        console.error('Error creating test user:', createUserError);
-        return NextResponse.json({ error: 'Failed to create test user' }, { status: 500 });
+        // If email_exists error, user exists but wasn't found in pagination
+        // Search again more thoroughly
+        if (createUserError.message.includes('already been registered') || (createUserError as any).code === 'email_exists') {
+          existingUser = await findUserByEmail(testEmail);
+
+          if (existingUser) {
+            actualUserId = existingUser.id;
+            console.log(`User ${testEmail} already exists with ID ${actualUserId}, using existing user`);
+          } else {
+            console.error('Error: User exists but cannot find by email after pagination search');
+            return NextResponse.json({ error: 'Failed to locate existing test user' }, { status: 500 });
+          }
+        } else {
+          console.error('Error creating test user:', createUserError);
+          return NextResponse.json({ error: 'Failed to create test user', details: createUserError.message }, { status: 500 });
+        }
       }
     } else {
       // User exists, use their actual ID
       actualUserId = existingUser.id;
+      console.log(`Using existing user ${testEmail} with ID ${actualUserId}`);
     }
 
     // Create user profile if it doesn't exist
@@ -168,16 +222,104 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (!existingAccess) {
-        // Create portal access
+        // Determine entity_type and entity_id based on portal type
+        let entityType: string;
+        let entityId: string | null = null;
+
+        if (userType === 'customer') {
+          // Create or find test customer record
+          entityType = 'customer';
+
+          const { data: existingCustomer } = await supabase
+            .from('customers')
+            .select('id')
+            .eq('email', testEmail)
+            .single();
+
+          if (existingCustomer) {
+            entityId = existingCustomer.id;
+          } else {
+            // Create test customer
+            const { data: newCustomer, error: customerError } = await supabase
+              .from('customers')
+              .insert({
+                name: selectedUser.profile.name,
+                email: testEmail,
+                phone: '+1-555-0100',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              })
+              .select('id')
+              .single();
+
+            if (customerError) {
+              console.error('Error creating test customer:', customerError);
+            } else if (newCustomer) {
+              entityId = newCustomer.id;
+            }
+          }
+        } else if (userType === 'designer' || userType === 'factory') {
+          // Create or find test partner record
+          entityType = 'partner';
+
+          const { data: existingPartner } = await supabase
+            .from('partners')
+            .select('id')
+            .eq('primary_email', testEmail)
+            .single();
+
+          if (existingPartner) {
+            entityId = existingPartner.id;
+          } else {
+            // Create test partner with all required fields
+            const { data: newPartner, error: partnerError } = await supabase
+              .from('partners')
+              .insert({
+                type: userType === 'designer' ? 'designer' : 'manufacturer',
+                company_name: `${selectedUser.profile.name} Company`,
+                primary_contact: selectedUser.profile.name,
+                primary_email: testEmail,
+                primary_phone: '+1-555-0100',
+                address_line1: '123 Test Street',
+                city: 'Test City',
+                postal_code: '12345',
+                country: 'USA',
+                status: 'active',
+                portal_enabled: true,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              })
+              .select('id')
+              .single();
+
+            if (partnerError) {
+              console.error('Error creating test partner:', partnerError);
+            } else if (newPartner) {
+              entityId = newPartner.id;
+            }
+          }
+        }
+
+        // Create portal access with entity_type and entity_id
+        // IMPORTANT: Also set customer_id for backward compatibility with portalProcedure
+        const portalAccessData: any = {
+          user_id: actualUserId,
+          portal_type: userType,
+          entity_type: entityType!,
+          entity_id: entityId,
+          is_active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+
+        // For customer portal, also set customer_id for backward compatibility
+        if (userType === 'customer' && entityId) {
+          portalAccessData.customer_id = entityId;
+        }
+
         const { error: portalAccessError } = await supabase
           .from('customer_portal_access')
-          .insert({
-            user_id: actualUserId,
-            portal_type: userType,
-            is_active: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          } as any);
+          .insert(portalAccessData);
 
         if (portalAccessError) {
           console.error(`Error creating ${userType} portal access:`, portalAccessError);

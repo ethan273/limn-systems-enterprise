@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { useAuthContext } from "@/lib/auth/AuthProvider";
-import { Folder, Calendar, AlertCircle, Plus } from "lucide-react";
+import { Folder, Calendar, AlertCircle, Plus, Pencil, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import {
   PageHeader,
   StatsGrid,
@@ -15,8 +16,20 @@ import {
   PriorityBadge,
   type DataTableColumn,
   type DataTableFilter,
+  type DataTableRowAction,
   type StatItem,
 } from "@/components/common";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
 export const dynamic = 'force-dynamic';
 
 export default function DesignProjectsPage() {
@@ -25,14 +38,12 @@ export default function DesignProjectsPage() {
   const [_searchQuery, _setSearchQuery] = useState("");
   const { user, loading: authLoading } = useAuthContext();
   const router = useRouter();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<any>(null);
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push("/login");
-    }
-  }, [authLoading, user, router]);
+  // Auth is handled by middleware - no client-side redirect needed
 
-  const { data, isLoading } = api.designProjects.getAll.useQuery(
+  const { data, isLoading, refetch } = api.designProjects.getAll.useQuery(
     {
       designStage: stageFilter === "all" ? undefined : stageFilter,
       search: undefined,
@@ -40,6 +51,24 @@ export default function DesignProjectsPage() {
     },
     { enabled: !authLoading && !!user }
   );
+
+  const deleteProject = api.designProjects.delete.useMutation({
+    onSuccess: () => {
+      toast.success("Design project deleted successfully");
+      refetch();
+      setDeleteDialogOpen(false);
+      setProjectToDelete(null);
+    },
+    onError: (error) => {
+      toast.error("Failed to delete design project: " + error.message);
+    },
+  });
+
+  const handleConfirmDelete = () => {
+    if (projectToDelete) {
+      deleteProject.mutate({ id: projectToDelete.id });
+    }
+  };
 
   const filteredProjects = (data?.projects || []).filter((project: any) => {
     if (priorityFilter !== "all" && project.priority !== priorityFilter) {
@@ -199,6 +228,25 @@ export default function DesignProjectsPage() {
     },
   ];
 
+  // Row actions configuration
+  const rowActions: DataTableRowAction<any>[] = [
+    {
+      label: 'View Details',
+      icon: Pencil,
+      onClick: (row) => router.push(`/design/projects/${row.id}`),
+    },
+    {
+      label: 'Delete',
+      icon: Trash2,
+      variant: 'destructive',
+      separator: true,
+      onClick: (row) => {
+        setProjectToDelete(row);
+        setDeleteDialogOpen(true);
+      },
+    },
+  ];
+
   return (
     <div className="page-container">
       <PageHeader
@@ -235,6 +283,7 @@ export default function DesignProjectsPage() {
           data={filteredProjects}
           columns={columns}
           filters={filters}
+          rowActions={rowActions}
           onRowClick={(row) => router.push(`/design/projects/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}
           emptyState={{
@@ -244,6 +293,28 @@ export default function DesignProjectsPage() {
           }}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Design Project</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{projectToDelete?.project_name}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteProject.isPending}
+            >
+              {deleteProject.isPending ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

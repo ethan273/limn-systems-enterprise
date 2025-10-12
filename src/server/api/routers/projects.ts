@@ -40,6 +40,65 @@ const baseProjectsRouter = createCrudRouter({
 export const projectsRouter = createTRPCRouter({
   ...baseProjectsRouter._def.procedures,
 
+  // Override getById to include all related data for detail page
+  getById: publicProcedure
+    .input(z.object({
+      id: z.string().uuid(),
+    }))
+    .query(async ({ ctx, input }) => {
+      const project = await ctx.db.projects.findUnique({
+        where: { id: input.id },
+        include: {
+          customers: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              phone: true,
+              company: true,
+              status: true,
+            },
+          },
+        },
+      });
+
+      if (!project) {
+        throw new Error('Project not found');
+      }
+
+      // Get orders related to this project (via order.project_id)
+      const orders = await ctx.db.orders.findMany({
+        where: { project_id: input.id },
+        orderBy: { created_at: 'desc' },
+      });
+
+      // Get all ordered items from these orders
+      const orderIds = orders.map(o => o.id);
+      const orderedItems = orderIds.length > 0 ? await ctx.db.order_items.findMany({
+        where: { order_id: { in: orderIds } },
+        orderBy: { created_at: 'desc' },
+      }) : [];
+
+      // Calculate analytics
+      const totalOrderValue = orders.reduce((sum, order) => {
+        return sum + (order.total_amount ? Number(order.total_amount) : 0);
+      }, 0);
+
+      const analytics = {
+        totalOrders: orders.length,
+        totalOrderValue,
+        totalItems: orderedItems.length,
+      };
+
+      return {
+        project,
+        customer: project.customers,
+        orders,
+        orderedItems,
+        analytics,
+      };
+    }),
+
   // Get project with full details including orders
   getWithOrders: publicProcedure
     .input(z.object({

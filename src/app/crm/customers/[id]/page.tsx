@@ -1,45 +1,36 @@
 "use client";
 
-import React, { use, useState } from "react";
+import React, { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
-import type { orders } from "@prisma/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { EntityDetailHeader } from "@/components/common/EntityDetailHeader";
-import { InfoCard } from "@/components/common/InfoCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { EmptyState } from "@/components/common/EmptyState";
 import { LoadingState } from "@/components/common/LoadingState";
+import { EditableField, EditableFieldGroup } from "@/components/common";
 import {
   User,
   Mail,
   Phone,
-  MapPin,
+  Building2,
   Calendar,
   Activity,
   ArrowLeft,
   Edit,
+  MessageSquare,
+  DollarSign,
   Package,
   ShoppingCart,
-  CreditCard,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-  MessageSquare,
-  Briefcase,
+  FileText,
+  X,
+  Check,
 } from "lucide-react";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 // Dynamic route configuration
 export const dynamic = 'force-dynamic';
@@ -53,11 +44,86 @@ export default function CustomerDetailPage({ params }: PageProps) {
   const router = useRouter();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
+  const [isEditing, setIsEditing] = useState(false);
 
-  const { data, isLoading, error } = api.crm.customers.getById.useQuery(
+  const { data, isLoading, error, refetch } = api.crm.customers.getById.useQuery(
     { id: id },
     { enabled: !!user && !!id }
   );
+
+  // Form data state for in-place editing
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    company: '',
+    type: '',
+    status: '',
+    notes: '',
+  });
+
+  // Sync form data with fetched customer data
+  useEffect(() => {
+    if (data?.customer) {
+      setFormData({
+        name: data.customer.name || '',
+        email: data.customer.email || '',
+        phone: data.customer.phone || '',
+        company: data.customer.company || '',
+        type: data.customer.type || '',
+        status: data.customer.status || '',
+        notes: data.customer.notes || '',
+      });
+    }
+  }, [data]);
+
+  // Update mutation
+  const updateMutation = api.crm.customers.update.useMutation({
+    onSuccess: () => {
+      toast.success("Customer updated successfully");
+      setIsEditing(false);
+      refetch();
+    },
+    onError: (error: any) => {
+      toast.error("Failed to update customer: " + error.message);
+    },
+  });
+
+  const handleSave = async () => {
+    if (!formData.name) {
+      toast.error("Name is required");
+      return;
+    }
+
+    await updateMutation.mutateAsync({
+      id,
+      data: {
+        name: formData.name,
+        email: formData.email || undefined,
+        phone: formData.phone || undefined,
+        company: formData.company || undefined,
+        type: formData.type || undefined,
+        status: formData.status || undefined,
+        notes: formData.notes || undefined,
+      },
+    });
+  };
+
+  const handleCancel = () => {
+    // Reset form data to original values
+    if (data?.customer) {
+      setFormData({
+        name: data.customer.name || '',
+        email: data.customer.email || '',
+        phone: data.customer.phone || '',
+        company: data.customer.company || '',
+        type: data.customer.type || '',
+        status: data.customer.status || '',
+        notes: data.customer.notes || '',
+      });
+    }
+    setIsEditing(false);
+  };
 
   if (isLoading) {
     return (
@@ -71,12 +137,12 @@ export default function CustomerDetailPage({ params }: PageProps) {
     return (
       <div className="page-container">
         <EmptyState
-          icon={AlertCircle}
+          icon={User}
           title="Customer Not Found"
           description="The customer you're looking for doesn't exist or you don't have permission to view it."
           action={{
-            label: 'Back to Customers',
-            onClick: () => router.push("/crm/customers"),
+            label: 'Back to Clients',
+            onClick: () => router.push("/crm/clients"),
             icon: ArrowLeft,
           }}
         />
@@ -84,15 +150,14 @@ export default function CustomerDetailPage({ params }: PageProps) {
     );
   }
 
-  const { customer: customerData, projects, productionOrders, activities, payments, analytics } = data;
-  const customer = customerData as any;
+  const { customer, orders = [], invoices = [] } = data;
 
   return (
     <div className="page-container">
       {/* Header Section */}
       <div className="page-header">
         <Button
-          onClick={() => router.push("/crm/customers")}
+          onClick={() => router.push("/crm/clients")}
           variant="ghost"
           className="btn-secondary"
         >
@@ -104,72 +169,85 @@ export default function CustomerDetailPage({ params }: PageProps) {
       {/* Customer Header */}
       <EntityDetailHeader
         icon={User}
-        title={customer.name || customer.company_name || "Unnamed Customer"}
-        subtitle={customer.company_name && customer.name ? customer.company_name : undefined}
-        status={customer.status}
-        statusType={customer.status === "active" ? "active" : "inactive"}
+        title={formData.name || "Unnamed Customer"}
+        subtitle={formData.company || undefined}
         metadata={[
-          ...(customer.email ? [{ icon: Mail, value: customer.email, type: 'email' as const }] : []),
-          ...(customer.phone ? [{ icon: Phone, value: customer.phone, type: 'phone' as const }] : []),
-          ...(customer.billing_city || customer.billing_state ? [{
-            icon: MapPin,
-            value: [customer.billing_city, customer.billing_state].filter(Boolean).join(", "),
-            type: 'text' as const
-          }] : []),
+          ...(formData.email ? [{ icon: Mail, value: formData.email, type: 'email' as const }] : []),
+          ...(formData.phone ? [{ icon: Phone, value: formData.phone, type: 'phone' as const }] : []),
+          ...(formData.type ? [{ icon: Building2, value: formData.type, label: 'Type' }] : []),
         ]}
-        tags={customer.tags || []}
-        actions={[
-          {
-            label: 'Edit Customer',
-            icon: Edit,
-            onClick: () => router.push(`/crm/customers/${id}/edit`),
-          },
-        ]}
+        status={formData.status || 'active'}
+        actions={
+          isEditing
+            ? [
+                {
+                  label: 'Cancel',
+                  icon: X,
+                  variant: 'outline' as const,
+                  onClick: handleCancel,
+                },
+                {
+                  label: updateMutation.isPending ? 'Saving...' : 'Save Changes',
+                  icon: Check,
+                  onClick: handleSave,
+                  disabled: updateMutation.isPending,
+                },
+              ]
+            : [
+                {
+                  label: 'Edit Customer',
+                  icon: Edit,
+                  onClick: () => setIsEditing(true),
+                },
+              ]
+        }
       />
 
-      {/* Financial Stats Cards */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="card-header-sm">
-            <CardTitle className="card-title-sm">Lifetime Value</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="stat-value stat-success">${(analytics?.lifetimeValue || 0).toLocaleString()}</div>
-            <p className="stat-label">Total order value</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="card-header-sm">
-            <CardTitle className="card-title-sm">Outstanding Balance</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className={`stat-value ${(analytics?.outstandingBalance || 0) > 0 ? 'stat-warning' : 'stat-success'}`}>
-              ${(analytics?.outstandingBalance || 0).toLocaleString()}
-            </div>
-            <p className="stat-label">${(analytics?.totalPaid || 0).toLocaleString()} paid</p>
-          </CardContent>
-        </Card>
-
         <Card>
           <CardHeader className="card-header-sm">
             <CardTitle className="card-title-sm">Total Orders</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value">{analytics?.totalOrders || 0}</div>
+            <div className="stat-value">{orders.length || 0}</div>
             <p className="stat-label">
-              Avg: ${(analytics?.averageOrderValue || 0) > 0 ? (analytics?.averageOrderValue || 0).toLocaleString() : 0}
+              <ShoppingCart className="icon-xs inline" aria-hidden="true" /> All time
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="card-header-sm">
-            <CardTitle className="card-title-sm">Customer Since</CardTitle>
+            <CardTitle className="card-title-sm">Total Invoices</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value">{analytics?.daysAsCustomer || 0}</div>
-            <p className="stat-label">Days</p>
+            <div className="stat-value">{invoices.length || 0}</div>
+            <p className="stat-label">
+              <FileText className="icon-xs inline" aria-hidden="true" /> All time
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="card-header-sm">
+            <CardTitle className="card-title-sm">Lifetime Value</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="stat-value stat-success">${customer.lifetime_value?.toLocaleString() || 0}</div>
+            <p className="stat-label">
+              <DollarSign className="icon-xs inline" aria-hidden="true" /> Total revenue
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="card-header-sm">
+            <CardTitle className="card-title-sm">Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <StatusBadge status={formData.status || 'active'} />
+            <p className="stat-label mt-2">Current status</p>
           </CardContent>
         </Card>
       </div>
@@ -181,370 +259,208 @@ export default function CustomerDetailPage({ params }: PageProps) {
             <Activity className="icon-sm" aria-hidden="true" />
             Overview
           </TabsTrigger>
-          <TabsTrigger value="projects" className="tabs-trigger">
-            <Briefcase className="icon-sm" aria-hidden="true" />
-            Projects ({projects.length})
-          </TabsTrigger>
           <TabsTrigger value="orders" className="tabs-trigger">
             <ShoppingCart className="icon-sm" aria-hidden="true" />
-            Orders ({customer.orders?.length || 0})
+            Orders ({orders.length})
           </TabsTrigger>
-          <TabsTrigger value="production" className="tabs-trigger">
-            <Package className="icon-sm" aria-hidden="true" />
-            Production ({productionOrders.length})
+          <TabsTrigger value="invoices" className="tabs-trigger">
+            <FileText className="icon-sm" aria-hidden="true" />
+            Invoices ({invoices.length})
           </TabsTrigger>
-          <TabsTrigger value="payments" className="tabs-trigger">
-            <CreditCard className="icon-sm" aria-hidden="true" />
-            Payments ({payments.length})
-          </TabsTrigger>
-          <TabsTrigger value="activities" className="tabs-trigger">
+          <TabsTrigger value="notes" className="tabs-trigger">
             <MessageSquare className="icon-sm" aria-hidden="true" />
-            Activities ({activities.length})
+            Notes
           </TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
         <TabsContent value="overview">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Customer Details */}
-            <InfoCard
-              title="Customer Information"
-              items={[
-                { label: 'Email', value: customer.email || '—', type: 'email' },
-                { label: 'Phone', value: customer.phone || '—', type: 'phone' },
-                { label: 'Company', value: customer.company_name || customer.company || '—' },
-                { label: 'Type', value: customer.type || '—' },
-                { label: 'Status', value: customer.status || '—' },
-                {
-                  label: 'Credit Limit',
-                  value: customer.credit_limit ? `$${Number(customer.credit_limit).toLocaleString()}` : '—'
-                },
-                {
-                  label: 'Portal Access',
-                  value: customer.portal_access ? 'Enabled' : 'Disabled'
-                },
-                {
-                  label: 'Created',
-                  value: customer.created_at
-                    ? format(new Date(customer.created_at), "MMM d, yyyy")
-                    : '—'
-                },
+          <EditableFieldGroup title="Customer Information" isEditing={isEditing} columns={2}>
+            <EditableField
+              label="Full Name"
+              value={formData.name}
+              isEditing={isEditing}
+              onChange={(value) => setFormData({ ...formData, name: value })}
+              required
+              icon={User}
+            />
+
+            <EditableField
+              label="Company"
+              value={formData.company}
+              isEditing={isEditing}
+              onChange={(value) => setFormData({ ...formData, company: value })}
+              icon={Building2}
+            />
+
+            <EditableField
+              label="Email"
+              value={formData.email}
+              type="email"
+              isEditing={isEditing}
+              onChange={(value) => setFormData({ ...formData, email: value })}
+              icon={Mail}
+            />
+
+            <EditableField
+              label="Phone"
+              value={formData.phone}
+              type="phone"
+              isEditing={isEditing}
+              onChange={(value) => setFormData({ ...formData, phone: value })}
+              icon={Phone}
+            />
+
+            <EditableField
+              label="Customer Type"
+              value={formData.type}
+              type="select"
+              isEditing={isEditing}
+              onChange={(value) => setFormData({ ...formData, type: value })}
+              options={[
+                { value: 'individual', label: 'Individual' },
+                { value: 'business', label: 'Business' },
+                { value: 'enterprise', label: 'Enterprise' },
+              ]}
+              icon={Package}
+            />
+
+            <EditableField
+              label="Status"
+              value={formData.status}
+              type="select"
+              isEditing={isEditing}
+              onChange={(value) => setFormData({ ...formData, status: value })}
+              options={[
+                { value: 'active', label: 'Active' },
+                { value: 'inactive', label: 'Inactive' },
+                { value: 'pending', label: 'Pending' },
+                { value: 'suspended', label: 'Suspended' },
               ]}
             />
 
-            {/* Address Information */}
-            <InfoCard
-              title="Address Information"
-              items={[
-                {
-                  label: 'Billing Address',
-                  value: customer.billing_address_line1 ? (
-                    <address className="address-content">
-                      {customer.billing_address_line1}
-                      {customer.billing_address_line2 && (
-                        <>
-                          <br />
-                          {customer.billing_address_line2}
-                        </>
-                      )}
-                      <br />
-                      {[customer.billing_city, customer.billing_state, customer.billing_zip]
-                        .filter(Boolean)
-                        .join(", ")}
-                      {customer.billing_country && (
-                        <>
-                          <br />
-                          {customer.billing_country}
-                        </>
-                      )}
-                    </address>
-                  ) : (
-                    <p className="text-muted">No billing address on file</p>
-                  ),
-                },
-              ]}
-            />
-          </div>
-
-          {/* Analytics Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Business Analytics</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="analytics-grid">
-                <div className="analytics-item">
-                  <div className="analytics-icon">
-                    <ShoppingCart className="icon-md" aria-hidden="true" />
-                  </div>
-                  <div className="analytics-content">
-                    <p className="analytics-label">Total Orders</p>
-                    <p className="analytics-value">{analytics?.totalOrders || 0}</p>
-                  </div>
-                </div>
-                <div className="analytics-item">
-                  <div className="analytics-icon">
-                    <Briefcase className="icon-md" aria-hidden="true" />
-                  </div>
-                  <div className="analytics-content">
-                    <p className="analytics-label">Total Projects</p>
-                    <p className="analytics-value">{analytics?.totalProjects || 0}</p>
-                  </div>
-                </div>
-                <div className="analytics-item">
-                  <div className="analytics-icon">
-                    <Package className="icon-md" aria-hidden="true" />
-                  </div>
-                  <div className="analytics-content">
-                    <p className="analytics-label">Production Orders</p>
-                    <p className="analytics-value">{analytics?.totalProductionOrders || 0}</p>
-                  </div>
-                </div>
-                <div className="analytics-item">
-                  <div className="analytics-icon">
-                    <MessageSquare className="icon-md" aria-hidden="true" />
-                  </div>
-                  <div className="analytics-content">
-                    <p className="analytics-label">Activities</p>
-                    <p className="analytics-value">
-                      {analytics?.completedActivities || 0} / {analytics?.totalActivities || 0}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Notes Section */}
-          {customer.notes && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Notes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="whitespace-pre-wrap">{customer.notes}</p>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-
-        {/* Projects Tab */}
-        <TabsContent value="projects">
-          {projects.length === 0 ? (
-            <EmptyState
-              icon={Briefcase}
-              title="No Projects"
-              description="This customer hasn't been assigned to any projects yet."
-            />
-          ) : (
-            <div className="data-table-container">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Project Name</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Budget</TableHead>
-                    <TableHead>Start Date</TableHead>
-                    <TableHead>Completion</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {projects.map((project: any) => (
-                    <TableRow
-                      key={project.id}
-                      className="table-row-clickable"
-                      onClick={() => router.push(`/crm/projects/${project.id}`)}
-                    >
-                      <TableCell className="font-medium">{project.name || "Unnamed Project"}</TableCell>
-                      <TableCell>
-                        <StatusBadge status={project.status || "unknown"} />
-                      </TableCell>
-                      <TableCell>{project.budget ? `$${Number(project.budget).toLocaleString()}` : "—"}</TableCell>
-                      <TableCell>{project.start_date || "—"}</TableCell>
-                      <TableCell>{(project.actual_completion_date ? format(new Date(project.actual_completion_date), "PP") : (project.estimated_completion_date ? format(new Date(project.estimated_completion_date), "PP") : "Pending")) || "—"}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+            <div className="col-span-2">
+              <EditableField
+                label="Created"
+                value={customer.created_at ? format(new Date(customer.created_at), "MMM d, yyyy h:mm a") : "—"}
+                isEditing={false}
+                icon={Calendar}
+              />
             </div>
-          )}
+
+            <div className="col-span-2">
+              <EditableField
+                label="Lifetime Value"
+                value={customer.lifetime_value ? `$${customer.lifetime_value.toLocaleString()}` : "$0"}
+                isEditing={false}
+                icon={DollarSign}
+              />
+            </div>
+
+            <div className="col-span-2">
+              <EditableField
+                label="Notes"
+                value={formData.notes}
+                type="textarea"
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, notes: value })}
+              />
+            </div>
+          </EditableFieldGroup>
         </TabsContent>
 
         {/* Orders Tab */}
         <TabsContent value="orders">
-          {!customer.orders || customer.orders.length === 0 ? (
-            <EmptyState
-              icon={ShoppingCart}
-              title="No Orders"
-              description="This customer hasn't placed any orders yet."
-            />
-          ) : (
-            <div className="data-table-container">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Order #</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Total Amount</TableHead>
-                    <TableHead>Order Date</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {customer.orders.map((order: orders) => (
-                    <TableRow
-                      key={order.id}
-                      className="table-row-clickable"
-                      onClick={() => router.push(`/orders/${order.id}`)}
-                    >
-                      <TableCell className="font-medium">{order.order_number}</TableCell>
-                      <TableCell>
-                        <StatusBadge status={order.status || "unknown"} />
-                      </TableCell>
-                      <TableCell>
-                        {order.total_amount ? `$${Number(order.total_amount).toLocaleString()}` : "—"}
-                      </TableCell>
-                      <TableCell>
-                        {order.created_at ? format(new Date(order.created_at), "MMM d, yyyy") : "—"}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </TabsContent>
-
-        {/* Production Orders Tab */}
-        <TabsContent value="production">
-          {productionOrders.length === 0 ? (
-            <EmptyState
-              icon={Package}
-              title="No Production Orders"
-              description="No production orders exist for this customer."
-            />
-          ) : (
-            <div className="data-table-container">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>PO #</TableHead>
-                    <TableHead>Item</TableHead>
-                    <TableHead>Quantity</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Total Cost</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {productionOrders.map((po) => (
-                    <TableRow
-                      key={po.id}
-                      className="table-row-clickable"
-                      onClick={() => router.push(`/production/orders/${po.id}`)}
-                    >
-                      <TableCell className="font-medium">{po.order_number}</TableCell>
-                      <TableCell>{po.item_name}</TableCell>
-                      <TableCell>{po.quantity}</TableCell>
-                      <TableCell>
-                        <StatusBadge status={po.status} />
-                      </TableCell>
-                      <TableCell>${Number(po.total_cost).toLocaleString()}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </TabsContent>
-
-        {/* Payments Tab */}
-        <TabsContent value="payments">
-          {payments.length === 0 ? (
-            <EmptyState
-              icon={CreditCard}
-              title="No Payments"
-              description="No payments have been recorded for this customer."
-            />
-          ) : (
-            <div className="data-table-container">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Payment #</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Method</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Date</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {payments.map((payment) => (
-                    <TableRow key={payment.id}>
-                      <TableCell className="font-medium">{payment.payment_number || "—"}</TableCell>
-                      <TableCell className="stat-success font-medium">
-                        ${payment.amount ? Number(payment.amount).toLocaleString() : 0}
-                      </TableCell>
-                      <TableCell>{payment.payment_method || "—"}</TableCell>
-                      <TableCell>
-                        <StatusBadge status={payment.status || "unknown"} />
-                      </TableCell>
-                      <TableCell>
-                        {payment.created_at ? format(new Date(payment.created_at), "MMM d, yyyy") : "—"}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </TabsContent>
-
-        {/* Activities Tab */}
-        <TabsContent value="activities">
           <Card>
             <CardHeader>
-              <CardTitle>Activity Timeline</CardTitle>
+              <CardTitle>Customer Orders</CardTitle>
             </CardHeader>
-            <CardContent className="card-content-compact">
-              {activities.length === 0 ? (
+            <CardContent>
+              {orders.length === 0 ? (
                 <EmptyState
-                  icon={Clock}
-                  title="No Activities Yet"
-                  description="Activities like calls, emails, and meetings will appear here."
+                  icon={ShoppingCart}
+                  title="No Orders Yet"
+                  description="Orders from this customer will appear here."
                 />
               ) : (
-                <div className="activity-timeline">
-                  {activities.map((activity) => (
-                    <div key={activity.id} className="activity-timeline-item">
-                      <div className="activity-timeline-icon">
-                        {activity.status === "completed" ? (
-                          <CheckCircle2 className="icon-sm status-completed" aria-hidden="true" />
-                        ) : (
-                          <Clock className="icon-sm status-pending" aria-hidden="true" />
-                        )}
+                <div className="space-y-2">
+                  {orders.map((order: any) => (
+                    <div key={order.id} className="border-b pb-2 last:border-0">
+                      <div className="flex justify-between">
+                        <span className="font-medium">{order.order_number || 'Order'}</span>
+                        <StatusBadge status={order.status || 'pending'} />
                       </div>
-                      <div className="activity-timeline-content">
-                        <div className="activity-timeline-header">
-                          <h4 className="activity-timeline-title">{activity.title || "Untitled Activity"}</h4>
-                          <StatusBadge status={activity.status || "unknown"} />
-                        </div>
-                        {activity.type && (
-                          <p className="activity-timeline-type">
-                            <span className="activity-type-badge">{activity.type}</span>
-                          </p>
-                        )}
-                        {activity.description && (
-                          <p className="activity-timeline-description">{activity.description}</p>
-                        )}
-                        {activity.created_at && (
-                          <p className="activity-timeline-date">
-                            <Calendar className="icon-xs" aria-hidden="true" />
-                            {format(new Date(activity.created_at), "MMM d, yyyy h:mm a")}
-                          </p>
-                        )}
-                      </div>
+                      {order.total_amount && (
+                        <p className="text-sm text-muted-foreground">${order.total_amount.toLocaleString()}</p>
+                      )}
                     </div>
                   ))}
                 </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Invoices Tab */}
+        <TabsContent value="invoices">
+          <Card>
+            <CardHeader>
+              <CardTitle>Customer Invoices</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {invoices.length === 0 ? (
+                <EmptyState
+                  icon={FileText}
+                  title="No Invoices Yet"
+                  description="Invoices for this customer will appear here."
+                />
+              ) : (
+                <div className="space-y-2">
+                  {invoices.map((invoice: any) => (
+                    <div key={invoice.id} className="border-b pb-2 last:border-0">
+                      <div className="flex justify-between">
+                        <span className="font-medium">{invoice.invoice_number || 'Invoice'}</span>
+                        <StatusBadge status={invoice.status || 'pending'} />
+                      </div>
+                      {invoice.total_amount && (
+                        <p className="text-sm text-muted-foreground">${invoice.total_amount.toLocaleString()}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Notes Tab */}
+        <TabsContent value="notes">
+          <Card>
+            <CardHeader>
+              <CardTitle>Customer Notes</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isEditing ? (
+                <EditableField
+                  label=""
+                  value={formData.notes}
+                  type="textarea"
+                  isEditing={true}
+                  onChange={(value) => setFormData({ ...formData, notes: value })}
+                  className="min-h-[200px]"
+                />
+              ) : (
+                formData.notes ? (
+                  <div className="notes-content">
+                    <p className="whitespace-pre-wrap">{formData.notes}</p>
+                  </div>
+                ) : (
+                  <EmptyState
+                    icon={MessageSquare}
+                    title="No Notes"
+                    description="Add notes about this customer to keep track of important information."
+                  />
+                )
               )}
             </CardContent>
           </Card>

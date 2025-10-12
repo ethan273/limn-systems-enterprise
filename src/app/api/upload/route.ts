@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { uploadToSupabase } from '@/lib/storage/supabase-storage';
+import { uploadToSupabase, ensureBucketExists } from '@/lib/storage/supabase-storage';
 import { uploadToGoogleDrive } from '@/lib/storage/google-drive-storage';
 import { determineStorageType, generateUniqueFilename } from '@/lib/storage/hybrid-storage';
 
@@ -18,6 +18,7 @@ export async function POST(request: NextRequest) {
     const category = formData.get('category') as string | null;
     const projectId = formData.get('projectId') as string | null;
     const briefId = formData.get('briefId') as string | null;
+    const bucketName = formData.get('bucket') as string | null;
 
     if (!file) {
       return NextResponse.json(
@@ -46,9 +47,19 @@ export async function POST(request: NextRequest) {
         process.env.GOOGLE_DRIVE_FOLDER_ID
       );
     } else {
-      // Supabase upload
-      const bucket = category === 'shop_drawings' ? 'shop-drawings' : 'documents';
-      const path = `design-documents/${projectId || briefId || 'general'}/${uniqueFilename}`;
+      // Supabase upload - use specified bucket or default to design-documents
+      const bucket = bucketName || 'design-documents';
+
+      // Ensure bucket exists before uploading
+      const bucketExists = await ensureBucketExists(bucket);
+      if (!bucketExists) {
+        return NextResponse.json(
+          { error: `Failed to create or access storage bucket: ${bucket}` },
+          { status: 500 }
+        );
+      }
+
+      const path = `${category || 'general'}/${projectId || briefId || 'general'}/${uniqueFilename}`;
       result = await uploadToSupabase(file, path, bucket);
     }
 

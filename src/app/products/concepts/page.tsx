@@ -2,15 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { Plus, Package, MoreVertical, Eye, Edit, Trash } from "lucide-react";
+import { Plus, Package, Pencil, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { toast } from "sonner";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   PageHeader,
   EmptyState,
@@ -18,33 +14,67 @@ import {
   DataTable,
   StatsGrid,
   StatusBadge,
+  FormDialog,
   type DataTableColumn,
   type DataTableFilter,
+  type DataTableRowAction,
   type StatItem,
 } from "@/components/common";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function ConceptsPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<any>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
-  // Query items filtered by concept status
-  const { data, isLoading, refetch } = api.items.getAll.useQuery({
-    limit: 100,
-    offset: 0,
-  });
+  // Query concepts
+  const { data, isLoading, refetch } = api.products.getAllConcepts.useQuery();
 
-  const items = data?.items || [];
+  const conceptItems = data || [];
 
-  // Delete mutation
-  const deleteMutation = api.items.delete.useMutation({
+  // Create mutation
+  const createMutation = api.products.createConcept.useMutation({
     onSuccess: () => {
+      toast.success("Concept created successfully");
+      queryClient.invalidateQueries({ queryKey: ['products'] });
       refetch();
+      setIsFormOpen(false);
+    },
+    onError: (error) => {
+      toast.error("Failed to create concept: " + error.message);
     },
   });
 
-  // Filter to only show concept items
-  const conceptItems = items.filter((item: any) =>
-    item.status === 'concept' || item.type === 'Concept'
-  );
+  // Delete mutation
+  const deleteMutation = api.products.deleteConcept.useMutation({
+    onSuccess: () => {
+      toast.success("Concept deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      refetch();
+      setDeleteDialogOpen(false);
+      setItemToDelete(null);
+    },
+    onError: (error) => {
+      toast.error("Failed to delete concept: " + error.message);
+    },
+  });
+
+  const handleConfirmDelete = () => {
+    if (itemToDelete) {
+      deleteMutation.mutate({ id: itemToDelete.id });
+    }
+  };
 
   // Stats configuration
   const stats: StatItem[] = [
@@ -142,58 +172,6 @@ export default function ConceptsPage() {
         </span>
       ) : null,
     },
-    {
-      key: 'actions',
-      label: 'Actions',
-      render: (_, row) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-            <Button variant="ghost" size="sm" className="btn-icon">
-              <MoreVertical className="icon-sm" aria-hidden="true" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="card">
-            <DropdownMenuItem
-              className="dropdown-item"
-              onClick={(e) => {
-                e.stopPropagation();
-                router.push(`/products/catalog/${row.id}`);
-              }}
-            >
-              <Eye className="icon-sm" aria-hidden="true" />
-              View Details
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="dropdown-item"
-              onClick={(e) => {
-                e.stopPropagation();
-                router.push(`/products/catalog/${row.id}/edit`);
-              }}
-            >
-              <Edit className="icon-sm" aria-hidden="true" />
-              Edit Item
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="dropdown-item-danger"
-              onClick={async (e) => {
-                e.stopPropagation();
-                if (window.confirm(`Are you sure you want to delete "${row.name}"? This action cannot be undone.`)) {
-                  try {
-                    await deleteMutation.mutateAsync({ id: row.id });
-                  } catch (error) {
-                    console.error('Failed to delete item:', error);
-                    alert('Failed to delete item. Please try again.');
-                  }
-                }
-              }}
-            >
-              <Trash className="icon-sm" aria-hidden="true" />
-              Delete Item
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
-    },
   ];
 
   // DataTable filters configuration
@@ -203,6 +181,25 @@ export default function ConceptsPage() {
       label: 'Search concepts',
       type: 'search',
       placeholder: 'Search by name, SKU, or collection...',
+    },
+  ];
+
+  // Row actions configuration
+  const rowActions: DataTableRowAction<any>[] = [
+    {
+      label: 'Edit',
+      icon: Pencil,
+      onClick: (row) => router.push(`/products/concepts/${row.id}/edit`),
+    },
+    {
+      label: 'Delete',
+      icon: Trash2,
+      variant: 'destructive',
+      separator: true,
+      onClick: (row) => {
+        setItemToDelete(row);
+        setDeleteDialogOpen(true);
+      },
     },
   ];
 
@@ -216,7 +213,7 @@ export default function ConceptsPage() {
           {
             label: 'New Concept',
             icon: Plus,
-            onClick: () => router.push('/products/concepts/new'),
+            onClick: () => setIsFormOpen(true),
           },
         ]}
       />
@@ -234,7 +231,7 @@ export default function ConceptsPage() {
           description="Get started by creating your first concept."
           action={{
             label: 'Create First Concept',
-            onClick: () => router.push('/products/concepts/new'),
+            onClick: () => setIsFormOpen(true),
             icon: Plus,
           }}
         />
@@ -243,7 +240,8 @@ export default function ConceptsPage() {
           data={conceptItems}
           columns={columns}
           filters={filters}
-          onRowClick={(row) => router.push(`/products/catalog/${row.id}`)}
+          rowActions={rowActions}
+          onRowClick={(row) => router.push(`/products/concepts/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}
           emptyState={{
             icon: Package,
@@ -252,6 +250,48 @@ export default function ConceptsPage() {
           }}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Concept</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{itemToDelete?.name}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Create Concept Form Dialog */}
+      <FormDialog
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        title="Create New Concept"
+        description="Add a new furniture concept to the system"
+        fields={[
+          { name: 'name', label: 'Concept Name', type: 'text', required: true },
+          { name: 'concept_number', label: 'Concept Number', type: 'text' },
+          { name: 'description', label: 'Description', type: 'textarea' },
+          { name: 'status', label: 'Status', type: 'text' },
+          { name: 'priority', label: 'Priority', type: 'text' },
+          { name: 'target_price', label: 'Target Price', type: 'number' },
+          { name: 'estimated_cost', label: 'Estimated Cost', type: 'number' },
+        ]}
+        onSubmit={async (data) => {
+          await createMutation.mutateAsync(data);
+        }}
+      />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use, useState } from "react";
+import React, { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
@@ -8,10 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { EntityDetailHeader } from "@/components/common/EntityDetailHeader";
-import { InfoCard } from "@/components/common/InfoCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { EmptyState } from "@/components/common/EmptyState";
 import { LoadingState } from "@/components/common/LoadingState";
+import { EditableFieldGroup, EditableField } from "@/components/common/EditableField";
 import {
   User,
   Mail,
@@ -25,8 +25,14 @@ import {
   CheckCircle2,
   AlertCircle,
   MessageSquare,
+  Check,
+  X,
+  Building2,
+  TrendingUp,
+  Target,
 } from "lucide-react";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 // Dynamic route configuration
 export const dynamic = 'force-dynamic';
@@ -40,6 +46,30 @@ const pipelineStages = [
   { value: "lost", label: "Lost", color: "status-cancelled" },
 ];
 
+const LEAD_STATUSES = [
+  { value: 'new', label: 'New' },
+  { value: 'contacted', label: 'Contacted' },
+  { value: 'qualified', label: 'Qualified' },
+  { value: 'proposal', label: 'Proposal' },
+  { value: 'negotiation', label: 'Negotiation' },
+  { value: 'won', label: 'Won' },
+  { value: 'lost', label: 'Lost' },
+];
+
+const LEAD_SOURCES = [
+  { value: 'website', label: 'Website' },
+  { value: 'referral', label: 'Referral' },
+  { value: 'social', label: 'Social Media' },
+  { value: 'ads', label: 'Advertising' },
+  { value: 'manual', label: 'Manual Entry' },
+];
+
+const INTEREST_LEVELS = [
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' },
+];
+
 interface PageProps {
   params: Promise<{ id: string }>;
 }
@@ -49,11 +79,89 @@ export default function LeadDetailPage({ params }: PageProps) {
   const router = useRouter();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    company: '',
+    status: 'new',
+    lead_source: 'manual',
+    interest_level: 'medium',
+    notes: '',
+  });
 
-  const { data, isLoading, error } = api.crm.leads.getById.useQuery(
+  const { data, isLoading, error, refetch } = api.crm.leads.getById.useQuery(
     { id: id },
     { enabled: !!user && !!id }
   );
+
+  // Sync formData with fetched lead data
+  useEffect(() => {
+    if (data?.lead) {
+      const lead = data.lead;
+      setFormData({
+        name: lead.name || '',
+        email: lead.email || '',
+        phone: lead.phone || '',
+        company: lead.company || '',
+        status: lead.status || 'new',
+        lead_source: lead.lead_source || 'manual',
+        interest_level: lead.interest_level || 'medium',
+        notes: lead.notes || '',
+      });
+    }
+  }, [data]);
+
+  // Update mutation
+  const updateMutation = api.crm.leads.update.useMutation({
+    onSuccess: () => {
+      toast.success("Lead updated successfully");
+      setIsEditing(false);
+      refetch();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update lead");
+    },
+  });
+
+  const handleSave = () => {
+    if (!formData.name || !formData.email) {
+      toast.error("Name and email are required");
+      return;
+    }
+
+    updateMutation.mutate({
+      id: id,
+      data: {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone || undefined,
+        company: formData.company || undefined,
+        status: formData.status,
+        lead_source: formData.lead_source || undefined,
+        interest_level: formData.interest_level || undefined,
+        notes: formData.notes || undefined,
+      },
+    });
+  };
+
+  const handleCancel = () => {
+    if (data?.lead) {
+      const lead = data.lead;
+      setFormData({
+        name: lead.name || '',
+        email: lead.email || '',
+        phone: lead.phone || '',
+        company: lead.company || '',
+        status: lead.status || 'new',
+        lead_source: lead.lead_source || 'manual',
+        interest_level: lead.interest_level || 'medium',
+        notes: lead.notes || '',
+      });
+    }
+    setIsEditing(false);
+  };
 
   if (isLoading) {
     return (
@@ -107,13 +215,16 @@ export default function LeadDetailPage({ params }: PageProps) {
           ...(lead.website ? [{ icon: Globe, value: lead.website, type: 'link' as const, href: lead.website }] : []),
         ]}
         tags={lead.tags || []}
-        actions={[
-          {
-            label: 'Edit Lead',
-            icon: Edit,
-            onClick: () => router.push(`/crm/leads/${id}/edit`),
-          },
-        ]}
+        actions={
+          isEditing
+            ? [
+                { label: 'Cancel', icon: X, onClick: handleCancel },
+                { label: 'Save Changes', icon: Check, onClick: handleSave },
+              ]
+            : [
+                { label: 'Edit Lead', icon: Edit, onClick: () => setIsEditing(true) },
+              ]
+        }
       />
 
       {/* Stats Cards */}
@@ -214,51 +325,89 @@ export default function LeadDetailPage({ params }: PageProps) {
         <TabsContent value="overview">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Lead Details */}
-            <InfoCard
-              title="Lead Details"
-              items={[
-                { label: 'Status', value: lead.status || '—' },
-                { label: 'Lead Source', value: lead.lead_source || '—' },
-                { label: 'Contact Method', value: lead.contact_method || '—' },
-                {
-                  label: 'Created',
-                  value: lead.created_at
-                    ? format(new Date(lead.created_at), "MMM d, yyyy h:mm a")
-                    : '—'
-                },
-                {
-                  label: 'Last Contacted',
-                  value: analytics?.lastContactDate
-                    ? format(new Date(analytics.lastContactDate), "MMM d, yyyy")
-                    : 'Never'
-                },
-                {
-                  label: 'Follow-up Date',
-                  value: lead.follow_up_date
-                    ? format(new Date(lead.follow_up_date), "MMM d, yyyy")
-                    : 'Not scheduled'
-                },
-                ...(lead.converted_at ? [{
-                  label: 'Converted On',
-                  value: format(new Date(lead.converted_at), "MMM d, yyyy")
-                }] : []),
-              ]}
-            />
+            <EditableFieldGroup title="Lead Information" isEditing={isEditing}>
+              <EditableField
+                label="Name"
+                value={formData.name}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, name: value })}
+                required
+                icon={User}
+              />
+              <EditableField
+                label="Email"
+                value={formData.email}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, email: value })}
+                type="email"
+                required
+                icon={Mail}
+              />
+              <EditableField
+                label="Phone"
+                value={formData.phone}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, phone: value })}
+                type="phone"
+                icon={Phone}
+              />
+              <EditableField
+                label="Company"
+                value={formData.company}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, company: value })}
+                icon={Building2}
+              />
+              <EditableField
+                label="Status"
+                value={formData.status}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, status: value })}
+                type="select"
+                options={LEAD_STATUSES}
+              />
+              <EditableField
+                label="Lead Source"
+                value={formData.lead_source}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, lead_source: value })}
+                type="select"
+                options={LEAD_SOURCES}
+                icon={TrendingUp}
+              />
+              <EditableField
+                label="Interest Level"
+                value={formData.interest_level}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, interest_level: value })}
+                type="select"
+                options={INTEREST_LEVELS}
+                icon={Target}
+              />
+              <EditableField
+                label="Created"
+                value={lead.created_at ? format(new Date(lead.created_at), "MMM d, yyyy h:mm a") : '—'}
+                isEditing={false}
+                icon={Calendar}
+              />
+              <EditableField
+                label="Last Contacted"
+                value={analytics?.lastContactDate ? format(new Date(analytics.lastContactDate), "MMM d, yyyy") : 'Never'}
+                isEditing={false}
+              />
+            </EditableFieldGroup>
 
             {/* Notes Section */}
-            <InfoCard
-              title="Notes"
-              items={[
-                {
-                  label: '',
-                  value: lead.notes ? (
-                    <p className="text-muted whitespace-pre-wrap">{lead.notes}</p>
-                  ) : (
-                    <p className="text-muted">No notes available</p>
-                  ),
-                },
-              ]}
-            />
+            <EditableFieldGroup title="Notes" isEditing={isEditing}>
+              <EditableField
+                label="Notes"
+                value={formData.notes}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, notes: value })}
+                type="textarea"
+                icon={MessageSquare}
+              />
+            </EditableFieldGroup>
           </div>
         </TabsContent>
 
@@ -321,17 +470,14 @@ export default function LeadDetailPage({ params }: PageProps) {
               <CardTitle>Lead Notes</CardTitle>
             </CardHeader>
             <CardContent>
-              {lead.notes ? (
-                <div className="notes-content">
-                  <p className="whitespace-pre-wrap">{lead.notes}</p>
-                </div>
-              ) : (
-                <EmptyState
-                  icon={MessageSquare}
-                  title="No Notes"
-                  description="Add notes about this lead to keep track of important information."
-                />
-              )}
+              <EditableField
+                label="Notes"
+                value={formData.notes}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, notes: value })}
+                type="textarea"
+                icon={MessageSquare}
+              />
             </CardContent>
           </Card>
         </TabsContent>

@@ -1960,9 +1960,9 @@ export default function ProjectsPage() {
  </TableCell>
  <TableCell>
  <div className="flex items-center gap-2">
- <div className="w-16 card rounded-full h-2">
+ <div className="w-16 bg-muted rounded-full h-2 overflow-hidden">
  <div
- className="btn-primary h-2 rounded-full transition-all"
+ className="bg-primary h-2 rounded-full transition-all"
  style={{ width: `${project.completion_percentage}%` }}
  />
  </div>
@@ -1993,7 +1993,6 @@ export default function ProjectsPage() {
  </Button>
  </DropdownMenuTrigger>
  <DropdownMenuContent align="end">
- <DropdownMenuLabel>Actions</DropdownMenuLabel>
  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleCreateOrder(project.id); }}>
  <Plus className="mr-2 h-4 w-4" />
  Create Order

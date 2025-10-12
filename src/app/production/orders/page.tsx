@@ -2,11 +2,12 @@
 
 import { useEffect } from "react";
 import { api } from "@/lib/api/client";
-import { Package, DollarSign, AlertCircle, TrendingUp } from "lucide-react";
+import { Package, DollarSign, AlertCircle, TrendingUp, Plus } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { useProductionOrdersRealtime } from "@/hooks/useRealtimeSubscription";
+import { Button } from "@/components/ui/button";
 import {
   PageHeader,
   EmptyState,
@@ -23,12 +24,7 @@ export default function ProductionOrdersPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push("/login");
-    }
-  }, [authLoading, user, router]);
+  // Auth is handled by middleware - no client-side redirect needed
 
   // Query PRODUCTION ORDERS (Phase 1 system with invoices/payments)
   const { data, isLoading } = api.productionOrders.getAll.useQuery(
@@ -179,6 +175,14 @@ export default function ProductionOrdersPage() {
               CRM → Projects
             </Link>
           </>
+        }
+        action={
+          <Link href="/crm/projects">
+            <Button className="btn-primary">
+              <Plus className="h-4 w-4 mr-2" />
+              New Order
+            </Button>
+          </Link>
         }
       />
 

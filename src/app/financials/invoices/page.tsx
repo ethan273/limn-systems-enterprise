@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
 import { useInvoicesRealtime } from "@/hooks/useRealtimeSubscription";
-import { FileText, DollarSign, Clock, CheckCircle2 } from "lucide-react";
+import { FileText, DollarSign, Clock, CheckCircle2, Download, Plus } from "lucide-react";
 import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
 import {
   PageHeader,
   EmptyState,
@@ -48,6 +49,64 @@ export default function InvoicesPage() {
   );
 
   const invoices = data?.items || [];
+
+  // Export to CSV handler
+  const handleExportCSV = () => {
+    if (!invoices || invoices.length === 0) {
+      alert('No invoices to export');
+      return;
+    }
+
+    // CSV headers
+    const headers = [
+      'Invoice Date',
+      'Customer Name',
+      'Customer Email',
+      'Project',
+      'Items Count',
+      'Total',
+      'Paid',
+      'Balance',
+      'Status'
+    ];
+
+    // CSV rows
+    const rows = invoices.map((invoice: any) => [
+      invoice.created_at ? format(new Date(invoice.created_at), 'yyyy-MM-dd') : '',
+      invoice.customer?.company_name || invoice.customer?.name || '',
+      invoice.customer?.email || '',
+      invoice.project?.project_name || '',
+      invoice.invoice_items?.length || 0,
+      invoice.total || 0,
+      invoice.totalPaid || 0,
+      invoice.balance || 0,
+      invoice.status || ''
+    ]);
+
+    // Combine headers and rows
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => {
+        // Escape quotes and wrap in quotes if contains comma
+        const cellStr = String(cell);
+        if (cellStr.includes(',') || cellStr.includes('"')) {
+          return `"${cellStr.replace(/"/g, '""')}"`;
+        }
+        return cellStr;
+      }).join(','))
+    ].join('\n');
+
+    // Download CSV file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `invoices_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
   const stats = statsData || {
     totalInvoices: 0,
     totalInvoiced: 0,
@@ -188,6 +247,24 @@ export default function InvoicesPage() {
       <PageHeader
         title="Invoices"
         subtitle="General accounting invoices and payment tracking"
+        actions={
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleExportCSV}
+              disabled={!invoices || invoices.length === 0}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Export CSV
+            </Button>
+            <Button
+              onClick={() => router.push('/financials/invoices/new')}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Invoice
+            </Button>
+          </div>
+        }
       />
 
       {/* Stats */}

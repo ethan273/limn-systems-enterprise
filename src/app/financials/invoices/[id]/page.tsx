@@ -133,7 +133,7 @@ export default function InvoiceDetailPage({ params }: PageProps) {
   const config = statusConfig[invoice.status] || statusConfig.pending;
 
   // Get customer info from first invoice item
-  const firstOrderItem = invoice.invoice_items[0]?.order_items;
+  const firstOrderItem = invoice.invoice_items?.[0]?.order_items;
   const customer = firstOrderItem?.orders?.customers;
   const project = firstOrderItem?.orders?.projects;
 
@@ -288,7 +288,7 @@ export default function InvoiceDetailPage({ params }: PageProps) {
                     </tr>
                   </thead>
                   <tbody>
-                    {invoice.invoice_items.map((item: any) => (
+                    {(invoice.invoice_items || []).map((item: any) => (
                       <tr key={item.id} className="border-b">
                         <td className="p-2">{item.description}</td>
                         <td className="text-right p-2">{Number(item.quantity)}</td>

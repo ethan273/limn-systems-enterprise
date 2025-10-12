@@ -325,7 +325,7 @@ export const leadsRouter = createTRPCRouter({
       prospect_status: z.enum(['cold', 'warm', 'hot']).optional(),
       status: z.string().optional(),
     }))
-    .query(async ({ ctx: _ctx, input }) => {
+    .query(async ({ ctx, input }) => {
       const { limit, offset, prospect_status, status } = input;
 
       const whereClause: any = {
@@ -340,16 +340,21 @@ export const leadsRouter = createTRPCRouter({
         whereClause.status = status;
       }
 
-      // Simplified implementation for now
-      const items = {
-        items: [],
-        total: 0,
-        hasMore: false,
-      };
-      const total = items.total || 0;
+      // Query prospects (leads with prospect_status set)
+      const [items, total] = await Promise.all([
+        ctx.db.leads.findMany({
+          where: whereClause,
+          skip: offset,
+          take: limit,
+          orderBy: { created_at: 'desc' },
+        }),
+        ctx.db.leads.count({
+          where: whereClause,
+        }),
+      ]);
 
       return {
-        items: items.items || [],
+        items,
         total,
         hasMore: offset + limit < total,
         nextOffset: offset + limit < total ? offset + limit : null,
@@ -377,20 +382,44 @@ export const leadsRouter = createTRPCRouter({
   // Get pipeline stats
   getPipelineStats: publicProcedure
     .query(async ({ ctx }) => {
-      const [_statusStats, _prospectStats, _totalValue] = await Promise.all([
-        Promise.resolve({}), // Simplified for now
-        Promise.resolve({}), // Simplified for now
-        ctx.db.leads.aggregate({
-          _sum: { value: true },
-          _count: true,
-        }),
-      ]);
+      // Get all leads
+      const allLeads = await ctx.db.leads.findMany();
+
+      // Group by status
+      const statusStats = await ctx.db.leads.groupBy({
+        by: ['status'],
+        _count: {
+          id: true,
+        },
+      });
+
+      // Group by prospect_status (only leads with prospect_status set)
+      const prospectStats = await ctx.db.leads.groupBy({
+        by: ['prospect_status'],
+        where: {
+          prospect_status: { not: null },
+        },
+        _count: {
+          id: true,
+        },
+      });
+
+      // Calculate total value
+      const totalValueSum = allLeads.reduce((sum, lead) => {
+        return sum + (lead.value ? Number(lead.value) : 0);
+      }, 0);
 
       return {
-        statusStats: [],
-        prospectStats: [],
-        totalValue: 0,
-        totalLeads: 0,
+        statusStats: statusStats.map(stat => ({
+          status: stat.status,
+          _count: stat._count.id,
+        })),
+        prospectStats: prospectStats.map(stat => ({
+          prospect_status: stat.prospect_status,
+          _count: stat._count.id,
+        })),
+        totalValue: totalValueSum,
+        totalLeads: allLeads.length,
       };
     }),
 

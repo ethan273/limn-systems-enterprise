@@ -177,7 +177,11 @@ test.describe('Design - Briefs', () => {
     await page.goto(`/design/briefs/${brief.id}`, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const hasRequirements = await page.locator('text=/requirements/i, text=/specifications/i, text=/description/i').count() > 0;
+    const hasRequirements = await (
+      await page.locator('text=/requirements/i').count() > 0 ||
+      await page.locator('text=/specifications/i').count() > 0 ||
+      await page.locator('text=/description/i').count() > 0
+    ) > 0;
 
     expect(hasRequirements || true).toBe(true);
   });
@@ -280,7 +284,12 @@ test.describe('Design - Documents', () => {
     await page.goto('/design/documents', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const hasFileTypes = await page.locator('text=/pdf/i, text=/dwg/i, text=/cad/i, [class*="file-type"]').count() > 0;
+    const hasFileTypes = await (
+      await page.locator('text=/pdf/i').count() > 0 ||
+      await page.locator('text=/dwg/i').count() > 0 ||
+      await page.locator('text=/cad/i').count() > 0 ||
+      await page.locator('[class*="file-type"]').count() > 0
+    ) > 0;
 
     expect(hasFileTypes || true).toBe(true);
   });

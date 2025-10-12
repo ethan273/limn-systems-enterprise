@@ -148,7 +148,10 @@ test.describe('Financials - Invoice Detail', () => {
     await page.goto(`/financials/invoices/${invoice.id}`, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const hasTotal = await page.locator('text=/total/i, text=/amount/i').count() > 0;
+    const hasTotal = await (
+      await page.locator('text=/total/i').count() > 0 ||
+      await page.locator('text=/amount/i').count() > 0
+    ) > 0;
 
     expect(hasTotal).toBe(true);
   });
@@ -304,7 +307,11 @@ test.describe('Financials - Payment Detail', () => {
     await page.goto(`/financials/payments/${payment.id}`, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const hasMethod = await page.locator('text=/credit card/i, text=/bank transfer/i, text=/method/i').count() > 0;
+    const hasMethod = await (
+      await page.locator('text=/credit card/i').count() > 0 ||
+      await page.locator('text=/bank transfer/i').count() > 0 ||
+      await page.locator('text=/method/i').count() > 0
+    ) > 0;
 
     expect(hasMethod || true).toBe(true);
   });

@@ -314,7 +314,10 @@ test.describe('CRM Customers - Error Handling', () => {
     await page.goto('/crm/customers/00000000-0000-0000-0000-000000000000', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const hasError = await page.locator('text=/not found/i, text=/error/i').count() > 0;
+    const hasError = await (
+      await page.locator('text=/not found/i').count() > 0 ||
+      await page.locator('text=/error/i').count() > 0
+    ) > 0;
     const redirectedToList = page.url().includes('/crm/customers') && !page.url().includes('00000000');
     expect(hasError || redirectedToList).toBe(true);
   });

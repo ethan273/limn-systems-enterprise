@@ -50,16 +50,18 @@ import { formatDistanceToNow, isAfter, parseISO } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useAuthContext } from "@/lib/auth/AuthProvider";
 
 type TaskStatus = 'todo' | 'in_progress' | 'completed' | 'cancelled';
 
 export default function MyTasksPage() {
   const router = useRouter();
+  const { user } = useAuthContext();
   const [activeTab, setActiveTab] = useState("assigned");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
-  // Use real Development User ID - in production this would come from session
-  const currentUserId = "f146d819-3eed-43e3-80af-835915a5cc14";
+  // Use the actual logged-in user's ID
+  const currentUserId = user?.id || "";
 
   // Get my assigned tasks
   const { data: assignedTasksData, isLoading: isLoadingAssigned, refetch: refetchAssigned } = api.tasks.getMyTasks.useQuery({
@@ -67,7 +69,7 @@ export default function MyTasksPage() {
     limit: 100,
     offset: 0,
     includeWatching: false,
-  }, { enabled: activeTab === "assigned" });
+  }, { enabled: activeTab === "assigned" && !!currentUserId });
 
   // Get tasks I'm watching
   const { data: watchingTasksData, isLoading: isLoadingWatching, refetch: refetchWatching } = api.tasks.getMyTasks.useQuery({
@@ -75,7 +77,7 @@ export default function MyTasksPage() {
     limit: 100,
     offset: 0,
     includeWatching: true,
-  }, { enabled: activeTab === "watching" });
+  }, { enabled: activeTab === "watching" && !!currentUserId });
 
   // Get tasks I created
   const { data: createdTasksData, isLoading: isLoadingCreated, refetch: refetchCreated } = api.tasks.getAllTasks.useQuery({

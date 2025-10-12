@@ -192,7 +192,12 @@ test.describe('Tasks - My Tasks', () => {
     await page.goto('/tasks/my', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const hasContent = await page.locator('text=/assigned to me/i, text=/my tasks/i, h1, h2').count() > 0;
+    const hasContent = await (
+      await page.locator('text=/assigned to me/i').count() > 0 ||
+      await page.locator('text=/my tasks/i').count() > 0 ||
+      await page.locator('h1').count() > 0 ||
+      await page.locator('h2').count() > 0
+    ) > 0;
 
     expect(hasContent).toBe(true);
   });

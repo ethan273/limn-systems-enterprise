@@ -29,7 +29,9 @@ test.describe('📋 TASKS MODULE TESTS @tasks', () => {
 
     test('Tasks page loads and displays list', async ({ page }) => {
       await page.goto(`${TEST_CONFIG.BASE_URL}/tasks`);
-      await page.waitForLoadState('domcontentloaded');
+
+      // Wait for DataTable to render (after auth + tRPC query completes)
+      await page.waitForSelector('[data-testid="data-table"]', { timeout: 15000 });
 
       // Verify page title
       await expect(page.locator('h1')).toContainText(/tasks/i);
@@ -201,7 +203,9 @@ test.describe('📋 TASKS MODULE TESTS @tasks', () => {
 
     test('Kanban board page loads correctly', async ({ page }) => {
       await page.goto(`${TEST_CONFIG.BASE_URL}/tasks/kanban`);
-      await page.waitForLoadState('domcontentloaded');
+
+      // Wait for DataTable to render (after auth + tRPC query completes)
+      await page.waitForSelector('[data-testid="data-table"]', { timeout: 15000 });
 
       // Verify kanban board elements
       await expect(page.locator('h1')).toContainText(/kanban|board/i);

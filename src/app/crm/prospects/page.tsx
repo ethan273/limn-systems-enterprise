@@ -13,26 +13,28 @@ import {
   type StatItem,
   type DataTableColumn,
   type DataTableFilter,
+  type DataTableRowAction,
 } from "@/components/common";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import {
   Thermometer,
-  MoreVertical,
   Building,
   Mail,
-  Eye,
-  Edit,
-  Trash,
   ArrowRight,
   Star,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type ProspectStatus = 'cold' | 'warm' | 'hot';
 type LeadStatus = 'new' | 'contacted' | 'qualified' | 'proposal' | 'negotiation' | 'won' | 'lost';
@@ -65,6 +67,10 @@ export default function ProspectsPage() {
   const [_statusFilter, _setStatusFilter] = useState<LeadStatus | 'all'>('all');
   const [_page, _setPage] = useState(0);
   const [limit] = useState(20);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [prospectToDelete, setProspectToDelete] = useState<any>(null);
+  const [convertDialogOpen, setConvertDialogOpen] = useState(false);
+  const [prospectToConvert, setProspectToConvert] = useState<any>(null);
 
   const { data: prospectsData, isLoading, refetch } = api.crm.leads.getProspects.useQuery({
     limit,
@@ -77,6 +83,8 @@ export default function ProspectsPage() {
     onSuccess: () => {
       toast.success("Prospect deleted successfully");
       refetch();
+      setDeleteDialogOpen(false);
+      setProspectToDelete(null);
     },
     onError: (error) => {
       toast.error("Failed to delete prospect: " + error.message);
@@ -87,29 +95,33 @@ export default function ProspectsPage() {
     onSuccess: () => {
       toast.success("Prospect converted to client successfully");
       refetch();
+      setConvertDialogOpen(false);
+      setProspectToConvert(null);
     },
     onError: (error) => {
       toast.error("Failed to convert prospect: " + error.message);
     },
   });
 
-  const handleDeleteProspect = (prospectId: string) => {
-    if (confirm("Are you sure you want to delete this prospect?")) {
-      deleteLeadMutation.mutate({ id: prospectId });
+  const handleConfirmDelete = () => {
+    if (prospectToDelete) {
+      deleteLeadMutation.mutate({ id: prospectToDelete.id });
     }
   };
 
-  const handleConvertToClient = (prospect: any) => {
-    convertToClientMutation.mutate({
-      leadId: prospect.id,
-      clientData: {
-        name: prospect.name,
-        email: prospect.email,
-        phone: prospect.phone,
-        company: prospect.company,
-        type: 'client',
-      },
-    });
+  const handleConfirmConvert = () => {
+    if (prospectToConvert) {
+      convertToClientMutation.mutate({
+        leadId: prospectToConvert.id,
+        clientData: {
+          name: prospectToConvert.name,
+          email: prospectToConvert.email,
+          phone: prospectToConvert.phone,
+          company: prospectToConvert.company,
+          type: 'client',
+        },
+      });
+    }
   };
 
   const getProspectPriority = (prospect: any): number => {
@@ -211,55 +223,6 @@ export default function ProspectsPage() {
       sortable: true,
       render: (value) => value ? `$${(value as number).toLocaleString()}` : <span className="text-muted">—</span>,
     },
-    {
-      key: 'actions',
-      label: 'Actions',
-      render: (_, row) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-            <Button variant="ghost" size="sm" className="btn-icon">
-              <MoreVertical className="icon-sm" aria-hidden="true" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="card">
-            <DropdownMenuItem
-              className="dropdown-item"
-              onClick={(e) => {
-                e.stopPropagation();
-                router.push(`/crm/prospects/${row.id}`);
-              }}
-            >
-              <Eye className="icon-sm" aria-hidden="true" />
-              View Details
-            </DropdownMenuItem>
-            <DropdownMenuItem className="dropdown-item">
-              <Edit className="icon-sm" aria-hidden="true" />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="dropdown-item"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleConvertToClient(row);
-              }}
-            >
-              <ArrowRight className="icon-sm" aria-hidden="true" />
-              Convert to Client
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="dropdown-item-danger"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDeleteProspect(row.id);
-              }}
-            >
-              <Trash className="icon-sm" aria-hidden="true" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
-    },
   ];
 
   // Filters configuration
@@ -294,6 +257,34 @@ export default function ProspectsPage() {
     },
   ];
 
+  // Row actions configuration
+  const rowActions: DataTableRowAction<any>[] = [
+    {
+      label: 'View Details',
+      icon: Pencil,
+      onClick: (row) => router.push(`/crm/prospects/${row.id}`),
+    },
+    {
+      label: 'Convert to Client',
+      icon: ArrowRight,
+      separator: true,
+      onClick: (row) => {
+        setProspectToConvert(row);
+        setConvertDialogOpen(true);
+      },
+    },
+    {
+      label: 'Delete',
+      icon: Trash2,
+      variant: 'destructive',
+      separator: true,
+      onClick: (row) => {
+        setProspectToDelete(row);
+        setDeleteDialogOpen(true);
+      },
+    },
+  ];
+
   return (
     <div className="page-container">
       {/* Page Header */}
@@ -319,6 +310,7 @@ export default function ProspectsPage() {
           data={sortedProspects}
           columns={columns}
           filters={filters}
+          rowActions={rowActions}
           onRowClick={(row) => router.push(`/crm/prospects/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}
           emptyState={{
@@ -328,6 +320,51 @@ export default function ProspectsPage() {
           }}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Prospect</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {prospectToDelete?.name}? This action cannot be undone.
+              All associated activities will be preserved but unlinked.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteLeadMutation.isPending}
+            >
+              {deleteLeadMutation.isPending ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Convert to Client Confirmation Dialog */}
+      <AlertDialog open={convertDialogOpen} onOpenChange={setConvertDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Convert to Client</AlertDialogTitle>
+            <AlertDialogDescription>
+              Convert {prospectToConvert?.name} to a client? This will create a new customer record
+              and move this prospect out of your sales pipeline.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmConvert}
+              disabled={convertToClientMutation.isPending}
+            >
+              {convertToClientMutation.isPending ? 'Converting...' : 'Convert to Client'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

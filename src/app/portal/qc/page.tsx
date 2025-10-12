@@ -58,6 +58,12 @@ export default function QCPortalPage() {
 
   return (
     <div className="space-y-6">
+      {/* Page Header */}
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">Quality Inspections</h1>
+        <p className="text-muted-foreground mt-1">View and manage quality control inspections</p>
+      </div>
+
       {/* Statistics Cards */}
       <div className="grid gap-4 md:grid-cols-3">
         <Card>

@@ -27,7 +27,9 @@ test.describe('🏭 PRODUCTION MODULE TESTS @production', () => {
 
     test('Production orders page loads and displays list', async ({ page }) => {
       await page.goto(`${TEST_CONFIG.BASE_URL}/production/orders`);
-      await page.waitForLoadState('domcontentloaded');
+
+      // Wait for DataTable to render (after auth + tRPC query completes)
+      await page.waitForSelector('[data-testid="data-table"]', { timeout: 15000 });
 
       // Verify page title
       await expect(page.locator('h1')).toContainText(/production orders/i);
@@ -154,7 +156,9 @@ test.describe('🏭 PRODUCTION MODULE TESTS @production', () => {
 
     test('Shop drawings page loads correctly', async ({ page }) => {
       await page.goto(`${TEST_CONFIG.BASE_URL}/production/shop-drawings`);
-      await page.waitForLoadState('domcontentloaded');
+
+      // Wait for DataTable to render (after auth + tRPC query completes)
+      await page.waitForSelector('[data-testid="data-table"]', { timeout: 15000 });
 
       // Verify page title
       await expect(page.locator('h1')).toContainText(/shop.drawings/i);
@@ -231,7 +235,9 @@ test.describe('🏭 PRODUCTION MODULE TESTS @production', () => {
 
     test('Quality inspections page loads correctly', async ({ page }) => {
       await page.goto(`${TEST_CONFIG.BASE_URL}/production/quality`);
-      await page.waitForLoadState('domcontentloaded');
+
+      // Wait for DataTable to render (after auth + tRPC query completes)
+      await page.waitForSelector('[data-testid="data-table"]', { timeout: 15000 });
 
       // Verify page title
       await expect(page.locator('h1')).toContainText(/quality|inspections/i);
@@ -364,7 +370,9 @@ test.describe('🏭 PRODUCTION MODULE TESTS @production', () => {
 
     test('Prototypes page loads correctly', async ({ page }) => {
       await page.goto(`${TEST_CONFIG.BASE_URL}/production/prototypes`);
-      await page.waitForLoadState('domcontentloaded');
+
+      // Wait for DataTable to render (after auth + tRPC query completes)
+      await page.waitForSelector('[data-testid="data-table"]', { timeout: 15000 });
 
       // Verify page title
       await expect(page.locator('h1')).toContainText(/prototypes/i);
@@ -466,7 +474,9 @@ test.describe('🏭 PRODUCTION MODULE TESTS @production', () => {
 
     test('Packing lists page loads correctly', async ({ page }) => {
       await page.goto(`${TEST_CONFIG.BASE_URL}/production/packing`);
-      await page.waitForLoadState('domcontentloaded');
+
+      // Wait for DataTable to render (after auth + tRPC query completes)
+      await page.waitForSelector('[data-testid="data-table"]', { timeout: 15000 });
 
       // Verify page title
       await expect(page.locator('h1')).toContainText(/packing/i);

@@ -3,11 +3,12 @@
 /**
  * Catalog Item Detail Page
  *
- * Comprehensive detail view for production-ready catalog items with 4-tab interface:
- * 1. Overview - Images, specifications, dimensions, base SKU
- * 2. Sales Analytics - Units sold, revenue, popular material combinations, order history
- * 3. Documents - CAD files, PDFs, certifications (hybrid Supabase/Google Drive storage)
- * 4. Quality & QC - Summary statistics and recent QC inspections
+ * Comprehensive detail view for production-ready catalog items with 5-tab interface:
+ * 1. Overview - Images, specifications, base SKU
+ * 2. Dimensions - Furniture-type-specific dimensions with dual-unit entry
+ * 3. Sales Analytics - Units sold, revenue, popular material combinations, order history
+ * 4. Documents - CAD files, PDFs, certifications (hybrid Supabase/Google Drive storage)
+ * 5. Quality & QC - Summary statistics and recent QC inspections
  *
  * Created: October 2, 2025
  * Architecture: See /docs/catalog-detail-page/CATALOG_ITEM_DETAIL_IMPLEMENTATION_PLAN.md
@@ -25,11 +26,12 @@ import {
 } from "@/components/common";
 import { ArrowLeft, Package, DollarSign, Tag } from "lucide-react";
 
-// Tab components (will be created next)
+// Tab components
 import CatalogOverviewTab from "@/components/catalog/CatalogOverviewTab";
 import CatalogSalesTab from "@/components/catalog/CatalogSalesTab";
 import CatalogDocumentsTab from "@/components/catalog/CatalogDocumentsTab";
 import CatalogQualityTab from "@/components/catalog/CatalogQualityTab";
+import FurnitureDimensionsForm from "@/components/furniture/FurnitureDimensionsForm";
 
 interface CatalogDetailPageProps {
   params: Promise<{
@@ -98,11 +100,12 @@ export default function CatalogDetailPage({ params }: CatalogDetailPageProps) {
         ]}
       />
 
-      {/* 4-Tab Interface */}
+      {/* 5-Tab Interface */}
       <div className="catalog-detail-tabs">
         <Tabs defaultValue="overview" className="tabs-container">
           <TabsList className="tabs-list">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="dimensions">Dimensions</TabsTrigger>
             <TabsTrigger value="sales">Sales Analytics</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="quality">Quality & QC</TabsTrigger>
@@ -110,6 +113,14 @@ export default function CatalogDetailPage({ params }: CatalogDetailPageProps) {
 
           <TabsContent value="overview" className="tab-content">
             <CatalogOverviewTab catalogItem={catalogItem} />
+          </TabsContent>
+
+          <TabsContent value="dimensions" className="tab-content">
+            <FurnitureDimensionsForm
+              itemId={id}
+              initialFurnitureType={catalogItem.furniture_type || undefined}
+              initialDimensions={catalogItem.furniture_dimensions || undefined}
+            />
           </TabsContent>
 
           <TabsContent value="sales" className="tab-content">

@@ -22,12 +22,7 @@ export default function ProductionDashboardPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push("/login");
-    }
-  }, [authLoading, user, router]);
+  // Auth is handled by middleware - no client-side redirect needed
 
   const { data: stats } = api.productionTracking.getDashboardStats.useQuery(
     { date_range: _dateRange },

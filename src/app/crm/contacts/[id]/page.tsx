@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use, useState } from "react";
+import React, { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
@@ -8,10 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { EntityDetailHeader } from "@/components/common/EntityDetailHeader";
-import { InfoCard } from "@/components/common/InfoCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { EmptyState } from "@/components/common/EmptyState";
 import { LoadingState } from "@/components/common/LoadingState";
+import { EditableField, EditableFieldGroup } from "@/components/common";
 import {
   User,
   Mail,
@@ -25,8 +25,12 @@ import {
   Clock,
   CheckCircle2,
   AlertCircle,
+  X,
+  Check,
+  Briefcase,
 } from "lucide-react";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 // Dynamic route configuration
 export const dynamic = 'force-dynamic';
@@ -40,11 +44,86 @@ export default function ContactDetailPage({ params }: PageProps) {
   const router = useRouter();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
+  const [isEditing, setIsEditing] = useState(false);
 
-  const { data, isLoading, error } = api.crm.contacts.getById.useQuery(
+  const { data, isLoading, error, refetch } = api.crm.contacts.getById.useQuery(
     { id: id },
     { enabled: !!user && !!id }
   );
+
+  // Form data state for in-place editing
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    company: '',
+    position: '',
+    source: '',
+    notes: '',
+  });
+
+  // Sync form data with fetched contact data
+  useEffect(() => {
+    if (data?.contact) {
+      setFormData({
+        name: data.contact.name || '',
+        email: data.contact.email || '',
+        phone: data.contact.phone || '',
+        company: data.contact.company || '',
+        position: data.contact.position || '',
+        source: data.contact.source || '',
+        notes: data.contact.notes || '',
+      });
+    }
+  }, [data]);
+
+  // Update mutation
+  const updateMutation = api.crm.contacts.update.useMutation({
+    onSuccess: () => {
+      toast.success("Contact updated successfully");
+      setIsEditing(false);
+      refetch();
+    },
+    onError: (error: any) => {
+      toast.error("Failed to update contact: " + error.message);
+    },
+  });
+
+  const handleSave = async () => {
+    if (!formData.name) {
+      toast.error("Name is required");
+      return;
+    }
+
+    await updateMutation.mutateAsync({
+      id,
+      data: {
+        name: formData.name,
+        email: formData.email || undefined,
+        phone: formData.phone || undefined,
+        company: formData.company || undefined,
+        position: formData.position || undefined,
+        source: formData.source || undefined,
+        notes: formData.notes || undefined,
+      },
+    });
+  };
+
+  const handleCancel = () => {
+    // Reset form data to original values
+    if (data?.contact) {
+      setFormData({
+        name: data.contact.name || '',
+        email: data.contact.email || '',
+        phone: data.contact.phone || '',
+        company: data.contact.company || '',
+        position: data.contact.position || '',
+        source: data.contact.source || '',
+        notes: data.contact.notes || '',
+      });
+    }
+    setIsEditing(false);
+  };
 
   if (isLoading) {
     return (
@@ -90,21 +169,38 @@ export default function ContactDetailPage({ params }: PageProps) {
       {/* Contact Header */}
       <EntityDetailHeader
         icon={User}
-        title={contact.name || "Unnamed Contact"}
-        subtitle={contact.position || undefined}
+        title={formData.name || "Unnamed Contact"}
+        subtitle={formData.position || undefined}
         metadata={[
-          ...(contact.company ? [{ icon: Building2, value: contact.company, type: 'text' as const }] : []),
-          ...(contact.email ? [{ icon: Mail, value: contact.email, type: 'email' as const }] : []),
-          ...(contact.phone ? [{ icon: Phone, value: contact.phone, type: 'phone' as const }] : []),
+          ...(formData.company ? [{ icon: Building2, value: formData.company, type: 'text' as const }] : []),
+          ...(formData.email ? [{ icon: Mail, value: formData.email, type: 'email' as const }] : []),
+          ...(formData.phone ? [{ icon: Phone, value: formData.phone, type: 'phone' as const }] : []),
         ]}
         tags={contact.tags || []}
-        actions={[
-          {
-            label: 'Edit Contact',
-            icon: Edit,
-            onClick: () => router.push(`/crm/contacts/${id}/edit`),
-          },
-        ]}
+        actions={
+          isEditing
+            ? [
+                {
+                  label: 'Cancel',
+                  icon: X,
+                  variant: 'outline' as const,
+                  onClick: handleCancel,
+                },
+                {
+                  label: updateMutation.isPending ? 'Saving...' : 'Save Changes',
+                  icon: Check,
+                  onClick: handleSave,
+                  disabled: updateMutation.isPending,
+                },
+              ]
+            : [
+                {
+                  label: 'Edit Contact',
+                  icon: Edit,
+                  onClick: () => setIsEditing(true),
+                },
+              ]
+        }
       />
 
       {/* Stats Cards */}
@@ -169,46 +265,85 @@ export default function ContactDetailPage({ params }: PageProps) {
 
         {/* Overview Tab */}
         <TabsContent value="overview">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Contact Details */}
-            <InfoCard
-              title="Contact Details"
-              items={[
-                { label: 'Email', value: contact.email || '—', type: 'email' },
-                { label: 'Phone', value: contact.phone || '—', type: 'phone' },
-                { label: 'Company', value: contact.company || '—' },
-                { label: 'Position', value: contact.position || '—' },
-                { label: 'Source', value: contact.source || '—' },
-                {
-                  label: 'Created',
-                  value: contact.created_at
-                    ? format(new Date(contact.created_at), "MMM d, yyyy h:mm a")
-                    : "—"
-                },
-                {
-                  label: 'Last Contacted',
-                  value: analytics?.lastContactDate
-                    ? format(new Date(analytics.lastContactDate), "MMM d, yyyy")
-                    : "Never"
-                },
-              ]}
+          <EditableFieldGroup title="Contact Information" isEditing={isEditing} columns={2}>
+            <EditableField
+              label="Full Name"
+              value={formData.name}
+              isEditing={isEditing}
+              onChange={(value) => setFormData({ ...formData, name: value })}
+              required
+              icon={User}
             />
 
-            {/* Notes Section */}
-            <InfoCard
-              title="Notes"
-              items={[
-                {
-                  label: '',
-                  value: contact.notes ? (
-                    <p className="text-muted whitespace-pre-wrap">{contact.notes}</p>
-                  ) : (
-                    <p className="text-muted">No notes available</p>
-                  ),
-                },
-              ]}
+            <EditableField
+              label="Position"
+              value={formData.position}
+              isEditing={isEditing}
+              onChange={(value) => setFormData({ ...formData, position: value })}
+              icon={Briefcase}
             />
-          </div>
+
+            <EditableField
+              label="Email"
+              value={formData.email}
+              type="email"
+              isEditing={isEditing}
+              onChange={(value) => setFormData({ ...formData, email: value })}
+              icon={Mail}
+            />
+
+            <EditableField
+              label="Phone"
+              value={formData.phone}
+              type="phone"
+              isEditing={isEditing}
+              onChange={(value) => setFormData({ ...formData, phone: value })}
+              icon={Phone}
+            />
+
+            <EditableField
+              label="Company"
+              value={formData.company}
+              isEditing={isEditing}
+              onChange={(value) => setFormData({ ...formData, company: value })}
+              icon={Building2}
+            />
+
+            <EditableField
+              label="Source"
+              value={formData.source}
+              isEditing={isEditing}
+              onChange={(value) => setFormData({ ...formData, source: value })}
+            />
+
+            <div className="col-span-2">
+              <EditableField
+                label="Created"
+                value={contact.created_at ? format(new Date(contact.created_at), "MMM d, yyyy h:mm a") : "—"}
+                isEditing={false}
+                icon={Calendar}
+              />
+            </div>
+
+            <div className="col-span-2">
+              <EditableField
+                label="Last Contacted"
+                value={analytics?.lastContactDate ? format(new Date(analytics.lastContactDate), "MMM d, yyyy") : "Never"}
+                isEditing={false}
+                icon={Clock}
+              />
+            </div>
+
+            <div className="col-span-2">
+              <EditableField
+                label="Notes"
+                value={formData.notes}
+                type="textarea"
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, notes: value })}
+              />
+            </div>
+          </EditableFieldGroup>
         </TabsContent>
 
         {/* Activities Tab */}
@@ -270,16 +405,27 @@ export default function ContactDetailPage({ params }: PageProps) {
               <CardTitle>Contact Notes</CardTitle>
             </CardHeader>
             <CardContent>
-              {contact.notes ? (
-                <div className="notes-content">
-                  <p className="whitespace-pre-wrap">{contact.notes}</p>
-                </div>
-              ) : (
-                <EmptyState
-                  icon={MessageSquare}
-                  title="No Notes"
-                  description="Add notes about this contact to keep track of important information."
+              {isEditing ? (
+                <EditableField
+                  label=""
+                  value={formData.notes}
+                  type="textarea"
+                  isEditing={true}
+                  onChange={(value) => setFormData({ ...formData, notes: value })}
+                  className="min-h-[200px]"
                 />
+              ) : (
+                formData.notes ? (
+                  <div className="notes-content">
+                    <p className="whitespace-pre-wrap">{formData.notes}</p>
+                  </div>
+                ) : (
+                  <EmptyState
+                    icon={MessageSquare}
+                    title="No Notes"
+                    description="Add notes about this contact to keep track of important information."
+                  />
+                )
               )}
             </CardContent>
           </Card>

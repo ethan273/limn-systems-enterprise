@@ -15,18 +15,58 @@ import Image from "next/image";
 
 export default function UserProfileDropdown() {
   const router = useRouter();
-  const { data: user } = api.userProfile.getCurrentUser.useQuery(undefined, {
-    retry: false,
+  const { data: user, error, isError } = api.userProfile.getCurrentUser.useQuery(undefined, {
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
     refetchOnWindowFocus: false,
     refetchOnMount: false,
   });
   const userData = user as any;
   const supabase = getSupabaseBrowserClient();
 
+  // Debug logging
+  console.log('[UserProfileDropdown] User data:', { userData, isError, error });
+
+  // Don't render if user not found
+  if (isError || !userData) {
+    // User not logged in or session expired
+    if (isError) {
+      console.warn('[UserProfileDropdown] User not authenticated:', error?.message);
+    }
+    return null;
+  }
+
   const handleSignOut = async () => {
-    if (supabase) {
-      await supabase.auth.signOut();
-      router.push('/login');
+    try {
+      console.log('[UserProfileDropdown] Signing out...');
+
+      // Clear all auth cookies manually
+      document.cookie.split(";").forEach((c) => {
+        document.cookie = c
+          .replace(/^ +/, "")
+          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+      });
+
+      // Call server-side logout API for proper session cleanup
+      try {
+        const response = await fetch('/api/auth/logout', {
+          method: 'POST',
+          credentials: 'include',
+        });
+
+        if (response.ok) {
+          console.log('[UserProfileDropdown] ✅ Sign out successful');
+        }
+      } catch (apiError) {
+        console.log('[UserProfileDropdown] API logout failed (continuing anyway):', apiError);
+      }
+
+      // Always redirect to login
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('[UserProfileDropdown] Sign out exception:', error);
+      // Force redirect even on error
+      window.location.href = '/login';
     }
   };
 
@@ -56,15 +96,14 @@ export default function UserProfileDropdown() {
         sideOffset={8}
       >
         <div className="px-2 py-1.5">
-          <p className="text-sm font-medium">{userData?.name || 'User'}</p>
-          <p className="text-xs text-muted-foreground">{userData?.email}</p>
+          <p className="text-sm font-medium">{userData?.name || 'Unknown User'}</p>
+          <p className="text-xs text-muted-foreground">{userData?.email || 'No email available'}</p>
           {userData?.user_type && (
             <p className="text-xs text-muted-foreground capitalize mt-0.5">
-              {userData.user_type} {userData?.department ? `• ${userData.department}` : ''}
+              {userData.user_type.replace('_', ' ')} {userData?.department ? `• ${userData.department}` : ''}
             </p>
           )}
         </div>
-        <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() => router.push('/settings')}
           onSelect={() => router.push('/settings')}
@@ -73,7 +112,6 @@ export default function UserProfileDropdown() {
           <Settings className="w-4 h-4 mr-2" aria-hidden="true" />
           Settings
         </DropdownMenuItem>
-        <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() => handleSignOut()}
           onSelect={() => handleSignOut()}

@@ -64,6 +64,42 @@ const enforceUserIsAdmin = t.middleware(({ ctx, next }) => {
 
 export const adminProcedure = t.procedure.use(enforceUserIsAdmin);
 
+// Middleware to check if user is super admin (HIGHEST security level)
+const enforceUserIsSuperAdmin = t.middleware(async ({ ctx, next }) => {
+  if (!ctx.session?.user) {
+    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Authentication required' });
+  }
+
+  // Get user profile to check user_type
+  const userProfile = await ctx.db.user_profiles.findUnique({
+    where: { id: ctx.session.user.id },
+    select: { user_type: true, full_name: true },
+  });
+
+  // Only super_admin can access
+  if (userProfile?.user_type !== 'super_admin') {
+    // Log unauthorized access attempt
+    console.error(`[SECURITY] Unauthorized access attempt to super admin endpoint by user: ${ctx.session.user.id} (${userProfile?.full_name || 'unknown'})`);
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Super admin access required. This incident has been logged.'
+    });
+  }
+
+  // Log authorized access for audit trail
+  console.log(`[SECURITY] Super admin access granted to user: ${ctx.session.user.id} (${userProfile.full_name})`);
+
+  return next({
+    ctx: {
+      ...ctx,
+      session: ctx.session,
+      userProfile,
+    },
+  });
+});
+
+export const superAdminProcedure = t.procedure.use(enforceUserIsSuperAdmin);
+
 // Performance monitoring middleware
 const sentryMiddleware = t.middleware(async ({ path, type, next }) => {
   const start = Date.now();
@@ -110,3 +146,4 @@ const sentryMiddleware = t.middleware(async ({ path, type, next }) => {
 export const monitoredProcedure = publicProcedure.use(sentryMiddleware);
 export const monitoredProtectedProcedure = protectedProcedure.use(sentryMiddleware);
 export const monitoredAdminProcedure = adminProcedure.use(sentryMiddleware);
+export const monitoredSuperAdminProcedure = superAdminProcedure.use(sentryMiddleware);

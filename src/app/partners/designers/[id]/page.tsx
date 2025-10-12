@@ -233,33 +233,41 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Specializations</label>
                   <div className="flex flex-wrap gap-2 mt-1">
-                    {designer.specializations.map((spec: string, idx: number) => (
-                      <Badge key={idx} variant="secondary">{spec}</Badge>
-                    ))}
+                    {(designer.specializations || []).length > 0 ? (
+                      (designer.specializations || []).map((spec: string, idx: number) => (
+                        <Badge key={idx} variant="secondary">{spec}</Badge>
+                      ))
+                    ) : (
+                      <span className="text-sm text-muted-foreground">—</span>
+                    )}
                   </div>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Capabilities</label>
                   <div className="flex flex-wrap gap-2 mt-1">
-                    {designer.capabilities.map((cap: string, idx: number) => (
-                      <Badge key={idx} variant="outline">{cap}</Badge>
-                    ))}
+                    {(designer.capabilities || []).length > 0 ? (
+                      (designer.capabilities || []).map((cap: string, idx: number) => (
+                        <Badge key={idx} variant="outline">{cap}</Badge>
+                      ))
+                    ) : (
+                      <span className="text-sm text-muted-foreground">—</span>
+                    )}
                   </div>
                 </div>
-                {designer.certifications.length > 0 && (
+                {(designer.certifications || []).length > 0 && (
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Certifications</label>
                     <div className="flex flex-wrap gap-2 mt-1">
-                      {designer.certifications.map((cert: string, idx: number) => (
+                      {(designer.certifications || []).map((cert: string, idx: number) => (
                         <Badge key={idx} variant="default">{cert}</Badge>
                       ))}
                     </div>
                   </div>
                 )}
-                {designer.languages.length > 0 && (
+                {(designer.languages || []).length > 0 && (
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Languages</label>
-                    <p className="text-sm">{designer.languages.join(', ')}</p>
+                    <p className="text-sm">{(designer.languages || []).join(', ')}</p>
                   </div>
                 )}
               </CardContent>

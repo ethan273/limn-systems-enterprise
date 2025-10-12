@@ -203,14 +203,12 @@ export default function RolesManagementPage() {
       <div className="stats-grid">
         {roleStats?.map((stat) => (
           <Card key={stat.role}>
-            <CardHeader className="card-header-compact">
-              <div className="card-header-row">
-                <CardTitle className="card-title-sm">{stat.role}</CardTitle>
-                <UserCog className="icon-muted" aria-hidden="true" />
-              </div>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">{stat.role}</CardTitle>
+              <UserCog className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
             </CardHeader>
             <CardContent>
-              <div className="stat-value">{stat.count}</div>
+              <div className="text-2xl font-bold text-foreground">{stat.count}</div>
               <Button
                 variant="outline"
                 size="sm"

@@ -88,7 +88,18 @@ export async function login(page: Page, email: string, password: string) {
     try {
       await page.context().addCookies(savedSession.cookies);
       await page.goto(`${TEST_CONFIG.BASE_URL}/dashboard`, { waitUntil: 'domcontentloaded', timeout: 10000 });
-      await page.waitForTimeout(500);
+
+      // CRITICAL FIX: Wait for auth context to be fully established
+      // AuthProvider needs time to call getSession() and set user state
+      await page.waitForTimeout(1500); // Increased from 500ms to 1500ms
+
+      // Wait for authenticated page elements to confirm session is active
+      try {
+        await page.waitForSelector('nav, aside, [role="navigation"], h1, h2', { timeout: 5000 });
+      } catch {
+        // If elements don't appear, session might be expired
+        throw new Error('Auth elements not found - session may be expired');
+      }
 
       // Verify session is still valid (check if we're on dashboard, not redirected to login)
       const currentUrl = page.url();

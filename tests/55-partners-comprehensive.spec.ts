@@ -89,7 +89,9 @@ test.describe('Partners - Designers List', () => {
 
 test.describe('Partners - Designer Detail', () => {
   test('should display designer detail with database data', async ({ page }) => {
-    const designer = await prisma.partner_designers.findFirst();
+    const designer = await prisma.partners.findFirst({
+      where: { type: 'designer' }
+    });
 
     if (!designer) test.skip();
 
@@ -104,8 +106,11 @@ test.describe('Partners - Designer Detail', () => {
   });
 
   test('should display designer company name', async ({ page }) => {
-    const designer = await prisma.partner_designers.findFirst({
-      where: { companyName: { not: null } },
+    const designer = await prisma.partners.findFirst({
+      where: {
+        type: 'designer',
+        company_name: { not: null }
+      },
     });
 
     if (!designer) test.skip();
@@ -114,13 +119,15 @@ test.describe('Partners - Designer Detail', () => {
     await page.goto(`/partners/designers/${designer.id}`, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const hasCompanyName = await page.locator(`text=${designer.companyName}`).count() > 0;
+    const hasCompanyName = await page.locator(`text=${designer.company_name}`).count() > 0;
 
     expect(hasCompanyName || true).toBe(true);
   });
 
   test('should display designer contact information', async ({ page }) => {
-    const designer = await prisma.partner_designers.findFirst();
+    const designer = await prisma.partners.findFirst({
+      where: { type: 'designer' }
+    });
 
     if (!designer) test.skip();
 
@@ -128,13 +135,19 @@ test.describe('Partners - Designer Detail', () => {
     await page.goto(`/partners/designers/${designer.id}`, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const hasContactInfo = await page.locator('text=/email/i, text=/phone/i, text=/contact/i').count() > 0;
+    const hasContactInfo = (
+      await page.locator('text=/email/i').count() > 0 ||
+      await page.locator('text=/phone/i').count() > 0 ||
+      await page.locator('text=/contact/i').count() > 0
+    );
 
     expect(hasContactInfo || true).toBe(true);
   });
 
   test('should display designer projects/portfolio', async ({ page }) => {
-    const designer = await prisma.partner_designers.findFirst();
+    const designer = await prisma.partners.findFirst({
+      where: { type: 'designer' }
+    });
 
     if (!designer) test.skip();
 
@@ -142,13 +155,19 @@ test.describe('Partners - Designer Detail', () => {
     await page.goto(`/partners/designers/${designer.id}`, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const hasProjects = await page.locator('text=/projects/i, text=/portfolio/i, [class*="project"]').count() > 0;
+    const hasProjects = (
+      await page.locator('text=/projects/i').count() > 0 ||
+      await page.locator('text=/portfolio/i').count() > 0 ||
+      await page.locator('[class*="project"]').count() > 0
+    );
 
     expect(hasProjects || true).toBe(true);
   });
 
   test('should display designer specialties', async ({ page }) => {
-    const designer = await prisma.partner_designers.findFirst();
+    const designer = await prisma.partners.findFirst({
+      where: { type: 'designer' }
+    });
 
     if (!designer) test.skip();
 
@@ -156,7 +175,11 @@ test.describe('Partners - Designer Detail', () => {
     await page.goto(`/partners/designers/${designer.id}`, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const hasSpecialties = await page.locator('text=/specialties/i, text=/expertise/i, [class*="specialty"]').count() > 0;
+    const hasSpecialties = (
+      await page.locator('text=/specialties/i').count() > 0 ||
+      await page.locator('text=/expertise/i').count() > 0 ||
+      await page.locator('[class*="specialty"]').count() > 0
+    );
 
     expect(hasSpecialties || true).toBe(true);
   });
@@ -233,7 +256,9 @@ test.describe('Partners - Factories List', () => {
 
 test.describe('Partners - Factory Detail', () => {
   test('should display factory detail with database data', async ({ page }) => {
-    const factory = await prisma.partner_factories.findFirst();
+    const factory = await prisma.partners.findFirst({
+      where: { type: 'manufacturer' }
+    });
 
     if (!factory) test.skip();
 
@@ -248,8 +273,11 @@ test.describe('Partners - Factory Detail', () => {
   });
 
   test('should display factory company name', async ({ page }) => {
-    const factory = await prisma.partner_factories.findFirst({
-      where: { companyName: { not: null } },
+    const factory = await prisma.partners.findFirst({
+      where: {
+        type: 'manufacturer',
+        company_name: { not: null }
+      },
     });
 
     if (!factory) test.skip();
@@ -258,13 +286,15 @@ test.describe('Partners - Factory Detail', () => {
     await page.goto(`/partners/factories/${factory.id}`, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const hasCompanyName = await page.locator(`text=${factory.companyName}`).count() > 0;
+    const hasCompanyName = await page.locator(`text=${factory.company_name}`).count() > 0;
 
     expect(hasCompanyName || true).toBe(true);
   });
 
   test('should display factory location', async ({ page }) => {
-    const factory = await prisma.partner_factories.findFirst();
+    const factory = await prisma.partners.findFirst({
+      where: { type: 'manufacturer' }
+    });
 
     if (!factory) test.skip();
 
@@ -272,13 +302,19 @@ test.describe('Partners - Factory Detail', () => {
     await page.goto(`/partners/factories/${factory.id}`, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const hasLocation = await page.locator('text=/location/i, text=/address/i, text=/country/i').count() > 0;
+    const hasLocation = (
+      await page.locator('text=/location/i').count() > 0 ||
+      await page.locator('text=/address/i').count() > 0 ||
+      await page.locator('text=/country/i').count() > 0
+    );
 
     expect(hasLocation || true).toBe(true);
   });
 
   test('should display factory capabilities', async ({ page }) => {
-    const factory = await prisma.partner_factories.findFirst();
+    const factory = await prisma.partners.findFirst({
+      where: { type: 'manufacturer' }
+    });
 
     if (!factory) test.skip();
 
@@ -286,13 +322,19 @@ test.describe('Partners - Factory Detail', () => {
     await page.goto(`/partners/factories/${factory.id}`, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const hasCapabilities = await page.locator('text=/capabilities/i, text=/capacity/i, [class*="capability"]').count() > 0;
+    const hasCapabilities = (
+      await page.locator('text=/capabilities/i').count() > 0 ||
+      await page.locator('text=/capacity/i').count() > 0 ||
+      await page.locator('[class*="capability"]').count() > 0
+    );
 
     expect(hasCapabilities || true).toBe(true);
   });
 
   test('should display factory certifications', async ({ page }) => {
-    const factory = await prisma.partner_factories.findFirst();
+    const factory = await prisma.partners.findFirst({
+      where: { type: 'manufacturer' }
+    });
 
     if (!factory) test.skip();
 
@@ -300,13 +342,19 @@ test.describe('Partners - Factory Detail', () => {
     await page.goto(`/partners/factories/${factory.id}`, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const hasCertifications = await page.locator('text=/certifications/i, text=/iso/i, [class*="certification"]').count() > 0;
+    const hasCertifications = (
+      await page.locator('text=/certifications/i').count() > 0 ||
+      await page.locator('text=/iso/i').count() > 0 ||
+      await page.locator('[class*="certification"]').count() > 0
+    );
 
     expect(hasCertifications || true).toBe(true);
   });
 
   test('should display factory orders/production history', async ({ page }) => {
-    const factory = await prisma.partner_factories.findFirst();
+    const factory = await prisma.partners.findFirst({
+      where: { type: 'manufacturer' }
+    });
 
     if (!factory) test.skip();
 
@@ -314,7 +362,12 @@ test.describe('Partners - Factory Detail', () => {
     await page.goto(`/partners/factories/${factory.id}`, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const hasHistory = await page.locator('text=/orders/i, text=/history/i, table, [class*="order"]').count() > 0;
+    const hasHistory = (
+      await page.locator('text=/orders/i').count() > 0 ||
+      await page.locator('text=/history/i').count() > 0 ||
+      await page.locator('table').count() > 0 ||
+      await page.locator('[class*="order"]').count() > 0
+    );
 
     expect(hasHistory || true).toBe(true);
   });
@@ -337,7 +390,9 @@ test.describe('Partners - Navigation & Workflow', () => {
   });
 
   test('should have working breadcrumb navigation', async ({ page }) => {
-    const designer = await prisma.partner_designers.findFirst();
+    const designer = await prisma.partners.findFirst({
+      where: { type: 'designer' }
+    });
 
     if (!designer) test.skip();
 
@@ -351,7 +406,9 @@ test.describe('Partners - Navigation & Workflow', () => {
   });
 
   test('should display partner ratings or performance metrics', async ({ page }) => {
-    const designer = await prisma.partner_designers.findFirst();
+    const designer = await prisma.partners.findFirst({
+      where: { type: 'designer' }
+    });
 
     if (!designer) test.skip();
 
@@ -359,7 +416,12 @@ test.describe('Partners - Navigation & Workflow', () => {
     await page.goto(`/partners/designers/${designer.id}`, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const hasMetrics = await page.locator('text=/rating/i, text=/score/i, [class*="rating"], [class*="metric"]').count() > 0;
+    const hasMetrics = (
+      await page.locator('text=/rating/i').count() > 0 ||
+      await page.locator('text=/score/i').count() > 0 ||
+      await page.locator('[class*="rating"]').count() > 0 ||
+      await page.locator('[class*="metric"]').count() > 0
+    );
 
     expect(hasMetrics || true).toBe(true);
   });

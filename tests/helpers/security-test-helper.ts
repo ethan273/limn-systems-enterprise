@@ -16,25 +16,43 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env.test') });
 export interface TestUser {
   id: string;
   email: string;
-  userType: 'admin' | 'employee' | 'customer' | 'contractor';
+  userType: 'super_admin' | 'employee' | 'customer' | 'contractor';
   accessToken?: string;
+  refreshToken?: string;
 }
 
 /**
  * Create isolated test user with specific user_type
- * Generates proper UUID for user_profiles.id field
+ * CRITICAL: Must create Supabase auth user first, then user_profile
+ * user_profiles.id has FK constraint to auth.users.id
  */
 export async function createTestUser(
-  userType: 'admin' | 'employee' | 'customer' | 'contractor',
+  userType: 'super_admin' | 'employee' | 'customer' | 'contractor',
   customId?: string
 ): Promise<TestUser> {
   const timestamp = Date.now();
-  const id = customId || uuidv4(); // Generate proper UUID
   const email = `test-${userType}-${timestamp}@test.com`; // Unique email
+  const password = 'Test123!@#';
 
-  // Create user profile (full_name is auto-generated from first_name + last_name)
+  // Step 1: Create Supabase auth user (admin API)
+  const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true, // Auto-confirm email
+    user_metadata: {
+      user_type: userType,
+    },
+  });
+
+  if (authError || !authData.user) {
+    throw new Error(`Failed to create Supabase auth user: ${authError?.message}`);
+  }
+
+  const userId = customId || authData.user.id;
+
+  // Step 2: Create user profile with same ID as auth user
   await insertTestData('user_profiles', {
-    id,
+    id: userId,
     email,
     user_type: userType,
     first_name: 'Test',
@@ -43,44 +61,50 @@ export async function createTestUser(
   });
 
   return {
-    id,
+    id: userId,
     email,
     userType,
   };
 }
 
 /**
- * Get access token for test user via dev-login endpoint
+ * Get access token and refresh token for test user
+ * Uses Supabase Admin API to sign in the user directly
+ * Returns both tokens needed for proper Supabase session authentication
  */
-export async function getAccessToken(userId: string): Promise<string> {
-  const response = await fetch('http://localhost:3000/api/auth/dev-login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      userType: 'dev', // Use dev to get token for any user
-      userId,
-    }),
+export async function getAccessToken(userId: string): Promise<{ accessToken: string; refreshToken: string }> {
+  // Get user's email from user_profiles table
+  const { data: userProfile } = await supabaseAdmin
+    .from('user_profiles')
+    .select('email')
+    .eq('id', userId)
+    .single();
+
+  if (!userProfile) {
+    throw new Error(`No user profile found for user ID: ${userId}`);
+  }
+
+  // Use password-based sign-in (password was set in createTestUser)
+  const { data: signInData, error: signInError } = await supabaseAdmin.auth.signInWithPassword({
+    email: userProfile.email,
+    password: 'Test123!@#', // Standard test password from createTestUser
   });
 
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Failed to get access token: ${response.statusText} - ${text}`);
+  if (signInError || !signInData?.session) {
+    throw new Error(`Failed to sign in test user: ${signInError?.message}`);
   }
 
-  const data = await response.json();
-
-  if (!data.access_token) {
-    throw new Error(`No access token returned: ${JSON.stringify(data)}`);
-  }
-
-  return data.access_token;
+  return {
+    accessToken: signInData.session.access_token,
+    refreshToken: signInData.session.refresh_token,
+  };
 }
 
 /**
  * Switch browser context to different user
  */
 export async function switchUserContext(page: Page, userId: string): Promise<void> {
-  const accessToken = await getAccessToken(userId);
+  const tokens = await getAccessToken(userId);
 
   // Set auth cookie in browser
   await page.context().addCookies([
@@ -88,8 +112,8 @@ export async function switchUserContext(page: Page, userId: string): Promise<voi
       name: 'sb-gwqkbjymbarkufwvdmar-auth-token',
       value: `base64-${Buffer.from(
         JSON.stringify({
-          access_token: accessToken,
-          refresh_token: '',
+          access_token: tokens.accessToken,
+          refresh_token: tokens.refreshToken,
           expires_in: 3600,
           token_type: 'bearer',
         })
@@ -105,6 +129,7 @@ export async function switchUserContext(page: Page, userId: string): Promise<voi
 
 /**
  * Test RLS policy isolation between two users
+ * REDESIGNED: Handles proper customer -> entity relationships
  */
 export async function testRLSIsolation(
   table: string,
@@ -112,41 +137,114 @@ export async function testRLSIsolation(
   userBId: string,
   testData: any
 ): Promise<boolean> {
-  // User A creates data
-  const dataWithUser = { ...testData, user_id: userAId };
-  const created = await insertTestData(table, dataWithUser);
+  // Step 1: Create customers for each user (proper ownership chain)
+  const customerA = await insertTestData('customers', {
+    user_id: userAId,
+    name: `Customer A ${Date.now()}`,
+    email: `customer-a-${Date.now()}@test.com`,
+    status: 'active',
+  });
 
-  // Get access tokens
-  const userAToken = await getAccessToken(userAId);
-  const userBToken = await getAccessToken(userBId);
+  const customerB = await insertTestData('customers', {
+    user_id: userBId,
+    name: `Customer B ${Date.now()}`,
+    email: `customer-b-${Date.now()}@test.com`,
+    status: 'active',
+  });
 
-  // User A should see their own data
-  const userAResults = await queryAsUser(table, userAToken, { id: created.id });
+  // Step 2: Create entity with proper ownership
+  let created: any;
+  if (table === 'orders' || table === 'invoices') {
+    // These tables use customer_id directly
+    created = await insertTestData(table, {
+      ...testData,
+      customer_id: customerA.id,
+    });
+  } else if (table === 'shipments') {
+    // Shipments need an order first (order -> shipment relationship)
+    const order = await insertTestData('orders', {
+      customer_id: customerA.id,
+      order_number: `TEST-${Date.now()}`,
+      status: 'pending',
+      total_amount: 1000,
+    });
+    created = await insertTestData('shipments', {
+      ...testData,
+      order_id: order.id,
+    });
+  } else {
+    // Fallback for other tables
+    throw new Error(`RLS test not configured for table: ${table}`);
+  }
+
+  // Step 3: Get access tokens and refresh tokens for session-based auth
+  const userATokens = await getAccessToken(userAId);
+  const userBTokens = await getAccessToken(userBId);
+
+  // Step 4: User A should see their own data
+  const userAResults = await queryAsUser(table, userATokens.accessToken, userATokens.refreshToken, { id: created.id });
   const userACanSee = userAResults.length > 0;
 
-  // User B should NOT see User A's data (RLS blocks it)
-  const userBResults = await queryAsUser(table, userBToken, { id: created.id });
+  // Step 5: User B should NOT see User A's data (RLS blocks it)
+  const userBResults = await queryAsUser(table, userBTokens.accessToken, userBTokens.refreshToken, { id: created.id });
   const userBCannotSee = userBResults.length === 0;
 
-  // Cleanup
+  // Debug logging
+  console.log(`[RLS Test ${table}] User A can see: ${userACanSee}, User B cannot see: ${userBCannotSee}`);
+  console.log(`[RLS Test ${table}] User A results: ${userAResults.length}, User B results: ${userBResults.length}`);
+  if (!userACanSee) {
+    console.error(`[RLS Test ${table}] FAILED: User A cannot see their own data!`);
+  }
+  if (!userBCannotSee) {
+    console.error(`[RLS Test ${table}] FAILED: User B can see User A's data! RLS not working.`);
+  }
+
+  // Step 6: Cleanup (in order of dependencies)
   await deleteTestData(table, created.id);
+  if (table === 'shipments') {
+    // Also delete the order we created
+    const shipment = created as any;
+    if (shipment.order_id) {
+      await deleteTestData('orders', shipment.order_id);
+    }
+  }
+  await deleteTestData('customers', customerA.id);
+  await deleteTestData('customers', customerB.id);
 
   return userACanSee && userBCannotSee;
 }
 
 /**
  * Create test customer with portal access
- * Generates UUIDs for both customer and user_profile
+ * CRITICAL: Must create Supabase auth user first before user_profile
  */
 export async function createTestCustomerWithPortal(
   portalType: 'customer' | 'designer' | 'factory' | 'qc',
   customerId?: string
-): Promise<{ customer: any; userId: string; accessToken: string }> {
+): Promise<{ customer: any; userId: string; accessToken: string; refreshToken: string }> {
   const timestamp = Date.now();
   const testEmail = `test-${portalType}-${timestamp}@test.com`;
+  const password = 'Test123!@#';
 
-  // Create customer (let database generate UUID)
+  // Step 1: Create Supabase auth user FIRST
+  const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+    email: testEmail,
+    password,
+    email_confirm: true,
+    user_metadata: {
+      portal_type: portalType,
+    },
+  });
+
+  if (authError || !authData.user) {
+    throw new Error(`Failed to create auth user: ${authError?.message}`);
+  }
+
+  const userId = customerId || authData.user.id;
+
+  // Step 2: Create customer (let database generate UUID, link to auth user)
   const customer = await insertTestData('customers', {
+    user_id: userId, // Link customer to auth user for RLS
     name: `Test ${portalType} Customer`,
     email: testEmail,
     phone: '555-TEST',
@@ -155,18 +253,17 @@ export async function createTestCustomerWithPortal(
     created_at: new Date().toISOString(),
   });
 
-  // Create user profile for portal access (must provide UUID, full_name auto-generated)
-  const userId = customerId || uuidv4();
+  // Step 3: Create user profile for portal access
   const [firstName, ...lastNameParts] = customer.name.split(' ');
   await insertTestData('user_profiles', {
-    id: userId,
+    id: userId, // Use auth user ID
     email: customer.email,
     user_type: portalType === 'customer' ? 'customer' : 'employee',
     first_name: firstName || 'Test',
     last_name: lastNameParts.join(' ') || 'User',
   });
 
-  // Create portal access record
+  // Step 4: Create portal access record
   await insertTestData('customer_portal_access', {
     user_id: userId,
     customer_id: customer.id,
@@ -175,13 +272,14 @@ export async function createTestCustomerWithPortal(
     granted_at: new Date().toISOString(),
   });
 
-  // Get access token
-  const accessToken = await getAccessToken(userId);
+  // Step 5: Get access token and refresh token
+  const tokens = await getAccessToken(userId);
 
   return {
     customer,
     userId,
-    accessToken,
+    accessToken: tokens.accessToken,
+    refreshToken: tokens.refreshToken,
   };
 }
 
@@ -359,7 +457,7 @@ export async function createTestDataForRLS(
 
 /**
  * Cleanup test user and all related data
- * Uses email pattern matching since we can't search UUIDs
+ * CRITICAL: Must delete Supabase auth user to prevent FK constraint errors
  */
 export async function cleanupTestUser(userId: string): Promise<void> {
   // Get user's email first
@@ -384,6 +482,9 @@ export async function cleanupTestUser(userId: string): Promise<void> {
   await supabaseAdmin.from('orders').delete().ilike('order_number', '%TEST%');
   await supabaseAdmin.from('customers').delete().ilike('email', '%@test.com');
   await supabaseAdmin.from('user_profiles').delete().eq('id', userId);
+
+  // Delete Supabase auth user (prevents FK constraint errors)
+  await supabaseAdmin.auth.admin.deleteUser(userId);
 }
 
 /**
@@ -417,7 +518,7 @@ export const XSS_PAYLOADS = [
  * Test user types for permission testing
  */
 export const TEST_USER_TYPES = {
-  ADMIN: 'admin' as const,
+  ADMIN: 'super_admin' as const,
   EMPLOYEE: 'employee' as const,
   CUSTOMER: 'customer' as const,
   CONTRACTOR: 'contractor' as const,

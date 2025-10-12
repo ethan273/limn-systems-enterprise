@@ -205,7 +205,12 @@ test.describe('QC Portal - Upload', () => {
     await page.goto('/portal/qc/upload', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const hasFileInfo = await page.locator('text=/pdf/i, text=/jpg/i, text=/png/i, text=/accepted/i').count() > 0;
+    const hasFileInfo = await (
+      await page.locator('text=/pdf/i').count() > 0 ||
+      await page.locator('text=/jpg/i').count() > 0 ||
+      await page.locator('text=/png/i').count() > 0 ||
+      await page.locator('text=/accepted/i').count() > 0
+    ) > 0;
 
     expect(hasFileInfo || true).toBe(true);
   });

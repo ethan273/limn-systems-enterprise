@@ -80,27 +80,37 @@ export async function queryDatabaseMany<T = any>(
 /**
  * Query database with specific user context (enforces RLS)
  * Use for testing RLS policies
+ *
+ * CRITICAL: Must use setSession() to properly establish auth.uid() context
+ * Just using Bearer token in headers doesn't set auth.uid() for RLS policies
  */
 export async function queryAsUser<T = any>(
   table: string,
   accessToken: string,
+  refreshToken: string,
   filters: Record<string, any> = {}
 ): Promise<T[]> {
   const userClient = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
-      global: {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
       auth: {
         autoRefreshToken: false,
         persistSession: false,
       },
     }
   );
+
+  // Set session to establish auth.uid() context for RLS
+  const { error: sessionError } = await userClient.auth.setSession({
+    access_token: accessToken,
+    refresh_token: refreshToken,
+  });
+
+  if (sessionError) {
+    console.error(`[queryAsUser] Failed to set session: ${sessionError.message}`);
+    return [];
+  }
 
   const { data, error } = await userClient
     .from(table)
@@ -109,7 +119,7 @@ export async function queryAsUser<T = any>(
 
   if (error) {
     // RLS might cause errors - that's expected
-    console.log(`RLS Query Error (expected): ${error.message}`);
+    console.log(`[queryAsUser] RLS Query Error (expected): ${error.message}`);
     return [];
   }
 
@@ -279,22 +289,35 @@ export async function verifyCascadeDelete(
 }
 
 /**
- * Get test user access token for RLS testing
+ * Get test user access token and refresh token for RLS testing
+ * Returns both tokens needed for proper session-based authentication
  */
-export async function getTestUserAccessToken(userId: string): Promise<string> {
-  // Use dev-login endpoint to get token
-  const response = await fetch('http://localhost:3000/api/auth/dev-login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userType: 'dev', userId }),
-  });
+export async function getTestUserAccessToken(userId: string): Promise<{ accessToken: string; refreshToken: string }> {
+  // Get user's email from user_profiles table
+  const { data: userProfile } = await supabaseAdmin
+    .from('user_profiles')
+    .select('email')
+    .eq('id', userId)
+    .single();
 
-  if (!response.ok) {
-    throw new Error(`Failed to get test user token: ${response.statusText}`);
+  if (!userProfile) {
+    throw new Error(`No user profile found for user ID: ${userId}`);
   }
 
-  const data = await response.json();
-  return data.access_token;
+  // Use password-based sign-in (password was set in createTestUser)
+  const { data: signInData, error: signInError } = await supabaseAdmin.auth.signInWithPassword({
+    email: userProfile.email,
+    password: 'Test123!@#', // Standard test password from createTestUser
+  });
+
+  if (signInError || !signInData?.session) {
+    throw new Error(`Failed to sign in test user: ${signInError?.message}`);
+  }
+
+  return {
+    accessToken: signInData.session.access_token,
+    refreshToken: signInData.session.refresh_token,
+  };
 }
 
 /**
@@ -370,10 +393,17 @@ export async function createTestShipment(orderId: string) {
  * CRITICAL: Delete in order of dependencies (children → parents)
  */
 export async function cleanupAllTestData() {
-  // Order matters! Delete children before parents to avoid foreign key violations
+  const results: Record<string, number> = {};
 
-  // Special handling for payment_allocations (no good filter column)
-  // Delete payment_allocations for test invoices manually
+  // STEP 1: Get all test customers first (needed for cascade cleanup)
+  const testCustomers = await supabaseAdmin
+    .from('customers')
+    .select('id')
+    .ilike('email', '%@test.com');
+
+  const testCustomerIds = testCustomers.data?.map((c: any) => c.id) || [];
+
+  // STEP 2: Delete payment_allocations for test invoices
   try {
     const testInvoices = await supabaseAdmin
       .from('invoices')
@@ -382,33 +412,63 @@ export async function cleanupAllTestData() {
 
     if (testInvoices.data && testInvoices.data.length > 0) {
       const invoiceIds = testInvoices.data.map((inv: any) => inv.id);
-      await supabaseAdmin
+      const { data } = await supabaseAdmin
         .from('payment_allocations')
         .delete()
-        .in('invoice_id', invoiceIds);
+        .in('invoice_id', invoiceIds)
+        .select();
+      results['payment_allocations'] = data?.length || 0;
     }
   } catch (error) {
     console.warn('Cleanup failed for payment_allocations:', error);
+    results['payment_allocations'] = 0;
   }
 
+  // STEP 3: Delete invoices referencing test customers (must be before orders)
+  try {
+    if (testCustomerIds.length > 0) {
+      const { data: invoicesDeleted } = await supabaseAdmin
+        .from('invoices')
+        .delete()
+        .in('customer_id', testCustomerIds)
+        .select();
+      results['invoices_by_customer'] = invoicesDeleted?.length || 0;
+    }
+  } catch (error) {
+    console.warn('Cleanup failed for invoices (by customer):', error);
+    results['invoices_by_customer'] = 0;
+  }
+
+  // STEP 4: Delete orders referencing test customers (not just pattern-based)
+  // This ensures we delete ALL orders linked to test customers
+  try {
+    if (testCustomerIds.length > 0) {
+      const { data: ordersDeleted } = await supabaseAdmin
+        .from('orders')
+        .delete()
+        .in('customer_id', testCustomerIds)
+        .select();
+      results['orders_by_customer'] = ordersDeleted?.length || 0;
+    }
+  } catch (error) {
+    console.warn('Cleanup failed for orders (by customer):', error);
+    results['orders_by_customer'] = 0;
+  }
+
+  // STEP 5: Delete remaining pattern-based data
   const testPatterns = [
     // Level 3: Delete grandchildren
     { table: 'production_orders', column: 'order_number', pattern: 'PROD-%' },
     { table: 'shipments', column: 'tracking_number', pattern: 'TEST-TRACK-%' },
     { table: 'invoices', column: 'invoice_number', pattern: 'INV-TEST-%' },
 
-    // Level 2: Delete children
+    // Level 2: Delete remaining children (pattern-based)
     { table: 'orders', column: 'order_number', pattern: 'TEST-%' },
-
-    // Portal access cleanup (skip if tables don't exist or have wrong schema)
-    // These are cleaned up by security tests, not needed here
 
     // Level 1: Delete parents last
     { table: 'customers', column: 'email', pattern: '%@test.com' },
     { table: 'user_profiles', column: 'email', pattern: 'test-%@test.com' },
   ];
-
-  const results: Record<string, number> = {};
 
   for (const { table, column, pattern } of testPatterns) {
     try {

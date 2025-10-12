@@ -2,14 +2,7 @@
 
 import { useState } from "react";
 import { api } from "@/lib/api/client";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Package, Plus, MoreVertical, Edit, Trash } from "lucide-react";
+import { Package, Plus, Pencil, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import {
@@ -23,8 +16,19 @@ import {
   type FormField,
   type DataTableColumn,
   type DataTableFilter,
+  type DataTableRowAction,
   type StatItem,
 } from "@/components/common";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Collection {
   id: string;
@@ -42,6 +46,8 @@ export default function CollectionsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editCollectionId, setEditCollectionId] = useState<string>("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [collectionToDelete, setCollectionToDelete] = useState<Collection | null>(null);
 
   // Query collections
   const { data: collections = [], isLoading, refetch } = api.products.getAllCollections.useQuery();
@@ -73,6 +79,8 @@ export default function CollectionsPage() {
     onSuccess: () => {
       toast.success("Collection deleted successfully");
       refetch();
+      setDeleteDialogOpen(false);
+      setCollectionToDelete(null);
     },
     onError: (error) => {
       toast.error("Failed to delete collection: " + error.message);
@@ -84,9 +92,9 @@ export default function CollectionsPage() {
     setIsEditDialogOpen(true);
   };
 
-  const handleDeleteCollection = (id: string, name: string) => {
-    if (confirm(`Are you sure you want to delete the collection "${name}"?`)) {
-      deleteMutation.mutate({ id });
+  const handleConfirmDelete = () => {
+    if (collectionToDelete) {
+      deleteMutation.mutate({ id: collectionToDelete.id });
     }
   };
 
@@ -187,41 +195,6 @@ export default function CollectionsPage() {
         </span>
       ) : null,
     },
-    {
-      key: 'actions',
-      label: 'Actions',
-      render: (_, row) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-            <Button variant="ghost" size="sm" className="btn-icon">
-              <MoreVertical className="icon-sm" aria-hidden="true" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="card">
-            <DropdownMenuItem
-              className="dropdown-item"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleEditCollection(row);
-              }}
-            >
-              <Edit className="icon-sm" aria-hidden="true" />
-              Edit Collection
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="dropdown-item-danger"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDeleteCollection(row.id, row.name);
-              }}
-            >
-              <Trash className="icon-sm" aria-hidden="true" />
-              Delete Collection
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
-    },
   ];
 
   // DataTable filters configuration
@@ -231,6 +204,25 @@ export default function CollectionsPage() {
       label: 'Search collections',
       type: 'search',
       placeholder: 'Search by name, prefix, or description...',
+    },
+  ];
+
+  // Row actions configuration
+  const rowActions: DataTableRowAction<Collection>[] = [
+    {
+      label: 'Edit',
+      icon: Pencil,
+      onClick: (row) => handleEditCollection(row),
+    },
+    {
+      label: 'Delete',
+      icon: Trash2,
+      variant: 'destructive',
+      separator: true,
+      onClick: (row) => {
+        setCollectionToDelete(row);
+        setDeleteDialogOpen(true);
+      },
     },
   ];
 
@@ -312,6 +304,7 @@ export default function CollectionsPage() {
           data={collections as any[]}
           columns={columns as any}
           filters={filters}
+          rowActions={rowActions as any}
           pagination={{ pageSize: 20, showSizeSelector: true }}
           emptyState={{
             icon: Package,
@@ -320,6 +313,28 @@ export default function CollectionsPage() {
           }}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Collection</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{collectionToDelete?.name}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

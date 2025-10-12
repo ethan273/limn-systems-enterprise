@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use, useState } from "react";
+import React, { use, useState, useEffect } from "react";
 import { useRouter} from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
@@ -22,6 +22,7 @@ import {
   LoadingState,
   EmptyState,
 } from "@/components/common";
+import { EditableFieldGroup, EditableField } from "@/components/common/EditableField";
 import {
   User,
   Mail,
@@ -34,11 +35,33 @@ import {
   ShoppingCart,
   AlertCircle,
   Briefcase,
+  Check,
+  X,
+  DollarSign,
+  Calendar,
+  Target,
+  MessageSquare,
 } from "lucide-react";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 // Dynamic route configuration
 export const dynamic = 'force-dynamic';
+
+const PROJECT_STATUSES = [
+  { value: 'planning', label: 'Planning' },
+  { value: 'in_progress', label: 'In Progress' },
+  { value: 'on_hold', label: 'On Hold' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'cancelled', label: 'Cancelled' },
+];
+
+const PROJECT_PRIORITIES = [
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' },
+  { value: 'urgent', label: 'Urgent' },
+];
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -49,11 +72,97 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
   const router = useRouter();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    status: 'planning',
+    priority: 'medium',
+    budget: 0,
+    actual_cost: 0,
+    start_date: '',
+    end_date: '',
+    completion_percentage: 0,
+    notes: '',
+  });
 
-  const { data, isLoading, error } = api.projects.getById.useQuery(
+  const { data, isLoading, error, refetch } = api.projects.getById.useQuery(
     { id: id },
     { enabled: !!user && !!id }
   );
+
+  // Sync formData with fetched project data
+  useEffect(() => {
+    if (data?.project) {
+      const project = data.project;
+      setFormData({
+        name: project.name || '',
+        description: project.description || '',
+        status: project.status || 'planning',
+        priority: project.priority || 'medium',
+        budget: project.budget ? Number(project.budget) : 0,
+        actual_cost: project.actual_cost ? Number(project.actual_cost) : 0,
+        start_date: project.start_date ? format(new Date(project.start_date), "yyyy-MM-dd") : '',
+        end_date: project.end_date ? format(new Date(project.end_date), "yyyy-MM-dd") : '',
+        completion_percentage: project.completion_percentage || 0,
+        notes: project.notes || '',
+      });
+    }
+  }, [data]);
+
+  // Update mutation
+  const updateMutation = api.projects.update.useMutation({
+    onSuccess: () => {
+      toast.success("Project updated successfully");
+      setIsEditing(false);
+      refetch();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update project");
+    },
+  });
+
+  const handleSave = () => {
+    if (!formData.name) {
+      toast.error("Project name is required");
+      return;
+    }
+
+    updateMutation.mutate({
+      id: id,
+      data: {
+        name: formData.name,
+        description: formData.description || undefined,
+        status: formData.status,
+        priority: formData.priority,
+        budget: formData.budget || undefined,
+        actual_cost: formData.actual_cost || undefined,
+        start_date: formData.start_date || undefined,
+        end_date: formData.end_date || undefined,
+        completion_percentage: formData.completion_percentage || undefined,
+        notes: formData.notes || undefined,
+      },
+    });
+  };
+
+  const handleCancel = () => {
+    if (data?.project) {
+      const project = data.project;
+      setFormData({
+        name: project.name || '',
+        description: project.description || '',
+        status: project.status || 'planning',
+        priority: project.priority || 'medium',
+        budget: project.budget ? Number(project.budget) : 0,
+        actual_cost: project.actual_cost ? Number(project.actual_cost) : 0,
+        start_date: project.start_date ? format(new Date(project.start_date), "yyyy-MM-dd") : '',
+        end_date: project.end_date ? format(new Date(project.end_date), "yyyy-MM-dd") : '',
+        completion_percentage: project.completion_percentage || 0,
+        notes: project.notes || '',
+      });
+    }
+    setIsEditing(false);
+  };
 
   if (isLoading) {
     return (
@@ -119,13 +228,16 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
           ...(customer?.phone ? [{ icon: Phone, value: customer.phone, type: 'phone' as const }] : []),
           ...(project.priority ? [{ icon: Activity, value: `Priority: ${project.priority}`, type: 'text' as const }] : []),
         ]}
-        actions={[
-          {
-            label: 'Edit Project',
-            icon: Edit,
-            onClick: () => router.push(`/crm/projects/${id}/edit`),
-          },
-        ]}
+        actions={
+          isEditing
+            ? [
+                { label: 'Cancel', icon: X, onClick: handleCancel },
+                { label: 'Save Changes', icon: Check, onClick: handleSave },
+              ]
+            : [
+                { label: 'Edit Project', icon: Edit, onClick: () => setIsEditing(true) },
+              ]
+        }
       />
 
       {/* Financial Stats Cards */}
@@ -196,29 +308,86 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
         <TabsContent value="overview">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Project Details */}
-            <InfoCard
-              title="Project Information"
-              items={[
-                { label: 'Status', value: project.status || '—' },
-                { label: 'Priority', value: project.priority || '—' },
-                { label: 'Budget', value: project.budget ? `$${Number(project.budget).toLocaleString()}` : '—' },
-                { label: 'Actual Cost', value: project.actual_cost ? `$${Number(project.actual_cost).toLocaleString()}` : '—' },
-                {
-                  label: 'Start Date',
-                  value: project.start_date && !isNaN(new Date(project.start_date).getTime())
-                    ? format(new Date(project.start_date), "MMM d, yyyy")
-                    : '—'
-                },
-                {
-                  label: 'End Date',
-                  value: project.end_date && !isNaN(new Date(project.end_date).getTime())
-                    ? format(new Date(project.end_date), "MMM d, yyyy")
-                    : '—'
-                },
-                { label: 'Completion', value: `${project.completion_percentage || 0}%` },
-                { label: 'Created', value: project.created_at ? format(new Date(project.created_at), "MMM d, yyyy") : '—' },
-              ]}
-            />
+            <EditableFieldGroup title="Project Information" isEditing={isEditing}>
+              <EditableField
+                label="Name"
+                value={formData.name}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, name: value })}
+                required
+                icon={Briefcase}
+              />
+              <EditableField
+                label="Description"
+                value={formData.description}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, description: value })}
+                type="textarea"
+              />
+              <EditableField
+                label="Status"
+                value={formData.status}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, status: value })}
+                type="select"
+                options={PROJECT_STATUSES}
+                icon={Activity}
+              />
+              <EditableField
+                label="Priority"
+                value={formData.priority}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, priority: value })}
+                type="select"
+                options={PROJECT_PRIORITIES}
+                icon={Target}
+              />
+              <EditableField
+                label="Budget"
+                value={String(formData.budget || 0)}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, budget: parseFloat(value) || 0 })}
+                type="text"
+                icon={DollarSign}
+              />
+              <EditableField
+                label="Actual Cost"
+                value={String(formData.actual_cost || 0)}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, actual_cost: parseFloat(value) || 0 })}
+                type="text"
+                icon={DollarSign}
+              />
+              <EditableField
+                label="Start Date"
+                value={formData.start_date}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, start_date: value })}
+                type="date"
+                icon={Calendar}
+              />
+              <EditableField
+                label="End Date"
+                value={formData.end_date}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, end_date: value })}
+                type="date"
+                icon={Calendar}
+              />
+              <EditableField
+                label="Completion"
+                value={String(formData.completion_percentage || 0)}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, completion_percentage: parseInt(value) || 0 })}
+                type="text"
+              />
+              <EditableField
+                label="Created"
+                value={project.created_at ? format(new Date(project.created_at), "MMM d, yyyy h:mm a") : '—'}
+                isEditing={false}
+                icon={Calendar}
+              />
+            </EditableFieldGroup>
 
             {/* Customer Information */}
             <InfoCard
@@ -236,14 +405,16 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
           </div>
 
           {/* Notes Section */}
-          {project.notes && (
-            <InfoCard
-              title="Notes"
-              items={[
-                { label: '', value: <p className="whitespace-pre-wrap">{project.notes}</p> },
-              ]}
+          <EditableFieldGroup title="Notes" isEditing={isEditing}>
+            <EditableField
+              label="Notes"
+              value={formData.notes}
+              isEditing={isEditing}
+              onChange={(value) => setFormData({ ...formData, notes: value })}
+              type="textarea"
+              icon={MessageSquare}
             />
-          )}
+          </EditableFieldGroup>
         </TabsContent>
 
         {/* Orders Tab */}

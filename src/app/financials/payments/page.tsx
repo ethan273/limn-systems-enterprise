@@ -4,9 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
-import { DollarSign, CreditCard, CheckCircle2, Clock } from "lucide-react";
+import { DollarSign, CreditCard, CheckCircle2, Clock, Download, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   PageHeader,
   EmptyState,
@@ -59,6 +60,68 @@ export default function PaymentsPage() {
     countPending: 0,
     countFailed: 0,
     byMethod: {},
+  };
+
+  // Export to CSV handler
+  const handleExportCSV = () => {
+    if (!payments || payments.length === 0) {
+      alert('No payments to export');
+      return;
+    }
+
+    // CSV headers
+    const headers = [
+      'Payment Number',
+      'Date',
+      'Customer Name',
+      'Customer Email',
+      'Payment Method',
+      'Amount',
+      'Allocated',
+      'Unallocated',
+      'Status',
+      'Reference Number',
+      'Transaction ID'
+    ];
+
+    // CSV rows
+    const rows = payments.map((payment: any) => [
+      payment.payment_number || '',
+      payment.created_at ? format(new Date(payment.created_at), 'yyyy-MM-dd') : '',
+      payment.customers?.company_name || payment.customers?.name || '',
+      payment.customers?.email || '',
+      payment.payment_method || '',
+      payment.amount || 0,
+      payment.totalAllocated || 0,
+      payment.unallocated || 0,
+      payment.status || '',
+      payment.reference_number || '',
+      payment.processor_transaction_id || ''
+    ]);
+
+    // Combine headers and rows
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => {
+        // Escape quotes and wrap in quotes if contains comma
+        const cellStr = String(cell);
+        if (cellStr.includes(',') || cellStr.includes('"')) {
+          return `"${cellStr.replace(/"/g, '""')}"`;
+        }
+        return cellStr;
+      }).join(','))
+    ].join('\n');
+
+    // Download CSV file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `payments_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   // Stats configuration
@@ -214,6 +277,24 @@ export default function PaymentsPage() {
       <PageHeader
         title="Payments"
         subtitle="All payments tracking and allocation management"
+        actions={
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleExportCSV}
+              disabled={!payments || payments.length === 0}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Export CSV
+            </Button>
+            <Button
+              onClick={() => router.push('/financials/payments/new')}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Record Payment
+            </Button>
+          </div>
+        }
       />
 
       {/* Stats */}

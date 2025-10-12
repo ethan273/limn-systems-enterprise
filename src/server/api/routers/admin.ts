@@ -89,11 +89,42 @@ export const adminRouter = createTRPCRouter({
           where.user_profiles = { user_type: userType };
         }
 
-        // Simplified: Query users and profiles separately
+        // Build profile where clause for filtering
+        const profileWhere: any = {};
+        if (userType) {
+          profileWhere.user_type = userType as user_type_enum;
+        }
+        if (isActive !== undefined) {
+          profileWhere.is_active = isActive;
+        }
+
+        // Query profiles first to get filtered user IDs
+        const profiles = await prisma.user_profiles.findMany({
+          where: profileWhere,
+          select: {
+            id: true,
+            name: true,
+            avatar_url: true,
+            user_type: true,
+            title: true,
+            department: true,
+            is_active: true,
+          },
+        });
+
+        const userIds = profiles.map(p => p.id);
+
+        // Now query users with these IDs and apply search filter
+        const userWhere: any = {
+          id: { in: userIds },
+        };
+
+        if (search) {
+          userWhere.email = { contains: search, mode: 'insensitive' as any };
+        }
+
         const users = await prisma.users.findMany({
-          where: search ? {
-            email: { contains: search, mode: 'insensitive' as any },
-          } : {},
+          where: userWhere,
           take: limit,
           skip: offset,
           select: {
@@ -106,54 +137,28 @@ export const adminRouter = createTRPCRouter({
         });
 
         const total = await prisma.users.count({
-          where: search ? {
-            email: { contains: search, mode: 'insensitive' as any },
-          } : {},
+          where: userWhere,
         });
 
-        // Get profiles for these users
-        const userIds = users.map(u => u.id);
-        const profiles = await prisma.user_profiles.findMany({
-          where: {
-            id: { in: userIds },
-            ...(userType ? { user_type: userType as user_type_enum } : {}),
-            ...(isActive !== undefined ? { is_active: isActive } : {}),
-          },
-          select: {
-            id: true,
-            name: true,
-            avatar_url: true,
-            user_type: true,
-            title: true,
-            department: true,
-            is_active: true,
-          },
-        });
-
+        // Create profile map for quick lookup
         const profileMap = new Map(profiles.map(p => [p.id, p]));
 
         return {
-          users: users
-            .map(user => {
-              const profile = profileMap.get(user.id);
-              // Filter by user type and active status
-              if (userType && profile?.user_type !== userType) return null;
-              if (isActive !== undefined && profile?.is_active !== isActive) return null;
-
-              return {
-                id: user.id,
-                email: user.email,
-                name: profile?.name || null,
-                avatarUrl: profile?.avatar_url || null,
-                userType: profile?.user_type || 'employee',
-                title: profile?.title || null,
-                department: profile?.department || null,
-                isActive: profile?.is_active ?? true,
-                lastSignInAt: user.last_sign_in_at,
-                createdAt: user.created_at,
-              };
-            })
-            .filter((user): user is NonNullable<typeof user> => user !== null),
+          users: users.map(user => {
+            const profile = profileMap.get(user.id);
+            return {
+              id: user.id,
+              email: user.email,
+              name: profile?.name || null,
+              avatarUrl: profile?.avatar_url || null,
+              userType: profile?.user_type || 'employee',
+              title: profile?.title || null,
+              department: profile?.department || null,
+              isActive: profile?.is_active ?? true,
+              lastSignInAt: user.last_sign_in_at,
+              createdAt: user.created_at,
+            };
+          }),
           total,
           hasMore: offset + limit < total,
         };

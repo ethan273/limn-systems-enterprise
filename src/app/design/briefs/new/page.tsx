@@ -33,11 +33,7 @@ export default function NewDesignBriefPage() {
     functional_requirements: "",
   });
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push("/login");
-    }
-  }, [authLoading, user, router]);
+  // Auth is handled by middleware - no client-side redirect needed
 
   const { data: projectsData } = api.designProjects.getAll.useQuery(
     { limit: 100 },

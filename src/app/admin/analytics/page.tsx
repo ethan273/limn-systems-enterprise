@@ -143,14 +143,12 @@ export default function AnalyticsDashboardPage() {
           {/* Overview Stats */}
           <div className="stats-grid-lg">
             <Card>
-              <CardHeader className="card-header-compact">
-                <div className="card-header-row">
-                  <CardTitle className="card-title-sm">Total Users</CardTitle>
-                  <Users className="icon-muted" aria-hidden="true" />
-                </div>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total Users</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
               </CardHeader>
               <CardContent>
-                <div className="stat-value">{totalUsers}</div>
+                <div className="text-2xl font-bold text-foreground">{totalUsers}</div>
                 <div className="flex items-center gap-2 mt-2">
                   <Badge variant="outline" className="badge-success">
                     {activeUsers} Active
@@ -163,50 +161,44 @@ export default function AnalyticsDashboardPage() {
             </Card>
 
             <Card>
-              <CardHeader className="card-header-compact">
-                <div className="card-header-row">
-                  <CardTitle className="card-title-sm">Admin Actions</CardTitle>
-                  <Activity className="icon-muted" aria-hidden="true" />
-                </div>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Admin Actions</CardTitle>
+                <Activity className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
               </CardHeader>
               <CardContent>
-                <div className="stat-value">{stats?.adminLogsCount || 0}</div>
-                <p className="stat-label">Last {timeRange} days</p>
+                <div className="text-2xl font-bold text-foreground">{stats?.adminLogsCount || 0}</div>
+                <p className="text-xs text-muted-foreground mt-1">Last {timeRange} days</p>
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader className="card-header-compact">
-                <div className="card-header-row">
-                  <CardTitle className="card-title-sm">Security Events</CardTitle>
-                  <Shield className="icon-muted" aria-hidden="true" />
-                </div>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Security Events</CardTitle>
+                <Shield className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
               </CardHeader>
               <CardContent>
-                <div className="stat-value">{stats?.securityLogsCount || 0}</div>
-                <p className="stat-label">Last {timeRange} days</p>
+                <div className="text-2xl font-bold text-foreground">{stats?.securityLogsCount || 0}</div>
+                <p className="text-xs text-muted-foreground mt-1">Last {timeRange} days</p>
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader className="card-header-compact">
-                <div className="card-header-row">
-                  <CardTitle className="card-title-sm">Login Attempts</CardTitle>
-                  <TrendingUp className="icon-muted" aria-hidden="true" />
-                </div>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Login Attempts</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
               </CardHeader>
               <CardContent>
-                <div className="stat-value">{stats?.loginLogsCount || 0}</div>
+                <div className="text-2xl font-bold text-foreground">{stats?.loginLogsCount || 0}</div>
                 <div className="flex items-center gap-2 mt-2">
                   <div className="flex items-center gap-1">
                     <CheckCircle2 className="icon-success" aria-hidden="true" />
-                    <span className="stat-label">
+                    <span className="text-xs text-muted-foreground">
                       {(stats?.loginLogsCount || 0) - (stats?.failedLoginsCount || 0)} Success
                     </span>
                   </div>
                   <div className="flex items-center gap-1">
                     <XCircle className="icon-destructive" aria-hidden="true" />
-                    <span className="stat-label">{stats?.failedLoginsCount || 0} Failed</span>
+                    <span className="text-xs text-muted-foreground">{stats?.failedLoginsCount || 0} Failed</span>
                   </div>
                 </div>
               </CardContent>
@@ -214,10 +206,11 @@ export default function AnalyticsDashboardPage() {
           </div>
 
           {/* Recent Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <Card>
-              <CardHeader>
-                <CardTitle>Top Actions (Last {timeRange} days)</CardTitle>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Top Actions (Last {timeRange} days)</CardTitle>
+                <Activity className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
               </CardHeader>
               <CardContent>
                 {stats?.recentActions && stats.recentActions.length > 0 ? (
@@ -241,8 +234,9 @@ export default function AnalyticsDashboardPage() {
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle>Most Active Users (Last {timeRange} days)</CardTitle>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Most Active Users (Last {timeRange} days)</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
               </CardHeader>
               <CardContent>
                 {stats?.topUsers && stats.topUsers.length > 0 ? (

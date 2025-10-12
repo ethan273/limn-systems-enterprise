@@ -389,7 +389,6 @@ export default function FinancialDashboardPage() {
                     </div>
                     <div className="customer-info">
                       <p className="customer-name">{customer.name}</p>
-                      <p className="customer-id">Customer ID: {customer.id}</p>
                     </div>
                   </div>
                   <div className="customer-revenue">
@@ -415,8 +414,8 @@ export default function FinancialDashboardPage() {
                 <Card key={index} className={insightClass}>
                   <CardHeader>
                     <div className="insight-header">
-                      <Icon className="insight-icon" />
                       <CardTitle className="insight-title">{insight.title}</CardTitle>
+                      <Icon className="insight-icon" />
                     </div>
                   </CardHeader>
                   <CardContent>

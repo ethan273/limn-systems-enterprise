@@ -2,29 +2,41 @@
 
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
-import { Plus, Package, MoreVertical, Eye, Edit, Trash, DollarSign } from "lucide-react";
+import { Plus, Package, DollarSign, Pencil, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   PageHeader,
   EmptyState,
   LoadingState,
   DataTable,
   StatsGrid,
+  FormDialog,
   type DataTableColumn,
   type DataTableFilter,
+  type DataTableRowAction,
   type StatItem,
 } from "@/components/common";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function CatalogItemsPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<any>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   // Query items filtered by production_ready status
   const { data, isLoading, refetch } = api.items.getAll.useQuery({
@@ -34,17 +46,43 @@ export default function CatalogItemsPage() {
 
   const items = data?.items || [];
 
-  // Delete mutation
-  const deleteMutation = api.items.delete.useMutation({
-    onSuccess: () => {
-      refetch();
-    },
-  });
-
   // Filter to only show production-ready items
   const productionReadyItems = items.filter((item: any) =>
     item.status === 'production_ready' || item.type === 'Production Ready'
   );
+
+  // Create mutation
+  const createMutation = api.items.create.useMutation({
+    onSuccess: () => {
+      toast.success("Catalog item created successfully");
+      queryClient.invalidateQueries({ queryKey: ['items'] });
+      refetch();
+      setIsFormOpen(false);
+    },
+    onError: (error) => {
+      toast.error("Failed to create catalog item: " + error.message);
+    },
+  });
+
+  // Delete mutation
+  const deleteMutation = api.items.delete.useMutation({
+    onSuccess: () => {
+      toast.success("Catalog item deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ['items'] });
+      refetch();
+      setDeleteDialogOpen(false);
+      setItemToDelete(null);
+    },
+    onError: (error) => {
+      toast.error("Failed to delete catalog item: " + error.message);
+    },
+  });
+
+  const handleConfirmDelete = () => {
+    if (itemToDelete) {
+      deleteMutation.mutate({ id: itemToDelete.id });
+    }
+  };
 
   // Stats configuration
   const stats: StatItem[] = [
@@ -162,58 +200,6 @@ export default function CatalogItemsPage() {
         </span>
       ) : null,
     },
-    {
-      key: 'actions',
-      label: 'Actions',
-      render: (_, row) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-            <Button variant="ghost" size="sm" className="btn-icon">
-              <MoreVertical className="icon-sm" aria-hidden="true" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="card">
-            <DropdownMenuItem
-              className="dropdown-item"
-              onClick={(e) => {
-                e.stopPropagation();
-                router.push(`/products/catalog/${row.id}`);
-              }}
-            >
-              <Eye className="icon-sm" aria-hidden="true" />
-              View Details
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="dropdown-item"
-              onClick={(e) => {
-                e.stopPropagation();
-                router.push(`/products/catalog/${row.id}/edit`);
-              }}
-            >
-              <Edit className="icon-sm" aria-hidden="true" />
-              Edit Item
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="dropdown-item-danger"
-              onClick={async (e) => {
-                e.stopPropagation();
-                if (window.confirm(`Are you sure you want to delete "${row.name}"? This action cannot be undone.`)) {
-                  try {
-                    await deleteMutation.mutateAsync({ id: row.id });
-                  } catch (error) {
-                    console.error('Failed to delete item:', error);
-                    alert('Failed to delete item. Please try again.');
-                  }
-                }
-              }}
-            >
-              <Trash className="icon-sm" aria-hidden="true" />
-              Delete Item
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
-    },
   ];
 
   // DataTable filters configuration
@@ -236,6 +222,25 @@ export default function CatalogItemsPage() {
     },
   ];
 
+  // Row actions configuration
+  const rowActions: DataTableRowAction<any>[] = [
+    {
+      label: 'Edit',
+      icon: Pencil,
+      onClick: (row) => router.push(`/products/catalog/${row.id}/edit`),
+    },
+    {
+      label: 'Delete',
+      icon: Trash2,
+      variant: 'destructive',
+      separator: true,
+      onClick: (row) => {
+        setItemToDelete(row);
+        setDeleteDialogOpen(true);
+      },
+    },
+  ];
+
   return (
     <div className="page-container">
       {/* Page Header */}
@@ -246,7 +251,7 @@ export default function CatalogItemsPage() {
           {
             label: 'New Catalog Item',
             icon: Plus,
-            onClick: () => router.push('/products/catalog/new'),
+            onClick: () => setIsFormOpen(true),
           },
         ]}
       />
@@ -264,7 +269,7 @@ export default function CatalogItemsPage() {
           description="Get started by creating your first catalog item."
           action={{
             label: 'Create First Catalog Item',
-            onClick: () => router.push('/products/catalog/new'),
+            onClick: () => setIsFormOpen(true),
             icon: Plus,
           }}
         />
@@ -273,6 +278,7 @@ export default function CatalogItemsPage() {
           data={productionReadyItems}
           columns={columns}
           filters={filters}
+          rowActions={rowActions}
           onRowClick={(row) => router.push(`/products/catalog/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}
           emptyState={{
@@ -282,6 +288,59 @@ export default function CatalogItemsPage() {
           }}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Catalog Item</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{itemToDelete?.name}"? This action cannot be undone.
+              This item will be removed from the catalog.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Create Catalog Item Form Dialog */}
+      <FormDialog
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        title="Create New Catalog Item"
+        description="Add a new production-ready item to the catalog"
+        fields={[
+          { name: 'sku', label: 'SKU', type: 'text', required: true },
+          { name: 'name', label: 'Item Name', type: 'text', required: true },
+          { name: 'collection_id', label: 'Collection ID', type: 'text', required: true, placeholder: 'Enter collection UUID' },
+          { name: 'furniture_type', label: 'Furniture Type', type: 'text', placeholder: 'chair, table, sofa/loveseat, etc.' },
+          { name: 'category', label: 'Category', type: 'text' },
+          { name: 'subcategory', label: 'Subcategory', type: 'text' },
+          { name: 'description', label: 'Description', type: 'textarea' },
+          { name: 'list_price', label: 'List Price', type: 'number', required: true },
+          { name: 'currency', label: 'Currency', type: 'text', placeholder: 'USD' },
+          { name: 'lead_time_days', label: 'Lead Time (Days)', type: 'number' },
+          { name: 'min_order_quantity', label: 'Min Order Qty', type: 'number', placeholder: '1' },
+          { name: 'is_customizable', label: 'Customizable', type: 'checkbox' },
+          { name: 'type', label: 'Item Type', type: 'text', placeholder: 'Production Ready' },
+        ]}
+        onSubmit={async (data) => {
+          await createMutation.mutateAsync({
+            ...data,
+            type: 'Production Ready',
+            active: true,
+          });
+        }}
+      />
     </div>
   );
 }

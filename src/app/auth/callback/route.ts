@@ -1,6 +1,108 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+/**
+ * Provision user_profiles record for OAuth users
+ * Ensures every authenticated user has a profile with correct permissions
+ */
+async function provisionUserProfile(
+  userId: string,
+  email: string | undefined,
+  userMetadata?: { full_name?: string; avatar_url?: string; name?: string }
+) {
+  if (!email) {
+    console.warn('[Auth Callback] No email provided for user profile provisioning');
+    return;
+  }
+
+  try {
+    // Check if user profile already exists
+    const existingProfile = await prisma.user_profiles.findUnique({
+      where: { id: userId }
+    });
+
+    if (existingProfile) {
+      // Profile exists - update name and avatar from OAuth if available, preserve permissions
+      const updateData: any = {};
+
+      if (userMetadata?.full_name || userMetadata?.name) {
+        const oauthName = userMetadata.full_name || userMetadata.name;
+        if (oauthName !== existingProfile.name) {
+          updateData.name = oauthName;
+        }
+      }
+
+      if (userMetadata?.avatar_url && userMetadata.avatar_url !== existingProfile.avatar_url) {
+        updateData.avatar_url = userMetadata.avatar_url;
+      }
+
+      // Update profile if we have OAuth data to sync
+      if (Object.keys(updateData).length > 0) {
+        const updatedProfile = await prisma.user_profiles.update({
+          where: { id: userId },
+          data: updateData
+        });
+
+        console.log(`[Auth Callback] ✅ Updated user profile from OAuth`);
+        console.log(`[Auth Callback]    Email: ${email}`);
+        console.log(`[Auth Callback]    Name: ${updatedProfile.name} ${updateData.name ? '(updated from OAuth)' : ''}`);
+        console.log(`[Auth Callback]    Role: ${updatedProfile.user_type} (preserved)`);
+        console.log(`[Auth Callback]    Department: ${updatedProfile.department} (preserved)`);
+        return updatedProfile;
+      }
+
+      console.log(`[Auth Callback] ✅ User profile exists - no updates needed`);
+      console.log(`[Auth Callback]    Email: ${email}`);
+      console.log(`[Auth Callback]    Name: ${existingProfile.name}`);
+      console.log(`[Auth Callback]    Role: ${existingProfile.user_type}`);
+      return existingProfile;
+    }
+
+    // Determine user_type based on email domain
+    let userType: 'super_admin' | 'employee' | 'customer' = 'customer';
+    let department = 'General';
+
+    if (email.endsWith('@limn.us.com')) {
+      // Company emails get admin or employee status
+      // For now, grant super_admin to all company emails
+      // TODO: Add more granular role assignment logic
+      userType = 'super_admin';
+      department = 'Administration';
+    }
+
+    // Get name from OAuth provider metadata (Google, etc.) or derive from email
+    const userName = userMetadata?.full_name
+      || userMetadata?.name
+      || email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+    // Get avatar from OAuth provider metadata
+    const avatarUrl = userMetadata?.avatar_url || null;
+
+    // Create new user profile
+    const newProfile = await prisma.user_profiles.create({
+      data: {
+        id: userId,
+        email,
+        name: userName,
+        user_type: userType,
+        department,
+        avatar_url: avatarUrl,
+        created_at: new Date(),
+      }
+    });
+
+    console.log(`[Auth Callback] ✅ Created user profile: ${email} as ${userType}`);
+    console.log(`[Auth Callback]    Name: ${userName} (from ${userMetadata?.full_name ? 'OAuth provider' : 'email'})`);
+    return newProfile;
+  } catch (error) {
+    console.error('[Auth Callback] Error provisioning user profile:', error);
+    // Don't throw - authentication should still succeed even if profile creation fails
+  }
+}
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin: rawOrigin } = new URL(request.url)
@@ -56,6 +158,11 @@ export async function GET(request: NextRequest) {
 
       if (data.session) {
         const userEmail = data.session.user.email;
+        const userId = data.session.user.id;
+        const userMetadata = data.session.user.user_metadata;
+
+        // Provision user profile (creates/updates user_profiles record)
+        await provisionUserProfile(userId, userEmail, userMetadata);
 
         // Determine redirect URL
         let redirectUrl = `${origin}/dashboard`;
@@ -121,6 +228,11 @@ export async function GET(request: NextRequest) {
       // OAuth code exchange successful
       if (data.session) {
         const userEmail = data.session.user.email
+        const userId = data.session.user.id
+        const userMetadata = data.session.user.user_metadata
+
+        // Provision user profile (creates/updates user_profiles record)
+        await provisionUserProfile(userId, userEmail, userMetadata);
 
         // Create response with redirect
         let redirectUrl = `${origin}/dashboard`;

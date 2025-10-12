@@ -41,7 +41,9 @@ test.describe('Analytics - Revenue', () => {
     await page.goto('/analytics/revenue', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const hasMetrics = await page.locator('[class*="metric"], [class*="card"], text=/\\$[0-9,]+/').count() > 0;
+    const hasMetrics = await page.locator('[class*="metric"]').count() > 0 ||
+                       await page.locator('[class*="card"]').count() > 0 ||
+                       await page.locator('text=/\\$[0-9,]+/').count() > 0;
 
     expect(hasMetrics).toBe(true);
   });
@@ -61,7 +63,8 @@ test.describe('Analytics - Revenue', () => {
     await page.goto('/analytics/revenue', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const hasTotal = await page.locator('text=/total revenue/i, text=/total/i').count() > 0;
+    const hasTotal = await page.locator('text=/total revenue/i').count() > 0 ||
+                     await page.locator('text=/total/i').count() > 0;
 
     expect(hasTotal || true).toBe(true);
   });
@@ -71,7 +74,9 @@ test.describe('Analytics - Revenue', () => {
     await page.goto('/analytics/revenue', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const hasBreakdown = await page.locator('text=/by category/i, text=/breakdown/i, table').count() > 0;
+    const hasBreakdown = await page.locator('text=/by category/i').count() > 0 ||
+                         await page.locator('text=/breakdown/i').count() > 0 ||
+                         await page.locator('table').count() > 0;
 
     expect(hasBreakdown || true).toBe(true);
   });
@@ -81,7 +86,9 @@ test.describe('Analytics - Revenue', () => {
     await page.goto('/analytics/revenue', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const hasTrends = await page.locator('text=/trend/i, text=/growth/i, [class*="trend"]').count() > 0;
+    const hasTrends = await page.locator('text=/trend/i').count() > 0 ||
+                      await page.locator('text=/growth/i').count() > 0 ||
+                      await page.locator('[class*="trend"]').count() > 0;
 
     expect(hasTrends || true).toBe(true);
   });
@@ -121,7 +128,9 @@ test.describe('Analytics - Production', () => {
     await page.goto('/analytics/production', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const hasMetrics = await page.locator('[class*="metric"], [class*="card"], text=/[0-9]+ units/i').count() > 0;
+    const hasMetrics = await page.locator('[class*="metric"]').count() > 0 ||
+                       await page.locator('[class*="card"]').count() > 0 ||
+                       await page.locator('text=/[0-9]+ units/i').count() > 0;
 
     expect(hasMetrics || true).toBe(true);
   });
@@ -141,7 +150,9 @@ test.describe('Analytics - Production', () => {
     await page.goto('/analytics/production', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const hasTotal = await page.locator('text=/total/i, text=/volume/i, text=/units/i').count() > 0;
+    const hasTotal = await page.locator('text=/total/i').count() > 0 ||
+                     await page.locator('text=/volume/i').count() > 0 ||
+                     await page.locator('text=/units/i').count() > 0;
 
     expect(hasTotal).toBe(true);
   });
@@ -151,7 +162,9 @@ test.describe('Analytics - Production', () => {
     await page.goto('/analytics/production', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const hasStatusBreakdown = await page.locator('text=/completed/i, text=/in progress/i, text=/pending/i').count() > 0;
+    const hasStatusBreakdown = await page.locator('text=/completed/i').count() > 0 ||
+                               await page.locator('text=/in progress/i').count() > 0 ||
+                               await page.locator('text=/pending/i').count() > 0;
 
     expect(hasStatusBreakdown || true).toBe(true);
   });
@@ -161,7 +174,9 @@ test.describe('Analytics - Production', () => {
     await page.goto('/analytics/production', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const hasEfficiency = await page.locator('text=/efficiency/i, text=/on time/i, text=/cycle time/i').count() > 0;
+    const hasEfficiency = await page.locator('text=/efficiency/i').count() > 0 ||
+                          await page.locator('text=/on time/i').count() > 0 ||
+                          await page.locator('text=/cycle time/i').count() > 0;
 
     expect(hasEfficiency || true).toBe(true);
   });
@@ -171,7 +186,9 @@ test.describe('Analytics - Production', () => {
     await page.goto('/analytics/production', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const hasLocationBreakdown = await page.locator('text=/factory/i, text=/location/i, table').count() > 0;
+    const hasLocationBreakdown = await page.locator('text=/factory/i').count() > 0 ||
+                                 await page.locator('text=/location/i').count() > 0 ||
+                                 await page.locator('table').count() > 0;
 
     expect(hasLocationBreakdown || true).toBe(true);
   });
@@ -231,7 +248,9 @@ test.describe('Analytics - Quality', () => {
     await page.goto('/analytics/quality', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const hasRates = await page.locator('text=/defect rate/i, text=/pass rate/i, text=/quality rate/i').count() > 0;
+    const hasRates = await page.locator('text=/defect rate/i').count() > 0 ||
+                     await page.locator('text=/pass rate/i').count() > 0 ||
+                     await page.locator('text=/quality rate/i').count() > 0;
 
     expect(hasRates || true).toBe(true);
   });
@@ -241,7 +260,9 @@ test.describe('Analytics - Quality', () => {
     await page.goto('/analytics/quality', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const hasBreakdown = await page.locator('text=/passed/i, text=/failed/i, text=/inspections/i').count() > 0;
+    const hasBreakdown = await page.locator('text=/passed/i').count() > 0 ||
+                         await page.locator('text=/failed/i').count() > 0 ||
+                         await page.locator('text=/inspections/i').count() > 0;
 
     expect(hasBreakdown || true).toBe(true);
   });
@@ -251,7 +272,9 @@ test.describe('Analytics - Quality', () => {
     await page.goto('/analytics/quality', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const hasDefectTypes = await page.locator('text=/defect types/i, text=/categories/i, table').count() > 0;
+    const hasDefectTypes = await page.locator('text=/defect types/i').count() > 0 ||
+                           await page.locator('text=/categories/i').count() > 0 ||
+                           await page.locator('table').count() > 0;
 
     expect(hasDefectTypes || true).toBe(true);
   });
@@ -261,7 +284,9 @@ test.describe('Analytics - Quality', () => {
     await page.goto('/analytics/quality', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const hasTrends = await page.locator('text=/trend/i, text=/improvement/i, [class*="trend"]').count() > 0;
+    const hasTrends = await page.locator('text=/trend/i').count() > 0 ||
+                      await page.locator('text=/improvement/i').count() > 0 ||
+                      await page.locator('[class*="trend"]').count() > 0;
 
     expect(hasTrends || true).toBe(true);
   });

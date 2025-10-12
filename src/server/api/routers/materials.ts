@@ -205,6 +205,7 @@ export const materialTypesRouter = createTRPCRouter({
         name: z.string(),
         collection_id: z.string(),
         hex_code: z.string().optional(),
+        swatch_url: z.string().optional().nullable(),
         description: z.string().optional(),
         price_modifier: z.number().default(0),
         sort_order: z.number().optional(),
@@ -217,6 +218,7 @@ export const materialTypesRouter = createTRPCRouter({
             name: input.name,
             collection_id: input.collection_id,
             hex_code: input.hex_code,
+            swatch_url: input.swatch_url,
             description: input.description,
             price_modifier: input.price_modifier,
             sort_order: input.sort_order,
@@ -235,6 +237,7 @@ export const materialTypesRouter = createTRPCRouter({
         name: z.string(),
         collection_id: z.string(),
         hex_code: z.string().optional(),
+        swatch_url: z.string().optional().nullable(),
         description: z.string().optional(),
         price_modifier: z.number(),
         sort_order: z.number().optional(),
@@ -243,7 +246,7 @@ export const materialTypesRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        const { id, ...data } = input;
+        const { id, collection_id, ...data } = input;
         return await (ctx.db as any).fabric_colors.update({
           where: { id },
           data,

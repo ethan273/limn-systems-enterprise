@@ -21,13 +21,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { DimensionDisplay } from "@/components/furniture/DimensionDisplay";
 import { ExternalLink } from "lucide-react";
+import { api } from "@/lib/api/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { EditableField } from "@/components/common";
 
 interface CatalogOverviewTabProps {
   catalogItem: any; // Full catalog item with relations
 }
 
 export default function CatalogOverviewTab({ catalogItem }: CatalogOverviewTabProps) {
+  const queryClient = useQueryClient();
   const {
+    id,
     name,
     description,
     base_sku,
@@ -43,6 +48,13 @@ export default function CatalogOverviewTab({ catalogItem }: CatalogOverviewTabPr
     furniture_dimensions,
     item_images,
   } = catalogItem;
+
+  // Update mutation
+  const updateMutation = api.items.update.useMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['items'] });
+    },
+  });
 
   return (
     <div className="catalog-overview-tab">
@@ -119,7 +131,17 @@ export default function CatalogOverviewTab({ catalogItem }: CatalogOverviewTabPr
               <div className="specs-table">
                 <div className="spec-row">
                   <span className="spec-label">Product Name</span>
-                  <span className="spec-value">{name}</span>
+                  <EditableField
+                    value={name}
+                    onSave={(newValue) =>
+                      updateMutation.mutate({
+                        id,
+                        data: { name: newValue },
+                      })
+                    }
+                    type="text"
+                    className="spec-value"
+                  />
                 </div>
 
                 {base_sku && (
@@ -154,35 +176,87 @@ export default function CatalogOverviewTab({ catalogItem }: CatalogOverviewTabPr
                 {category && (
                   <div className="spec-row">
                     <span className="spec-label">Category</span>
-                    <span className="spec-value">{category}</span>
+                    <EditableField
+                      value={category}
+                      onSave={(newValue) =>
+                        updateMutation.mutate({
+                          id,
+                          data: { category: newValue },
+                        })
+                      }
+                      type="text"
+                      className="spec-value"
+                    />
                   </div>
                 )}
 
                 {subcategory && (
                   <div className="spec-row">
                     <span className="spec-label">Subcategory</span>
-                    <span className="spec-value">{subcategory}</span>
+                    <EditableField
+                      value={subcategory}
+                      onSave={(newValue) =>
+                        updateMutation.mutate({
+                          id,
+                          data: { subcategory: newValue },
+                        })
+                      }
+                      type="text"
+                      className="spec-value"
+                    />
                   </div>
                 )}
 
                 <div className="spec-row">
                   <span className="spec-label">List Price</span>
-                  <span className="spec-value price">
-                    ${Number(list_price || 0).toLocaleString()} {currency || "USD"}
-                  </span>
+                  <EditableField
+                    value={list_price}
+                    onSave={(newValue) =>
+                      updateMutation.mutate({
+                        id,
+                        data: { list_price: parseFloat(newValue) },
+                      })
+                    }
+                    type="number"
+                    className="spec-value price"
+                    prefix="$"
+                    suffix={currency || "USD"}
+                  />
                 </div>
 
                 {lead_time_days && (
                   <div className="spec-row">
                     <span className="spec-label">Lead Time</span>
-                    <span className="spec-value">{lead_time_days} days</span>
+                    <EditableField
+                      value={lead_time_days}
+                      onSave={(newValue) =>
+                        updateMutation.mutate({
+                          id,
+                          data: { lead_time_days: parseInt(newValue) },
+                        })
+                      }
+                      type="number"
+                      className="spec-value"
+                      suffix="days"
+                    />
                   </div>
                 )}
 
                 {min_order_quantity && (
                   <div className="spec-row">
                     <span className="spec-label">Minimum Order Qty</span>
-                    <span className="spec-value">{min_order_quantity} unit(s)</span>
+                    <EditableField
+                      value={min_order_quantity}
+                      onSave={(newValue) =>
+                        updateMutation.mutate({
+                          id,
+                          data: { min_order_quantity: parseInt(newValue) },
+                        })
+                      }
+                      type="number"
+                      className="spec-value"
+                      suffix="unit(s)"
+                    />
                   </div>
                 )}
 
@@ -201,16 +275,25 @@ export default function CatalogOverviewTab({ catalogItem }: CatalogOverviewTabPr
           </Card>
 
           {/* Description */}
-          {description && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Description</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="product-description">{description}</p>
-              </CardContent>
-            </Card>
-          )}
+          <Card>
+            <CardHeader>
+              <CardTitle>Description</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <EditableField
+                value={description || ''}
+                onSave={(newValue) =>
+                  updateMutation.mutate({
+                    id,
+                    data: { description: newValue || undefined },
+                  })
+                }
+                type="textarea"
+                className="product-description"
+                placeholder="Add a product description..."
+              />
+            </CardContent>
+          </Card>
 
           {/* Dimensions */}
           {furniture_dimensions && furniture_type && (

@@ -5,7 +5,6 @@ import { useDropzone } from "react-dropzone";
 import Image from "next/image";
 import { Upload, X, File } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -106,28 +105,72 @@ export function MediaUploader({
     setUploading(true);
 
     try {
+      // Check if any files need Google Drive (>50MB)
+      const needsGoogleDrive = files.some(f => f.file.size / (1024 * 1024) > SUPABASE_MAX_SIZE);
+      let accessToken: string | null = null;
+
+      // If Google Drive is needed, get access token silently
+      if (needsGoogleDrive) {
+        try {
+          const tokenResponse = await fetch('/api/trpc/oauth.getValidAccessToken').then(r => r.json());
+          if (tokenResponse?.result?.data?.accessToken) {
+            accessToken = tokenResponse.result.data.accessToken;
+          }
+        } catch (error) {
+          console.error("Could not get Google Drive token:", error);
+          // Continue without token - large files will fail gracefully
+        }
+      }
+
       for (const fileData of files) {
-        const fileSizeMB = fileData.file.size / (1024 * 1024);
-        const useGoogleDrive = fileSizeMB > SUPABASE_MAX_SIZE;
+        const formData = new FormData();
+        formData.append('file', fileData.file);
+        if (accessToken) {
+          formData.append('accessToken', accessToken);
+        }
+        formData.append('category', entityType);
+        formData.append('projectId', entityId);
 
-        // TODO: Implement actual upload logic via tRPC
-        // For files < 50MB: Upload to Supabase Storage
-        // For files > 50MB: Upload to Google Drive
-        // Then save document record with appropriate file_source and storage_id
+        // Upload via API route
+        const uploadResponse = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
 
-        console.log("Uploading file:", {
-          name: fileData.file.name,
-          size: fileSizeMB.toFixed(2) + " MB",
-          storage: useGoogleDrive ? "Google Drive" : "Supabase",
-          entityType,
-          entityId,
-          metadata: {
-            media_type: fileData.media_type,
-            use_for_packaging: fileData.use_for_packaging,
-            use_for_labeling: fileData.use_for_labeling,
-            use_for_marketing: fileData.use_for_marketing,
-            is_primary_image: fileData.is_primary_image,
-          },
+        if (!uploadResponse.ok) {
+          throw new Error(`Upload failed: ${uploadResponse.statusText}`);
+        }
+
+        const uploadResult = await uploadResponse.json();
+
+        if (!uploadResult.success) {
+          throw new Error(uploadResult.error || 'Upload failed');
+        }
+
+        // Record upload metadata in database
+        await fetch('/api/trpc/documents.recordUpload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            entityType,
+            entityId,
+            fileName: fileData.file.name,
+            originalName: fileData.file.name,
+            fileSize: fileData.file.size,
+            fileType: fileData.file.type,
+            storageType: uploadResult.storageType,
+            url: uploadResult.publicUrl,
+            downloadUrl: uploadResult.publicUrl,
+            googleDriveId: uploadResult.fileId,
+            googleDriveUrl: uploadResult.publicUrl,
+            storageBucket: uploadResult.storageType === 'supabase' ? 'design-documents' : undefined,
+            mediaType: fileData.media_type,
+            useForPackaging: fileData.use_for_packaging,
+            useForLabeling: fileData.use_for_labeling,
+            useForMarketing: fileData.use_for_marketing,
+            isPrimaryImage: fileData.is_primary_image,
+            displayOrder: 0,
+          }),
         });
       }
 
@@ -136,7 +179,7 @@ export function MediaUploader({
       onUploadComplete?.();
     } catch (error) {
       console.error("Upload error:", error);
-      toast.error("Failed to upload files");
+      toast.error(error instanceof Error ? error.message : "Failed to upload files");
     } finally {
       setUploading(false);
     }
@@ -157,9 +200,6 @@ export function MediaUploader({
         <p className="upload-hint">
           Supports images, PDFs, 3D models • Max {maxFileSize}MB per file
         </p>
-        <p className="upload-hint-small">
-          Files &gt; {SUPABASE_MAX_SIZE}MB will be stored in Google Drive
-        </p>
       </div>
 
       {/* File List */}
@@ -170,7 +210,6 @@ export function MediaUploader({
           </h3>
           {files.map((fileData, index) => {
             const fileSizeMB = fileData.file.size / (1024 * 1024);
-            const useGoogleDrive = fileSizeMB > SUPABASE_MAX_SIZE;
 
             return (
               <div key={index} className="file-item">
@@ -194,9 +233,6 @@ export function MediaUploader({
                   <div className="file-name">{fileData.file.name}</div>
                   <div className="file-meta">
                     <span>{fileSizeMB.toFixed(2)} MB</span>
-                    <Badge variant={useGoogleDrive ? "secondary" : "outline"} className="storage-badge">
-                      {useGoogleDrive ? "Google Drive" : "Supabase"}
-                    </Badge>
                   </div>
 
                   {/* Media Type Selection */}

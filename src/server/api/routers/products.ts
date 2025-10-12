@@ -57,6 +57,73 @@ const generateUniquePrefix = async (db: any, collectionName: string): Promise<st
 };
 
 export const productsRouter = createTRPCRouter({
+  // Catalog Products Management
+  list: publicProcedure
+    .input(
+      z.object({
+        limit: z.number().min(1).max(1000).default(100),
+        cursor: z.string().uuid().optional(),
+        category: z.string().optional(),
+        search: z.string().optional(),
+      }).optional()
+    )
+    .query(async ({ ctx, input }) => {
+      const limit = input?.limit ?? 100;
+      const cursor = input?.cursor;
+      const category = input?.category;
+      const search = input?.search;
+
+      const where: any = {};
+
+      if (category) {
+        where.category = category;
+      }
+
+      if (search) {
+        where.OR = [
+          { name: { contains: search, mode: 'insensitive' } },
+          { sku: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } },
+        ];
+      }
+
+      if (cursor) {
+        where.id = { lt: cursor };
+      }
+
+      const products = await (ctx.db as any).products.findMany({
+        where,
+        take: limit,
+        orderBy: { created_at: 'desc' },
+        select: {
+          id: true,
+          sku: true,
+          name: true,
+          category: true,
+          base_price: true,
+          description: true,
+          unit: true,
+          weight_lbs: true,
+          dimensions: true,
+          created_at: true,
+          updated_at: true,
+        },
+      });
+
+      return {
+        items: products,
+        nextCursor: products.length === limit ? products[products.length - 1]?.id : undefined,
+      };
+    }),
+
+  getById: publicProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      return await (ctx.db as any).products.findUnique({
+        where: { id: input.id },
+      });
+    }),
+
   // Collection Management
   getAllCollections: publicProcedure.query(async ({ ctx }) => {
     const collections = await (ctx.db as any).collections.findMany({
@@ -821,22 +888,24 @@ export const productsRouter = createTRPCRouter({
             },
           },
           prototype_feedback: {
-            orderBy: { created_at: 'desc' },
+            orderBy: { submitted_at: 'desc' },
             select: {
               id: true,
               feedback_text: true,
               feedback_type: true,
-              created_at: true,
+              submitted_at: true,
             },
           },
           prototype_milestones: {
-            orderBy: { target_date: 'asc' },
+            orderBy: { planned_end: 'asc' },
             select: {
               id: true,
               milestone_name: true,
               status: true,
-              target_date: true,
-              completed_date: true,
+              planned_start: true,
+              planned_end: true,
+              actual_start: true,
+              actual_end: true,
             },
           },
           prototype_documents: {

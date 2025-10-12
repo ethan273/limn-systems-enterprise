@@ -112,10 +112,28 @@ export const paymentsRouter = createTRPCRouter({
         ctx.db.payments.count({ where }),
       ]);
 
+      // Defensive check: ensure items is an array
+      if (!items || !Array.isArray(items)) {
+        return {
+          items: [],
+          total: 0,
+          hasMore: false,
+          nextOffset: null,
+        };
+      }
+
       // Calculate allocated vs unallocated amounts
       const paymentsWithAllocations = items.map((payment) => {
-        const totalAllocated = payment.payment_allocations.reduce(
-          (sum: number, allocation: any) => sum + Number(allocation.allocated_amount),
+        // Defensive check: ensure payment object exists
+        if (!payment) {
+          return {
+            totalAllocated: 0,
+            unallocated: 0,
+          };
+        }
+
+        const totalAllocated = (payment.payment_allocations || []).reduce(
+          (sum: number, allocation: any) => sum + Number(allocation?.allocated_amount || 0),
           0
         );
         const paymentAmount = Number(payment.amount || 0);
@@ -167,7 +185,7 @@ export const paymentsRouter = createTRPCRouter({
         });
       }
 
-      const totalAllocated = payment.payment_allocations.reduce(
+      const totalAllocated = (payment.payment_allocations || []).reduce(
         (sum: number, allocation: any) => sum + Number(allocation.allocated_amount),
         0
       );
@@ -212,9 +230,22 @@ export const paymentsRouter = createTRPCRouter({
         },
       });
 
+      // Defensive check: ensure payments is an array
+      if (!payments || !Array.isArray(payments)) {
+        return [];
+      }
+
       return payments.map((payment) => {
-        const totalAllocated = payment.payment_allocations.reduce(
-          (sum: number, allocation: any) => sum + Number(allocation.allocated_amount),
+        // Defensive check: ensure payment object exists
+        if (!payment) {
+          return {
+            totalAllocated: 0,
+            unallocated: 0,
+          };
+        }
+
+        const totalAllocated = (payment.payment_allocations || []).reduce(
+          (sum: number, allocation: any) => sum + Number(allocation?.allocated_amount || 0),
           0
         );
         const paymentAmount = Number(payment.amount || 0);
@@ -262,11 +293,24 @@ export const paymentsRouter = createTRPCRouter({
         },
       });
 
+      // Defensive check: ensure payments is an array
+      if (!payments || !Array.isArray(payments)) {
+        return [];
+      }
+
       // Filter to only payments with unallocated amounts
       const unallocatedPayments = payments
         .map((payment) => {
-          const totalAllocated = payment.payment_allocations.reduce(
-            (sum: number, allocation: any) => sum + Number(allocation.allocated_amount),
+          // Defensive check: ensure payment object exists
+          if (!payment) {
+            return {
+              totalAllocated: 0,
+              unallocated: 0,
+            };
+          }
+
+          const totalAllocated = (payment.payment_allocations || []).reduce(
+            (sum: number, allocation: any) => sum + Number(allocation?.allocated_amount || 0),
             0
           );
           const paymentAmount = Number(payment.amount || 0);
@@ -278,7 +322,7 @@ export const paymentsRouter = createTRPCRouter({
             unallocated,
           };
         })
-        .filter((payment) => payment.unallocated > 0);
+        .filter((payment) => payment && payment.unallocated > 0);
 
       return unallocatedPayments;
     }),
@@ -383,7 +427,7 @@ export const paymentsRouter = createTRPCRouter({
         });
       }
 
-      const totalAllocated = payment.payment_allocations.reduce(
+      const totalAllocated = (payment.payment_allocations || []).reduce(
         (sum: number, allocation: any) => sum + Number(allocation.allocated_amount),
         0
       );
@@ -413,11 +457,11 @@ export const paymentsRouter = createTRPCRouter({
       }
 
       // Calculate invoice balance
-      const invoiceTotal = invoice.invoice_items.reduce(
+      const invoiceTotal = (invoice.invoice_items || []).reduce(
         (sum: number, item: any) => sum + Number(item.line_total || 0) + Number(item.tax_amount || 0),
         0
       );
-      const invoicePaid = invoice.payment_allocations.reduce(
+      const invoicePaid = (invoice.payment_allocations || []).reduce(
         (sum: number, allocation: any) => sum + Number(allocation.allocated_amount),
         0
       );
@@ -503,7 +547,7 @@ export const paymentsRouter = createTRPCRouter({
           });
         }
 
-        const totalAllocated = payment.payment_allocations.reduce(
+        const totalAllocated = (payment.payment_allocations || []).reduce(
           (sum: number, allocation: any) => sum + Number(allocation.allocated_amount),
           0
         );
@@ -629,6 +673,20 @@ export const paymentsRouter = createTRPCRouter({
         },
       });
 
+      // Defensive check: ensure payments is an array
+      if (!payments || !Array.isArray(payments)) {
+        return {
+          totalPayments: 0,
+          totalReceived: 0,
+          totalAllocated: 0,
+          totalUnallocated: 0,
+          countCompleted: 0,
+          countPending: 0,
+          countFailed: 0,
+          byMethod: {},
+        };
+      }
+
       let totalReceived = 0;
       let totalAllocated = 0;
       let totalUnallocated = 0;
@@ -640,9 +698,12 @@ export const paymentsRouter = createTRPCRouter({
       const methodTotalsMap = new Map<string, number>();
 
       payments.forEach((payment) => {
+        // Defensive check: ensure payment object exists
+        if (!payment) return;
+
         const amount = Number(payment.amount || 0);
-        const allocated = payment.payment_allocations.reduce(
-          (sum: number, allocation: any) => sum + Number(allocation.allocated_amount),
+        const allocated = (payment.payment_allocations || []).reduce(
+          (sum: number, allocation: any) => sum + Number(allocation?.allocated_amount || 0),
           0
         );
 

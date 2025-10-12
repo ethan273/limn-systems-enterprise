@@ -17,12 +17,7 @@ export default function FinanceDashboard() {
  const { user, loading: authLoading } = useAuth();
  const router = useRouter();
 
- // Redirect to login if not authenticated
- useEffect(() => {
- if (!authLoading && !user) {
- router.push("/login");
- }
- }, [authLoading, user, router]);
+ // Auth is handled by middleware - no client-side redirect needed
 
  // API queries
  const { data: connectionStatus, isLoading: loadingConnection, refetch: refetchConnection } =

@@ -40,7 +40,10 @@ test.describe('Products - Catalog', () => {
 
     const hasTable = await page.locator('table').count() > 0;
     const hasCards = await page.locator('[class*="card"], [class*="product"]').count() > 0;
-    const hasEmptyState = await page.locator('text=/no products/i, text=/no catalog/i').count() > 0;
+    const hasEmptyState = await (
+      await page.locator('text=/no products/i').count() > 0 ||
+      await page.locator('text=/no catalog/i').count() > 0
+    ) > 0;
 
     expect(hasTable || hasCards || hasEmptyState).toBe(true);
   });

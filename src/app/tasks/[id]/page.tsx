@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use, useState } from "react";
+import React, { use, useState, useEffect } from "react";
 import { useRouter} from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
@@ -12,6 +12,7 @@ import { EntityDetailHeader } from "@/components/common/EntityDetailHeader";
 import { InfoCard } from "@/components/common/InfoCard";
 import { EmptyState } from "@/components/common/EmptyState";
 import { LoadingState } from "@/components/common/LoadingState";
+import { EditableField, EditableFieldGroup } from "@/components/common/EditableField";
 import TaskAttachments from "@/components/TaskAttachments";
 import TaskActivities from "@/components/TaskActivities";
 import TaskEntityLinks from "@/components/TaskEntityLinks";
@@ -35,8 +36,12 @@ import {
   FolderOpen,
   AlertTriangle,
   Briefcase,
+  X,
+  Check,
+  Target,
 } from "lucide-react";
 import { format, formatDistanceToNow, isAfter, parseISO } from "date-fns";
+import { toast } from "sonner";
 
 // Dynamic route configuration
 export const dynamic = 'force-dynamic';
@@ -90,11 +95,102 @@ export default function TaskDetailPage({ params }: PageProps) {
   const router = useRouter();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
+  const [isEditing, setIsEditing] = useState(false);
 
   const { data: task, isLoading, error, refetch } = api.tasks.getFullDetails.useQuery(
     { id: id },
     { enabled: !!user && !!id }
   );
+
+  // Form data state for in-place editing
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    status: '',
+    priority: '',
+    department: '',
+    task_type: '',
+    due_date: '',
+    start_date: '',
+    estimated_hours: '',
+    visibility: '',
+    resolution: '',
+  });
+
+  // Sync form data with fetched task data
+  useEffect(() => {
+    if (task) {
+      setFormData({
+        title: task.title || '',
+        description: task.description || '',
+        status: task.status || '',
+        priority: task.priority || '',
+        department: task.department || '',
+        task_type: task.task_type || '',
+        due_date: task.due_date ? (task.due_date instanceof Date ? task.due_date.toISOString().split('T')[0] : parseISO(task.due_date).toISOString().split('T')[0]) : '',
+        start_date: task.start_date ? (task.start_date instanceof Date ? task.start_date.toISOString().split('T')[0] : parseISO(task.start_date).toISOString().split('T')[0]) : '',
+        estimated_hours: task.estimated_hours?.toString() || '',
+        visibility: task.visibility || '',
+        resolution: task.resolution || '',
+      });
+    }
+  }, [task]);
+
+  // Update mutation
+  const updateMutation = api.tasks.update.useMutation({
+    onSuccess: () => {
+      toast.success("Task updated successfully");
+      setIsEditing(false);
+      refetch();
+    },
+    onError: (error: any) => {
+      toast.error("Failed to update task: " + error.message);
+    },
+  });
+
+  const handleSave = async () => {
+    if (!formData.title) {
+      toast.error("Title is required");
+      return;
+    }
+
+    await updateMutation.mutateAsync({
+      id,
+      data: {
+        title: formData.title,
+        description: formData.description || undefined,
+        status: formData.status as TaskStatus,
+        priority: formData.priority as TaskPriority,
+        department: formData.department as TaskDepartment,
+        task_type: formData.task_type || undefined,
+        due_date: formData.due_date ? new Date(formData.due_date) : undefined,
+        start_date: formData.start_date ? new Date(formData.start_date) : undefined,
+        estimated_hours: formData.estimated_hours ? parseFloat(formData.estimated_hours) : undefined,
+        visibility: formData.visibility || undefined,
+        resolution: formData.resolution || undefined,
+      },
+    });
+  };
+
+  const handleCancel = () => {
+    // Reset form data to original values
+    if (task) {
+      setFormData({
+        title: task.title || '',
+        description: task.description || '',
+        status: task.status || '',
+        priority: task.priority || '',
+        department: task.department || '',
+        task_type: task.task_type || '',
+        due_date: task.due_date ? (task.due_date instanceof Date ? task.due_date.toISOString().split('T')[0] : parseISO(task.due_date).toISOString().split('T')[0]) : '',
+        start_date: task.start_date ? (task.start_date instanceof Date ? task.start_date.toISOString().split('T')[0] : parseISO(task.start_date).toISOString().split('T')[0]) : '',
+        estimated_hours: task.estimated_hours?.toString() || '',
+        visibility: task.visibility || '',
+        resolution: task.resolution || '',
+      });
+    }
+    setIsEditing(false);
+  };
 
   const handleTaskUpdate = () => {
     refetch();
@@ -148,26 +244,43 @@ export default function TaskDetailPage({ params }: PageProps) {
       {/* Task Header */}
       <EntityDetailHeader
         icon={CheckSquare}
-        title={task.title || "Untitled Task"}
-        subtitle={task.description || undefined}
+        title={formData.title || "Untitled Task"}
+        subtitle={formData.description || undefined}
         metadata={[
-          ...(task.due_date ? [{
+          ...(formData.due_date ? [{
             icon: Calendar,
-            value: format(task.due_date instanceof Date ? task.due_date : parseISO(task.due_date), "MMM d, yyyy"),
+            value: format(new Date(formData.due_date), "MMM d, yyyy"),
             label: 'Due Date',
           }] : []),
           { icon: Briefcase, value: departmentConfig.label, label: 'Department' },
           ...(task.project_id ? [{ icon: FolderOpen, value: 'Project Name', label: 'Project' }] : []),
         ]}
-        status={task.status || 'todo'}
+        status={formData.status || 'todo'}
         tags={task.tags || []}
-        actions={[
-          {
-            label: 'Edit Task',
-            icon: Edit,
-            onClick: () => router.push(`/tasks/${task.id}/edit`),
-          },
-        ]}
+        actions={
+          isEditing
+            ? [
+                {
+                  label: 'Cancel',
+                  icon: X,
+                  variant: 'outline' as const,
+                  onClick: handleCancel,
+                },
+                {
+                  label: updateMutation.isPending ? 'Saving...' : 'Save Changes',
+                  icon: Check,
+                  onClick: handleSave,
+                  disabled: updateMutation.isPending,
+                },
+              ]
+            : [
+                {
+                  label: 'Edit Task',
+                  icon: Edit,
+                  onClick: () => setIsEditing(true),
+                },
+              ]
+        }
       />
 
       {/* Priority and Status Badges */}
@@ -263,60 +376,127 @@ export default function TaskDetailPage({ params }: PageProps) {
         <TabsContent value="overview">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Task Details */}
-            <InfoCard
-              title="Task Information"
-              items={[
-                {
-                  label: 'Status',
-                  value: (
-                    <Badge variant="outline" className={statusConfig.className}>
-                      {statusConfig.icon}
-                      {statusConfig.label}
-                    </Badge>
-                  ),
-                },
-                {
-                  label: 'Priority',
-                  value: (
-                    <Badge variant="outline" className={priorityConfig.className}>
-                      {priorityConfig.label}
-                    </Badge>
-                  ),
-                },
-                {
-                  label: 'Department',
-                  value: (
-                    <Badge variant="outline" className={departmentConfig.className}>
-                      <Briefcase className="icon-xs" aria-hidden="true" />
-                      {departmentConfig.label}
-                    </Badge>
-                  ),
-                },
-                { label: 'Type', value: task.task_type || "Task" },
-                {
-                  label: 'Created',
-                  value: task.created_at
-                    ? format(new Date(task.created_at), "MMM d, yyyy h:mm a")
-                    : "—",
-                },
-                {
-                  label: 'Due Date',
-                  value: task.due_date ? (
-                    <span className={isOverdue ? "text-destructive" : ""}>
-                      <Calendar className="icon-xs inline" aria-hidden="true" />
-                      {format(task.due_date instanceof Date ? task.due_date : parseISO(task.due_date), "MMM d, yyyy")}
-                      {isOverdue && task.status !== 'completed' && task.status !== 'cancelled' && " (Overdue)"}
-                    </span>
-                  ) : "—",
-                },
-                {
-                  label: 'Last Activity',
-                  value: task.last_activity_at
-                    ? formatDistanceToNow(new Date(task.last_activity_at), { addSuffix: true })
-                    : "—",
-                },
-              ]}
-            />
+            <EditableFieldGroup title="Task Information" isEditing={isEditing} columns={1}>
+              <EditableField
+                label="Title"
+                value={formData.title}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, title: value })}
+                required
+                icon={CheckSquare}
+              />
+
+              <EditableField
+                label="Description"
+                value={formData.description}
+                type="textarea"
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, description: value })}
+              />
+
+              <EditableField
+                label="Status"
+                value={formData.status}
+                type="select"
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, status: value })}
+                options={[
+                  { value: 'todo', label: 'To Do' },
+                  { value: 'in_progress', label: 'In Progress' },
+                  { value: 'completed', label: 'Completed' },
+                  { value: 'cancelled', label: 'Cancelled' },
+                ]}
+              />
+
+              <EditableField
+                label="Priority"
+                value={formData.priority}
+                type="select"
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, priority: value })}
+                options={[
+                  { value: 'low', label: 'Low' },
+                  { value: 'medium', label: 'Medium' },
+                  { value: 'high', label: 'High' },
+                ]}
+                icon={Target}
+              />
+
+              <EditableField
+                label="Department"
+                value={formData.department}
+                type="select"
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, department: value })}
+                options={[
+                  { value: 'admin', label: 'Admin' },
+                  { value: 'production', label: 'Production' },
+                  { value: 'design', label: 'Design' },
+                  { value: 'sales', label: 'Sales' },
+                ]}
+                icon={Briefcase}
+              />
+
+              <EditableField
+                label="Type"
+                value={formData.task_type}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, task_type: value })}
+              />
+
+              <EditableField
+                label="Due Date"
+                value={formData.due_date}
+                type="date"
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, due_date: value })}
+                icon={Calendar}
+              />
+
+              <EditableField
+                label="Start Date"
+                value={formData.start_date}
+                type="date"
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, start_date: value })}
+                icon={Calendar}
+              />
+
+              <EditableField
+                label="Estimated Hours"
+                value={formData.estimated_hours}
+                type="number"
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, estimated_hours: value })}
+                icon={Clock}
+              />
+
+              <EditableField
+                label="Visibility"
+                value={formData.visibility}
+                type="select"
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, visibility: value })}
+                options={[
+                  { value: 'public', label: 'Public' },
+                  { value: 'private', label: 'Private' },
+                  { value: 'company', label: 'Company' },
+                ]}
+              />
+
+              <EditableField
+                label="Created"
+                value={task.created_at ? format(new Date(task.created_at), "MMM d, yyyy h:mm a") : "—"}
+                isEditing={false}
+              />
+
+              <EditableField
+                label="Last Activity"
+                value={task.last_activity_at ? formatDistanceToNow(new Date(task.last_activity_at), { addSuffix: true }) : "—"}
+                isEditing={false}
+                icon={Activity}
+              />
+            </EditableFieldGroup>
 
             {/* Project Info */}
             <Card>
@@ -443,25 +623,30 @@ export default function TaskDetailPage({ params }: PageProps) {
             </Card>
 
             {/* Additional Details */}
-            <InfoCard
-              title="Additional Information"
-              items={[
-                { label: 'Visibility', value: task.visibility ? task.visibility.charAt(0).toUpperCase() + task.visibility.slice(1) : "Company" },
-                { label: 'Estimated Hours', value: task.estimated_hours ? `${task.estimated_hours}h` : "—" },
-                { label: 'Actual Hours', value: task.actual_hours ? `${task.actual_hours}h` : "—" },
-                {
-                  label: 'Start Date',
-                  value: task.start_date
-                    ? format(task.start_date instanceof Date ? task.start_date : parseISO(task.start_date), "MMM d, yyyy")
-                    : "—",
-                },
-                { label: 'Resolution', value: task.resolution || "—" },
-                ...(task.archived_at ? [{
-                  label: 'Archived',
-                  value: format(new Date(task.archived_at), "MMM d, yyyy h:mm a"),
-                }] : []),
-              ]}
-            />
+            <EditableFieldGroup title="Additional Information" isEditing={isEditing} columns={1}>
+              <EditableField
+                label="Resolution"
+                value={formData.resolution}
+                type="textarea"
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, resolution: value })}
+              />
+
+              <EditableField
+                label="Actual Hours"
+                value={task.actual_hours ? `${task.actual_hours}h` : "—"}
+                isEditing={false}
+                icon={Clock}
+              />
+
+              {task.archived_at && (
+                <EditableField
+                  label="Archived"
+                  value={format(new Date(task.archived_at), "MMM d, yyyy h:mm a")}
+                  isEditing={false}
+                />
+              )}
+            </EditableFieldGroup>
           </div>
         </TabsContent>
       </Tabs>

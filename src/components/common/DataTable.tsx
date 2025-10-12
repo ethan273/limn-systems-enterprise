@@ -1,11 +1,17 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUpDown, ArrowUp, ArrowDown, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 // Type definitions
 export interface DataTableColumn<T> {
@@ -27,11 +33,20 @@ export interface DataTableFilter {
   placeholder?: string;
 }
 
+export interface DataTableRowAction<T> {
+  label: string;
+  icon?: React.ComponentType<{ className?: string }>;
+  onClick: (_row: T) => void;
+  variant?: 'default' | 'destructive';
+  separator?: boolean; // Add separator before this action
+}
+
 export interface DataTableProps<T> {
   data: T[];
   columns: DataTableColumn<T>[];
   filters?: DataTableFilter[];
   onRowClick?: (_row: T) => void;
+  rowActions?: DataTableRowAction<T>[]; // NEW: Row-level actions (edit, delete, etc.)
   pagination?: {
     pageSize?: number;
     showSizeSelector?: boolean;
@@ -79,6 +94,7 @@ export function DataTable<T extends Record<string, unknown>>({
   columns,
   filters = [],
   onRowClick,
+  rowActions,
   pagination = { pageSize: 10, showSizeSelector: true },
   emptyState,
   isLoading = false,
@@ -261,7 +277,7 @@ export function DataTable<T extends Record<string, unknown>>({
         <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
           {/* Scroll indicator shadow */}
           <div className="relative">
-            <Table>
+            <Table data-testid="data-table">
               <TableHeader>
                 <TableRow className="table-header">
                   {columns.map((column) => (
@@ -290,6 +306,11 @@ export function DataTable<T extends Record<string, unknown>>({
                       )}
                     </TableHead>
                   ))}
+                  {rowActions && rowActions.length > 0 && (
+                    <TableHead className="table-header-cell w-[70px]">
+                      <span className="sr-only">Actions</span>
+                    </TableHead>
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -297,16 +318,50 @@ export function DataTable<T extends Record<string, unknown>>({
                   <TableRow
                     key={index}
                     className={onRowClick ? 'table-row-clickable' : 'table-row'}
-                    onClick={() => onRowClick?.(row)}
                   >
                     {columns.map((column) => (
                       <TableCell
                         key={String(column.key)}
                         className={`table-cell ${column.mobileHidden ? 'hidden md:table-cell' : ''}`}
+                        onClick={() => onRowClick?.(row)}
                       >
                         {renderCell(column, row)}
                       </TableCell>
                     ))}
+                    {rowActions && rowActions.length > 0 && (
+                      <TableCell className="table-cell w-[70px]">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              data-testid="row-actions-button"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <span className="sr-only">Open menu</span>
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" data-testid="row-actions-menu">
+                            {rowActions.map((action, actionIndex) => (
+                              <DropdownMenuItem
+                                key={actionIndex}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  action.onClick(row);
+                                }}
+                                className={action.variant === 'destructive' ? 'text-destructive focus:text-destructive' : ''}
+                                data-testid={`row-action-${action.label.toLowerCase().replace(/\s+/g, '-')}`}
+                              >
+                                {action.icon && <action.icon className="mr-2 h-4 w-4" />}
+                                {action.label}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>

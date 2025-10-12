@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     // Fetch product data
     const { data: products, error: productsError } = await supabase
       .from("products")
-      .select("id, name, description, category, base_price, thumbnail_url")
+      .select("id, name, description, category, base_price")
       .in("id", productIds);
 
     if (productsError) {
@@ -67,7 +67,6 @@ export async function POST(request: NextRequest) {
       name: p.name,
       description: p.description || undefined,
       price: p.base_price ? parseFloat(p.base_price) : undefined,
-      imageUrl: p.thumbnail_url || undefined,
       category: p.category || undefined,
     }));
 

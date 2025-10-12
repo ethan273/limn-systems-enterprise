@@ -24,6 +24,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { MediaUploader } from "@/components/media/MediaUploader";
 import { MediaGallery } from "@/components/media/MediaGallery";
+import FurnitureDimensionsForm from "@/components/furniture/FurnitureDimensionsForm";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -159,6 +160,10 @@ export default function ConceptDetailPage({ params }: PageProps) {
             <Settings className="icon-sm" aria-hidden="true" />
             Specifications
           </TabsTrigger>
+          <TabsTrigger value="dimensions" className="tabs-trigger">
+            <Package className="icon-sm" aria-hidden="true" />
+            Dimensions
+          </TabsTrigger>
           <TabsTrigger value="media" className="tabs-trigger">
             <ImageIcon className="icon-sm" aria-hidden="true" />
             Media ({media.length})
@@ -269,6 +274,15 @@ export default function ConceptDetailPage({ params }: PageProps) {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Dimensions Tab */}
+        <TabsContent value="dimensions">
+          <FurnitureDimensionsForm
+            itemId={conceptId}
+            initialFurnitureType={concept.furniture_type || undefined}
+            initialDimensions={concept.furniture_dimensions || undefined}
+          />
         </TabsContent>
 
         {/* Media Tab */}
