@@ -532,7 +532,6 @@ export const flipbooksRouter = createTRPCRouter({
       yPercent: z.number().min(0).max(100).optional(),
       width: z.number().min(1).max(100).optional(),
       height: z.number().min(1).max(100).optional(),
-      label: z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       if (!features.flipbooks) {
@@ -542,7 +541,7 @@ export const flipbooksRouter = createTRPCRouter({
         });
       }
 
-      const { hotspotId, ...updateData } = input;
+      const { hotspotId, xPercent, yPercent, width, height } = input;
 
       // Check permissions
       const hotspot = await prisma.hotspots.findUnique({
@@ -562,6 +561,13 @@ export const flipbooksRouter = createTRPCRouter({
           message: "You do not have permission to update this hotspot",
         });
       }
+
+      // Map input field names to database field names
+      const updateData: any = {};
+      if (xPercent !== undefined) updateData.x_position = xPercent;
+      if (yPercent !== undefined) updateData.y_position = yPercent;
+      if (width !== undefined) updateData.width = width;
+      if (height !== undefined) updateData.height = height;
 
       const updated = await prisma.hotspots.update({
         where: { id: hotspotId },
