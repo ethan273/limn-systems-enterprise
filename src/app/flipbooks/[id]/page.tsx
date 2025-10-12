@@ -23,11 +23,17 @@ import { toast } from "sonner";
 export default function FlipbookViewerPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [flipbookId, setFlipbookId] = useState<string | null>(null);
+
+  // Unwrap params promise
+  useEffect(() => {
+    params.then((p) => setFlipbookId(p.id));
+  }, [params]);
 
   // Redirect if feature is disabled
   useEffect(() => {
@@ -36,14 +42,14 @@ export default function FlipbookViewerPage({
     }
   }, [router]);
 
-  // Don't render if feature is disabled
-  if (!features.flipbooks) {
+  // Don't render if feature is disabled or ID not loaded
+  if (!features.flipbooks || !flipbookId) {
     return null;
   }
 
   // Query flipbook data
   const { data: flipbook, isLoading } = api.flipbooks.get.useQuery({
-    id: params.id,
+    id: flipbookId,
   });
 
   if (isLoading) {
@@ -108,7 +114,7 @@ export default function FlipbookViewerPage({
           {
             label: 'Edit',
             icon: Edit,
-            onClick: () => router.push(`/flipbooks/builder?id=${params.id}`),
+            onClick: () => router.push(`/flipbooks/builder?id=${flipbookId}`),
           },
           {
             label: 'Fullscreen',
@@ -180,7 +186,7 @@ export default function FlipbookViewerPage({
             <p className="text-muted-foreground max-w-md mb-6">
               Upload a PDF or images to get started with your flipbook.
             </p>
-            <Button onClick={() => router.push(`/flipbooks/builder?id=${params.id}`)}>
+            <Button onClick={() => router.push(`/flipbooks/builder?id=${flipbookId}`)}>
               <Edit className="h-4 w-4 mr-2" />
               Go to Builder
             </Button>
