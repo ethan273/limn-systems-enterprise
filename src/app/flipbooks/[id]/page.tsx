@@ -2,13 +2,15 @@
 
 import { features } from "@/lib/features";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
-import { ArrowLeft, Edit, Eye, BookOpen } from "lucide-react";
+import { ArrowLeft, Edit, Eye, BookOpen, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LoadingState, PageHeader } from "@/components/common";
 import { formatDistanceToNow } from "date-fns";
+import { FlipbookViewer } from "@/components/flipbooks/FlipbookViewer";
+import { toast } from "sonner";
 
 /**
  * Flipbook Viewer Page
@@ -24,6 +26,8 @@ export default function FlipbookViewerPage({
   params: { id: string };
 }) {
   const router = useRouter();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Redirect if feature is disabled
   useEffect(() => {
@@ -69,6 +73,25 @@ export default function FlipbookViewerPage({
     ARCHIVED: 'status-muted',
   };
 
+  // Handle hotspot clicks
+  const handleHotspotClick = (hotspot: any) => {
+    toast.info(`Product: ${hotspot.product.name}`, {
+      description: `SKU: ${hotspot.product.sku}`,
+      action: {
+        label: "View Product",
+        onClick: () => router.push(`/products/catalog/${hotspot.product.id}`),
+      },
+    });
+  };
+
+  // Handle page changes
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+  };
+
+  // Check if we have pages to show
+  const hasPages = flipbook.pages && flipbook.pages.length > 0;
+
   return (
     <div className="page-container">
       {/* Page Header */}
@@ -86,6 +109,11 @@ export default function FlipbookViewerPage({
             label: 'Edit',
             icon: Edit,
             onClick: () => router.push(`/flipbooks/builder?id=${params.id}`),
+          },
+          {
+            label: 'Fullscreen',
+            icon: Maximize2,
+            onClick: () => setIsFullscreen(true),
           },
         ]}
       />
@@ -107,6 +135,11 @@ export default function FlipbookViewerPage({
               <Eye className="h-4 w-4" />
               <span>{flipbook.view_count || 0} views</span>
             </div>
+            {hasPages && (
+              <div className="text-sm text-muted-foreground">
+                Currently viewing page {currentPage} of {flipbook.pages.length}
+              </div>
+            )}
           </div>
           <div className="text-sm text-muted-foreground">
             Created {formatDistanceToNow(new Date(flipbook.created_at), { addSuffix: true })}
@@ -114,49 +147,46 @@ export default function FlipbookViewerPage({
         </div>
       </div>
 
-      {/* 3D Viewer Placeholder */}
-      <div className="bg-card rounded-lg border p-12 min-h-[600px] flex flex-col items-center justify-center">
-        <div className="text-center">
-          <div className="mb-4">
-            <svg
-              className="mx-auto h-32 w-32 text-muted-foreground"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-              />
-            </svg>
-          </div>
-          <h2 className="text-xl font-semibold mb-2">3D Viewer Coming Soon</h2>
-          <p className="text-muted-foreground max-w-md mb-6">
-            The WebGL/Three.js flipbook viewer will be implemented in Phase 3.
-            This will feature realistic page-turning physics, interactive hotspots,
-            and smooth 60fps animations.
-          </p>
-
-          {/* Pages Preview */}
-          {flipbook.pages && flipbook.pages.length > 0 && (
-            <div className="mt-8">
-              <h3 className="text-sm font-semibold mb-3">Pages ({flipbook.pages.length})</h3>
-              <div className="grid grid-cols-8 gap-2 max-w-2xl mx-auto">
-                {flipbook.pages.map((page: any) => (
-                  <div
-                    key={page.id}
-                    className="aspect-[3/4] bg-muted rounded border flex items-center justify-center text-xs font-medium"
-                  >
-                    {page.page_number}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+      {/* WebGL 3D Viewer */}
+      {hasPages ? (
+        <div className="bg-card rounded-lg border overflow-hidden h-[700px]">
+          <FlipbookViewer
+            pages={flipbook.pages}
+            initialPage={1}
+            onPageChange={handlePageChange}
+            onHotspotClick={handleHotspotClick}
+            onClose={isFullscreen ? () => setIsFullscreen(false) : undefined}
+          />
         </div>
-      </div>
+      ) : (
+        <div className="bg-card rounded-lg border p-12 min-h-[600px] flex flex-col items-center justify-center">
+          <div className="text-center">
+            <div className="mb-4">
+              <svg
+                className="mx-auto h-32 w-32 text-muted-foreground"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                />
+              </svg>
+            </div>
+            <h2 className="text-xl font-semibold mb-2">No Pages Yet</h2>
+            <p className="text-muted-foreground max-w-md mb-6">
+              Upload a PDF or images to get started with your flipbook.
+            </p>
+            <Button onClick={() => router.push(`/flipbooks/builder?id=${params.id}`)}>
+              <Edit className="h-4 w-4 mr-2" />
+              Go to Builder
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Flipbook Details */}
       <div className="grid grid-cols-2 gap-6 mt-6">
