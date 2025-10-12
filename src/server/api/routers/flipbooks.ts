@@ -499,14 +499,12 @@ export const flipbooksRouter = createTRPCRouter({
       const hotspot = await prisma.hotspots.create({
         data: {
           page_id: input.pageId,
-          product_id: input.productId,
-          x_percent: input.xPercent,
-          y_percent: input.yPercent,
+          hotspot_type: "PRODUCT_LINK",
+          x_position: input.xPercent,
+          y_position: input.yPercent,
           width: input.width,
           height: input.height,
-          label: input.label,
-          type: "PRODUCT",
-          action: "VIEW_PRODUCT",
+          target_product_id: input.productId,
         },
         include: {
           target_product: {
@@ -514,7 +512,8 @@ export const flipbooksRouter = createTRPCRouter({
               id: true,
               name: true,
               sku: true,
-              thumbnail_url: true,
+              category: true,
+              base_price: true,
             },
           },
         },
@@ -573,7 +572,8 @@ export const flipbooksRouter = createTRPCRouter({
               id: true,
               name: true,
               sku: true,
-              thumbnail_url: true,
+              category: true,
+              base_price: true,
             },
           },
         },
