@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LoadingState, PageHeader } from "@/components/common";
 import { formatDistanceToNow } from "date-fns";
-import { FlipbookViewer2D } from "@/components/flipbooks/FlipbookViewer2D";
+import { FlipbookViewer3DWrapper } from "@/components/flipbooks/FlipbookViewer3DWrapper";
 import { toast } from "sonner";
 
 /**
@@ -28,12 +28,19 @@ export default function FlipbookViewerPage({
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [use3D, setUse3D] = useState(true); // Try 3D by default
   const [flipbookId, setFlipbookId] = useState<string | null>(null);
 
   // Unwrap params promise
   useEffect(() => {
     params.then((p) => setFlipbookId(p.id));
   }, [params]);
+
+  // Query flipbook data - must be called unconditionally
+  const { data: flipbook, isLoading } = api.flipbooks.get.useQuery(
+    { id: flipbookId! },
+    { enabled: !!flipbookId } // Only run query when ID is available
+  );
 
   // Redirect if feature is disabled
   useEffect(() => {
@@ -46,11 +53,6 @@ export default function FlipbookViewerPage({
   if (!features.flipbooks || !flipbookId) {
     return null;
   }
-
-  // Query flipbook data
-  const { data: flipbook, isLoading } = api.flipbooks.get.useQuery({
-    id: flipbookId,
-  });
 
   if (isLoading) {
     return <LoadingState message="Loading flipbook..." size="lg" />;
@@ -153,15 +155,16 @@ export default function FlipbookViewerPage({
         </div>
       </div>
 
-      {/* 2D Viewer (fallback until React Three Fiber is compatible with Next.js 15) */}
+      {/* Flipbook Viewer with 3D/2D Toggle */}
       {hasPages ? (
         <div className="bg-card rounded-lg border overflow-hidden h-[700px]">
-          <FlipbookViewer2D
+          <FlipbookViewer3DWrapper
             pages={flipbook.pages}
             initialPage={1}
             onPageChange={handlePageChange}
             onHotspotClick={handleHotspotClick}
             onClose={isFullscreen ? () => setIsFullscreen(false) : undefined}
+            use3D={use3D}
           />
         </div>
       ) : (
