@@ -7,7 +7,7 @@ datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
-  schemas   = ["auth", "public"]
+  schemas   = ["auth", "public", "flipbook"]
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -486,6 +486,8 @@ model users {
   weaving_pattern_collections                                           weaving_pattern_collections[]
   wood_finish_collections                                               wood_finish_collections[]
   wood_type_collections                                                 wood_type_collections[]
+  api_credentials_api_credentials_created_byTousers                     api_credentials[]                   @relation("api_credentials_created_byTousers")
+  api_credentials_api_credentials_updated_byTousers                     api_credentials[]                   @relation("api_credentials_updated_byTousers")
 
   @@index([instance_id])
   @@index([is_anonymous])
@@ -604,6 +606,70 @@ model admin_settings {
   updated_at DateTime? @default(now()) @db.Timestamp(6)
 
   @@unique([category, key])
+  @@schema("public")
+}
+
+/// API Credentials management table for storing third-party integration keys
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model api_credentials {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  service_name      String    @unique @db.VarChar(100)
+  display_name      String    @db.VarChar(200)
+  description       String?
+  credential_type   String    @default("api_key") @db.VarChar(50) // api_key, oauth, basic_auth, etc.
+  credentials       Json?     // Encrypted JSON containing keys/secrets (null if stored in AWS)
+  environment       String?   @default("production") @db.VarChar(50) // production, staging, sandbox
+  is_active         Boolean   @default(true)
+  last_used_at      DateTime? @db.Timestamptz(6)
+  expires_at        DateTime? @db.Timestamptz(6)
+  created_by        String?   @db.Uuid
+  updated_by        String?   @db.Uuid
+  created_at        DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime  @default(now()) @db.Timestamptz(6)
+
+  // AWS Secrets Manager support
+  storage_type              String?   @default("local") @db.VarChar(20) // local, aws, vault, azure
+  secret_arn                String?   // AWS Secrets Manager ARN
+  vault_path                String?   // HashiCorp Vault path
+  azure_key_vault_id        String?   // Azure Key Vault ID
+  auto_rotation_enabled     Boolean   @default(false)
+  rotation_interval_days    Int       @default(90)
+  last_rotated_at           DateTime? @db.Timestamptz(6)
+  next_rotation_at          DateTime? @db.Timestamptz(6)
+  aws_region                String?   @default("us-west-1") @db.VarChar(50)
+
+  users_api_credentials_created_byTousers users?    @relation("api_credentials_created_byTousers", fields: [created_by], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  users_api_credentials_updated_byTousers users?    @relation("api_credentials_updated_byTousers", fields: [updated_by], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  api_usage_logs                          api_usage_logs[]
+
+  @@index([service_name], map: "idx_api_credentials_service")
+  @@index([is_active], map: "idx_api_credentials_active")
+  @@index([storage_type], map: "idx_api_credentials_storage_type")
+  @@index([auto_rotation_enabled], map: "idx_api_credentials_auto_rotation")
+  @@index([next_rotation_at], map: "idx_api_credentials_next_rotation")
+  @@schema("public")
+}
+
+/// API Usage Analytics - Track all API calls for monitoring and analytics
+model api_usage_logs {
+  id                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  service_name      String          @db.VarChar(100)
+  endpoint          String?         @db.VarChar(500)
+  method            String?         @db.VarChar(10)
+  status_code       Int?
+  response_time_ms  Int?
+  error_message     String?
+  request_size      Int?
+  response_size     Int?
+  ip_address        String?         @db.VarChar(45)
+  user_agent        String?
+  metadata          Json?
+  created_at        DateTime        @default(now()) @db.Timestamptz(6)
+  api_credentials   api_credentials @relation(fields: [service_name], references: [service_name], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([service_name], map: "idx_api_usage_service")
+  @@index([created_at], map: "idx_api_usage_created_at")
+  @@index([status_code], map: "idx_api_usage_status")
   @@schema("public")
 }
 
@@ -1152,6 +1218,7 @@ model customer_portal_access {
   invited_by                                     String?    @db.Uuid
   invited_at                                     DateTime?  @db.Timestamptz(6)
   accepted_at                                    DateTime?  @db.Timestamptz(6)
+  granted_at                                     DateTime?  @db.Timestamptz(6)
   created_at                                     DateTime?  @default(now()) @db.Timestamptz(6)
   updated_at                                     DateTime?  @default(now()) @db.Timestamptz(6)
   portal_type                                    String?    @default("customer") @db.VarChar(20)
@@ -1617,6 +1684,7 @@ model design_projects {
   documents            documents[]
   mood_boards          mood_boards[]
   prototypes           prototypes[]
+  design_boards        design_boards[]
 
   @@index([collection_id], map: "idx_design_projects_collection_id")
   @@index([designer_id], map: "idx_design_projects_designer_id")
@@ -2271,6 +2339,7 @@ model fabric_colors {
   collection_id            String?                    @db.Uuid
   name                     String
   hex_code                 String?
+  swatch_url               String?
   price_modifier           Decimal?                   @default(0) @db.Decimal(5, 2)
   active                   Boolean?                   @default(true)
   sort_order               Int?
@@ -4622,6 +4691,9 @@ model products {
   weight_lbs  Decimal?  @db.Decimal(10, 2)
   dimensions  String?
 
+  // Flipbook relations (flipbook schema)
+  flipbook_hotspots hotspots[] @relation("hotspot_product")
+
   @@index([category], map: "idx_products_category")
   @@index([created_at], map: "idx_products_created_at")
   @@schema("public")
@@ -6698,6 +6770,25 @@ model user_profiles {
   users_user_profiles_idTousers                                    users                        @relation("user_profiles_idTousers", fields: [id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   users_user_profiles_user_idTousers                               users?                       @relation("user_profiles_user_idTousers", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
+  // Design Boards relations
+  design_boards_created                                            design_boards[]              @relation("board_creator")
+  board_objects_created                                            board_objects[]              @relation("object_creator")
+  board_collaborators_user                                         board_collaborators[]        @relation("collaborator_user")
+  board_collaborators_invited                                      board_collaborators[]        @relation("collaborator_inviter")
+  board_comments_authored                                          board_comments[]             @relation("comment_author")
+  board_comments_resolved                                          board_comments[]             @relation("comment_resolver")
+  board_votes                                                      board_votes[]                @relation("vote_user")
+  board_templates_created                                          board_templates[]            @relation("template_creator")
+  board_activity_log                                               board_activity_log[]         @relation("activity_user")
+  board_snapshots_created                                          board_snapshots[]            @relation("snapshot_creator")
+
+  // Flipbook relations (flipbook schema)
+  flipbooks_created                                                flipbooks[]                  @relation("flipbook_creator")
+  flipbook_versions_created                                        flipbook_versions[]          @relation("flipbook_version_creator")
+  flipbook_templates_created                                       templates[]                  @relation("template_creator")
+  flipbook_analytics_events                                        analytics_events[]           @relation("analytics_user")
+  ai_generation_queue_jobs                                         ai_generation_queue[]        @relation("ai_generation_user")
+
   @@index([email], map: "idx_user_profiles_email")
   @@index([is_active], map: "idx_user_profiles_is_active")
   @@index([user_id], map: "idx_user_profiles_user_id")
@@ -7336,4 +7427,542 @@ enum user_type_enum {
   customer
 
   @@schema("public")
+}
+
+// =============================================================================
+// DESIGN BOARDS MODELS - Mural-like Collaborative Whiteboard System
+// =============================================================================
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model design_boards {
+  id                   String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                 String
+  description          String?
+  board_type           String                 @default("freeform")
+  template_id          String?                @db.Uuid
+  status               String                 @default("active")
+  project_id           String?                @db.Uuid
+  created_by           String                 @db.Uuid
+  thumbnail_url        String?
+  is_shared            Boolean?               @default(false)
+  is_public            Boolean?               @default(false)
+
+  // Canvas settings
+  canvas_width         Int?                   @default(4000)
+  canvas_height        Int?                   @default(3000)
+  background_color     String?                @default("#ffffff")
+  background_image_url String?
+  grid_enabled         Boolean?               @default(true)
+  snap_to_grid         Boolean?               @default(false)
+  grid_size            Int?                   @default(20)
+
+  // Metadata
+  metadata             Json?                  @default("{}")
+  created_at           DateTime?              @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime?              @default(now()) @db.Timestamptz(6)
+  last_activity_at     DateTime?              @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  board_templates      board_templates?       @relation(fields: [template_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  design_projects      design_projects?       @relation(fields: [project_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user_profiles        user_profiles          @relation("board_creator", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  board_objects        board_objects[]
+  board_collaborators  board_collaborators[]
+  board_comments       board_comments[]
+  board_votes          board_votes[]
+  board_activity_log   board_activity_log[]
+  board_snapshots      board_snapshots[]
+
+  @@index([project_id], map: "idx_design_boards_project_id")
+  @@index([created_by], map: "idx_design_boards_created_by")
+  @@index([status], map: "idx_design_boards_status")
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model board_objects {
+  id           String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  board_id     String           @db.Uuid
+  object_type  String
+  object_data  Json
+
+  // Position and transform
+  position_x   Float
+  position_y   Float
+  width        Float?
+  height       Float?
+  rotation     Float?           @default(0)
+  scale_x      Float?           @default(1)
+  scale_y      Float?           @default(1)
+
+  // Layering
+  z_index      Int?             @default(0)
+  locked       Boolean?         @default(false)
+  visible      Boolean?         @default(true)
+
+  // Metadata
+  created_by   String?          @db.Uuid
+  created_at   DateTime?        @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime?        @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  design_boards    design_boards      @relation(fields: [board_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user_profiles    user_profiles?     @relation("object_creator", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  board_comments   board_comments[]
+  board_votes      board_votes[]
+
+  @@index([board_id], map: "idx_board_objects_board_id")
+  @@index([created_by], map: "idx_board_objects_created_by")
+  @@index([object_type], map: "idx_board_objects_object_type")
+  @@index([board_id, z_index], map: "idx_board_objects_z_index")
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model board_collaborators {
+  id          String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  board_id    String         @db.Uuid
+  user_id     String         @db.Uuid
+  role        String         @default("editor")
+  invited_by  String?        @db.Uuid
+  created_at  DateTime?      @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  design_boards        design_boards  @relation(fields: [board_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user_profiles        user_profiles  @relation("collaborator_user", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  invited_by_user      user_profiles? @relation("collaborator_inviter", fields: [invited_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([board_id, user_id])
+  @@index([board_id], map: "idx_board_collaborators_board_id")
+  @@index([user_id], map: "idx_board_collaborators_user_id")
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model board_comments {
+  id                String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  board_id          String           @db.Uuid
+  object_id         String?          @db.Uuid
+  parent_comment_id String?          @db.Uuid
+  user_id           String           @db.Uuid
+  comment_text      String
+
+  // Position (if placed on canvas, not object)
+  position_x        Float?
+  position_y        Float?
+
+  // Resolution
+  resolved          Boolean?         @default(false)
+  resolved_by       String?          @db.Uuid
+  resolved_at       DateTime?        @db.Timestamptz(6)
+
+  created_at        DateTime?        @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime?        @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  design_boards         design_boards    @relation(fields: [board_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  board_objects         board_objects?   @relation(fields: [object_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  parent_comment        board_comments?  @relation("comment_replies", fields: [parent_comment_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user_profiles         user_profiles    @relation("comment_author", fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  resolved_by_user      user_profiles?   @relation("comment_resolver", fields: [resolved_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  replies               board_comments[] @relation("comment_replies")
+
+  @@index([board_id], map: "idx_board_comments_board_id")
+  @@index([object_id], map: "idx_board_comments_object_id")
+  @@index([user_id], map: "idx_board_comments_user_id")
+  @@index([parent_comment_id], map: "idx_board_comments_parent")
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model board_votes {
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  board_id    String        @db.Uuid
+  object_id   String        @db.Uuid
+  user_id     String        @db.Uuid
+  vote_count  Int?          @default(1)
+  vote_type   String?       @default("dot")
+  created_at  DateTime?     @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  design_boards  design_boards  @relation(fields: [board_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  board_objects  board_objects  @relation(fields: [object_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user_profiles  user_profiles  @relation("vote_user", fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([board_id, object_id, user_id, vote_type])
+  @@index([board_id], map: "idx_board_votes_board_id")
+  @@index([object_id], map: "idx_board_votes_object_id")
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model board_templates {
+  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String
+  description   String?
+  category      String
+  thumbnail_url String?
+  template_data Json
+  is_public     Boolean?        @default(true)
+  is_featured   Boolean?        @default(false)
+  created_by    String?         @db.Uuid
+  use_count     Int?            @default(0)
+  tags          String[]        @default([])
+  created_at    DateTime?       @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime?       @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  user_profiles  user_profiles?  @relation("template_creator", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  design_boards  design_boards[]
+
+  @@index([category], map: "idx_board_templates_category")
+  @@index([is_public], map: "idx_board_templates_public")
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model board_activity_log {
+  id          String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  board_id    String         @db.Uuid
+  user_id     String?        @db.Uuid
+  action_type String
+  object_id   String?        @db.Uuid
+  details     Json?          @default("{}")
+  created_at  DateTime?      @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  design_boards  design_boards  @relation(fields: [board_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user_profiles  user_profiles? @relation("activity_user", fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([board_id], map: "idx_board_activity_log_board_id")
+  @@index([user_id], map: "idx_board_activity_log_user_id")
+  @@index([created_at(sort: Desc)], map: "idx_board_activity_log_created_at")
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model board_snapshots {
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  board_id        String         @db.Uuid
+  snapshot_data   Json
+  created_by      String?        @db.Uuid
+  snapshot_name   String?
+  auto_generated  Boolean?       @default(false)
+  created_at      DateTime?      @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  design_boards  design_boards  @relation(fields: [board_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user_profiles  user_profiles? @relation("snapshot_creator", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([board_id], map: "idx_board_snapshots_board_id")
+  @@index([created_at(sort: Desc)], map: "idx_board_snapshots_created_at")
+  @@schema("public")
+}
+
+// =====================================================
+// FLIPBOOK SCHEMA
+// =====================================================
+// FEATURE: Interactive 3D flipbooks with AI generation
+// ISOLATION: Completely isolated in flipbook schema
+// FLAG: Controlled by NEXT_PUBLIC_ENABLE_FLIPBOOKS
+// ROLLBACK: DROP SCHEMA flipbook CASCADE (zero impact)
+// =====================================================
+
+/// Flipbook main table
+/// Stores metadata for flipbook publications
+model flipbooks {
+  id                String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title             String              @db.VarChar(255)
+  description       String?
+  status            flipbook_status     @default(DRAFT)
+  created_by_id     String              @db.Uuid
+  cover_image_url   String?
+  thumbnail_url     String?
+  pdf_source_url    String?
+  page_count        Int?                @default(0)
+  view_count        Int?                @default(0)
+  published_at      DateTime?           @db.Timestamptz(6)
+  created_at        DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime            @default(now()) @db.Timestamptz(6)
+  
+  // JSON metadata
+  settings          Json?               // Flipbook settings (transitions, sounds, etc.)
+  branding          Json?               // Brand colors, logos, fonts
+  
+  // Relations to public schema (ONE-DIRECTIONAL)
+  created_by        user_profiles       @relation("flipbook_creator", fields: [created_by_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  
+  // Relations within flipbook schema
+  pages             flipbook_pages[]
+  versions          flipbook_versions[]
+  analytics_events  analytics_events[]
+  
+  @@index([created_by_id], map: "idx_flipbooks_creator")
+  @@index([status], map: "idx_flipbooks_status")
+  @@index([created_at(sort: Desc)], map: "idx_flipbooks_created_at")
+  @@schema("flipbook")
+}
+
+/// Flipbook pages
+/// Individual pages within a flipbook
+model flipbook_pages {
+  id                String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  flipbook_id       String              @db.Uuid
+  page_number       Int
+  image_url         String              // URL to page image (S3/CloudFront)
+  thumbnail_url     String?             // Thumbnail for page picker
+  page_type         page_type           @default(CONTENT)
+  
+  // Content data
+  text_content      String?             // Extracted text for search/SEO
+  seo_title         String?             @db.VarChar(255)
+  seo_description   String?
+  
+  // Layout metadata
+  layout_data       Json?               // Page layout configuration
+  
+  created_at        DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime            @default(now()) @db.Timestamptz(6)
+  
+  // Relations
+  flipbook          flipbooks           @relation(fields: [flipbook_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  hotspots          hotspots[]
+  
+  @@unique([flipbook_id, page_number])
+  @@index([flipbook_id], map: "idx_flipbook_pages_flipbook")
+  @@schema("flipbook")
+}
+
+/// Flipbook versions
+/// Version control for flipbooks
+model flipbook_versions {
+  id                String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  flipbook_id       String              @db.Uuid
+  version_number    Int
+  created_by_id     String              @db.Uuid
+  snapshot_data     Json                // Complete flipbook state
+  change_notes      String?
+  is_published      Boolean             @default(false)
+  created_at        DateTime            @default(now()) @db.Timestamptz(6)
+  
+  // Relations
+  flipbook          flipbooks           @relation(fields: [flipbook_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  created_by        user_profiles       @relation("flipbook_version_creator", fields: [created_by_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  
+  @@unique([flipbook_id, version_number])
+  @@index([flipbook_id], map: "idx_flipbook_versions_flipbook")
+  @@schema("flipbook")
+}
+
+/// Interactive hotspots
+/// Clickable areas on flipbook pages
+model hotspots {
+  id                String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  page_id           String              @db.Uuid
+  hotspot_type      hotspot_type
+  
+  // Position & dimensions (percentage-based for responsive)
+  x_position        Decimal             @db.Decimal(5, 2)  // 0.00 to 100.00
+  y_position        Decimal             @db.Decimal(5, 2)  // 0.00 to 100.00
+  width             Decimal             @db.Decimal(5, 2)  // 0.00 to 100.00
+  height            Decimal             @db.Decimal(5, 2)  // 0.00 to 100.00
+  
+  // Target configuration
+  target_url        String?             // For EXTERNAL_LINK, VIDEO, DOWNLOAD
+  target_page       Int?                // For INTERNAL_LINK
+  target_product_id String?             @db.Uuid  // For PRODUCT_LINK
+  popup_content     Json?               // For POPUP (title, description, images)
+  form_config       Json?               // For FORM (fields, validation)
+  
+  // Visual styling
+  style_config      Json?               // Icon, color, animation
+  
+  // Analytics
+  click_count       Int                 @default(0)
+  
+  created_at        DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime            @default(now()) @db.Timestamptz(6)
+  
+  // Relations
+  page              flipbook_pages      @relation(fields: [page_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  target_product    products?           @relation("hotspot_product", fields: [target_product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  
+  @@index([page_id], map: "idx_hotspots_page")
+  @@index([hotspot_type], map: "idx_hotspots_type")
+  @@schema("flipbook")
+}
+
+/// Flipbook templates
+/// Reusable templates for flipbook creation
+model templates {
+  id                String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name              String              @db.VarChar(255)
+  description       String?
+  category          template_category
+  thumbnail_url     String?
+  
+  // Template configuration
+  template_config   Json                // Layout, styles, components
+  page_layouts      Json                // Default page layouts
+  brand_config      Json?               // Default branding
+  
+  // Metadata
+  is_public         Boolean             @default(true)
+  created_by_id     String?             @db.Uuid
+  use_count         Int                 @default(0)
+  tags              String[]            @default([])
+  
+  created_at        DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime            @default(now()) @db.Timestamptz(6)
+  
+  // Relations
+  created_by        user_profiles?      @relation("template_creator", fields: [created_by_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  
+  @@index([category], map: "idx_templates_category")
+  @@index([is_public], map: "idx_templates_public")
+  @@index([created_by_id], map: "idx_templates_creator")
+  @@schema("flipbook")
+}
+
+/// Analytics events
+/// Track flipbook interactions and engagement
+model analytics_events {
+  id                String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  flipbook_id       String              @db.Uuid
+  event_type        analytics_event_type
+  user_id           String?             @db.Uuid
+  session_id        String?             @db.Uuid
+  
+  // Event data
+  page_number       Int?
+  hotspot_id        String?             @db.Uuid
+  duration_seconds  Int?                // Time spent on page/flipbook
+  
+  // Context
+  user_agent        String?
+  ip_address        String?             @db.VarChar(45)
+  referrer          String?
+  device_type       String?             @db.VarChar(50)
+  
+  // Metadata
+  metadata          Json?               // Additional event data
+  
+  created_at        DateTime            @default(now()) @db.Timestamptz(6)
+  
+  // Relations
+  flipbook          flipbooks           @relation(fields: [flipbook_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user              user_profiles?      @relation("analytics_user", fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  
+  @@index([flipbook_id], map: "idx_analytics_events_flipbook")
+  @@index([event_type], map: "idx_analytics_events_type")
+  @@index([user_id], map: "idx_analytics_events_user")
+  @@index([created_at(sort: Desc)], map: "idx_analytics_events_created_at")
+  @@schema("flipbook")
+}
+
+/// AI generation queue
+/// Track AI-powered flipbook generation jobs
+model ai_generation_queue {
+  id                String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id           String              @db.Uuid
+  prompt            String              // Natural language generation prompt
+  status            ai_generation_status @default(PENDING)
+  flipbook_id       String?             @db.Uuid  // Created flipbook (when complete)
+  
+  // Configuration
+  generation_config Json                // AI parameters, style preferences
+  source_data       Json?               // Source content (products, images, etc.)
+  
+  // Results
+  result_data       Json?               // Generated content, errors
+  error_message     String?
+  
+  // Progress
+  progress_percent  Int                 @default(0)
+  estimated_completion DateTime?        @db.Timestamptz(6)
+  
+  created_at        DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime            @default(now()) @db.Timestamptz(6)
+  completed_at      DateTime?           @db.Timestamptz(6)
+  
+  // Relations
+  user              user_profiles       @relation("ai_generation_user", fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  
+  @@index([user_id], map: "idx_ai_generation_queue_user")
+  @@index([status], map: "idx_ai_generation_queue_status")
+  @@index([created_at(sort: Desc)], map: "idx_ai_generation_queue_created_at")
+  @@schema("flipbook")
+}
+
+// =====================================================
+// FLIPBOOK ENUMS
+// =====================================================
+
+enum flipbook_status {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+  
+  @@schema("flipbook")
+}
+
+enum page_type {
+  COVER
+  TABLE_OF_CONTENTS
+  CONTENT
+  BACK_COVER
+  
+  @@schema("flipbook")
+}
+
+enum hotspot_type {
+  INTERNAL_LINK
+  EXTERNAL_LINK
+  PRODUCT_LINK
+  DOWNLOAD
+  VIDEO
+  POPUP
+  FORM
+  ADD_TO_CART
+  
+  @@schema("flipbook")
+}
+
+enum template_category {
+  PRODUCT_CATALOG
+  LOOKBOOK
+  BROCHURE
+  MENU
+  PORTFOLIO
+  MAGAZINE
+  ANNUAL_REPORT
+  PRESENTATION
+  CUSTOM
+  
+  @@schema("flipbook")
+}
+
+enum analytics_event_type {
+  VIEW
+  PAGE_TURN
+  HOTSPOT_CLICK
+  SHARE
+  DOWNLOAD
+  ZOOM
+  SEARCH
+  
+  @@schema("flipbook")
+}
+
+enum ai_generation_status {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  
+  @@schema("flipbook")
 }
