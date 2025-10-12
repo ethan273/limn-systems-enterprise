@@ -18,6 +18,7 @@ import {
   generatePageImageKey,
   generateCoverKey,
   generateThumbnailKey,
+  initializeStorage,
 } from "@/lib/flipbooks/storage";
 import { features } from "@/lib/features";
 
@@ -55,7 +56,10 @@ export async function POST(request: NextRequest) {
     // Convert file to buffer
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    // Upload original PDF to S3
+    // Initialize storage bucket (creates if doesn't exist)
+    await initializeStorage();
+
+    // Upload original PDF to Supabase Storage
     const pdfKey = generatePdfKey(flipbookId, file.name);
     const pdfUpload = await uploadToS3(buffer, pdfKey, "application/pdf");
 

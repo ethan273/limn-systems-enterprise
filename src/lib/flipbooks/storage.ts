@@ -1,24 +1,13 @@
 /**
- * S3 Storage Utilities for Flipbooks
+ * Supabase Storage Utilities for Flipbooks
  *
- * Handles file uploads to S3 for flipbook assets (PDFs, images, etc.)
- * Uses AWS SDK v3 with CloudFront CDN for delivery
+ * Handles file uploads to Supabase Storage for flipbook assets (PDFs, images, etc.)
+ * Uses Supabase's built-in CDN for delivery
  */
 
-import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { getSupabaseAdmin } from "@/lib/supabase";
 
-// S3 Client configuration
-const s3Client = new S3Client({
-  region: process.env.AWS_REGION || "us-east-1",
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
-  },
-});
-
-const BUCKET_NAME = process.env.AWS_S3_BUCKET || "limn-flipbooks";
-const CDN_URL = process.env.NEXT_PUBLIC_CDN_URL || "";
+const BUCKET_NAME = "flipbooks";
 
 export interface UploadResult {
   key: string;
@@ -27,51 +16,97 @@ export interface UploadResult {
 }
 
 /**
- * Upload a file to S3
+ * Initialize Supabase Storage bucket (call once on setup)
+ */
+export async function initializeStorage() {
+  const supabase = getSupabaseAdmin();
+
+  // Check if bucket exists
+  const { data: buckets } = await supabase.storage.listBuckets();
+  const bucketExists = buckets?.some(b => b.name === BUCKET_NAME);
+
+  if (!bucketExists) {
+    // Create bucket as public
+    const { error } = await supabase.storage.createBucket(BUCKET_NAME, {
+      public: true,
+      fileSizeLimit: 52428800, // 50MB
+      allowedMimeTypes: ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'],
+    });
+
+    if (error) {
+      console.error("Error creating storage bucket:", error);
+      throw error;
+    }
+  }
+}
+
+/**
+ * Upload a file to Supabase Storage
  */
 export async function uploadToS3(
   file: Buffer,
   key: string,
   contentType: string
 ): Promise<UploadResult> {
-  const command = new PutObjectCommand({
-    Bucket: BUCKET_NAME,
-    Key: key,
-    Body: file,
-    ContentType: contentType,
-    CacheControl: "public, max-age=31536000", // 1 year
-  });
+  const supabase = getSupabaseAdmin();
 
-  await s3Client.send(command);
+  const { data, error } = await supabase.storage
+    .from(BUCKET_NAME)
+    .upload(key, file, {
+      contentType,
+      cacheControl: "public, max-age=31536000", // 1 year
+      upsert: true, // Overwrite if exists
+    });
 
-  const url = `https://${BUCKET_NAME}.s3.amazonaws.com/${key}`;
-  const cdnUrl = CDN_URL ? `${CDN_URL}/${key}` : url;
+  if (error) {
+    console.error("Upload error:", error);
+    throw new Error(`Failed to upload file: ${error.message}`);
+  }
 
-  return { key, url, cdnUrl };
+  // Get public URL
+  const { data: urlData } = supabase.storage
+    .from(BUCKET_NAME)
+    .getPublicUrl(key);
+
+  return {
+    key,
+    url: urlData.publicUrl,
+    cdnUrl: urlData.publicUrl, // Supabase CDN is already included
+  };
 }
 
 /**
- * Delete a file from S3
+ * Delete a file from Supabase Storage
  */
 export async function deleteFromS3(key: string): Promise<void> {
-  const command = new DeleteObjectCommand({
-    Bucket: BUCKET_NAME,
-    Key: key,
-  });
+  const supabase = getSupabaseAdmin();
 
-  await s3Client.send(command);
+  const { error } = await supabase.storage
+    .from(BUCKET_NAME)
+    .remove([key]);
+
+  if (error) {
+    console.error("Delete error:", error);
+    throw new Error(`Failed to delete file: ${error.message}`);
+  }
 }
 
 /**
- * Generate a presigned URL for temporary access
+ * Generate a signed URL for temporary access (for private files)
+ * Note: Our bucket is public, so this is optional
  */
 export async function getPresignedUrl(key: string, expiresIn: number = 3600): Promise<string> {
-  const command = new GetObjectCommand({
-    Bucket: BUCKET_NAME,
-    Key: key,
-  });
+  const supabase = getSupabaseAdmin();
 
-  return await getSignedUrl(s3Client, command, { expiresIn });
+  const { data, error } = await supabase.storage
+    .from(BUCKET_NAME)
+    .createSignedUrl(key, expiresIn);
+
+  if (error) {
+    throw new Error(`Failed to generate signed URL: ${error.message}`);
+  }
+
+  return data.signedUrl;
 }
 
 /**
