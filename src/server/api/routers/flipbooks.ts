@@ -135,7 +135,7 @@ export const flipbooksRouter = createTRPCRouter({
             include: {
               hotspots: {
                 include: {
-                  product: {
+                  target_product: {
                     select: {
                       id: true,
                       name: true,
@@ -509,7 +509,7 @@ export const flipbooksRouter = createTRPCRouter({
           action: "VIEW_PRODUCT",
         },
         include: {
-          product: {
+          target_product: {
             select: {
               id: true,
               name: true,
@@ -568,7 +568,7 @@ export const flipbooksRouter = createTRPCRouter({
         where: { id: hotspotId },
         data: updateData,
         include: {
-          product: {
+          target_product: {
             select: {
               id: true,
               name: true,
