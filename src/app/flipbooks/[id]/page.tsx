@@ -101,73 +101,73 @@ export default function FlipbookViewerPage({
   const hasPages = flipbook.pages && flipbook.pages.length > 0;
 
   return (
-    <div className="page-container">
-      {/* Page Header */}
-      <PageHeader
-        title={flipbook.title}
-        subtitle={flipbook.description || 'Interactive flipbook'}
-        actions={[
-          {
-            label: 'Back to Library',
-            icon: ArrowLeft,
-            variant: 'outline',
-            onClick: () => router.push("/flipbooks"),
-          },
-          {
-            label: 'Edit',
-            icon: Edit,
-            onClick: () => router.push(`/flipbooks/builder?id=${flipbookId}`),
-          },
-          {
-            label: 'Fullscreen',
-            icon: Maximize2,
-            onClick: () => setIsFullscreen(true),
-          },
-        ]}
-      />
+    <>
+      <div className="page-container">
+        {/* Page Header */}
+        <PageHeader
+          title={flipbook.title}
+          subtitle={flipbook.description || 'Interactive flipbook'}
+          actions={[
+            {
+              label: 'Back to Library',
+              icon: ArrowLeft,
+              variant: 'outline',
+              onClick: () => router.push("/flipbooks"),
+            },
+            {
+              label: 'Edit',
+              icon: Edit,
+              onClick: () => router.push(`/flipbooks/builder?id=${flipbookId}`),
+            },
+            ...(hasPages ? [{
+              label: 'Fullscreen',
+              icon: Maximize2,
+              onClick: () => setIsFullscreen(true),
+            }] : []),
+          ]}
+        />
 
-      {/* Flipbook Info Bar */}
-      <div className="bg-card rounded-lg border p-4 mb-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className={statusColors[flipbook.status]}>
-                {flipbook.status}
-              </Badge>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <BookOpen className="h-4 w-4" />
-              <span>{flipbook.page_count || 0} pages</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Eye className="h-4 w-4" />
-              <span>{flipbook.view_count || 0} views</span>
-            </div>
-            {hasPages && (
-              <div className="text-sm text-muted-foreground">
-                Currently viewing page {currentPage} of {flipbook.pages.length}
+        {/* Flipbook Info Bar */}
+        <div className="bg-card rounded-lg border p-4 mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className={statusColors[flipbook.status]}>
+                  {flipbook.status}
+                </Badge>
               </div>
-            )}
-          </div>
-          <div className="text-sm text-muted-foreground">
-            Created {formatDistanceToNow(new Date(flipbook.created_at), { addSuffix: true })}
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <BookOpen className="h-4 w-4" />
+                <span>{flipbook.page_count || 0} pages</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Eye className="h-4 w-4" />
+                <span>{flipbook.view_count || 0} views</span>
+              </div>
+              {hasPages && (
+                <div className="text-sm text-muted-foreground">
+                  Currently viewing page {currentPage} of {flipbook.pages.length}
+                </div>
+              )}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Created {formatDistanceToNow(new Date(flipbook.created_at), { addSuffix: true })}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Flipbook Viewer with 3D/2D Toggle */}
-      {hasPages ? (
-        <div className="bg-card rounded-lg border overflow-hidden h-[700px]">
-          <FlipbookViewer3DWrapper
-            pages={flipbook.pages}
-            initialPage={1}
-            onPageChange={handlePageChange}
-            onHotspotClick={handleHotspotClick}
-            onClose={isFullscreen ? () => setIsFullscreen(false) : undefined}
-            use3D={use3D}
-          />
-        </div>
-      ) : (
+        {/* Flipbook Viewer with 3D/2D Toggle */}
+        {hasPages ? (
+          <div className="bg-card rounded-lg border overflow-hidden h-[700px]">
+            <FlipbookViewer3DWrapper
+              pages={flipbook.pages}
+              initialPage={1}
+              onPageChange={handlePageChange}
+              onHotspotClick={handleHotspotClick}
+              use3D={use3D}
+            />
+          </div>
+        ) : (
         <div className="bg-card rounded-lg border p-12 min-h-[600px] flex flex-col items-center justify-center">
           <div className="text-center">
             <div className="mb-4">
@@ -246,5 +246,20 @@ export default function FlipbookViewerPage({
         </div>
       </div>
     </div>
+
+    {/* Fullscreen Overlay */}
+    {isFullscreen && hasPages && (
+      <div className="fixed inset-0 z-50 bg-background">
+        <FlipbookViewer3DWrapper
+          pages={flipbook.pages}
+          initialPage={currentPage}
+          onPageChange={handlePageChange}
+          onHotspotClick={handleHotspotClick}
+          onClose={() => setIsFullscreen(false)}
+          use3D={use3D}
+        />
+      </div>
+    )}
+    </>
   );
 }
