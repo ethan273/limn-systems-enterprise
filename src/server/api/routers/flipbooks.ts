@@ -59,11 +59,45 @@ export const flipbooksRouter = createTRPCRouter({
 
       const { limit, cursor, status } = input;
 
-      // Placeholder - will be implemented in Phase 2
-      // This would query: SELECT * FROM flipbook.flipbooks WHERE created_by_id = ctx.session.user.id
+      // Build where clause
+      const where: any = {
+        created_by_id: ctx.session.user.id,
+      };
+
+      if (status) {
+        where.status = status;
+      }
+
+      if (cursor) {
+        where.id = { lt: cursor };
+      }
+
+      // Query flipbooks
+      const flipbooks = await ctx.db.flipbooks.findMany({
+        where,
+        take: limit,
+        orderBy: { created_at: "desc" },
+        include: {
+          created_by: {
+            select: {
+              id: true,
+              full_name: true,
+              email: true,
+            },
+          },
+          pages: {
+            select: {
+              id: true,
+              page_number: true,
+            },
+            orderBy: { page_number: "asc" },
+          },
+        },
+      });
+
       return {
-        flipbooks: [],
-        nextCursor: undefined,
+        flipbooks,
+        nextCursor: flipbooks.length === limit ? flipbooks[flipbooks.length - 1]?.id : undefined,
       };
     }),
 
@@ -81,9 +115,63 @@ export const flipbooksRouter = createTRPCRouter({
         });
       }
 
-      // Placeholder - will be implemented in Phase 2
-      // This would query: SELECT * FROM flipbook.flipbooks WHERE id = input.id
-      return null;
+      const flipbook = await ctx.db.flipbooks.findUnique({
+        where: { id: input.id },
+        include: {
+          created_by: {
+            select: {
+              id: true,
+              full_name: true,
+              email: true,
+              avatar_url: true,
+            },
+          },
+          pages: {
+            orderBy: { page_number: "asc" },
+            include: {
+              hotspots: {
+                include: {
+                  product: {
+                    select: {
+                      id: true,
+                      name: true,
+                      sku: true,
+                      thumbnail_url: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          versions: {
+            orderBy: { version_number: "desc" },
+            take: 5,
+          },
+        },
+      });
+
+      if (!flipbook) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Flipbook not found",
+        });
+      }
+
+      // Check permissions - only creator can view
+      if (flipbook.created_by_id !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have permission to view this flipbook",
+        });
+      }
+
+      // Increment view count
+      await ctx.db.flipbooks.update({
+        where: { id: input.id },
+        data: { view_count: { increment: 1 } },
+      });
+
+      return flipbook;
     }),
 
   /**
@@ -100,12 +188,26 @@ export const flipbooksRouter = createTRPCRouter({
         });
       }
 
-      // Placeholder - will be implemented in Phase 2
-      // This would: INSERT INTO flipbook.flipbooks (title, description, created_by_id, ...)
-      throw new TRPCError({
-        code: "NOT_IMPLEMENTED",
-        message: "Flipbook creation will be implemented in Phase 2",
+      const flipbook = await ctx.db.flipbooks.create({
+        data: {
+          title: input.title,
+          description: input.description,
+          created_by_id: ctx.session.user.id,
+          pdf_source_url: input.pdf_source_url,
+          status: "DRAFT",
+        },
+        include: {
+          created_by: {
+            select: {
+              id: true,
+              full_name: true,
+              email: true,
+            },
+          },
+        },
       });
+
+      return flipbook;
     }),
 
   /**
@@ -122,12 +224,49 @@ export const flipbooksRouter = createTRPCRouter({
         });
       }
 
-      // Placeholder - will be implemented in Phase 2
-      // This would: UPDATE flipbook.flipbooks SET ... WHERE id = input.id
-      throw new TRPCError({
-        code: "NOT_IMPLEMENTED",
-        message: "Flipbook update will be implemented in Phase 2",
+      const { id, ...data } = input;
+
+      // Check if flipbook exists and user has permission
+      const existing = await ctx.db.flipbooks.findUnique({
+        where: { id },
+        select: { created_by_id: true },
       });
+
+      if (!existing) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Flipbook not found",
+        });
+      }
+
+      if (existing.created_by_id !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have permission to update this flipbook",
+        });
+      }
+
+      // Update published_at if status changes to PUBLISHED
+      const updateData: any = { ...data };
+      if (data.status === "PUBLISHED" && existing.status !== "PUBLISHED") {
+        updateData.published_at = new Date();
+      }
+
+      const flipbook = await ctx.db.flipbooks.update({
+        where: { id },
+        data: updateData,
+        include: {
+          created_by: {
+            select: {
+              id: true,
+              full_name: true,
+              email: true,
+            },
+          },
+        },
+      });
+
+      return flipbook;
     }),
 
   /**
@@ -144,12 +283,32 @@ export const flipbooksRouter = createTRPCRouter({
         });
       }
 
-      // Placeholder - will be implemented in Phase 2
-      // This would: DELETE FROM flipbook.flipbooks WHERE id = input.id
-      throw new TRPCError({
-        code: "NOT_IMPLEMENTED",
-        message: "Flipbook deletion will be implemented in Phase 2",
+      // Check if flipbook exists and user has permission
+      const existing = await ctx.db.flipbooks.findUnique({
+        where: { id: input.id },
+        select: { created_by_id: true },
       });
+
+      if (!existing) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Flipbook not found",
+        });
+      }
+
+      if (existing.created_by_id !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have permission to delete this flipbook",
+        });
+      }
+
+      // Delete flipbook (cascade will delete related pages, hotspots, versions, analytics)
+      await ctx.db.flipbooks.delete({
+        where: { id: input.id },
+      });
+
+      return { success: true };
     }),
 
   /**
@@ -166,13 +325,49 @@ export const flipbooksRouter = createTRPCRouter({
         });
       }
 
-      // Placeholder - will be implemented in Phase 5
-      // This would query: SELECT * FROM flipbook.analytics_events WHERE flipbook_id = input.id
+      // Check if flipbook exists and user has permission
+      const flipbook = await ctx.db.flipbooks.findUnique({
+        where: { id: input.id },
+        select: {
+          created_by_id: true,
+          view_count: true,
+        },
+      });
+
+      if (!flipbook) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Flipbook not found",
+        });
+      }
+
+      if (flipbook.created_by_id !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have permission to view analytics for this flipbook",
+        });
+      }
+
+      // Aggregate analytics events
+      const events = await ctx.db.analytics_events.findMany({
+        where: { flipbook_id: input.id },
+      });
+
+      const views = events.filter(e => e.event_type === "VIEW").length;
+      const pageTurns = events.filter(e => e.event_type === "PAGE_TURN").length;
+      const hotspotClicks = events.filter(e => e.event_type === "HOTSPOT_CLICK").length;
+
+      // Calculate average time spent
+      const sessions = events.filter(e => e.event_type === "VIEW" && e.session_duration);
+      const totalTime = sessions.reduce((sum, e) => sum + (e.session_duration || 0), 0);
+      const avgTimeSpent = sessions.length > 0 ? totalTime / sessions.length : 0;
+
       return {
-        views: 0,
-        pageTurns: 0,
-        hotspotClicks: 0,
-        avgTimeSpent: 0,
+        views,
+        pageTurns,
+        hotspotClicks,
+        avgTimeSpent: Math.round(avgTimeSpent),
+        totalViews: flipbook.view_count || 0,
       };
     }),
 });

@@ -3,6 +3,12 @@
 import { features } from "@/lib/features";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { api } from "@/lib/api/client";
+import { ArrowLeft, Edit, Eye, BookOpen } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { LoadingState, PageHeader } from "@/components/common";
+import { formatDistanceToNow } from "date-fns";
 
 /**
  * Flipbook Viewer Page
@@ -31,42 +37,174 @@ export default function FlipbookViewerPage({
     return null;
   }
 
+  // Query flipbook data
+  const { data: flipbook, isLoading } = api.flipbooks.get.useQuery({
+    id: params.id,
+  });
+
+  if (isLoading) {
+    return <LoadingState message="Loading flipbook..." size="lg" />;
+  }
+
+  if (!flipbook) {
+    return (
+      <div className="page-container">
+        <div className="text-center py-12">
+          <h1 className="text-2xl font-bold mb-2">Flipbook Not Found</h1>
+          <p className="text-muted-foreground mb-6">
+            The flipbook you're looking for doesn't exist or you don't have permission to view it.
+          </p>
+          <Button onClick={() => router.push("/flipbooks")}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Library
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const statusColors: Record<string, string> = {
+    DRAFT: 'status-warning',
+    PUBLISHED: 'status-success',
+    ARCHIVED: 'status-muted',
+  };
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-6">
-        <button
-          onClick={() => router.back()}
-          className="text-primary hover:underline mb-4"
-        >
-          ← Back to Flipbooks
-        </button>
-        <h1 className="text-2xl font-bold text-primary">Flipbook Viewer</h1>
-        <p className="text-sm text-muted-foreground">ID: {params.id}</p>
+    <div className="page-container">
+      {/* Page Header */}
+      <PageHeader
+        title={flipbook.title}
+        subtitle={flipbook.description || 'Interactive flipbook'}
+        actions={[
+          {
+            label: 'Back to Library',
+            icon: ArrowLeft,
+            variant: 'outline',
+            onClick: () => router.push("/flipbooks"),
+          },
+          {
+            label: 'Edit',
+            icon: Edit,
+            onClick: () => router.push(`/flipbooks/builder?id=${params.id}`),
+          },
+        ]}
+      />
+
+      {/* Flipbook Info Bar */}
+      <div className="bg-card rounded-lg border p-4 mb-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className={statusColors[flipbook.status]}>
+                {flipbook.status}
+              </Badge>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <BookOpen className="h-4 w-4" />
+              <span>{flipbook.page_count || 0} pages</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Eye className="h-4 w-4" />
+              <span>{flipbook.view_count || 0} views</span>
+            </div>
+          </div>
+          <div className="text-sm text-muted-foreground">
+            Created {formatDistanceToNow(new Date(flipbook.created_at), { addSuffix: true })}
+          </div>
+        </div>
       </div>
 
-      {/* Placeholder - WebGL viewer will be implemented here */}
-      <div className="bg-card rounded-lg border p-12 text-center min-h-[600px] flex flex-col items-center justify-center">
-        <div className="mb-4">
-          <svg
-            className="mx-auto h-32 w-32 text-muted-foreground"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-            />
-          </svg>
+      {/* 3D Viewer Placeholder */}
+      <div className="bg-card rounded-lg border p-12 min-h-[600px] flex flex-col items-center justify-center">
+        <div className="text-center">
+          <div className="mb-4">
+            <svg
+              className="mx-auto h-32 w-32 text-muted-foreground"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+              />
+            </svg>
+          </div>
+          <h2 className="text-xl font-semibold mb-2">3D Viewer Coming Soon</h2>
+          <p className="text-muted-foreground max-w-md mb-6">
+            The WebGL/Three.js flipbook viewer will be implemented in Phase 3.
+            This will feature realistic page-turning physics, interactive hotspots,
+            and smooth 60fps animations.
+          </p>
+
+          {/* Pages Preview */}
+          {flipbook.pages && flipbook.pages.length > 0 && (
+            <div className="mt-8">
+              <h3 className="text-sm font-semibold mb-3">Pages ({flipbook.pages.length})</h3>
+              <div className="grid grid-cols-8 gap-2 max-w-2xl mx-auto">
+                {flipbook.pages.map((page: any) => (
+                  <div
+                    key={page.id}
+                    className="aspect-[3/4] bg-muted rounded border flex items-center justify-center text-xs font-medium"
+                  >
+                    {page.page_number}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-        <h2 className="text-xl font-semibold mb-2">3D Viewer Coming Soon</h2>
-        <p className="text-muted-foreground max-w-md">
-          The WebGL/Three.js flipbook viewer will be implemented in Phase 2.
-          This will feature realistic page-turning physics, interactive hotspots,
-          and smooth 60fps animations.
-        </p>
+      </div>
+
+      {/* Flipbook Details */}
+      <div className="grid grid-cols-2 gap-6 mt-6">
+        <div className="bg-card rounded-lg border p-6">
+          <h3 className="font-semibold mb-4">Details</h3>
+          <dl className="space-y-3 text-sm">
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Created by</dt>
+              <dd className="font-medium">{flipbook.created_by?.full_name || 'Unknown'}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Status</dt>
+              <dd>
+                <Badge variant="outline" className={statusColors[flipbook.status]}>
+                  {flipbook.status}
+                </Badge>
+              </dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Total Views</dt>
+              <dd className="font-medium">{flipbook.view_count || 0}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Page Count</dt>
+              <dd className="font-medium">{flipbook.page_count || 0}</dd>
+            </div>
+          </dl>
+        </div>
+
+        <div className="bg-card rounded-lg border p-6">
+          <h3 className="font-semibold mb-4">Recent Versions</h3>
+          {flipbook.versions && flipbook.versions.length > 0 ? (
+            <div className="space-y-2">
+              {flipbook.versions.map((version: any) => (
+                <div key={version.id} className="text-sm p-2 bg-muted/50 rounded">
+                  <div className="flex justify-between">
+                    <span className="font-medium">v{version.version_number}</span>
+                    <span className="text-muted-foreground text-xs">
+                      {formatDistanceToNow(new Date(version.created_at), { addSuffix: true })}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No version history yet</p>
+          )}
+        </div>
       </div>
     </div>
   );
