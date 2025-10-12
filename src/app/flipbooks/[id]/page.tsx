@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LoadingState, PageHeader } from "@/components/common";
 import { formatDistanceToNow } from "date-fns";
-import { FlipbookViewer } from "@/components/flipbooks/FlipbookViewer";
+import { FlipbookViewer2D } from "@/components/flipbooks/FlipbookViewer2D";
 import { toast } from "sonner";
 
 /**
@@ -147,10 +147,10 @@ export default function FlipbookViewerPage({
         </div>
       </div>
 
-      {/* WebGL 3D Viewer */}
+      {/* 2D Viewer (fallback until React Three Fiber is compatible with Next.js 15) */}
       {hasPages ? (
         <div className="bg-card rounded-lg border overflow-hidden h-[700px]">
-          <FlipbookViewer
+          <FlipbookViewer2D
             pages={flipbook.pages}
             initialPage={1}
             onPageChange={handlePageChange}
