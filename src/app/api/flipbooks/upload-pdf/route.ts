@@ -10,7 +10,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseAdmin } from "@/lib/supabase";
+import { PrismaClient } from "@prisma/client";
 import { processPdf, extractCover, createThumbnail } from "@/lib/flipbooks/pdf-processor";
 import {
   uploadToS3,
@@ -21,6 +21,8 @@ import {
   initializeStorage,
 } from "@/lib/flipbooks/storage";
 import { features } from "@/lib/features";
+
+const prisma = new PrismaClient();
 
 export const runtime = "nodejs";
 export const maxDuration = 300; // 5 minutes for large PDFs
@@ -76,9 +78,8 @@ export async function POST(request: NextRequest) {
     const thumbnailKey = generateThumbnailKey(flipbookId);
     const thumbnailUpload = await uploadToS3(thumbnailBuffer, thumbnailKey, "image/jpeg");
 
-    // Upload page images to S3 and create database records
-    const supabase = getSupabaseAdmin();
-    const pageRecords = [];
+    // Upload page images and create database records using Prisma
+    const pages = [];
 
     for (let i = 0; i < processResult.pages.length; i++) {
       const pageBuffer = processResult.pages[i]!;
@@ -90,51 +91,31 @@ export async function POST(request: NextRequest) {
       const pageThumbnailKey = `${pageKey.replace(".jpg", "")}-thumb.jpg`;
       const pageThumbnailUpload = await uploadToS3(pageThumbnailBuffer, pageThumbnailKey, "image/jpeg");
 
-      // Prepare page record
-      pageRecords.push({
-        flipbook_id: flipbookId,
-        page_number: i + 1,
-        image_url: pageUpload.cdnUrl,
-        thumbnail_url: pageThumbnailUpload.cdnUrl,
-        transition_type: "PAGE_TURN",
+      // Create page record in database
+      const page = await prisma.flipbook_pages.create({
+        data: {
+          flipbook_id: flipbookId,
+          page_number: i + 1,
+          image_url: pageUpload.cdnUrl,
+          thumbnail_url: pageThumbnailUpload.cdnUrl,
+          transition_type: "PAGE_TURN",
+        },
       });
+
+      pages.push(page);
     }
 
-    // Insert page records into database (flipbook schema)
-    const { data: pages, error: pagesError } = await supabase
-      .schema("flipbook")
-      .from("flipbook_pages")
-      .insert(pageRecords)
-      .select();
-
-    if (pagesError) {
-      console.error("Error creating pages:", pagesError);
-      return NextResponse.json(
-        { error: "Failed to create pages" },
-        { status: 500 }
-      );
-    }
-
-    // Update flipbook with metadata (flipbook schema)
-    const { error: updateError } = await supabase
-      .schema("flipbook")
-      .from("flipbooks")
-      .update({
+    // Update flipbook with metadata
+    await prisma.flipbooks.update({
+      where: { id: flipbookId },
+      data: {
         pdf_source_url: pdfUpload.cdnUrl,
         cover_image_url: coverUpload.cdnUrl,
         thumbnail_url: thumbnailUpload.cdnUrl,
         page_count: processResult.pageCount,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", flipbookId);
-
-    if (updateError) {
-      console.error("Error updating flipbook:", updateError);
-      return NextResponse.json(
-        { error: "Failed to update flipbook" },
-        { status: 500 }
-      );
-    }
+        updated_at: new Date(),
+      },
+    });
 
     return NextResponse.json({
       success: true,
