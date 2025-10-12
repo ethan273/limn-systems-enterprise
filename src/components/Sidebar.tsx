@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "@/components/providers/ThemeProvider";
+import { useAuthContext } from "@/lib/auth/AuthProvider";
 import { useEffect, useState } from "react";
 import {
  BarChart3,
@@ -21,10 +22,12 @@ import {
  Building2,
  Shield,
  TruckIcon,
- FileText
+ FileText,
+ BookOpen
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api/client";
+import { features } from "@/lib/features";
 
 interface NavSubItem {
  label: string;
@@ -36,15 +39,20 @@ interface NavModule {
  label: string;
  icon: any;
  items: NavSubItem[];
+ allowedUserTypes?: string[]; // If undefined, accessible to all user types
 }
 
 export default function Sidebar() {
  const pathname = usePathname();
  const router = useRouter();
  const { resolvedTheme } = useTheme();
+ const { user, profile } = useAuthContext();
  const [isOpen, setIsOpen] = useState(false);
  const [mounted, setMounted] = useState(false);
  const isOnTasksPage = pathname.startsWith('/tasks');
+
+ // Get user type for permission checking
+ const userType = profile?.user_type;
 
  useEffect(() => {
  setMounted(true);
@@ -59,7 +67,8 @@ export default function Sidebar() {
  "Products": pathname.startsWith('/products'),
  "Production": pathname.startsWith('/production'),
  "Finance": pathname.startsWith('/finance'),
- "Admin": pathname.startsWith('/admin')
+ "Admin": pathname.startsWith('/admin'),
+ "Flipbooks": pathname.startsWith('/flipbooks')
  });
 
  useEffect(() => {
@@ -74,11 +83,10 @@ export default function Sidebar() {
  "Shipping": pathname.startsWith('/shipping'),
  "Finance": pathname.startsWith('/finance') || pathname.startsWith('/financials'),
  "Admin": pathname.startsWith('/admin'),
- "Documents": pathname.startsWith('/documents')
+ "Documents": pathname.startsWith('/documents'),
+ "Flipbooks": pathname.startsWith('/flipbooks')
  });
  }, [pathname]);
-
- const currentUserId = "f146d819-3eed-43e3-80af-835915a5cc14";
 
  const { data: allTasksData } = api.tasks.getAllTasks.useQuery({
  limit: 1,
@@ -86,10 +94,12 @@ export default function Sidebar() {
  });
 
  const { data: myTasksData } = api.tasks.getMyTasks.useQuery({
- user_id: currentUserId,
+ user_id: user?.id || "",
  limit: 1,
  offset: 0,
  includeWatching: false,
+ }, {
+ enabled: !!user?.id,
  });
 
  const allTasksCount = allTasksData?.total || 0;
@@ -149,7 +159,7 @@ export default function Sidebar() {
  items: [
  { label: "Design Briefs", href: "/design/briefs" },
  { label: "Design Projects", href: "/design/projects" },
- { label: "Mood Boards", href: "/design/boards" },
+ { label: "Design Boards", href: "/design/boards" },
  { label: "Documents", href: "/design/documents" },
  ]
  },
@@ -205,9 +215,21 @@ export default function Sidebar() {
  { label: "All Documents", href: "/documents" },
  ]
  },
+ // Flipbooks module - only visible when feature flag is enabled
+ ...(features.flipbooks ? [{
+ label: "Flipbooks",
+ icon: BookOpen,
+ items: [
+ { label: "Library", href: "/flipbooks" },
+ { label: "Builder", href: "/flipbooks/builder" },
+ { label: "AI Generate", href: "/flipbooks/ai" },
+ { label: "Analytics", href: "/flipbooks/analytics" },
+ ]
+ }] : []),
  {
  label: "Admin",
  icon: Shield,
+ allowedUserTypes: ['super_admin'], // Only super_admin can access Admin module
  items: [
  { label: "Dashboard", href: "/admin/dashboard" },
  { label: "Approvals", href: "/admin/approvals" },
@@ -216,11 +238,27 @@ export default function Sidebar() {
  { label: "Roles", href: "/admin/roles" },
  { label: "Activity", href: "/admin/activity" },
  { label: "Analytics", href: "/admin/analytics" },
+ { label: "API Keys", href: "/admin/api-keys" },
+ { label: "API Analytics", href: "/admin/api-keys/analytics" },
+ { label: "API Monitoring", href: "/admin/api-keys/monitoring" },
+ { label: "Rotation Schedule", href: "/admin/api-keys/rotation-schedule" },
  { label: "Settings", href: "/admin/settings" },
  { label: "Export", href: "/admin/export" },
  ]
  }
  ];
+
+ // Filter navigation modules based on user permissions
+ const filteredNavigationModules = navigationModules.filter(module => {
+ // If no allowedUserTypes specified, module is accessible to all
+ if (!module.allowedUserTypes) return true;
+
+ // If profile is not loaded yet, show all modules temporarily
+ if (!userType) return true;
+
+ // Otherwise, check if user's type is in the allowed list
+ return module.allowedUserTypes.includes(userType);
+ });
 
  const toggleModule = (moduleLabel: string) => {
  setExpandedModules(prev => ({
@@ -284,6 +322,7 @@ export default function Sidebar() {
  className="sidebar-logo-image"
  priority
  unoptimized
+ style={{ width: 'auto', height: 'auto' }}
  />
  )}
  </div>
@@ -291,7 +330,7 @@ export default function Sidebar() {
 
  {/* Navigation */}
  <nav className="sidebar-nav space-y-2">
- {navigationModules.map((module) => {
+ {filteredNavigationModules.map((module) => {
  const Icon = module.icon;
  const isModuleExpanded = expandedModules[module.label];
  const moduleActive = isModuleActive(module);
@@ -371,11 +410,13 @@ export default function Sidebar() {
  aria-label="Open settings"
  >
  <div className="user-avatar">
- JD
+           {profile?.full_name
+             ? profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+             : user?.email?.slice(0, 2).toUpperCase() || 'U'}
  </div>
  <div className="user-info">
- <p className="user-name">John Doe</p>
- <p className="user-email">john@example.com</p>
+         <p className="user-name">{profile?.full_name || user?.email?.split('@')[0] || 'User'}</p>
+         <p className="user-email">{user?.email || 'No email'}</p>
  </div>
  <LogOutIcon className="user-logout-icon" />
  </div>

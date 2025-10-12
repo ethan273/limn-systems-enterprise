@@ -22,6 +22,7 @@ import { portalRouter } from './routers/portal';
 import { designBriefsRouter } from './routers/design-briefs';
 import { designProjectsRouter } from './routers/design-projects-router';
 import { moodBoardsRouter } from './routers/mood-boards';
+import { designBoardsRouter } from './routers/designBoards';
 import { oauthRouter } from './routers/oauth';
 import { storageRouter } from './routers/storage';
 import { shopDrawingsRouter } from './routers/shop-drawings';
@@ -40,6 +41,9 @@ import { adminRouter } from './routers/admin';
 import { auditRouter } from './routers/audit';
 import { exportRouter } from './routers/export';
 import { analyticsRouter } from './routers/analytics';
+import { apiCredentialsRouter } from './routers/apiCredentials';
+import { flipbooksRouter } from './routers/flipbooks';
+import { features } from '@/lib/features';
 
 /**
  * Main API router
@@ -57,6 +61,7 @@ export const appRouter = createTRPCRouter({
   admin: adminRouter,
   audit: auditRouter,
   export: exportRouter,
+  apiCredentials: apiCredentialsRouter,
 
   // Notifications & User Profile
   notifications: notificationsRouter,
@@ -99,6 +104,7 @@ export const appRouter = createTRPCRouter({
   designBriefs: designBriefsRouter,
   designProjects: designProjectsRouter,
   moodBoards: moodBoardsRouter,
+  designBoards: designBoardsRouter,
 
   // OAuth & Storage (Phase 2 - Week 13-15 Day 7-9)
   oauth: oauthRouter,
@@ -134,6 +140,10 @@ export const appRouter = createTRPCRouter({
 
   // Customer Portal (Phase 3)
   portal: portalRouter,
+
+  // Flipbooks (Feature Flag Protected)
+  // Only loaded if NEXT_PUBLIC_ENABLE_FLIPBOOKS=true
+  ...(features.flipbooks && { flipbooks: flipbooksRouter }),
 });
 
 // Export type for client
