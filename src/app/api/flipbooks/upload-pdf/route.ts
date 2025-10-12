@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
           page_number: i + 1,
           image_url: pageUpload.cdnUrl,
           thumbnail_url: pageThumbnailUpload.cdnUrl,
-          transition_type: "PAGE_TURN",
+          page_type: "CONTENT",
         },
       });
 
