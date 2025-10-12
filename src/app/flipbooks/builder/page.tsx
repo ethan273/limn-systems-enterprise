@@ -10,6 +10,7 @@ import { PageHeader, LoadingState } from "@/components/common";
 import { FileUploader } from "@/components/flipbooks/FileUploader";
 import { PageCanvas } from "@/components/flipbooks/PageCanvas";
 import { SortablePageList } from "@/components/flipbooks/SortablePageList";
+import { ProductPicker } from "@/components/flipbooks/ProductPicker";
 import {
   Dialog,
   DialogContent,
@@ -36,6 +37,8 @@ export default function FlipbookBuilderPage() {
 
   const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [productPickerOpen, setProductPickerOpen] = useState(false);
+  const [pendingHotspot, setPendingHotspot] = useState<any>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<"DRAFT" | "PUBLISHED" | "ARCHIVED">("DRAFT");
@@ -161,25 +164,32 @@ export default function FlipbookBuilderPage() {
     deletePage.mutate({ pageId });
   };
 
-  // Handle hotspot creation
+  // Handle hotspot creation - open product picker
   const handleHotspotCreate = (hotspot: any) => {
     if (!selectedPageId) {
       toast.error("Please select a page first");
       return;
     }
 
-    // For demo, use a placeholder product ID
-    // In production, this would open a product selector dialog
-    const demoProductId = "00000000-0000-0000-0000-000000000001";
+    // Store pending hotspot data and open product picker
+    setPendingHotspot(hotspot);
+    setProductPickerOpen(true);
+  };
+
+  // Handle product selection from picker
+  const handleProductSelect = (productId: string) => {
+    if (!pendingHotspot || !selectedPageId) return;
 
     createHotspot.mutate({
       pageId: selectedPageId,
-      productId: demoProductId,
-      xPercent: hotspot.xPercent,
-      yPercent: hotspot.yPercent,
-      width: hotspot.width,
-      height: hotspot.height,
+      productId,
+      xPercent: pendingHotspot.xPercent,
+      yPercent: pendingHotspot.yPercent,
+      width: pendingHotspot.width,
+      height: pendingHotspot.height,
     });
+
+    setPendingHotspot(null);
   };
 
   // Handle hotspot update
@@ -389,6 +399,16 @@ export default function FlipbookBuilderPage() {
           </div>
         </div>
       </div>
+
+      {/* Product Picker Dialog */}
+      <ProductPicker
+        open={productPickerOpen}
+        onClose={() => {
+          setProductPickerOpen(false);
+          setPendingHotspot(null);
+        }}
+        onSelect={handleProductSelect}
+      />
     </div>
   );
 }
