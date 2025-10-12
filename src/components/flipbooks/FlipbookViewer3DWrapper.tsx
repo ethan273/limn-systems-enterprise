@@ -3,11 +3,10 @@
 /**
  * 3D Flipbook Viewer Wrapper
  *
- * Dynamically loads the 3D viewer to isolate React Three Fiber compatibility issues
+ * Uses CSS 3D transforms for page-turn effects (compatible with React 19)
  */
 
-import { useState, useEffect, Suspense, lazy } from "react";
-import { LoadingState } from "@/components/common";
+import { FlipbookViewerCSS3D } from "./FlipbookViewerCSS3D";
 import { FlipbookViewer2D } from "./FlipbookViewer2D";
 
 interface FlipbookViewer3DWrapperProps {
@@ -25,29 +24,12 @@ export function FlipbookViewer3DWrapper({
   onPageChange,
   onHotspotClick,
   onClose,
-  use3D = false,
+  use3D = true,
 }: FlipbookViewer3DWrapperProps) {
-  const [hasError, setHasError] = useState(false);
-  const [FlipbookViewer3D, setFlipbookViewer3D] = useState<any>(null);
-
-  useEffect(() => {
-    if (use3D && !hasError) {
-      // Try to dynamically import the 3D viewer
-      import("./FlipbookViewer")
-        .then((module) => {
-          setFlipbookViewer3D(() => module.FlipbookViewer);
-        })
-        .catch((error) => {
-          console.warn("Failed to load 3D viewer, falling back to 2D:", error);
-          setHasError(true);
-        });
-    }
-  }, [use3D, hasError]);
-
-  // Use 2D viewer if 3D is not requested, has error, or not loaded yet
-  if (!use3D || hasError || !FlipbookViewer3D) {
+  // Use CSS 3D viewer by default (compatible with React 19)
+  if (use3D) {
     return (
-      <FlipbookViewer2D
+      <FlipbookViewerCSS3D
         pages={pages}
         initialPage={initialPage}
         onPageChange={onPageChange}
@@ -57,16 +39,14 @@ export function FlipbookViewer3DWrapper({
     );
   }
 
-  // Render 3D viewer
+  // Fallback to 2D viewer
   return (
-    <Suspense fallback={<LoadingState message="Loading 3D viewer..." />}>
-      <FlipbookViewer3D
-        pages={pages}
-        initialPage={initialPage}
-        onPageChange={onPageChange}
-        onHotspotClick={onHotspotClick}
-        onClose={onClose}
-      />
-    </Suspense>
+    <FlipbookViewer2D
+      pages={pages}
+      initialPage={initialPage}
+      onPageChange={onPageChange}
+      onHotspotClick={onHotspotClick}
+      onClose={onClose}
+    />
   );
 }
