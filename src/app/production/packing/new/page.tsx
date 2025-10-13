@@ -149,7 +149,7 @@ export default function NewPackingJobPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Select an order</SelectItem>
-                    {ordersData?.orders?.map((order: { id: string; order_number: string; items?: { description?: string } }) => (
+                    {ordersData?.items?.map((order: { id: string; order_number: string; items?: { description?: string } }) => (
                       <SelectItem key={order.id} value={order.id}>
                         {order.order_number} {order.items?.description ? `- ${order.items.description}` : ''}
                       </SelectItem>

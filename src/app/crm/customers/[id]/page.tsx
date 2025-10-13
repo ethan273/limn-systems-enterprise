@@ -155,7 +155,9 @@ export default function CustomerDetailPage({ params }: PageProps) {
     );
   }
 
-  const { customer, orders = [], invoices = [] } = data;
+  const customer = data.customer;
+  const orders = (data as any).orders || [];
+  const invoices = (data as any).invoices || [];
 
   return (
     <div className="page-container">

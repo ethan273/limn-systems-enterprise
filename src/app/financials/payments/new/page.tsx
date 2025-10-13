@@ -122,7 +122,7 @@ export default function NewPaymentPage() {
   const isFormValid = invoiceId && paymentAmount && parseFloat(paymentAmount) > 0 && paymentMethod && paymentDate;
 
   // Filter to unpaid or partially paid invoices
-  const unpaidInvoices = invoicesData?.invoices?.filter((invoice: { payment_status: string }) =>
+  const unpaidInvoices = invoicesData?.items?.filter((invoice: { payment_status: string }) =>
     invoice.payment_status === 'unpaid' || invoice.payment_status === 'partial'
   ) || [];
 

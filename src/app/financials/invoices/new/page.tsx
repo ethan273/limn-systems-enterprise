@@ -169,7 +169,7 @@ export default function NewInvoicePage() {
                     <SelectValue placeholder="Select an order" />
                   </SelectTrigger>
                   <SelectContent>
-                    {ordersData?.orders?.map((order: { id: string; order_number: string; customer?: { company_name?: string; name?: string } }) => (
+                    {ordersData?.items?.map((order: { id: string; order_number: string; customer?: { company_name?: string; name?: string } }) => (
                       <SelectItem key={order.id} value={order.id}>
                         {order.order_number} {order.customer?.company_name || order.customer?.name ? `- ${order.customer.company_name || order.customer.name}` : ''}
                       </SelectItem>
