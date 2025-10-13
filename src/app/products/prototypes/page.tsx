@@ -295,7 +295,7 @@ export default function PrototypesPage() {
           { name: 'target_cost_usd', label: 'Target Cost (USD)', type: 'number' },
         ]}
         onSubmit={async (data) => {
-          await createMutation.mutateAsync(data);
+          await createMutation.mutateAsync(data as any);
         }}
       />
     </div>

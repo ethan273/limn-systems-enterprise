@@ -121,7 +121,7 @@ export function exportSelection(
   const tempCanvas = new fabric.Canvas(document.createElement('canvas'));
 
   // Clone the active object
-  activeObject.clone((cloned: fabric.Object) => {
+  (activeObject.clone as any)((cloned: fabric.Object) => {
     const bounds = cloned.getBoundingRect();
 
     // Set canvas size to fit the selection

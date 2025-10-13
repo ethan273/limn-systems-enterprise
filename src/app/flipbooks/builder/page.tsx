@@ -1,8 +1,11 @@
 "use client";
 
+// Force dynamic rendering for this page (uses searchParams)
+export const dynamic = 'force-dynamic';
+
 import { features } from "@/lib/features";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { api } from "@/lib/api/client";
 import { ArrowLeft, Upload, Save, Eye, FileText, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,14 +26,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 
 /**
- * Flipbook Builder Page
+ * Flipbook Builder Page Content
  *
  * Edit flipbook content, add pages, create hotspots, and configure settings.
  * Supports both creating new flipbooks and editing existing ones.
  *
  * FEATURE FLAG: Only accessible when features.flipbooks is enabled
  */
-export default function FlipbookBuilderPage() {
+function FlipbookBuilderContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const flipbookId = searchParams.get("id");
@@ -43,22 +46,10 @@ export default function FlipbookBuilderPage() {
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<"DRAFT" | "PUBLISHED" | "ARCHIVED">("DRAFT");
 
-  // Redirect if feature is disabled
-  useEffect(() => {
-    if (!features.flipbooks) {
-      router.push("/");
-    }
-  }, [router]);
-
-  // Don't render if feature is disabled
-  if (!features.flipbooks) {
-    return null;
-  }
-
   // Query flipbook if editing
   const { data: flipbook, isLoading } = api.flipbooks.get.useQuery(
     { id: flipbookId! },
-    { enabled: !!flipbookId }
+    { enabled: !!flipbookId && features.flipbooks }
   );
 
   // Get tRPC utils for cache invalidation
@@ -139,6 +130,18 @@ export default function FlipbookBuilderPage() {
       setStatus(flipbook.status as any);
     }
   }, [flipbook]);
+
+  // Redirect if feature is disabled
+  useEffect(() => {
+    if (!features.flipbooks) {
+      router.push("/");
+    }
+  }, [router]);
+
+  // Don't render if feature is disabled
+  if (!features.flipbooks) {
+    return null;
+  }
 
   // Handle save
   const handleSave = () => {
@@ -258,7 +261,7 @@ export default function FlipbookBuilderPage() {
             <h2 className="text-lg font-semibold mb-4">Pages</h2>
             {flipbook?.pages && flipbook.pages.length > 0 ? (
               <SortablePageList
-                pages={flipbook.pages}
+                pages={flipbook.pages as any}
                 selectedPageId={selectedPageId}
                 onPageSelect={setSelectedPageId}
                 onPageReorder={handlePageReorder}
@@ -332,7 +335,7 @@ export default function FlipbookBuilderPage() {
         {/* Main Canvas Area */}
         <div className="col-span-6">
           <PageCanvas
-            page={selectedPage}
+            page={selectedPage as any}
             onHotspotCreate={handleHotspotCreate}
             onHotspotUpdate={handleHotspotUpdate}
             onHotspotDelete={handleHotspotDelete}
@@ -420,5 +423,22 @@ export default function FlipbookBuilderPage() {
         onSelect={handleProductSelect}
       />
     </div>
+  );
+}
+
+/**
+ * Flipbook Builder Page - Wrapper with Suspense
+ * Wraps the content in Suspense to handle useSearchParams() correctly
+ */
+export default function FlipbookBuilderPage() {
+  // Feature check before Suspense
+  if (!features.flipbooks) {
+    return null;
+  }
+
+  return (
+    <Suspense fallback={<LoadingState message="Loading builder..." size="lg" />}>
+      <FlipbookBuilderContent />
+    </Suspense>
   );
 }

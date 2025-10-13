@@ -489,7 +489,7 @@ export class DatabaseClient {
   board_objects = prisma.board_objects;
   board_collaborators = prisma.board_collaborators;
   board_comments = prisma.board_comments;
-  board_versions = prisma.board_versions;
+  board_versions = (prisma as any).board_versions;
   board_votes = prisma.board_votes;
   board_activity_log = prisma.board_activity_log;
   board_templates = prisma.board_templates;

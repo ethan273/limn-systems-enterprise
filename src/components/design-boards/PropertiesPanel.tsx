@@ -195,7 +195,7 @@ export function PropertiesPanel({
     const group = obj as fabric.Group;
     const items = group.getObjects();
 
-    group.toActiveSelection();
+    (group as any).toActiveSelection?.();
     canvas.remove(group);
     canvas.renderAll();
     onObjectsChange?.();

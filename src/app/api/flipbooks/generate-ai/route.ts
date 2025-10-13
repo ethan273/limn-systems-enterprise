@@ -41,11 +41,11 @@ export async function POST(request: NextRequest) {
     const supabase = getSupabaseAdmin();
 
     // Fetch product data from public schema
-    const { data: products, error: productsError } = await (supabase
-      .schema("public" as any) as any)
+    const result = (await supabase
       .from("products")
       .select("id, name, description, category, base_price")
-      .in("id", productIds);
+      .in("id", productIds)) as any;
+    const { data: products, error: productsError } = result;
 
     if (productsError) {
       console.error("Error fetching products:", productsError);
@@ -77,18 +77,18 @@ export async function POST(request: NextRequest) {
       maxProductsPerPage,
     });
 
-    // Create flipbook record in flipbook schema
-    const { data: flipbook, error: flipbookError } = await (supabase
-      .schema("flipbook" as any) as any)
+    // Create flipbook record
+    const createResult = (await supabase
       .from("flipbooks")
       .insert({
         title: layout.title,
         description: layout.description,
         status: "DRAFT",
         page_count: layout.totalPages,
-      })
+      } as any)
       .select()
-      .single();
+      .single()) as any;
+    const { data: flipbook, error: flipbookError } = createResult;
 
     if (flipbookError) {
       console.error("Error creating flipbook:", flipbookError);
@@ -146,12 +146,12 @@ export async function GET(request: NextRequest) {
 
     const supabase = getSupabaseAdmin();
 
-    const { data: flipbook, error } = await (supabase
-      .schema("flipbook" as any) as any)
+    const getResult = (await supabase
       .from("flipbooks")
       .select("id, title, description, status, page_count, created_at")
       .eq("id", flipbookId)
-      .single();
+      .single()) as any;
+    const { data: flipbook, error } = getResult;
 
     if (error) {
       return NextResponse.json(

@@ -42,6 +42,8 @@ import { auditRouter } from './routers/audit';
 import { exportRouter } from './routers/export';
 import { analyticsRouter } from './routers/analytics';
 import { apiCredentialsRouter } from './routers/apiCredentials';
+import { auditRouter as apiAuditRouter } from './routers/apiManagement/audit';
+import { securityRouter as apiSecurityRouter } from './routers/apiManagement/security';
 import { flipbooksRouter } from './routers/flipbooks';
 import { features } from '@/lib/features';
 
@@ -62,6 +64,8 @@ export const appRouter = createTRPCRouter({
   audit: auditRouter,
   export: exportRouter,
   apiCredentials: apiCredentialsRouter,
+  apiAudit: apiAuditRouter,
+  apiSecurity: apiSecurityRouter,
 
   // Notifications & User Profile
   notifications: notificationsRouter,

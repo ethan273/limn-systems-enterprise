@@ -25,6 +25,7 @@ import {
   EmptyState,
 } from "@/components/common";
 import { ArrowLeft, Package, DollarSign, Tag } from "lucide-react";
+import type { FurnitureType } from "@/lib/utils/dimension-validation";
 
 // Tab components
 import CatalogOverviewTab from "@/components/catalog/CatalogOverviewTab";
@@ -47,6 +48,32 @@ export default function CatalogDetailPage({ params }: CatalogDetailPageProps) {
   const { data: catalogItem, isLoading, error } = api.items.getCatalogItemById.useQuery({
     itemId: id,
   });
+
+  // Furniture dimensions mutation
+  const utils = api.useUtils();
+  const updateDimensionsMutation = api.items.updateFurnitureDimensions.useMutation({
+    onSuccess: () => {
+      // Invalidate query to refetch updated data
+      void utils.items.getCatalogItemById.invalidate({ itemId: id });
+    },
+  });
+
+  const handleSaveDimensions = async (data: { furniture_type: FurnitureType; dimensions: Record<string, number | null> }) => {
+    // Convert the input to match the mutation schema
+    const mutationData: any = {
+      item_id: id,
+      furniture_type: data.furniture_type,
+    };
+
+    // Add dimensions to the mutation data
+    Object.entries(data.dimensions).forEach(([key, value]) => {
+      if (value !== null) {
+        mutationData[key] = value;
+      }
+    });
+
+    updateDimensionsMutation.mutate(mutationData);
+  };
 
   if (isLoading) {
     return (
@@ -120,6 +147,7 @@ export default function CatalogDetailPage({ params }: CatalogDetailPageProps) {
               itemId={id}
               initialFurnitureType={catalogItem.furniture_type || undefined}
               initialDimensions={catalogItem.furniture_dimensions || undefined}
+              onSave={handleSaveDimensions}
             />
           </TabsContent>
 

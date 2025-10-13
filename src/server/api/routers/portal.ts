@@ -246,11 +246,11 @@ export const portalRouter = createTRPCRouter({
       });
 
       // For customer portal, also fetch legacy portal_settings for backward compatibility
-      let legacySettings = null;
-      if (portalType === 'customer' && ctx.customerId) {
+      let legacySettings: any = null;
+      if (portalType === 'customer' && entityId) {
         legacySettings = await prisma.portal_settings.findUnique({
           where: {
-            customer_id: ctx.customerId,
+            customer_id: entityId,
           },
         });
       }
@@ -897,8 +897,8 @@ export const portalRouter = createTRPCRouter({
         });
       }
 
-      // Sort by date
-      timeline.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      // Sort by date (handle null dates)
+      timeline.sort((a, b) => (a.date ? new Date(a.date).getTime() : 0) - (b.date ? new Date(b.date).getTime() : 0));
 
       return timeline;
     }),
@@ -1552,7 +1552,7 @@ export const portalRouter = createTRPCRouter({
       const productionInvoiceId = metadata?.production_invoice_id;
 
       // Fetch invoice details if available
-      let invoiceInfo = null;
+      let invoiceInfo: any = null;
       if (productionInvoiceId) {
         const invoice = await prisma.production_invoices.findFirst({
           where: {
@@ -1620,7 +1620,7 @@ export const portalRouter = createTRPCRouter({
           const productionInvoiceId = metadata?.production_invoice_id;
           const paymentMethod = metadata?.payment_method;
 
-          let invoiceNumber = null;
+          let invoiceNumber: string | null | undefined = null;
           if (productionInvoiceId) {
             const invoice = await prisma.production_invoices.findFirst({
               where: {

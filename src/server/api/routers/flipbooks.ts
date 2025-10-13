@@ -232,7 +232,7 @@ export const flipbooksRouter = createTRPCRouter({
       // Check if flipbook exists and user has permission
       const existing = await prisma.flipbooks.findUnique({
         where: { id },
-        select: { created_by_id: true },
+        select: { created_by_id: true, status: true },
       });
 
       if (!existing) {
@@ -360,9 +360,9 @@ export const flipbooksRouter = createTRPCRouter({
       const pageTurns = events.filter(e => e.event_type === "PAGE_TURN").length;
       const hotspotClicks = events.filter(e => e.event_type === "HOTSPOT_CLICK").length;
 
-      // Calculate average time spent
-      const sessions = events.filter(e => e.event_type === "VIEW" && e.session_duration);
-      const totalTime = sessions.reduce((sum, e) => sum + (e.session_duration || 0), 0);
+      // Calculate average time spent from metadata
+      const sessions = events.filter(e => e.event_type === "VIEW" && (e.metadata as any)?.session_duration);
+      const totalTime = sessions.reduce((sum, e) => sum + ((e.metadata as any)?.session_duration || 0), 0);
       const avgTimeSpent = sessions.length > 0 ? totalTime / sessions.length : 0;
 
       return {

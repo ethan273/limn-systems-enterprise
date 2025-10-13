@@ -208,7 +208,7 @@ export function FlipbookViewerCSS3D({
                   <button
                     key={hotspot.id}
                     onClick={() => onHotspotClick?.(hotspot)}
-                    className="absolute border-2 border-blue-500 bg-blue-500/20 hover:bg-blue-500/40 transition-colors cursor-pointer rounded"
+                    className="absolute border-2 border-primary bg-primary/20 hover:bg-primary/40 transition-colors cursor-pointer rounded"
                     style={{
                       left: `${hotspot.x_position}%`,
                       top: `${hotspot.y_position}%`,
@@ -251,7 +251,7 @@ export function FlipbookViewerCSS3D({
                     <button
                       key={hotspot.id}
                       onClick={() => onHotspotClick?.(hotspot)}
-                      className="absolute border-2 border-blue-500 bg-blue-500/20 hover:bg-blue-500/40 transition-colors cursor-pointer rounded"
+                      className="absolute border-2 border-primary bg-primary/20 hover:bg-primary/40 transition-colors cursor-pointer rounded"
                       style={{
                         left: `${hotspot.x_position}%`,
                         top: `${hotspot.y_position}%`,

@@ -500,7 +500,7 @@ export default function ProjectsPage() {
  const crmOrderNumber = crmOrderResult.order.order_number;
 
  // STEP 2: Create production orders (one per order item) - all linked to CRM order
- const createdProductionOrders = [];
+ const createdProductionOrders: any[] = [];
  let totalCost = 0;
 
  for (const item of orderItems) {

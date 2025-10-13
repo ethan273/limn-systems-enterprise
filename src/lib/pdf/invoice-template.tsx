@@ -329,7 +329,7 @@ export const InvoicePDF: React.FC<{ data: InvoiceData }> = ({ data }) => {
           {data.lineItems.map((item, index) => (
             <View
               key={index}
-              style={[styles.tableRow, index % 2 === 1 && styles.tableRowAlt]}
+              style={[styles.tableRow, index % 2 === 1 ? styles.tableRowAlt : null] as any}
             >
               <Text style={styles.col1}>{item.description}</Text>
               <Text style={styles.col2}>{item.quantity}</Text>

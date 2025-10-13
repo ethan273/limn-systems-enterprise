@@ -294,7 +294,7 @@ export default function ConceptsPage() {
           { name: 'estimated_cost', label: 'Estimated Cost', type: 'number' },
         ]}
         onSubmit={async (data) => {
-          await createMutation.mutateAsync(data);
+          await createMutation.mutateAsync(data as any);
         }}
       />
     </div>

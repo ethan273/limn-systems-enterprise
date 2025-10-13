@@ -228,8 +228,8 @@ export default function FlipbookUploadPage() {
               <div className="border rounded-lg p-4 bg-muted/30">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-lg bg-red-500/10 flex items-center justify-center">
-                      <FileUp className="h-6 w-6 text-red-600" />
+                    <div className="w-12 h-12 rounded-lg bg-destructive/10 flex items-center justify-center">
+                      <FileUp className="h-6 w-6 text-destructive" />
                     </div>
                     <div>
                       <p className="font-medium">{file.name}</p>
@@ -276,8 +276,8 @@ export default function FlipbookUploadPage() {
 
           {/* Processing Info */}
           {isUploading && (
-            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
-              <p className="text-sm text-blue-700 dark:text-blue-400">
+            <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
+              <p className="text-sm text-primary">
                 Please wait while we process your PDF. This may take a few moments depending on the file size and number of pages.
               </p>
             </div>

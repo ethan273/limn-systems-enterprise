@@ -1,6 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+// Force dynamic rendering for this page (uses searchParams)
+export const dynamic = 'force-dynamic';
+
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 interface QuickBooksConnection {
@@ -21,7 +24,7 @@ interface QuickBooksStatus {
   activeConnections: number;
 }
 
-export default function QuickBooksIntegrationPage() {
+function QuickBooksIntegrationContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<QuickBooksStatus | null>(null);
@@ -289,5 +292,22 @@ export default function QuickBooksIntegrationPage() {
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * QuickBooks Integration Page - Wrapper with Suspense
+ * Wraps the content in Suspense to handle useSearchParams() correctly
+ */
+export default function QuickBooksIntegrationPage() {
+  return (
+    <Suspense fallback={
+      <div className="loading-state">
+        <div className="loading-spinner"></div>
+        <p>Loading QuickBooks integration...</p>
+      </div>
+    }>
+      <QuickBooksIntegrationContent />
+    </Suspense>
   );
 }

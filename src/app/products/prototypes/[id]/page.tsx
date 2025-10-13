@@ -26,6 +26,7 @@ import { formatDistanceToNow } from "date-fns";
 import { MediaUploader } from "@/components/media/MediaUploader";
 import { MediaGallery } from "@/components/media/MediaGallery";
 import FurnitureDimensionsForm from "@/components/furniture/FurnitureDimensionsForm";
+import type { FurnitureType } from "@/lib/utils/dimension-validation";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -61,6 +62,31 @@ export default function PrototypeDetailPage({ params }: PageProps) {
     // Invalidate queries for instant updates
     utils.products.getPrototypeById.invalidate({ id: prototypeId });
     utils.documents.getByEntity.invalidate({ entityType: "prototype", entityId: prototypeId });
+  };
+
+  // Furniture dimensions mutation
+  const updateDimensionsMutation = api.items.updateFurnitureDimensions.useMutation({
+    onSuccess: () => {
+      // Invalidate query to refetch updated data
+      void utils.products.getPrototypeById.invalidate({ id: prototypeId });
+    },
+  });
+
+  const handleSaveDimensions = async (data: { furniture_type: FurnitureType; dimensions: Record<string, number | null> }) => {
+    // Convert the input to match the mutation schema
+    const mutationData: any = {
+      item_id: prototypeId,
+      furniture_type: data.furniture_type,
+    };
+
+    // Add dimensions to the mutation data
+    Object.entries(data.dimensions).forEach(([key, value]) => {
+      if (value !== null) {
+        mutationData[key] = value;
+      }
+    });
+
+    updateDimensionsMutation.mutate(mutationData);
   };
 
   if (isLoading) {
@@ -307,6 +333,7 @@ export default function PrototypeDetailPage({ params }: PageProps) {
             itemId={prototypeId}
             initialFurnitureType={prototype.furniture_type || undefined}
             initialDimensions={prototype.furniture_dimensions || undefined}
+            onSave={handleSaveDimensions}
           />
         </TabsContent>
 

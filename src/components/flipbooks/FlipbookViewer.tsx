@@ -278,7 +278,7 @@ export function FlipbookViewer({
   }, [goToNextPage, goToPreviousPage, goToPage, totalPages, onClose]);
 
   return (
-    <div className={cn("relative h-full w-full bg-slate-900", className)}>
+    <div className={cn("relative h-full w-full bg-background", className)}>
       {/* Canvas */}
       <Canvas
         camera={{ position: [0, 0, 4], fov: 50 }}
@@ -329,7 +329,7 @@ export function FlipbookViewer({
                   className={cn(
                     "h-16 w-12 rounded border-2 transition-all",
                     currentPage === page.page_number
-                      ? "border-blue-500 ring-2 ring-blue-400"
+                      ? "border-primary ring-2 ring-primary/50"
                       : "border-white/20 hover:border-white/40"
                   )}
                   style={{

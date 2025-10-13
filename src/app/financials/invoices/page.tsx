@@ -247,24 +247,20 @@ export default function InvoicesPage() {
       <PageHeader
         title="Invoices"
         subtitle="General accounting invoices and payment tracking"
-        actions={
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={handleExportCSV}
-              disabled={!invoices || invoices.length === 0}
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Export CSV
-            </Button>
-            <Button
-              onClick={() => router.push('/financials/invoices/new')}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Create Invoice
-            </Button>
-          </div>
-        }
+        actions={[
+          {
+            label: 'Export CSV',
+            icon: Download,
+            onClick: handleExportCSV,
+            variant: 'outline' as const,
+          },
+          {
+            label: 'Create Invoice',
+            icon: Plus,
+            onClick: () => router.push('/financials/invoices/new'),
+            variant: 'default' as const,
+          },
+        ]}
       />
 
       {/* Stats */}

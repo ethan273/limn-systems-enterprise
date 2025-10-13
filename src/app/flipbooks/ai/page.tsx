@@ -224,8 +224,8 @@ export default function AIGenerationPage() {
                 </p>
               </div>
             ) : (
-              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
-                <p className="text-sm text-yellow-700 dark:text-yellow-400">
+              <div className="bg-warning/10 border border-warning/20 rounded-lg p-4">
+                <p className="text-sm text-warning">
                   Please select products to continue
                 </p>
               </div>

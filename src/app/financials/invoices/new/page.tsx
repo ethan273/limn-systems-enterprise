@@ -35,7 +35,7 @@ export default function NewInvoicePage() {
   const [notes, setNotes] = useState("");
 
   // Fetch orders with production details
-  const { data: ordersData, isLoading: ordersLoading } = api.orders.getWithProductionDetails.useQuery();
+  const { data: ordersData, isLoading: ordersLoading } = api.orders.getWithProductionDetails.useQuery({});
 
   const utils = api.useUtils();
 
@@ -176,9 +176,9 @@ export default function NewInvoicePage() {
                     <SelectValue placeholder="Select an order" />
                   </SelectTrigger>
                   <SelectContent>
-                    {ordersData?.items?.map((order: { id: string; order_number: string; customer?: { company_name?: string; name?: string } }) => (
+                    {ordersData?.items?.map((order: any) => (
                       <SelectItem key={order.id} value={order.id}>
-                        {order.order_number} {order.customer?.company_name || order.customer?.name ? `- ${order.customer.company_name || order.customer.name}` : ''}
+                        {order.order_number || order.id} {order.customer?.company_name || order.customer?.name ? `- ${order.customer.company_name || order.customer.name}` : ''}
                       </SelectItem>
                     ))}
                   </SelectContent>

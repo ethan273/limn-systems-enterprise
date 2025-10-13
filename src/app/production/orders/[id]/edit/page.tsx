@@ -74,11 +74,8 @@ export default function EditProductionOrderPage() {
     updateOrder.mutate({
       id: orderId,
       data: {
-        order_number: formData.order_number,
         item_name: formData.item_name || undefined,
         quantity: parseInt(formData.quantity),
-        status: formData.status,
-        notes: formData.notes || undefined,
       },
     });
   };

@@ -424,7 +424,7 @@ export function FormDialog({
             >
               {field.label}
             </Label>
-            {field.defaultValue && typeof field.defaultValue === 'string' && (
+            {typeof field.defaultValue === 'string' && field.defaultValue ? (
               <div className="mb-2 flex items-center gap-2 p-2 border border-border rounded bg-muted/50">
                 <img
                   src={field.defaultValue}
@@ -445,7 +445,7 @@ export function FormDialog({
                   </Button>
                 </div>
               </div>
-            )}
+            ) : null}
             <Input
               id={field.name}
               name={field.name}

@@ -90,7 +90,7 @@ export const projectsRouter = createTRPCRouter({
 
       return {
         project,
-        customer: project.customers,
+        customer: (project as any).customers,
         orders,
         orderedItems,
         analytics,
@@ -249,7 +249,7 @@ export const projectsRouter = createTRPCRouter({
         });
 
         // Create initial order if requested
-        let order = null;
+        let order: any = null;
         if (input.order) {
           order = await tx.orders.create({
             data: {

@@ -188,7 +188,7 @@ export default function DesignBoardsPage() {
 
                 {/* Status Badge */}
                 {board.status !== "active" && (
-                  <div className="absolute top-2 right-2 bg-white dark:bg-gray-800 px-2 py-1 rounded text-xs font-medium">
+                  <div className="absolute top-2 right-2 bg-card px-2 py-1 rounded text-xs font-medium shadow-sm">
                     {board.status}
                   </div>
                 )}
@@ -272,7 +272,7 @@ export default function DesignBoardsPage() {
 
                 {/* Status */}
                 {board.status !== "active" && (
-                  <div className="bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded text-xs font-medium">
+                  <div className="bg-muted px-3 py-1 rounded text-xs font-medium">
                     {board.status}
                   </div>
                 )}

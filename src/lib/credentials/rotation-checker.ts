@@ -184,16 +184,11 @@ export async function sendRotationNotifications(): Promise<void> {
         await prisma.notification_queue.create({
           data: {
             user_id: user.id,
-            notification_type: 'system_alert',
             title: `🚨 API Credentials Need Attention`,
-            message: `${criticalAlerts.length} API credential(s) require immediate attention:\n\n${criticalAlerts.map((a) => `• ${a.message}`).join('\n')}`,
+            body: `${criticalAlerts.length} API credential(s) require immediate attention:\n\n${criticalAlerts.map((a) => `• ${a.message}`).join('\n')}`,
             priority: 'high',
             status: 'pending',
             scheduled_for: new Date(),
-            metadata: {
-              alert_type: 'credential_rotation',
-              alerts: criticalAlerts,
-            } as any,
           },
         });
       }
@@ -205,16 +200,11 @@ export async function sendRotationNotifications(): Promise<void> {
         await prisma.notification_queue.create({
           data: {
             user_id: user.id,
-            notification_type: 'system_alert',
             title: `⚠️ API Credentials Rotation Recommended`,
-            message: `${warningAlerts.length} API credential(s) should be rotated:\n\n${warningAlerts.map((a) => `• ${a.message}`).join('\n')}`,
+            body: `${warningAlerts.length} API credential(s) should be rotated:\n\n${warningAlerts.map((a) => `• ${a.message}`).join('\n')}`,
             priority: 'medium',
             status: 'pending',
             scheduled_for: new Date(),
-            metadata: {
-              alert_type: 'credential_rotation',
-              alerts: warningAlerts,
-            } as any,
           },
         });
       }

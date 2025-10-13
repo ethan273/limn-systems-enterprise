@@ -166,7 +166,7 @@ export function CreateFromTemplateDialog({
                   {featuredTemplates.length > 0 && (
                     <div>
                       <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                        <Sparkles className="h-4 w-4 text-amber-500" />
+                        <Sparkles className="h-4 w-4 text-warning" />
                         Featured Templates
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -270,7 +270,7 @@ function TemplateCard({ template, onSelect, isSelected }: TemplateCardProps) {
       {/* Featured Badge */}
       {template.is_featured && (
         <div className="absolute top-2 right-2">
-          <div className="bg-amber-100 text-amber-700 text-xs px-2 py-0.5 rounded-full flex items-center gap-1">
+          <div className="badge-warning text-xs px-2 py-0.5 rounded-full flex items-center gap-1">
             <Sparkles className="h-3 w-3" />
             Featured
           </div>

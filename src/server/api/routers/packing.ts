@@ -255,7 +255,7 @@ export const packingRouter = createTRPCRouter({
       }
 
       // Create packing jobs for each ordered item
-      const jobs = [];
+      const jobs: any[] = [];
       let totalWeight = 0;
       let boxCount = 0;
 

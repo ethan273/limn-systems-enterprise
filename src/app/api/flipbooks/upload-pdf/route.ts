@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     const thumbnailUpload = await uploadToS3(thumbnailBuffer, thumbnailKey, "image/jpeg");
 
     // Upload page images and create database records using Prisma
-    const pages = [];
+    const pages: any[] = [];
 
     for (let i = 0; i < processResult.pages.length; i++) {
       const pageBuffer = processResult.pages[i]!;

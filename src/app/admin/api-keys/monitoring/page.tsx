@@ -19,15 +19,15 @@ export default function MonitoringPage() {
   const { data: securityData, isLoading } = api.apiCredentials.getSecurityMetrics.useQuery();
 
   const getScoreColor = (score: number) => {
-    if (score >= 90) return 'text-green-600';
-    if (score >= 70) return 'text-yellow-600';
-    return 'text-red-600';
+    if (score >= 90) return 'text-success';
+    if (score >= 70) return 'text-warning';
+    return 'text-destructive';
   };
 
   const _getScoreBackground = (score: number) => {
-    if (score >= 90) return 'bg-green-100 dark:bg-green-900';
-    if (score >= 70) return 'bg-yellow-100 dark:bg-yellow-900';
-    return 'bg-red-100 dark:bg-red-900';
+    if (score >= 90) return 'bg-success/20';
+    if (score >= 70) return 'bg-warning/20';
+    return 'bg-destructive/20';
   };
 
   const getSeverityIcon = (severity: string) => {
@@ -45,9 +45,9 @@ export default function MonitoringPage() {
 
   const getSeverityBadge = (severity: string) => {
     const styles = {
-      critical: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
-      warning: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-      info: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+      critical: 'badge-destructive',
+      warning: 'badge-warning',
+      info: 'badge-info',
     };
     return styles[severity as keyof typeof styles] || styles.info;
   };
@@ -90,10 +90,10 @@ export default function MonitoringPage() {
                   <div
                     className={`h-full transition-all duration-500 ${
                       securityData && securityData.securityScore >= 90
-                        ? 'bg-green-600'
+                        ? 'bg-success'
                         : securityData && securityData.securityScore >= 70
-                          ? 'bg-yellow-600'
-                          : 'bg-red-600'
+                          ? 'bg-warning'
+                          : 'bg-destructive'
                     }`}
                     style={{ width: `${securityData?.securityScore || 0}%` }}
                   />
@@ -108,7 +108,7 @@ export default function MonitoringPage() {
             {/* Average Response Time */}
             <Card className="p-6">
               <div className="flex items-center gap-3 mb-2">
-                <Clock className="h-5 w-5 text-blue-500" />
+                <Clock className="h-5 w-5 text-primary" />
                 <span className="text-sm font-medium text-muted-foreground">Avg Response Time</span>
               </div>
               <div className="text-4xl font-bold">
@@ -117,8 +117,8 @@ export default function MonitoringPage() {
                   : 'N/A'}
               </div>
               <div className="flex items-center gap-1 mt-2">
-                <TrendingUp className="h-3 w-3 text-green-600" />
-                <span className="text-xs text-green-600">Optimal</span>
+                <TrendingUp className="h-3 w-3 text-success" />
+                <span className="text-xs text-success">Optimal</span>
               </div>
             </Card>
 
@@ -136,13 +136,13 @@ export default function MonitoringPage() {
               <div className="flex items-center gap-1 mt-2">
                 {securityData && securityData.recentErrorRate > 5 ? (
                   <>
-                    <AlertTriangle className="h-3 w-3 text-yellow-600" />
-                    <span className="text-xs text-yellow-600">Elevated</span>
+                    <AlertTriangle className="h-3 w-3 text-warning" />
+                    <span className="text-xs text-warning">Elevated</span>
                   </>
                 ) : (
                   <>
-                    <CheckCircle className="h-3 w-3 text-green-600" />
-                    <span className="text-xs text-green-600">Normal</span>
+                    <CheckCircle className="h-3 w-3 text-success" />
+                    <span className="text-xs text-success">Normal</span>
                   </>
                 )}
               </div>
@@ -156,13 +156,13 @@ export default function MonitoringPage() {
               <div className="flex items-center gap-2">
                 {securityData && securityData.activeAlerts === 0 ? (
                   <>
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    <span className="text-sm font-medium text-green-600">All systems operational</span>
+                    <CheckCircle className="h-5 w-5 text-success" />
+                    <span className="text-sm font-medium text-success">All systems operational</span>
                   </>
                 ) : (
                   <>
-                    <AlertCircle className="h-5 w-5 text-yellow-600" />
-                    <span className="text-sm font-medium text-yellow-600">
+                    <AlertCircle className="h-5 w-5 text-warning" />
+                    <span className="text-sm font-medium text-warning">
                       {securityData?.activeAlerts} active alert{securityData && securityData.activeAlerts !== 1 ? 's' : ''}
                     </span>
                   </>
@@ -172,7 +172,7 @@ export default function MonitoringPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="flex items-center gap-3 p-4 border border-border rounded-lg">
-                <Shield className="h-8 w-8 text-green-600" />
+                <Shield className="h-8 w-8 text-success" />
                 <div>
                   <p className="text-sm text-muted-foreground">Credentials</p>
                   <p className="text-lg font-semibold">{securityData?.totalCredentials || 0} Active</p>
@@ -180,7 +180,7 @@ export default function MonitoringPage() {
               </div>
 
               <div className="flex items-center gap-3 p-4 border border-border rounded-lg">
-                <AlertCircle className="h-8 w-8 text-yellow-600" />
+                <AlertCircle className="h-8 w-8 text-warning" />
                 <div>
                   <p className="text-sm text-muted-foreground">Active Alerts</p>
                   <p className="text-lg font-semibold">
@@ -190,7 +190,7 @@ export default function MonitoringPage() {
               </div>
 
               <div className="flex items-center gap-3 p-4 border border-border rounded-lg">
-                <Clock className="h-8 w-8 text-blue-500" />
+                <Clock className="h-8 w-8 text-primary" />
                 <div>
                   <p className="text-sm text-muted-foreground">Uptime</p>
                   <p className="text-lg font-semibold">99.9%</p>
@@ -210,7 +210,7 @@ export default function MonitoringPage() {
 
             {!securityData || securityData.alerts.length === 0 ? (
               <div className="text-center py-8">
-                <CheckCircle className="h-12 w-12 mx-auto mb-3 text-green-600" />
+                <CheckCircle className="h-12 w-12 mx-auto mb-3 text-success" />
                 <p className="text-lg font-medium">No Active Alerts</p>
                 <p className="text-sm text-muted-foreground mt-1">
                   All credentials are up to date and healthy
@@ -222,9 +222,9 @@ export default function MonitoringPage() {
                   <div
                     key={index}
                     className={`flex items-start gap-4 p-4 border border-border rounded-lg ${
-                      alert.severity === 'critical' ? 'bg-red-50 dark:bg-red-950/20' :
-                      alert.severity === 'warning' ? 'bg-yellow-50 dark:bg-yellow-950/20' :
-                      'bg-blue-50 dark:bg-blue-950/20'
+                      alert.severity === 'critical' ? 'bg-destructive/10' :
+                      alert.severity === 'warning' ? 'bg-warning/10' :
+                      'bg-primary/10'
                     }`}
                   >
                     <div className="flex-shrink-0 mt-0.5">

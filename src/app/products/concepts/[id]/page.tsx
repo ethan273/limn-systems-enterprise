@@ -25,6 +25,7 @@ import { formatDistanceToNow } from "date-fns";
 import { MediaUploader } from "@/components/media/MediaUploader";
 import { MediaGallery } from "@/components/media/MediaGallery";
 import FurnitureDimensionsForm from "@/components/furniture/FurnitureDimensionsForm";
+import type { FurnitureType } from "@/lib/utils/dimension-validation";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -60,6 +61,31 @@ export default function ConceptDetailPage({ params }: PageProps) {
     // Invalidate queries for instant updates
     utils.products.getConceptById.invalidate({ id: conceptId });
     utils.documents.getByEntity.invalidate({ entityType: "concept", entityId: conceptId });
+  };
+
+  // Furniture dimensions mutation
+  const updateDimensionsMutation = api.items.updateFurnitureDimensions.useMutation({
+    onSuccess: () => {
+      // Invalidate query to refetch updated data
+      void utils.products.getConceptById.invalidate({ id: conceptId });
+    },
+  });
+
+  const handleSaveDimensions = async (data: { furniture_type: FurnitureType; dimensions: Record<string, number | null> }) => {
+    // Convert the input to match the mutation schema
+    const mutationData: any = {
+      item_id: conceptId,
+      furniture_type: data.furniture_type,
+    };
+
+    // Add dimensions to the mutation data
+    Object.entries(data.dimensions).forEach(([key, value]) => {
+      if (value !== null) {
+        mutationData[key] = value;
+      }
+    });
+
+    updateDimensionsMutation.mutate(mutationData);
   };
 
   if (isLoading) {
@@ -286,6 +312,7 @@ export default function ConceptDetailPage({ params }: PageProps) {
             itemId={conceptId}
             initialFurnitureType={concept.furniture_type || undefined}
             initialDimensions={concept.furniture_dimensions || undefined}
+            onSave={handleSaveDimensions}
           />
         </TabsContent>
 

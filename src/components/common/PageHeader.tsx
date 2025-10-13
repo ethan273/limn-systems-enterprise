@@ -10,6 +10,7 @@ export interface PageHeaderAction {
   icon?: React.ComponentType<{ className?: string }>;
   onClick: () => void;
   variant?: 'default' | 'secondary' | 'outline' | 'destructive';
+  disabled?: boolean;
 }
 
 export interface PageHeaderBreadcrumb {
@@ -80,6 +81,7 @@ export function PageHeader({
                   key={index}
                   onClick={actionItem.onClick}
                   variant={actionItem.variant || 'default'}
+                  disabled={actionItem.disabled}
                   className={
                     actionItem.variant === 'default' || !actionItem.variant
                       ? 'btn-primary'

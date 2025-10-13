@@ -277,24 +277,20 @@ export default function PaymentsPage() {
       <PageHeader
         title="Payments"
         subtitle="All payments tracking and allocation management"
-        actions={
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={handleExportCSV}
-              disabled={!payments || payments.length === 0}
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Export CSV
-            </Button>
-            <Button
-              onClick={() => router.push('/financials/payments/new')}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Record Payment
-            </Button>
-          </div>
-        }
+        actions={[
+          {
+            label: 'Export CSV',
+            icon: Download,
+            onClick: handleExportCSV,
+            variant: 'outline' as const,
+          },
+          {
+            label: 'Record Payment',
+            icon: Plus,
+            onClick: () => router.push('/financials/payments/new'),
+            variant: 'default' as const,
+          },
+        ]}
       />
 
       {/* Stats */}

@@ -37,7 +37,7 @@ export default function NewQCInspectionPage() {
   const [notes, setNotes] = useState("");
 
   // Fetch production items (catalog products)
-  const { data: productionItemsData, isLoading: productionItemsLoading } = api.catalog.getAll.useQuery({
+  const { data: productionItemsData, isLoading: productionItemsLoading } = api.items.getAll.useQuery({
     limit: 100,
   });
 

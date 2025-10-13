@@ -2,7 +2,9 @@ import { cookies } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
 
 export function createClient() {
-  const cookieStore = cookies();
+  // In Next.js 15, cookies() might return a Promise in some contexts
+  // Cast to any to handle both sync and async cases
+  const cookieStore = cookies() as any;
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

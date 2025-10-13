@@ -144,9 +144,9 @@ export function PageCanvas({
       <div
         ref={canvasRef}
         className={cn(
-          "relative flex-1 bg-slate-900 rounded-lg overflow-hidden",
+          "relative flex-1 bg-background rounded-lg overflow-hidden",
           isPlacingHotspot && "cursor-crosshair",
-          editable && "border-2 border-blue-500/20"
+          editable && "border-2 border-primary/20"
         )}
         onClick={handleCanvasClick}
         onMouseMove={draggedHotspot ? handleHotspotDrag : undefined}
@@ -168,8 +168,8 @@ export function PageCanvas({
             className={cn(
               "absolute border-2 transition-all cursor-move",
               selectedHotspot === hotspot.id
-                ? "border-blue-500 bg-blue-500/30"
-                : "border-blue-400 bg-blue-400/20 hover:bg-blue-400/30"
+                ? "border-primary bg-primary/30"
+                : "border-accent bg-accent/20 hover:bg-accent/30"
             )}
             style={{
               left: `${hotspot.xPercent}%`,
@@ -186,7 +186,7 @@ export function PageCanvas({
           >
             {/* Hotspot label */}
             <div className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap">
-              <div className="bg-slate-900 text-white text-xs px-2 py-1 rounded shadow-lg">
+              <div className="bg-popover text-popover-foreground text-xs px-2 py-1 rounded shadow-lg border">
                 {hotspot.label || hotspot.product?.name || "Hotspot"}
               </div>
             </div>
@@ -194,10 +194,10 @@ export function PageCanvas({
             {/* Resize handles */}
             {selectedHotspot === hotspot.id && editable && (
               <>
-                <div className="absolute -top-1 -left-1 w-2 h-2 bg-blue-500 rounded-full" />
-                <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full" />
-                <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-blue-500 rounded-full" />
-                <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-blue-500 rounded-full" />
+                <div className="absolute -top-1 -left-1 w-2 h-2 bg-primary rounded-full" />
+                <div className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full" />
+                <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-primary rounded-full" />
+                <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-primary rounded-full" />
               </>
             )}
           </div>
@@ -205,9 +205,9 @@ export function PageCanvas({
 
         {/* Placement guide */}
         {isPlacingHotspot && (
-          <div className="absolute inset-0 bg-blue-500/10 pointer-events-none">
+          <div className="absolute inset-0 bg-primary/10 pointer-events-none">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-              <div className="text-white text-sm bg-blue-600 px-3 py-1 rounded">
+              <div className="bg-primary text-primary-foreground text-sm px-3 py-1 rounded shadow-lg">
                 Click to place hotspot
               </div>
             </div>

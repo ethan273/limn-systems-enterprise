@@ -340,8 +340,8 @@ export default function CatalogItemsPage() {
         ]}
         onSubmit={async (data) => {
           await createMutation.mutateAsync({
-            ...data,
-            type: 'Production Ready',
+            ...(data as any),
+            type: 'Production Ready' as const,
             active: true,
           });
         }}

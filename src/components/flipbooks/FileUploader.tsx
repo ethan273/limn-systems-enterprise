@@ -173,9 +173,9 @@ export function FileUploader({
         {...getRootProps()}
         className={cn(
           "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all",
-          isDragActive && "border-blue-500 bg-blue-50 dark:bg-blue-950",
+          isDragActive && "border-primary bg-accent",
           isUploading && "pointer-events-none opacity-50",
-          !isDragActive && !isUploading && "hover:border-blue-400 hover:bg-muted/50"
+          !isDragActive && !isUploading && "hover:border-primary hover:bg-muted/50"
         )}
       >
         <input {...getInputProps()} />
@@ -232,13 +232,13 @@ export function FileUploader({
                     <Upload className="h-5 w-5 text-muted-foreground" />
                   )}
                   {uploadFile.status === "uploading" && (
-                    <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
+                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
                   )}
                   {uploadFile.status === "success" && (
-                    <CheckCircle2 className="h-5 w-5 text-green-500" />
+                    <CheckCircle2 className="h-5 w-5 text-success" />
                   )}
                   {uploadFile.status === "error" && (
-                    <AlertCircle className="h-5 w-5 text-red-500" />
+                    <AlertCircle className="h-5 w-5 text-destructive" />
                   )}
                 </div>
 
@@ -252,12 +252,12 @@ export function FileUploader({
                       {(uploadFile.file.size / 1024 / 1024).toFixed(2)} MB
                     </p>
                     {uploadFile.status === "uploading" && (
-                      <p className="text-xs text-blue-500">
+                      <p className="text-xs text-primary">
                         {uploadFile.progress}%
                       </p>
                     )}
                     {uploadFile.status === "error" && (
-                      <p className="text-xs text-red-500">{uploadFile.error}</p>
+                      <p className="text-xs text-destructive">{uploadFile.error}</p>
                     )}
                   </div>
 

@@ -10,13 +10,24 @@ import sharp from "sharp";
 import { createCanvas } from "canvas";
 
 // Dynamic import for pdfjs-dist (server-side only)
-// We'll import it lazily to avoid SSR issues
-const pdfjsLib = require("pdfjs-dist/legacy/build/pdf.js");
+// Note: pdfjs-dist will be imported dynamically in functions to avoid build issues
+let pdfjsLib: any = null;
 
-// Configure PDF.js worker
-if (typeof window === "undefined") {
-  // Server-side: use node worker
-  const pdfjsWorker = require("pdfjs-dist/legacy/build/pdf.worker.js");
+async function getPdfjsLib() {
+  if (!pdfjsLib && typeof window === "undefined") {
+    // Dynamically import pdfjs-dist only on server-side
+    try {
+      pdfjsLib = await import("pdfjs-dist");
+      // Set worker path for Node.js environment
+      if (pdfjsLib.GlobalWorkerOptions) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = require.resolve("pdfjs-dist/build/pdf.worker.min.mjs");
+      }
+    } catch (error) {
+      console.error("Failed to load pdfjs-dist:", error);
+      throw new Error("PDF processing not available");
+    }
+  }
+  return pdfjsLib;
 }
 
 export interface PdfProcessResult {
@@ -38,8 +49,11 @@ export async function processPdf(pdfBuffer: Buffer): Promise<PdfProcessResult> {
   const title = pdfDoc.getTitle();
   const author = pdfDoc.getAuthor();
 
+  // Get pdfjs-dist dynamically
+  const pdfjs = await getPdfjsLib();
+
   // Load PDF with pdfjs-dist for rendering
-  const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(pdfBuffer) });
+  const loadingTask = pdfjs.getDocument({ data: new Uint8Array(pdfBuffer) });
   const pdf = await loadingTask.promise;
   const pageCount = pdf.numPages;
 

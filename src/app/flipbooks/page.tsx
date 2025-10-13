@@ -163,7 +163,7 @@ export default function FlipbooksPage() {
       label: 'Pages',
       sortable: true,
       render: (value) => (
-        <span className="text-sm">{value || 0} pages</span>
+        <span className="text-sm">{(value as number) || 0} pages</span>
       ),
     },
     {
@@ -173,7 +173,7 @@ export default function FlipbooksPage() {
       render: (value) => (
         <div className="flex items-center gap-1">
           <Eye className="h-4 w-4 text-muted-foreground" />
-          <span className="font-medium">{value || 0}</span>
+          <span className="font-medium">{(value as number) || 0}</span>
         </div>
       ),
     },

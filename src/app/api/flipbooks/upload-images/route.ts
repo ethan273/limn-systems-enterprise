@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     let currentPageNumber = (existingPages as any)?.[0]?.page_number || 0;
 
     // Process and upload each image
-    const pageRecords = [];
+    const pageRecords: any[] = [];
 
     for (const file of files) {
       currentPageNumber++;
@@ -100,10 +100,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert page records
-    const { data: pages, error: pagesError } = await supabase
+    const insertResult = (await supabase
       .from("flipbook_pages")
-      .insert(pageRecords)
-      .select();
+      .insert(pageRecords as any)
+      .select()) as any;
+    const { data: pages, error: pagesError } = insertResult;
 
     if (pagesError) {
       console.error("Error creating pages:", pagesError);
@@ -114,13 +115,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Update flipbook page count
-    const { error: updateError } = await supabase
-      .from("flipbooks")
+    const updateResult = (await (supabase
+      .from("flipbooks") as any)
       .update({
         page_count: currentPageNumber,
         updated_at: new Date().toISOString(),
-      } as any)
-      .eq("id", flipbookId);
+      })
+      .eq("id", flipbookId)) as any;
+    const { error: updateError } = updateResult;
 
     if (updateError) {
       console.error("Error updating flipbook:", updateError);

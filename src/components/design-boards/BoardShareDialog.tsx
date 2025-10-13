@@ -282,12 +282,12 @@ export function BoardShareDialog({ open, onOpenChange, boardId, boardName }: Boa
                 onClick={handleCopyLink}
                 className={cn(
                   "gap-2",
-                  linkCopied && "bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800"
+                  linkCopied && "bg-success/10 border-success/30"
                 )}
               >
                 {linkCopied ? (
                   <>
-                    <Check className="h-4 w-4 text-green-600" />
+                    <Check className="h-4 w-4 text-success" />
                     Copied
                   </>
                 ) : (

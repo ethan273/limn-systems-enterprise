@@ -682,7 +682,7 @@ export function DesignBoardCanvas({ boardId, userId, board, onCanvasReady }: Des
   );
 
   return (
-    <div ref={containerRef} className="w-full h-full bg-gray-50 dark:bg-gray-900 relative">
+    <div ref={containerRef} className="w-full h-full bg-muted relative">
       {/* Grid overlay */}
       {showGrid && gridEnabled && (
         <div
@@ -755,7 +755,7 @@ async function deserializeFabricObject(obj: any): Promise<fabric.Object | null> 
       (fabricObj as any).id = obj.id;
     }
 
-    return fabricObj || null;
+    return (fabricObj as any) || null;
   } catch (error) {
     console.error("Failed to deserialize object:", error);
     return null;
@@ -888,7 +888,7 @@ function handleImageUpload(canvas: fabric.Canvas, x: number, y: number) {
 
 // Helper function to create star points
 function createStarPoints(numPoints: number, outerRadius: number, innerRadius: number) {
-  const points = [];
+  const points: { x: number; y: number }[] = [];
   const angle = Math.PI / numPoints;
 
   for (let i = 0; i < numPoints * 2; i++) {
@@ -903,7 +903,7 @@ function createStarPoints(numPoints: number, outerRadius: number, innerRadius: n
 
 // Helper function to create polygon points
 function createPolygonPoints(sides: number, radius: number) {
-  const points = [];
+  const points: { x: number; y: number }[] = [];
   const angle = (Math.PI * 2) / sides;
 
   for (let i = 0; i < sides; i++) {

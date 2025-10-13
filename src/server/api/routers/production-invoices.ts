@@ -47,7 +47,7 @@ async function createOrderedItems(
     quantity: number;
   }
 ) {
-  const items = [];
+  const items: any[] = [];
 
   for (let i = 1; i <= order.quantity; i++) {
     const sku = `${order.order_number}-${String(i).padStart(3, '0')}`;

@@ -21,20 +21,31 @@ export async function POST(request: NextRequest) {
 
     // Store push subscription in database using Prisma
     const { prisma } = await import('@/lib/db');
+
+    // Generate a device_id from the endpoint (or use a provided device identifier)
+    const deviceId = subscription.deviceId || Buffer.from(subscription.endpoint).toString('base64').slice(0, 50);
+
     await prisma.push_subscriptions.upsert({
       where: {
-        endpoint: subscription.endpoint,
+        user_id_device_id: {
+          user_id: user.id,
+          device_id: deviceId,
+        },
       },
       create: {
+        user_id: user.id,
+        device_id: deviceId,
+        push_token: subscription.endpoint,
         endpoint: subscription.endpoint,
-        p256dh: subscription.keys.p256dh,
-        auth: subscription.keys.auth,
-        userId: user.id,
+        auth_keys: subscription.keys,
+        is_active: true,
       },
       update: {
-        p256dh: subscription.keys.p256dh,
-        auth: subscription.keys.auth,
-        userId: user.id,
+        push_token: subscription.endpoint,
+        endpoint: subscription.endpoint,
+        auth_keys: subscription.keys,
+        is_active: true,
+        last_used: new Date(),
       },
     });
 

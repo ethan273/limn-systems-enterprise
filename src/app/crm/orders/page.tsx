@@ -157,7 +157,7 @@ export default function CRMOrdersPage() {
  <ErrorState
  title="Failed to load orders"
  message="There was an error loading the orders. Please try again."
- error={error}
+ error={error?.message || String(error)}
  onRetry={() => window.location.reload()}
  />
  </div>
