@@ -508,7 +508,7 @@ export default function ProjectsPage() {
  // If base_sku starts with collection prefix (e.g., "XX-"), it's a catalog item
  // Otherwise, it's a custom item
  const isCustomItem = !item.base_sku || item.base_sku.startsWith('TEMP-') || item.base_sku.startsWith('CUSTOM-');
- const productType = isCustomItem ? 'custom' : 'catalog';
+ const productType = isCustomItem ? 'concept' : 'catalog';
 
  // Try to find catalog item ID by matching base_sku
  let catalogItemId: string | undefined;

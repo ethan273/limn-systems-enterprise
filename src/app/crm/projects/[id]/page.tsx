@@ -224,7 +224,7 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
 
       for (const item of orderItems) {
         const isCustomItem = !item.base_sku || item.base_sku.startsWith('TEMP-') || item.base_sku.startsWith('CUSTOM-');
-        const productType = isCustomItem ? 'custom' : 'catalog';
+        const productType = isCustomItem ? 'concept' : 'catalog';
 
         const result = await createProductionOrderMutation.mutateAsync({
           order_id: crmOrderId,
