@@ -39,6 +39,15 @@ export interface EmergencyAccessStatus {
 }
 
 /**
+ * Emergency access information for notifications
+ */
+export interface EmergencyAccessInfo {
+  reason: string;
+  expiresAt: Date;
+  grantedBy: string;
+}
+
+/**
  * Request emergency access to a credential
  *
  * Workflow:

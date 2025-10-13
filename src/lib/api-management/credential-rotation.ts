@@ -240,7 +240,7 @@ export async function initiateRotation(
     });
 
     // Update session with new credential preview
-    const updatedSession = await prisma.api_credential_rotations.update({
+    const updatedSession = (await prisma.api_credential_rotations.update({
       where: { id: session.id },
       data: {
         new_credential_preview: newCredential.newValue.slice(-4),
@@ -249,7 +249,7 @@ export async function initiateRotation(
           new_credential_metadata: newCredential.metadata,
         },
       } as any,
-    });
+    })) as RotationSession;
 
     // Start health checks
     console.log(`Starting health checks for rotated credential ${credentialId}...`);
@@ -491,13 +491,13 @@ export async function getRotationStatus(
   });
 
   const strategy = getRotationStrategy(
-    credential?.service_template?.service_type || 'custom'
+    credential?.service_template || 'custom'
   );
 
   return {
-    status: currentSession?.status as RotationStatus || 'idle',
-    currentSession,
-    lastRotation,
+    status: (currentSession?.status as RotationStatus) || 'idle',
+    currentSession: currentSession as RotationSession | null,
+    lastRotation: lastRotation as RotationHistoryEntry | null,
     canRotate: strategy.supportsRotation && !currentSession,
   };
 }
@@ -519,7 +519,7 @@ export async function getRotationHistory(
     take: limit,
   });
 
-  return history;
+  return history as RotationHistoryEntry[];
 }
 
 /**

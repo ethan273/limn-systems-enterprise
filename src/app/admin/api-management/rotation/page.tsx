@@ -110,10 +110,10 @@ export default function CredentialRotationPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">
-                    {credential.name}
+                    {credential.display_name}
                   </h3>
                   <p className="text-sm text-gray-600 mt-1">
-                    {credential.service_templates?.service_type || 'Custom'}
+                    {credential.service_template || 'Custom'}
                   </p>
                   {credential.last_rotated_at && (
                     <p className="text-sm text-gray-500 mt-1">

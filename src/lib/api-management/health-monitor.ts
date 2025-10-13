@@ -239,8 +239,8 @@ export async function performHealthCheck(
     const decryptedCredential = {
       ...credential,
       decryptedValue: credential.credentials, // Placeholder
-      test_endpoint: (credential.metadata as any)?.test_endpoint,
-      base_url: (credential.metadata as any)?.base_url,
+      test_endpoint: (credential as any).metadata?.test_endpoint,
+      base_url: (credential as any).metadata?.base_url,
     };
 
     // Perform health check
@@ -259,7 +259,7 @@ export async function performHealthCheck(
     }
 
     // Store health check result
-    const healthCheck = await prisma.api_health_check_results.create({
+    const healthCheck = (await prisma.api_health_check_results.create({
       data: {
         credential_id: credentialId,
         status,
@@ -267,7 +267,7 @@ export async function performHealthCheck(
         error_message: result.error || undefined,
         metadata: result.metadata || undefined,
       } as any,
-    });
+    })) as HealthCheckResult;
 
     return healthCheck;
   } catch (error) {
@@ -275,7 +275,7 @@ export async function performHealthCheck(
     console.error('Health check failed:', error);
 
     // Store failure in database
-    const healthCheck = await prisma.api_health_check_results.create({
+    const healthCheck = (await prisma.api_health_check_results.create({
       data: {
         credential_id: credentialId,
         status: 'unhealthy',
@@ -283,7 +283,7 @@ export async function performHealthCheck(
         error_message: error instanceof Error ? error.message : 'Unknown error',
         metadata: null,
       } as any,
-    });
+    })) as HealthCheckResult;
 
     return healthCheck;
   }
@@ -330,7 +330,7 @@ export async function getHealthStatus(
     current_status: recentChecks[0].status as HealthStatus,
     last_checked_at: recentChecks[0].checked_at,
     consecutive_failures: consecutiveFailures,
-    recent_checks: recentChecks,
+    recent_checks: recentChecks as HealthCheckResult[],
   };
 }
 
@@ -356,7 +356,7 @@ export async function getHealthHistory(
     orderBy: { checked_at: 'desc' },
   });
 
-  return checks;
+  return checks as HealthCheckResult[];
 }
 
 /**
@@ -543,8 +543,6 @@ export async function getHealthDashboard(): Promise<{
     where: {
       is_active: true,
     },
-      },
-    },
   });
 
   const dashboard: {
@@ -578,7 +576,7 @@ export async function getHealthDashboard(): Promise<{
     dashboard.credentials.push({
       id: cred.id,
       name: cred.display_name,
-      service_type: cred.service_template?.service_type || 'custom',
+      service_type: cred.service_template || 'custom',
       status: healthStatus.current_status,
       last_checked_at: healthStatus.last_checked_at,
       uptime_24h: uptime.uptime_percentage,
