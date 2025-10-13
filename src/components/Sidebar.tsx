@@ -238,10 +238,7 @@ export default function Sidebar() {
  { label: "Roles", href: "/admin/roles" },
  { label: "Activity", href: "/admin/activity" },
  { label: "Analytics", href: "/admin/analytics" },
- { label: "API Keys", href: "/admin/api-keys" },
- { label: "API Analytics", href: "/admin/api-keys/analytics" },
- { label: "API Monitoring", href: "/admin/api-keys/monitoring" },
- { label: "Rotation Schedule", href: "/admin/api-keys/rotation-schedule" },
+ { label: "API Management", href: "/admin/api-management" },
  { label: "Settings", href: "/admin/settings" },
  { label: "Export", href: "/admin/export" },
  ]

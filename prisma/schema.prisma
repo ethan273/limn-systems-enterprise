@@ -488,6 +488,8 @@ model users {
   wood_type_collections                                                 wood_type_collections[]
   api_credentials_api_credentials_created_byTousers                     api_credentials[]                   @relation("api_credentials_created_byTousers")
   api_credentials_api_credentials_updated_byTousers                     api_credentials[]                   @relation("api_credentials_updated_byTousers")
+  api_credential_audit_logs                                             api_credential_audit_logs[]
+  api_credential_rotations                                              api_credential_rotations[]
 
   @@index([instance_id])
   @@index([is_anonymous])
@@ -638,9 +640,27 @@ model api_credentials {
   next_rotation_at          DateTime? @db.Timestamptz(6)
   aws_region                String?   @default("us-west-1") @db.VarChar(50)
 
-  users_api_credentials_created_byTousers users?    @relation("api_credentials_created_byTousers", fields: [created_by], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  users_api_credentials_updated_byTousers users?    @relation("api_credentials_updated_byTousers", fields: [updated_by], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  // Service Template & Access Control (Phase 1 & 2)
+  service_template          String?   @db.VarChar(100) // References SERVICE_TEMPLATES value
+  allowed_ips               String[]  @default([]) // IP whitelist (supports CIDR)
+  allowed_domains           String[]  @default([]) // Domain whitelist
+  rate_limit                Int?      // Requests per minute
+  concurrent_limit          Int?      // Max concurrent requests
+
+  // Zero-Downtime Rotation (Phase 3)
+  is_primary                Boolean   @default(true)
+  rotation_partner_id       String?   @db.Uuid // Link to backup credential during rotation
+
+  // Emergency Access (Phase 2)
+  emergency_access_enabled  Boolean   @default(false)
+  emergency_access_log      Json?     // Track emergency access usage
+
+  users_api_credentials_created_byTousers users?                        @relation("api_credentials_created_byTousers", fields: [created_by], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  users_api_credentials_updated_byTousers users?                        @relation("api_credentials_updated_byTousers", fields: [updated_by], references: [id], onDelete: SetNull, onUpdate: NoAction)
   api_usage_logs                          api_usage_logs[]
+  api_credential_audit_logs               api_credential_audit_logs[]
+  api_health_checks                       api_health_checks[]
+  api_credential_rotations                api_credential_rotations[]
 
   @@index([service_name], map: "idx_api_credentials_service")
   @@index([is_active], map: "idx_api_credentials_active")
@@ -670,6 +690,75 @@ model api_usage_logs {
   @@index([service_name], map: "idx_api_usage_service")
   @@index([created_at], map: "idx_api_usage_created_at")
   @@index([status_code], map: "idx_api_usage_status")
+  @@schema("public")
+}
+
+/// API Credential Access Audit Log - Track all credential access for SOC2/PCI DSS compliance
+model api_credential_audit_logs {
+  id                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  credential_id     String          @db.Uuid
+  action            String          @db.VarChar(50) // view, decrypt, rotate, delete, update
+  performed_by      String          @db.Uuid
+  ip_address        String?         @db.VarChar(45)
+  user_agent        String?         @db.VarChar(500)
+  success           Boolean         @default(true)
+  error_message     String?
+  metadata          Json?           // Additional context
+  created_at        DateTime        @default(now()) @db.Timestamptz(6)
+
+  api_credentials   api_credentials @relation(fields: [credential_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users             users           @relation(fields: [performed_by], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  @@index([credential_id], map: "idx_audit_credential")
+  @@index([performed_by], map: "idx_audit_user")
+  @@index([created_at], map: "idx_audit_created")
+  @@index([action], map: "idx_audit_action")
+  @@schema("public")
+}
+
+/// API Health Checks - Monitor API endpoint availability
+model api_health_checks {
+  id                   String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  credential_id        String          @db.Uuid
+  endpoint_url         String          @db.VarChar(500)
+  check_interval       Int             @default(15) // minutes
+  timeout              Int             @default(30) // seconds
+  expected_status      Int             @default(200)
+  alert_on_failure     Boolean         @default(true)
+  is_active            Boolean         @default(true)
+  last_check_at        DateTime?       @db.Timestamptz(6)
+  last_status_code     Int?
+  last_response_time   Int?            // milliseconds
+  consecutive_failures Int             @default(0)
+  created_at           DateTime        @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime        @default(now()) @db.Timestamptz(6)
+
+  api_credentials      api_credentials @relation(fields: [credential_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([credential_id], map: "idx_health_credential")
+  @@index([is_active], map: "idx_health_active")
+  @@index([last_check_at], map: "idx_health_last_check")
+  @@schema("public")
+}
+
+/// Credential Rotation History - Track all rotations for audit trail
+model api_credential_rotations {
+  id                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  credential_id     String          @db.Uuid
+  rotation_type     String          @db.VarChar(50) // manual, automatic, emergency
+  old_credential_id String?         @db.Uuid // Reference to previous credential
+  performed_by      String?         @db.Uuid
+  success           Boolean         @default(true)
+  error_message     String?
+  rollback_at       DateTime?       @db.Timestamptz(6) // If rolled back
+  metadata          Json?
+  created_at        DateTime        @default(now()) @db.Timestamptz(6)
+
+  api_credentials   api_credentials @relation(fields: [credential_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users             users?          @relation(fields: [performed_by], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  @@index([credential_id], map: "idx_rotation_credential")
+  @@index([created_at], map: "idx_rotation_created")
   @@schema("public")
 }
 

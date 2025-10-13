@@ -91,6 +91,7 @@ export const apiCredentialsRouter = createTRPCRouter({
         credentials: z.record(z.unknown()),
         environment: z.string().default('production'),
         expires_at: z.string().optional(),
+        service_template: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -107,6 +108,7 @@ export const apiCredentialsRouter = createTRPCRouter({
             credentials: encryptedCredentials as any,
             environment: input.environment,
             expires_at: input.expires_at ? new Date(input.expires_at) : null,
+            service_template: input.service_template,
             created_by: ctx.user?.id || null,
             updated_by: ctx.user?.id || null,
             is_active: true,
