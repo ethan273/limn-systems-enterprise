@@ -158,17 +158,16 @@ export function DesignBoardCanvas({ boardId, userId, board, onCanvasReady }: Des
         e.preventDefault();
         const clipboard = (canvas as any)._clipboard;
         if (clipboard && clipboard.length > 0) {
-          clipboard.forEach((obj: fabric.Object) => {
-            obj.clone((cloned: fabric.Object) => {
-              cloned.set({
-                left: (cloned.left || 0) + 10,
-                top: (cloned.top || 0) + 10,
-              });
-              canvas.add(cloned);
-              canvas.setActiveObject(cloned);
-              canvas.renderAll();
-              history.saveState(canvas);
+          clipboard.forEach(async (obj: fabric.Object) => {
+            const cloned = await obj.clone();
+            cloned.set({
+              left: (cloned.left || 0) + 10,
+              top: (cloned.top || 0) + 10,
             });
+            canvas.add(cloned);
+            canvas.setActiveObject(cloned);
+            canvas.renderAll();
+            history.saveState(canvas);
           });
         }
         return;
@@ -179,17 +178,16 @@ export function DesignBoardCanvas({ boardId, userId, board, onCanvasReady }: Des
         e.preventDefault();
         const activeObjects = canvas.getActiveObjects();
         if (activeObjects.length > 0) {
-          activeObjects.forEach((obj: fabric.Object) => {
-            obj.clone((cloned: fabric.Object) => {
-              cloned.set({
-                left: (cloned.left || 0) + 10,
-                top: (cloned.top || 0) + 10,
-              });
-              canvas.add(cloned);
-              canvas.setActiveObject(cloned);
-              canvas.renderAll();
-              history.saveState(canvas);
+          activeObjects.forEach(async (obj: fabric.Object) => {
+            const cloned = await obj.clone();
+            cloned.set({
+              left: (cloned.left || 0) + 10,
+              top: (cloned.top || 0) + 10,
             });
+            canvas.add(cloned);
+            canvas.setActiveObject(cloned);
+            canvas.renderAll();
+            history.saveState(canvas);
           });
         }
         return;

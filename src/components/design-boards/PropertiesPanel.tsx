@@ -162,17 +162,16 @@ export function PropertiesPanel({
   const duplicateObjects = () => {
     if (!canvas) return;
 
-    activeObjects.forEach(obj => {
-      obj.clone((cloned: fabric.Object) => {
-        cloned.set({
-          left: (cloned.left || 0) + 10,
-          top: (cloned.top || 0) + 10,
-        });
-        canvas.add(cloned);
-        canvas.setActiveObject(cloned);
-        canvas.renderAll();
-        onObjectsChange?.();
+    activeObjects.forEach(async obj => {
+      const cloned = await obj.clone();
+      cloned.set({
+        left: (cloned.left || 0) + 10,
+        top: (cloned.top || 0) + 10,
       });
+      canvas.add(cloned);
+      canvas.setActiveObject(cloned);
+      canvas.renderAll();
+      onObjectsChange?.();
     });
   };
 
