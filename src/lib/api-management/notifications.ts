@@ -1,8 +1,7 @@
 /**
  * Notification System for API Management
  *
- * Sends alerts for critical events via multiple channels (email, webhooks, in-app)
- * Note: Slack support is available but disabled by default
+ * Sends alerts for critical events via multiple channels (email, Google Chat, webhooks, in-app)
  */
 
 import { PrismaClient } from '@prisma/client';
@@ -14,7 +13,7 @@ const prisma = new PrismaClient();
 /**
  * Notification channels
  */
-export type NotificationChannel = 'email' | 'slack' | 'webhook' | 'in_app';
+export type NotificationChannel = 'email' | 'google_chat' | 'webhook' | 'in_app';
 
 /**
  * Notification severity
@@ -59,7 +58,7 @@ export interface NotificationConfig {
       enabled: boolean;
       recipients: string[];
     };
-    slack?: {
+    google_chat?: {
       enabled: boolean;
       webhookUrl: string;
     };
@@ -132,56 +131,79 @@ async function sendEmailNotification(
 }
 
 /**
- * Send Slack notification
+ * Send Google Chat notification
  */
-async function sendSlackNotification(
+async function sendGoogleChatNotification(
   params: NotificationParams,
   webhookUrl: string
 ): Promise<void> {
   try {
-    const color = {
-      info: '#36a64f',
-      warning: '#ff9800',
-      error: '#f44336',
-      critical: '#9c27b0',
+    // Google Chat card colors based on severity
+    const severityEmoji = {
+      info: '✅',
+      warning: '⚠️',
+      error: '❌',
+      critical: '🚨',
     }[params.severity];
 
-    const payload = {
-      attachments: [
-        {
-          color,
-          title: params.title,
+    // Build widgets array for the card
+    const widgets: any[] = [
+      {
+        textParagraph: {
+          text: `<b>${severityEmoji} ${params.title}</b>`,
+        },
+      },
+      {
+        textParagraph: {
           text: params.message,
-          fields: [
-            {
-              title: 'Event Type',
-              value: params.eventType,
-              short: true,
+        },
+      },
+      {
+        keyValue: {
+          topLabel: 'Event Type',
+          content: params.eventType,
+        },
+      },
+      {
+        keyValue: {
+          topLabel: 'Severity',
+          content: params.severity.toUpperCase(),
+        },
+      },
+    ];
+
+    // Add credential info if available
+    if (params.credentialName) {
+      widgets.push({
+        keyValue: {
+          topLabel: 'Credential',
+          content: params.credentialName,
+        },
+      });
+    }
+
+    const payload = {
+      cardsV2: [
+        {
+          cardId: `api-mgmt-${Date.now()}`,
+          card: {
+            header: {
+              title: 'API Management System',
+              subtitle: new Date().toLocaleString(),
             },
-            {
-              title: 'Severity',
-              value: params.severity.toUpperCase(),
-              short: true,
-            },
-            ...(params.credentialName
-              ? [
-                  {
-                    title: 'Credential',
-                    value: params.credentialName,
-                    short: true,
-                  },
-                ]
-              : []),
-          ],
-          footer: 'API Management System',
-          ts: Math.floor(Date.now() / 1000),
+            sections: [
+              {
+                widgets,
+              },
+            ],
+          },
         },
       ],
     };
 
-    console.log('[Slack] Sending notification to webhook');
+    console.log('[Google Chat] Sending notification to webhook');
 
-    // Send to Slack
+    // Send to Google Chat
     const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
@@ -191,12 +213,13 @@ async function sendSlackNotification(
     });
 
     if (!response.ok) {
-      throw new Error(`Slack API error: ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      throw new Error(`Google Chat API error: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
-    console.log('[Slack] Notification sent successfully');
+    console.log('[Google Chat] Notification sent successfully');
   } catch (error) {
-    console.error('[Slack] Failed to send notification:', error);
+    console.error('[Google Chat] Failed to send notification:', error);
     throw error;
   }
 }
@@ -287,9 +310,9 @@ export async function sendNotification(params: NotificationParams): Promise<void
           enabled: false,
           recipients: [],
         },
-        slack: {
-          enabled: false,
-          webhookUrl: process.env.SLACK_WEBHOOK_URL || '',
+        google_chat: {
+          enabled: !!process.env.GOOGLE_CHAT_WEBHOOK_URL,
+          webhookUrl: process.env.GOOGLE_CHAT_WEBHOOK_URL || '',
         },
         webhook: {
           enabled: false,
@@ -338,8 +361,8 @@ export async function sendNotification(params: NotificationParams): Promise<void
       promises.push(sendEmailNotification(params, config.channels.email.recipients));
     }
 
-    if (config.channels.slack?.enabled && config.channels.slack.webhookUrl) {
-      promises.push(sendSlackNotification(params, config.channels.slack.webhookUrl));
+    if (config.channels.google_chat?.enabled && config.channels.google_chat.webhookUrl) {
+      promises.push(sendGoogleChatNotification(params, config.channels.google_chat.webhookUrl));
     }
 
     if (config.channels.webhook?.enabled && config.channels.webhook.urls.length > 0) {
