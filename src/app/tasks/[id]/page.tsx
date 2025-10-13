@@ -181,10 +181,10 @@ export default function TaskDetailPage({ params }: PageProps) {
       priority: formData.priority as TaskPriority,
       department: formData.department as TaskDepartment,
       task_type: formData.task_type || undefined,
-      due_date: formData.due_date ? new Date(formData.due_date) : undefined,
-      start_date: formData.start_date ? new Date(formData.start_date) : undefined,
+      due_date: formData.due_date || undefined,
+      start_date: formData.start_date || undefined,
       estimated_hours: formData.estimated_hours ? parseFloat(formData.estimated_hours) : undefined,
-      visibility: formData.visibility || undefined,
+      visibility: (formData.visibility as 'project' | 'company' | 'private' | undefined) || undefined,
       resolution: formData.resolution || undefined,
     });
   };

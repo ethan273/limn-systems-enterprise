@@ -155,7 +155,7 @@ export function LayersPanel({ canvas, selectedObjects }: LayersPanelProps) {
     const obj = objects[actualIndex];
 
     if (obj && actualIndex < objects.length - 1) {
-      canvas.bringForward(obj);
+      canvas.bringObjectForward(obj);
       canvas.renderAll();
       setRefreshTrigger(prev => prev + 1);
     }
@@ -170,7 +170,7 @@ export function LayersPanel({ canvas, selectedObjects }: LayersPanelProps) {
     const obj = objects[actualIndex];
 
     if (obj && actualIndex > 0) {
-      canvas.sendBackwards(obj);
+      canvas.sendObjectBackwards(obj);
       canvas.renderAll();
       setRefreshTrigger(prev => prev + 1);
     }
