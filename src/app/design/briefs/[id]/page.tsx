@@ -89,9 +89,7 @@ export default function DesignBriefDetailPage({ params }: { params: Promise<{ id
       id: id,
       title: formData.title,
       description: formData.description || undefined,
-      requirements: formData.requirements || undefined,
-      budget: formData.budget || undefined,
-      timeline: formData.timeline || undefined,
+      functional_requirements: formData.requirements || undefined,
     });
   };
 
