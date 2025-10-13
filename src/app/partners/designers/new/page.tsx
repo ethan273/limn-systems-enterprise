@@ -118,15 +118,10 @@ export default function NewDesignerPartnerPage() {
       primary_contact: contactName.trim(),
       primary_email: email.trim(),
       primary_phone: phone.trim(),
-      specialties: specialties.length > 0 ? specialties : undefined,
-      portfolioUrl: portfolioUrl.trim() || undefined,
-      address: (street || city || state || zipCode || country) ? {
-        street: street.trim() || undefined,
-        city: city.trim() || undefined,
-        state: state.trim() || undefined,
-        zipCode: zipCode.trim() || undefined,
-        country: country.trim() || undefined,
-      } : undefined,
+      city: city.trim(),
+      country: country.trim(),
+      address_line1: street.trim(),
+      postal_code: zipCode.trim(),
       notes: notes.trim() || undefined,
     });
   };

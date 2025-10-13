@@ -120,16 +120,10 @@ export default function NewFactoryPartnerPage() {
       primary_contact: contactName.trim(),
       primary_email: email.trim(),
       primary_phone: phone.trim(),
-      capabilities: capabilities.length > 0 ? capabilities : undefined,
-      minimumOrderQuantity: minimumOrderQuantity ? parseInt(minimumOrderQuantity) : undefined,
-      leadTimeDays: leadTimeDays ? parseInt(leadTimeDays) : undefined,
-      address: (street || city || state || zipCode || country) ? {
-        street: street.trim() || undefined,
-        city: city.trim() || undefined,
-        state: state.trim() || undefined,
-        zipCode: zipCode.trim() || undefined,
-        country: country.trim() || undefined,
-      } : undefined,
+      city: city.trim(),
+      country: country.trim(),
+      address_line1: street.trim(),
+      postal_code: zipCode.trim(),
       notes: notes.trim() || undefined,
     });
   };
