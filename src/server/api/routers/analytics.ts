@@ -394,7 +394,7 @@ export const analyticsRouter = createTRPCRouter({
       };
 
       // Total inspections
-      const inspectionsData = await ctx.db.quality_inspections.aggregate({
+      const inspectionsData = await (ctx.db as any).qc_inspections.aggregate({
         where: {
           ...(Object.keys(dateFilter).length > 0 && { inspection_date: dateFilter }),
         },
@@ -404,7 +404,7 @@ export const analyticsRouter = createTRPCRouter({
       });
 
       // Inspections by result
-      const resultCounts = await ctx.db.quality_inspections.groupBy({
+      const resultCounts = await (ctx.db as any).qc_inspections.groupBy({
         by: ['result'],
         where: {
           ...(Object.keys(dateFilter).length > 0 && { inspection_date: dateFilter }),
@@ -415,9 +415,9 @@ export const analyticsRouter = createTRPCRouter({
       });
 
       // Defect analysis
-      const defectData = await ctx.db.quality_defects.aggregate({
+      const defectData = await (ctx.db as any).qc_defects.aggregate({
         where: {
-          quality_inspections: {
+          qc_inspections: {
             ...(Object.keys(dateFilter).length > 0 && { inspection_date: dateFilter }),
           },
         },
@@ -470,7 +470,7 @@ export const analyticsRouter = createTRPCRouter({
       if (endDate) whereClause.push(`qi.inspection_date <= '${endDate}'`);
       const whereSql = whereClause.length > 0 ? `WHERE ${whereClause.join(' AND ')}` : '';
 
-      const trends = await ctx.db.$queryRaw<Array<{
+      const trends = await (ctx.db as any).$queryRaw<Array<{
         period: Date;
         defect_count: bigint;
         inspection_count: bigint;
@@ -479,8 +479,8 @@ export const analyticsRouter = createTRPCRouter({
           ${Prisma.raw(dateGroupSql)} as period,
           COUNT(qd.id)::bigint as defect_count,
           COUNT(DISTINCT qi.id)::bigint as inspection_count
-        FROM quality_inspections qi
-        LEFT JOIN quality_defects qd ON qd.inspection_id = qi.id
+        FROM qc_inspections qi
+        LEFT JOIN qc_defects qd ON qd.inspection_id = qi.id
         ${Prisma.raw(whereSql)}
         GROUP BY period
         ORDER BY period ASC
@@ -511,15 +511,15 @@ export const analyticsRouter = createTRPCRouter({
       if (endDate) whereClause.push(`qi.inspection_date <= '${endDate}'`);
       const whereSql = whereClause.length > 0 ? `WHERE ${whereClause.join(' AND ')}` : '';
 
-      const categories = await ctx.db.$queryRaw<Array<{
+      const categories = await (ctx.db as any).$queryRaw<Array<{
         category: string;
         defect_count: bigint;
       }>>`
         SELECT
           qd.category,
           COUNT(*)::bigint as defect_count
-        FROM quality_defects qd
-        JOIN quality_inspections qi ON qi.id = qd.inspection_id
+        FROM qc_defects qd
+        JOIN qc_inspections qi ON qi.id = qd.inspection_id
         ${Prisma.raw(whereSql)}
         GROUP BY qd.category
         ORDER BY defect_count DESC
@@ -555,11 +555,11 @@ export const analyticsRouter = createTRPCRouter({
 
       switch (reportType) {
         case 'revenue':
-          return ctx.procedures.getRevenueOverview.query({ input: dateRange });
+          throw new Error('Custom revenue reports not yet implemented - use getRevenueOverview instead');
         case 'production':
-          return ctx.procedures.getProductionOverview.query({ input: dateRange });
+          throw new Error('Custom production reports not yet implemented - use getProductionOverview instead');
         case 'quality':
-          return ctx.procedures.getQualityOverview.query({ input: dateRange });
+          throw new Error('Custom quality reports not yet implemented - use getQualityOverview instead');
         default:
           throw new Error(`Report type ${reportType} not implemented`);
       }
