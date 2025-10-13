@@ -31,7 +31,7 @@ export default function NewPackingJobPage() {
   const [productionOrderId, setProductionOrderId] = useState("none");
   const [quantity, setQuantity] = useState("");
   const [specialInstructions, setSpecialInstructions] = useState("");
-  const [priority, setPriority] = useState("medium");
+  const [priority, setPriority] = useState("normal");
 
   // Fetch production orders
   const { data: ordersData, isLoading: ordersLoading } = api.productionOrders.getAll.useQuery({
@@ -89,7 +89,7 @@ export default function NewPackingJobPage() {
       productionOrderId,
       quantity: parseInt(quantity, 10),
       specialInstructions: specialInstructions.trim() || undefined,
-      priority,
+      priority: priority as "low" | "high" | "normal",
     });
   };
 
@@ -189,7 +189,7 @@ export default function NewPackingJobPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="normal">Normal</SelectItem>
                     <SelectItem value="high">High</SelectItem>
                   </SelectContent>
                 </Select>

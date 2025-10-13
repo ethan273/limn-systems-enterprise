@@ -40,7 +40,7 @@ export default function NewFactoryReviewSessionPage() {
   const [objectives, setObjectives] = useState("");
 
   // Fetch prototype production
-  const { data: prototypeProductionData, isLoading: prototypeProductionLoading } = api.prototypeProduction.getAll.useQuery({
+  const { data: prototypeProductionData, isLoading: prototypeProductionLoading } = api.prototypes.getAll.useQuery({
     limit: 100,
   });
 
@@ -103,10 +103,8 @@ export default function NewFactoryReviewSessionPage() {
     createSessionMutation.mutate({
       sessionName: sessionName.trim(),
       prototypeProductionId,
-      reviewDate,
+      reviewDate: new Date(reviewDate),
       location: location.trim() || undefined,
-      attendees: attendees.trim() || undefined,
-      objectives: objectives.trim() || undefined,
     });
   };
 
@@ -181,9 +179,9 @@ export default function NewFactoryReviewSessionPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Select a prototype</SelectItem>
-                    {prototypeProductionData?.items?.map((proto: { id: string; prototypes?: { name: string; prototype_number?: string } }) => (
+                    {prototypeProductionData?.prototypes?.map((proto: { id: string; name: string; prototype_number?: string }) => (
                       <SelectItem key={proto.id} value={proto.id}>
-                        {proto.prototypes?.name || 'Unnamed'} {proto.prototypes?.prototype_number ? `(${proto.prototypes.prototype_number})` : ''}
+                        {proto.name || 'Unnamed'} {proto.prototype_number ? `(${proto.prototype_number})` : ''}
                       </SelectItem>
                     ))}
                   </SelectContent>

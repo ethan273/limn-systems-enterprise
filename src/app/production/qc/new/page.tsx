@@ -31,18 +31,18 @@ export default function NewQCInspectionPage() {
   const [itemType, setItemType] = useState<"production" | "prototype">("production");
   const [productionItemId, setProductionItemId] = useState("none");
   const [prototypeId, setPrototypeId] = useState("none");
-  const [qcStage, setQcStage] = useState("incoming");
+  const [qcStage, setQcStage] = useState("incoming_inspection");
   const [priority, setPriority] = useState("normal");
   const [batchId, setBatchId] = useState("");
   const [notes, setNotes] = useState("");
 
   // Fetch production items
-  const { data: productionItemsData, isLoading: productionItemsLoading } = api.productionItems.getAll.useQuery({
+  const { data: productionItemsData, isLoading: productionItemsLoading } = api.production.getAllItems.useQuery({
     limit: 100,
   });
 
   // Fetch prototypes
-  const { data: prototypesData, isLoading: prototypesLoading } = api.prototypeProduction.getAll.useQuery({
+  const { data: prototypesData, isLoading: prototypesLoading } = api.prototypes.getAll.useQuery({
     limit: 100,
   });
 
@@ -105,7 +105,7 @@ export default function NewQCInspectionPage() {
     createInspectionMutation.mutate({
       productionItemId: itemType === "production" && productionItemId !== "none" ? productionItemId : undefined,
       prototypeId: itemType === "prototype" && prototypeId !== "none" ? prototypeId : undefined,
-      qcStage,
+      qcStage: qcStage as "incoming_inspection" | "in_process_check" | "final_inspection" | "packaging_check",
       priority,
       batchId: batchId.trim() || undefined,
       notes: notes.trim() || undefined,
@@ -221,9 +221,9 @@ export default function NewQCInspectionPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">Select a prototype</SelectItem>
-                      {prototypesData?.items?.map((proto: { id: string; prototypes?: { name: string; prototype_number?: string } }) => (
+                      {prototypesData?.prototypes?.map((proto: { id: string; name: string; prototype_number?: string }) => (
                         <SelectItem key={proto.id} value={proto.id}>
-                          {proto.prototypes?.name || 'Unnamed'} {proto.prototypes?.prototype_number ? `(${proto.prototypes.prototype_number})` : ''}
+                          {proto.name || 'Unnamed'} {proto.prototype_number ? `(${proto.prototype_number})` : ''}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -246,10 +246,10 @@ export default function NewQCInspectionPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="incoming">Incoming</SelectItem>
-                    <SelectItem value="in_process">In Process</SelectItem>
-                    <SelectItem value="final">Final</SelectItem>
-                    <SelectItem value="pre_shipment">Pre-Shipment</SelectItem>
+                    <SelectItem value="incoming_inspection">Incoming Inspection</SelectItem>
+                    <SelectItem value="in_process_check">In-Process Check</SelectItem>
+                    <SelectItem value="final_inspection">Final Inspection</SelectItem>
+                    <SelectItem value="packaging_check">Packaging Check</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
