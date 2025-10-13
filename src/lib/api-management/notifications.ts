@@ -1,7 +1,8 @@
 /**
  * Notification System for API Management
  *
- * Sends alerts for critical events via multiple channels (email, Slack, webhooks)
+ * Sends alerts for critical events via multiple channels (email, webhooks, in-app)
+ * Note: Slack support is available but disabled by default
  */
 
 import { PrismaClient } from '@prisma/client';
