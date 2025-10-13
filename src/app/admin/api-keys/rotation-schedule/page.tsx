@@ -97,7 +97,7 @@ export default function RotationSchedulePage() {
 
             <Card className="p-6">
               <div className="flex items-center gap-3 mb-2">
-                <Clock className="h-5 w-5 text-yellow-600" />
+                <Clock className="h-5 w-5 text-warning" />
                 <span className="text-sm font-medium text-muted-foreground">Upcoming (30d)</span>
               </div>
               <div className="text-3xl font-bold">{scheduleData?.upcoming || 0}</div>
@@ -106,7 +106,7 @@ export default function RotationSchedulePage() {
 
             <Card className="p-6">
               <div className="flex items-center gap-3 mb-2">
-                <AlertCircle className="h-5 w-5 text-red-600" />
+                <AlertCircle className="h-5 w-5 text-destructive" />
                 <span className="text-sm font-medium text-muted-foreground">Overdue</span>
               </div>
               <div className="text-3xl font-bold">{scheduleData?.overdue || 0}</div>
@@ -115,7 +115,7 @@ export default function RotationSchedulePage() {
 
             <Card className="p-6">
               <div className="flex items-center gap-3 mb-2">
-                <CheckCircle className="h-5 w-5 text-green-600" />
+                <CheckCircle className="h-5 w-5 text-success" />
                 <span className="text-sm font-medium text-muted-foreground">Current</span>
               </div>
               <div className="text-3xl font-bold">{scheduleData?.current || 0}</div>
@@ -219,7 +219,7 @@ export default function RotationSchedulePage() {
                             </div>
                             <div>
                               <p className="text-muted-foreground">Next Rotation</p>
-                              <p className={`font-medium ${item.status === 'overdue' ? 'text-red-600' : ''}`}>
+                              <p className={`font-medium ${item.status === 'overdue' ? 'text-destructive' : ''}`}>
                                 {overdueText}
                               </p>
                             </div>
@@ -227,7 +227,7 @@ export default function RotationSchedulePage() {
 
                           {item.expiresAt && (
                             <div className="mt-3 flex items-center gap-2 text-sm">
-                              <AlertCircle className="h-4 w-4 text-yellow-600" />
+                              <AlertCircle className="h-4 w-4 text-warning" />
                               <span className="text-muted-foreground">
                                 Expires on {formatDate(item.expiresAt)}
                               </span>

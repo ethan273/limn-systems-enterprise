@@ -7,7 +7,6 @@ import {
   Shield,
   Clock,
   AlertCircle,
-  TrendingUp,
   CheckCircle,
   XCircle,
   AlertTriangle,
@@ -24,7 +23,7 @@ export default function MonitoringPage() {
     return 'text-red-600';
   };
 
-  const getScoreBackground = (score: number) => {
+  const _getScoreBackground = (score: number) => {
     if (score >= 90) return 'bg-green-100 dark:bg-green-900';
     if (score >= 70) return 'bg-yellow-100 dark:bg-yellow-900';
     return 'bg-red-100 dark:bg-red-900';
@@ -33,13 +32,13 @@ export default function MonitoringPage() {
   const getSeverityIcon = (severity: string) => {
     switch (severity) {
       case 'critical':
-        return <XCircle className="h-5 w-5 text-red-600" />;
+        return <XCircle className="h-5 w-5 text-destructive" />;
       case 'warning':
-        return <AlertTriangle className="h-5 w-5 text-yellow-600" />;
+        return <AlertTriangle className="h-5 w-5 text-warning" />;
       case 'info':
-        return <Info className="h-5 w-5 text-blue-600" />;
+        return <Info className="h-5 w-5 text-primary" />;
       default:
-        return <AlertCircle className="h-5 w-5 text-gray-600" />;
+        return <AlertCircle className="h-5 w-5 text-muted-foreground" />;
     }
   };
 

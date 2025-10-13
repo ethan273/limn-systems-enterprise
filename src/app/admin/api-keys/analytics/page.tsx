@@ -8,7 +8,6 @@ import {
   BarChart3,
   Activity,
   AlertCircle,
-  TrendingUp,
   Clock,
   XCircle,
   ChevronLeft,
@@ -235,7 +234,7 @@ export default function AnalyticsPage() {
 
           <Card className="p-6">
             <div className="flex items-center gap-3 mb-2">
-              <Clock className="h-5 w-5 text-blue-500" />
+              <Clock className="h-5 w-5 text-primary" />
               <span className="text-sm font-medium text-muted-foreground">Avg Response Time</span>
             </div>
             <div className="text-3xl font-bold">
