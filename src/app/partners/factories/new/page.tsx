@@ -119,7 +119,7 @@ export default function NewFactoryPartnerPage() {
       company_name: companyName.trim(),
       primary_contact: contactName.trim(),
       primary_email: email.trim(),
-      primary_phone: phone.trim() || undefined,
+      primary_phone: phone.trim(),
       capabilities: capabilities.length > 0 ? capabilities : undefined,
       minimumOrderQuantity: minimumOrderQuantity ? parseInt(minimumOrderQuantity) : undefined,
       leadTimeDays: leadTimeDays ? parseInt(leadTimeDays) : undefined,

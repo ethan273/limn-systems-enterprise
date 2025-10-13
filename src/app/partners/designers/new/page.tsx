@@ -117,7 +117,7 @@ export default function NewDesignerPartnerPage() {
       company_name: companyName.trim(),
       primary_contact: contactName.trim(),
       primary_email: email.trim(),
-      primary_phone: phone.trim() || undefined,
+      primary_phone: phone.trim(),
       specialties: specialties.length > 0 ? specialties : undefined,
       portfolioUrl: portfolioUrl.trim() || undefined,
       address: (street || city || state || zipCode || country) ? {

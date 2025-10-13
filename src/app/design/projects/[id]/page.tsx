@@ -110,10 +110,9 @@ export default function DesignProjectDetailPage({ params }: { params: Promise<{ 
    updateMutation.mutate({
      id: id,
      project_name: formData.project_name,
-     project_code: formData.project_code || undefined,
      project_type: formData.project_type,
      priority: formData.priority,
-     target_launch_date: formData.target_launch_date || undefined,
+     target_launch_date: formData.target_launch_date ? new Date(formData.target_launch_date) : undefined,
      budget: formData.budget || undefined,
      next_action: formData.next_action || undefined,
    });
