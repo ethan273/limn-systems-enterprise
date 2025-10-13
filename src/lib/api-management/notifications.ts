@@ -383,10 +383,10 @@ export async function notifyHealthFailure(
   await sendNotification({
     eventType: 'health_failure',
     severity: 'error',
-    title: `Health Check Failed: ${credential.name}`,
-    message: `Health check failed for credential "${credential.name}". Error: ${result.error_message || 'Unknown error'}`,
+    title: `Health Check Failed: ${credential.display_name}`,
+    message: `Health check failed for credential "${credential.display_name}". Error: ${result.error_message || 'Unknown error'}`,
     credentialId: credential.id,
-    credentialName: credential.name,
+    credentialName: credential.display_name,
     metadata: {
       response_time_ms: result.response_time_ms,
       error: result.error_message,
@@ -412,10 +412,10 @@ export async function notifyHealthRecovery(
   await sendNotification({
     eventType: 'health_recovery',
     severity: 'info',
-    title: `Health Check Recovered: ${credential.name}`,
-    message: `Credential "${credential.name}" has recovered after ${consecutiveFailures} consecutive failures.`,
+    title: `Health Check Recovered: ${credential.display_name}`,
+    message: `Credential "${credential.display_name}" has recovered after ${consecutiveFailures} consecutive failures.`,
     credentialId: credential.id,
-    credentialName: credential.name,
+    credentialName: credential.display_name,
     metadata: {
       consecutive_failures: consecutiveFailures,
     },
@@ -437,10 +437,10 @@ export async function notifyRotationComplete(credentialId: string): Promise<void
   await sendNotification({
     eventType: 'rotation_success',
     severity: 'info',
-    title: `Credential Rotated: ${credential.name}`,
-    message: `Credential "${credential.name}" has been successfully rotated with zero downtime.`,
+    title: `Credential Rotated: ${credential.display_name}`,
+    message: `Credential "${credential.display_name}" has been successfully rotated with zero downtime.`,
     credentialId: credential.id,
-    credentialName: credential.name,
+    credentialName: credential.display_name,
   });
 }
 
@@ -462,10 +462,10 @@ export async function notifyRotationFailure(
   await sendNotification({
     eventType: 'rotation_failure',
     severity: 'critical',
-    title: `Rotation Failed: ${credential.name}`,
-    message: `Failed to rotate credential "${credential.name}". Error: ${error}`,
+    title: `Rotation Failed: ${credential.display_name}`,
+    message: `Failed to rotate credential "${credential.display_name}". Error: ${error}`,
     credentialId: credential.id,
-    credentialName: credential.name,
+    credentialName: credential.display_name,
     metadata: {
       error,
     },
@@ -490,10 +490,10 @@ export async function notifyEmergencyAccess(
   await sendNotification({
     eventType: 'emergency_access_granted',
     severity: 'warning',
-    title: `Emergency Access Granted: ${credential.name}`,
-    message: `Emergency access granted for credential "${credential.name}". Reason: ${accessInfo.reason}. Expires: ${accessInfo.expiresAt.toISOString()}`,
+    title: `Emergency Access Granted: ${credential.display_name}`,
+    message: `Emergency access granted for credential "${credential.display_name}". Reason: ${accessInfo.reason}. Expires: ${accessInfo.expiresAt.toISOString()}`,
     credentialId: credential.id,
-    credentialName: credential.name,
+    credentialName: credential.display_name,
     metadata: {
       granted_by: accessInfo.grantedBy,
       expires_at: accessInfo.expiresAt,
@@ -519,10 +519,10 @@ export async function notifyEmergencyAccessRevoked(
   await sendNotification({
     eventType: 'emergency_access_revoked',
     severity: 'info',
-    title: `Emergency Access Revoked: ${credential.name}`,
-    message: `Emergency access for credential "${credential.name}" has been revoked.`,
+    title: `Emergency Access Revoked: ${credential.display_name}`,
+    message: `Emergency access for credential "${credential.display_name}" has been revoked.`,
     credentialId: credential.id,
-    credentialName: credential.name,
+    credentialName: credential.display_name,
   });
 }
 
@@ -547,10 +547,10 @@ export async function notifyExpirationWarning(
   await sendNotification({
     eventType: 'expiration_warning',
     severity,
-    title: `Credential Expiring Soon: ${credential.name}`,
-    message: `Credential "${credential.name}" will expire in ${daysUntilExpiry} days (${credential.expires_at.toISOString()})`,
+    title: `Credential Expiring Soon: ${credential.display_name}`,
+    message: `Credential "${credential.display_name}" will expire in ${daysUntilExpiry} days (${credential.expires_at.toISOString()})`,
     credentialId: credential.id,
-    credentialName: credential.name,
+    credentialName: credential.display_name,
     metadata: {
       days_until_expiry: daysUntilExpiry,
       expires_at: credential.expires_at,
@@ -577,10 +577,10 @@ export async function notifyRateLimitExceeded(
   await sendNotification({
     eventType: 'rate_limit_exceeded',
     severity: 'warning',
-    title: `Rate Limit Exceeded: ${credential.name}`,
-    message: `Credential "${credential.name}" has exceeded its rate limit (${currentRate}/${limit} requests).`,
+    title: `Rate Limit Exceeded: ${credential.display_name}`,
+    message: `Credential "${credential.display_name}" has exceeded its rate limit (${currentRate}/${limit} requests).`,
     credentialId: credential.id,
-    credentialName: credential.name,
+    credentialName: credential.display_name,
     metadata: {
       current_rate: currentRate,
       limit,
@@ -606,10 +606,10 @@ export async function notifySuspiciousAccess(
   await sendNotification({
     eventType: 'suspicious_access',
     severity: 'critical',
-    title: `Suspicious Access Detected: ${credential.name}`,
-    message: `Suspicious access pattern detected for credential "${credential.name}". Details: ${details}`,
+    title: `Suspicious Access Detected: ${credential.display_name}`,
+    message: `Suspicious access pattern detected for credential "${credential.display_name}". Details: ${details}`,
     credentialId: credential.id,
-    credentialName: credential.name,
+    credentialName: credential.display_name,
     metadata: {
       details,
     },

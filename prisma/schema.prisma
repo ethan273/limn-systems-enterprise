@@ -660,6 +660,7 @@ model api_credentials {
   api_usage_logs                          api_usage_logs[]
   api_credential_audit_logs               api_credential_audit_logs[]
   api_health_checks                       api_health_checks[]
+  api_health_check_results                api_health_check_results[]
   api_credential_rotations                api_credential_rotations[]
 
   @@index([service_name], map: "idx_api_credentials_service")
@@ -741,23 +742,50 @@ model api_health_checks {
   @@schema("public")
 }
 
-/// Credential Rotation History - Track all rotations for audit trail
-model api_credential_rotations {
+/// Health Check Results - Store individual health check execution results (Phase 3)
+model api_health_check_results {
   id                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   credential_id     String          @db.Uuid
-  rotation_type     String          @db.VarChar(50) // manual, automatic, emergency
-  old_credential_id String?         @db.Uuid // Reference to previous credential
-  performed_by      String?         @db.Uuid
-  success           Boolean         @default(true)
+  status            String          @db.VarChar(20) // healthy, degraded, unhealthy, unknown
+  response_time_ms  Int?
   error_message     String?
-  rollback_at       DateTime?       @db.Timestamptz(6) // If rolled back
   metadata          Json?
-  created_at        DateTime        @default(now()) @db.Timestamptz(6)
+  checked_at        DateTime        @default(now()) @db.Timestamptz(6)
 
   api_credentials   api_credentials @relation(fields: [credential_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users             users?          @relation(fields: [performed_by], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  @@index([credential_id], map: "idx_health_results_credential")
+  @@index([checked_at], map: "idx_health_results_checked_at")
+  @@index([status], map: "idx_health_results_status")
+  @@schema("public")
+}
+
+/// Credential Rotation History - Track all rotations for audit trail (Extended for Phase 3)
+model api_credential_rotations {
+  id                        String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  credential_id             String          @db.Uuid
+  rotation_type             String          @db.VarChar(50) // manual, automatic, emergency
+  status                    String          @default("idle") @db.VarChar(20) // idle, in_progress, grace_period, completed, failed, rolled_back
+  old_credential_id         String?         @db.Uuid // Reference to previous credential
+  old_credential_backup     String?         // Encrypted backup for rollback
+  new_credential_preview    String?         @db.VarChar(10) // Last 4 chars for verification
+  performed_by              String?         @db.Uuid
+  initiated_by              String?         @db.Uuid // User who started the rotation
+  success                   Boolean         @default(true)
+  error_message             String?
+  started_at                DateTime        @default(now()) @db.Timestamptz(6)
+  grace_period_ends_at      DateTime?       @db.Timestamptz(6) // When grace period ends
+  completed_at              DateTime?       @db.Timestamptz(6) // When rotation completes
+  rollback_at               DateTime?       @db.Timestamptz(6) // If rolled back
+  metadata                  Json?
+  created_at                DateTime        @default(now()) @db.Timestamptz(6)
+
+  api_credentials           api_credentials @relation(fields: [credential_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                     users?          @relation(fields: [performed_by], references: [id], onDelete: SetNull, onUpdate: NoAction)
 
   @@index([credential_id], map: "idx_rotation_credential")
+  @@index([status], map: "idx_rotation_status")
+  @@index([started_at], map: "idx_rotation_started")
   @@index([created_at], map: "idx_rotation_created")
   @@schema("public")
 }

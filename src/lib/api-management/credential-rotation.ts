@@ -175,9 +175,6 @@ export async function initiateRotation(
     // Get credential details
     const credential = await prisma.api_credentials.findUnique({
       where: { id: credentialId },
-      include: {
-        service_templates: true,
-      },
     });
 
     if (!credential) {
@@ -185,7 +182,7 @@ export async function initiateRotation(
     }
 
     // Check if rotation is already in progress
-    const existingSession = await prisma.api_credential_rotation_history.findFirst({
+    const existingSession = await prisma.api_credential_rotations.findFirst({
       where: {
         credential_id: credentialId,
         status: {
@@ -200,24 +197,24 @@ export async function initiateRotation(
 
     // Get rotation strategy
     const strategy = getRotationStrategy(
-      credential.service_templates?.service_type || 'custom'
+      credential.service_template || 'custom'
     );
 
     if (!strategy.supportsRotation || !strategy.generateNewCredential) {
       throw new Error(
-        `Automatic rotation not supported for service type: ${credential.service_templates?.service_type || 'custom'}`
+        `Automatic rotation not supported for service type: ${credential.service_template || 'custom'}`
       );
     }
 
     // Create rotation session
-    const session = await prisma.api_credential_rotation_history.create({
+    const session = await prisma.api_credential_rotations.create({
       data: {
         credential_id: credentialId,
         status: 'in_progress',
         initiated_by: userId,
-        old_credential_backup: credential.encrypted_value, // Backup old credential
+        old_credential_backup: credential.credentials, // Backup old credential
         metadata: {
-          service_type: credential.service_templates?.service_type || 'custom',
+          service_type: credential.service_template || 'custom',
           config: {
             gracePeriodMinutes,
             healthCheckCount,
@@ -237,18 +234,13 @@ export async function initiateRotation(
     await prisma.api_credentials.update({
       where: { id: credentialId },
       data: {
-        encrypted_value: newCredential.newValue,
+        credentials: newCredential.newValue as any,
         last_rotated_at: new Date(),
-        metadata: {
-          ...(credential.metadata as any),
-          rotation_session_id: session.id,
-          previous_rotation_at: credential.last_rotated_at,
-        },
       },
     });
 
     // Update session with new credential preview
-    const updatedSession = await prisma.api_credential_rotation_history.update({
+    const updatedSession = await prisma.api_credential_rotations.update({
       where: { id: session.id },
       data: {
         new_credential_preview: newCredential.newValue.slice(-4),
@@ -293,7 +285,7 @@ export async function initiateRotation(
 
     if (!allHealthy && !autoRollbackOnFailure) {
       // Mark as failed but don't rollback
-      await prisma.api_credential_rotation_history.update({
+      await prisma.api_credential_rotations.update({
         where: { id: session.id },
         data: {
           status: 'failed',
@@ -307,7 +299,7 @@ export async function initiateRotation(
     // Enter grace period
     const gracePeriodEndsAt = new Date(Date.now() + gracePeriodMinutes * 60 * 1000);
 
-    await prisma.api_credential_rotation_history.update({
+    await prisma.api_credential_rotations.update({
       where: { id: session.id },
       data: {
         status: 'grace_period',
@@ -344,7 +336,7 @@ export async function initiateRotation(
 export async function completeRotation(sessionId: string): Promise<void> {
   try {
     // Get session
-    const session = await prisma.api_credential_rotation_history.findUnique({
+    const session = await prisma.api_credential_rotations.findUnique({
       where: { id: sessionId },
     });
 
@@ -361,9 +353,6 @@ export async function completeRotation(sessionId: string): Promise<void> {
     // Get credential
     const credential = await prisma.api_credentials.findUnique({
       where: { id: session.credential_id },
-      include: {
-        service_templates: true,
-      },
     });
 
     if (!credential) {
@@ -372,7 +361,7 @@ export async function completeRotation(sessionId: string): Promise<void> {
 
     // Get rotation strategy
     const strategy = getRotationStrategy(
-      credential.service_templates?.service_type || 'custom'
+      credential.service_template || 'custom'
     );
 
     // Deactivate old credential if strategy supports it
@@ -384,7 +373,7 @@ export async function completeRotation(sessionId: string): Promise<void> {
     }
 
     // Mark rotation as completed
-    await prisma.api_credential_rotation_history.update({
+    await prisma.api_credential_rotations.update({
       where: { id: sessionId },
       data: {
         status: 'completed',
@@ -397,7 +386,7 @@ export async function completeRotation(sessionId: string): Promise<void> {
     console.error('Failed to complete rotation:', error);
 
     // Mark as failed
-    await prisma.api_credential_rotation_history.update({
+    await prisma.api_credential_rotations.update({
       where: { id: sessionId },
       data: {
         status: 'failed',
@@ -417,7 +406,7 @@ export async function completeRotation(sessionId: string): Promise<void> {
 export async function rollbackRotation(sessionId: string): Promise<void> {
   try {
     // Get session
-    const session = await prisma.api_credential_rotation_history.findUnique({
+    const session = await prisma.api_credential_rotations.findUnique({
       where: { id: sessionId },
     });
 
@@ -439,12 +428,12 @@ export async function rollbackRotation(sessionId: string): Promise<void> {
     await prisma.api_credentials.update({
       where: { id: session.credential_id },
       data: {
-        encrypted_value: session.old_credential_backup,
+        credentials: session.old_credential_backup as any,
       },
     });
 
     // Mark rotation as rolled back
-    await prisma.api_credential_rotation_history.update({
+    await prisma.api_credential_rotations.update({
       where: { id: sessionId },
       data: {
         status: 'rolled_back',
@@ -475,7 +464,7 @@ export async function getRotationStatus(
   canRotate: boolean;
 }> {
   // Get current session
-  const currentSession = await prisma.api_credential_rotation_history.findFirst({
+  const currentSession = await prisma.api_credential_rotations.findFirst({
     where: {
       credential_id: credentialId,
       status: {
@@ -486,7 +475,7 @@ export async function getRotationStatus(
   });
 
   // Get last completed rotation
-  const lastRotation = await prisma.api_credential_rotation_history.findFirst({
+  const lastRotation = await prisma.api_credential_rotations.findFirst({
     where: {
       credential_id: credentialId,
       status: {
@@ -499,13 +488,10 @@ export async function getRotationStatus(
   // Get credential to check service type
   const credential = await prisma.api_credentials.findUnique({
     where: { id: credentialId },
-    include: {
-      service_templates: true,
-    },
   });
 
   const strategy = getRotationStrategy(
-    credential?.service_templates?.service_type || 'custom'
+    credential?.service_template?.service_type || 'custom'
   );
 
   return {
@@ -527,7 +513,7 @@ export async function getRotationHistory(
   credentialId: string,
   limit = 50
 ): Promise<RotationHistoryEntry[]> {
-  const history = await prisma.api_credential_rotation_history.findMany({
+  const history = await prisma.api_credential_rotations.findMany({
     where: { credential_id: credentialId },
     orderBy: { started_at: 'desc' },
     take: limit,
@@ -542,7 +528,7 @@ export async function getRotationHistory(
  * @param sessionId - Rotation session ID
  */
 export async function cancelRotation(sessionId: string): Promise<void> {
-  const session = await prisma.api_credential_rotation_history.findUnique({
+  const session = await prisma.api_credential_rotations.findUnique({
     where: { id: sessionId },
   });
 
@@ -572,16 +558,13 @@ export async function supportsRotation(credentialId: string): Promise<{
 }> {
   const credential = await prisma.api_credentials.findUnique({
     where: { id: credentialId },
-    include: {
-      service_templates: true,
-    },
   });
 
   if (!credential) {
     throw new Error('Credential not found');
   }
 
-  const serviceType = credential.service_templates?.service_type || 'custom';
+  const serviceType = credential.service_template || 'custom';
   const strategy = getRotationStrategy(serviceType);
 
   return {

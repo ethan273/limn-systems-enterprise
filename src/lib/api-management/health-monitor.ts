@@ -224,9 +224,6 @@ export async function performHealthCheck(
     // Get credential details
     const credential = await prisma.api_credentials.findUnique({
       where: { id: credentialId },
-      include: {
-        service_templates: true,
-      },
     });
 
     if (!credential) {
@@ -235,13 +232,13 @@ export async function performHealthCheck(
 
     // Get appropriate health check strategy
     const strategy = getHealthCheckStrategy(
-      credential.service_templates?.service_type || 'custom'
+      credential.service_template || 'custom'
     );
 
     // Decrypt credential (placeholder - would use actual decryption)
     const decryptedCredential = {
       ...credential,
-      decryptedValue: credential.encrypted_value, // Placeholder
+      decryptedValue: credential.credentials, // Placeholder
       test_endpoint: (credential.metadata as any)?.test_endpoint,
       base_url: (credential.metadata as any)?.base_url,
     };
@@ -262,7 +259,7 @@ export async function performHealthCheck(
     }
 
     // Store health check result
-    const healthCheck = await prisma.api_credential_health_checks.create({
+    const healthCheck = await prisma.api_health_check_results.create({
       data: {
         credential_id: credentialId,
         status,
@@ -278,7 +275,7 @@ export async function performHealthCheck(
     console.error('Health check failed:', error);
 
     // Store failure in database
-    const healthCheck = await prisma.api_credential_health_checks.create({
+    const healthCheck = await prisma.api_health_check_results.create({
       data: {
         credential_id: credentialId,
         status: 'unhealthy',
@@ -302,7 +299,7 @@ export async function getHealthStatus(
   credentialId: string
 ): Promise<CurrentHealthStatus> {
   // Get recent health checks (last 10)
-  const recentChecks = await prisma.api_credential_health_checks.findMany({
+  const recentChecks = await prisma.api_health_check_results.findMany({
     where: { credential_id: credentialId },
     orderBy: { checked_at: 'desc' },
     take: 10,
@@ -351,7 +348,7 @@ export async function getHealthHistory(
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
 
-  const checks = await prisma.api_credential_health_checks.findMany({
+  const checks = await prisma.api_health_check_results.findMany({
     where: {
       credential_id: credentialId,
       checked_at: { gte: startDate },
@@ -471,7 +468,7 @@ export async function performAllHealthChecks(): Promise<{
   // Get all active credentials
   const credentials = await prisma.api_credentials.findMany({
     where: {
-      status: 'active',
+      is_active: true,
     },
     select: {
       id: true,
@@ -544,13 +541,8 @@ export async function getHealthDashboard(): Promise<{
   // Get all credentials with their latest health check
   const credentials = await prisma.api_credentials.findMany({
     where: {
-      status: 'active',
+      is_active: true,
     },
-    include: {
-      service_templates: {
-        select: {
-          service_type: true,
-        },
       },
     },
   });
@@ -585,8 +577,8 @@ export async function getHealthDashboard(): Promise<{
 
     dashboard.credentials.push({
       id: cred.id,
-      name: cred.name,
-      service_type: cred.service_templates?.service_type || 'custom',
+      name: cred.display_name,
+      service_type: cred.service_template?.service_type || 'custom',
       status: healthStatus.current_status,
       last_checked_at: healthStatus.last_checked_at,
       uptime_24h: uptime.uptime_percentage,

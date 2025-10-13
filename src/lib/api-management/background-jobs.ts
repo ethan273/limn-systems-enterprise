@@ -229,14 +229,11 @@ export async function runCredentialExpirationWarningJob(): Promise<JobResult> {
       // Find credentials expiring on this threshold
       const expiringCredentials = await prisma.api_credentials.findMany({
         where: {
-          status: 'active',
+          is_active: true,
           expires_at: {
             gte: now,
             lte: expiryDate,
           },
-        },
-        include: {
-          service_templates: true,
         },
       });
 
@@ -265,7 +262,7 @@ export async function runCredentialExpirationWarningJob(): Promise<JobResult> {
               metadata: {
                 days_until_expiry: days,
                 expires_at: credential.expires_at,
-                service_type: credential.service_templates?.service_type,
+                service_type: credential.service_template,
               },
             } as any,
           });
@@ -423,7 +420,7 @@ export async function runHealthHistoryCleanupJob(): Promise<JobResult> {
     cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
 
     // Delete old health checks
-    const deleteResult = await prisma.api_credential_health_checks.deleteMany({
+    const deleteResult = await prisma.api_health_check_results.deleteMany({
       where: {
         checked_at: {
           lt: cutoffDate,
