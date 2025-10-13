@@ -53,7 +53,7 @@ export const analyticsRouter = createTRPCRouter({
       };
 
       // Total revenue from paid invoices
-      const revenueData = await ctx.db.production_invoices.aggregate({
+      const revenueData = await (ctx.db as any).production_invoices.aggregate({
         where: {
           status: 'paid',
           ...(Object.keys(dateFilter).length > 0 && { payment_date: dateFilter }),
@@ -68,7 +68,7 @@ export const analyticsRouter = createTRPCRouter({
       });
 
       // Outstanding invoices
-      const outstandingData = await ctx.db.production_invoices.aggregate({
+      const outstandingData = await (ctx.db as any).production_invoices.aggregate({
         where: {
           status: { in: ['sent', 'pending'] },
           ...(Object.keys(dateFilter).length > 0 && { invoice_date: dateFilter }),
@@ -121,12 +121,12 @@ export const analyticsRouter = createTRPCRouter({
           break;
       }
 
-      const whereClause = [];
+      const whereClause: string[] = [];
       if (startDate) whereClause.push(`invoice_date >= '${startDate}'`);
       if (endDate) whereClause.push(`invoice_date <= '${endDate}'`);
       const whereSql = whereClause.length > 0 ? `WHERE ${whereClause.join(' AND ')}` : '';
 
-      const trends = await ctx.db.$queryRaw<Array<{
+      const trends = await (ctx.db as any).$queryRaw<Array<{
         period: Date;
         revenue: number;
         invoice_count: bigint;
@@ -158,12 +158,12 @@ export const analyticsRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const { startDate, endDate, limit } = input;
 
-      const whereClause = [];
+      const whereClause: string[] = [];
       if (startDate) whereClause.push(`pi.invoice_date >= '${startDate}'`);
       if (endDate) whereClause.push(`pi.invoice_date <= '${endDate}'`);
       const whereSql = whereClause.length > 0 ? `WHERE ${whereClause.join(' AND ')}` : '';
 
-      const customerRevenue = await ctx.db.$queryRaw<Array<{
+      const customerRevenue = await (ctx.db as any).$queryRaw<Array<{
         customer_id: string;
         customer_name: string;
         revenue: number;
@@ -210,7 +210,7 @@ export const analyticsRouter = createTRPCRouter({
       };
 
       // Total orders
-      const ordersData = await ctx.db.production_orders.aggregate({
+      const ordersData = await (ctx.db as any).production_orders.aggregate({
         where: {
           ...(Object.keys(dateFilter).length > 0 && { created_at: dateFilter }),
         },
@@ -220,7 +220,7 @@ export const analyticsRouter = createTRPCRouter({
       });
 
       // Orders by status
-      const statusCounts = await ctx.db.production_orders.groupBy({
+      const statusCounts = await (ctx.db as any).production_orders.groupBy({
         by: ['status'],
         where: {
           ...(Object.keys(dateFilter).length > 0 && { created_at: dateFilter }),
@@ -289,12 +289,12 @@ export const analyticsRouter = createTRPCRouter({
           break;
       }
 
-      const whereClause = [];
+      const whereClause: string[] = [];
       if (startDate) whereClause.push(`created_at >= '${startDate}'`);
       if (endDate) whereClause.push(`created_at <= '${endDate}'`);
       const whereSql = whereClause.length > 0 ? `WHERE ${whereClause.join(' AND ')}` : '';
 
-      const throughput = await ctx.db.$queryRaw<Array<{
+      const throughput = await (ctx.db as any).$queryRaw<Array<{
         period: Date;
         orders_created: bigint;
         orders_completed: bigint;
@@ -324,12 +324,12 @@ export const analyticsRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const { startDate, endDate } = input;
 
-      const whereClause = [];
+      const whereClause: string[] = [];
       if (startDate) whereClause.push(`created_at >= '${startDate}'`);
       if (endDate) whereClause.push(`created_at <= '${endDate}'`);
       const whereSql = whereClause.length > 0 ? `WHERE ${whereClause.join(' AND ')}` : '';
 
-      const efficiency = await ctx.db.$queryRaw<Array<{
+      const efficiency = await (ctx.db as any).$queryRaw<Array<{
         total_orders: bigint;
         on_time: bigint;
         delayed: bigint;
@@ -465,7 +465,7 @@ export const analyticsRouter = createTRPCRouter({
           break;
       }
 
-      const whereClause = [];
+      const whereClause: string[] = [];
       if (startDate) whereClause.push(`qi.inspection_date >= '${startDate}'`);
       if (endDate) whereClause.push(`qi.inspection_date <= '${endDate}'`);
       const whereSql = whereClause.length > 0 ? `WHERE ${whereClause.join(' AND ')}` : '';
@@ -506,7 +506,7 @@ export const analyticsRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const { startDate, endDate, limit } = input;
 
-      const whereClause = [];
+      const whereClause: string[] = [];
       if (startDate) whereClause.push(`qi.inspection_date >= '${startDate}'`);
       if (endDate) whereClause.push(`qi.inspection_date <= '${endDate}'`);
       const whereSql = whereClause.length > 0 ? `WHERE ${whereClause.join(' AND ')}` : '';
