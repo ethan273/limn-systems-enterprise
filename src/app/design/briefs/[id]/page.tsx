@@ -87,13 +87,11 @@ export default function DesignBriefDetailPage({ params }: { params: Promise<{ id
 
     updateMutation.mutate({
       id: id,
-      data: {
-        title: formData.title,
-        description: formData.description || undefined,
-        requirements: formData.requirements || undefined,
-        budget: formData.budget || undefined,
-        timeline: formData.timeline || undefined,
-      },
+      title: formData.title,
+      description: formData.description || undefined,
+      requirements: formData.requirements || undefined,
+      budget: formData.budget || undefined,
+      timeline: formData.timeline || undefined,
     });
   };
 
