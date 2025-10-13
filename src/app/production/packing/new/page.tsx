@@ -86,7 +86,7 @@ export default function NewPackingJobPage() {
 
     // Create packing job
     createJobMutation.mutate({
-      productionOrderId,
+      orderId: productionOrderId,
       quantity: parseInt(quantity, 10),
       specialInstructions: specialInstructions.trim() || undefined,
       priority: priority as "low" | "high" | "normal",

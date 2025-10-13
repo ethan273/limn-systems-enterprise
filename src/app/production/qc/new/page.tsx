@@ -37,7 +37,7 @@ export default function NewQCInspectionPage() {
   const [notes, setNotes] = useState("");
 
   // Fetch production items
-  const { data: productionItemsData, isLoading: productionItemsLoading } = api.production.getAllItems.useQuery({
+  const { data: productionItemsData, isLoading: productionItemsLoading } = api.products.getAll.useQuery({
     limit: 100,
   });
 
@@ -103,11 +103,10 @@ export default function NewQCInspectionPage() {
 
     // Create QC inspection
     createInspectionMutation.mutate({
-      productionItemId: itemType === "production" && productionItemId !== "none" ? productionItemId : undefined,
-      prototypeId: itemType === "prototype" && prototypeId !== "none" ? prototypeId : undefined,
+      orderId: itemType === "production" && productionItemId !== "none" ? productionItemId : prototypeId,
       qcStage: qcStage as "incoming_inspection" | "in_process_check" | "final_inspection" | "packaging_check",
-      priority,
-      batchId: batchId.trim() || undefined,
+      prototypeProductionId: itemType === "prototype" && prototypeId !== "none" ? prototypeId : undefined,
+      productionItemId: itemType === "production" && productionItemId !== "none" ? productionItemId : undefined,
       notes: notes.trim() || undefined,
     });
   };
@@ -194,9 +193,9 @@ export default function NewQCInspectionPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">Select an item</SelectItem>
-                      {productionItemsData?.items?.map((item: { id: string; item_name: string; item_number?: string }) => (
+                      {productionItemsData?.items?.map((item: { id: string; name: string; sku?: string }) => (
                         <SelectItem key={item.id} value={item.id}>
-                          {item.item_name} {item.item_number ? `(${item.item_number})` : ''}
+                          {item.name} {item.sku ? `(${item.sku})` : ''}
                         </SelectItem>
                       ))}
                     </SelectContent>
