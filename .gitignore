@@ -57,8 +57,8 @@ prisma/dev.db*
 # OS
 Thumbs.db
 
-# Claude Code
-.claude/
+# Claude Code (REMOVED - .claude/claude.md contains critical development standards and must be committed)
+# .claude/
 
 # Database files
 *.db

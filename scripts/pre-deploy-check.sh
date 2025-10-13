@@ -1,0 +1,131 @@
+#!/bin/bash
+# Production Readiness Verification Script
+# Run this before claiming "production ready"
+
+set -e  # Exit on any error
+
+echo "======================================"
+echo "  Production Readiness Check"
+echo "======================================"
+echo ""
+
+# Color codes
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Track overall status
+ERRORS=0
+WARNINGS=0
+
+# Function to print status
+print_pass() {
+    echo -e "${GREEN}✅ PASS:${NC} $1"
+}
+
+print_fail() {
+    echo -e "${RED}❌ FAIL:${NC} $1"
+    ERRORS=$((ERRORS + 1))
+}
+
+print_warn() {
+    echo -e "${YELLOW}⚠️  WARN:${NC} $1"
+    WARNINGS=$((WARNINGS + 1))
+}
+
+echo "1. Checking for exposed secrets..."
+if grep -r "GOCSPX" . --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=.git --exclude="*.md" -q 2>/dev/null; then
+    print_fail "Google OAuth secrets found in code!"
+else
+    if grep -r "sk_live_\|pk_live_\|sk_test_\|pk_test_" . --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=.git --exclude="*.md" -q 2>/dev/null; then
+        print_fail "Stripe API keys found in code!"
+    else
+        print_pass "No secrets found in code"
+    fi
+fi
+echo ""
+
+echo "2. Checking .env files aren't committed..."
+if git ls-files | grep -E "^\.env$" -q; then
+    print_fail ".env file is committed to git!"
+else
+    print_pass ".env files not committed"
+fi
+echo ""
+
+echo "3. Running dependency audit..."
+if npm audit --production --audit-level=high 2>&1 | grep -q "found 0 vulnerabilities"; then
+    print_pass "No high/critical vulnerabilities"
+else
+    AUDIT_OUTPUT=$(npm audit --production --audit-level=high 2>&1)
+    if echo "$AUDIT_OUTPUT" | grep -q "found.*vulnerabilities"; then
+        print_fail "Vulnerabilities found in dependencies"
+        echo "$AUDIT_OUTPUT" | head -20
+    else
+        print_warn "Could not determine vulnerability status"
+    fi
+fi
+echo ""
+
+echo "4. Running TypeScript compilation..."
+if NODE_OPTIONS="--max-old-space-size=8192" npx tsc --noEmit 2>&1 | tee /tmp/tsc-output.txt | grep -q "error TS"; then
+    ERROR_COUNT=$(grep -c "error TS" /tmp/tsc-output.txt || echo "0")
+    print_fail "TypeScript compilation failed with $ERROR_COUNT errors"
+    echo "First 10 errors:"
+    grep "error TS" /tmp/tsc-output.txt | head -10
+else
+    print_pass "TypeScript compilation successful"
+fi
+echo ""
+
+echo "5. Running linter..."
+if npm run lint 2>&1 | grep -q "Error:"; then
+    print_fail "Linting failed"
+else
+    print_pass "Linting passed"
+fi
+echo ""
+
+echo "6. Validating Prisma schema..."
+if npx prisma validate 2>&1 | grep -q "congratulations"; then
+    print_pass "Prisma schema is valid"
+else
+    print_warn "Could not validate Prisma schema"
+fi
+echo ""
+
+echo "7. Building for production..."
+echo "   (This may take 2-3 minutes...)"
+if NODE_OPTIONS="--max-old-space-size=8192" timeout 300 npm run build > /tmp/build-output.txt 2>&1; then
+    print_pass "Production build successful"
+else
+    BUILD_EXIT=$?
+    if [ $BUILD_EXIT -eq 124 ]; then
+        print_fail "Production build timed out (>5 minutes)"
+    else
+        print_fail "Production build failed"
+        echo "Last 20 lines of build output:"
+        tail -20 /tmp/build-output.txt
+    fi
+fi
+echo ""
+
+echo "======================================"
+if [ $ERRORS -eq 0 ]; then
+    echo -e "${GREEN}✅ ALL CRITICAL CHECKS PASSED${NC}"
+    if [ $WARNINGS -gt 0 ]; then
+        echo -e "${YELLOW}⚠️  $WARNINGS warning(s) - review recommended${NC}"
+    fi
+    echo ""
+    echo "Application is ready for production deployment."
+    exit 0
+else
+    echo -e "${RED}❌ $ERRORS CRITICAL CHECK(S) FAILED${NC}"
+    if [ $WARNINGS -gt 0 ]; then
+        echo -e "${YELLOW}⚠️  $WARNINGS warning(s)${NC}"
+    fi
+    echo ""
+    echo "Fix all critical issues before deploying to production."
+    exit 1
+fi
