@@ -308,7 +308,7 @@ function addCardToColumn(canvas: fabric.Canvas, column: fabric.Group, columnTitl
 // Helper function to check if a point is inside an object within a group
 function isPointInObject(pointer: { x: number; y: number }, obj: fabric.Object, group: fabric.Group): boolean {
   const groupMatrix = group.calcTransformMatrix();
-  const objBounds = obj.getBoundingRect(false, false);
+  const objBounds = obj.getBoundingRect();
 
   // Transform object bounds by group transform
   const point = fabric.util.transformPoint(

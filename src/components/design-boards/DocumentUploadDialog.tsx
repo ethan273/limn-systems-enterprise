@@ -150,7 +150,7 @@ export function DocumentUploadDialog({ open, onOpenChange, canvas, onDocumentAdd
       canvasEl.width = viewport.width;
 
       console.log('Rendering page to canvas...');
-      await page.render({ canvasContext: context, viewport }).promise;
+      await page.render({ canvas: canvasEl, context, viewport }).promise;
       console.log('Page rendered');
 
       // Convert canvas to image
