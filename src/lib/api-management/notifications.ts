@@ -159,15 +159,13 @@ async function sendGoogleChatNotification(
         },
       },
       {
-        keyValue: {
-          topLabel: 'Event Type',
-          content: params.eventType,
+        textParagraph: {
+          text: `<b>Event Type:</b> ${params.eventType}`,
         },
       },
       {
-        keyValue: {
-          topLabel: 'Severity',
-          content: params.severity.toUpperCase(),
+        textParagraph: {
+          text: `<b>Severity:</b> ${params.severity.toUpperCase()}`,
         },
       },
     ];
@@ -175,9 +173,8 @@ async function sendGoogleChatNotification(
     // Add credential info if available
     if (params.credentialName) {
       widgets.push({
-        keyValue: {
-          topLabel: 'Credential',
-          content: params.credentialName,
+        textParagraph: {
+          text: `<b>Credential:</b> ${params.credentialName}`,
         },
       });
     }
