@@ -104,13 +104,20 @@ export default function NewInvoicePage() {
       return;
     }
 
-    // Create invoice
+    // Create invoice with line items
+    // TODO: This page needs a complete rewrite to properly handle line items
+    // For now, creating a single line item with the entered amount
     createInvoiceMutation.mutate({
-      orderId,
-      invoiceType,
-      amount: parseFloat(amount),
-      dueDate,
-      notes: notes.trim() || undefined,
+      lineItems: [
+        {
+          description: notes.trim() || `Invoice for order ${orderId}`,
+          quantity: 1,
+          unitPrice: parseFloat(amount),
+          discountPercent: 0,
+          discountAmount: 0,
+          taxRate: 0,
+        },
+      ],
     });
   };
 

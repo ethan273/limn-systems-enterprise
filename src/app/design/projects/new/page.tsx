@@ -95,14 +95,10 @@ export default function NewDesignProjectPage() {
     // Create design project
     createDesignProjectMutation.mutate({
       project_name: projectName.trim(),
-      crmProjectId: crmProjectId === "none" ? undefined : crmProjectId,
-      description: description.trim() || undefined,
-      projectType,
+      project_type: projectType,
       priority,
-      startDate: startDate || undefined,
-      targetCompletionDate: targetCompletionDate || undefined,
+      target_launch_date: targetCompletionDate ? new Date(targetCompletionDate) : undefined,
       budget: budget ? parseFloat(budget) : undefined,
-      notes: notes.trim() || undefined,
     });
   };
 

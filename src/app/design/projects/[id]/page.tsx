@@ -111,7 +111,6 @@ export default function DesignProjectDetailPage({ params }: { params: Promise<{ 
      id: id,
      project_name: formData.project_name,
      project_code: formData.project_code || undefined,
-     description: formData.description || undefined,
      project_type: formData.project_type,
      priority: formData.priority,
      target_launch_date: formData.target_launch_date || undefined,
