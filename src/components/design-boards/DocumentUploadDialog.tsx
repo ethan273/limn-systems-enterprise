@@ -264,14 +264,26 @@ export function DocumentUploadDialog({ open, onOpenChange, canvas, onDocumentAdd
 
   const handleExcelUpload = async (file: File, canvas: fabric.Canvas) => {
     const arrayBuffer = await file.arrayBuffer();
-    const XLSX = await import('xlsx');
+    const ExcelJS = await import('exceljs');
 
-    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-    const firstSheet = workbook.Sheets[workbook.SheetNames[0]!];
-    const data = XLSX.utils.sheet_to_json(firstSheet, { header: 1 }) as any[][];
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(arrayBuffer);
+
+    const firstSheet = workbook.worksheets[0]!;
+    const sheetName = firstSheet.name;
+
+    // Convert to 2D array (same format as before)
+    const data: any[][] = [];
+    firstSheet.eachRow((row, _rowNumber) => {
+      const rowData: any[] = [];
+      row.eachCell({ includeEmpty: true }, (cell, _colNumber) => {
+        rowData.push(cell.value);
+      });
+      data.push(rowData);
+    });
 
     // Create a table-like representation
-    let tableText = `Excel: ${file.name}\nSheet: ${workbook.SheetNames[0]}\n\n`;
+    let tableText = `Excel: ${file.name}\nSheet: ${sheetName}\n\n`;
 
     // Add headers and first few rows
     const rowsToShow = Math.min(10, data.length);
