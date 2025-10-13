@@ -40,7 +40,7 @@ export function FileUploader({
   const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
 
-  const acceptedFileTypes = type === "pdf"
+  const acceptedFileTypes: Record<string, string[]> = type === "pdf"
     ? { "application/pdf": [".pdf"] }
     : { "image/*": [".jpg", ".jpeg", ".png", ".webp"] };
 

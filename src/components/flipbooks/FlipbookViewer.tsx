@@ -36,11 +36,13 @@ interface FlipbookPage {
   }>;
 }
 
+type FlipbookHotspot = NonNullable<FlipbookPage["hotspots"]>[0];
+
 interface FlipbookViewerProps {
   pages: FlipbookPage[];
   initialPage?: number;
   onPageChange?: (pageNumber: number) => void;
-  onHotspotClick?: (hotspot: FlipbookPage["hotspots"][0]) => void;
+  onHotspotClick?: (hotspot: FlipbookHotspot) => void;
   onClose?: () => void;
   className?: string;
 }
@@ -171,7 +173,7 @@ function Scene({
 }: {
   currentPage: number;
   pages: FlipbookPage[];
-  onHotspotClick?: (hotspot: FlipbookPage["hotspots"][0]) => void;
+  onHotspotClick?: (hotspot: FlipbookHotspot) => void;
 }) {
   const page = pages[currentPage - 1];
 
