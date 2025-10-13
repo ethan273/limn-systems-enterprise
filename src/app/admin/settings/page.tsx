@@ -40,7 +40,10 @@ export default function SystemSettingsPage() {
   });
 
   // Fetch all settings
-  const { data: settings, isLoading, refetch } = api.admin.settings.getAll.useQuery();
+  const { data: settings, isLoading } = api.admin.settings.getAll.useQuery();
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   // Update mutation
   const updateMutation = api.admin.settings.update.useMutation({
@@ -49,7 +52,8 @@ export default function SystemSettingsPage() {
         title: "Success",
         description: "Setting updated successfully",
       });
-      refetch();
+      // Invalidate queries for instant updates
+      utils.admin.settings.getAll.invalidate();
       setIsEditDialogOpen(false);
       setEditingSetting(null);
     },
@@ -69,7 +73,8 @@ export default function SystemSettingsPage() {
         title: "Success",
         description: "Setting deleted successfully",
       });
-      refetch();
+      // Invalidate queries for instant updates
+      utils.admin.settings.getAll.invalidate();
     },
     onError: (error) => {
       toast({

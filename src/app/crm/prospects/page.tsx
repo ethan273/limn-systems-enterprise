@@ -72,19 +72,25 @@ export default function ProspectsPage() {
   const [convertDialogOpen, setConvertDialogOpen] = useState(false);
   const [prospectToConvert, setProspectToConvert] = useState<any>(null);
 
-  const { data: prospectsData, isLoading, refetch } = api.crm.leads.getProspects.useQuery({
+  const { data: prospectsData, isLoading } = api.crm.leads.getProspects.useQuery({
     limit,
     offset: _page * limit,
     prospect_status: _prospectFilter === 'all' ? undefined : _prospectFilter,
     status: _statusFilter === 'all' ? undefined : _statusFilter,
   });
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   const deleteLeadMutation = api.crm.leads.delete.useMutation({
     onSuccess: () => {
       toast.success("Prospect deleted successfully");
-      refetch();
       setDeleteDialogOpen(false);
       setProspectToDelete(null);
+      // Invalidate queries for instant updates
+      utils.crm.leads.getProspects.invalidate();
+      utils.crm.leads.getAll.invalidate();
+      utils.crm.leads.getPipelineStats.invalidate();
     },
     onError: (error) => {
       toast.error("Failed to delete prospect: " + error.message);
@@ -92,11 +98,17 @@ export default function ProspectsPage() {
   });
 
   const convertToClientMutation = api.crm.leads.convertToClient.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast.success("Prospect converted to client successfully");
-      refetch();
       setConvertDialogOpen(false);
       setProspectToConvert(null);
+      // Invalidate queries for instant updates
+      utils.crm.leads.getProspects.invalidate();
+      utils.crm.leads.getAll.invalidate();
+      utils.crm.leads.getPipelineStats.invalidate();
+      utils.crm.customers.getAll.invalidate();
+      // Navigate to the new customer page
+      router.push(`/crm/customers/${data.client.id}`);
     },
     onError: (error) => {
       toast.error("Failed to convert prospect: " + error.message);
@@ -127,7 +139,7 @@ export default function ProspectsPage() {
   const getProspectPriority = (prospect: any): number => {
     const statusPriority = { 'hot': 3, 'warm': 2, 'cold': 1 };
     const statusScore = statusPriority[prospect.prospect_status as ProspectStatus] || 0;
-    const valueScore = prospect.value ? Math.min(prospect.value / 10000, 3) : 0;
+    const valueScore = prospect.lead_value ? Math.min(Number(prospect.lead_value) / 10000, 3) : 0;
     const timeScore = prospect.created_at ?
       Math.max(0, 3 - Math.floor((Date.now() - new Date(prospect.created_at).getTime()) / (1000 * 60 * 60 * 24 * 7))) : 0;
 
@@ -154,7 +166,7 @@ export default function ProspectsPage() {
     count: prospects.filter((p: any) => p.prospect_status === status.value).length,
     totalValue: prospects
       .filter((p: any) => p.prospect_status === status.value)
-      .reduce((sum: number, p: any) => sum + (p.value || 0), 0),
+      .reduce((sum: number, p: any) => sum + (p.lead_value ? Number(p.lead_value) : 0), 0),
   }));
 
   // Stats configuration
@@ -218,10 +230,10 @@ export default function ProspectsPage() {
       render: (value) => value ? <StatusBadge status={value as string} /> : <span className="text-muted">—</span>,
     },
     {
-      key: 'value',
+      key: 'lead_value',
       label: 'Value',
       sortable: true,
-      render: (value) => value ? `$${(value as number).toLocaleString()}` : <span className="text-muted">—</span>,
+      render: (value) => value ? `$${Number(value).toLocaleString()}` : <span className="text-muted">—</span>,
     },
   ];
 

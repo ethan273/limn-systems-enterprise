@@ -38,8 +38,11 @@ export default function PrototypesPage() {
   const [itemToDelete, setItemToDelete] = useState<any>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   // Query prototypes
-  const { data, isLoading, refetch } = api.products.getAllPrototypes.useQuery();
+  const { data, isLoading } = api.products.getAllPrototypes.useQuery();
 
   const prototypeItems = data || [];
 
@@ -47,8 +50,9 @@ export default function PrototypesPage() {
   const createMutation = api.products.createPrototype.useMutation({
     onSuccess: () => {
       toast.success("Prototype created successfully");
+      // Invalidate queries for instant updates
+      utils.products.getAllPrototypes.invalidate();
       queryClient.invalidateQueries({ queryKey: ['products'] });
-      refetch();
       setIsFormOpen(false);
     },
     onError: (error) => {
@@ -60,8 +64,9 @@ export default function PrototypesPage() {
   const deleteMutation = api.products.deletePrototype.useMutation({
     onSuccess: () => {
       toast.success("Prototype deleted successfully");
+      // Invalidate queries for instant updates
+      utils.products.getAllPrototypes.invalidate();
       queryClient.invalidateQueries({ queryKey: ['products'] });
-      refetch();
       setDeleteDialogOpen(false);
       setItemToDelete(null);
     },

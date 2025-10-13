@@ -92,10 +92,13 @@ export default function ShipmentDetailPage({ params }: PageProps) {
   const [activeTab, setActiveTab] = useState("overview");
 
   // Fetch shipment details
-  const { data: shipment, isLoading, refetch } = api.shipping.getShipmentById.useQuery(
+  const { data: shipment, isLoading } = api.shipping.getShipmentById.useQuery(
     { id: id },
     { enabled: !!id }
   );
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   // Update shipment status mutation
   const updateStatusMutation = api.shipping.updateShipmentStatus.useMutation({
@@ -104,7 +107,9 @@ export default function ShipmentDetailPage({ params }: PageProps) {
         title: "Success",
         description: "Shipment status updated successfully",
       });
-      refetch();
+      // Invalidate queries for instant updates
+      utils.shipping.getShipmentById.invalidate({ id });
+      utils.shipping.getAllShipments.invalidate();
     },
     onError: (error) => {
       toast({

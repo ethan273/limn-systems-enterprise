@@ -41,17 +41,21 @@ export default function DesignBriefsPage() {
 
   // Auth is handled by middleware - no client-side redirect needed
 
-  const { data, isLoading, refetch } = api.designBriefs.getAll.useQuery(
+  const { data, isLoading } = api.designBriefs.getAll.useQuery(
     {
       limit: 50,
     },
     { enabled: !authLoading && !!user }
   );
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   const deleteBrief = api.designBriefs.delete.useMutation({
     onSuccess: () => {
       toast.success("Design brief deleted successfully");
-      refetch();
+      // Invalidate queries for instant updates
+      utils.designBriefs.getAll.invalidate();
       setDeleteDialogOpen(false);
       setBriefToDelete(null);
     },

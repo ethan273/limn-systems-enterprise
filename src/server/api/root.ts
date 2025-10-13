@@ -4,7 +4,7 @@ import { createTRPCRouter } from './trpc/init';
 import { authRouter } from './routers/auth';
 import { tasksRouter } from './routers/tasks';
 import { usersRouter } from './routers/users';
-import { crmRouter } from './routers/crm';
+import { crmRouter, customersRouter, leadsRouter, contactsRouter } from './routers/crm';
 import { clientsRouter } from './routers/clients';
 import { projectsRouter } from './routers/projects';
 import { collectionsRouter, itemsRouter, materialsRouter } from './routers/catalog';
@@ -75,6 +75,9 @@ export const appRouter = createTRPCRouter({
 
   // CRM & Sales
   crm: crmRouter,
+  customers: customersRouter, // Direct access to customers router
+  leads: leadsRouter, // Direct access to leads router
+  contacts: contactsRouter, // Direct access to contacts router
   clients: clientsRouter, // Legacy support for existing clients router
   
   // Projects

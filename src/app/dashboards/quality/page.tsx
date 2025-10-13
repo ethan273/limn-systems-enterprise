@@ -58,10 +58,13 @@ const CHART_COLORS = ['hsl(var(--primary))', 'hsl(var(--destructive))', 'hsl(var
 export default function QualityDashboardPage() {
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d');
 
-  const { data: quality, isLoading, refetch } = api.dashboards.getQuality.useQuery(
+  const { data: quality, isLoading } = api.dashboards.getQuality.useQuery(
     { dateRange },
     { refetchInterval: 60000 } // Auto-refresh every 60 seconds
   );
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   const { data: insights } = api.dashboards.getQualityInsights.useQuery();
 
@@ -106,7 +109,7 @@ export default function QualityDashboardPage() {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => refetch()}
+            onClick={() => utils.dashboards.getQuality.invalidate()}
             title="Refresh data"
           >
             <RefreshCw className="h-4 w-4" />

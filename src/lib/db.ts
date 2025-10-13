@@ -143,6 +143,9 @@ export interface Project {
   start_date?: Date | null;
   end_date?: Date | null;
   budget?: number | null;
+  actual_cost?: number | null;
+  completion_percentage?: number | null;
+  notes?: string | null;
   description?: string | null;
   priority?: 'low' | 'medium' | 'high' | 'urgent' | null;
   metadata?: any | null;
@@ -2581,3 +2584,5 @@ export interface TaskQueryOptions {
   sortOrder?: 'asc' | 'desc';
   filters?: TaskFilters;
 }
+// Export prisma client for direct access when needed
+export { prisma };

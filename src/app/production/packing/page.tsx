@@ -192,7 +192,7 @@ export default function PackingJobsPage() {
           {
             label: 'New Packing Job',
             icon: Plus,
-            onClick: () => router.push("/packing/new"),
+            onClick: () => router.push("/production/packing/new"),
           },
         ]}
       />
@@ -209,7 +209,7 @@ export default function PackingJobsPage() {
           action={!_searchQuery ? {
             label: 'New Packing Job',
             icon: Plus,
-            onClick: () => router.push("/packing/new"),
+            onClick: () => router.push("/production/packing/new"),
           } : undefined}
         />
       ) : (
@@ -217,7 +217,7 @@ export default function PackingJobsPage() {
           data={filteredJobs}
           columns={columns}
           filters={filters}
-          onRowClick={(row) => router.push(`/packing/${row.id}`)}
+          onRowClick={(row) => router.push(`/production/packing/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}
           emptyState={{
             icon: Package,

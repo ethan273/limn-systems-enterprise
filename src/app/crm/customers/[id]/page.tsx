@@ -46,10 +46,13 @@ export default function CustomerDetailPage({ params }: PageProps) {
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditing, setIsEditing] = useState(false);
 
-  const { data, isLoading, error, refetch } = api.crm.customers.getById.useQuery(
+  const { data, isLoading, error } = api.crm.customers.getById.useQuery(
     { id: id },
     { enabled: !!user && !!id }
   );
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   // Form data state for in-place editing
   const [formData, setFormData] = useState({
@@ -82,7 +85,9 @@ export default function CustomerDetailPage({ params }: PageProps) {
     onSuccess: () => {
       toast.success("Customer updated successfully");
       setIsEditing(false);
-      refetch();
+      // Invalidate queries for instant updates
+      utils.crm.customers.getById.invalidate();
+      utils.crm.customers.list.invalidate();
     },
     onError: (error: any) => {
       toast.error("Failed to update customer: " + error.message);
@@ -142,7 +147,7 @@ export default function CustomerDetailPage({ params }: PageProps) {
           description="The customer you're looking for doesn't exist or you don't have permission to view it."
           action={{
             label: 'Back to Clients',
-            onClick: () => router.push("/crm/clients"),
+            onClick: () => router.push("/crm/customers"),
             icon: ArrowLeft,
           }}
         />
@@ -157,7 +162,7 @@ export default function CustomerDetailPage({ params }: PageProps) {
       {/* Header Section */}
       <div className="page-header">
         <Button
-          onClick={() => router.push("/crm/clients")}
+          onClick={() => router.push("/crm/customers")}
           variant="ghost"
           className="btn-secondary"
         >

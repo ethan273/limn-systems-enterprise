@@ -91,10 +91,13 @@ export default function LeadDetailPage({ params }: PageProps) {
     notes: '',
   });
 
-  const { data, isLoading, error, refetch } = api.crm.leads.getById.useQuery(
+  const { data, isLoading, error } = api.crm.leads.getById.useQuery(
     { id: id },
     { enabled: !!user && !!id }
   );
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   // Sync formData with fetched lead data
   useEffect(() => {
@@ -118,7 +121,10 @@ export default function LeadDetailPage({ params }: PageProps) {
     onSuccess: () => {
       toast.success("Lead updated successfully");
       setIsEditing(false);
-      refetch();
+      // Invalidate queries for instant updates
+      utils.crm.leads.getById.invalidate();
+      utils.crm.leads.getAll.invalidate();
+      utils.crm.leads.getPipelineStats.invalidate();
     },
     onError: (error) => {
       toast.error(error.message || "Failed to update lead");

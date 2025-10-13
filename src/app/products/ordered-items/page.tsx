@@ -496,8 +496,11 @@ export default function OrderedItemsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   // Get real data from API
-  const { data: orderItemsData, isLoading, refetch } = api.orderItems.getAll.useQuery({
+  const { data: orderItemsData, isLoading } = api.orderItems.getAll.useQuery({
     limit: 100,
     offset: 0,
     status: selectedStatus || undefined,
@@ -576,7 +579,8 @@ export default function OrderedItemsPage() {
         description: "Order item has been created successfully.",
       });
       setIsDialogOpen(false);
-      refetch();
+      // Invalidate queries for instant updates
+      utils.orderItems.getAll.invalidate();
     },
     onError: (error) => {
       toast({
@@ -594,7 +598,8 @@ export default function OrderedItemsPage() {
         description: "Order item has been updated successfully.",
       });
       setIsDialogOpen(false);
-      refetch();
+      // Invalidate queries for instant updates
+      utils.orderItems.getAll.invalidate();
     },
     onError: (error) => {
       toast({
@@ -611,7 +616,8 @@ export default function OrderedItemsPage() {
         title: "Item Deleted",
         description: "Order item has been deleted successfully.",
       });
-      refetch();
+      // Invalidate queries for instant updates
+      utils.orderItems.getAll.invalidate();
     },
     onError: (error) => {
       toast({

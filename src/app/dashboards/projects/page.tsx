@@ -50,10 +50,13 @@ export default function ProjectDashboardPage() {
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d');
 
   // Fetch projects analytics
-  const { data: analytics, isLoading, refetch } = api.dashboards.getProjectsAnalytics.useQuery(
+  const { data: analytics, isLoading } = api.dashboards.getProjectsAnalytics.useQuery(
     { dateRange },
     { refetchInterval: 60000 } // Auto-refresh every 60 seconds
   );
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   // Fetch AI insights
   const { data: insights } = api.dashboards.getProjectsInsights.useQuery();
@@ -113,7 +116,7 @@ export default function ProjectDashboardPage() {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => refetch()}
+            onClick={() => utils.dashboards.getProjectsAnalytics.invalidate()}
             title="Refresh data"
           >
             <RefreshCw className="icon-sm" />

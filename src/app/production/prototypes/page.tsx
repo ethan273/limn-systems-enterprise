@@ -256,7 +256,7 @@ export default function PrototypesPage() {
           {
             label: 'Create Prototype',
             icon: Plus,
-            onClick: () => router.push("/prototypes/new"),
+            onClick: () => router.push("/production/prototypes/new"),
           },
         ]}
       />
@@ -273,7 +273,7 @@ export default function PrototypesPage() {
           action={{
             label: 'Create First Prototype',
             icon: Plus,
-            onClick: () => router.push("/prototypes/new"),
+            onClick: () => router.push("/production/prototypes/new"),
           }}
         />
       ) : (
@@ -281,7 +281,7 @@ export default function PrototypesPage() {
           data={prototypes}
           columns={columns}
           filters={filters}
-          onRowClick={(row) => router.push(`/prototypes/${row.id}`)}
+          onRowClick={(row) => router.push(`/production/prototypes/${row.id}`)}
           pagination={{ pageSize: limit, showSizeSelector: true }}
           emptyState={{
             icon: Lightbulb,

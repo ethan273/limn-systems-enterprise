@@ -64,7 +64,7 @@ export default function MyTasksPage() {
   const currentUserId = user?.id || "";
 
   // Get my assigned tasks
-  const { data: assignedTasksData, isLoading: isLoadingAssigned, refetch: refetchAssigned } = api.tasks.getMyTasks.useQuery({
+  const { data: assignedTasksData, isLoading: isLoadingAssigned } = api.tasks.getMyTasks.useQuery({
     user_id: currentUserId,
     limit: 100,
     offset: 0,
@@ -72,7 +72,7 @@ export default function MyTasksPage() {
   }, { enabled: activeTab === "assigned" && !!currentUserId });
 
   // Get tasks I'm watching
-  const { data: watchingTasksData, isLoading: isLoadingWatching, refetch: refetchWatching } = api.tasks.getMyTasks.useQuery({
+  const { data: watchingTasksData, isLoading: isLoadingWatching } = api.tasks.getMyTasks.useQuery({
     user_id: currentUserId,
     limit: 100,
     offset: 0,
@@ -80,19 +80,22 @@ export default function MyTasksPage() {
   }, { enabled: activeTab === "watching" && !!currentUserId });
 
   // Get tasks I created
-  const { data: createdTasksData, isLoading: isLoadingCreated, refetch: refetchCreated } = api.tasks.getAllTasks.useQuery({
+  const { data: createdTasksData, isLoading: isLoadingCreated } = api.tasks.getAllTasks.useQuery({
     limit: 100,
     offset: 0,
     sortBy: 'created_at',
     sortOrder: 'desc',
   }, { enabled: activeTab === "created" });
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   const deleteTaskMutation = api.tasks.delete.useMutation({
     onSuccess: () => {
       toast.success("Task deleted successfully");
-      refetchAssigned();
-      refetchWatching();
-      refetchCreated();
+      // Invalidate queries for instant updates
+      utils.tasks.getMyTasks.invalidate();
+      utils.tasks.getAllTasks.invalidate();
     },
     onError: (error: any) => {
       toast.error("Failed to delete task: " + error.message);
@@ -102,9 +105,9 @@ export default function MyTasksPage() {
   const updateStatusMutation = api.tasks.updateStatus.useMutation({
     onSuccess: () => {
       toast.success("Task status updated");
-      refetchAssigned();
-      refetchWatching();
-      refetchCreated();
+      // Invalidate queries for instant updates
+      utils.tasks.getMyTasks.invalidate();
+      utils.tasks.getAllTasks.invalidate();
     },
   });
 
@@ -404,9 +407,9 @@ export default function MyTasksPage() {
         <TaskCreateForm
           onSuccess={() => {
             setIsCreateDialogOpen(false);
-            refetchAssigned();
-            refetchWatching();
-            refetchCreated();
+            // Invalidate queries for instant updates
+            utils.tasks.getMyTasks.invalidate();
+            utils.tasks.getAllTasks.invalidate();
           }}
           onCancel={() => setIsCreateDialogOpen(false)}
         />

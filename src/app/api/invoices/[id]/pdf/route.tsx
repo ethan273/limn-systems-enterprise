@@ -71,13 +71,13 @@ export async function GET(
     // Calculate totals from line items
     const lineItems = invoice.production_invoice_line_items || [];
     const subtotal = lineItems.reduce(
-      (sum, item) => sum + Number(item.total_price),
+      (sum, item) => sum + Number((item as any).total_price || item.total || 0),
       0
     );
-    const tax = Number(invoice.tax_amount) || 0;
-    const discount = Number(invoice.discount_amount) || 0;
+    const tax = Number((invoice as any).tax_amount) || 0;
+    const discount = Number((invoice as any).discount_amount) || 0;
     const shipping = 0; // Add shipping if needed
-    const total = Number(invoice.total_amount);
+    const total = Number((invoice as any).total_amount || invoice.total);
     const amountPaid = Number(invoice.amount_paid) || 0;
     const amountDue = total - amountPaid;
 
@@ -100,26 +100,26 @@ export async function GET(
 
       // Customer info
       customerName: customer.name || 'Unknown Customer',
-      customerCompany: customer.company_name || undefined,
-      customerAddress: customer.billing_address || undefined,
-      customerCity: customer.billing_city || undefined,
-      customerState: customer.billing_state || undefined,
-      customerZip: customer.billing_zip || undefined,
+      customerCompany: (customer as any).company_name || customer.company || undefined,
+      customerAddress: (customer as any).billing_address || undefined,
+      customerCity: (customer as any).billing_city || undefined,
+      customerState: (customer as any).billing_state || undefined,
+      customerZip: (customer as any).billing_zip || undefined,
       customerEmail: customer.email || undefined,
 
       // Line items
       lineItems: lineItems.map((item) => ({
-        description: item.description || item.item_name || 'Production Item',
+        description: item.description || (item as any).item_name || 'Production Item',
         quantity: item.quantity,
         unitPrice: Number(item.unit_price),
-        discount: item.discount_amount ? Number(item.discount_amount) : undefined,
-        total: Number(item.total_price),
+        discount: (item as any).discount_amount ? Number((item as any).discount_amount) : undefined,
+        total: Number((item as any).total_price || item.total || 0),
       })),
 
       // Totals
       subtotal,
       tax,
-      taxRate: invoice.tax_rate ? Number(invoice.tax_rate) * 100 : undefined,
+      taxRate: (invoice as any).tax_rate ? Number((invoice as any).tax_rate) * 100 : undefined,
       discount: discount > 0 ? discount : undefined,
       shipping: shipping > 0 ? shipping : undefined,
       total,
@@ -127,8 +127,8 @@ export async function GET(
       amountDue,
 
       // Notes
-      notes: invoice.notes || undefined,
-      terms: invoice.terms || 'Payment is due within 30 days of invoice date.',
+      notes: (invoice as any).notes || undefined,
+      terms: (invoice as any).terms || 'Payment is due within 30 days of invoice date.',
     };
 
     // Generate PDF stream
@@ -150,7 +150,7 @@ export async function GET(
     // Convert stream to buffer for response
     const chunks: Buffer[] = [];
     for await (const chunk of stream) {
-      chunks.push(chunk);
+      chunks.push(Buffer.from(chunk));
     }
     const pdfBuffer = Buffer.concat(chunks);
 

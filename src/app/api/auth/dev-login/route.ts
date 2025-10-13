@@ -237,7 +237,7 @@ export async function POST(request: NextRequest) {
             .single();
 
           if (existingCustomer) {
-            entityId = existingCustomer.id;
+            entityId = (existingCustomer as any).id;
           } else {
             // Create test customer
             const { data: newCustomer, error: customerError } = await supabase
@@ -248,14 +248,14 @@ export async function POST(request: NextRequest) {
                 phone: '+1-555-0100',
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
-              })
+              } as any)
               .select('id')
               .single();
 
             if (customerError) {
               console.error('Error creating test customer:', customerError);
             } else if (newCustomer) {
-              entityId = newCustomer.id;
+              entityId = (newCustomer as any).id;
             }
           }
         } else if (userType === 'designer' || userType === 'factory') {
@@ -269,7 +269,7 @@ export async function POST(request: NextRequest) {
             .single();
 
           if (existingPartner) {
-            entityId = existingPartner.id;
+            entityId = (existingPartner as any).id;
           } else {
             // Create test partner with all required fields
             const { data: newPartner, error: partnerError } = await supabase
@@ -288,14 +288,14 @@ export async function POST(request: NextRequest) {
                 portal_enabled: true,
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
-              })
+              } as any)
               .select('id')
               .single();
 
             if (partnerError) {
               console.error('Error creating test partner:', partnerError);
             } else if (newPartner) {
-              entityId = newPartner.id;
+              entityId = (newPartner as any).id;
             }
           }
         }

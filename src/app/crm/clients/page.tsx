@@ -53,18 +53,22 @@ export default function ClientsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [clientToDelete, setClientToDelete] = useState<any>(null);
 
-  const { data: customersData, isLoading, refetch } = api.crm.customers.getAll.useQuery({
+  const { data: customersData, isLoading } = api.crm.customers.getAll.useQuery({
     limit: 100,
     offset: 0,
   });
 
   const customers = useMemo(() => customersData?.items || [], [customersData?.items]);
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   const createCustomer = api.crm.customers.create.useMutation({
     onSuccess: () => {
       toast.success("Client created successfully");
       setIsCreateDialogOpen(false);
-      refetch();
+      // Invalidate queries for instant updates
+      utils.crm.customers.getAll.invalidate();
     },
     onError: (error) => {
       toast.error("Error creating client: " + error.message);
@@ -75,7 +79,8 @@ export default function ClientsPage() {
     onSuccess: () => {
       toast.success("Client updated successfully");
       setIsEditDialogOpen(false);
-      refetch();
+      // Invalidate queries for instant updates
+      utils.crm.customers.getAll.invalidate();
     },
     onError: (error) => {
       toast.error("Error updating client: " + error.message);
@@ -85,7 +90,8 @@ export default function ClientsPage() {
   const deleteCustomer = api.crm.customers.delete.useMutation({
     onSuccess: () => {
       toast.success("Client deleted successfully");
-      refetch();
+      // Invalidate queries for instant updates
+      utils.crm.customers.getAll.invalidate();
       setDeleteDialogOpen(false);
       setClientToDelete(null);
     },

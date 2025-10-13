@@ -557,7 +557,7 @@ export const productsRouter = createTRPCRouter({
           OR: [
             {
               material_collections: {
-                some: { furniture_collection_id: input.collectionId },
+                some: { collection_id: input.collectionId },
               },
             },
             {

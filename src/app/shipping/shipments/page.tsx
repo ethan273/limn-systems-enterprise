@@ -129,7 +129,7 @@ export default function ShipmentsPage() {
         ),
     },
     {
-      key: "orders",
+      key: "order",
       label: "Order",
       render: (_, row) => {
         const orders = row.orders as any;
@@ -146,7 +146,7 @@ export default function ShipmentsPage() {
       },
     },
     {
-      key: "orders",
+      key: "customer",
       label: "Customer",
       render: (_, row) => {
         const orders = row.orders as any;

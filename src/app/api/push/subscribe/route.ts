@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
 
     // Store push subscription in database using Prisma
     const { prisma } = await import('@/lib/db');
-    await prisma.pushSubscription.upsert({
+    await prisma.push_subscriptions.upsert({
       where: {
         endpoint: subscription.endpoint,
       },

@@ -37,14 +37,17 @@ export default function PrototypeDetailPage({ params }: PageProps) {
   const prototypeId = resolvedParams.id;
   const [activeTab, setActiveTab] = useState("overview");
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   // Query prototype data
-  const { data: prototype, isLoading, refetch } = api.products.getPrototypeById.useQuery(
+  const { data: prototype, isLoading } = api.products.getPrototypeById.useQuery(
     { id: prototypeId },
     { enabled: !!prototypeId }
   );
 
   // Query media data
-  const { data: media = [], refetch: refetchMedia } = api.documents.getByEntity.useQuery(
+  const { data: media = [] } = api.documents.getByEntity.useQuery(
     {
       entityType: "prototype",
       entityId: prototypeId,
@@ -55,8 +58,9 @@ export default function PrototypeDetailPage({ params }: PageProps) {
   );
 
   const handleMediaRefresh = () => {
-    void refetch();
-    void refetchMedia();
+    // Invalidate queries for instant updates
+    utils.products.getPrototypeById.invalidate({ id: prototypeId });
+    utils.documents.getByEntity.invalidate({ entityType: "prototype", entityId: prototypeId });
   };
 
   if (isLoading) {

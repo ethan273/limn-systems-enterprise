@@ -34,7 +34,7 @@ export async function checkCredentialRotations(): Promise<RotationAlert[]> {
       where: { is_active: true },
     });
 
-    for (const cred) {
+    for (const cred of credentials) {
       // Check expiration
       if (cred.expires_at) {
         const expiresAt = new Date(cred.expires_at);

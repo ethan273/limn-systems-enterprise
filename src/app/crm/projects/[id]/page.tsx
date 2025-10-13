@@ -41,9 +41,11 @@ import {
   Calendar,
   Target,
   MessageSquare,
+  Plus,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { OrderCreationDialog, type OrderItem } from "@/components/crm/OrderCreationDialog";
 
 // Dynamic route configuration
 export const dynamic = 'force-dynamic';
@@ -73,6 +75,8 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditing, setIsEditing] = useState(false);
+  const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
+  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -86,10 +90,13 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
     notes: '',
   });
 
-  const { data, isLoading, error, refetch } = api.projects.getById.useQuery(
+  const { data, isLoading, error } = api.projects.getById.useQuery(
     { id: id },
     { enabled: !!user && !!id }
   );
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   // Sync formData with fetched project data
   useEffect(() => {
@@ -115,12 +122,19 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
     onSuccess: () => {
       toast.success("Project updated successfully");
       setIsEditing(false);
-      refetch();
+      // Invalidate queries for instant updates
+      utils.projects.getById.invalidate();
+      utils.projects.getAll.invalidate();
     },
     onError: (error) => {
       toast.error(error.message || "Failed to update project");
     },
   });
+
+  // Order creation mutations
+  const createCRMOrderMutation = api.orders.createWithItems.useMutation();
+  const createProductionOrderMutation = api.productionOrders.create.useMutation();
+  const createInvoiceForOrderMutation = api.productionInvoices.createForOrder.useMutation();
 
   const handleSave = () => {
     if (!formData.name) {
@@ -162,6 +176,101 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
       });
     }
     setIsEditing(false);
+  };
+
+  const handleCreateOrder = () => {
+    setIsOrderDialogOpen(true);
+  };
+
+  const handleFinalizeOrder = async (projectId: string) => {
+    if (orderItems.length === 0) {
+      toast.error("No items in order to finalize.");
+      return;
+    }
+
+    try {
+      // Get customer ID from project data
+      const customerId = data?.customer?.id;
+      if (!customerId) {
+        toast.error("Customer not found for this project.");
+        return;
+      }
+
+      // STEP 1: Create CRM Order with all items
+      const crmOrderResult = await createCRMOrderMutation.mutateAsync({
+        project_id: projectId,
+        customer_id: customerId,
+        order_items: orderItems.map(item => ({
+          product_name: item.product_name,
+          product_sku: item.product_sku,
+          project_sku: item.project_sku,
+          base_sku: item.base_sku,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          total_price: item.total_price,
+          material_selections: item.material_selections,
+          custom_specifications: item.custom_specifications,
+        })),
+        notes: `Order created from project: ${data?.project?.name}`,
+        priority: 'normal',
+      });
+
+      const crmOrderId = crmOrderResult.order.id;
+      const crmOrderNumber = crmOrderResult.order.order_number;
+
+      // STEP 2: Create production orders (one per order item)
+      const createdProductionOrders = [];
+      let totalCost = 0;
+
+      for (const item of orderItems) {
+        const isCustomItem = !item.base_sku || item.base_sku.startsWith('TEMP-') || item.base_sku.startsWith('CUSTOM-');
+        const productType = isCustomItem ? 'custom' : 'catalog';
+
+        const result = await createProductionOrderMutation.mutateAsync({
+          order_id: crmOrderId,
+          project_id: projectId,
+          product_type: productType,
+          catalog_item_id: undefined,
+          item_name: item.product_name,
+          item_description: `${item.project_sku} - ${item.custom_specifications || ''}`,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          estimated_ship_date: undefined,
+          factory_id: undefined,
+          factory_notes: undefined,
+        });
+
+        createdProductionOrders.push(result.order);
+        totalCost += item.total_price;
+      }
+
+      // STEP 3: Create deposit invoice (50%)
+      const invoiceResult = await createInvoiceForOrderMutation.mutateAsync({
+        order_id: crmOrderId,
+        invoice_type: 'deposit',
+      });
+
+      toast.success(
+        `Order ${crmOrderNumber} created with ${createdProductionOrders.length} item${createdProductionOrders.length > 1 ? 's' : ''} totaling $${totalCost.toFixed(2)}. Deposit invoice ${invoiceResult.invoice.invoice_number} generated for $${Number(invoiceResult.invoice.total).toFixed(2)}.`
+      );
+
+      // Clear order items and close dialog
+      setOrderItems([]);
+      setIsOrderDialogOpen(false);
+
+      // Invalidate queries for instant updates
+      utils.projects.getById.invalidate();
+      utils.orders.getWithProductionDetails.invalidate();
+
+    } catch (error: any) {
+      console.error('Error creating order:', error);
+      toast.error(error.message || "Failed to create order. Please try again.");
+    }
+  };
+
+  const handleSaveOrder = async () => {
+    // This function is not used in detail page, order finalization handles everything
+    return;
   };
 
   if (isLoading) {
@@ -235,6 +344,7 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
                 { label: 'Save Changes', icon: Check, onClick: handleSave },
               ]
             : [
+                { label: 'Create Order', icon: Plus, onClick: handleCreateOrder },
                 { label: 'Edit Project', icon: Edit, onClick: () => setIsEditing(true) },
               ]
         }
@@ -517,6 +627,17 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Order Creation Dialog */}
+      <OrderCreationDialog
+        projectId={id}
+        isOpen={isOrderDialogOpen}
+        onClose={() => setIsOrderDialogOpen(false)}
+        _onSave={handleSaveOrder}
+        orderItems={orderItems}
+        setOrderItems={setOrderItems}
+        onFinalizeOrder={handleFinalizeOrder}
+      />
     </div>
   );
 }

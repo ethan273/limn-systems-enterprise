@@ -52,10 +52,13 @@ export default function DesignProjectDetailPage({ params }: { params: Promise<{ 
 
  // Auth is handled by middleware - no client-side redirect needed
 
- const { data: project, isLoading, refetch } = api.designProjects.getById.useQuery(
+ const { data: project, isLoading } = api.designProjects.getById.useQuery(
  { id: id },
  { enabled: !authLoading && !!user && !!id }
  );
+
+ // Get tRPC utils for cache invalidation
+ const utils = api.useUtils();
 
  // Sync formData with fetched project data
  useEffect(() => {
@@ -81,7 +84,9 @@ export default function DesignProjectDetailPage({ params }: { params: Promise<{ 
        description: "Design project updated successfully",
      });
      setIsEditing(false);
-     refetch();
+     // Invalidate queries for instant updates
+     utils.designProjects.getById.invalidate({ id });
+     utils.designProjects.getAll.invalidate();
    },
    onError: (error) => {
      toast({

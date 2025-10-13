@@ -10,20 +10,16 @@ import {
   CheckCircle,
   Clock,
   Eye,
-  EyeOff,
   Key,
   Plus,
-  RefreshCw,
   Search,
-  Settings,
   Shield,
-  Trash2,
   AlertTriangle,
 } from 'lucide-react';
 import { FormDialog } from '@/components/common/FormDialog';
 import type { FormField } from '@/components/common/FormDialog';
 import { DataTable } from '@/components/common/DataTable';
-import type { ColumnDef } from '@/components/common/DataTable';
+import type { DataTableColumn } from '@/components/common/DataTable';
 
 interface ApiCredential {
   id: string;
@@ -32,14 +28,14 @@ interface ApiCredential {
   description: string | null;
   credential_type: string;
   credentials: Record<string, string>;
-  environment: string;
+  environment: string | null;
   is_active: boolean;
   last_used_at: Date | null;
   expires_at: Date | null;
   created_at: Date;
   updated_at: Date;
   users_api_credentials_created_byTousers?: {
-    email: string;
+    email: string | null;
     id: string;
   } | null;
 }
@@ -99,21 +95,28 @@ export default function ApiKeysPage() {
   const [showExpiringOnly, setShowExpiringOnly] = useState(false);
 
   // Fetch credentials
-  const { data: credentials, isLoading, refetch } = api.apiCredentials.getAll.useQuery();
+  const { data: credentials, isLoading } = api.apiCredentials.getAll.useQuery();
   const { data: expiringCredentials } = api.apiCredentials.getExpiring.useQuery();
   const { data: envScan } = api.apiCredentials.scanEnvironment.useQuery();
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   // Mutations
   const createMutation = api.apiCredentials.create.useMutation({
     onSuccess: () => {
-      refetch();
+      // Invalidate queries for instant updates
+      utils.apiCredentials.getAll.invalidate();
+      utils.apiCredentials.getExpiring.invalidate();
       setIsCreateDialogOpen(false);
     },
   });
 
   const updateMutation = api.apiCredentials.update.useMutation({
     onSuccess: () => {
-      refetch();
+      // Invalidate queries for instant updates
+      utils.apiCredentials.getAll.invalidate();
+      utils.apiCredentials.getExpiring.invalidate();
       setIsEditDialogOpen(false);
       setEditingCredential(null);
     },
@@ -121,7 +124,9 @@ export default function ApiKeysPage() {
 
   const deleteMutation = api.apiCredentials.delete.useMutation({
     onSuccess: () => {
-      refetch();
+      // Invalidate queries for instant updates
+      utils.apiCredentials.getAll.invalidate();
+      utils.apiCredentials.getExpiring.invalidate();
     },
   });
 
@@ -280,7 +285,7 @@ export default function ApiKeysPage() {
   };
 
   // Table columns
-  const columns: ColumnDef<ApiCredential>[] = [
+  const columns: DataTableColumn<ApiCredential>[] = [
     {
       key: 'display_name',
       label: 'Service',
@@ -300,12 +305,13 @@ export default function ApiKeysPage() {
       key: 'environment',
       label: 'Environment',
       render: (value) => {
-        const env = value as string;
+        const env = value as string | null;
+        if (!env) return <span className="text-muted-foreground text-sm">N/A</span>;
         const colors = {
-          production: 'bg-green-500/10 text-green-700 border-green-500/20',
-          staging: 'bg-blue-500/10 text-blue-700 border-blue-500/20',
-          sandbox: 'bg-yellow-500/10 text-yellow-700 border-yellow-500/20',
-          development: 'bg-purple-500/10 text-purple-700 border-purple-500/20',
+          production: 'badge-success',
+          staging: 'badge-info',
+          sandbox: 'badge-warning',
+          development: 'badge-secondary',
         };
         return (
           <Badge variant="outline" className={colors[env as keyof typeof colors] || ''}>
@@ -654,8 +660,17 @@ export default function ApiKeysPage() {
           data={filteredCredentials || []}
           columns={columns}
           isLoading={isLoading}
-          onEdit={handleEdit}
-          onDelete={(row) => handleDelete(row.id, row.display_name)}
+          rowActions={[
+            {
+              label: 'Edit',
+              onClick: handleEdit,
+            },
+            {
+              label: 'Delete',
+              onClick: (row) => handleDelete(row.id, row.display_name),
+              variant: 'destructive',
+            },
+          ]}
           emptyState={{
             icon: Key,
             title: 'No API credentials',

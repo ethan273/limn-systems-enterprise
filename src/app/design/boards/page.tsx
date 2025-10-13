@@ -29,11 +29,14 @@ export default function DesignBoardsPage() {
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
 
   // Fetch boards - user authentication handled by middleware, user_id extracted from session in tRPC
-  const { data, isLoading, refetch } = api.designBoards.boards.getMyBoards.useQuery({
+  const { data, isLoading } = api.designBoards.boards.getMyBoards.useQuery({
     limit: 50,
     offset: 0,
     status: statusFilter === "all" ? undefined : statusFilter,
   });
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   // Create board mutation
   const createBoardMutation = api.designBoards.boards.create.useMutation({

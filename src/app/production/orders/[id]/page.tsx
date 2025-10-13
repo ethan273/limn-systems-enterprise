@@ -72,17 +72,22 @@ export default function ProductionOrderDetailPage({ params }: PageProps) {
  special_instructions: "",
  });
 
- const { data: order, refetch } = api.productionOrders.getById.useQuery(
+ const { data: order } = api.productionOrders.getById.useQuery(
  {
  id: id as string,
  },
  { enabled: !authLoading && !!user }
  );
 
+ // Get tRPC utils for cache invalidation
+ const utils = api.useUtils();
+
  const recordPayment = api.productionInvoices.recordPayment.useMutation({
  onSuccess: (data) => {
  toast.success(data.message || "Payment recorded successfully!");
- void refetch();
+ // Invalidate queries for instant updates
+ utils.productionOrders.getById.invalidate();
+ utils.productionOrders.getAll.invalidate();
  setPaymentDialogOpen(false);
  setPaymentForm({ amount: 0, payment_method: "credit_card", transaction_id: "", notes: "" });
  },
@@ -94,7 +99,9 @@ export default function ProductionOrderDetailPage({ params }: PageProps) {
  const updateStatus = api.productionOrders.updateStatus.useMutation({
  onSuccess: (data) => {
  toast.success(data.message || "Status updated successfully!");
- void refetch();
+ // Invalidate queries for instant updates
+ utils.productionOrders.getById.invalidate();
+ utils.productionOrders.getAll.invalidate();
  setStatusDialogOpen(false);
  },
  onError: (error) => {
@@ -126,7 +133,9 @@ export default function ProductionOrderDetailPage({ params }: PageProps) {
  const createShipment = api.shipping.createShipment.useMutation({
  onSuccess: (data) => {
  toast.success(`Shipment created! Tracking: ${data.shipment.tracking_number}`);
- void refetch();
+ // Invalidate queries for instant updates
+ utils.productionOrders.getById.invalidate();
+ utils.shipping.getShipmentsByOrder.invalidate();
  setBookingDialogOpen(false);
  setQuotes([]);
  setSelectedQuote(null);
@@ -155,7 +164,7 @@ export default function ProductionOrderDetailPage({ params }: PageProps) {
  });
 
  // Packing jobs query
- const { data: packingJobsData, refetch: refetchPackingJobs } = api.packing.getAllJobs.useQuery({
+ const { data: packingJobsData } = api.packing.getAllJobs.useQuery({
  orderId: order?.order_id,
  limit: 50,
  offset: 0,
@@ -167,7 +176,8 @@ export default function ProductionOrderDetailPage({ params }: PageProps) {
  const autoGeneratePackingJobs = api.packing.autoGenerateFromOrder.useMutation({
  onSuccess: (data) => {
  toast.success(data.message || "Packing jobs generated successfully!");
- void refetchPackingJobs();
+ // Invalidate queries for instant updates
+ utils.packing.getAllJobs.invalidate();
  },
  onError: (error) => {
  toast.error(error.message || "Failed to generate packing jobs");

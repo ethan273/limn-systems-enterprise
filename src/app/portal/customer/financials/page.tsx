@@ -31,11 +31,14 @@ import {
 export default function CustomerFinancialsPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  const { data: invoicesData, isLoading, refetch } = api.portal.getCustomerInvoices.useQuery({
+  const { data: invoicesData, isLoading } = api.portal.getCustomerInvoices.useQuery({
     status: statusFilter === 'all' ? undefined : statusFilter,
     limit: 100,
     offset: 0,
   });
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   const invoices = invoicesData?.invoices || [];
 
@@ -279,7 +282,8 @@ export default function CustomerFinancialsPage() {
                         invoiceNumber={invoice.invoice_number || 'N/A'}
                         amountDue={Number(invoice.balance)}
                         onPaymentSuccess={() => {
-                          refetch();
+                          // Invalidate queries for instant updates
+                          utils.portal.getCustomerInvoices.invalidate();
                         }}
                       />
                     )}

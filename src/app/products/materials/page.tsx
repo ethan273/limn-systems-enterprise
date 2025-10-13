@@ -244,6 +244,9 @@ export default function MaterialsPage() {
   const activeCategory = materialCategories.find((cat) => cat.key === activeTab);
   const activeHierarchy = activeCategory?.hierarchy.find((h) => h.key === activeSubTab);
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   // Dynamic API queries based on active hierarchy
   const fabricBrands = api.materialTypes.getFabricBrands.useQuery(undefined, {
     enabled: activeSubTab === "fabric_brands",
@@ -355,20 +358,21 @@ export default function MaterialsPage() {
   }, [activeSubTab, activeHierarchy]);
 
   // Mutations
-  const refetchCurrentData = async () => {
+  const invalidateCurrentData = () => {
+    // Invalidate the appropriate query based on active sub-tab
     switch (activeSubTab) {
-      case "fabric_brands": await fabricBrands.refetch(); break;
-      case "fabric_collections": await fabricCollections.refetch(); break;
-      case "fabric_colors": await fabricColors.refetch(); break;
-      case "wood_types": await woodTypes.refetch(); break;
-      case "wood_finishes": await woodFinishes.refetch(); break;
-      case "metal_types": await metalTypes.refetch(); break;
-      case "metal_finishes": await metalFinishes.refetch(); break;
-      case "metal_colors": await metalColors.refetch(); break;
-      case "stone_types": await stoneTypes.refetch(); break;
-      case "stone_finishes": await stoneFinishes.refetch(); break;
-      case "weaving_styles": await weavingStyles.refetch(); break;
-      case "carving_styles": await carvingStyles.refetch(); break;
+      case "fabric_brands": utils.materialTypes.getFabricBrands.invalidate(); break;
+      case "fabric_collections": utils.materialTypes.getFabricCollections.invalidate(); break;
+      case "fabric_colors": utils.materialTypes.getFabricColors.invalidate(); break;
+      case "wood_types": utils.materialTypes.getWoodTypes.invalidate(); break;
+      case "wood_finishes": utils.materialTypes.getWoodFinishes.invalidate(); break;
+      case "metal_types": utils.materialTypes.getMetalTypes.invalidate(); break;
+      case "metal_finishes": utils.materialTypes.getMetalFinishes.invalidate(); break;
+      case "metal_colors": utils.materialTypes.getMetalColors.invalidate(); break;
+      case "stone_types": utils.materialTypes.getStoneTypes.invalidate(); break;
+      case "stone_finishes": utils.materialTypes.getStoneFinishes.invalidate(); break;
+      case "weaving_styles": utils.materialTypes.getWeavingStyles.invalidate(); break;
+      case "carving_styles": utils.materialTypes.getCarvingStyles.invalidate(); break;
     }
   };
 
@@ -376,7 +380,8 @@ export default function MaterialsPage() {
     onSuccess: () => {
       toast.success(`${activeHierarchy?.label.slice(0, -1)} created successfully`);
       setIsCreateDialogOpen(false);
-      refetchCurrentData();
+      // Invalidate queries for instant updates
+      invalidateCurrentData();
     },
     onError: (error: Error) => {
       toast.error(`Failed to create: ${error.message}`);
@@ -388,7 +393,8 @@ export default function MaterialsPage() {
       toast.success(`${activeHierarchy?.label.slice(0, -1)} updated successfully`);
       setIsCreateDialogOpen(false);
       setEditingItem(null);
-      refetchCurrentData();
+      // Invalidate queries for instant updates
+      invalidateCurrentData();
     },
     onError: (error: Error) => {
       toast.error(`Failed to update: ${error.message}`);
@@ -398,7 +404,8 @@ export default function MaterialsPage() {
   const deleteMutation = (api.materialTypes as any)[activeHierarchy?.procedures.delete as any]?.useMutation?.({
     onSuccess: () => {
       toast.success(`${activeHierarchy?.label.slice(0, -1)} deleted successfully`);
-      refetchCurrentData();
+      // Invalidate queries for instant updates
+      invalidateCurrentData();
       setDeleteDialogOpen(false);
       setItemToDelete(null);
     },
@@ -638,7 +645,7 @@ export default function MaterialsPage() {
           {
             label: "Refresh Data",
             icon: RefreshCw,
-            onClick: () => refetchCurrentData(),
+            onClick: () => invalidateCurrentData(),
           },
         ]}
       />

@@ -57,10 +57,13 @@ const INSIGHT_CLASSES = {
 export default function ExecutiveDashboardPage() {
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | '1y' | 'all'>('30d');
 
-  const { data: executive, isLoading, refetch } = api.dashboards.getExecutive.useQuery(
+  const { data: executive, isLoading } = api.dashboards.getExecutive.useQuery(
     { dateRange },
     { refetchInterval: 60000 } // Auto-refresh every 60 seconds
   );
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   const { data: insights } = api.dashboards.getExecutiveInsights.useQuery();
 
@@ -105,7 +108,7 @@ export default function ExecutiveDashboardPage() {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => refetch()}
+            onClick={() => utils.dashboards.getExecutive.invalidate()}
             title="Refresh data"
           >
             <RefreshCw className="icon-sm" />

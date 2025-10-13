@@ -31,14 +31,18 @@ export default function PortalProfilePage() {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
 
   // Fetch customer profile
-  const { data: profile, isLoading, refetch } = api.portal.getCustomerProfile.useQuery();
+  const { data: profile, isLoading } = api.portal.getCustomerProfile.useQuery();
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   // Update profile mutation
   const updateProfile = api.portal.updateCustomerProfile.useMutation({
     onSuccess: () => {
       setSaveStatus('success');
       setIsEditing(false);
-      refetch();
+      // Invalidate queries for instant updates
+      utils.portal.getCustomerProfile.invalidate();
       setTimeout(() => setSaveStatus('idle'), 3000);
     },
     onError: () => {

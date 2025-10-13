@@ -58,18 +58,22 @@ export default function FlipbooksPage() {
   }
 
   // Query flipbooks
-  const { data, isLoading, refetch } = api.flipbooks.list.useQuery({
+  const { data, isLoading } = api.flipbooks.list.useQuery({
     limit: 50,
   });
 
   const flipbooks = data?.flipbooks || [];
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   // Delete mutation
   const deleteMutation = api.flipbooks.delete.useMutation({
     onSuccess: () => {
       toast.success("Flipbook deleted successfully");
       queryClient.invalidateQueries({ queryKey: ['flipbooks'] });
-      refetch();
+      // Invalidate queries for instant updates
+      utils.flipbooks.list.invalidate();
       setDeleteDialogOpen(false);
       setFlipbookToDelete(null);
     },

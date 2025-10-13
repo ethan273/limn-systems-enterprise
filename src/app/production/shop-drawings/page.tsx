@@ -251,7 +251,7 @@ export default function ShopDrawingsPage() {
           {
             label: "Upload Drawing",
             icon: Plus,
-            onClick: () => router.push("/shop-drawings/new"),
+            onClick: () => router.push("/production/shop-drawings/new"),
           },
         ]}
       />
@@ -268,7 +268,7 @@ export default function ShopDrawingsPage() {
           action={{
             label: "Upload First Drawing",
             icon: Plus,
-            onClick: () => router.push("/shop-drawings/new"),
+            onClick: () => router.push("/production/shop-drawings/new"),
           }}
         />
       ) : (
@@ -276,7 +276,7 @@ export default function ShopDrawingsPage() {
           data={drawings as any[]}
           columns={columns}
           filters={filters}
-          onRowClick={(row) => router.push(`/shop-drawings/${row.id}`)}
+          onRowClick={(row) => router.push(`/production/shop-drawings/${row.id}`)}
           emptyState={{
             icon: FileText,
             title: "No Shop Drawings Found",

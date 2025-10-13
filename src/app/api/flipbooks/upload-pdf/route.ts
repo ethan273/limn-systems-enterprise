@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      pages.push(page);
+      pages.push(page as any);
     }
 
     // Update flipbook with metadata

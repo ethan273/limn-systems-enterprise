@@ -43,10 +43,13 @@ export default function PackingJobDetailPage({ params }: PageProps) {
  const router = useRouter();
 
  // Fetch packing job details
- const { data: job, isLoading, refetch } = api.packing.getJobById.useQuery(
+ const { data: job, isLoading } = api.packing.getJobById.useQuery(
  { id: id },
  { enabled: !!id }
  );
+
+ // Get tRPC utils for cache invalidation
+ const utils = api.useUtils();
 
  // Update status mutation
  const updateStatusMutation = api.packing.updateJobStatus.useMutation({
@@ -55,7 +58,9 @@ export default function PackingJobDetailPage({ params }: PageProps) {
  title: "Success",
  description: "Packing job status updated successfully",
  });
- refetch();
+ // Invalidate queries for instant updates
+ utils.packing.getJobById.invalidate();
+ utils.packing.getAllJobs.invalidate();
  },
  onError: (error) => {
  toast({
@@ -188,7 +193,9 @@ export default function PackingJobDetailPage({ params }: PageProps) {
       </div>
 
       {/* Packing Boxes */}
-      <PackingBoxesList packingJobId={id} boxes={job.packing_boxes || []} onUpdate={refetch} />
+      <PackingBoxesList packingJobId={id} boxes={job.packing_boxes || []} onUpdate={() => {
+        utils.packing.getJobById.invalidate();
+      }} />
     </div>
  );
 }

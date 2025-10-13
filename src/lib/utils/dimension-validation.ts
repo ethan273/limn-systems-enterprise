@@ -127,6 +127,16 @@ export function validateFurnitureDimensions(
   const errors: string[] = [];
   const warnings: string[] = [];
 
+  // Return early if no rules found for this furniture type
+  if (!rules) {
+    errors.push(`Unknown furniture type: ${furnitureType}`);
+    return {
+      valid: false,
+      errors,
+      warnings
+    };
+  }
+
   // Check required dimensions
   for (const required of rules.required) {
     const value = dimensions[required as keyof typeof dimensions];

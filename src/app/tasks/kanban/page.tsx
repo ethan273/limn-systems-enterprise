@@ -71,12 +71,15 @@ const statusConfig = {
 export default function TasksKanbanPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
-  const { data: tasksData, isLoading, refetch } = api.tasks.getAllTasks.useQuery({
+  const { data: tasksData, isLoading } = api.tasks.getAllTasks.useQuery({
     limit: 100,
     offset: 0,
     sortBy: 'created_at',
     sortOrder: 'desc',
   });
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   // Fetch users data
   const { data: usersData } = api.users.getAllUsers.useQuery({
@@ -101,7 +104,8 @@ export default function TasksKanbanPage() {
 
   const updateStatusMutation = api.tasks.updateStatus.useMutation({
     onSuccess: () => {
-      refetch();
+      // Invalidate queries for instant updates
+      utils.tasks.getAllTasks.invalidate();
     },
   });
 
@@ -110,7 +114,8 @@ export default function TasksKanbanPage() {
   };
 
   const handleTaskUpdate = () => {
-    refetch();
+    // Invalidate queries for instant updates
+    utils.tasks.getAllTasks.invalidate();
   };
 
   // Group tasks by status
@@ -175,7 +180,8 @@ export default function TasksKanbanPage() {
         <TaskCreateForm
           onSuccess={() => {
             setIsCreateDialogOpen(false);
-            refetch();
+            // Invalidate queries for instant updates
+            utils.tasks.getAllTasks.invalidate();
           }}
           onCancel={() => setIsCreateDialogOpen(false)}
         />

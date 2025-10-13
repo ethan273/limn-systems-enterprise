@@ -72,10 +72,13 @@ export default function QCInspectionDetailPage({ params }: PageProps) {
  const [activeTab, setActiveTab] = useState("overview");
 
  // Fetch inspection details
- const { data: inspection, isLoading, refetch } = api.qc.getInspectionById.useQuery(
+ const { data: inspection, isLoading } = api.qc.getInspectionById.useQuery(
  { id: id },
  { enabled: !!id }
  );
+
+ // Get tRPC utils for cache invalidation
+ const utils = api.useUtils();
 
  // Update inspection status mutation
  const updateStatusMutation = api.qc.updateInspectionStatus.useMutation({
@@ -84,7 +87,9 @@ export default function QCInspectionDetailPage({ params }: PageProps) {
  title: "Success",
  description: "Inspection status updated successfully",
  });
- refetch();
+ // Invalidate queries for instant updates
+ utils.qc.getInspectionById.invalidate();
+ utils.qc.getAllInspections.invalidate();
  },
  onError: (error) => {
  toast({
@@ -341,15 +346,21 @@ export default function QCInspectionDetailPage({ params }: PageProps) {
  </TabsContent>
 
  <TabsContent value="defects">
- <QCDefectsList inspectionId={id} defects={inspection.qc_defects || []} onUpdate={refetch} />
+ <QCDefectsList inspectionId={id} defects={inspection.qc_defects || []} onUpdate={() => {
+   utils.qc.getInspectionById.invalidate();
+ }} />
  </TabsContent>
 
  <TabsContent value="photos">
- <QCPhotoGallery inspectionId={id} photos={inspection.qc_photos || []} onUpdate={refetch} />
+ <QCPhotoGallery inspectionId={id} photos={inspection.qc_photos || []} onUpdate={() => {
+   utils.qc.getInspectionById.invalidate();
+ }} />
  </TabsContent>
 
  <TabsContent value="checkpoints">
- <QCCheckpointsList inspectionId={id} onUpdate={refetch} />
+ <QCCheckpointsList inspectionId={id} onUpdate={() => {
+   utils.qc.getInspectionById.invalidate();
+ }} />
  </TabsContent>
  </Tabs>
  </div>

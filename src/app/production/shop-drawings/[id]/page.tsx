@@ -104,8 +104,11 @@ export default function ShopDrawingDetailPage({ params }: PageProps) {
  // Get current version ID
  const currentVersionId = drawing?.shop_drawing_versions?.[0]?.id ?? "";
 
+ // Get tRPC utils for cache invalidation
+ const utils = api.useUtils();
+
  // Fetch comments for current version
- const { data: comments, refetch: refetchComments } = api.shopDrawings.getComments.useQuery(
+ const { data: comments } = api.shopDrawings.getComments.useQuery(
  {
  drawingVersionId: currentVersionId,
  },
@@ -115,7 +118,7 @@ export default function ShopDrawingDetailPage({ params }: PageProps) {
  );
 
  // Fetch approval status
- const { data: approvalStatus, refetch: refetchApprovalStatus } = api.shopDrawings.getApprovalStatus.useQuery({
+ const { data: approvalStatus } = api.shopDrawings.getApprovalStatus.useQuery({
  shopDrawingId: id,
  });
 
@@ -132,7 +135,8 @@ export default function ShopDrawingDetailPage({ params }: PageProps) {
  description: "Your comment has been added successfully.",
  });
  setCommentText("");
- void refetchComments();
+ // Invalidate queries for instant updates
+ utils.shopDrawings.getComments.invalidate();
  },
  onError: (error) => {
  toast({
@@ -149,7 +153,8 @@ export default function ShopDrawingDetailPage({ params }: PageProps) {
  title: "Comment Resolved",
  description: "The comment has been marked as resolved.",
  });
- void refetchComments();
+ // Invalidate queries for instant updates
+ utils.shopDrawings.getComments.invalidate();
  },
  onError: (error) => {
  toast({
@@ -167,7 +172,9 @@ export default function ShopDrawingDetailPage({ params }: PageProps) {
  description: data.message,
  });
  setApprovalComments("");
- void refetchApprovalStatus();
+ // Invalidate queries for instant updates
+ utils.shopDrawings.getApprovalStatus.invalidate();
+ utils.shopDrawings.getById.invalidate();
  },
  onError: (error) => {
  toast({

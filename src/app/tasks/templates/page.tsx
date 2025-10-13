@@ -2,16 +2,16 @@
 
 import { PageHeader } from "@/components/common";
 import TaskTemplates from "@/components/TaskTemplates";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function TaskTemplatesPage() {
+  const router = useRouter();
+
   const handleCreateFromTemplate = (templateId: string) => {
-    // Navigate to create task with template pre-filled
-    console.log('Creating tasks from template:', templateId);
-    // In a real implementation, this would:
-    // 1. Fetch the template data
-    // 2. Pre-populate a task creation form or
-    // 3. Automatically create tasks from the template
-    // 4. Navigate back to the tasks list
+    // Navigate to tasks page with template query param
+    toast.success("Template selected. Redirecting to create tasks...");
+    router.push(`/tasks?template=${templateId}`);
   };
 
   return (

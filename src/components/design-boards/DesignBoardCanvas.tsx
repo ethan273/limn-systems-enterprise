@@ -346,7 +346,7 @@ export function DesignBoardCanvas({ boardId, userId, board, onCanvasReady }: Des
     let origY = 0;
     let shape: fabric.Object | null = null;
 
-    const handleMouseDown = (options: fabric.IEvent<MouseEvent>) => {
+    const handleMouseDown = (options: fabric.TEvent<MouseEvent>) => {
       if (!['rectangle', 'circle', 'triangle', 'star', 'hexagon', 'diamond', 'line', 'arrow', 'text', 'sticky', 'image', 'kanban'].includes(activeTool)) return;
 
       isDown = true;
@@ -488,7 +488,7 @@ export function DesignBoardCanvas({ boardId, userId, board, onCanvasReady }: Des
       }
     };
 
-    const handleMouseMove = (options: fabric.IEvent<MouseEvent>) => {
+    const handleMouseMove = (options: fabric.TEvent<MouseEvent>) => {
       if (!isDown || !shape) return;
 
       const pointer = canvas.getPointer(options.e);
@@ -564,7 +564,7 @@ export function DesignBoardCanvas({ boardId, userId, board, onCanvasReady }: Des
 
     const canvas = fabricCanvasRef.current;
 
-    const handleDoubleClick = (e: fabric.IEvent<MouseEvent>) => {
+    const handleDoubleClick = (e: fabric.TEvent<MouseEvent>) => {
       const target = e.target;
       if (!target) return;
 
@@ -619,7 +619,7 @@ export function DesignBoardCanvas({ boardId, userId, board, onCanvasReady }: Des
   }, [backgroundColor, activeTool]);
 
   // Selection handlers
-  const handleSelectionChange = (e: fabric.IEvent) => {
+  const handleSelectionChange = (e: fabric.TEvent) => {
     const selected = fabricCanvasRef.current?.getActiveObjects() || [];
     setSelectedObjects(selected.map((obj: any) => obj.id || ''));
   };
@@ -630,7 +630,7 @@ export function DesignBoardCanvas({ boardId, userId, board, onCanvasReady }: Des
 
   // Object modified handler (for auto-save)
   const handleObjectModified = useCallback(
-    debounce((e: fabric.IEvent) => {
+    debounce((e: fabric.TEvent) => {
       if (!e.target || !fabricCanvasRef.current) return;
 
       const obj = e.target;
@@ -654,7 +654,7 @@ export function DesignBoardCanvas({ boardId, userId, board, onCanvasReady }: Des
 
   // Object added handler (for auto-save)
   const handleObjectAdded = useCallback(
-    debounce((e: fabric.IEvent) => {
+    debounce((e: fabric.TEvent) => {
       if (!e.target || e.target.id || !fabricCanvasRef.current) return; // Skip if already has ID
 
       const obj = e.target;

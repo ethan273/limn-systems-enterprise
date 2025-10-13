@@ -401,6 +401,90 @@ export const paymentsRouter = createTRPCRouter({
     }),
 
   /**
+   * Record payment (alias for create with auto-allocation)
+   */
+  recordPayment: protectedProcedure
+    .input(
+      z.object({
+        invoiceId: z.string().uuid(),
+        paymentAmount: z.number(),
+        paymentMethod: z.string().optional().default('cash'),
+        paymentDate: z.string().optional(),
+        referenceNumber: z.string().optional(),
+        notes: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Get invoice to find customer
+      const invoice = await ctx.db.invoices.findUnique({
+        where: { id: input.invoiceId },
+        include: {
+          invoice_items: true,
+        },
+      });
+
+      if (!invoice) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Invoice not found',
+        });
+      }
+
+      // Generate payment number
+      const lastPayment = await ctx.db.payments.findFirst({
+        orderBy: {
+          created_at: 'desc',
+        },
+        select: {
+          payment_number: true,
+        },
+      });
+
+      let paymentNumber = 'PAY-00001';
+      if (lastPayment?.payment_number) {
+        const lastNumber = parseInt(lastPayment.payment_number.split('-')[1] || '0');
+        paymentNumber = `PAY-${String(lastNumber + 1).padStart(5, '0')}`;
+      }
+
+      // Create payment and allocation in transaction
+      const result = await ctx.db.$transaction(async (tx) => {
+        const payment = await tx.payments.create({
+          data: {
+            payment_number: paymentNumber,
+            customer_id: invoice.customer_id,
+            amount: input.paymentAmount,
+            net_amount: input.paymentAmount,
+            payment_method: input.paymentMethod,
+            payment_date: input.paymentDate,
+            reference_number: input.referenceNumber,
+            currency: 'USD',
+            notes: input.notes,
+            status: 'completed',
+            created_by: ctx.user?.id,
+          },
+        });
+
+        // Auto-allocate to invoice
+        const allocation = await tx.payment_allocations.create({
+          data: {
+            payment_id: payment.id,
+            invoice_id: input.invoiceId,
+            allocated_amount: input.paymentAmount,
+          },
+        });
+
+        return { payment, allocation };
+      });
+
+      return {
+        success: true,
+        payment: result.payment,
+        allocation: result.allocation,
+        message: `Payment ${paymentNumber} recorded and allocated successfully`,
+      };
+    }),
+
+  /**
    * Allocate payment to invoice
    */
   allocateToInvoice: protectedProcedure

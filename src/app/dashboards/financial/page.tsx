@@ -61,12 +61,15 @@ const INSIGHT_CLASSES = {
 export default function FinancialDashboardPage() {
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | '1y' | 'all'>('30d');
 
-  const { data: financial, isLoading, refetch } = api.dashboards.getFinancial.useQuery(
+  const { data: financial, isLoading } = api.dashboards.getFinancial.useQuery(
     { dateRange },
     {
       refetchInterval: 60000, // Auto-refresh every 60 seconds
     }
   );
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   const { data: insights } = api.dashboards.getFinancialInsights.useQuery(undefined, {
     refetchInterval: 60000, // Auto-refresh every 60 seconds
@@ -107,7 +110,7 @@ export default function FinancialDashboardPage() {
         </div>
         <div className="dashboard-actions">
           <DateRangeSelector value={dateRange} onChange={(value: any) => setDateRange(value)} />
-          <Button variant="outline" size="icon" onClick={() => refetch()} title="Refresh data">
+          <Button variant="outline" size="icon" onClick={() => utils.dashboards.getFinancial.invalidate()} title="Refresh data">
             <RefreshCw className="h-4 w-4" />
           </Button>
           <ExportPDFButton dashboardName="Financial Operations Dashboard" dateRange={dateRange} />

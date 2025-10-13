@@ -60,9 +60,8 @@ export async function GET(request: NextRequest) {
       data: {
         state,
         user_id: user.id,
-        redirect_url: redirectAfter,
         expires_at: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
-      },
+      } as any,
     });
 
     // Build QuickBooks authorization URL

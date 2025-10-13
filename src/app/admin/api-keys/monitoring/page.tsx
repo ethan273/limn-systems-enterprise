@@ -11,6 +11,7 @@ import {
   XCircle,
   AlertTriangle,
   Info,
+  TrendingUp,
 } from 'lucide-react';
 
 export default function MonitoringPage() {

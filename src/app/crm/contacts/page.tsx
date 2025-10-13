@@ -48,17 +48,21 @@ export default function ContactsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [contactToDelete, setContactToDelete] = useState<any>(null);
 
-  const { data: contactsData, isLoading, refetch } = api.crm.contacts.getAll.useQuery({
+  const { data: contactsData, isLoading } = api.crm.contacts.getAll.useQuery({
     limit: 100,
     offset: 0,
     orderBy: { name: 'asc' },
   });
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   const createContactMutation = api.crm.contacts.create.useMutation({
     onSuccess: () => {
       toast.success("Contact created successfully");
       setIsCreateDialogOpen(false);
-      refetch();
+      // Invalidate queries for instant updates
+      utils.crm.contacts.getAll.invalidate();
     },
     onError: (error) => {
       toast.error("Failed to create contact: " + error.message);
@@ -69,7 +73,9 @@ export default function ContactsPage() {
     onSuccess: () => {
       toast.success("Contact updated successfully");
       setIsEditDialogOpen(false);
-      refetch();
+      // Invalidate queries for instant updates
+      utils.crm.contacts.getAll.invalidate();
+      utils.crm.contacts.getById.invalidate();
     },
     onError: (error) => {
       toast.error("Failed to update contact: " + error.message);
@@ -79,9 +85,10 @@ export default function ContactsPage() {
   const deleteContactMutation = api.crm.contacts.delete.useMutation({
     onSuccess: () => {
       toast.success("Contact deleted successfully");
-      refetch();
       setDeleteDialogOpen(false);
       setContactToDelete(null);
+      // Invalidate queries for instant updates
+      utils.crm.contacts.getAll.invalidate();
     },
     onError: (error) => {
       toast.error("Failed to delete contact: " + error.message);

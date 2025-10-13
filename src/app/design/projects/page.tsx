@@ -43,7 +43,7 @@ export default function DesignProjectsPage() {
 
   // Auth is handled by middleware - no client-side redirect needed
 
-  const { data, isLoading, refetch } = api.designProjects.getAll.useQuery(
+  const { data, isLoading } = api.designProjects.getAll.useQuery(
     {
       designStage: stageFilter === "all" ? undefined : stageFilter,
       search: undefined,
@@ -52,10 +52,14 @@ export default function DesignProjectsPage() {
     { enabled: !authLoading && !!user }
   );
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   const deleteProject = api.designProjects.delete.useMutation({
     onSuccess: () => {
       toast.success("Design project deleted successfully");
-      refetch();
+      // Invalidate queries for instant updates
+      utils.designProjects.getAll.invalidate();
       setDeleteDialogOpen(false);
       setProjectToDelete(null);
     },

@@ -33,10 +33,13 @@ export default function DesignBriefDetailPage({ params }: { params: Promise<{ id
 
   // Auth is handled by middleware - no client-side redirect needed
 
-  const { data: brief, isLoading, refetch } = api.designBriefs.getById.useQuery(
+  const { data: brief, isLoading } = api.designBriefs.getById.useQuery(
     { id: id },
     { enabled: !authLoading && !!user && !!id }
   );
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   // Sync formData with fetched brief data
   useEffect(() => {
@@ -59,7 +62,9 @@ export default function DesignBriefDetailPage({ params }: { params: Promise<{ id
         description: "Design brief updated successfully",
       });
       setIsEditing(false);
-      refetch();
+      // Invalidate queries for instant updates
+      utils.designBriefs.getById.invalidate({ id });
+      utils.designBriefs.getAll.invalidate();
     },
     onError: (error) => {
       toast({

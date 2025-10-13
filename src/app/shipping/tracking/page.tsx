@@ -31,7 +31,7 @@ export default function TrackingPage() {
   const [searchAttempted, setSearchAttempted] = useState(false);
 
   // Track shipment query
-  const { data: trackingData, isLoading, refetch } = api.shipping.trackShipment.useQuery(
+  const { data: trackingData, isLoading } = api.shipping.trackShipment.useQuery(
     {
       tracking_number: trackingNumber,
     },
@@ -40,10 +40,14 @@ export default function TrackingPage() {
     }
   );
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   const handleTrack = () => {
     if (trackingNumber.trim()) {
       setSearchAttempted(true);
-      refetch();
+      // Invalidate queries for instant updates
+      utils.shipping.trackShipment.invalidate();
     }
   };
 

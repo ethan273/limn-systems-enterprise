@@ -19,6 +19,7 @@ export interface EntityDetailHeaderAction {
   icon?: React.ComponentType<{ className?: string }>;
   onClick: () => void;
   variant?: 'default' | 'secondary' | 'outline' | 'destructive';
+  disabled?: boolean;
 }
 
 export interface EntityDetailHeaderProps {
@@ -171,6 +172,7 @@ export function EntityDetailHeader({
                   key={index}
                   onClick={action.onClick}
                   variant={action.variant || 'default'}
+                  disabled={action.disabled}
                   className={
                     action.variant === 'default' || !action.variant
                       ? 'btn-primary'

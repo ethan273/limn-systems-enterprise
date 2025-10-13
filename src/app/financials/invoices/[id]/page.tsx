@@ -75,10 +75,13 @@ export default function InvoiceDetailPage({ params }: PageProps) {
   const [activeTab, setActiveTab] = useState("overview");
 
   // Fetch invoice details
-  const { data: invoice, isLoading, refetch } = api.invoices.getById.useQuery(
+  const { data: invoice, isLoading } = api.invoices.getById.useQuery(
     { id: id },
     { enabled: !!id }
   );
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   // Update invoice status mutation
   const updateStatusMutation = api.invoices.updateStatus.useMutation({
@@ -87,7 +90,9 @@ export default function InvoiceDetailPage({ params }: PageProps) {
         title: "Success",
         description: "Invoice status updated successfully",
       });
-      refetch();
+      // Invalidate queries for instant updates
+      utils.invoices.getById.invalidate({ id });
+      utils.invoices.getAll.invalidate();
     },
     onError: (error) => {
       toast({

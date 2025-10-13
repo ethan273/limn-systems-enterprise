@@ -21,10 +21,10 @@ export async function POST(request: NextRequest) {
 
     // Remove push subscription from database using Prisma
     const { prisma } = await import('@/lib/db');
-    await prisma.pushSubscription.deleteMany({
+    await prisma.push_subscriptions.deleteMany({
       where: {
         endpoint: subscription.endpoint,
-        userId: user.id, // Ensure user can only delete their own subscriptions
+        user_id: user.id, // Ensure user can only delete their own subscriptions
       },
     });
 

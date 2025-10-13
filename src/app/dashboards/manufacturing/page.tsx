@@ -63,10 +63,13 @@ const INSIGHT_CLASSES = {
 export default function ManufacturingDashboardPage() {
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d');
 
-  const { data: manufacturing, isLoading, refetch } = api.dashboards.getManufacturing.useQuery(
+  const { data: manufacturing, isLoading } = api.dashboards.getManufacturing.useQuery(
     { dateRange },
     { refetchInterval: 60000 } // Auto-refresh every 60 seconds
   );
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   const { data: insights } = api.dashboards.getManufacturingInsights.useQuery();
 
@@ -111,7 +114,7 @@ export default function ManufacturingDashboardPage() {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => refetch()}
+            onClick={() => utils.dashboards.getManufacturing.invalidate()}
             title="Refresh data"
           >
             <RefreshCw className="icon-sm" />

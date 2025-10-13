@@ -38,8 +38,11 @@ export default function CatalogItemsPage() {
   const [itemToDelete, setItemToDelete] = useState<any>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   // Query items filtered by production_ready status
-  const { data, isLoading, refetch } = api.items.getAll.useQuery({
+  const { data, isLoading } = api.items.getAll.useQuery({
     limit: 100,
     offset: 0,
   });
@@ -55,8 +58,9 @@ export default function CatalogItemsPage() {
   const createMutation = api.items.create.useMutation({
     onSuccess: () => {
       toast.success("Catalog item created successfully");
+      // Invalidate queries for instant updates
+      utils.items.getAll.invalidate();
       queryClient.invalidateQueries({ queryKey: ['items'] });
-      refetch();
       setIsFormOpen(false);
     },
     onError: (error) => {
@@ -68,8 +72,9 @@ export default function CatalogItemsPage() {
   const deleteMutation = api.items.delete.useMutation({
     onSuccess: () => {
       toast.success("Catalog item deleted successfully");
+      // Invalidate queries for instant updates
+      utils.items.getAll.invalidate();
       queryClient.invalidateQueries({ queryKey: ['items'] });
-      refetch();
       setDeleteDialogOpen(false);
       setItemToDelete(null);
     },

@@ -809,7 +809,7 @@ export const dashboardsRouter = createTRPCRouter({
         : 0;
 
       // ========== REVENUE TREND (Monthly) ==========
-      const revenueTrend = [];
+      const revenueTrend: Array<{ date: string; revenue: number; orders: number }> = [];
       const monthsToShow = dateRange === '7d' ? 7 : dateRange === '30d' ? 30 : dateRange === '90d' ? 90 : 365;
 
       for (let i = monthsToShow - 1; i >= 0; i--) {
@@ -1127,7 +1127,7 @@ export const dashboardsRouter = createTRPCRouter({
       const capacityUtilization = activeOrders > 0 ? Math.min((activeOrders / maxCapacity) * 100, 100) : 0;
 
       // ========== PRODUCTION TREND (Daily) ==========
-      const productionTrend = [];
+      const productionTrend: Array<{ date: string; completed: number; started: number }> = [];
       const daysToShow = dateRange === '7d' ? 7 : dateRange === '30d' ? 30 : 90;
 
       for (let i = daysToShow - 1; i >= 0; i--) {
@@ -1469,7 +1469,7 @@ export const dashboardsRouter = createTRPCRouter({
         const avgInvoiceValue = invoices.length > 0 ? totalInvoiced / invoices.length : 0;
 
         // ========== CASH FLOW TREND ==========
-        const cashFlowTrend = [];
+        const cashFlowTrend: Array<{ date: string; revenue: number; expenses: number; netCashFlow: number }> = [];
         const daysToShow = dateRange === '7d' ? 7 : dateRange === '30d' ? 30 : dateRange === '90d' ? 90 : 365;
 
         for (let i = daysToShow - 1; i >= 0; i--) {
@@ -1769,7 +1769,7 @@ export const dashboardsRouter = createTRPCRouter({
         const designCoverage = totalProjects > 0 ? (projectsWithDesign / totalProjects) * 100 : 0;
 
         // ========== DESIGN ACTIVITY TREND ==========
-        const designActivityTrend = [];
+        const designActivityTrend: Array<{ date: string; files: number; revisions: number; shopDrawings: number }> = [];
         const daysToShow = dateRange === '7d' ? 7 : dateRange === '30d' ? 30 : 90;
 
         for (let i = daysToShow - 1; i >= 0; i--) {
@@ -2069,7 +2069,7 @@ export const dashboardsRouter = createTRPCRouter({
           });
 
         // ========== SHIPPING TREND ==========
-        const shippingTrend = [];
+        const shippingTrend: Array<{ date: string; shipped: number; delivered: number }> = [];
         const daysToShow = dateRange === '7d' ? 7 : dateRange === '30d' ? 30 : 90;
 
         for (let i = daysToShow - 1; i >= 0; i--) {
@@ -2323,7 +2323,7 @@ export const dashboardsRouter = createTRPCRouter({
           }));
 
         // ========== INSPECTION TREND ==========
-        const inspectionTrend = [];
+        const inspectionTrend: Array<{ date: string; passed: number; failed: number; total: number }> = [];
         const daysToShow = dateRange === '7d' ? 7 : dateRange === '30d' ? 30 : 90;
 
         for (let i = daysToShow - 1; i >= 0; i--) {
@@ -2577,7 +2577,7 @@ export const dashboardsRouter = createTRPCRouter({
           });
 
         // ========== PARTNER GROWTH TREND ==========
-        const partnerTrend = [];
+        const partnerTrend: Array<{ date: string; newPartners: number; activePartners: number }> = [];
         const daysToShow = dateRange === '7d' ? 7 : dateRange === '30d' ? 30 : 90;
 
         for (let i = daysToShow - 1; i >= 0; i--) {

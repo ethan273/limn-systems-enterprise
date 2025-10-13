@@ -48,11 +48,10 @@ test.describe('🔒 SECURITY TESTS @security', () => {
         expect(url.includes('/portal/login') || url.includes('error')).toBeTruthy();
 
         // Should not expose database errors
-        const hasDbError = await (
-      await page.locator('text=/database error/i').count() > 0 ||
-      await page.locator('text=/sql error/i').count() > 0
-    );
-        expect(hasDbError).toBe(0);
+        const dbErrorCount = await page.locator('text=/database error/i').count();
+        const sqlErrorCount = await page.locator('text=/sql error/i').count();
+        const hasDbError = dbErrorCount > 0 || sqlErrorCount > 0;
+        expect(hasDbError).toBe(false);
       }
     });
 
@@ -71,11 +70,10 @@ test.describe('🔒 SECURITY TESTS @security', () => {
         await page.waitForTimeout(1000);
 
         // Should handle safely - no database error
-        const hasError = await (
-      await page.locator('text=/database error/i').count() > 0 ||
-      await page.locator('text=/sql error/i').count() > 0
-    );
-        expect(hasError).toBe(0);
+        const dbErrorCount = await page.locator('text=/database error/i').count();
+        const sqlErrorCount = await page.locator('text=/sql error/i').count();
+        const hasError = dbErrorCount > 0 || sqlErrorCount > 0;
+        expect(hasError).toBe(false);
       }
     });
 

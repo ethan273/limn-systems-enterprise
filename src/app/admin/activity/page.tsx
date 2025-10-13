@@ -25,19 +25,19 @@ type LogType = 'admin' | 'security' | 'login';
 export default function ActivityLogsPage() {
   const [activeTab, setActiveTab] = useState<LogType>('admin');
 
-  const { data: adminLogs, isLoading: isLoadingAdmin, refetch: refetchAdmin } =
+  const { data: adminLogs, isLoading: isLoadingAdmin } =
     api.audit.getAdminLogs.useQuery(
       { limit: 50, offset: 0 },
       { enabled: activeTab === 'admin' }
     );
 
-  const { data: securityLogs, isLoading: isLoadingSecurity, refetch: refetchSecurity } =
+  const { data: securityLogs, isLoading: isLoadingSecurity } =
     api.audit.getSecurityLogs.useQuery(
       { limit: 50, offset: 0 },
       { enabled: activeTab === 'security' }
     );
 
-  const { data: loginLogs, isLoading: isLoadingLogin, refetch: refetchLogin } =
+  const { data: loginLogs, isLoading: isLoadingLogin } =
     api.audit.getLoginLogs.useQuery(
       { limit: 50, offset: 0 },
       { enabled: activeTab === 'login' }
@@ -45,10 +45,14 @@ export default function ActivityLogsPage() {
 
   const { data: stats } = api.audit.getActivityStats.useQuery({ days: 30 });
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   const handleRefresh = () => {
-    if (activeTab === 'admin') refetchAdmin();
-    if (activeTab === 'security') refetchSecurity();
-    if (activeTab === 'login') refetchLogin();
+    // Invalidate queries for instant updates
+    if (activeTab === 'admin') utils.audit.getAdminLogs.invalidate();
+    if (activeTab === 'security') utils.audit.getSecurityLogs.invalidate();
+    if (activeTab === 'login') utils.audit.getLoginLogs.invalidate();
   };
 
   const _isLoading =

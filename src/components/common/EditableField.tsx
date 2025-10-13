@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * EditableField Component
  *
@@ -20,9 +22,10 @@ import { cn } from '@/lib/utils';
 export interface EditableFieldProps {
   label: string;
   value: string | number | null | undefined;
-  type?: 'text' | 'email' | 'phone' | 'number' | 'textarea' | 'select';
+  type?: 'text' | 'email' | 'phone' | 'number' | 'textarea' | 'select' | 'date';
   isEditing: boolean;
   onChange?: (value: string) => void;
+  onSave?: (value: string) => void; // Alias for onChange for backward compatibility
   placeholder?: string;
   options?: { value: string; label: string }[];
   className?: string;
@@ -36,6 +39,7 @@ export function EditableField({
   type = 'text',
   isEditing,
   onChange,
+  onSave,
   placeholder,
   options = [],
   className,
@@ -51,7 +55,9 @@ export function EditableField({
 
   const handleChange = (newValue: string) => {
     setLocalValue(newValue);
+    // Support both onChange and onSave (onSave is for backward compatibility)
     onChange?.(newValue);
+    onSave?.(newValue);
   };
 
   const displayValue = value || '—';
@@ -89,7 +95,7 @@ export function EditableField({
             </Select>
           ) : (
             <Input
-              type={type === 'email' ? 'email' : type === 'phone' ? 'tel' : type === 'number' ? 'number' : 'text'}
+              type={type === 'email' ? 'email' : type === 'phone' ? 'tel' : type === 'number' ? 'number' : type === 'date' ? 'date' : 'text'}
               value={localValue}
               onChange={(e) => handleChange(e.target.value)}
               placeholder={placeholder || `Enter ${label.toLowerCase()}`}

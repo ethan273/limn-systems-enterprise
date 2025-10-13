@@ -66,11 +66,9 @@ export const projectsRouter = createTRPCRouter({
         throw new Error('Project not found');
       }
 
-      // Get orders related to this project (via order.project_id)
-      const orders = await ctx.db.orders.findMany({
-        where: { project_id: input.id },
-        orderBy: { created_at: 'desc' },
-      });
+      // TODO: Get orders related to this project when project_id field is restored to orders table
+      // For now, return empty array since orders table doesn't have project_id column
+      const orders: any[] = [];
 
       // Get all ordered items from these orders
       const orderIds = orders.map(o => o.id);

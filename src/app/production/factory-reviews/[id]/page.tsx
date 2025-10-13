@@ -69,9 +69,12 @@ export default function FactoryReviewDetailPage({ params }: PageProps) {
  const [newStatus, setNewStatus] = useState("");
 
  // Fetch session details
- const { data: session, isLoading, refetch } = api.factoryReviews.getSessionById.useQuery({
+ const { data: session, isLoading } = api.factoryReviews.getSessionById.useQuery({
  id: id,
  });
+
+ // Get tRPC utils for cache invalidation
+ const utils = api.useUtils();
 
  // Fetch action items
  const { data: actionItems } = api.factoryReviews.getActionItems.useQuery({
@@ -86,7 +89,9 @@ export default function FactoryReviewDetailPage({ params }: PageProps) {
  title: "Success",
  description: "Session status updated successfully",
  });
- refetch();
+ // Invalidate queries for instant updates
+ utils.factoryReviews.getSessionById.invalidate();
+ utils.factoryReviews.getAllSessions.invalidate();
  setStatusDialogOpen(false);
  },
  onError: (error) => {
@@ -105,7 +110,8 @@ export default function FactoryReviewDetailPage({ params }: PageProps) {
  title: "Success",
  description: "Comment added successfully",
  });
- refetch();
+ // Invalidate queries for instant updates
+ utils.factoryReviews.getSessionById.invalidate();
  setCommentDialogOpen(false);
  setCommentText("");
  setSelectedPhotoId(null);
@@ -127,7 +133,9 @@ export default function FactoryReviewDetailPage({ params }: PageProps) {
  title: "Success",
  description: "Action item resolved",
  });
- refetch();
+ // Invalidate queries for instant updates
+ utils.factoryReviews.getSessionById.invalidate();
+ utils.factoryReviews.getActionItems.invalidate();
  },
  onError: (error) => {
  toast({
@@ -145,7 +153,8 @@ export default function FactoryReviewDetailPage({ params }: PageProps) {
  title: "Success",
  description: "Photo deleted successfully",
  });
- refetch();
+ // Invalidate queries for instant updates
+ utils.factoryReviews.getSessionById.invalidate();
  },
  onError: (error) => {
  toast({

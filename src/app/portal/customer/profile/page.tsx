@@ -29,8 +29,11 @@ export default function CustomerProfilePage() {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success'>('idle');
 
   const { data: userInfo } = api.portal.getCurrentUser.useQuery();
-  const { data: portalSettings, refetch } = api.portal.getPortalSettings.useQuery();
+  const { data: portalSettings } = api.portal.getPortalSettings.useQuery();
   const updatePreferencesMutation = api.portal.updateNotificationPreferences.useMutation();
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   // Extract notification preferences
   const notificationPrefs = (portalSettings?.notification_preferences as any) || {
@@ -65,7 +68,8 @@ export default function CustomerProfilePage() {
         inAppNotifications,
       });
 
-      await refetch();
+      // Invalidate queries for instant updates
+      utils.portal.getPortalSettings.invalidate();
 
       setSaveStatus('success');
       setIsEditing(false);

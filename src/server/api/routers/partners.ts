@@ -248,6 +248,133 @@ export const partnersRouter = createTRPCRouter({
       return partner;
     }),
 
+  // Convenience method for creating a designer
+  createDesigner: protectedProcedure
+    .input(createPartnerSchema.omit({ type: true }))
+    .mutation(async ({ ctx, input }) => {
+      const partner = await ctx.db.partners.create({
+        data: {
+          ...input,
+          type: 'designer',
+        },
+        include: {
+          contacts: true,
+        },
+      });
+
+      return partner;
+    }),
+
+  // Convenience method for creating a factory
+  createFactory: protectedProcedure
+    .input(createPartnerSchema.omit({ type: true }))
+    .mutation(async ({ ctx, input }) => {
+      const partner = await ctx.db.partners.create({
+        data: {
+          ...input,
+          type: 'factory',
+        },
+        include: {
+          contacts: true,
+        },
+      });
+
+      return partner;
+    }),
+
+  // Alias methods for getAll filtered by type
+  getDesigners: protectedProcedure
+    .input(z.object({
+      status: z.enum(["active", "inactive", "pending_approval", "suspended", "all"]).optional().default("all"),
+      search: z.string().optional(),
+      limit: z.number().min(1).max(100).optional().default(50),
+      offset: z.number().min(0).optional().default(0),
+    }))
+    .query(async ({ ctx, input }) => {
+      const where: Record<string, unknown> = { type: 'designer' };
+
+      if (input.status !== "all") {
+        where.status = input.status;
+      }
+
+      if (input.search && input.search.trim() !== "") {
+        where.OR = [
+          { company_name: { contains: input.search, mode: "insensitive" } },
+          { business_name: { contains: input.search, mode: "insensitive" } },
+          { primary_contact: { contains: input.search, mode: "insensitive" } },
+          { primary_email: { contains: input.search, mode: "insensitive" } },
+        ];
+      }
+
+      const [partners, total] = await Promise.all([
+        ctx.db.partners.findMany({
+          where,
+          take: input.limit,
+          skip: input.offset,
+          orderBy: { created_at: "desc" },
+          include: {
+            contacts: {
+              where: { active: true },
+              orderBy: { is_primary: "desc" },
+            },
+          },
+        }),
+        ctx.db.partners.count({ where }),
+      ]);
+
+      return {
+        partners,
+        total,
+        hasMore: input.offset + input.limit < total,
+      };
+    }),
+
+  getFactories: protectedProcedure
+    .input(z.object({
+      status: z.enum(["active", "inactive", "pending_approval", "suspended", "all"]).optional().default("all"),
+      search: z.string().optional(),
+      limit: z.number().min(1).max(100).optional().default(50),
+      offset: z.number().min(0).optional().default(0),
+    }))
+    .query(async ({ ctx, input }) => {
+      const where: Record<string, unknown> = { type: 'factory' };
+
+      if (input.status !== "all") {
+        where.status = input.status;
+      }
+
+      if (input.search && input.search.trim() !== "") {
+        where.OR = [
+          { company_name: { contains: input.search, mode: "insensitive" } },
+          { business_name: { contains: input.search, mode: "insensitive" } },
+          { primary_contact: { contains: input.search, mode: "insensitive" } },
+          { primary_email: { contains: input.search, mode: "insensitive" } },
+        ];
+      }
+
+      const [partners, total] = await Promise.all([
+        ctx.db.partners.findMany({
+          where,
+          take: input.limit,
+          skip: input.offset,
+          orderBy: { created_at: "desc" },
+          include: {
+            contacts: {
+              where: { active: true },
+              orderBy: { is_primary: "desc" },
+            },
+          },
+        }),
+        ctx.db.partners.count({ where }),
+      ]);
+
+      return {
+        partners,
+        total,
+        hasMore: input.offset + input.limit < total,
+      };
+    }),
+
   // Update partner
   update: protectedProcedure
     .input(updatePartnerSchema)

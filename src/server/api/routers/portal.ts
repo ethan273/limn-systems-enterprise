@@ -89,7 +89,7 @@ const enforcePortalAccessByType = async (ctx: Context, requiredType?: string) =>
   // Login tracking should happen at authentication time, not on every API call
 
   // Load entity based on type
-  let entity = null;
+  let entity: any = null;
   if (portalAccess.entity_type === 'customer' && portalAccess.entity_id) {
     entity = await prisma.customers.findUnique({
       where: { id: portalAccess.entity_id },
@@ -809,7 +809,7 @@ export const portalRouter = createTRPCRouter({
       }
 
       // Build timeline from order data
-      const timeline = [];
+      const timeline: Array<{ date: Date | null; title: string; description: string; status: string; icon: string }> = [];
 
       // Order created
       timeline.push({

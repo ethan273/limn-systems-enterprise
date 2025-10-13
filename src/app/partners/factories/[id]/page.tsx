@@ -125,7 +125,7 @@ export default function FactoryDetailPage({ params }: FactoryDetailPageProps) {
             <CardTitle className="card-title-sm">Production Orders</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value">{factory._count.production_orders}</div>
+            <div className="stat-value">{factory._count?.production_orders || 0}</div>
             <p className="stat-label">Total orders</p>
           </CardContent>
         </Card>
@@ -157,7 +157,7 @@ export default function FactoryDetailPage({ params }: FactoryDetailPageProps) {
             <CardTitle className="card-title-sm">Contacts</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value">{factory._count.contacts}</div>
+            <div className="stat-value">{factory._count?.contacts || 0}</div>
             <p className="stat-label">team members</p>
           </CardContent>
         </Card>
@@ -171,11 +171,11 @@ export default function FactoryDetailPage({ params }: FactoryDetailPageProps) {
           </TabsTrigger>
           <TabsTrigger value="contacts" className="tabs-trigger">
             <Users className="icon-sm" aria-hidden="true" />
-            Contacts ({factory._count.contacts})
+            Contacts ({factory._count?.contacts || 0})
           </TabsTrigger>
           <TabsTrigger value="documents" className="tabs-trigger">
             <FileText className="icon-sm" aria-hidden="true" />
-            Documents ({factory._count.documents})
+            Documents ({factory._count?.documents || 0})
           </TabsTrigger>
           <TabsTrigger value="performance" className="tabs-trigger">
             <TrendingUp className="icon-sm" aria-hidden="true" />
@@ -183,7 +183,7 @@ export default function FactoryDetailPage({ params }: FactoryDetailPageProps) {
           </TabsTrigger>
           <TabsTrigger value="orders" className="tabs-trigger">
             <Package className="icon-sm" aria-hidden="true" />
-            Production Orders ({factory._count.production_orders})
+            Production Orders ({factory._count?.production_orders || 0})
           </TabsTrigger>
         </TabsList>
 

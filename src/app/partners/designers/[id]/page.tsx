@@ -125,7 +125,7 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
             <CardTitle className="card-title-sm">Design Projects</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value">{designer._count.production_orders}</div>
+            <div className="stat-value">{designer._count?.production_orders || 0}</div>
             <p className="stat-label">Total projects</p>
           </CardContent>
         </Card>
@@ -157,7 +157,7 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
             <CardTitle className="card-title-sm">Contacts</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value">{designer._count.contacts}</div>
+            <div className="stat-value">{designer._count?.contacts || 0}</div>
             <p className="stat-label">team members</p>
           </CardContent>
         </Card>
@@ -171,11 +171,11 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
           </TabsTrigger>
           <TabsTrigger value="contacts" className="tabs-trigger">
             <Users className="icon-sm" aria-hidden="true" />
-            Contacts ({designer._count.contacts})
+            Contacts ({designer._count?.contacts || 0})
           </TabsTrigger>
           <TabsTrigger value="documents" className="tabs-trigger">
             <FileText className="icon-sm" aria-hidden="true" />
-            Documents ({designer._count.documents})
+            Documents ({designer._count?.documents || 0})
           </TabsTrigger>
           <TabsTrigger value="performance" className="tabs-trigger">
             <TrendingUp className="icon-sm" aria-hidden="true" />
@@ -183,7 +183,7 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
           </TabsTrigger>
           <TabsTrigger value="projects" className="tabs-trigger">
             <Package className="icon-sm" aria-hidden="true" />
-            Design Projects ({designer._count.production_orders})
+            Design Projects ({designer._count?.production_orders || 0})
           </TabsTrigger>
         </TabsList>
 

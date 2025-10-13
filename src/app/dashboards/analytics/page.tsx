@@ -46,10 +46,13 @@ const STATUS_COLORS: Record<string, string> = {
 export default function AnalyticsDashboardPage() {
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | 'year' | 'all'>('30d');
 
-  const { data: analytics, isLoading, refetch } = api.dashboards.getAnalytics.useQuery(
+  const { data: analytics, isLoading } = api.dashboards.getAnalytics.useQuery(
     { dateRange },
     { refetchInterval: 60000 } // Auto-refresh every 60 seconds
   );
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   const { data: insights } = api.dashboards.getAnalyticsInsights.useQuery();
 
@@ -102,7 +105,7 @@ export default function AnalyticsDashboardPage() {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => refetch()}
+            onClick={() => utils.dashboards.getAnalytics.invalidate()}
             title="Refresh data"
           >
             <RefreshCw className="h-4 w-4" />

@@ -187,7 +187,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Redirect to success page
-    const redirectUrl = oauthState.redirect_url || '/admin/integrations/quickbooks';
+    const redirectUrl = (oauthState as any).redirect_url || '/admin/integrations/quickbooks';
     return NextResponse.redirect(new URL(`${redirectUrl}?success=true`, request.url));
   } catch (error) {
     console.error('[QuickBooks Callback] Unexpected error:', error);

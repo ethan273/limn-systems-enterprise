@@ -1,0 +1,289 @@
+"use client";
+
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { api } from "@/lib/api/client";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import {
+  ArrowLeft,
+  Loader2,
+  Factory,
+  Plus,
+  AlertCircle,
+  Calendar,
+  MapPin,
+  Users,
+  Target
+} from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+
+export default function NewFactoryReviewSessionPage() {
+  const router = useRouter();
+  const utils = api.useUtils();
+  const [sessionName, setSessionName] = useState("");
+  const [prototypeProductionId, setPrototypeProductionId] = useState("none");
+  const [reviewDate, setReviewDate] = useState("");
+  const [location, setLocation] = useState("");
+  const [attendees, setAttendees] = useState("");
+  const [objectives, setObjectives] = useState("");
+
+  // Fetch prototype production
+  const { data: prototypeProductionData, isLoading: prototypeProductionLoading } = api.prototypeProduction.getAll.useQuery({
+    limit: 100,
+  });
+
+  // Create factory review session mutation
+  const createSessionMutation = api.factoryReviews.createSession.useMutation({
+    onSuccess: async (data) => {
+      toast({
+        title: "Factory Review Session Created",
+        description: data.message,
+      });
+      // Invalidate cache
+      await utils.factoryReviews.getAllSessions.invalidate();
+      router.push(`/production/factory-reviews/${data.session.id}`);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create factory review session",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleBack = () => {
+    router.push("/production/factory-reviews");
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Validation
+    if (!sessionName.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter a session name.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (prototypeProductionId === "none") {
+      toast({
+        title: "Validation Error",
+        description: "Please select a prototype production.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!reviewDate) {
+      toast({
+        title: "Validation Error",
+        description: "Please select a review date.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Create factory review session
+    createSessionMutation.mutate({
+      sessionName: sessionName.trim(),
+      prototypeProductionId,
+      reviewDate,
+      location: location.trim() || undefined,
+      attendees: attendees.trim() || undefined,
+      objectives: objectives.trim() || undefined,
+    });
+  };
+
+  const isFormValid = sessionName.trim() && prototypeProductionId !== "none" && reviewDate;
+
+  return (
+    <div className="container mx-auto p-6 max-w-3xl">
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleBack}
+              disabled={createSessionMutation.isPending}
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
+              Back
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold">Create New Factory Review Session</h1>
+              <p className="text-muted-foreground">Schedule an on-site prototype inspection</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Auto-generation Notice */}
+        <Alert>
+          <AlertCircle className="h-4 w-4" aria-hidden="true" />
+          <AlertDescription>
+            The session number will be automatically generated when you create the session.
+          </AlertDescription>
+        </Alert>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit}>
+          <Card>
+            <CardHeader>
+              <CardTitle>Session Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Session Name */}
+              <div className="space-y-2">
+                <Label htmlFor="session-name" className="flex items-center gap-2">
+                  <Factory className="w-4 h-4" aria-hidden="true" />
+                  Session Name
+                  <span className="text-destructive ml-1">*</span>
+                </Label>
+                <Input
+                  id="session-name"
+                  placeholder="Enter session name"
+                  value={sessionName}
+                  onChange={(e) => setSessionName(e.target.value)}
+                  disabled={createSessionMutation.isPending}
+                />
+              </div>
+
+              {/* Prototype Production */}
+              <div className="space-y-2">
+                <Label htmlFor="prototype-production">
+                  Prototype Production
+                  <span className="text-destructive ml-1">*</span>
+                </Label>
+                <Select
+                  value={prototypeProductionId}
+                  onValueChange={setPrototypeProductionId}
+                  disabled={prototypeProductionLoading || createSessionMutation.isPending}
+                >
+                  <SelectTrigger id="prototype-production">
+                    <SelectValue placeholder="Select prototype production" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Select a prototype</SelectItem>
+                    {prototypeProductionData?.items?.map((proto: { id: string; prototypes?: { name: string; prototype_number?: string } }) => (
+                      <SelectItem key={proto.id} value={proto.id}>
+                        {proto.prototypes?.name || 'Unnamed'} {proto.prototypes?.prototype_number ? `(${proto.prototypes.prototype_number})` : ''}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Review Date */}
+              <div className="space-y-2">
+                <Label htmlFor="review-date" className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4" aria-hidden="true" />
+                  Review Date
+                  <span className="text-destructive ml-1">*</span>
+                </Label>
+                <Input
+                  id="review-date"
+                  type="date"
+                  value={reviewDate}
+                  onChange={(e) => setReviewDate(e.target.value)}
+                  disabled={createSessionMutation.isPending}
+                />
+              </div>
+
+              {/* Location */}
+              <div className="space-y-2">
+                <Label htmlFor="location" className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4" aria-hidden="true" />
+                  Location (Optional)
+                </Label>
+                <Input
+                  id="location"
+                  placeholder="Enter factory location"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  disabled={createSessionMutation.isPending}
+                />
+              </div>
+
+              {/* Attendees */}
+              <div className="space-y-2">
+                <Label htmlFor="attendees" className="flex items-center gap-2">
+                  <Users className="w-4 h-4" aria-hidden="true" />
+                  Attendees (Optional)
+                </Label>
+                <Textarea
+                  id="attendees"
+                  placeholder="List attendees (e.g., John Smith, Jane Doe, Factory Manager)"
+                  value={attendees}
+                  onChange={(e) => setAttendees(e.target.value)}
+                  disabled={createSessionMutation.isPending}
+                  rows={3}
+                />
+              </div>
+
+              {/* Objectives */}
+              <div className="space-y-2">
+                <Label htmlFor="objectives" className="flex items-center gap-2">
+                  <Target className="w-4 h-4" aria-hidden="true" />
+                  Objectives (Optional)
+                </Label>
+                <Textarea
+                  id="objectives"
+                  placeholder="Describe review objectives and goals..."
+                  value={objectives}
+                  onChange={(e) => setObjectives(e.target.value)}
+                  disabled={createSessionMutation.isPending}
+                  rows={4}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Actions */}
+          <div className="flex items-center justify-between mt-6">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleBack}
+              disabled={createSessionMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={!isFormValid || createSessionMutation.isPending}
+            >
+              {createSessionMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4 mr-2" aria-hidden="true" />
+                  Create Review Session
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}

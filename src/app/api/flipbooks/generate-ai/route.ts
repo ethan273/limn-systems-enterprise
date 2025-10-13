@@ -41,8 +41,8 @@ export async function POST(request: NextRequest) {
     const supabase = getSupabaseAdmin();
 
     // Fetch product data from public schema
-    const { data: products, error: productsError } = await supabase
-      .schema("public")
+    const { data: products, error: productsError } = await (supabase
+      .schema("public" as any) as any)
       .from("products")
       .select("id, name, description, category, base_price")
       .in("id", productIds);
@@ -78,8 +78,8 @@ export async function POST(request: NextRequest) {
     });
 
     // Create flipbook record in flipbook schema
-    const { data: flipbook, error: flipbookError } = await supabase
-      .schema("flipbook")
+    const { data: flipbook, error: flipbookError } = await (supabase
+      .schema("flipbook" as any) as any)
       .from("flipbooks")
       .insert({
         title: layout.title,
@@ -146,8 +146,8 @@ export async function GET(request: NextRequest) {
 
     const supabase = getSupabaseAdmin();
 
-    const { data: flipbook, error } = await supabase
-      .schema("flipbook")
+    const { data: flipbook, error } = await (supabase
+      .schema("flipbook" as any) as any)
       .from("flipbooks")
       .select("id, title, description, status, page_count, created_at")
       .eq("id", flipbookId)

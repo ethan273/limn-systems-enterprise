@@ -49,15 +49,19 @@ export default function CollectionsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [collectionToDelete, setCollectionToDelete] = useState<Collection | null>(null);
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   // Query collections
-  const { data: collections = [], isLoading, refetch } = api.products.getAllCollections.useQuery();
+  const { data: collections = [], isLoading } = api.products.getAllCollections.useQuery();
 
   // Mutations
   const createMutation = api.products.createCollection.useMutation({
     onSuccess: () => {
       toast.success("Collection created successfully");
       setIsCreateDialogOpen(false);
-      refetch();
+      // Invalidate queries for instant updates
+      utils.products.getAllCollections.invalidate();
     },
     onError: (error) => {
       toast.error("Failed to create collection: " + error.message);
@@ -68,7 +72,8 @@ export default function CollectionsPage() {
     onSuccess: () => {
       toast.success("Collection updated successfully");
       setIsEditDialogOpen(false);
-      refetch();
+      // Invalidate queries for instant updates
+      utils.products.getAllCollections.invalidate();
     },
     onError: (error) => {
       toast.error("Failed to update collection: " + error.message);
@@ -78,7 +83,8 @@ export default function CollectionsPage() {
   const deleteMutation = api.products.deleteCollection.useMutation({
     onSuccess: () => {
       toast.success("Collection deleted successfully");
-      refetch();
+      // Invalidate queries for instant updates
+      utils.products.getAllCollections.invalidate();
       setDeleteDialogOpen(false);
       setCollectionToDelete(null);
     },

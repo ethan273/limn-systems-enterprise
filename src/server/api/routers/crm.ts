@@ -143,6 +143,34 @@ const baseCustomersRouter = createCrudRouter({
 export const customersRouter = createTRPCRouter({
   ...baseCustomersRouter._def.procedures,
 
+  // Alias for getAll to match expected API
+  list: publicProcedure
+    .input(z.object({
+      limit: z.number().min(1).max(100).default(20),
+      offset: z.number().min(0).default(0),
+      orderBy: z.record(z.enum(['asc', 'desc'])).optional(),
+      include: z.record(z.boolean()).optional(),
+    }).partial().default({ limit: 20, offset: 0 }))
+    .query(async ({ ctx, input }) => {
+      const { limit = 20, offset = 0, orderBy } = input;
+
+      const [items, total] = await Promise.all([
+        ctx.db.customers.findMany({
+          take: limit,
+          skip: offset,
+          orderBy: orderBy || { name: 'asc' },
+        }),
+        ctx.db.customers.count(),
+      ]);
+
+      return {
+        items,
+        total,
+        hasMore: offset + limit < total,
+        nextOffset: offset + limit < total ? offset + limit : null,
+      };
+    }),
+
   // Get customer by ID with all related data for detail page
   getById: publicProcedure
     .input(z.object({
@@ -203,7 +231,8 @@ export const customersRouter = createTRPCRouter({
       });
 
       // Calculate financial analytics
-      const totalOrderValue = customer.orders.reduce((sum: number, order: orders) =>
+      const orders = customer.orders || [];
+      const totalOrderValue = orders.reduce((sum: number, order: orders) =>
         sum + (order.total_amount ? Number(order.total_amount) : 0), 0
       );
 
@@ -229,14 +258,14 @@ export const customersRouter = createTRPCRouter({
         activities,
         payments,
         analytics: {
-          totalOrders: customer.orders.length,
+          totalOrders: orders.length,
           totalProjects: projects.length,
           totalProductionOrders: productionOrders.length,
           totalOrderValue,
           totalPaid,
           outstandingBalance,
           lifetimeValue: totalOrderValue,
-          averageOrderValue: customer.orders.length > 0 ? totalOrderValue / customer.orders.length : 0,
+          averageOrderValue: orders.length > 0 ? totalOrderValue / orders.length : 0,
           totalActivities,
           completedActivities,
           daysAsCustomer,
@@ -258,6 +287,34 @@ const baseLeadsRouter = createCrudRouter({
 
 export const leadsRouter = createTRPCRouter({
   ...baseLeadsRouter._def.procedures,
+
+  // Alias for getAll to match expected API
+  list: publicProcedure
+    .input(z.object({
+      limit: z.number().min(1).max(100).default(20),
+      offset: z.number().min(0).default(0),
+      orderBy: z.record(z.enum(['asc', 'desc'])).optional(),
+      include: z.record(z.boolean()).optional(),
+    }).partial().default({ limit: 20, offset: 0 }))
+    .query(async ({ ctx, input }) => {
+      const { limit = 20, offset = 0, orderBy } = input;
+
+      const [items, total] = await Promise.all([
+        ctx.db.leads.findMany({
+          take: limit,
+          skip: offset,
+          orderBy: orderBy || { created_at: 'desc' },
+        }),
+        ctx.db.leads.count(),
+      ]);
+
+      return {
+        items,
+        total,
+        hasMore: offset + limit < total,
+        nextOffset: offset + limit < total ? offset + limit : null,
+      };
+    }),
 
   // Get lead by ID with all related data for detail page
   getById: publicProcedure
@@ -382,45 +439,56 @@ export const leadsRouter = createTRPCRouter({
   // Get pipeline stats
   getPipelineStats: publicProcedure
     .query(async ({ ctx }) => {
-      // Get all leads
-      const allLeads = await ctx.db.leads.findMany();
+      try {
+        // Get all leads
+        const allLeads = await ctx.db.leads.findMany();
 
-      // Group by status
-      const statusStats = await ctx.db.leads.groupBy({
-        by: ['status'],
-        _count: {
-          id: true,
-        },
-      });
+        // Group by status
+        const statusStats = await ctx.db.leads.groupBy({
+          by: ['status'],
+          _count: {
+            id: true,
+          },
+        });
 
-      // Group by prospect_status (only leads with prospect_status set)
-      const prospectStats = await ctx.db.leads.groupBy({
-        by: ['prospect_status'],
-        where: {
-          prospect_status: { not: null },
-        },
-        _count: {
-          id: true,
-        },
-      });
+        // Group by prospect_status (only leads with prospect_status set)
+        const prospectStats = await ctx.db.leads.groupBy({
+          by: ['prospect_status'],
+          where: {
+            prospect_status: { not: null },
+          },
+          _count: {
+            id: true,
+          },
+        });
 
-      // Calculate total value
-      const totalValueSum = allLeads.reduce((sum, lead) => {
-        return sum + (lead.value ? Number(lead.value) : 0);
-      }, 0);
+        // Calculate total value
+        const totalValueSum = allLeads.reduce((sum, lead) => {
+          return sum + (lead.lead_value ? Number(lead.lead_value) : 0);
+        }, 0);
 
-      return {
-        statusStats: statusStats.map(stat => ({
-          status: stat.status,
-          _count: stat._count.id,
-        })),
-        prospectStats: prospectStats.map(stat => ({
-          prospect_status: stat.prospect_status,
-          _count: stat._count.id,
-        })),
-        totalValue: totalValueSum,
-        totalLeads: allLeads.length,
-      };
+        return {
+          statusStats: statusStats.map(stat => ({
+            status: stat.status,
+            _count: stat._count?.id || 0,
+          })),
+          prospectStats: prospectStats.map(stat => ({
+            prospect_status: stat.prospect_status,
+            _count: stat._count?.id || 0,
+          })),
+          totalValue: totalValueSum,
+          totalLeads: allLeads.length,
+        };
+      } catch (error) {
+        console.error('[getPipelineStats] Error:', error);
+        // Return safe defaults
+        return {
+          statusStats: [],
+          prospectStats: [],
+          totalValue: 0,
+          totalLeads: 0,
+        };
+      }
     }),
 
   // Convert lead to client
@@ -443,15 +511,30 @@ export const leadsRouter = createTRPCRouter({
           throw new Error('Lead not found');
         }
 
-        // Create client (using customers table directly)
-        const client = await tx.customers.create({
-          data: {
-            ...input.clientData,
-            type: 'business',
-            status: 'active',
-            created_at: new Date(),
-          },
-        });
+        // Check if customer already exists with this email
+        let client;
+        if (input.clientData.email) {
+          const existingCustomer = await (tx.customers as any).findFirst({
+            where: { email: input.clientData.email },
+          });
+
+          if (existingCustomer) {
+            // Link to existing customer instead of creating new one
+            client = existingCustomer;
+          }
+        }
+
+        // Create new customer only if one doesn't exist
+        if (!client) {
+          client = await tx.customers.create({
+            data: {
+              ...input.clientData,
+              type: 'business',
+              status: 'active',
+              created_at: new Date(),
+            },
+          });
+        }
 
         // Update lead status and link to customer
         const updatedLead = await tx.leads.update({

@@ -69,10 +69,13 @@ const CHART_COLORS = [
 export default function PartnerDashboardPage() {
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d');
 
-  const { data: partners, isLoading, refetch } = api.dashboards.getPartners.useQuery(
+  const { data: partners, isLoading } = api.dashboards.getPartners.useQuery(
     { dateRange },
     { refetchInterval: 60000 } // Auto-refresh every 60 seconds
   );
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   const { data: insights } = api.dashboards.getPartnerInsights.useQuery();
 
@@ -117,7 +120,7 @@ export default function PartnerDashboardPage() {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => refetch()}
+            onClick={() => utils.dashboards.getPartners.invalidate()}
             title="Refresh data"
           >
             <RefreshCw className="h-4 w-4" />

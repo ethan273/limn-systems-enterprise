@@ -43,6 +43,9 @@ export default function TaskAssignedUsers({ taskId, assignedUsers = [], onUpdate
  // Local state for assigned users - this would be managed by the parent component in production
  const [localAssignedUsers, setLocalAssignedUsers] = useState<string[]>(assignedUsers);
 
+ // Get utils for cache invalidation
+ const utils = api.useUtils();
+
  // Get all available users
  const { data: allUsersData, isLoading: isLoadingAllUsers } = api.users.getAllUsers.useQuery({
  limit: 100,
@@ -58,6 +61,10 @@ export default function TaskAssignedUsers({ taskId, assignedUsers = [], onUpdate
 
  const updateAssignmentMutation = api.tasks.update.useMutation({
  onSuccess: () => {
+ // Invalidate relevant queries to refresh the data
+ utils.tasks.getMyTasks.invalidate();
+ utils.tasks.getAllTasks.invalidate();
+ utils.tasks.getFullDetails.invalidate({ id: taskId });
  onUpdate?.();
  },
  });

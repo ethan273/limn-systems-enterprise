@@ -242,7 +242,7 @@ export default function QCInspectionsPage() {
           {
             label: "New Inspection",
             icon: Plus,
-            onClick: () => router.push("/qc/new"),
+            onClick: () => router.push("/production/qc/new"),
           },
         ]}
       />
@@ -259,7 +259,7 @@ export default function QCInspectionsPage() {
           action={{
             label: "New Inspection",
             icon: Plus,
-            onClick: () => router.push("/qc/new"),
+            onClick: () => router.push("/production/qc/new"),
           }}
         />
       ) : (
@@ -267,7 +267,7 @@ export default function QCInspectionsPage() {
           data={filteredInspections}
           columns={columns}
           filters={filters}
-          onRowClick={(row) => router.push(`/qc/${row.id}`)}
+          onRowClick={(row) => router.push(`/production/qc/${row.id}`)}
           emptyState={{
             icon: ClipboardCheck,
             title: "No inspections found",

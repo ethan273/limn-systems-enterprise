@@ -36,14 +36,17 @@ export default function ConceptDetailPage({ params }: PageProps) {
   const conceptId = resolvedParams.id;
   const [activeTab, setActiveTab] = useState("overview");
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   // Query concept data
-  const { data: concept, isLoading, refetch } = api.products.getConceptById.useQuery(
+  const { data: concept, isLoading } = api.products.getConceptById.useQuery(
     { id: conceptId },
     { enabled: !!conceptId }
   );
 
   // Query media data
-  const { data: media = [], refetch: refetchMedia } = api.documents.getByEntity.useQuery(
+  const { data: media = [] } = api.documents.getByEntity.useQuery(
     {
       entityType: "concept",
       entityId: conceptId,
@@ -54,8 +57,9 @@ export default function ConceptDetailPage({ params }: PageProps) {
   );
 
   const handleMediaRefresh = () => {
-    void refetch();
-    void refetchMedia();
+    // Invalidate queries for instant updates
+    utils.products.getConceptById.invalidate({ id: conceptId });
+    utils.documents.getByEntity.invalidate({ entityType: "concept", entityId: conceptId });
   };
 
   if (isLoading) {

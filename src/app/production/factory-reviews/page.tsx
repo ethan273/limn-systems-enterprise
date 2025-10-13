@@ -183,7 +183,7 @@ export default function FactoryReviewsPage() {
           {
             label: 'New Review Session',
             icon: Plus,
-            onClick: () => router.push("/factory-reviews/new"),
+            onClick: () => router.push("/production/factory-reviews/new"),
           },
         ]}
       />
@@ -200,7 +200,7 @@ export default function FactoryReviewsPage() {
           action={!_searchQuery ? {
             label: 'New Review Session',
             icon: Plus,
-            onClick: () => router.push("/factory-reviews/new"),
+            onClick: () => router.push("/production/factory-reviews/new"),
           } : undefined}
         />
       ) : (
@@ -208,7 +208,7 @@ export default function FactoryReviewsPage() {
           data={filteredSessions}
           columns={columns}
           filters={filters}
-          onRowClick={(row) => router.push(`/factory-reviews/${row.id}`)}
+          onRowClick={(row) => router.push(`/production/factory-reviews/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}
           emptyState={{
             icon: Factory,

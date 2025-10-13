@@ -325,7 +325,15 @@ export const apiCredentialsRouter = createTRPCRouter({
         where: { is_active: true },
       });
 
-      const alerts = [];
+      const alerts: Array<{
+        type: string;
+        severity: string;
+        service: string;
+        message: string;
+        daysOverdue?: number;
+        daysUntilExpiry?: number;
+        daysOld?: number;
+      }> = [];
       let securityScore = 100;
 
       for (const cred of allCredentials) {

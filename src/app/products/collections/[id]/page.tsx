@@ -34,12 +34,15 @@ export default function CollectionDetailPage({ params }: PageProps) {
   const collectionId = resolvedParams.id;
   const [activeTab, setActiveTab] = useState("overview");
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   // Query collection data
-  const { data: collections, isLoading, refetch } = api.products.getAllCollections.useQuery();
+  const { data: collections, isLoading } = api.products.getAllCollections.useQuery();
   const collection = collections?.find((c: any) => c.id === collectionId);
 
   // Query media data
-  const { data: media = [], refetch: refetchMedia } = api.documents.getByEntity.useQuery(
+  const { data: media = [] } = api.documents.getByEntity.useQuery(
     {
       entityType: "collection",
       entityId: collectionId,
@@ -50,8 +53,9 @@ export default function CollectionDetailPage({ params }: PageProps) {
   );
 
   const handleMediaRefresh = () => {
-    void refetch();
-    void refetchMedia();
+    // Invalidate queries for instant updates
+    utils.products.getAllCollections.invalidate();
+    utils.documents.getByEntity.invalidate({ entityType: "collection", entityId: collectionId });
   };
 
   if (isLoading) {

@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
       .order("page_number", { ascending: false })
       .limit(1);
 
-    let currentPageNumber = existingPages?.[0]?.page_number || 0;
+    let currentPageNumber = (existingPages as any)?.[0]?.page_number || 0;
 
     // Process and upload each image
     const pageRecords = [];
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
         image_url: pageUpload.cdnUrl,
         thumbnail_url: thumbnailUpload.cdnUrl,
         transition_type: "PAGE_TURN",
-      });
+      } as any);
     }
 
     // Insert page records
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
       .update({
         page_count: currentPageNumber,
         updated_at: new Date().toISOString(),
-      })
+      } as any)
       .eq("id", flipbookId);
 
     if (updateError) {

@@ -69,10 +69,13 @@ export default function PaymentDetailPage({ params }: PageProps) {
   const router = useRouter();
 
   // Fetch payment details
-  const { data: payment, isLoading, refetch } = api.payments.getById.useQuery(
+  const { data: payment, isLoading } = api.payments.getById.useQuery(
     { id: id },
     { enabled: !!id }
   );
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   // Update payment status mutation
   const updateStatusMutation = api.payments.updateStatus.useMutation({
@@ -81,7 +84,9 @@ export default function PaymentDetailPage({ params }: PageProps) {
         title: "Success",
         description: "Payment status updated successfully",
       });
-      refetch();
+      // Invalidate queries for instant updates
+      utils.payments.getById.invalidate({ id });
+      utils.payments.getAll.invalidate();
     },
     onError: (error) => {
       toast({

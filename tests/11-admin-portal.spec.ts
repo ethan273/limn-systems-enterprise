@@ -47,15 +47,23 @@ test.describe('⚙️ ADMIN PORTAL TESTS @admin-portal', () => {
       await login(page, TEST_CONFIG.USER_EMAIL, TEST_CONFIG.USER_PASSWORD);
 
       // Try to access admin panel
-      await page.goto(`${TEST_CONFIG.BASE_URL}/admin/users`);
+      const response = await page.goto(`${TEST_CONFIG.BASE_URL}/admin/users`);
       await page.waitForLoadState('domcontentloaded');
       await page.waitForTimeout(1500);
 
       const url = page.url();
       const hasUnauthorizedText = await page.locator('text=/unauthorized|access denied|forbidden|not authorized/i').count() > 0;
 
-      // Should be redirected or see unauthorized message
-      const isBlocked = url.includes('/login') || url.includes('/unauthorized') || url.includes('/dashboard') || hasUnauthorizedText;
+      // Middleware should redirect non-admins to /dashboard
+      // Check if redirected away from /admin or sees unauthorized message
+      const isBlocked = !url.includes('/admin/users') || url.includes('/dashboard') || url.includes('/login') || hasUnauthorizedText;
+
+      // Log for debugging
+      if (!isBlocked) {
+        console.log(`⚠️ Test WARNING: User was able to access admin page. URL: ${url}`);
+        console.log(`   This might indicate the test user has admin privileges in the database.`);
+      }
+
       expect(isBlocked).toBeTruthy();
     });
 

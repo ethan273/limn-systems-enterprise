@@ -38,8 +38,11 @@ export default function ConceptsPage() {
   const [itemToDelete, setItemToDelete] = useState<any>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   // Query concepts
-  const { data, isLoading, refetch } = api.products.getAllConcepts.useQuery();
+  const { data, isLoading } = api.products.getAllConcepts.useQuery();
 
   const conceptItems = data || [];
 
@@ -47,8 +50,9 @@ export default function ConceptsPage() {
   const createMutation = api.products.createConcept.useMutation({
     onSuccess: () => {
       toast.success("Concept created successfully");
+      // Invalidate queries for instant updates
+      utils.products.getAllConcepts.invalidate();
       queryClient.invalidateQueries({ queryKey: ['products'] });
-      refetch();
       setIsFormOpen(false);
     },
     onError: (error) => {
@@ -60,8 +64,9 @@ export default function ConceptsPage() {
   const deleteMutation = api.products.deleteConcept.useMutation({
     onSuccess: () => {
       toast.success("Concept deleted successfully");
+      // Invalidate queries for instant updates
+      utils.products.getAllConcepts.invalidate();
       queryClient.invalidateQueries({ queryKey: ['products'] });
-      refetch();
       setDeleteDialogOpen(false);
       setItemToDelete(null);
     },

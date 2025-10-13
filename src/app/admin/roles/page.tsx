@@ -50,10 +50,10 @@ export default function RolesManagementPage() {
   });
 
   // Fetch role statistics
-  const { data: roleStats, refetch: refetchStats } = api.admin.roles.getRoleStats.useQuery();
+  const { data: roleStats } = api.admin.roles.getRoleStats.useQuery();
 
   // Fetch users by role
-  const { data: roleUsers, refetch: refetchUsers } = api.admin.roles.getUsersByRole.useQuery(
+  const { data: roleUsers } = api.admin.roles.getUsersByRole.useQuery(
     { role: selectedRole },
     { enabled: !!selectedRole }
   );
@@ -65,6 +65,9 @@ export default function RolesManagementPage() {
     offset: 0,
   });
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   // Assign role mutation
   const assignMutation = api.admin.roles.assignRole.useMutation({
     onSuccess: () => {
@@ -72,8 +75,9 @@ export default function RolesManagementPage() {
         title: "Success",
         description: "Role assigned successfully",
       });
-      refetchStats();
-      refetchUsers();
+      // Invalidate queries for instant updates
+      utils.admin.roles.getRoleStats.invalidate();
+      utils.admin.roles.getUsersByRole.invalidate();
       setIsAssignDialogOpen(false);
       setAssignData({ userId: '', role: '' });
     },
@@ -93,8 +97,9 @@ export default function RolesManagementPage() {
         title: "Success",
         description: "Role removed successfully",
       });
-      refetchStats();
-      refetchUsers();
+      // Invalidate queries for instant updates
+      utils.admin.roles.getRoleStats.invalidate();
+      utils.admin.roles.getUsersByRole.invalidate();
     },
     onError: (error) => {
       toast({

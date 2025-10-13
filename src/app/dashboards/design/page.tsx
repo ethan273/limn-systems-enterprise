@@ -59,10 +59,13 @@ const CHART_COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(-
 export default function DesignDashboardPage() {
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d');
 
-  const { data: design, isLoading, refetch } = api.dashboards.getDesign.useQuery(
+  const { data: design, isLoading } = api.dashboards.getDesign.useQuery(
     { dateRange },
     { refetchInterval: 60000 } // Auto-refresh every 60 seconds
   );
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   const { data: insights } = api.dashboards.getDesignInsights.useQuery();
 
@@ -107,7 +110,7 @@ export default function DesignDashboardPage() {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => refetch()}
+            onClick={() => utils.dashboards.getDesign.invalidate()}
             title="Refresh data"
           >
             <RefreshCw className="h-4 w-4" />

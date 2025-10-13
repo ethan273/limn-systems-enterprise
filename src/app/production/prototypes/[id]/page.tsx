@@ -155,8 +155,11 @@ export default function PrototypeDetailPage({ params }: PageProps) {
  id: id,
  });
 
+ // Get tRPC utils for cache invalidation
+ const utils = api.useUtils();
+
  // Fetch production details
- const { data: production, refetch: refetchProduction } = api.prototypes.getProduction.useQuery(
+ const { data: production } = api.prototypes.getProduction.useQuery(
  { prototypeId: id },
  { enabled: !!prototype }
  );
@@ -186,7 +189,7 @@ export default function PrototypeDetailPage({ params }: PageProps) {
  );
 
  // Fetch feedback
- const { data: feedback, refetch: refetchFeedback } = api.prototypes.getFeedback.useQuery(
+ const { data: feedback } = api.prototypes.getFeedback.useQuery(
  { prototypeId: id },
  { enabled: !!prototype }
  );
@@ -205,7 +208,8 @@ export default function PrototypeDetailPage({ params }: PageProps) {
  description: "Your feedback has been submitted successfully.",
  });
  setFeedbackText("");
- void refetchFeedback();
+ // Invalidate queries for instant updates
+ utils.prototypes.getFeedback.invalidate();
  },
  onError: (error) => {
  toast({
@@ -481,7 +485,9 @@ export default function PrototypeDetailPage({ params }: PageProps) {
  <ProgressTracker
  prototypeId={id}
  production={production}
- onUpdate={() => refetchProduction()}
+ onUpdate={() => {
+   utils.prototypes.getProduction.invalidate();
+ }}
  />
 
  <Card>

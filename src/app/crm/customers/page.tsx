@@ -46,10 +46,13 @@ export default function CustomersPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [customerToDelete, setCustomerToDelete] = useState<any>(null);
 
-  const { data: customersData, isLoading, refetch } = api.customers.getAll.useQuery({
+  const { data: customersData, isLoading } = api.customers.getAll.useQuery({
     limit: 100,
     offset: 0,
   });
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   const deleteCustomer = api.customers.delete.useMutation({
     onSuccess: () => {
@@ -57,9 +60,11 @@ export default function CustomersPage() {
         title: "Customer deleted",
         description: "Customer has been successfully deleted.",
       });
-      refetch();
       setDeleteDialogOpen(false);
       setCustomerToDelete(null);
+      // Invalidate queries for instant updates
+      utils.customers.getAll.invalidate();
+      utils.crm.customers.list.invalidate();
     },
     onError: (error) => {
       toast({

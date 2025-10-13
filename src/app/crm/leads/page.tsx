@@ -73,7 +73,7 @@ export default function LeadsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [leadToDelete, setLeadToDelete] = useState<any>(null);
 
-  const { data: leadsData, isLoading, refetch } = api.crm.leads.getAll.useQuery({
+  const { data: leadsData, isLoading } = api.crm.leads.getAll.useQuery({
     limit: 100,
     offset: 0,
     orderBy: { created_at: 'desc' },
@@ -81,11 +81,16 @@ export default function LeadsPage() {
 
   const { data: pipelineStats } = api.crm.leads.getPipelineStats.useQuery();
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   const createLeadMutation = api.crm.leads.create.useMutation({
     onSuccess: () => {
       toast.success("Lead created successfully");
       setIsCreateDialogOpen(false);
-      refetch();
+      // Invalidate queries for instant updates
+      utils.crm.leads.getAll.invalidate();
+      utils.crm.leads.getPipelineStats.invalidate();
     },
     onError: (error) => {
       toast.error("Failed to create lead: " + error.message);
@@ -96,7 +101,10 @@ export default function LeadsPage() {
     onSuccess: () => {
       toast.success("Lead updated successfully");
       setIsEditDialogOpen(false);
-      refetch();
+      // Invalidate queries for instant updates
+      utils.crm.leads.getAll.invalidate();
+      utils.crm.leads.getById.invalidate();
+      utils.crm.leads.getPipelineStats.invalidate();
     },
     onError: (error) => {
       toast.error("Failed to update lead: " + error.message);
@@ -106,9 +114,11 @@ export default function LeadsPage() {
   const deleteLeadMutation = api.crm.leads.delete.useMutation({
     onSuccess: () => {
       toast.success("Lead deleted successfully");
-      refetch();
       setDeleteDialogOpen(false);
       setLeadToDelete(null);
+      // Invalidate queries for instant updates
+      utils.crm.leads.getAll.invalidate();
+      utils.crm.leads.getPipelineStats.invalidate();
     },
     onError: (error) => {
       toast.error("Failed to delete lead: " + error.message);
@@ -120,7 +130,10 @@ export default function LeadsPage() {
       toast.success("Lead converted to client successfully");
       setIsConvertDialogOpen(false);
       setSelectedLeadForConversion(null);
-      refetch();
+      // Invalidate queries for instant updates
+      utils.crm.leads.getAll.invalidate();
+      utils.crm.leads.getPipelineStats.invalidate();
+      utils.crm.customers.list.invalidate();
     },
     onError: (error) => {
       toast.error("Failed to convert lead: " + error.message);

@@ -20,11 +20,14 @@ export default function FinanceDashboard() {
  // Auth is handled by middleware - no client-side redirect needed
 
  // API queries
- const { data: connectionStatus, isLoading: loadingConnection, refetch: refetchConnection } =
+ const { data: connectionStatus, isLoading: loadingConnection } =
  api.quickbooksSync.getConnectionStatus.useQuery(undefined, { enabled: !authLoading && !!user });
 
- const { data: syncStats, isLoading: loadingStats, refetch: refetchStats } =
+ const { data: syncStats, isLoading: loadingStats } =
  api.quickbooksSync.getSyncStats.useQuery(undefined, { enabled: !authLoading && !!user });
+
+ // Get tRPC utils for cache invalidation
+ const utils = api.useUtils();
 
  // Get all production invoices for manual sync
  const { data: invoicesData } = api.productionInvoices.getAll.useQuery(
@@ -42,7 +45,8 @@ export default function FinanceDashboard() {
  const syncInvoiceMutation = api.quickbooksSync.syncInvoice.useMutation({
  onSuccess: (data: { success: boolean; quickbooks_invoice_id?: string; message: string }) => {
  toast.success(data.message);
- void refetchStats();
+ // Invalidate queries for instant updates
+ utils.quickbooksSync.getSyncStats.invalidate();
  setSyncingInvoice(false);
  },
  onError: (error: { message: string }) => {
@@ -119,7 +123,7 @@ export default function FinanceDashboard() {
  <Button
  variant="outline"
  size="sm"
- onClick={() => void refetchConnection()}
+ onClick={() => utils.quickbooksSync.getConnectionStatus.invalidate()}
  >
  <RefreshCw className="h-4 w-4 mr-2" />
  Refresh Status

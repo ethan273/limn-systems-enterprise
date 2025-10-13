@@ -56,16 +56,20 @@ export default function FlipbookBuilderPage() {
   }
 
   // Query flipbook if editing
-  const { data: flipbook, isLoading, refetch } = api.flipbooks.get.useQuery(
+  const { data: flipbook, isLoading } = api.flipbooks.get.useQuery(
     { id: flipbookId! },
     { enabled: !!flipbookId }
   );
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   // Mutations
   const updateFlipbook = api.flipbooks.update.useMutation({
     onSuccess: () => {
       toast.success("Flipbook updated successfully");
-      refetch();
+      // Invalidate queries for instant updates
+      utils.flipbooks.get.invalidate();
     },
     onError: (error) => {
       toast.error(`Failed to update flipbook: ${error.message}`);
@@ -75,7 +79,8 @@ export default function FlipbookBuilderPage() {
   const deletePage = api.flipbooks.deletePage.useMutation({
     onSuccess: () => {
       toast.success("Page deleted");
-      refetch();
+      // Invalidate queries for instant updates
+      utils.flipbooks.get.invalidate();
       setSelectedPageId(null);
     },
     onError: (error) => {
@@ -86,7 +91,8 @@ export default function FlipbookBuilderPage() {
   const reorderPages = api.flipbooks.reorderPages.useMutation({
     onSuccess: () => {
       toast.success("Pages reordered");
-      refetch();
+      // Invalidate queries for instant updates
+      utils.flipbooks.get.invalidate();
     },
     onError: (error) => {
       toast.error(`Failed to reorder pages: ${error.message}`);
@@ -96,7 +102,8 @@ export default function FlipbookBuilderPage() {
   const createHotspot = api.flipbooks.createHotspot.useMutation({
     onSuccess: () => {
       toast.success("Hotspot created");
-      refetch();
+      // Invalidate queries for instant updates
+      utils.flipbooks.get.invalidate();
     },
     onError: (error) => {
       toast.error(`Failed to create hotspot: ${error.message}`);
@@ -105,7 +112,8 @@ export default function FlipbookBuilderPage() {
 
   const updateHotspot = api.flipbooks.updateHotspot.useMutation({
     onSuccess: () => {
-      refetch();
+      // Invalidate queries for instant updates
+      utils.flipbooks.get.invalidate();
     },
     onError: (error) => {
       toast.error(`Failed to update hotspot: ${error.message}`);
@@ -115,7 +123,8 @@ export default function FlipbookBuilderPage() {
   const deleteHotspot = api.flipbooks.deleteHotspot.useMutation({
     onSuccess: () => {
       toast.success("Hotspot deleted");
-      refetch();
+      // Invalidate queries for instant updates
+      utils.flipbooks.get.invalidate();
     },
     onError: (error) => {
       toast.error(`Failed to delete hotspot: ${error.message}`);
@@ -146,7 +155,8 @@ export default function FlipbookBuilderPage() {
   // Handle upload complete
   const handleUploadComplete = () => {
     setUploadDialogOpen(false);
-    refetch();
+    // Invalidate queries for instant updates
+    utils.flipbooks.get.invalidate();
     toast.success("Upload complete! Refresh to see new pages.");
   };
 

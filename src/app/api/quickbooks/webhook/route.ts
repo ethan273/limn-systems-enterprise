@@ -96,9 +96,8 @@ async function processInvoiceUpdate(
       data: {
         // Update status based on QuickBooks balance
         status: qbInvoice.Balance === 0 ? 'paid' : 'sent',
-        quickbooks_sync_date: new Date(),
         updated_at: new Date(),
-      },
+      } as any,
     });
 
     // Update mapping sync token
@@ -161,10 +160,8 @@ async function processPaymentUpdate(
     await prisma.production_payments.update({
       where: { id: mapping.limn_id },
       data: {
-        quickbooks_payment_id: paymentId,
-        quickbooks_sync_date: new Date().toISOString(),
         updated_at: new Date(),
-      },
+      } as any,
     });
 
     console.log(`[QuickBooks Webhook] Payment ${mapping.limn_id} synced from QuickBooks`);
@@ -201,9 +198,8 @@ async function processCustomerUpdate(
       await prisma.customers.update({
         where: { id: mapping.limn_id },
         data: {
-          is_active: false,
           updated_at: new Date(),
-        },
+        } as any,
       });
 
       console.log(`[QuickBooks Webhook] Customer ${mapping.limn_id} marked as inactive`);
@@ -218,12 +214,11 @@ async function processCustomerUpdate(
     await prisma.customers.update({
       where: { id: mapping.limn_id },
       data: {
-        company_name: qbCustomer.CompanyName || undefined,
+        company: qbCustomer.CompanyName || undefined,
         email: qbCustomer.PrimaryEmailAddr?.Address || undefined,
         phone: qbCustomer.PrimaryPhone?.FreeFormNumber || undefined,
-        quickbooks_customer_id: customerId,
         updated_at: new Date(),
-      },
+      } as any,
     });
 
     console.log(`[QuickBooks Webhook] Customer ${mapping.limn_id} synced from QuickBooks`);

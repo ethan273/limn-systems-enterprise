@@ -46,10 +46,13 @@ export default function ContactDetailPage({ params }: PageProps) {
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditing, setIsEditing] = useState(false);
 
-  const { data, isLoading, error, refetch } = api.crm.contacts.getById.useQuery(
+  const { data, isLoading, error } = api.crm.contacts.getById.useQuery(
     { id: id },
     { enabled: !!user && !!id }
   );
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   // Form data state for in-place editing
   const [formData, setFormData] = useState({
@@ -82,7 +85,9 @@ export default function ContactDetailPage({ params }: PageProps) {
     onSuccess: () => {
       toast.success("Contact updated successfully");
       setIsEditing(false);
-      refetch();
+      // Invalidate queries for instant updates
+      utils.crm.contacts.getById.invalidate();
+      utils.crm.contacts.getAll.invalidate();
     },
     onError: (error: any) => {
       toast.error("Failed to update contact: " + error.message);

@@ -27,8 +27,11 @@ export default function QCSettingsPage() {
   const [inAppNotifications, setInAppNotifications] = useState(true);
 
   const { data: userInfo } = api.portal.getCurrentUser.useQuery();
-  const { data: portalSettings, refetch } = api.portal.getPortalSettings.useQuery();
+  const { data: portalSettings } = api.portal.getPortalSettings.useQuery();
   const updatePreferencesMutation = api.portal.updateNotificationPreferences.useMutation();
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   const handleSave = async () => {
     try {
@@ -40,7 +43,8 @@ export default function QCSettingsPage() {
         inAppNotifications,
       });
 
-      await refetch();
+      // Invalidate queries for instant updates
+      utils.portal.getPortalSettings.invalidate();
       setIsEditing(false);
     } catch (error) {
       console.error('Save error:', error);

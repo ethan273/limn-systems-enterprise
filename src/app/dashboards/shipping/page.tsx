@@ -58,10 +58,13 @@ const CHART_COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(-
 export default function ShippingDashboardPage() {
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d');
 
-  const { data: shipping, isLoading, refetch } = api.dashboards.getShipping.useQuery(
+  const { data: shipping, isLoading } = api.dashboards.getShipping.useQuery(
     { dateRange },
     { refetchInterval: 60000 } // Auto-refresh every 60 seconds
   );
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   const { data: insights } = api.dashboards.getShippingInsights.useQuery();
 
@@ -106,7 +109,7 @@ export default function ShippingDashboardPage() {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => refetch()}
+            onClick={() => utils.dashboards.getShipping.invalidate()}
             title="Refresh data"
           >
             <RefreshCw className="h-4 w-4" />
