@@ -1,0 +1,631 @@
+/**
+ * TOC Builder Component
+ *
+ * Provides a drag-and-drop interface for building and editing
+ * the flipbook table of contents.
+ *
+ * Phase 1: TOC & Thumbnails Enhancement
+ */
+
+"use client";
+
+import React, { useState, useCallback, useMemo } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import {
+  ChevronRight,
+  ChevronDown,
+  Plus,
+  Trash2,
+  Edit2,
+  Download,
+  Upload,
+  Sparkles,
+  GripVertical,
+  Save,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { TOCItem, TOCData } from "@/types/flipbook-navigation";
+import { api } from "@/lib/api/client";
+
+interface TOCBuilderProps {
+  flipbookId: string;
+  initialTOC?: TOCData;
+  onSave?: (tocData: TOCData) => void;
+}
+
+interface TOCTreeItemProps {
+  item: TOCItem;
+  level: number;
+  onEdit: (item: TOCItem) => void;
+  onDelete: (itemId: string) => void;
+  onAddChild: (parentItem: TOCItem) => void;
+  canAddChild: boolean;
+}
+
+/**
+ * Individual TOC tree item component
+ */
+function TOCTreeItem({
+  item,
+  level,
+  onEdit,
+  onDelete,
+  onAddChild,
+  canAddChild,
+}: TOCTreeItemProps) {
+  const [isExpanded, setIsExpanded] = useState(true);
+  const hasChildren = item.children.length > 0;
+
+  return (
+    <div className="select-none">
+      {/* Item row */}
+      <div
+        className={cn(
+          "group flex items-center gap-2 py-2 px-3 rounded hover:bg-muted/50 transition-colors",
+          "border-l-2 border-transparent hover:border-primary/20"
+        )}
+        style={{ paddingLeft: `${level * 1.5 + 0.75}rem` }}
+      >
+        {/* Drag handle */}
+        <GripVertical className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity cursor-grab" />
+
+        {/* Expand/collapse button */}
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="p-0.5 hover:bg-muted rounded transition-colors"
+          disabled={!hasChildren}
+        >
+          {hasChildren ? (
+            isExpanded ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )
+          ) : (
+            <div className="w-4 h-4" />
+          )}
+        </button>
+
+        {/* Icon */}
+        {item.icon && <span className="text-sm">{item.icon}</span>}
+
+        {/* Title and page number */}
+        <div className="flex-1 flex items-baseline gap-2">
+          <span className="font-medium text-sm">{item.title}</span>
+          <span className="text-xs text-muted-foreground">
+            Page {item.pageNumber}
+          </span>
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => onEdit(item)}
+            className="h-7 w-7 p-0"
+          >
+            <Edit2 className="h-3.5 w-3.5" />
+          </Button>
+          {canAddChild && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => onAddChild(item)}
+              className="h-7 w-7 p-0"
+            >
+              <Plus className="h-3.5 w-3.5" />
+            </Button>
+          )}
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => onDelete(item.id)}
+            className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Children */}
+      {hasChildren && isExpanded && (
+        <div>
+          {item.children.map((child) => (
+            <TOCTreeItem
+              key={child.id}
+              item={child}
+              level={level + 1}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onAddChild={onAddChild}
+              canAddChild={child.level < 4}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Main TOC Builder component
+ */
+export function TOCBuilder({
+  flipbookId,
+  initialTOC,
+  onSave,
+}: TOCBuilderProps) {
+  const [tocData, setTocData] = useState<TOCData>(
+    initialTOC || {
+      items: [],
+      autoGenerated: false,
+      lastModified: new Date().toISOString(),
+      version: "1.0",
+    }
+  );
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<TOCItem | null>(null);
+  const [parentForNewItem, setParentForNewItem] = useState<TOCItem | null>(
+    null
+  );
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Form state for add/edit dialog
+  const [formTitle, setFormTitle] = useState("");
+  const [formPageNumber, setFormPageNumber] = useState("");
+  const [formLevel, setFormLevel] = useState<"1" | "2" | "3" | "4">("1");
+  const [formIcon, setFormIcon] = useState("");
+
+  // tRPC mutations
+  const generateTOCMutation = api.flipbooks.generateTOC.useMutation();
+  const updateTOCMutation = api.flipbooks.updateTOC.useMutation();
+  const importTOCMutation = api.flipbooks.importTOCFromCSV.useMutation();
+  const exportTOCQuery = api.flipbooks.exportTOCToCSV.useQuery(
+    { flipbookId },
+    { enabled: false }
+  );
+
+  /**
+   * Generate TOC from PDF bookmarks
+   */
+  const handleGenerateTOC = useCallback(async () => {
+    if (
+      tocData.items.length > 0 &&
+      !confirm(
+        "This will replace your current TOC. Are you sure you want to continue?"
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const result = await generateTOCMutation.mutateAsync({ flipbookId });
+      setTocData(result.tocData);
+      setHasUnsavedChanges(true);
+    } catch (error) {
+      console.error("Failed to generate TOC:", error);
+    }
+  }, [flipbookId, tocData.items.length, generateTOCMutation]);
+
+  /**
+   * Save TOC to server
+   */
+  const handleSave = useCallback(async () => {
+    try {
+      const result = await updateTOCMutation.mutateAsync({
+        flipbookId,
+        tocData,
+      });
+      setTocData(result.tocData);
+      setHasUnsavedChanges(false);
+      onSave?.(result.tocData);
+    } catch (error) {
+      console.error("Failed to save TOC:", error);
+    }
+  }, [flipbookId, tocData, updateTOCMutation, onSave]);
+
+  /**
+   * Open edit dialog for existing item
+   */
+  const handleEdit = useCallback((item: TOCItem) => {
+    setEditingItem(item);
+    setFormTitle(item.title);
+    setFormPageNumber(item.pageNumber.toString());
+    setFormLevel(item.level.toString() as "1" | "2" | "3" | "4");
+    setFormIcon(item.icon || "");
+    setParentForNewItem(null);
+    setIsEditDialogOpen(true);
+  }, []);
+
+  /**
+   * Open dialog to add new child
+   */
+  const handleAddChild = useCallback((parentItem: TOCItem) => {
+    setEditingItem(null);
+    setParentForNewItem(parentItem);
+    setFormTitle("");
+    setFormPageNumber("");
+    setFormLevel(
+      Math.min(parentItem.level + 1, 4).toString() as "1" | "2" | "3" | "4"
+    );
+    setFormIcon("");
+    setIsEditDialogOpen(true);
+  }, []);
+
+  /**
+   * Open dialog to add root item
+   */
+  const handleAddRoot = useCallback(() => {
+    setEditingItem(null);
+    setParentForNewItem(null);
+    setFormTitle("");
+    setFormPageNumber("");
+    setFormLevel("1");
+    setFormIcon("");
+    setIsEditDialogOpen(true);
+  }, []);
+
+  /**
+   * Save item from dialog
+   */
+  const handleSaveItem = useCallback(() => {
+    const pageNumber = parseInt(formPageNumber, 10);
+    if (!formTitle || isNaN(pageNumber)) {
+      return;
+    }
+
+    const newItem: TOCItem = {
+      id: editingItem?.id || `toc-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+      title: formTitle,
+      pageNumber,
+      level: parseInt(formLevel, 10) as 1 | 2 | 3 | 4,
+      sortOrder: 0,
+      icon: formIcon || undefined,
+      children: editingItem?.children || [],
+    };
+
+    if (editingItem) {
+      // Update existing item
+      const updateItem = (items: TOCItem[]): TOCItem[] => {
+        return items.map((item) => {
+          if (item.id === editingItem.id) {
+            return { ...newItem, children: item.children };
+          }
+          if (item.children.length > 0) {
+            return { ...item, children: updateItem(item.children) };
+          }
+          return item;
+        });
+      };
+      setTocData((prev) => ({
+        ...prev,
+        items: updateItem(prev.items),
+        lastModified: new Date().toISOString(),
+      }));
+    } else if (parentForNewItem) {
+      // Add as child
+      const addChild = (items: TOCItem[]): TOCItem[] => {
+        return items.map((item) => {
+          if (item.id === parentForNewItem.id) {
+            return {
+              ...item,
+              children: [...item.children, newItem],
+            };
+          }
+          if (item.children.length > 0) {
+            return { ...item, children: addChild(item.children) };
+          }
+          return item;
+        });
+      };
+      setTocData((prev) => ({
+        ...prev,
+        items: addChild(prev.items),
+        lastModified: new Date().toISOString(),
+      }));
+    } else {
+      // Add as root item
+      setTocData((prev) => ({
+        ...prev,
+        items: [...prev.items, newItem],
+        lastModified: new Date().toISOString(),
+      }));
+    }
+
+    setHasUnsavedChanges(true);
+    setIsEditDialogOpen(false);
+  }, [formTitle, formPageNumber, formLevel, formIcon, editingItem, parentForNewItem]);
+
+  /**
+   * Delete item
+   */
+  const handleDelete = useCallback((itemId: string) => {
+    if (!confirm("Are you sure you want to delete this TOC item?")) {
+      return;
+    }
+
+    const deleteItem = (items: TOCItem[]): TOCItem[] => {
+      return items
+        .filter((item) => item.id !== itemId)
+        .map((item) => ({
+          ...item,
+          children: deleteItem(item.children),
+        }));
+    };
+
+    setTocData((prev) => ({
+      ...prev,
+      items: deleteItem(prev.items),
+      lastModified: new Date().toISOString(),
+    }));
+    setHasUnsavedChanges(true);
+  }, []);
+
+  /**
+   * Export to CSV
+   */
+  const handleExport = useCallback(async () => {
+    try {
+      const result = await exportTOCQuery.refetch();
+      if (result.data) {
+        const blob = new Blob([result.data.csv], { type: "text/csv" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = result.data.filename;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch (error) {
+      console.error("Failed to export TOC:", error);
+    }
+  }, [exportTOCQuery]);
+
+  /**
+   * Import from CSV
+   */
+  const handleImport = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const csv = e.target?.result as string;
+        try {
+          const result = await importTOCMutation.mutateAsync({
+            flipbookId,
+            csv,
+          });
+          setTocData(result.tocData);
+          setHasUnsavedChanges(true);
+        } catch (error) {
+          console.error("Failed to import TOC:", error);
+        }
+      };
+      reader.readAsText(file);
+    },
+    [flipbookId, importTOCMutation]
+  );
+
+  const itemCount = useMemo(() => {
+    const count = (items: TOCItem[]): number => {
+      return items.reduce((sum, item) => sum + 1 + count(item.children), 0);
+    };
+    return count(tocData.items);
+  }, [tocData.items]);
+
+  return (
+    <Card className="w-full">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Table of Contents</CardTitle>
+            <CardDescription>
+              Build and manage your flipbook navigation structure
+            </CardDescription>
+          </div>
+          {hasUnsavedChanges && (
+            <Alert className="w-auto py-2 px-3">
+              <AlertDescription className="text-sm">
+                Unsaved changes
+              </AlertDescription>
+            </Alert>
+          )}
+        </div>
+      </CardHeader>
+
+      <CardContent className="space-y-4">
+        {/* Action buttons */}
+        <div className="flex flex-wrap gap-2">
+          <Button
+            onClick={handleGenerateTOC}
+            disabled={generateTOCMutation.isPending}
+            size="sm"
+          >
+            <Sparkles className="h-4 w-4 mr-2" />
+            {generateTOCMutation.isPending
+              ? "Generating..."
+              : "Generate from PDF"}
+          </Button>
+
+          <Button onClick={handleAddRoot} variant="outline" size="sm">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Item
+          </Button>
+
+          <Button onClick={handleExport} variant="outline" size="sm">
+            <Download className="h-4 w-4 mr-2" />
+            Export CSV
+          </Button>
+
+          <Button variant="outline" size="sm" asChild>
+            <label>
+              <Upload className="h-4 w-4 mr-2" />
+              Import CSV
+              <input
+                type="file"
+                accept=".csv"
+                onChange={handleImport}
+                className="hidden"
+              />
+            </label>
+          </Button>
+
+          <div className="flex-1" />
+
+          <Button
+            onClick={handleSave}
+            disabled={!hasUnsavedChanges || updateTOCMutation.isPending}
+            size="sm"
+          >
+            <Save className="h-4 w-4 mr-2" />
+            {updateTOCMutation.isPending ? "Saving..." : "Save TOC"}
+          </Button>
+        </div>
+
+        <Separator />
+
+        {/* TOC tree */}
+        <div className="space-y-1">
+          {tocData.items.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <p className="text-sm">No TOC items yet</p>
+              <p className="text-xs mt-1">
+                Generate from PDF or add items manually
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
+                <span>{itemCount} total items</span>
+                {tocData.autoGenerated && (
+                  <span className="text-xs">Auto-generated from PDF</span>
+                )}
+              </div>
+              <ScrollArea className="h-[400px] rounded-md border p-2">
+                {tocData.items.map((item) => (
+                  <TOCTreeItem
+                    key={item.id}
+                    item={item}
+                    level={0}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onAddChild={handleAddChild}
+                    canAddChild={item.level < 4}
+                  />
+                ))}
+              </ScrollArea>
+            </>
+          )}
+        </div>
+      </CardContent>
+
+      {/* Add/Edit Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {editingItem ? "Edit TOC Item" : "Add TOC Item"}
+            </DialogTitle>
+            <DialogDescription>
+              {parentForNewItem
+                ? `Adding child to "${parentForNewItem.title}"`
+                : editingItem
+                ? "Update the TOC item details"
+                : "Create a new TOC item"}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="title">Title</Label>
+              <Input
+                id="title"
+                value={formTitle}
+                onChange={(e) => setFormTitle(e.target.value)}
+                placeholder="Chapter title"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="pageNumber">Page Number</Label>
+              <Input
+                id="pageNumber"
+                type="number"
+                min="1"
+                value={formPageNumber}
+                onChange={(e) => setFormPageNumber(e.target.value)}
+                placeholder="1"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="level">Level</Label>
+              <Select value={formLevel} onValueChange={(value) => setFormLevel(value as "1" | "2" | "3" | "4")}>
+                <SelectTrigger id="level">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">Level 1 (Top)</SelectItem>
+                  <SelectItem value="2">Level 2</SelectItem>
+                  <SelectItem value="3">Level 3</SelectItem>
+                  <SelectItem value="4">Level 4 (Bottom)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="icon">Icon (optional)</Label>
+              <Input
+                id="icon"
+                value={formIcon}
+                onChange={(e) => setFormIcon(e.target.value)}
+                placeholder="📖"
+                maxLength={10}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsEditDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleSaveItem}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </Card>
+  );
+}

@@ -7809,7 +7809,13 @@ model flipbooks {
   // JSON metadata
   settings          Json?               // Flipbook settings (transitions, sounds, etc.)
   branding          Json?               // Brand colors, logos, fonts
-  
+
+  // TOC & Navigation (Phase 1 Enhancement)
+  toc_data          Json?               // Hierarchical table of contents
+  toc_auto_generated Boolean?           @default(false)
+  toc_last_updated  DateTime?           @db.Timestamptz(6)
+  navigation_settings Json?             // TOC and thumbnail display settings
+
   // Relations to public schema (ONE-DIRECTIONAL)
   created_by        user_profiles       @relation("flipbook_creator", fields: [created_by_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   
@@ -7831,7 +7837,9 @@ model flipbook_pages {
   flipbook_id       String              @db.Uuid
   page_number       Int
   image_url         String              // URL to page image (S3/CloudFront)
-  thumbnail_url     String?             // Thumbnail for page picker
+  thumbnail_url     String?             // Standard thumbnail (200x280) for navigation
+  thumbnail_small_url String?           // Small thumbnail (100x140) for grid view
+  thumbnail_generated_at DateTime?      @db.Timestamptz(6)
   page_type         page_type           @default(CONTENT)
   
   // Content data
