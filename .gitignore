@@ -110,3 +110,6 @@ test-*.mjs
 
 # Large schema dumps
 *-complete-schema.json
+
+# Session documentation with potentially sensitive info
+SESSION-*.md
