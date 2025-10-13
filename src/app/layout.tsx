@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals-limn-brand.css"; // Switched to Limn brand theme
 import { Providers } from "@/components/Providers";
 import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
+import { ErrorBoundary } from "@/components/common";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -70,10 +71,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} bg-background text-foreground antialiased`}>
-        <Providers>
-          <ServiceWorkerRegistration />
-          {children}
-        </Providers>
+        <ErrorBoundary>
+          <Providers>
+            <ServiceWorkerRegistration />
+            {children}
+          </Providers>
+        </ErrorBoundary>
       </body>
     </html>
   );

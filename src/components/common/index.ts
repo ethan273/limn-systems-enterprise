@@ -37,3 +37,6 @@ export type { EditableFieldProps, EditableFieldGroupProps } from './EditableFiel
 
 export { Breadcrumbs } from './Breadcrumbs';
 export type { BreadcrumbsProps, BreadcrumbItem } from './Breadcrumbs';
+
+export { ErrorBoundary } from './ErrorBoundary';
+export { ErrorState } from './ErrorState';

@@ -88,15 +88,20 @@ export default function TasksPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<any>(null);
 
-  const { data: tasksData, isLoading, refetch } = api.tasks.getAllTasks.useQuery({
+  const { data: tasksData, isLoading } = api.tasks.getAllTasks.useQuery({
     limit: 100,
     offset: 0,
   });
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   const deleteTaskMutation = api.tasks.delete.useMutation({
     onSuccess: () => {
       toast.success("Task deleted successfully");
-      refetch();
+      // Invalidate queries instead of manual refetch
+      utils.tasks.getAllTasks.invalidate();
+      utils.tasks.getMyTasks.invalidate();
       setDeleteDialogOpen(false);
       setTaskToDelete(null);
     },
@@ -191,8 +196,8 @@ export default function TasksPage() {
                 const user = Object.prototype.hasOwnProperty.call(usersMap, userId) ? usersMap[userId as keyof typeof usersMap] : null;
                 const initials = user ? (
                   user.full_name ?
-                    user.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) :
-                    user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
+                    (user.full_name || "?").split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) :
+                    (user.name || "?").split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
                 ) : "?";
                 return (
                   <Avatar key={userId} className="h-6 w-6">
@@ -327,7 +332,9 @@ export default function TasksPage() {
         <TaskCreateForm
           onSuccess={() => {
             setIsCreateDialogOpen(false);
-            refetch();
+            // Invalidate queries for instant updates
+            utils.tasks.getAllTasks.invalidate();
+            utils.tasks.getMyTasks.invalidate();
           }}
           onCancel={() => setIsCreateDialogOpen(false)}
         />

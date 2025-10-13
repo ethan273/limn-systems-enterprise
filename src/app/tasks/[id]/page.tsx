@@ -50,6 +50,18 @@ type TaskStatus = 'todo' | 'in_progress' | 'completed' | 'cancelled';
 type TaskPriority = 'low' | 'medium' | 'high';
 type TaskDepartment = 'admin' | 'production' | 'design' | 'sales';
 
+// Helper function to safely parse dates
+const safeDateFormat = (date: string | Date | null | undefined): string => {
+  if (!date) return '';
+  try {
+    const dateObj = date instanceof Date ? date : parseISO(date);
+    return dateObj.toISOString().split('T')[0];
+  } catch (error) {
+    console.error('Error parsing date:', date, error);
+    return '';
+  }
+};
+
 const STATUS_CONFIG: Record<TaskStatus, { label: string; className: string; icon: React.ReactNode }> = {
   todo: {
     label: 'To Do',
@@ -97,10 +109,13 @@ export default function TaskDetailPage({ params }: PageProps) {
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditing, setIsEditing] = useState(false);
 
-  const { data: task, isLoading, error, refetch } = api.tasks.getFullDetails.useQuery(
+  const { data: task, isLoading, error } = api.tasks.getFullDetails.useQuery(
     { id: id },
     { enabled: !!user && !!id }
   );
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   // Form data state for in-place editing
   const [formData, setFormData] = useState({
@@ -127,8 +142,8 @@ export default function TaskDetailPage({ params }: PageProps) {
         priority: task.priority || '',
         department: task.department || '',
         task_type: task.task_type || '',
-        due_date: task.due_date ? (task.due_date instanceof Date ? task.due_date.toISOString().split('T')[0] : parseISO(task.due_date).toISOString().split('T')[0]) : '',
-        start_date: task.start_date ? (task.start_date instanceof Date ? task.start_date.toISOString().split('T')[0] : parseISO(task.start_date).toISOString().split('T')[0]) : '',
+        due_date: safeDateFormat(task.due_date),
+        start_date: safeDateFormat(task.start_date),
         estimated_hours: task.estimated_hours?.toString() || '',
         visibility: task.visibility || '',
         resolution: task.resolution || '',
@@ -136,12 +151,16 @@ export default function TaskDetailPage({ params }: PageProps) {
     }
   }, [task]);
 
-  // Update mutation
+  // Update mutation with automatic cache invalidation
   const updateMutation = api.tasks.update.useMutation({
     onSuccess: () => {
       toast.success("Task updated successfully");
       setIsEditing(false);
-      refetch();
+      // Invalidate all task-related queries for instant UI updates
+      utils.tasks.getAllTasks.invalidate();
+      utils.tasks.getMyTasks.invalidate();
+      utils.tasks.getFullDetails.invalidate();
+      utils.tasks.getById.invalidate();
     },
     onError: (error: any) => {
       toast.error("Failed to update task: " + error.message);
@@ -182,8 +201,8 @@ export default function TaskDetailPage({ params }: PageProps) {
         priority: task.priority || '',
         department: task.department || '',
         task_type: task.task_type || '',
-        due_date: task.due_date ? (task.due_date instanceof Date ? task.due_date.toISOString().split('T')[0] : parseISO(task.due_date).toISOString().split('T')[0]) : '',
-        start_date: task.start_date ? (task.start_date instanceof Date ? task.start_date.toISOString().split('T')[0] : parseISO(task.start_date).toISOString().split('T')[0]) : '',
+        due_date: safeDateFormat(task.due_date),
+        start_date: safeDateFormat(task.start_date),
         estimated_hours: task.estimated_hours?.toString() || '',
         visibility: task.visibility || '',
         resolution: task.resolution || '',
@@ -193,7 +212,9 @@ export default function TaskDetailPage({ params }: PageProps) {
   };
 
   const handleTaskUpdate = () => {
-    refetch();
+    // Invalidate cache instead of manual refetch
+    utils.tasks.getFullDetails.invalidate();
+    utils.tasks.getById.invalidate();
   };
 
   if (isLoading) {

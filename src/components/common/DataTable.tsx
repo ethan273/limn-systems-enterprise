@@ -314,9 +314,9 @@ export function DataTable<T extends Record<string, unknown>>({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedData.map((row, index) => (
+                {paginatedData.map((row) => (
                   <TableRow
-                    key={index}
+                    key={row.id as string || Math.random().toString()}
                     className={onRowClick ? 'table-row-clickable' : 'table-row'}
                   >
                     {columns.map((column) => (

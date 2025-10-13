@@ -14,6 +14,7 @@ import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { ErrorState } from "@/components/common";
 
 export default function CRMOrdersPage() {
  const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -25,16 +26,19 @@ export default function CRMOrdersPage() {
  // Auth is handled by middleware - no client-side redirect needed
 
  // Query CRM ORDERS with production details, invoices, and payments
- const { data, isLoading, refetch } = api.orders.getWithProductionDetails.useQuery(
+ const { data, isLoading, error } = api.orders.getWithProductionDetails.useQuery(
  {},
  { enabled: !authLoading && !!user }
  );
+
+ // Get tRPC utils for cache invalidation
+ const utils = api.useUtils();
 
  // Mutation for creating invoice
  const createInvoiceMutation = api.productionInvoices.createForOrder.useMutation();
 
  // Filter by status and search query (client-side)
- const filteredOrders = data?.items.filter((order: any) => {
+ const filteredOrders = (data?.items || []).filter((order: any) => {
  // Status filter
  if (statusFilter !== "all" && order.status !== statusFilter) {
  return false;
@@ -43,7 +47,7 @@ export default function CRMOrdersPage() {
  if (!searchQuery) return true;
  const query = searchQuery.toLowerCase();
  return (
- order.order_number.toLowerCase().includes(query) ||
+ (order.order_number || "").toLowerCase().includes(query) ||
  order.customers?.name?.toLowerCase().includes(query) ||
  order.projects?.name?.toLowerCase().includes(query)
  );
@@ -62,7 +66,9 @@ export default function CRMOrdersPage() {
  variant: "default",
  });
 
- await refetch();
+ // Invalidate queries for instant updates
+ utils.orders.getWithProductionDetails.invalidate();
+ utils.projects.getAll.invalidate();
  } catch (error: any) {
  toast({
  title: "Error",
@@ -142,6 +148,20 @@ export default function CRMOrdersPage() {
  // Don't render if not authenticated (will redirect)
  if (!user) {
  return null;
+ }
+
+ // Show error state if data fetch failed
+ if (error) {
+ return (
+ <div className="container mx-auto py-6">
+ <ErrorState
+ title="Failed to load orders"
+ message="There was an error loading the orders. Please try again."
+ error={error}
+ onRetry={() => window.location.reload()}
+ />
+ </div>
+ );
  }
 
  return (
