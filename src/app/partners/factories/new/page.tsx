@@ -117,9 +117,9 @@ export default function NewFactoryPartnerPage() {
     // Create factory partner
     createFactoryMutation.mutate({
       company_name: companyName.trim(),
-      contactName: contactName.trim(),
-      email: email.trim(),
-      phone: phone.trim() || undefined,
+      primary_contact: contactName.trim(),
+      primary_email: email.trim(),
+      primary_phone: phone.trim() || undefined,
       capabilities: capabilities.length > 0 ? capabilities : undefined,
       minimumOrderQuantity: minimumOrderQuantity ? parseInt(minimumOrderQuantity) : undefined,
       leadTimeDays: leadTimeDays ? parseInt(leadTimeDays) : undefined,

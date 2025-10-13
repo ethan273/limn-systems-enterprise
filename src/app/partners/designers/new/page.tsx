@@ -115,9 +115,9 @@ export default function NewDesignerPartnerPage() {
     // Create designer partner
     createDesignerMutation.mutate({
       company_name: companyName.trim(),
-      contactName: contactName.trim(),
-      email: email.trim(),
-      phone: phone.trim() || undefined,
+      primary_contact: contactName.trim(),
+      primary_email: email.trim(),
+      primary_phone: phone.trim() || undefined,
       specialties: specialties.length > 0 ? specialties : undefined,
       portfolioUrl: portfolioUrl.trim() || undefined,
       address: (street || city || state || zipCode || country) ? {
