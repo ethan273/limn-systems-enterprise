@@ -20,10 +20,10 @@ import {
 import { cn } from '@/lib/utils';
 
 export interface EditableFieldProps {
-  label: string;
+  label?: string;
   value: string | number | null | undefined;
   type?: 'text' | 'email' | 'phone' | 'number' | 'textarea' | 'select' | 'date';
-  isEditing: boolean;
+  isEditing?: boolean;
   onChange?: (value: string) => void;
   onSave?: (value: string) => void; // Alias for onChange for backward compatibility
   placeholder?: string;
@@ -31,13 +31,15 @@ export interface EditableFieldProps {
   className?: string;
   required?: boolean;
   icon?: React.ComponentType<{ className?: string }>;
+  prefix?: string;
+  suffix?: string | React.ReactNode;
 }
 
 export function EditableField({
   label,
   value,
   type = 'text',
-  isEditing,
+  isEditing = false,
   onChange,
   onSave,
   placeholder,
@@ -45,6 +47,8 @@ export function EditableField({
   className,
   required = false,
   icon: Icon,
+  prefix,
+  suffix,
 }: EditableFieldProps) {
   const [localValue, setLocalValue] = useState(value?.toString() || '');
 
@@ -64,11 +68,13 @@ export function EditableField({
 
   return (
     <div className={cn('editable-field-group', className)}>
-      <label className="editable-field-label">
-        {Icon && <Icon className="icon-xs" aria-hidden="true" />}
-        {label}
-        {required && isEditing && <span className="text-destructive ml-1">*</span>}
-      </label>
+      {label && (
+        <label className="editable-field-label">
+          {Icon && <Icon className="icon-xs" aria-hidden="true" />}
+          {label}
+          {required && isEditing && <span className="text-destructive ml-1">*</span>}
+        </label>
+      )}
 
       {isEditing ? (
         <div className="editable-field-input">
@@ -76,14 +82,14 @@ export function EditableField({
             <Textarea
               value={localValue}
               onChange={(e) => handleChange(e.target.value)}
-              placeholder={placeholder || `Enter ${label.toLowerCase()}`}
+              placeholder={placeholder || (label ? `Enter ${label.toLowerCase()}` : 'Enter value')}
               required={required}
               rows={4}
             />
           ) : type === 'select' && options.length > 0 ? (
             <Select value={localValue} onValueChange={handleChange}>
               <SelectTrigger>
-                <SelectValue placeholder={placeholder || `Select ${label.toLowerCase()}`} />
+                <SelectValue placeholder={placeholder || (label ? `Select ${label.toLowerCase()}` : 'Select option')} />
               </SelectTrigger>
               <SelectContent>
                 {options.map((option) => (
@@ -98,7 +104,7 @@ export function EditableField({
               type={type === 'email' ? 'email' : type === 'phone' ? 'tel' : type === 'number' ? 'number' : type === 'date' ? 'date' : 'text'}
               value={localValue}
               onChange={(e) => handleChange(e.target.value)}
-              placeholder={placeholder || `Enter ${label.toLowerCase()}`}
+              placeholder={placeholder || (label ? `Enter ${label.toLowerCase()}` : 'Enter value')}
               required={required}
             />
           )}
