@@ -15,12 +15,12 @@ let pdfjsLib: any = null;
 
 async function getPdfjsLib() {
   if (!pdfjsLib && typeof window === "undefined") {
-    // Dynamically import pdfjs-dist only on server-side
+    // Dynamically import pdfjs-dist legacy build for Node.js compatibility
     try {
-      pdfjsLib = await import("pdfjs-dist");
-      // Set worker path for Node.js environment
+      pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.mjs");
+      // Disable worker for Node.js environment
       if (pdfjsLib.GlobalWorkerOptions) {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = require.resolve("pdfjs-dist/build/pdf.worker.min.mjs");
+        pdfjsLib.GlobalWorkerOptions.workerPort = null;
       }
     } catch (error) {
       console.error("Failed to load pdfjs-dist:", error);
