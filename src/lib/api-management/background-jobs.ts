@@ -7,6 +7,7 @@
 import { PrismaClient } from '@prisma/client';
 import { performAllHealthChecks } from './health-monitor';
 import { expireEmergencyAccess } from './emergency-access';
+import { completeRotation } from './credential-rotation';
 
 const prisma = new PrismaClient();
 
@@ -16,6 +17,7 @@ const prisma = new PrismaClient();
 export type JobType =
   | 'health_check'
   | 'emergency_expiration'
+  | 'rotation_cleanup'
   | 'credential_expiration_warning'
   | 'audit_log_cleanup'
   | 'health_history_cleanup';
@@ -189,6 +191,103 @@ export async function runEmergencyExpirationJob(): Promise<JobResult> {
 
     const jobResult: JobResult = {
       jobType: 'emergency_expiration',
+      status: 'failed',
+      startedAt,
+      completedAt,
+      duration_ms: duration,
+      itemsProcessed: 0,
+      itemsSucceeded: 0,
+      itemsFailed: 0,
+      errors,
+    };
+
+    await recordJobExecution(jobResult);
+
+    return jobResult;
+  }
+}
+
+/**
+ * Rotation Cleanup Job
+ * Runs every hour to complete rotations past their grace period
+ */
+export async function runRotationCleanupJob(): Promise<JobResult> {
+  const startedAt = new Date();
+  const errors: string[] = [];
+
+  console.log('[Rotation Cleanup Job] Starting...');
+
+  try {
+    const now = new Date();
+    let totalProcessed = 0;
+    let totalCompleted = 0;
+    let totalFailed = 0;
+
+    // Find rotations in grace_period status that have passed their end time
+    const expiredRotations = await prisma.api_credential_rotations.findMany({
+      where: {
+        status: 'grace_period',
+        grace_period_ends_at: {
+          lte: now,
+        },
+      },
+    });
+
+    console.log(`[Rotation Cleanup Job] Found ${expiredRotations.length} expired rotations`);
+
+    totalProcessed = expiredRotations.length;
+
+    // Complete each expired rotation
+    for (const rotation of expiredRotations) {
+      try {
+        await completeRotation(rotation.id);
+        totalCompleted++;
+        console.log(`[Rotation Cleanup Job] Completed rotation ${rotation.id}`);
+      } catch (error) {
+        totalFailed++;
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        errors.push(`Rotation ${rotation.id}: ${errorMessage}`);
+        console.error(`[Rotation Cleanup Job] Failed to complete rotation ${rotation.id}:`, errorMessage);
+      }
+    }
+
+    const completedAt = new Date();
+    const duration = completedAt.getTime() - startedAt.getTime();
+
+    const jobResult: JobResult = {
+      jobType: 'rotation_cleanup',
+      status: 'completed',
+      startedAt,
+      completedAt,
+      duration_ms: duration,
+      itemsProcessed: totalProcessed,
+      itemsSucceeded: totalCompleted,
+      itemsFailed: totalFailed,
+      errors,
+      metadata: {
+        rotations_completed: totalCompleted,
+        rotations_failed: totalFailed,
+      },
+    };
+
+    await recordJobExecution(jobResult);
+
+    console.log(
+      `[Rotation Cleanup Job] Completed: ${totalCompleted}/${totalProcessed} rotations finalized`
+    );
+
+    return jobResult;
+  } catch (error) {
+    const completedAt = new Date();
+    const duration = completedAt.getTime() - startedAt.getTime();
+
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    errors.push(errorMessage);
+
+    console.error('[Rotation Cleanup Job] Failed:', errorMessage);
+
+    const jobResult: JobResult = {
+      jobType: 'rotation_cleanup',
       status: 'failed',
       startedAt,
       completedAt,
@@ -596,6 +695,9 @@ export async function triggerJob(jobType: JobType): Promise<JobResult> {
 
     case 'emergency_expiration':
       return runEmergencyExpirationJob();
+
+    case 'rotation_cleanup':
+      return runRotationCleanupJob();
 
     case 'credential_expiration_warning':
       return runCredentialExpirationWarningJob();
