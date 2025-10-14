@@ -347,10 +347,26 @@ export function TOCBuilder({
    * Save item from dialog
    */
   const handleSaveItem = useCallback(() => {
-    const pageNumber = parseInt(formPageNumber, 10);
-    if (!formTitle || isNaN(pageNumber)) {
+    console.log("handleSaveItem called", {
+      formTitle,
+      formPageNumber,
+      formLevel,
+      formIcon,
+    });
+
+    // Validate inputs
+    if (!formTitle.trim()) {
+      alert("Please enter a title");
       return;
     }
+
+    const pageNumber = parseInt(formPageNumber, 10);
+    if (!formPageNumber || isNaN(pageNumber) || pageNumber < 1) {
+      alert("Please enter a valid page number (must be 1 or greater)");
+      return;
+    }
+
+    console.log("Validation passed, creating item");
 
     const newItem: TOCItem = {
       id: editingItem?.id || `toc-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
@@ -412,6 +428,7 @@ export function TOCBuilder({
 
     setHasUnsavedChanges(true);
     setIsEditDialogOpen(false);
+    console.log("Item saved, dialog closed");
   }, [formTitle, formPageNumber, formLevel, formIcon, editingItem, parentForNewItem]);
 
   /**
@@ -667,12 +684,13 @@ export function TOCBuilder({
 
           <DialogFooter>
             <Button
+              type="button"
               variant="outline"
               onClick={() => setIsEditDialogOpen(false)}
             >
               Cancel
             </Button>
-            <Button onClick={handleSaveItem}>Save</Button>
+            <Button type="button" onClick={handleSaveItem}>Save</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
