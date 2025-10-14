@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { api } from "@/lib/api/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 export default function FinanceDashboard() {
  const [syncingInvoice, setSyncingInvoice] = useState(false);
  const { user, loading: authLoading } = useAuth();
- const router = useRouter();
+ const _router = useRouter();
 
  // Auth is handled by middleware - no client-side redirect needed
 
