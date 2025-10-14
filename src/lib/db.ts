@@ -613,7 +613,7 @@ export class DatabaseClient {
     const finalLimit = take || limit;
     const finalOffset = skip || offset;
 
-    let query: any = supabase.from(tableName);
+    let query: any = getSupabaseAdmin().from(tableName);
 
     if (select) {
       const selectFields = Object.keys(select).filter(key => Object.prototype.hasOwnProperty.call(select, key) && select[key as keyof typeof select]);
@@ -695,7 +695,7 @@ export class DatabaseClient {
     tableName: string,
     options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }
   ): Promise<T | null> {
-    let query: any = supabase.from(tableName);
+    let query: any = getSupabaseAdmin().from(tableName);
 
     if (options.select) {
       const selectFields = Object.keys(options.select).filter(key => Object.prototype.hasOwnProperty.call(options.select!, key) && options.select![key as keyof typeof options.select]);
@@ -727,7 +727,7 @@ export class DatabaseClient {
     tableName: string,
     options: { where: Record<string, any>; orderBy?: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }
   ): Promise<T | null> {
-    let query: any = supabase.from(tableName);
+    let query: any = getSupabaseAdmin().from(tableName);
 
     if (options.select) {
       const selectFields = Object.keys(options.select).filter(key => Object.prototype.hasOwnProperty.call(options.select!, key) && options.select![key as keyof typeof options.select]);
@@ -838,7 +838,7 @@ export class DatabaseClient {
     tableName: string,
     options: { where: Record<string, any> }
   ): Promise<void> {
-    let query = supabase.from(tableName).delete();
+    let query = getSupabaseAdmin().from(tableName).delete();
 
     // Apply where conditions
     Object.entries(options.where).forEach(([key, value]) => {
@@ -883,7 +883,7 @@ export class DatabaseClient {
     tableName: string,
     options: { where: Record<string, any> }
   ): Promise<{ count: number }> {
-    let query = supabase.from(tableName).delete();
+    let query = getSupabaseAdmin().from(tableName).delete();
 
     // Apply where conditions
     Object.entries(options.where).forEach(([key, value]) => {
@@ -908,7 +908,7 @@ export class DatabaseClient {
     options: { where: Record<string, any>; data: Record<string, any> }
   ): Promise<{ count: number }> {
     // @ts-ignore - Supabase type system doesn't allow generic updates
-    let query: any = supabase.from(tableName).update(options.data);
+    let query: any = getSupabaseAdmin().from(tableName).update(options.data);
 
     // Apply where conditions
     Object.entries(options.where).forEach(([key, value]) => {
