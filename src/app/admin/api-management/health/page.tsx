@@ -24,14 +24,16 @@ import {
 export default function HealthMonitoringPage() {
   const [selectedCredential, setSelectedCredential] = useState<string | null>(null);
   const [uptimePeriod, setUptimePeriod] = useState<1 | 7 | 30 | 90>(30);
+  const [autoRefresh, setAutoRefresh] = useState(true);
 
-  // Fetch health dashboard
+  // Fetch health dashboard with real-time updates
   const { data: dashboard, refetch: refetchDashboard } =
     api.apiHealth.getHealthDashboard.useQuery(undefined, {
-      refetchInterval: 60000, // Refresh every minute
+      refetchInterval: autoRefresh ? 30000 : false, // Refresh every 30 seconds when enabled
+      refetchOnWindowFocus: true,
     });
 
-  // Fetch detailed metrics for selected credential
+  // Fetch detailed metrics for selected credential with real-time updates
   const { data: uptimeMetrics } = api.apiHealth.getUptimeMetrics.useQuery(
     {
       credentialId: selectedCredential!,
@@ -39,6 +41,7 @@ export default function HealthMonitoringPage() {
     },
     {
       enabled: !!selectedCredential,
+      refetchInterval: autoRefresh && selectedCredential ? 30000 : false,
     }
   );
 
@@ -49,6 +52,7 @@ export default function HealthMonitoringPage() {
     },
     {
       enabled: !!selectedCredential,
+      refetchInterval: autoRefresh && selectedCredential ? 30000 : false,
     }
   );
 
@@ -109,19 +113,35 @@ export default function HealthMonitoringPage() {
           <h1 className="page-title">Health Monitoring</h1>
           <p className="page-description">
             Real-time health status for all API credentials
+            {autoRefresh && (
+              <span className="ml-2 inline-flex items-center text-xs text-success">
+                <span className="mr-1 h-2 w-2 rounded-full bg-success animate-pulse" />
+                Live
+              </span>
+            )}
           </p>
         </div>
 
-        <button
-          onClick={() => performAllHealthChecks.mutate()}
-          disabled={performAllHealthChecks.isPending}
-          className="btn btn-primary flex items-center gap-2 disabled:opacity-50"
-        >
-          <RefreshCw
-            className={`h-5 w-5 ${performAllHealthChecks.isPending ? 'animate-spin' : ''}`}
-          />
-          Run All Checks
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setAutoRefresh(!autoRefresh)}
+            className={`btn ${autoRefresh ? 'btn-ghost' : 'btn-outline'} flex items-center gap-2`}
+            title={autoRefresh ? 'Disable auto-refresh' : 'Enable auto-refresh'}
+          >
+            <Activity className={`h-4 w-4 ${autoRefresh ? 'animate-pulse' : ''}`} />
+            {autoRefresh ? 'Auto-refresh ON' : 'Auto-refresh OFF'}
+          </button>
+          <button
+            onClick={() => performAllHealthChecks.mutate()}
+            disabled={performAllHealthChecks.isPending}
+            className="btn btn-primary flex items-center gap-2 disabled:opacity-50"
+          >
+            <RefreshCw
+              className={`h-5 w-5 ${performAllHealthChecks.isPending ? 'animate-spin' : ''}`}
+            />
+            Run All Checks
+          </button>
+        </div>
       </div>
 
       {/* Summary Cards */}
