@@ -547,11 +547,11 @@ export const analyticsRouter = createTRPCRouter({
       groupBy: z.string().optional(),
       metrics: z.array(z.string()).optional(),
     }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ ctx: _ctx, input }) => {
       // This is a flexible endpoint that can be expanded based on requirements
       // For now, redirect to specific analytics based on reportType
 
-      const { reportType, dateRange } = input;
+      const { reportType, dateRange: _dateRange } = input;
 
       switch (reportType) {
         case 'revenue':

@@ -1988,7 +1988,7 @@ export const portalRouter = createTRPCRouter({
       limit: z.number().min(1).max(100).default(50),
       offset: z.number().min(0).default(0),
     }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ ctx: _ctx, input }) => {
       const documents = await prisma.documents.findMany({
         where: {
           category: input.documentType,

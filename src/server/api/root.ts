@@ -48,7 +48,6 @@ import { healthRouter as apiHealthRouter } from './routers/apiManagement/health'
 import { rotationRouter as apiRotationRouter } from './routers/apiManagement/rotation';
 import { jobsRouter as apiJobsRouter } from './routers/apiManagement/jobs';
 import { flipbooksRouter } from './routers/flipbooks';
-import { features } from '@/lib/features';
 
 /**
  * Main API router

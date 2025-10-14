@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { createTRPCRouter, superAdminProcedure } from '../trpc/init';
-import { encryptCredentials, decryptCredentials, maskCredential } from '@/lib/encryption/credentials';
+import { encryptCredentials, maskCredential } from '@/lib/encryption/credentials';
 
 export const apiCredentialsRouter = createTRPCRouter({
   /**
