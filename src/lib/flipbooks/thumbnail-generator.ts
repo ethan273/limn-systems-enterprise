@@ -5,7 +5,7 @@
  * Phase 1: TOC & Thumbnails Enhancement
  */
 
-import * as pdfjs from "pdfjs-dist";
+import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
 import sharp from "sharp";
 import { createClient } from "@supabase/supabase-js";
 import { THUMBNAIL_VALIDATION } from "@/types/flipbook-navigation";

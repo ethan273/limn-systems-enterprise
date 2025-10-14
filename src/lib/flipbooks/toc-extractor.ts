@@ -5,7 +5,7 @@
  * Phase 1: TOC & Thumbnails Enhancement
  */
 
-import * as pdfjs from 'pdfjs-dist';
+import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs';
 import type {
   TOCItem,
   TOCData,
