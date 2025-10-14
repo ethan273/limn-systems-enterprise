@@ -54,7 +54,7 @@ import {
   StatsGrid,
   type StatItem,
 } from "@/components/common";
-import { OrderCreationDialog, type OrderItem, type OrderCreationFormData } from "@/components/crm/OrderCreationDialog";
+import { OrderCreationDialog, type OrderCreationFormData } from "@/components/crm/OrderCreationDialog";
 import { generateProductSku } from "@/lib/utils/product-sku-generator";
 
 interface Project {
