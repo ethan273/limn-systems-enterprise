@@ -15,7 +15,6 @@ import {
   Lock,
   FileText,
   BarChart3,
-  Settings,
 } from 'lucide-react';
 
 export default function ApiManagementDashboard() {

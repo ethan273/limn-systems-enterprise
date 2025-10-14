@@ -20,8 +20,6 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import {
-  LineChart,
-  Line,
   BarChart,
   Bar,
   PieChart,
@@ -31,7 +29,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
   Area,
   AreaChart,
@@ -41,20 +38,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function AnalyticsPage() {
   const [dateRange, setDateRange] = useState<7 | 30 | 90>(30);
-  const [refreshKey, setRefreshKey] = useState(0);
 
   // Fetch analytics data
-  const { data: credentials } = api.apiCredentials.getAll.useQuery(undefined, {
-    // Force refetch when refreshKey changes
+  const { data: credentials, refetch: refetchCredentials } = api.apiCredentials.getAll.useQuery(undefined, {
     refetchOnMount: true,
   });
 
-  const { data: auditStats } = api.apiAudit.getAuditStatistics.useQuery({
+  const { data: auditStats, refetch: refetchAuditStats } = api.apiAudit.getAuditStatistics.useQuery({
     startDate: new Date(Date.now() - dateRange * 24 * 60 * 60 * 1000).toISOString(),
     endDate: new Date().toISOString(),
   });
 
-  const { data: healthDashboard } = api.apiHealth.getHealthDashboard.useQuery();
+  const { data: healthDashboard, refetch: refetchHealthDashboard } = api.apiHealth.getHealthDashboard.useQuery();
 
   // Calculate analytics data
   const calculateUsageByService = () => {
@@ -141,7 +136,9 @@ export default function AnalyticsPage() {
   const COLORS = ['hsl(var(--primary))', 'hsl(var(--info))', 'hsl(var(--success))', 'hsl(var(--warning))', 'hsl(var(--destructive))'];
 
   const handleRefresh = () => {
-    setRefreshKey((prev) => prev + 1);
+    refetchCredentials();
+    refetchAuditStats();
+    refetchHealthDashboard();
   };
 
   const handleExport = () => {

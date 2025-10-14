@@ -10,8 +10,6 @@ import {
   FileText,
   CheckCircle,
   AlertTriangle,
-  Download,
-  Calendar,
   Shield,
   ArrowLeft,
   FileDown,
@@ -78,7 +76,7 @@ export default function CompliancePage() {
     // Compliance Sections
     let currentY = (doc as any).lastAutoTable.finalY + 10;
 
-    report.sections.forEach((section, index) => {
+    report.sections.forEach((section) => {
       if (currentY > 250) {
         doc.addPage();
         currentY = 20;

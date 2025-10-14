@@ -17,7 +17,6 @@ import {
   RefreshCw,
   TrendingUp,
   AlertTriangle,
-  Download,
   ArrowLeft,
 } from 'lucide-react';
 

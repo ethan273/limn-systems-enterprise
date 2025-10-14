@@ -12,16 +12,15 @@ import {
   CheckCircle,
   Clock,
   Download,
-  Filter,
   ArrowLeft,
 } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function SecurityDashboard() {
-  const [dateRange, setDateRange] = useState({
+  const dateRange = {
     start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
     end: new Date().toISOString(),
-  });
+  };
 
   // Fetch security metrics
   const { data: metrics } = api.apiSecurity.getSecurityMetrics.useQuery();
