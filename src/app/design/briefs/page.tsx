@@ -289,7 +289,7 @@ export default function DesignBriefsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Design Brief</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{briefToDelete?.title}"? This action cannot be undone.
+              Are you sure you want to delete &quot;{briefToDelete?.title}&quot;? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

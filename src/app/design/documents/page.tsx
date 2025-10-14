@@ -359,7 +359,7 @@ function DesignDocumentsContent() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Document</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{fileToDelete?.file_name}"? This action cannot be undone.
+              Are you sure you want to delete &quot;{fileToDelete?.file_name}&quot;? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
