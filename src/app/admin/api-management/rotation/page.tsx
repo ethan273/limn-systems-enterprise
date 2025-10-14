@@ -54,15 +54,15 @@ export default function CredentialRotationPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'text-green-600 bg-green-50';
+        return 'text-success bg-success/10 border-success/20';
       case 'in_progress':
       case 'grace_period':
-        return 'text-blue-600 bg-blue-50';
+        return 'text-info bg-info/10 border-info/20';
       case 'failed':
       case 'rolled_back':
-        return 'text-red-600 bg-red-50';
+        return 'text-destructive bg-destructive/10 border-destructive/20';
       default:
-        return 'text-gray-600 bg-gray-50';
+        return 'text-muted-foreground bg-muted/10 border-border';
     }
   };
 
@@ -172,7 +172,7 @@ export default function CredentialRotationPage() {
                     </p>
                   )}
                   {rotationStatus.currentSession.error_message && (
-                    <p className="text-red-600">
+                    <p className="text-destructive">
                       Error: {rotationStatus.currentSession.error_message}
                     </p>
                   )}
@@ -186,7 +186,7 @@ export default function CredentialRotationPage() {
                       })
                     }
                     disabled={rollbackRotation.isPending}
-                    className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+                    className="mt-4 px-4 py-2 btn btn-destructive disabled:opacity-50"
                   >
                     <RotateCcw className="inline h-4 w-4 mr-2" />
                     Rollback
@@ -199,7 +199,7 @@ export default function CredentialRotationPage() {
             {rotationStatus.canRotate && !confirmRotation && (
               <button
                 onClick={() => setConfirmRotation(true)}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                className="px-6 py-3 btn btn-primary flex items-center gap-2"
               >
                 <RefreshCw className="h-5 w-5" />
                 Rotate Credentials
@@ -208,17 +208,17 @@ export default function CredentialRotationPage() {
 
             {/* Confirmation Dialog */}
             {confirmRotation && (
-              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="p-4 alert-warning rounded-lg">
                 <div className="flex items-start gap-3">
-                  <AlertTriangle className="h-6 w-6 text-yellow-600 flex-shrink-0 mt-1" />
+                  <AlertTriangle className="h-6 w-6 text-warning flex-shrink-0 mt-1" />
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900 mb-2">
+                    <h3 className="font-semibold text-primary mb-2">
                       Confirm Credential Rotation
                     </h3>
-                    <p className="text-sm text-gray-600 mb-4">
+                    <p className="text-sm text-secondary mb-4">
                       This will initiate a zero-downtime rotation process:
                     </p>
-                    <ol className="list-decimal list-inside text-sm text-gray-600 space-y-1 mb-4">
+                    <ol className="list-decimal list-inside text-sm text-secondary space-y-1 mb-4">
                       <li>Generate new credentials in the service provider</li>
                       <li>Run health checks on new credentials</li>
                       <li>Enter 5-minute grace period (old + new both active)</li>
@@ -232,13 +232,13 @@ export default function CredentialRotationPage() {
                           })
                         }
                         disabled={initiateRotation.isPending}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                        className="px-4 py-2 btn btn-primary disabled:opacity-50"
                       >
                         {initiateRotation.isPending ? 'Starting...' : 'Confirm'}
                       </button>
                       <button
                         onClick={() => setConfirmRotation(false)}
-                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                        className="px-4 py-2 btn btn-ghost"
                       >
                         Cancel
                       </button>
@@ -249,8 +249,8 @@ export default function CredentialRotationPage() {
             )}
 
             {!rotationStatus.canRotate && !rotationStatus.currentSession && (
-              <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                <p className="text-sm text-gray-600">
+              <div className="p-4 bg-muted/30 border rounded-lg">
+                <p className="text-sm text-muted-foreground">
                   Automatic rotation is not supported for this credential type.
                   Manual rotation required.
                 </p>
@@ -262,58 +262,58 @@ export default function CredentialRotationPage() {
 
       {/* Rotation History */}
       {selectedCredential && rotationHistory && rotationHistory.length > 0 && (
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">
+        <div className="card">
+          <div className="p-6 border-b">
+            <h2 className="text-xl font-semibold text-primary">
               Rotation History
             </h2>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-border">
+              <thead className="bg-muted/30">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Started
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Completed
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Initiated By
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Error
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y divide-border">
                 {rotationHistory.map((rotation) => (
                   <tr key={rotation.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                       {new Date(rotation.started_at).toLocaleString()}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                       {rotation.completed_at
                         ? new Date(rotation.completed_at).toLocaleString()
                         : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                        className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
                           rotation.status
                         )}`}
                       >
                         {rotation.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                       {rotation.initiated_by}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
+                    <td className="px-6 py-4 text-sm text-primary">
                       {rotation.error_message || '-'}
                     </td>
                   </tr>

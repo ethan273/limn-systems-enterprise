@@ -67,13 +67,13 @@ export default function HealthMonitoringPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'healthy':
-        return 'text-green-600 bg-green-50';
+        return 'text-success bg-success/10 border-success/20';
       case 'degraded':
-        return 'text-yellow-600 bg-yellow-50';
+        return 'text-warning bg-warning/10 border-warning/20';
       case 'unhealthy':
-        return 'text-red-600 bg-red-50';
+        return 'text-destructive bg-destructive/10 border-destructive/20';
       default:
-        return 'text-gray-600 bg-gray-50';
+        return 'text-muted-foreground bg-muted/10 border-border';
     }
   };
 
@@ -251,10 +251,10 @@ export default function HealthMonitoringPage() {
 
       {/* Detailed Metrics (when credential selected) */}
       {selectedCredential && uptimeMetrics && (
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-6 border-b border-gray-200">
+        <div className="card">
+          <div className="p-6 border-b">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-900">
+              <h2 className="text-xl font-semibold text-primary">
                 Detailed Metrics
               </h2>
 
@@ -264,7 +264,7 @@ export default function HealthMonitoringPage() {
                   onChange={(e) =>
                     setUptimePeriod(Number(e.target.value) as 1 | 7 | 30 | 90)
                   }
-                  className="px-3 py-2 border border-gray-300 rounded-lg"
+                  className="input px-3 py-2"
                 >
                   <option value={1}>Last 24 hours</option>
                   <option value={7}>Last 7 days</option>
@@ -278,30 +278,30 @@ export default function HealthMonitoringPage() {
           <div className="p-6">
             {/* Uptime Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600">Uptime</p>
-                <p className="text-2xl font-bold text-gray-900">
+              <div className="bg-muted/30 p-4 rounded-lg">
+                <p className="text-sm text-muted-foreground">Uptime</p>
+                <p className="text-2xl font-bold text-primary">
                   {uptimeMetrics.uptime_percentage.toFixed(2)}%
                 </p>
               </div>
 
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600">Total Checks</p>
-                <p className="text-2xl font-bold text-gray-900">
+              <div className="bg-muted/30 p-4 rounded-lg">
+                <p className="text-sm text-muted-foreground">Total Checks</p>
+                <p className="text-2xl font-bold text-primary">
                   {uptimeMetrics.total_checks}
                 </p>
               </div>
 
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600">Failed Checks</p>
-                <p className="text-2xl font-bold text-red-600">
+              <div className="bg-muted/30 p-4 rounded-lg">
+                <p className="text-sm text-muted-foreground">Failed Checks</p>
+                <p className="text-2xl font-bold text-destructive">
                   {uptimeMetrics.failed_checks}
                 </p>
               </div>
 
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600">Avg Response Time</p>
-                <p className="text-2xl font-bold text-gray-900">
+              <div className="bg-muted/30 p-4 rounded-lg">
+                <p className="text-sm text-muted-foreground">Avg Response Time</p>
+                <p className="text-2xl font-bold text-primary">
                   {uptimeMetrics.average_response_time_ms}ms
                 </p>
               </div>
@@ -310,7 +310,7 @@ export default function HealthMonitoringPage() {
             {/* Incidents */}
             {uptimeMetrics.incidents.length > 0 && (
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                <h3 className="text-lg font-semibold text-primary mb-4">
                   Incidents ({uptimeMetrics.incidents.length})
                 </h3>
 
@@ -318,16 +318,16 @@ export default function HealthMonitoringPage() {
                   {uptimeMetrics.incidents.map((incident, index) => (
                     <div
                       key={index}
-                      className="p-4 bg-red-50 border border-red-200 rounded-lg"
+                      className="p-4 alert-error rounded-lg"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <AlertCircle className="h-5 w-5 text-red-600" />
+                          <AlertCircle className="h-5 w-5 text-destructive" />
                           <div>
-                            <p className="font-semibold text-gray-900">
+                            <p className="font-semibold text-primary">
                               {incident.status.toUpperCase()}
                             </p>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-secondary">
                               {new Date(incident.started_at).toLocaleString()} -{' '}
                               {incident.ended_at
                                 ? new Date(incident.ended_at).toLocaleString()
@@ -336,13 +336,13 @@ export default function HealthMonitoringPage() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm font-semibold text-gray-900">
+                          <p className="text-sm font-semibold text-primary">
                             Duration: {incident.duration_minutes || 0} minutes
                           </p>
                         </div>
                       </div>
                       {incident.error_message && (
-                        <p className="mt-2 text-sm text-gray-600">
+                        <p className="mt-2 text-sm text-secondary">
                           {incident.error_message}
                         </p>
                       )}
@@ -355,49 +355,49 @@ export default function HealthMonitoringPage() {
             {/* Recent Health Checks */}
             {healthHistory && healthHistory.length > 0 && (
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                <h3 className="text-lg font-semibold text-primary mb-4">
                   Recent Health Checks
                 </h3>
 
                 <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                  <table className="min-w-full divide-y divide-border">
+                    <thead className="bg-muted/30">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                           Timestamp
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                           Status
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                           Response Time
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                           Error
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="divide-y divide-border">
                       {healthHistory.slice(0, 20).map((check) => (
                         <tr key={check.id}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                             {new Date(check.checked_at).toLocaleString()}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span
-                              className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                              className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
                                 check.status
                               )}`}
                             >
                               {check.status}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                             {check.response_time_ms
                               ? `${check.response_time_ms}ms`
                               : 'N/A'}
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-900">
+                          <td className="px-6 py-4 text-sm text-primary">
                             {check.error_message || '-'}
                           </td>
                         </tr>

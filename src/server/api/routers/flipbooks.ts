@@ -255,26 +255,47 @@ export const flipbooksRouter = createTRPCRouter({
         });
       }
 
-      const flipbook = await prisma.flipbooks.create({
-        data: {
+      try {
+        console.log("Creating flipbook with data:", {
           title: input.title,
           description: input.description,
           created_by_id: ctx.session.user.id,
           pdf_source_url: input.pdf_source_url,
           status: "DRAFT",
-        },
-        include: {
-          created_by: {
-            select: {
-              id: true,
-              full_name: true,
-              email: true,
+        });
+
+        const flipbook = await prisma.flipbooks.create({
+          data: {
+            title: input.title,
+            description: input.description,
+            created_by_id: ctx.session.user.id,
+            pdf_source_url: input.pdf_source_url,
+            status: "DRAFT",
+          },
+          include: {
+            created_by: {
+              select: {
+                id: true,
+                full_name: true,
+                email: true,
+              },
             },
           },
-        },
-      });
+        });
 
-      return flipbook;
+        console.log("Flipbook created successfully:", flipbook.id);
+        return flipbook;
+      } catch (error: any) {
+        console.error("Failed to create flipbook:", error);
+        console.error("Error code:", error.code);
+        console.error("Error message:", error.message);
+        console.error("Error meta:", error.meta);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: error.message || "Failed to create flipbook",
+          cause: error,
+        });
+      }
     }),
 
   /**
