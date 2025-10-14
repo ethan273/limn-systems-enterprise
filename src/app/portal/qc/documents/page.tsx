@@ -58,7 +58,7 @@ export default function QCDocumentsPage() {
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
-  const getDocumentIcon = (type: string) => {
+  const getDocumentIcon = (_type: string) => {
     return <FileText className="h-5 w-5 text-primary" />;
   };
 

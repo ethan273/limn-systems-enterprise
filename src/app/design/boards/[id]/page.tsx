@@ -77,7 +77,7 @@ export default function DesignBoardEditorPage({ params }: { params: Promise<{ id
     },
   });
 
-  const handleSaveBoard = (canvasData: any) => {
+  const handleSaveBoard = (_canvasData: any) => {
     if (!id) return;
 
     setIsSaving(true);
@@ -146,7 +146,7 @@ export default function DesignBoardEditorPage({ params }: { params: Promise<{ id
       <div className="fixed inset-0 flex flex-col items-center justify-center bg-background p-8">
         <h1 className="text-2xl font-bold mb-4">Board Not Found</h1>
         <p className="text-muted-foreground mb-6">
-          The board you're looking for doesn't exist or you don't have permission to view it.
+          The board you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to view it.
         </p>
         <Button onClick={handleBack}>
           <ArrowLeft className="mr-2 h-4 w-4" />

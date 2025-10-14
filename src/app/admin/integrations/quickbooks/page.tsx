@@ -1,3 +1,4 @@
+/* eslint-disable security/detect-object-injection */
 'use client';
 
 // Force dynamic rendering for this page (uses searchParams)

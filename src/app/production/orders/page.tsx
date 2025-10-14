@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import React from "react";
 import { api } from "@/lib/api/client";
 import { Package, DollarSign, AlertCircle, TrendingUp, Plus } from "lucide-react";
 import Link from "next/link";

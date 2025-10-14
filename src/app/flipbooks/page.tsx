@@ -289,7 +289,7 @@ export default function FlipbooksPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Flipbook</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{flipbookToDelete?.title}"? This action cannot be undone.
+              Are you sure you want to delete &quot;{flipbookToDelete?.title}&quot;? This action cannot be undone.
               All pages, hotspots, and analytics data will be permanently deleted.
             </AlertDialogDescription>
           </AlertDialogHeader>

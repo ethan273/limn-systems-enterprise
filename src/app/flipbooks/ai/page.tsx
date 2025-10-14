@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PageHeader, LoadingState } from "@/components/common";
 import { api } from "@/lib/api/client";
+import { Sparkles, Wand2, Settings, Check, Loader2, ArrowRight } from "lucide-react";
 import {
   Dialog,
   DialogContent,

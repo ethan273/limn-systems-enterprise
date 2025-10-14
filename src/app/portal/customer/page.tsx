@@ -26,7 +26,7 @@ export default function CustomerPortalPage() {
   const router = useRouter();
 
   // Use portal router procedures
-  const { data: userInfo } = api.portal.getCurrentUser.useQuery();
+  const { data: _userInfo } = api.portal.getCurrentUser.useQuery();
   const { data: stats, isLoading: _statsLoading } = api.portal.getDashboardStats.useQuery();
   const { data: ordersData, isLoading: ordersLoading } = api.portal.getCustomerOrders.useQuery({
     status: 'all',

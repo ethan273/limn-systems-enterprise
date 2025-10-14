@@ -27,7 +27,7 @@ export default function QCSettingsPage() {
   const [inAppNotifications, setInAppNotifications] = useState(true);
 
   const { data: userInfo } = api.portal.getCurrentUser.useQuery();
-  const { data: portalSettings } = api.portal.getPortalSettings.useQuery();
+  const { data: _portalSettings } = api.portal.getPortalSettings.useQuery();
   const updatePreferencesMutation = api.portal.updateNotificationPreferences.useMutation();
 
   // Get tRPC utils for cache invalidation

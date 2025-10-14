@@ -413,7 +413,7 @@ function FlipbookBuilderContent() {
             <h2 className="text-lg font-semibold mb-4">Quick Tips</h2>
             <ul className="text-xs text-muted-foreground space-y-2">
               <li>• Drag pages to reorder them</li>
-              <li>• Click "Add Hotspot" then click on the page</li>
+              <li>• Click &quot;Add Hotspot&quot; then click on the page</li>
               <li>• Drag hotspots to reposition</li>
               <li>• Select page to view/edit hotspots</li>
               <li>• Save frequently to keep changes</li>
