@@ -1,5 +1,11 @@
 # Flipbook Phase 1: TOC & Thumbnails - Status Report
 
+**⚠️ FEATURE CURRENTLY DISABLED**
+- Feature flag set to `false` in `.env.local`
+- Flipbooks menu item hidden from navigation
+- All routes return 403 when accessed
+- To re-enable: Set `NEXT_PUBLIC_ENABLE_FLIPBOOKS=true` in `.env.local`
+
 ## ✅ Completed Features
 
 ### 1. Table of Contents (TOC) System
