@@ -262,7 +262,7 @@ export default function ConceptsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Concept</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{itemToDelete?.name}"? This action cannot be undone.
+              Are you sure you want to delete &quot;{itemToDelete?.name}&quot;? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

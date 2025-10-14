@@ -262,7 +262,7 @@ export default function PrototypesPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Prototype</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{itemToDelete?.name}"? This action cannot be undone.
+              Are you sure you want to delete &quot;{itemToDelete?.name}&quot;? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

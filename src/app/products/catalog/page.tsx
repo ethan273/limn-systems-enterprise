@@ -300,7 +300,7 @@ export default function CatalogItemsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Catalog Item</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{itemToDelete?.name}"? This action cannot be undone.
+              Are you sure you want to delete &quot;{itemToDelete?.name}&quot;? This action cannot be undone.
               This item will be removed from the catalog.
             </AlertDialogDescription>
           </AlertDialogHeader>

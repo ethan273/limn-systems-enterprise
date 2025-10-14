@@ -276,7 +276,7 @@ export default function CustomerProfilePage() {
                 In-App Notifications
               </Label>
               <p className="text-sm text-muted-foreground mt-1">
-                Show notifications within the portal when you're logged in
+                Show notifications within the portal when you&apos;re logged in
               </p>
             </div>
             <Switch
