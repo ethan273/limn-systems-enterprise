@@ -52,8 +52,13 @@ export async function processPdf(pdfBuffer: Buffer): Promise<PdfProcessResult> {
   // Get pdfjs-dist dynamically
   const pdfjs = await getPdfjsLib();
 
-  // Load PDF with pdfjs-dist for rendering
-  const loadingTask = pdfjs.getDocument({ data: new Uint8Array(pdfBuffer) });
+  // Load PDF with pdfjs-dist for rendering (disable worker for Node.js)
+  const loadingTask = pdfjs.getDocument({
+    data: new Uint8Array(pdfBuffer),
+    isEvalSupported: false,
+    useWorkerFetch: false,
+    worker: null as any, // Explicitly disable worker
+  });
   const pdf = await loadingTask.promise;
   const pageCount = pdf.numPages;
 

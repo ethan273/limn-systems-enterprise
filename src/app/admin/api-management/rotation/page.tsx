@@ -8,6 +8,7 @@
 
 import { useState } from 'react';
 import { api } from '@/lib/api/client';
+import Link from 'next/link';
 import {
   RefreshCw,
   CheckCircle,
@@ -15,6 +16,7 @@ import {
   Clock,
   AlertTriangle,
   RotateCcw,
+  ArrowLeft,
 } from 'lucide-react';
 
 export default function CredentialRotationPage() {
@@ -84,6 +86,15 @@ export default function CredentialRotationPage() {
 
   return (
     <div className="page-container">
+      {/* Back Navigation */}
+      <Link
+        href="/admin/api-management"
+        className="inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-4 transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back to API Management
+      </Link>
+
       {/* Header */}
       <div className="page-header">
         <h1 className="page-title">Credential Rotation</h1>

@@ -5,6 +5,7 @@ import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
 import {
   FileText,
   CheckCircle,
@@ -12,6 +13,7 @@ import {
   Download,
   Calendar,
   Shield,
+  ArrowLeft,
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -35,6 +37,15 @@ export default function CompliancePage() {
 
   return (
     <div className="page-container">
+      {/* Back Navigation */}
+      <Link
+        href="/admin/api-management"
+        className="inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-4 transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back to API Management
+      </Link>
+
       {/* Header */}
       <div className="page-header">
         <div className="flex items-center justify-between">
