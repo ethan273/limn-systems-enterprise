@@ -118,7 +118,7 @@ export default function AnalyticsPage() {
     if (!auditStats) return [];
 
     // Generate last 30 days data
-    const days = [];
+    const days: Array<{ date: string; events: number; success: number; failed: number }> = [];
     for (let i = 29; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
