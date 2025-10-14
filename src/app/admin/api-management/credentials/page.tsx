@@ -22,7 +22,7 @@ import { FormDialog } from '@/components/common/FormDialog';
 import type { FormField } from '@/components/common/FormDialog';
 import { DataTable } from '@/components/common/DataTable';
 import type { DataTableColumn } from '@/components/common/DataTable';
-import { SERVICE_TEMPLATES, getTemplate, type ServiceTemplate } from '@/lib/api-management/service-templates';
+import { SERVICE_TEMPLATES, getTemplate } from '@/lib/api-management/service-templates';
 
 interface ApiCredential {
   id: string;
@@ -99,7 +99,7 @@ export default function ApiCredentialsPage() {
   };
 
   // Get rotation recommendation
-  const getRotationStatus = (createdAt: Date, lastUsedAt: Date | null): {
+  const getRotationStatus = (createdAt: Date, _lastUsedAt: Date | null): {
     status: 'good' | 'warning' | 'urgent';
     message: string;
     daysOld: number;
