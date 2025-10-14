@@ -7,7 +7,6 @@ import { api } from "@/lib/api/client";
 import { useInvoicesRealtime } from "@/hooks/useRealtimeSubscription";
 import { FileText, DollarSign, Clock, CheckCircle2, Download, Plus } from "lucide-react";
 import { format } from "date-fns";
-import { Button } from "@/components/ui/button";
 import {
   PageHeader,
   EmptyState,
