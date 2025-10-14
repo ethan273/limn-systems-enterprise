@@ -3,11 +3,25 @@ import { createTRPCRouter, publicProcedure, protectedProcedure as _protectedProc
 import { TRPCError } from '@trpc/server'
 import { createClient } from '@supabase/supabase-js'
 
-// Initialize Supabase client with service role for admin operations
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+// Lazy-initialized Supabase client with service role for admin operations
+let supabaseAdmin: ReturnType<typeof createClient> | null = null
+
+function getSupabaseAdmin() {
+  if (!supabaseAdmin) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error(
+        'Supabase configuration missing: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required'
+      )
+    }
+
+    supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
+  }
+
+  return supabaseAdmin
+}
 
 export const authRouter = createTRPCRouter({
   // Public procedure to request access
@@ -156,7 +170,7 @@ export const authRouter = createTRPCRouter({
 
         // If approved, send magic link
         if (input.action === 'approve') {
-          const { error: magicLinkError } = await supabaseAdmin.auth.signInWithOtp({
+          const { error: magicLinkError } = await getSupabaseAdmin().auth.signInWithOtp({
             email: request.email,
             options: {
               emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
@@ -266,7 +280,7 @@ export const authRouter = createTRPCRouter({
         }
 
         // Send magic link
-        const { error } = await supabaseAdmin.auth.signInWithOtp({
+        const { error } = await getSupabaseAdmin().auth.signInWithOtp({
           email: input.email,
           options: {
             emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`

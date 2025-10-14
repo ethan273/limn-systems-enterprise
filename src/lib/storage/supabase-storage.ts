@@ -7,11 +7,25 @@
 import { createClient } from '@supabase/supabase-js';
 import type { UploadResult } from './hybrid-storage';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
 // Server-side Supabase client with service role key (bypasses RLS)
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+let supabase: ReturnType<typeof createClient> | null = null;
+
+function getSupabaseClient() {
+  if (!supabase) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error(
+        'Supabase configuration missing: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required'
+      );
+    }
+
+    supabase = createClient(supabaseUrl, supabaseServiceKey);
+  }
+
+  return supabase;
+}
 
 /**
  * Upload file to Supabase Storage
@@ -27,7 +41,7 @@ export async function uploadToSupabase(
 ): Promise<UploadResult> {
   try {
     // Upload file
-    const { error } = await supabase.storage
+    const { error } = await getSupabaseClient().storage
       .from(bucket)
       .upload(path, file, {
         cacheControl: '3600',
@@ -44,7 +58,7 @@ export async function uploadToSupabase(
     }
 
     // Get public URL
-    const { data: urlData } = supabase.storage
+    const { data: urlData } = getSupabaseClient().storage
       .from(bucket)
       .getPublicUrl(path);
 
@@ -72,7 +86,7 @@ export async function deleteFromSupabase(
   bucket: string = 'design-documents'
 ): Promise<boolean> {
   try {
-    const { error } = await supabase.storage
+    const { error } = await getSupabaseClient().storage
       .from(bucket)
       .remove([path]);
 
@@ -96,7 +110,7 @@ export async function getSupabaseUrl(
   bucket: string = 'design-documents'
 ): Promise<string | null> {
   try {
-    const { data } = supabase.storage
+    const { data } = getSupabaseClient().storage
       .from(bucket)
       .getPublicUrl(path);
 
@@ -116,7 +130,7 @@ export async function createSignedUrl(
   bucket: string = 'design-documents'
 ): Promise<string | null> {
   try {
-    const { data, error } = await supabase.storage
+    const { data, error } = await getSupabaseClient().storage
       .from(bucket)
       .createSignedUrl(path, expiresIn);
 
@@ -140,7 +154,7 @@ export async function listSupabaseFiles(
   bucket: string = 'design-documents'
 ) {
   try {
-    const { data, error } = await supabase.storage
+    const { data, error } = await getSupabaseClient().storage
       .from(bucket)
       .list(folder);
 
@@ -167,7 +181,7 @@ export async function ensureBucketExists(bucket: string): Promise<boolean> {
     const exists = buckets.some(b => b.name === bucket);
 
     if (!exists) {
-      const { error } = await supabase.storage.createBucket(bucket, {
+      const { error } = await getSupabaseClient().storage.createBucket(bucket, {
         public: true, // Make files publicly accessible
         fileSizeLimit: 52428800, // 50MB
       });

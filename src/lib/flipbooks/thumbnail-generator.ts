@@ -17,7 +17,7 @@ if (typeof window === "undefined") {
   pdfjs.GlobalWorkerOptions.workerPort = null;
 } else {
   // Browser environment: use worker
-  pdfjs.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.js`;
+  pdfjs.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.mjs`;
 }
 
 // Lazy-initialized Supabase client for storage

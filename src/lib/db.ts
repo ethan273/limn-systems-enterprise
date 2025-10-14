@@ -1,7 +1,7 @@
 import { getSupabaseAdmin } from './supabase';
 import { PrismaClient } from '@prisma/client';
 
-const supabase = getSupabaseAdmin();
+// Use lazy initialization - don't call getSupabaseAdmin() at module load time
 const prisma = new PrismaClient();
 
 /**
