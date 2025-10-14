@@ -141,7 +141,7 @@ export default function ApiKeysPage() {
   };
 
   // Get rotation recommendation
-  const getRotationStatus = (createdAt: Date, lastUsedAt: Date | null): {
+  const getRotationStatus = (createdAt: Date, _lastUsedAt: Date | null): {
     status: 'good' | 'warning' | 'urgent';
     message: string;
     daysOld: number;

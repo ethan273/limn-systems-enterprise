@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +20,7 @@ export default function CRMOrdersPage() {
  const [statusFilter, setStatusFilter] = useState<string>("all");
  const [searchQuery, setSearchQuery] = useState("");
  const { user, loading: authLoading } = useAuth();
- const router = useRouter();
+ const _router = useRouter();
  const { toast } = useToast();
 
  // Auth is handled by middleware - no client-side redirect needed

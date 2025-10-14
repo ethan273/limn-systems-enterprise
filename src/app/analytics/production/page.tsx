@@ -3,9 +3,7 @@
 import { useState } from 'react';
 import { api } from '@/utils/api';
 import {
-  LineChart,
   Line,
-  BarChart,
   Bar,
   XAxis,
   YAxis,
@@ -17,7 +15,6 @@ import {
   Pie,
   Cell,
   ComposedChart,
-  Area,
 } from 'recharts';
 
 /**

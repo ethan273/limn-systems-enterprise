@@ -103,19 +103,6 @@ export default function ContactsPage() {
     }
   };
 
-  const handleEditContact = (contact: any) => {
-    setEditContactId(contact.id);
-    setIsEditDialogOpen(true);
-  };
-
-  const handleSendEmail = (contact: any) => {
-    if (contact.email) {
-      window.open(`mailto:${contact.email}`, '_blank');
-    } else {
-      toast.error("No email address available for this contact");
-    }
-  };
-
   // Form fields for create dialog
   const createFormFields: FormField[] = [
     { name: 'name', label: 'Name', type: 'text', required: true, placeholder: 'Full name' },
