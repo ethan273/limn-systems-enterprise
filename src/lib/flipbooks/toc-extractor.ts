@@ -29,8 +29,13 @@ export async function extractTOCFromPDF(
   pdfUrl: string
 ): Promise<PDFTOCExtractionResult> {
   try {
-    // Load PDF document
-    const loadingTask = pdfjs.getDocument(pdfUrl);
+    // Load PDF document (disable worker for Node.js)
+    const loadingTask = pdfjs.getDocument({
+      url: pdfUrl,
+      isEvalSupported: false,
+      useWorkerFetch: false,
+      worker: null as any, // Explicitly disable worker
+    });
     const pdf = await loadingTask.promise;
 
     // Get outline (bookmarks)
