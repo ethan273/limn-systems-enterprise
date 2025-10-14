@@ -130,7 +130,7 @@ export default function NewLeadPage() {
                     id="name"
                     value={formData.name}
                     onChange={(e) => handleChange('name', e.target.value)}
-                    className="pl-10"
+                    className="pl-12"
                     placeholder="John Doe"
                     required
                   />
@@ -146,7 +146,7 @@ export default function NewLeadPage() {
                     type="email"
                     value={formData.email}
                     onChange={(e) => handleChange('email', e.target.value)}
-                    className="pl-10"
+                    className="pl-12"
                     placeholder="john@example.com"
                     required
                   />
@@ -162,7 +162,7 @@ export default function NewLeadPage() {
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => handleChange('phone', e.target.value)}
-                    className="pl-10"
+                    className="pl-12"
                     placeholder="+1 (555) 123-4567"
                   />
                 </div>
@@ -176,7 +176,7 @@ export default function NewLeadPage() {
                     id="company"
                     value={formData.company}
                     onChange={(e) => handleChange('company', e.target.value)}
-                    className="pl-10"
+                    className="pl-12"
                     placeholder="Acme Corporation"
                   />
                 </div>
@@ -190,7 +190,7 @@ export default function NewLeadPage() {
                     value={formData.lead_source}
                     onValueChange={(value) => handleChange('lead_source', value)}
                   >
-                    <SelectTrigger id="lead_source" className="pl-10">
+                    <SelectTrigger id="lead_source" className="pl-12">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -212,7 +212,7 @@ export default function NewLeadPage() {
                     value={formData.interest_level}
                     onValueChange={(value) => handleChange('interest_level', value)}
                   >
-                    <SelectTrigger id="interest_level" className="pl-10">
+                    <SelectTrigger id="interest_level" className="pl-12">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>

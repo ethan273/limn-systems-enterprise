@@ -104,7 +104,7 @@ export default function NewContactPage() {
                     id="name"
                     value={formData.name}
                     onChange={(e) => handleChange('name', e.target.value)}
-                    className="pl-10"
+                    className="pl-12"
                     placeholder="John Doe"
                     required
                   />
@@ -120,7 +120,7 @@ export default function NewContactPage() {
                     type="email"
                     value={formData.email}
                     onChange={(e) => handleChange('email', e.target.value)}
-                    className="pl-10"
+                    className="pl-12"
                     placeholder="john@example.com"
                   />
                 </div>
@@ -135,7 +135,7 @@ export default function NewContactPage() {
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => handleChange('phone', e.target.value)}
-                    className="pl-10"
+                    className="pl-12"
                     placeholder="+1 (555) 123-4567"
                   />
                 </div>
@@ -149,7 +149,7 @@ export default function NewContactPage() {
                     id="company"
                     value={formData.company}
                     onChange={(e) => handleChange('company', e.target.value)}
-                    className="pl-10"
+                    className="pl-12"
                     placeholder="Acme Corporation"
                   />
                 </div>
@@ -163,7 +163,7 @@ export default function NewContactPage() {
                     id="position"
                     value={formData.position}
                     onChange={(e) => handleChange('position', e.target.value)}
-                    className="pl-10"
+                    className="pl-12"
                     placeholder="Sales Manager"
                   />
                 </div>
