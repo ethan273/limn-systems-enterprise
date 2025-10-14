@@ -1,15 +1,20 @@
 import { createClient } from '@supabase/supabase-js'
 // createBrowserClient import removed - not used in this file
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const _supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-
 // Server-side client with service role key (for admin operations)
 let _adminClient: ReturnType<typeof createClient> | null = null
 
 export function getSupabaseAdmin() {
   if (!_adminClient) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error(
+        'Supabase configuration missing: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required for admin operations'
+      )
+    }
+
     _adminClient = createClient(supabaseUrl, supabaseServiceKey, {
       db: {
         schema: 'public' as any,
