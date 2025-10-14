@@ -8,9 +8,7 @@
  */
 
 import { useState, Suspense } from "react";
-import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/lib/auth/AuthProvider";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
@@ -64,7 +62,6 @@ function DesignDocumentsContent() {
   const [fileToDelete, setFileToDelete] = useState<any>(null);
 
   const { user, loading: authLoading } = useAuthContext();
-  const router = useRouter();
 
   // Get Google Drive service account status
   const { data: driveStatus } = api.storage.getDriveStatus.useQuery();
