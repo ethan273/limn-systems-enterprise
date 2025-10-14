@@ -20,11 +20,25 @@ if (typeof window === "undefined") {
   pdfjs.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.js`;
 }
 
-// Supabase client for storage
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-);
+// Lazy-initialized Supabase client for storage
+let supabase: ReturnType<typeof createClient> | null = null;
+
+function getSupabaseClient() {
+  if (!supabase) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error(
+        'Supabase configuration missing: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required'
+      );
+    }
+
+    supabase = createClient(supabaseUrl, supabaseKey);
+  }
+
+  return supabase;
+}
 
 interface ThumbnailGenerationOptions {
   /** Size variant to generate */
@@ -201,7 +215,7 @@ export async function uploadThumbnailToStorage(
   try {
     const filename = `${flipbookId}/${pageId}-${size}.webp`;
 
-    const { data, error } = await supabase.storage
+    const { data, error } = await getSupabaseClient().storage
       .from(bucket)
       .upload(filename, buffer, {
         contentType: "image/webp",
@@ -215,7 +229,7 @@ export async function uploadThumbnailToStorage(
     // Get public URL
     const {
       data: { publicUrl },
-    } = supabase.storage.from(bucket).getPublicUrl(filename);
+    } = getSupabaseClient().storage.from(bucket).getPublicUrl(filename);
 
     return { url: publicUrl };
   } catch (error) {
@@ -409,7 +423,7 @@ export async function deleteThumbnailsFromStorage(
       `${flipbookId}/${pageId}-large.webp`,
     ];
 
-    const { error } = await supabase.storage.from(bucket).remove(filesToDelete);
+    const { error } = await getSupabaseClient().storage.from(bucket).remove(filesToDelete);
 
     if (error) {
       throw error;
@@ -433,7 +447,7 @@ export async function deleteAllThumbnailsForFlipbook(
 ): Promise<{ success: boolean; error?: string }> {
   try {
     // List all files in the flipbook directory
-    const { data: files, error: listError } = await supabase.storage
+    const { data: files, error: listError } = await getSupabaseClient().storage
       .from(bucket)
       .list(flipbookId);
 
@@ -447,7 +461,7 @@ export async function deleteAllThumbnailsForFlipbook(
 
     // Delete all files
     const filePaths = files.map((file) => `${flipbookId}/${file.name}`);
-    const { error: deleteError } = await supabase.storage
+    const { error: deleteError } = await getSupabaseClient().storage
       .from(bucket)
       .remove(filePaths);
 
@@ -475,7 +489,7 @@ export async function thumbnailExists(
 ): Promise<boolean> {
   try {
     const filename = `${flipbookId}/${pageId}-${size}.webp`;
-    const { data, error } = await supabase.storage.from(bucket).list(flipbookId);
+    const { data, error } = await getSupabaseClient().storage.from(bucket).list(flipbookId);
 
     if (error || !data) {
       return false;
