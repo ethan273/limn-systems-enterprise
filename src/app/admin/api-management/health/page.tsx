@@ -91,12 +91,12 @@ export default function HealthMonitoringPage() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="page-container">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="page-header">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Health Monitoring</h1>
-          <p className="mt-2 text-gray-600">
+          <h1 className="page-title">Health Monitoring</h1>
+          <p className="page-description">
             Real-time health status for all API credentials
           </p>
         </div>
@@ -104,7 +104,7 @@ export default function HealthMonitoringPage() {
         <button
           onClick={() => performAllHealthChecks.mutate()}
           disabled={performAllHealthChecks.isPending}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          className="btn btn-primary flex items-center gap-2 disabled:opacity-50"
         >
           <RefreshCw
             className={`h-5 w-5 ${performAllHealthChecks.isPending ? 'animate-spin' : ''}`}
@@ -115,67 +115,67 @@ export default function HealthMonitoringPage() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total Credentials</p>
-              <p className="text-3xl font-bold text-gray-900">
+              <p className="text-sm text-muted-foreground">Total Credentials</p>
+              <p className="text-3xl font-bold text-primary">
                 {dashboard?.total_credentials || 0}
               </p>
             </div>
-            <Activity className="h-10 w-10 text-blue-600" />
+            <Activity className="h-10 w-10 text-primary" />
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Healthy</p>
-              <p className="text-3xl font-bold text-green-600">
+              <p className="text-sm text-muted-foreground">Healthy</p>
+              <p className="text-3xl font-bold text-success">
                 {dashboard?.healthy || 0}
               </p>
             </div>
-            <CheckCircle className="h-10 w-10 text-green-600" />
+            <CheckCircle className="h-10 w-10 text-success" />
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Degraded</p>
-              <p className="text-3xl font-bold text-yellow-600">
+              <p className="text-sm text-muted-foreground">Degraded</p>
+              <p className="text-3xl font-bold text-warning">
                 {dashboard?.degraded || 0}
               </p>
             </div>
-            <AlertTriangle className="h-10 w-10 text-yellow-600" />
+            <AlertTriangle className="h-10 w-10 text-warning" />
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Unhealthy</p>
-              <p className="text-3xl font-bold text-red-600">
+              <p className="text-sm text-muted-foreground">Unhealthy</p>
+              <p className="text-3xl font-bold text-destructive">
                 {dashboard?.unhealthy || 0}
               </p>
             </div>
-            <AlertCircle className="h-10 w-10 text-red-600" />
+            <AlertCircle className="h-10 w-10 text-destructive" />
           </div>
         </div>
       </div>
 
       {/* Credentials List */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">Credentials Status</h2>
+      <div className="card">
+        <div className="p-6 border-b">
+          <h2 className="text-xl font-semibold text-primary">Credentials Status</h2>
         </div>
 
-        <div className="divide-y divide-gray-200">
+        <div className="divide-y">
           {dashboard?.credentials.map((credential) => (
             <div
               key={credential.id}
-              className={`p-6 hover:bg-gray-50 cursor-pointer ${
-                selectedCredential === credential.id ? 'bg-blue-50' : ''
+              className={`p-6 hover-card cursor-pointer ${
+                selectedCredential === credential.id ? 'bg-muted' : ''
               }`}
               onClick={() => setSelectedCredential(credential.id)}
             >
@@ -191,16 +191,16 @@ export default function HealthMonitoringPage() {
                       {credential.status.toUpperCase()}
                     </span>
 
-                    <h3 className="text-lg font-semibold text-gray-900">
+                    <h3 className="text-lg font-semibold text-primary">
                       {credential.name}
                     </h3>
 
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-muted-foreground">
                       {credential.service_type}
                     </span>
                   </div>
 
-                  <div className="mt-2 flex items-center gap-6 text-sm text-gray-600">
+                  <div className="mt-2 flex items-center gap-6 text-sm text-secondary">
                     <div className="flex items-center gap-2">
                       <TrendingUp className="h-4 w-4" />
                       <span>24h Uptime: {credential.uptime_24h.toFixed(2)}%</span>
@@ -217,7 +217,7 @@ export default function HealthMonitoringPage() {
                     </div>
 
                     {credential.consecutive_failures > 0 && (
-                      <div className="flex items-center gap-2 text-red-600">
+                      <div className="flex items-center gap-2 text-destructive">
                         <AlertCircle className="h-4 w-4" />
                         <span>
                           {credential.consecutive_failures} consecutive failures
@@ -233,7 +233,7 @@ export default function HealthMonitoringPage() {
                     performHealthCheck.mutate({ credentialId: credential.id });
                   }}
                   disabled={performHealthCheck.isPending}
-                  className="px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg disabled:opacity-50"
+                  className="btn btn-ghost disabled:opacity-50"
                 >
                   Check Now
                 </button>
@@ -242,7 +242,7 @@ export default function HealthMonitoringPage() {
           ))}
 
           {!dashboard?.credentials.length && (
-            <div className="p-12 text-center text-gray-500">
+            <div className="p-12 text-center text-muted-foreground">
               No active credentials to monitor
             </div>
           )}

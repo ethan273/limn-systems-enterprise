@@ -83,40 +83,40 @@ export default function CredentialRotationPage() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="page-container">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Credential Rotation</h1>
-        <p className="mt-2 text-gray-600">
+      <div className="page-header">
+        <h1 className="page-title">Credential Rotation</h1>
+        <p className="page-description">
           Zero-downtime rotation for supported credential types
         </p>
       </div>
 
       {/* Credentials List */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">Credentials</h2>
+      <div className="card">
+        <div className="p-6 border-b">
+          <h2 className="text-xl font-semibold text-primary">Credentials</h2>
         </div>
 
-        <div className="divide-y divide-gray-200">
+        <div className="divide-y">
           {credentials?.map((credential) => (
             <div
               key={credential.id}
-              className={`p-6 hover:bg-gray-50 cursor-pointer ${
-                selectedCredential === credential.id ? 'bg-blue-50' : ''
+              className={`p-6 hover-card cursor-pointer ${
+                selectedCredential === credential.id ? 'bg-muted' : ''
               }`}
               onClick={() => setSelectedCredential(credential.id)}
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-primary">
                     {credential.display_name}
                   </h3>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-sm text-secondary mt-1">
                     {credential.service_template || 'Custom'}
                   </p>
                   {credential.last_rotated_at && (
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-sm text-muted-foreground mt-1">
                       Last rotated:{' '}
                       {new Date(credential.last_rotated_at).toLocaleString()}
                     </p>
@@ -130,9 +130,9 @@ export default function CredentialRotationPage() {
 
       {/* Rotation Controls */}
       {selectedCredential && rotationStatus && (
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">
+        <div className="card">
+          <div className="p-6 border-b">
+            <h2 className="text-xl font-semibold text-primary">
               Rotation Status
             </h2>
           </div>
@@ -152,11 +152,11 @@ export default function CredentialRotationPage() {
 
             {/* Active Rotation Session */}
             {rotationStatus.currentSession && (
-              <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <h3 className="font-semibold text-gray-900 mb-2">
+              <div className="mb-6 p-4 alert-info">
+                <h3 className="font-semibold text-primary mb-2">
                   Active Rotation Session
                 </h3>
-                <div className="space-y-2 text-sm text-gray-600">
+                <div className="space-y-2 text-sm text-secondary">
                   <p>
                     Started:{' '}
                     {new Date(
