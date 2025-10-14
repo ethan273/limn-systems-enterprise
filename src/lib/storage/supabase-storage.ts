@@ -175,7 +175,7 @@ export async function listSupabaseFiles(
  */
 export async function ensureBucketExists(bucket: string): Promise<boolean> {
   try {
-    const { data } = await supabase.storage.listBuckets();
+    const { data } = await getSupabaseClient().storage.listBuckets();
     const buckets = data || [];
 
     const exists = buckets.some(b => b.name === bucket);

@@ -777,7 +777,7 @@ export class DatabaseClient {
       selectFields = selectedFields.length > 0 ? selectedFields.join(', ') : '*';
     }
 
-    const { data, error } = await (supabase as any)
+    const { data, error } = await (getSupabaseAdmin() as any)
       .from(tableName)
       .insert({
         ...inputData,
@@ -804,7 +804,7 @@ export class DatabaseClient {
     const { where, data: updateData, include: _include = {}, select } = options;
 
     // Start with update operation
-    let query: any = (supabase as any).from(tableName).update({
+    let query: any = (getSupabaseAdmin() as any).from(tableName).update({
       ...updateData,
       updated_at: new Date().toISOString(),
     });
@@ -865,7 +865,7 @@ export class DatabaseClient {
       updated_at: new Date().toISOString(),
     }));
 
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseAdmin()
       .from(tableName)
       .insert(dataWithTimestamps as any);
 
@@ -935,7 +935,7 @@ export class DatabaseClient {
     tableName: string,
     options: { where?: Record<string, any> } = {}
   ): Promise<number> {
-    let query = supabase
+    let query = getSupabaseAdmin()
       .from(tableName)
       .select('*', { count: 'exact', head: true });
 
@@ -972,7 +972,7 @@ export class DatabaseClient {
 
     // For now, we'll implement a simplified version
     // In a real implementation, this would need proper SQL aggregation
-    let query = (supabase as any).from(tableName);
+    let query = (getSupabaseAdmin() as any).from(tableName);
 
     // Select the grouping fields and any count fields
     const selectFields = [...by];
@@ -1014,7 +1014,7 @@ export class DatabaseClient {
     const { _sum, _count, where = {} } = options;
 
     // For now, implement a simplified version
-    let query = (supabase as any).from(tableName);
+    let query = (getSupabaseAdmin() as any).from(tableName);
 
     // Apply where conditions
     Object.entries(where).forEach(([key, value]) => {
@@ -1729,7 +1729,7 @@ export class DatabaseClient {
   // =====================================================
 
   async createTask(data: any): Promise<Task> {
-    const { data: task, error } = await supabase
+    const { data: task, error } = await getSupabaseAdmin()
       .from('tasks')
       .insert({
         ...data,
@@ -1749,7 +1749,7 @@ export class DatabaseClient {
   async updateTask(data: any): Promise<Task> {
     const { id, ...updateData } = data;
 
-    const { data: task, error } = await supabase
+    const { data: task, error } = await getSupabaseAdmin()
       .from('tasks')
       // @ts-ignore - Supabase type generation issue
       .update({
@@ -1769,7 +1769,7 @@ export class DatabaseClient {
   }
 
   async findTask(id: string, options: { include?: any } = {}): Promise<Task | null> {
-    const { data: task, error } = await supabase
+    const { data: task, error } = await getSupabaseAdmin()
       .from('tasks')
       .select('*')
       .eq('id', id)
@@ -1813,7 +1813,7 @@ export class DatabaseClient {
       filters = {}
     } = options;
 
-    let query = supabase
+    let query = getSupabaseAdmin()
       .from('tasks')
       .select('*', { count: 'exact' });
 
@@ -1860,7 +1860,7 @@ export class DatabaseClient {
   }
 
   async deleteTask(id: string): Promise<void> {
-    const { error } = await supabase
+    const { error } = await getSupabaseAdmin()
       .from('tasks')
       .delete()
       .eq('id', id);
@@ -1896,7 +1896,7 @@ export class DatabaseClient {
   ): Promise<{ tasks: Task[]; total: number; hasMore: boolean; }> {
     const { includeWatching = false, status, limit = 20, offset = 0 } = options;
 
-    let query = supabase
+    let query = getSupabaseAdmin()
       .from('tasks')
       .select('*', { count: 'exact' });
 
@@ -1940,7 +1940,7 @@ export class DatabaseClient {
   // =====================================================
 
   async createTaskAttachment(data: any): Promise<any> {
-    const { data: attachment, error } = await supabase
+    const { data: attachment, error } = await getSupabaseAdmin()
       .from('task_attachments')
       .insert({
         ...data,
@@ -1958,7 +1958,7 @@ export class DatabaseClient {
   }
 
   async getTaskAttachments(taskId: string): Promise<any[]> {
-    const { data: attachments, error } = await supabase
+    const { data: attachments, error } = await getSupabaseAdmin()
       .from('task_attachments')
       .select('*')
       .eq('task_id', taskId)
@@ -1972,7 +1972,7 @@ export class DatabaseClient {
   }
 
   async findTaskAttachment(id: string): Promise<any | null> {
-    const { data: attachment, error } = await supabase
+    const { data: attachment, error } = await getSupabaseAdmin()
       .from('task_attachments')
       .select('*')
       .eq('id', id)
@@ -1987,7 +1987,7 @@ export class DatabaseClient {
   }
 
   async deleteTaskAttachment(id: string): Promise<void> {
-    const { error } = await supabase
+    const { error } = await getSupabaseAdmin()
       .from('task_attachments')
       .delete()
       .eq('id', id);
@@ -2002,7 +2002,7 @@ export class DatabaseClient {
   // =====================================================
 
   async createTaskActivity(data: any): Promise<any> {
-    const { data: activity, error } = await supabase
+    const { data: activity, error } = await getSupabaseAdmin()
       .from('task_activities')
       .insert({
         ...data,
@@ -2022,7 +2022,7 @@ export class DatabaseClient {
   async getTaskActivities(taskId: string, options: { limit?: number; offset?: number } = {}): Promise<any[]> {
     const { limit = 20, offset = 0 } = options;
 
-    const { data: activities, error } = await supabase
+    const { data: activities, error } = await getSupabaseAdmin()
       .from('task_activities')
       .select('*')
       .eq('task_id', taskId)
@@ -2041,7 +2041,7 @@ export class DatabaseClient {
   // =====================================================
 
   async createTaskEntityLink(data: any): Promise<any> {
-    const { data: link, error } = await supabase
+    const { data: link, error } = await getSupabaseAdmin()
       .from('task_entity_links')
       .insert({
         ...data,
@@ -2059,7 +2059,7 @@ export class DatabaseClient {
   }
 
   async getTaskEntityLinks(taskId: string): Promise<any[]> {
-    const { data: links, error } = await supabase
+    const { data: links, error } = await getSupabaseAdmin()
       .from('task_entity_links')
       .select('*')
       .eq('task_id', taskId)
@@ -2073,7 +2073,7 @@ export class DatabaseClient {
   }
 
   async findTaskEntityLink(id: string): Promise<any | null> {
-    const { data: link, error } = await supabase
+    const { data: link, error } = await getSupabaseAdmin()
       .from('task_entity_links')
       .select('*')
       .eq('id', id)
@@ -2088,7 +2088,7 @@ export class DatabaseClient {
   }
 
   async deleteTaskEntityLink(id: string): Promise<void> {
-    const { error } = await supabase
+    const { error } = await getSupabaseAdmin()
       .from('task_entity_links')
       .delete()
       .eq('id', id);
@@ -2100,7 +2100,7 @@ export class DatabaseClient {
 
   // Get unique tags from all tasks
   async getUniqueTags(): Promise<string[]> {
-    const { data: tasks, error } = await supabase
+    const { data: tasks, error } = await getSupabaseAdmin()
       .from('tasks')
       .select('tags')
       .not('tags', 'is', null);
@@ -2128,7 +2128,7 @@ export class DatabaseClient {
   // =====================================================
 
   async createPendingUserRequest(data: any): Promise<PendingUserRequest> {
-    const { data: request, error } = await supabase
+    const { data: request, error } = await getSupabaseAdmin()
       .from('pending_user_requests')
       .insert({
         email: data.email.toLowerCase(),
@@ -2151,7 +2151,7 @@ export class DatabaseClient {
 
   async findUniquePendingUserRequest(emailOrId: string): Promise<PendingUserRequest | null> {
     const isEmail = emailOrId.includes('@');
-    const { data: request, error } = await supabase
+    const { data: request, error } = await getSupabaseAdmin()
       .from('pending_user_requests')
       .select('*')
       .eq(isEmail ? 'email' : 'id', isEmail ? emailOrId.toLowerCase() : emailOrId)
@@ -2175,7 +2175,7 @@ export class DatabaseClient {
   }): Promise<{ requests: PendingUserRequest[]; total: number; hasMore: boolean; }> {
     const { status = 'pending', limit = 50, offset = 0, includeReviewer = false } = options;
 
-    let query = supabase
+    let query = getSupabaseAdmin()
       .from('pending_user_requests')
       .select(
         includeReviewer
@@ -2217,7 +2217,7 @@ export class DatabaseClient {
     if (data.reviewed_by) updateData.reviewed_by = data.reviewed_by;
     if (data.admin_notes !== undefined) updateData.admin_notes = data.admin_notes;
 
-    const { data: request, error } = await supabase
+    const { data: request, error } = await getSupabaseAdmin()
       .from('pending_user_requests')
       // @ts-ignore - Supabase type generation issue
       .update(updateData)
@@ -2233,7 +2233,7 @@ export class DatabaseClient {
   }
 
   async countPendingUserRequests(status?: 'pending' | 'approved' | 'denied'): Promise<number> {
-    let query = supabase
+    let query = getSupabaseAdmin()
       .from('pending_user_requests')
       .select('*', { count: 'exact', head: true });
 
@@ -2254,7 +2254,7 @@ export class DatabaseClient {
     const dateThreshold = new Date();
     dateThreshold.setDate(dateThreshold.getDate() - daysAgo);
 
-    const { data: requests, error } = await supabase
+    const { data: requests, error } = await getSupabaseAdmin()
       .from('pending_user_requests')
       .select('id, email, company_name, user_type, status, requested_at')
       .gte('requested_at', dateThreshold.toISOString())
@@ -2333,7 +2333,7 @@ export class DatabaseClient {
     try {
       const { limit = 50, offset = 0, search } = options;
 
-      let query = supabase
+      let query = getSupabaseAdmin()
         .from('user_profiles')
         .select('*', { count: 'exact' })
         .eq('is_active', true)
@@ -2370,7 +2370,7 @@ export class DatabaseClient {
    */
   async findUser(id: string): Promise<User | null> {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseAdmin()
         .from('user_profiles')
         .select('*')
         .eq('id', id)
@@ -2399,7 +2399,7 @@ export class DatabaseClient {
     try {
       if (ids.length === 0) return [];
 
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseAdmin()
         .from('user_profiles')
         .select('*')
         .in('id', ids)

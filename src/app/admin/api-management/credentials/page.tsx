@@ -20,8 +20,7 @@ import { FormDialog } from '@/components/common/FormDialog';
 import type { FormField } from '@/components/common/FormDialog';
 import { DataTable } from '@/components/common/DataTable';
 import type { DataTableColumn } from '@/components/common/DataTable';
-import { SERVICE_TEMPLATES, getTemplate } from '@/lib/api-management';
-import type { ServiceTemplate } from '@/lib/api-management';
+import { SERVICE_TEMPLATES, getTemplate, type ServiceTemplate } from '@/lib/api-management/service-templates';
 
 interface ApiCredential {
   id: string;
