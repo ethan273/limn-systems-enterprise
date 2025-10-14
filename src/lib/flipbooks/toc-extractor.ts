@@ -13,8 +13,12 @@ import type {
   PDFTOCExtractionResult,
 } from '@/types/flipbook-navigation';
 
-// Configure PDF.js worker
-if (typeof window !== 'undefined') {
+// Configure PDF.js - disable worker for Node.js, enable for browser
+if (typeof window === 'undefined') {
+  // Node.js environment: disable worker
+  pdfjs.GlobalWorkerOptions.workerPort = null;
+} else {
+  // Browser environment: use worker
   pdfjs.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.js`;
 }
 
