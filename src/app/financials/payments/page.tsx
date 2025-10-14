@@ -7,7 +7,6 @@ import { api } from "@/lib/api/client";
 import { DollarSign, CreditCard, CheckCircle2, Clock, Download, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
   PageHeader,
   EmptyState,
