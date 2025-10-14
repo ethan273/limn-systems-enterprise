@@ -1,7 +1,7 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { httpBatchLink, loggerLink } from '@trpc/client';
+import { httpBatchLink } from '@trpc/client';
 import { createTRPCReact } from '@trpc/react-query';
 import { useState } from 'react';
 import { type AppRouter } from '@/server/api/root';
@@ -32,20 +32,8 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
  const [trpcClient] = useState(() =>
  api.createClient({
  links: [
- loggerLink({
- enabled: (opts) => {
- // Only log actual errors (not successful queries)
- if (opts.direction === 'down' && opts.result instanceof Error) {
- // Suppress UNAUTHORIZED errors to reduce console noise
- const error = opts.result as any;
- if (error?.message === 'UNAUTHORIZED' || error?.data?.code === 'UNAUTHORIZED') {
- return false;
- }
- return true; // Log all other errors
- }
- return false; // Don't log successful queries
- },
- }),
+ // Logger disabled to reduce console noise
+ // Uncomment for debugging: loggerLink({ enabled: () => true }),
  httpBatchLink({
  url: `${getBaseUrl()}/api/trpc`,
  transformer: superjson,
