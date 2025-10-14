@@ -82,15 +82,6 @@ export default function ApiManagementDashboard() {
       icon: Lock,
       href: '/admin/api-management/security',
       color: 'text-blue-500',
-      badge: 'Coming Soon',
-    },
-    {
-      title: 'Analytics',
-      description: 'API usage metrics and insights',
-      icon: BarChart3,
-      href: '/admin/api-management/analytics',
-      color: 'text-purple-500',
-      badge: 'Coming Soon',
     },
     {
       title: 'Health Checks',
@@ -98,6 +89,20 @@ export default function ApiManagementDashboard() {
       icon: Activity,
       href: '/admin/api-management/health',
       color: 'text-green-500',
+    },
+    {
+      title: 'Credential Rotation',
+      description: 'Manage automated key rotation',
+      icon: Clock,
+      href: '/admin/api-management/rotation',
+      color: 'text-orange-500',
+    },
+    {
+      title: 'Analytics',
+      description: 'API usage metrics and insights',
+      icon: BarChart3,
+      href: '/admin/api-management/analytics',
+      color: 'text-purple-500',
       badge: 'Coming Soon',
     },
   ];
