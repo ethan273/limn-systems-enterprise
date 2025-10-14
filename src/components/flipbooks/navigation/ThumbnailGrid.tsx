@@ -128,7 +128,7 @@ function GridThumbnailItem({
         "group relative rounded-lg overflow-hidden transition-all cursor-pointer",
         "hover:ring-2 hover:ring-primary/50",
         isActive && "ring-2 ring-primary",
-        isSelected && "ring-2 ring-blue-500",
+        isSelected && "ring-2 ring-info",
         settings.multiSelect && "select-none"
       )}
       onClick={handleClick}
@@ -170,7 +170,7 @@ function GridThumbnailItem({
               className={cn(
                 "w-5 h-5 rounded border-2 bg-background flex items-center justify-center",
                 isSelected
-                  ? "border-blue-500 bg-blue-500"
+                  ? "border-info bg-info"
                   : "border-muted-foreground"
               )}
             >

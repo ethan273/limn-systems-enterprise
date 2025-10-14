@@ -190,9 +190,32 @@ export function isValidDomain(domain: string): boolean {
     domain = domain.substring(2);
   }
 
-  // Basic domain validation regex
-  const domainRegex = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$/i;
-  return domainRegex.test(domain);
+  // Split domain into labels and validate each separately (safe, no backtracking)
+  const labels = domain.split('.');
+
+  // Must have at least 2 labels (domain.tld)
+  if (labels.length < 2) return false;
+
+  // Validate each label
+  for (let i = 0; i < labels.length; i++) {
+    const label = labels[i];
+
+    // Label must be 1-63 characters
+    if (label.length === 0 || label.length > 63) return false;
+
+    // Label must start and end with alphanumeric
+    if (!/^[a-z0-9]/i.test(label) || !/[a-z0-9]$/i.test(label)) return false;
+
+    // Label can only contain alphanumeric and hyphens
+    if (!/^[a-z0-9-]+$/i.test(label)) return false;
+
+    // TLD (last label) must be at least 2 characters and alphabetic
+    if (i === labels.length - 1 && (label.length < 2 || !/^[a-z]+$/i.test(label))) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 /**
