@@ -5,12 +5,15 @@
  *
  * A fallback viewer that doesn't use React Three Fiber
  * Shows pages in a simple slideshow format with navigation
+ * Enhanced with TOC panel and improved thumbnail navigation
  */
 
 import { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, X, Menu } from "lucide-react";
 import Image from "next/image";
+import { api } from "@/lib/api/client";
+import { TOCPanel } from "@/components/flipbooks/navigation/TOCPanel";
 
 interface FlipbookPage {
   id: string;
@@ -21,6 +24,7 @@ interface FlipbookPage {
 }
 
 interface FlipbookViewer2DProps {
+  flipbookId?: string;
   pages: FlipbookPage[];
   initialPage?: number;
   onPageChange?: (pageNumber: number) => void;
@@ -29,6 +33,7 @@ interface FlipbookViewer2DProps {
 }
 
 export function FlipbookViewer2D({
+  flipbookId,
   pages,
   initialPage = 1,
   onPageChange,
@@ -37,7 +42,14 @@ export function FlipbookViewer2D({
 }: FlipbookViewer2DProps) {
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [zoom, setZoom] = useState(1);
+  const [showTOC, setShowTOC] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Fetch TOC data if flipbookId is provided
+  const { data: tocData } = api.flipbooks.getTOC.useQuery(
+    { flipbookId: flipbookId! },
+    { enabled: !!flipbookId }
+  );
 
   // Sort pages by page number
   const sortedPages = [...pages].sort((a, b) => a.page_number - b.page_number);
@@ -98,10 +110,41 @@ export function FlipbookViewer2D({
   }
 
   return (
-    <div ref={containerRef} className="relative w-full h-full bg-muted/20 flex flex-col">
-      {/* Controls Bar */}
-      <div className="absolute top-0 left-0 right-0 z-10 bg-background/95 backdrop-blur border-b p-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
+    <div ref={containerRef} className="relative w-full h-full bg-muted/20 flex">
+      {/* TOC Panel (collapsible sidebar) */}
+      {showTOC && tocData?.tocData && (
+        <div className="w-80 border-r bg-background flex-shrink-0">
+          <TOCPanel
+            tocData={tocData.tocData}
+            currentPage={currentPage}
+            onNavigate={(page) => setCurrentPage(page)}
+            settings={{
+              enabled: true,
+              position: "left",
+              defaultExpanded: false,
+              showPageNumbers: true,
+              searchEnabled: true,
+            }}
+          />
+        </div>
+      )}
+
+      {/* Main viewer area */}
+      <div className="flex-1 flex flex-col relative">
+        {/* Controls Bar */}
+        <div className="absolute top-0 left-0 right-0 z-10 bg-background/95 backdrop-blur border-b p-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {/* TOC Toggle Button */}
+            {tocData?.tocData && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowTOC(!showTOC)}
+                title={showTOC ? "Hide table of contents" : "Show table of contents"}
+              >
+                <Menu className="h-4 w-4" />
+              </Button>
+            )}
           <Button
             variant="outline"
             size="sm"
@@ -210,6 +253,8 @@ export function FlipbookViewer2D({
         <div>← → Navigate</div>
         <div>+ - Zoom</div>
         {onClose && <div>ESC Close</div>}
+        {tocData?.tocData && <div>Click menu icon for TOC</div>}
+      </div>
       </div>
     </div>
   );

@@ -5,6 +5,7 @@
  *
  * Interactive 3D flipbook viewer with page-turning animations
  * Built with Three.js and React Three Fiber
+ * Enhanced with TOC panel for improved navigation
  */
 
 import { useRef, useState, useEffect, useCallback } from "react";
@@ -12,8 +13,10 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, useTexture } from "@react-three/drei";
 import * as THREE from "three";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { api } from "@/lib/api/client";
+import { TOCPanel } from "@/components/flipbooks/navigation/TOCPanel";
 
 interface FlipbookPage {
   id: string;
@@ -39,6 +42,7 @@ interface FlipbookPage {
 type FlipbookHotspot = NonNullable<FlipbookPage["hotspots"]>[0];
 
 interface FlipbookViewerProps {
+  flipbookId?: string;
   pages: FlipbookPage[];
   initialPage?: number;
   onPageChange?: (pageNumber: number) => void;
@@ -213,6 +217,7 @@ function Scene({
  * Main Flipbook Viewer Component
  */
 export function FlipbookViewer({
+  flipbookId,
   pages,
   initialPage = 1,
   onPageChange,
@@ -222,8 +227,15 @@ export function FlipbookViewer({
 }: FlipbookViewerProps) {
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showTOC, setShowTOC] = useState(false);
 
   const totalPages = pages.length;
+
+  // Fetch TOC data if flipbookId is provided
+  const { data: tocData } = api.flipbooks.getTOC.useQuery(
+    { flipbookId: flipbookId! },
+    { enabled: !!flipbookId }
+  );
 
   // Navigation handlers
   const goToNextPage = useCallback(() => {
@@ -278,9 +290,29 @@ export function FlipbookViewer({
   }, [goToNextPage, goToPreviousPage, goToPage, totalPages, onClose]);
 
   return (
-    <div className={cn("relative h-full w-full bg-background", className)}>
-      {/* Canvas */}
-      <Canvas
+    <div className={cn("relative h-full w-full bg-background flex", className)}>
+      {/* TOC Panel (collapsible sidebar) */}
+      {showTOC && tocData?.tocData && (
+        <div className="w-80 border-r bg-background flex-shrink-0 z-20">
+          <TOCPanel
+            tocData={tocData.tocData}
+            currentPage={currentPage}
+            onNavigate={goToPage}
+            settings={{
+              enabled: true,
+              position: "left",
+              defaultExpanded: false,
+              showPageNumbers: true,
+              searchEnabled: true,
+            }}
+          />
+        </div>
+      )}
+
+      {/* Main viewer area */}
+      <div className="flex-1 relative">
+        {/* Canvas */}
+        <Canvas
         camera={{ position: [0, 0, 4], fov: 50 }}
         className="h-full w-full"
       >
@@ -357,9 +389,21 @@ export function FlipbookViewer({
       </div>
 
       {/* Top controls */}
-      <div className="absolute left-0 right-0 top-0 bg-gradient-to-b from-black/80 to-transparent p-4">
+      <div className="absolute left-0 right-0 top-0 bg-gradient-to-b from-black/80 to-transparent p-4 z-10">
         <div className="mx-auto flex max-w-4xl items-center justify-between">
           <div className="flex gap-2">
+            {/* TOC Toggle Button */}
+            {tocData?.tocData && (
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setShowTOC(!showTOC)}
+                className="bg-white/10 text-white hover:bg-white/20"
+                title={showTOC ? "Hide table of contents" : "Show table of contents"}
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+            )}
             <Button
               variant="outline"
               size="icon"
@@ -390,14 +434,16 @@ export function FlipbookViewer({
       </div>
 
       {/* Keyboard shortcuts hint */}
-      <div className="absolute bottom-24 right-6 rounded-lg bg-black/60 p-3 text-xs text-white">
+      <div className="absolute bottom-24 right-6 rounded-lg bg-black/60 p-3 text-xs text-white z-10">
         <div className="font-semibold">Keyboard Shortcuts:</div>
         <div className="mt-1 space-y-1">
           <div>← → Arrow keys to navigate</div>
           <div>Space for next page</div>
           <div>Home/End for first/last</div>
           <div>ESC to close</div>
+          {tocData?.tocData && <div>Click menu icon for TOC</div>}
         </div>
+      </div>
       </div>
     </div>
   );

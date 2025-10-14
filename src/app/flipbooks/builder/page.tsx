@@ -14,6 +14,7 @@ import { FileUploader } from "@/components/flipbooks/FileUploader";
 import { PageCanvas } from "@/components/flipbooks/PageCanvas";
 import { SortablePageList } from "@/components/flipbooks/SortablePageList";
 import { ProductPicker } from "@/components/flipbooks/ProductPicker";
+import { TOCBuilder } from "@/components/flipbooks/builder/TOCBuilder";
 import {
   Dialog,
   DialogContent,
@@ -254,6 +255,14 @@ function FlipbookBuilderContent() {
       />
 
       {/* Builder Interface */}
+      <Tabs defaultValue="pages" className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="pages">Pages & Hotspots</TabsTrigger>
+          <TabsTrigger value="toc">Table of Contents</TabsTrigger>
+        </TabsList>
+
+        {/* Pages & Hotspots Tab */}
+        <TabsContent value="pages">
       <div className="grid grid-cols-12 gap-6">
         {/* Left Sidebar - Pages List */}
         <div className="col-span-3 space-y-4">
@@ -412,6 +421,21 @@ function FlipbookBuilderContent() {
           </div>
         </div>
       </div>
+        </TabsContent>
+
+        {/* Table of Contents Tab */}
+        <TabsContent value="toc">
+          {flipbookId ? (
+            <TOCBuilder flipbookId={flipbookId} />
+          ) : (
+            <div className="bg-card rounded-lg border p-8 text-center">
+              <p className="text-muted-foreground">
+                Save your flipbook first to manage table of contents
+              </p>
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
 
       {/* Product Picker Dialog */}
       <ProductPicker
