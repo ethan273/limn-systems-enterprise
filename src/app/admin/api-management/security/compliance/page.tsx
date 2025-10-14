@@ -14,8 +14,11 @@ import {
   Calendar,
   Shield,
   ArrowLeft,
+  FileDown,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export default function CompliancePage() {
   const [reportType, setReportType] = useState<'soc2' | 'pci_dss' | 'all'>('all');
@@ -33,6 +36,103 @@ export default function CompliancePage() {
 
   const handleGenerateReport = () => {
     refetch();
+  };
+
+  const handleExportPDF = () => {
+    if (!report) return;
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    // Header
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Compliance Report', pageWidth / 2, 20, { align: 'center' });
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Generated: ${format(new Date(report.generatedAt), 'PPP')}`, pageWidth / 2, 28, { align: 'center' });
+    doc.text(`Period: ${format(new Date(dateRange.start), 'PP')} - ${format(new Date(dateRange.end), 'PP')}`, pageWidth / 2, 34, { align: 'center' });
+
+    // Summary Section
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Summary', 14, 45);
+
+    const summaryData = [
+      ['Total Events', report.summary.totalEvents.toString()],
+      ['Successful Events', report.summary.successfulEvents.toString()],
+      ['Failed Events', report.summary.failedEvents.toString()],
+      ['Unique Users', report.summary.uniqueUsers.toString()],
+      ['Credentials Accessed', report.summary.uniqueCredentials.toString()],
+    ];
+
+    autoTable(doc, {
+      startY: 50,
+      head: [['Metric', 'Value']],
+      body: summaryData,
+      theme: 'grid',
+      headStyles: { fillColor: [59, 130, 246] },
+    });
+
+    // Compliance Sections
+    let currentY = (doc as any).lastAutoTable.finalY + 10;
+
+    report.sections.forEach((section, index) => {
+      if (currentY > 250) {
+        doc.addPage();
+        currentY = 20;
+      }
+
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text(section.title, 14, currentY);
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Status: ${section.status.toUpperCase()}`, 14, currentY + 6);
+
+      doc.setFontSize(9);
+      const descLines = doc.splitTextToSize(section.description, pageWidth - 28);
+      doc.text(descLines, 14, currentY + 12);
+
+      // Evidence table
+      if (section.evidence && section.evidence.length > 0) {
+        const evidenceData = section.evidence.map(ev => [
+          ev.description,
+          ev.count !== undefined ? ev.count.toString() : (ev.percentage !== undefined ? `${ev.percentage}%` : 'N/A')
+        ]);
+
+        autoTable(doc, {
+          startY: currentY + 12 + (descLines.length * 4),
+          head: [['Evidence', 'Value']],
+          body: evidenceData,
+          theme: 'striped',
+          headStyles: { fillColor: [100, 116, 139] },
+          margin: { left: 14, right: 14 },
+        });
+
+        currentY = (doc as any).lastAutoTable.finalY + 10;
+      } else {
+        currentY += 25;
+      }
+    });
+
+    // Footer
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.text(
+        `Page ${i} of ${pageCount}`,
+        pageWidth / 2,
+        doc.internal.pageSize.getHeight() - 10,
+        { align: 'center' }
+      );
+    }
+
+    doc.save(`compliance-report-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
   };
 
   return (
@@ -176,14 +276,26 @@ export default function CompliancePage() {
             </div>
 
             {/* Generate Button */}
-            <Button
-              onClick={handleGenerateReport}
-              disabled={isLoading}
-              className="w-full"
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              {isLoading ? 'Generating...' : 'Generate Report'}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={handleGenerateReport}
+                disabled={isLoading}
+                className="flex-1"
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                {isLoading ? 'Generating...' : 'Generate Report'}
+              </Button>
+              {report && (
+                <Button
+                  onClick={handleExportPDF}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  <FileDown className="h-4 w-4 mr-2" />
+                  Export PDF
+                </Button>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
