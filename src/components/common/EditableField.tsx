@@ -47,8 +47,8 @@ export function EditableField({
   className,
   required = false,
   icon: Icon,
-  prefix,
-  suffix,
+  
+  
 }: EditableFieldProps) {
   const [localValue, setLocalValue] = useState(value?.toString() || '');
 

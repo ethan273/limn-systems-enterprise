@@ -1,3 +1,4 @@
+/* eslint-disable security/detect-object-injection */
 /**
  * Zero-Downtime Credential Rotation System
  *

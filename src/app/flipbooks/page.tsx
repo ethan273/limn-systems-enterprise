@@ -4,7 +4,7 @@ import { features } from "@/lib/features";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
-import { Plus, BookOpen, Eye, Pencil, Trash2, Upload } from "lucide-react";
+import { BookOpen, Eye, Pencil, Trash2, Upload } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";

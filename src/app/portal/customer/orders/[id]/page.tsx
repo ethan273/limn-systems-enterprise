@@ -11,11 +11,11 @@ import {
   Calendar,
   DollarSign,
   Truck,
-  FileText,
+  
   Clock,
   CheckCircle,
   ArrowLeft,
-  Download,
+  
   Factory,
   User,
 } from 'lucide-react';

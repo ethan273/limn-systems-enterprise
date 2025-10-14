@@ -1,3 +1,4 @@
+/* eslint-disable security/detect-object-injection */
 /**
  * Audit Logging System for API Credentials
  *

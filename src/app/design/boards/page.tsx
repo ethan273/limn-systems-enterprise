@@ -36,7 +36,7 @@ export default function DesignBoardsPage() {
   });
 
   // Get tRPC utils for cache invalidation
-  const utils = api.useUtils();
+  const _utils = api.useUtils();
 
   // Create board mutation
   const createBoardMutation = api.designBoards.boards.create.useMutation({

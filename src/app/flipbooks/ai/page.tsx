@@ -3,9 +3,8 @@
 import { features } from "@/lib/features";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Sparkles, Wand2, Upload, Settings, Loader2, ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PageHeader, LoadingState, DataTable } from "@/components/common";
+import { PageHeader, LoadingState } from "@/components/common";
 import { api } from "@/lib/api/client";
 import {
   Dialog,

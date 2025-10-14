@@ -240,7 +240,7 @@ export default function TaskDetailPage({ params }: PageProps) {
     );
   }
 
-  const statusConfig = STATUS_CONFIG[task.status as TaskStatus];
+  const _statusConfig = STATUS_CONFIG[task.status as TaskStatus];
   const priorityConfig = PRIORITY_CONFIG[task.priority as TaskPriority];
   const departmentConfig = DEPARTMENT_CONFIG[task.department as TaskDepartment];
 

@@ -18,8 +18,8 @@ import { toast } from "sonner";
 interface FileUploaderProps {
   flipbookId: string;
   type: "pdf" | "images";
-  onUploadComplete?: (result: any) => void;
-  onUploadError?: (error: Error) => void;
+  onUploadComplete?: (_result: any) => void;
+  onUploadError?: (_error: Error) => void;
   className?: string;
 }
 

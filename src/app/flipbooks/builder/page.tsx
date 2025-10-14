@@ -7,7 +7,7 @@ import { features } from "@/lib/features";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 import { api } from "@/lib/api/client";
-import { ArrowLeft, Upload, Save, Eye, FileText, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Save, Eye, FileText, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader, LoadingState } from "@/components/common";
 import { FileUploader } from "@/components/flipbooks/FileUploader";

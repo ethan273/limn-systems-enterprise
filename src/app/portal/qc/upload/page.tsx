@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { api } from '@/lib/api/client';
+// Unused: import { api } from "@/lib/api/client";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,7 +17,7 @@ import {
  * Upload quality inspection reports and documentation
  */
 export default function QCUploadPage() {
-  const router = useRouter();
+  const _router = useRouter();
   const [uploading, setUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
 

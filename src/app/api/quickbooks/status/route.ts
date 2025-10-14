@@ -22,7 +22,7 @@ import { prisma } from '@/lib/db';
  *   }
  */
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     // Get authenticated user
     const supabase = createClient();

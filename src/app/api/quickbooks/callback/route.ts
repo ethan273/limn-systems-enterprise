@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+// import { createClient } from '@/lib/supabase/server'; // Unused - auth handled via oauth_states table
 import { prisma } from '@/lib/db';
 
 /**

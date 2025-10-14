@@ -28,7 +28,7 @@ export default function FlipbookViewerPage({
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [use3D, setUse3D] = useState(true); // Try 3D by default
+  const [use3D, _setUse3D] = useState(true); // Try 3D by default
   const [flipbookId, setFlipbookId] = useState<string | null>(null);
 
   // Unwrap params promise

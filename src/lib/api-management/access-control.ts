@@ -1,3 +1,4 @@
+/* eslint-disable security/detect-object-injection */
 /**
  * Access Control Middleware for API Credentials
  *

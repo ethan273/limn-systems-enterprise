@@ -18,7 +18,7 @@ import {
 import {
   ArrowLeft,
   Loader2,
-  ClipboardCheck,
+  
   Plus,
   AlertCircle
 } from "lucide-react";

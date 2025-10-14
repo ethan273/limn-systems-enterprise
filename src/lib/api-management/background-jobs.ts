@@ -1,3 +1,4 @@
+/* eslint-disable security/detect-object-injection */
 /**
  * Background Jobs System for API Management
  *

@@ -33,7 +33,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
+  
   DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubContent,
@@ -42,7 +42,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   Search,
-  Plus,
+  
   Package,
   MoreVertical,
   Edit,
@@ -562,7 +562,7 @@ export default function OrderedItemsPage() {
     return statuses.find(s => s.value === status)?.color || "badge-neutral";
   };
 
-  const handleCreateItem = () => {
+  const _handleCreateItem = () => {
     setSelectedItem(undefined);
     setIsDialogOpen(true);
   };

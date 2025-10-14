@@ -11,13 +11,15 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { processPdf, extractCover, createThumbnail } from "@/lib/flipbooks/pdf-processor";
+// Unused for now - kept for future PDF rendering implementation
+// import { processPdf, extractCover, createThumbnail } from "@/lib/flipbooks/pdf-processor";
 import {
   uploadToS3,
   generatePdfKey,
-  generatePageImageKey,
-  generateCoverKey,
-  generateThumbnailKey,
+  // Unused for now - will be used when PDF rendering is implemented
+  // generatePageImageKey,
+  // generateCoverKey,
+  // generateThumbnailKey,
   initializeStorage,
 } from "@/lib/flipbooks/storage";
 import { features } from "@/lib/features";

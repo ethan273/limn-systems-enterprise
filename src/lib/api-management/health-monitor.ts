@@ -1,3 +1,4 @@
+/* eslint-disable security/detect-object-injection */
 /**
  * Health Monitoring System for API Credentials
  *

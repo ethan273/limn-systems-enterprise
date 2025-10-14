@@ -6,7 +6,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
+  
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
@@ -22,7 +22,7 @@ export default function UserProfileDropdown() {
     refetchOnMount: false,
   });
   const userData = user as any;
-  const supabase = getSupabaseBrowserClient();
+  const _supabase = getSupabaseBrowserClient();
 
   // Debug logging
   console.log('[UserProfileDropdown] User data:', { userData, isError, error });

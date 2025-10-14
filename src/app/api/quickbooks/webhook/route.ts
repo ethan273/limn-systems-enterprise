@@ -154,7 +154,7 @@ async function processPaymentUpdate(
 
     // Fetch updated payment from QuickBooks
     const qbClient = await getQuickBooksClientByRealm(realmId);
-    const qbPayment = await qbClient.getPayment(paymentId);
+    const _qbPayment = await qbClient.getPayment(paymentId);
 
     // Update our database
     await prisma.production_payments.update({
@@ -298,7 +298,7 @@ export async function POST(request: NextRequest) {
  * GET handler - webhook verification endpoint
  * QuickBooks sends a verification request when setting up webhooks
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   return NextResponse.json({
     message: 'QuickBooks webhook endpoint is active',
     endpoint: '/api/quickbooks/webhook',
