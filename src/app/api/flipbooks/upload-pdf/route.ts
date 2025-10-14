@@ -65,43 +65,24 @@ export async function POST(request: NextRequest) {
     const pdfKey = generatePdfKey(flipbookId, file.name);
     const pdfUpload = await uploadToS3(buffer, pdfKey, "application/pdf");
 
-    // Process PDF and extract pages
-    const processResult = await processPdf(buffer);
+    // Get page count using pdf-lib (doesn't require rendering)
+    const { getPdfPageCount } = await import("@/lib/flipbooks/pdf-processor");
+    const pageCount = await getPdfPageCount(buffer);
 
-    // Extract and upload cover image
-    const coverBuffer = await extractCover(buffer);
-    const coverKey = generateCoverKey(flipbookId);
-    const coverUpload = await uploadToS3(coverBuffer, coverKey, "image/jpeg");
+    // TODO: Implement PDF page rendering with a different solution (ImageMagick, Ghostscript, or pdf2pic)
+    // For now, we'll just store the PDF and create placeholder page records
 
-    // Create and upload thumbnail
-    const thumbnailBuffer = await createThumbnail(coverBuffer);
-    const thumbnailKey = generateThumbnailKey(flipbookId);
-    const thumbnailUpload = await uploadToS3(thumbnailBuffer, thumbnailKey, "image/jpeg");
-
-    // Upload page images and create database records using Prisma
+    // Create placeholder page records (actual rendering will be added later)
     const pages: any[] = [];
-
-    for (let i = 0; i < processResult.pages.length; i++) {
-      const pageBuffer = processResult.pages[i]!;
-      const pageKey = generatePageImageKey(flipbookId, i + 1);
-      const pageUpload = await uploadToS3(pageBuffer, pageKey, "image/jpeg");
-
-      // Create thumbnail for page
-      const pageThumbnailBuffer = await createThumbnail(pageBuffer);
-      const pageThumbnailKey = `${pageKey.replace(".jpg", "")}-thumb.jpg`;
-      const pageThumbnailUpload = await uploadToS3(pageThumbnailBuffer, pageThumbnailKey, "image/jpeg");
-
-      // Create page record in database
+    for (let i = 1; i <= pageCount; i++) {
       const page = await prisma.flipbook_pages.create({
         data: {
           flipbook_id: flipbookId,
-          page_number: i + 1,
-          image_url: pageUpload.cdnUrl,
-          thumbnail_url: pageThumbnailUpload.cdnUrl,
+          page_number: i,
+          image_url: pdfUpload.cdnUrl, // Temporarily use PDF URL
           page_type: "CONTENT",
         },
       });
-
       pages.push(page as any);
     }
 
@@ -110,9 +91,7 @@ export async function POST(request: NextRequest) {
       where: { id: flipbookId },
       data: {
         pdf_source_url: pdfUpload.cdnUrl,
-        cover_image_url: coverUpload.cdnUrl,
-        thumbnail_url: thumbnailUpload.cdnUrl,
-        page_count: processResult.pageCount,
+        page_count: pageCount,
         updated_at: new Date(),
       },
     });
@@ -120,10 +99,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       flipbookId,
-      pageCount: processResult.pageCount,
+      pageCount,
       pages,
-      coverUrl: coverUpload.cdnUrl,
-      thumbnailUrl: thumbnailUpload.cdnUrl,
+      pdfUrl: pdfUpload.cdnUrl,
     });
   } catch (error: any) {
     console.error("PDF upload error:", error);
