@@ -124,7 +124,6 @@ const createCustomerSchema = z.object({
   payment_terms: z.string().optional(),
   tax_id: z.string().optional(),
   sales_rep_id: z.string().uuid().optional(),
-  metadata: z.record(z.any()).default({}),
   // Enhanced CRM fields
   last_activity_date: z.date().optional(),
 });
@@ -371,6 +370,41 @@ export const leadsRouter = createTRPCRouter({
           currentStage: lead.pipeline_stage || 'initial',
           interestLevel: lead.interest_level || 'unknown',
         },
+      };
+    }),
+
+  // Get leads only (no prospect status set - "Not yet")
+  getLeadsOnly: publicProcedure
+    .input(z.object({
+      limit: z.number().min(1).max(100).default(20),
+      offset: z.number().min(0).default(0),
+      orderBy: z.record(z.enum(['asc', 'desc'])).optional(),
+    }))
+    .query(async ({ ctx, input }) => {
+      const { limit, offset, orderBy } = input;
+
+      const whereClause: any = {
+        prospect_status: null,
+      };
+
+      // Query leads with NO prospect_status (Not yet)
+      const [items, total] = await Promise.all([
+        ctx.db.leads.findMany({
+          where: whereClause,
+          skip: offset,
+          take: limit,
+          orderBy: orderBy || { created_at: 'desc' },
+        }),
+        ctx.db.leads.count({
+          where: whereClause,
+        }),
+      ]);
+
+      return {
+        items,
+        total,
+        hasMore: offset + limit < total,
+        nextOffset: offset + limit < total ? offset + limit : null,
       };
     }),
 

@@ -8,6 +8,13 @@ import { PageHeader, LoadingState } from "@/components/common";
 import { api } from "@/lib/api/client";
 import { Sparkles, Wand2, Settings, Check, Loader2, ArrowRight } from "lucide-react";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -263,17 +270,18 @@ export default function AIGenerationPage() {
 
               <div>
                 <label className="text-sm font-medium">Max Products Per Page</label>
-                <select
-                  value={maxProductsPerPage}
-                  onChange={(e) => setMaxProductsPerPage(parseInt(e.target.value))}
-                  className="w-full mt-2 px-3 py-2 bg-background border rounded-md text-sm"
-                >
-                  <option value={1}>1 product per page (Featured)</option>
-                  <option value={2}>2 products per page</option>
-                  <option value={3}>3 products per page</option>
-                  <option value={4}>4 products per page (Recommended)</option>
-                  <option value={6}>6 products per page</option>
-                </select>
+                <Select value={maxProductsPerPage.toString()} onValueChange={(value) => setMaxProductsPerPage(parseInt(value))}>
+                  <SelectTrigger className="w-full mt-2">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 product per page (Featured)</SelectItem>
+                    <SelectItem value="2">2 products per page</SelectItem>
+                    <SelectItem value="3">3 products per page</SelectItem>
+                    <SelectItem value="4">4 products per page (Recommended)</SelectItem>
+                    <SelectItem value="6">6 products per page</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>

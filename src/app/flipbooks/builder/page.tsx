@@ -16,6 +16,13 @@ import { SortablePageList } from "@/components/flipbooks/SortablePageList";
 import { ProductPicker } from "@/components/flipbooks/ProductPicker";
 import { TOCBuilder } from "@/components/flipbooks/builder/TOCBuilder";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -380,15 +387,16 @@ function FlipbookBuilderContent() {
               </div>
               <div>
                 <label className="text-sm font-medium">Status</label>
-                <select
-                  className="w-full mt-1 px-3 py-2 bg-background border rounded-md text-sm"
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value as any)}
-                >
-                  <option value="DRAFT">Draft</option>
-                  <option value="PUBLISHED">Published</option>
-                  <option value="ARCHIVED">Archived</option>
-                </select>
+                <Select value={status} onValueChange={(value) => setStatus(value as any)}>
+                  <SelectTrigger className="w-full mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="DRAFT">Draft</SelectItem>
+                    <SelectItem value="PUBLISHED">Published</SelectItem>
+                    <SelectItem value="ARCHIVED">Archived</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>

@@ -189,7 +189,7 @@ export default function QCInspectionsPage() {
       },
     },
     {
-      key: "_count",
+      key: "defects_count",
       label: "Defects",
       render: (value) => (
         <div className="flex items-center gap-1">
@@ -199,7 +199,7 @@ export default function QCInspectionsPage() {
       ),
     },
     {
-      key: "_count",
+      key: "photos_count",
       label: "Photos",
       render: (value) => (
         <div className="flex items-center gap-1">

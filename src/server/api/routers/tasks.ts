@@ -104,8 +104,8 @@ export const tasksRouter = createTRPCRouter({
     }))
     .query(async ({ ctx: _ctx, input }) => {
       return await db.findManyTasks({
-        limit: input.limit,
-        offset: input.offset,
+        take: input.limit,
+        skip: input.offset,
         sortBy: input.sortBy,
         sortOrder: input.sortOrder,
         filters: {
@@ -128,8 +128,8 @@ export const tasksRouter = createTRPCRouter({
     }))
     .query(async ({ ctx: _ctx, input }) => {
       return await db.getMyTasks(input.user_id, {
-        limit: input.limit,
-        offset: input.offset,
+        take: input.limit,
+        skip: input.offset,
         status: input.status,
         includeWatching: input.includeWatching,
       });
@@ -331,8 +331,8 @@ export const tasksRouter = createTRPCRouter({
     }))
     .query(async ({ ctx: _ctx, input }) => {
       return await db.getTaskActivities(input.task_id, {
-        limit: input.limit,
-        offset: input.offset,
+        take: input.limit,
+        skip: input.offset,
       });
     }),
 

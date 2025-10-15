@@ -14,6 +14,13 @@ import {
   Search,
   Filter,
 } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export default function RotationSchedulePage() {
   const [activeTab, setActiveTab] = useState<'active' | 'history' | 'settings'>('active');
@@ -276,13 +283,18 @@ export default function RotationSchedulePage() {
                   <label className="block text-sm font-medium mb-2">
                     Default Rotation Interval
                   </label>
-                  <select className="w-full px-3 py-2 border border-border rounded-lg bg-background">
-                    <option value="30">30 days</option>
-                    <option value="60">60 days</option>
-                    <option value="90" selected>90 days (Recommended)</option>
-                    <option value="180">180 days</option>
-                    <option value="365">365 days</option>
-                  </select>
+                  <Select defaultValue="90">
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="30">30 days</SelectItem>
+                      <SelectItem value="60">60 days</SelectItem>
+                      <SelectItem value="90">90 days (Recommended)</SelectItem>
+                      <SelectItem value="180">180 days</SelectItem>
+                      <SelectItem value="365">365 days</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <p className="text-sm text-muted-foreground mt-1">
                     How often credentials should be rotated by default
                   </p>

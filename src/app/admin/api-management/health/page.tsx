@@ -19,6 +19,13 @@ import {
   AlertTriangle,
   ArrowLeft,
 } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export default function HealthMonitoringPage() {
   const [selectedCredential, setSelectedCredential] = useState<string | null>(null);
@@ -289,18 +296,17 @@ export default function HealthMonitoringPage() {
               </h2>
 
               <div className="flex items-center gap-2">
-                <select
-                  value={uptimePeriod}
-                  onChange={(e) =>
-                    setUptimePeriod(Number(e.target.value) as 1 | 7 | 30 | 90)
-                  }
-                  className="input px-3 py-2"
-                >
-                  <option value={1}>Last 24 hours</option>
-                  <option value={7}>Last 7 days</option>
-                  <option value={30}>Last 30 days</option>
-                  <option value={90}>Last 90 days</option>
-                </select>
+                <Select value={uptimePeriod.toString()} onValueChange={(value) => setUptimePeriod(Number(value) as 1 | 7 | 30 | 90)}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">Last 24 hours</SelectItem>
+                    <SelectItem value="7">Last 7 days</SelectItem>
+                    <SelectItem value="30">Last 30 days</SelectItem>
+                    <SelectItem value="90">Last 90 days</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>

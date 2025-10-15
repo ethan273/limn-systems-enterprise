@@ -11,6 +11,13 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FileText, Link as LinkIcon, Image as ImageIcon, Upload, Loader2 } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export const dynamic = 'force-dynamic';
 
@@ -171,17 +178,18 @@ function ShareTargetContent() {
               <label className="block text-sm font-medium mb-2">
                 Where would you like to save this?
               </label>
-              <select
-                className="input-field w-full"
-                value={route}
-                onChange={(e) => setRoute(e.target.value)}
-              >
-                <option value="/tasks/new">📋 New Task</option>
-                <option value="/notes/new">📝 New Note</option>
-                <option value="/documents/upload">📄 Upload Document</option>
-                <option value="/orders/new">🛒 New Order</option>
-                <option value="/crm/contacts/new">👤 New Contact</option>
-              </select>
+              <Select value={route} onValueChange={setRoute}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="/tasks/new">📋 New Task</SelectItem>
+                  <SelectItem value="/notes/new">📝 New Note</SelectItem>
+                  <SelectItem value="/documents/upload">📄 Upload Document</SelectItem>
+                  <SelectItem value="/orders/new">🛒 New Order</SelectItem>
+                  <SelectItem value="/crm/contacts/new">👤 New Contact</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Action Buttons */}

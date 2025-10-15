@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUpDown, ArrowUp, ArrowDown, MoreVertical } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
@@ -345,18 +346,20 @@ export function DataTable<T extends Record<string, unknown>>({
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" data-testid="row-actions-menu">
                             {rowActions.map((action, actionIndex) => (
-                              <DropdownMenuItem
-                                key={actionIndex}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  action.onClick(row);
-                                }}
-                                className={action.variant === 'destructive' ? 'text-destructive focus:text-destructive' : ''}
-                                data-testid={`row-action-${action.label.toLowerCase().replace(/\s+/g, '-')}`}
-                              >
-                                {action.icon && <action.icon className="mr-2 h-4 w-4" />}
-                                {action.label}
-                              </DropdownMenuItem>
+                              <React.Fragment key={actionIndex}>
+                                {action.separator && <DropdownMenuSeparator />}
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    action.onClick(row);
+                                  }}
+                                  className={action.variant === 'destructive' ? 'text-destructive focus:text-destructive' : ''}
+                                  data-testid={`row-action-${action.label.toLowerCase().replace(/\s+/g, '-')}`}
+                                >
+                                  {action.icon && <action.icon className="mr-2 h-4 w-4" />}
+                                  {action.label}
+                                </DropdownMenuItem>
+                              </React.Fragment>
                             ))}
                           </DropdownMenuContent>
                         </DropdownMenu>

@@ -12,9 +12,9 @@ const createOrderSchema = z.object({
   collection_id: z.string().uuid().optional(),
   order_type: z.enum(['standard', 'custom', 'rush']).default('standard'),
   priority: z.enum(['low', 'normal', 'high', 'urgent']).default('normal'),
-  status: z.enum(['draft', 'pending', 'confirmed', 'in_production', 'quality_check', 
+  status: z.enum(['draft', 'pending', 'confirmed', 'in_production', 'quality_check',
                   'ready_to_ship', 'shipped', 'delivered', 'completed', 'cancelled'])
-    .default('draft'),
+    .default('pending'),
   payment_status: z.enum(['pending', 'partial', 'paid', 'refunded']).default('pending'),
   currency: z.string().default('USD'),
   notes: z.string().optional(),
@@ -388,12 +388,12 @@ export const ordersRouter = createTRPCRouter({
   // Get orders with production details, invoices, and payments
   getWithProductionDetails: publicProcedure
     .input(z.object({
-      limit: z.number().min(1).max(100).default(50),
-      offset: z.number().min(0).default(0),
+      limit: z.number().min(1).max(100).optional().default(50),
+      offset: z.number().min(0).optional().default(0),
       status: z.string().optional(),
       customer_id: z.string().uuid().optional(),
       project_id: z.string().uuid().optional(),
-    }))
+    }).optional().default({}))
     .query(async ({ ctx, input }) => {
       const orders = await ctx.db.orders.findMany({
         where: {
@@ -446,8 +446,8 @@ export const ordersRouter = createTRPCRouter({
             },
           },
         },
-        limit: input.limit,
-        offset: input.offset,
+        take: input.limit,
+        skip: input.offset,
         orderBy: { created_at: 'desc' },
       });
 

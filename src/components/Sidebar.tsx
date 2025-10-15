@@ -239,7 +239,6 @@ export default function Sidebar() {
  { label: "Activity", href: "/admin/activity" },
  { label: "Analytics", href: "/admin/analytics" },
  { label: "API Management", href: "/admin/api-management" },
- { label: "Settings", href: "/admin/settings" },
  { label: "Export", href: "/admin/export" },
  ]
  }

@@ -8,6 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Save, X, AlertCircle, Package } from 'lucide-react';
 import { PageHeader, LoadingState } from '@/components/common';
 import { toast } from 'sonner';
@@ -163,18 +170,18 @@ export default function EditProductionOrderPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="status">Status</Label>
-                <select
-                  id="status"
-                  value={formData.status}
-                  onChange={(e) => handleChange('status', e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-                >
-                  <option value="pending">Pending</option>
-                  <option value="in_progress">In Progress</option>
-                  <option value="completed">Completed</option>
-                  <option value="shipped">Shipped</option>
-                  <option value="delivered">Delivered</option>
-                </select>
+                <Select value={formData.status} onValueChange={(value) => handleChange('status', value)}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="in_progress">In Progress</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="shipped">Shipped</SelectItem>
+                    <SelectItem value="delivered">Delivered</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2 md:col-span-2">

@@ -16,6 +16,13 @@ import {
   Cell,
   ComposedChart,
 } from 'recharts';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 /**
  * Production Analytics Dashboard
@@ -139,15 +146,16 @@ export default function ProductionAnalyticsPage() {
 
         <div className="filter-group">
           <label>Group By:</label>
-          <select
-            className="form-select"
-            value={groupBy}
-            onChange={(e) => setGroupBy(e.target.value as 'day' | 'week' | 'month')}
-          >
-            <option value="day">Day</option>
-            <option value="week">Week</option>
-            <option value="month">Month</option>
-          </select>
+          <Select value={groupBy} onValueChange={(value) => setGroupBy(value as 'day' | 'week' | 'month')}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="day">Day</SelectItem>
+              <SelectItem value="week">Week</SelectItem>
+              <SelectItem value="month">Month</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 

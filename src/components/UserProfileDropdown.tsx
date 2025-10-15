@@ -6,7 +6,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
@@ -112,6 +112,7 @@ export default function UserProfileDropdown() {
           <Settings className="w-4 h-4 mr-2" aria-hidden="true" />
           Settings
         </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() => handleSignOut()}
           onSelect={() => handleSignOut()}

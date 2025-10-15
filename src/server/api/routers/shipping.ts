@@ -356,8 +356,8 @@ export const shippingRouter = createTRPCRouter({
             },
           },
         },
-        limit: input.limit,
-        offset: input.offset,
+        take: input.limit,
+        skip: input.offset,
         orderBy: { created_at: 'desc' },
       });
 

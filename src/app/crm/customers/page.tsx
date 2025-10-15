@@ -57,8 +57,8 @@ export default function CustomersPage() {
   const deleteCustomer = api.customers.delete.useMutation({
     onSuccess: () => {
       toast({
-        title: "Customer deleted",
-        description: "Customer has been successfully deleted.",
+        title: "Client deleted",
+        description: "Client has been successfully deleted.",
       });
       setDeleteDialogOpen(false);
       setCustomerToDelete(null);
@@ -69,7 +69,7 @@ export default function CustomersPage() {
     onError: (error) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to delete customer",
+        description: error.message || "Failed to delete client",
         variant: "destructive",
       });
     },
@@ -80,9 +80,9 @@ export default function CustomersPage() {
   // Stats configuration
   const stats: StatItem[] = [
     {
-      title: 'Total Customers',
+      title: 'Total Clients',
       value: customers.length,
-      description: 'Active customers',
+      description: 'Active clients',
       icon: Users,
       iconColor: 'info',
     },
@@ -106,7 +106,7 @@ export default function CustomersPage() {
   const columns: DataTableColumn<any>[] = [
     {
       key: 'name',
-      label: 'Customer Name',
+      label: 'Client Name',
       sortable: true,
       render: (_, row) => (
         <div className="flex items-center gap-3">
@@ -158,7 +158,7 @@ export default function CustomersPage() {
   const filters: DataTableFilter[] = [
     {
       key: 'search',
-      label: 'Search customers',
+      label: 'Search clients',
       type: 'search',
       placeholder: 'Search by name, email, or phone...',
     },
@@ -203,15 +203,15 @@ export default function CustomersPage() {
     <div className="page-container">
       {/* Page Header */}
       <PageHeader
-        title="Customers"
-        subtitle="Manage your customer relationships and accounts"
+        title="Clients"
+        subtitle="Manage your client relationships and accounts"
         action={
           <Button
             className="btn-primary"
             onClick={() => router.push('/crm/customers/new')}
           >
             <Plus className="h-4 w-4 mr-2" />
-            New Customer
+            New Client
           </Button>
         }
       />
@@ -219,16 +219,16 @@ export default function CustomersPage() {
       {/* Customer Stats */}
       <StatsGrid stats={stats} columns={3} />
 
-      {/* Customers DataTable */}
+      {/* Clients DataTable */}
       {isLoading ? (
-        <LoadingState message="Loading customers..." size="lg" />
+        <LoadingState message="Loading clients..." size="lg" />
       ) : !customers || customers.length === 0 ? (
         <EmptyState
           icon={Users}
-          title="No customers found"
-          description="Get started by creating your first customer."
+          title="No clients found"
+          description="Get started by creating your first client."
           action={{
-            label: 'Add Customer',
+            label: 'Add Client',
             onClick: () => router.push('/crm/customers/new'),
             icon: Plus,
           }}
@@ -243,7 +243,7 @@ export default function CustomersPage() {
           pagination={{ pageSize: 20, showSizeSelector: true }}
           emptyState={{
             icon: Users,
-            title: 'No customers match your filters',
+            title: 'No clients match your filters',
             description: 'Try adjusting your search or filter criteria',
           }}
         />
@@ -253,7 +253,7 @@ export default function CustomersPage() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Customer</AlertDialogTitle>
+            <AlertDialogTitle>Delete Client</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete {customerToDelete?.name}? This action cannot be undone.
               All associated orders, invoices, and activities will be preserved but unlinked.

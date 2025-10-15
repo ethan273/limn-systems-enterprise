@@ -163,8 +163,8 @@ export const productionInvoicesRouter = createTRPCRouter({
           ...(input.production_order_id && { production_order_id: input.production_order_id }),
           ...(input.project_id && { project_id: input.project_id }),
         },
-        limit: input.limit,
-        offset: input.offset,
+        take: input.limit,
+        skip: input.offset,
         orderBy: { invoice_date: 'desc' },
       });
 

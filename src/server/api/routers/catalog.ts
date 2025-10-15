@@ -12,8 +12,8 @@ const createCollectionSchema = z.object({
   description: z.string().optional(),
   category: z.string().optional(),
   prefix: z.string().min(1).max(10),
-  active: z.boolean().default(true),
-  display_order: z.number().default(0),
+  is_active: z.boolean().default(true), // DB field is 'is_active' not 'active'
+  display_order: z.number().default(1), // Match DB default
   metadata: z.record(z.any()).optional(),
 });
 
@@ -26,7 +26,7 @@ export const collectionsRouter = createCrudRouter({
   defaultOrderBy: { display_order: 'asc' },
   defaultInclude: {
     items: {
-      where: { active: true },
+      where: { active: true }, // items table uses 'active' (not 'is_active')
       select: {
         id: true,
         name: true,

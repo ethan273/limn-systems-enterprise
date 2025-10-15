@@ -19,6 +19,8 @@ export function getSupabaseBrowserClient() {
     throw new Error(`Missing Supabase environment variables. URL: ${url ? 'present' : 'missing'}, Key: ${key ? 'present' : 'missing'}`)
   }
 
-  _browserClient = createBrowserClient(url, key)
+  _browserClient = createBrowserClient(url, key, {
+    isSingleton: true, // Fix for Next.js 15 / React 19 readonly property error
+  })
   return _browserClient
 }

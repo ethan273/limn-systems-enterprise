@@ -216,24 +216,35 @@ export const productionOrdersRouter = createTRPCRouter({
         factory_id: z.string().uuid().optional(),
         limit: z.number().min(1).max(100).default(50),
         offset: z.number().min(0).default(0),
-      })
+      }).optional().default({})
     )
     .query(async ({ ctx, input }) => {
+      const { limit = 50, offset = 0, status, project_id, factory_id } = input;
+
       const items = await ctx.db.production_orders.findMany({
         where: {
-          ...(input.status && { status: input.status }),
-          ...(input.project_id && { project_id: input.project_id }),
-          ...(input.factory_id && { factory_id: input.factory_id }),
+          ...(status && { status }),
+          ...(project_id && { project_id }),
+          ...(factory_id && { factory_id }),
         },
-        limit: input.limit,
-        offset: input.offset,
+        take: limit,
+        skip: offset,
         orderBy: { created_at: 'desc' },
+        include: {
+          projects: {
+            select: {
+              id: true,
+              name: true,
+              customer_id: true,
+            },
+          },
+        },
       });
 
       return {
         items,
         total: items.length,
-        hasMore: items.length === input.limit,
+        hasMore: items.length === limit,
       };
     }),
 

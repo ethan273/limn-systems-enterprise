@@ -357,6 +357,19 @@ export default function MaterialsPage() {
     return "";
   }, [activeSubTab, activeHierarchy]);
 
+  // Get SKU label based on material type
+  const getSkuLabel = useCallback(() => {
+    switch (activeSubTab) {
+      case "fabric_colors": return "Fabric SKU";
+      case "wood_finishes": return "Finish SKU";
+      case "metal_colors": return "Color SKU";
+      case "stone_finishes": return "Finish SKU";
+      case "weaving_styles": return "Style SKU";
+      case "carving_styles": return "Style SKU";
+      default: return "SKU";
+    }
+  }, [activeSubTab]);
+
   // Mutations
   const invalidateCurrentData = () => {
     // Invalidate the appropriate query based on active sub-tab
@@ -474,9 +487,9 @@ export default function MaterialsPage() {
     if (activeHierarchy?.hasColors) {
       fields.push({
         name: "hex_code",
-        label: "Fabric SKU",
+        label: getSkuLabel(),
         type: "text",
-        placeholder: "Enter fabric SKU",
+        placeholder: `Enter ${getSkuLabel().toLowerCase()}`,
         defaultValue: editingItem?.hex_code,
       });
 
@@ -512,7 +525,7 @@ export default function MaterialsPage() {
     }
 
     return fields;
-  }, [activeHierarchy, activeSubTab, editingItem, parentOptions]);
+  }, [activeHierarchy, activeSubTab, editingItem, parentOptions, getSkuLabel]);
 
   // DataTable columns
   const columns: DataTableColumn<MaterialItem>[] = useMemo(() => { // eslint-disable-line react-hooks/exhaustive-deps
@@ -558,7 +571,7 @@ export default function MaterialsPage() {
     if (activeHierarchy?.hasColors) {
       cols.push({
         key: "hex_code",
-        label: "Fabric SKU",
+        label: getSkuLabel(),
         render: (value) =>
           value ? (
             <span className="text-sm font-mono">{value as string}</span>
@@ -597,7 +610,7 @@ export default function MaterialsPage() {
     });
 
     return cols;
-  }, [activeHierarchy, getParentName]); // handleEdit is stable useCallback and doesn't need to be in deps
+  }, [activeHierarchy, getParentName, getSkuLabel]); // handleEdit is stable useCallback and doesn't need to be in deps
 
   // DataTable filters
   const filters: DataTableFilter[] = [

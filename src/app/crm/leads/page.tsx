@@ -17,6 +17,13 @@ import {
   Pencil,
   Trash2,
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import {
@@ -73,7 +80,7 @@ export default function LeadsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [leadToDelete, setLeadToDelete] = useState<any>(null);
 
-  const { data: leadsData, isLoading } = api.crm.leads.getAll.useQuery({
+  const { data: leadsData, isLoading } = api.crm.leads.getLeadsOnly.useQuery({
     limit: 100,
     offset: 0,
     orderBy: { created_at: 'desc' },
@@ -156,22 +163,26 @@ export default function LeadsPage() {
     setIsConvertDialogOpen(true);
   };
 
-  // Form fields for create dialog
+  // Prospect status update mutation
+  const updateProspectStatusMutation = api.crm.leads.updateProspectStatus.useMutation({
+    onSuccess: () => {
+      toast.success("Prospect status updated");
+      utils.crm.leads.getLeadsOnly.invalidate();
+      utils.crm.leads.getProspects.invalidate();
+      utils.crm.leads.getPipelineStats.invalidate();
+    },
+    onError: (error) => {
+      toast.error("Failed to update prospect status: " + error.message);
+    },
+  });
+
+  // Form fields for create dialog (no prospect_status - defaults to "Not yet")
   const createFormFields: FormField[] = [
     { name: 'name', label: 'Name', type: 'text', required: true, placeholder: 'Contact name' },
     { name: 'company', label: 'Company', type: 'text', required: true, placeholder: 'Company name' },
     { name: 'email', label: 'Email', type: 'email', required: true, placeholder: 'email@example.com' },
     { name: 'phone', label: 'Phone', type: 'text', placeholder: '+1 (555) 123-4567' },
     { name: 'value', label: 'Lead Value', type: 'number', placeholder: '10000' },
-    {
-      name: 'prospect_status',
-      label: 'Prospect Status',
-      type: 'select',
-      options: [
-        { value: 'none', label: 'No prospect status' },
-        ...PROSPECT_STATUSES.map(s => ({ value: s.value, label: s.label })),
-      ],
-    },
     { name: 'notes', label: 'Notes', type: 'textarea', placeholder: 'Additional notes...' },
   ];
 
@@ -297,8 +308,29 @@ export default function LeadsPage() {
     },
     {
       key: 'prospect_status',
-      label: 'Prospect',
-      render: (value) => value ? <StatusBadge status={value as string} /> : <span className="text-muted">—</span>,
+      label: 'Prospect Status',
+      render: (value, row) => (
+        <Select
+          value={value as string || 'not_yet'}
+          onValueChange={(newValue) => {
+            const newStatus = newValue === 'not_yet' ? null : (newValue as 'cold' | 'warm' | 'hot');
+            updateProspectStatusMutation.mutate({
+              id: row.id,
+              prospect_status: newStatus,
+            });
+          }}
+        >
+          <SelectTrigger className="w-[120px]" onClick={(e) => e.stopPropagation()}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="not_yet">Not yet</SelectItem>
+            <SelectItem value="cold">Cold</SelectItem>
+            <SelectItem value="warm">Warm</SelectItem>
+            <SelectItem value="hot">Hot</SelectItem>
+          </SelectContent>
+        </Select>
+      ),
     },
     {
       key: 'value',
@@ -425,7 +457,7 @@ export default function LeadsPage() {
             status: 'new',
             source: 'manual',
             value: data.value ? parseFloat(data.value as string) : undefined,
-            prospect_status: (data.prospect_status === "none") ? undefined : data.prospect_status as ProspectStatus || undefined,
+            // prospect_status defaults to null ("Not yet") - not set on creation
             notes: data.notes as string || undefined,
             tags: [],
           });

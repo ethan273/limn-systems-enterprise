@@ -1,387 +1,485 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { api } from "@/lib/api/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CheckCircle2, XCircle, Clock, TrendingUp, FileText, CreditCard, RefreshCw } from "lucide-react";
-import { toast } from "sonner";
-import { useAuth } from "@/hooks/useAuth";
-import { useRouter } from "next/navigation";
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { api } from '@/lib/api/client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { DateRangeSelector } from '@/components/DateRangeSelector';
+import { ExportPDFButton } from '@/components/ExportPDFButton';
+import { DashboardStatCard } from '@/components/dashboard/DashboardStatCard';
+import {
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  FileText,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  CreditCard,
+  PieChart,
+  Users,
+  ArrowRight,
+  Lightbulb,
+  RefreshCw,
+} from 'lucide-react';
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart as RechartsPieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
 
-export default function FinanceDashboard() {
- const [syncingInvoice, setSyncingInvoice] = useState(false);
- const { user, loading: authLoading } = useAuth();
- const _router = useRouter();
+// Dynamic route configuration
+export const dynamic = 'force-dynamic';
 
- // Auth is handled by middleware - no client-side redirect needed
+const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))'];
 
- // API queries
- const { data: connectionStatus, isLoading: loadingConnection } =
- api.quickbooksSync.getConnectionStatus.useQuery(undefined, { enabled: !authLoading && !!user });
+const INSIGHT_ICONS = {
+  success: CheckCircle,
+  warning: AlertTriangle,
+  error: AlertTriangle,
+  info: Lightbulb,
+};
 
- const { data: syncStats, isLoading: loadingStats } =
- api.quickbooksSync.getSyncStats.useQuery(undefined, { enabled: !authLoading && !!user });
+const INSIGHT_CLASSES = {
+  success: 'insight-success',
+  warning: 'insight-warning',
+  error: 'insight-error',
+  info: 'insight-info',
+};
 
- // Get tRPC utils for cache invalidation
- const utils = api.useUtils();
+export default function FinancialDashboardPage() {
+  const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | '1y' | 'all'>('30d');
 
- // Get all production invoices for manual sync
- const { data: invoicesData } = api.productionInvoices.getAll.useQuery(
- {
- limit: 50,
- offset: 0,
- },
- { enabled: !authLoading && !!user }
- );
+  const { data: financial, isLoading } = api.dashboards.getFinancial.useQuery(
+    { dateRange },
+    {
+      refetchInterval: 60000, // Auto-refresh every 60 seconds
+    }
+  );
 
- // Get all payments (via invoice payments)
- const { data: outstandingInvoices } = api.productionInvoices.getOutstanding.useQuery({}, { enabled: !authLoading && !!user });
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
- // Sync mutations
- const syncInvoiceMutation = api.quickbooksSync.syncInvoice.useMutation({
- onSuccess: (data: { success: boolean; quickbooks_invoice_id?: string; message: string }) => {
- toast.success(data.message);
- // Invalidate queries for instant updates
- utils.quickbooksSync.getSyncStats.invalidate();
- setSyncingInvoice(false);
- },
- onError: (error: { message: string }) => {
- toast.error(`Sync failed: ${error.message}`);
- setSyncingInvoice(false);
- },
- });
+  const { data: insights } = api.dashboards.getFinancialInsights.useQuery(undefined, {
+    refetchInterval: 60000, // Auto-refresh every 60 seconds
+  });
 
- const handleSyncInvoice = (invoiceId: string) => {
- setSyncingInvoice(true);
- syncInvoiceMutation.mutate({ production_invoice_id: invoiceId });
- };
+  if (isLoading) {
+    return (
+      <div className="dashboard-page">
+        <div className="dashboard-loading">
+          <div className="loading-spinner"></div>
+          <p>Loading financial dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
- // Show loading state while checking authentication
- if (authLoading) {
- return (
- <div className="container mx-auto py-8">
- <div className="flex items-center justify-center h-64">
- <div className="text-center">
- <div className="animate-spin rounded-full h-12 w-12 border-b-2 border mx-auto mb-4"></div>
- <p className="text-muted-foreground">Loading...</p>
- </div>
- </div>
- </div>
- );
- }
+  if (!financial) {
+    return (
+      <div className="dashboard-page">
+        <div className="dashboard-error">
+          <AlertTriangle className="error-icon" />
+          <p>Failed to load financial data</p>
+        </div>
+      </div>
+    );
+  }
 
- // Don't render if not authenticated (will redirect)
- if (!user) {
- return null;
- }
+  const { summary, invoices, cashFlowTrend, invoiceStatusDistribution, paymentMethods, topExpenseCategories, topCustomers } = financial;
 
- if (loadingConnection || loadingStats) {
- return (
- <div className="container mx-auto py-8">
- <div className="flex items-center justify-center h-64">
- <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
- </div>
- </div>
- );
- }
+  return (
+    <div className="dashboard-page">
+      <div id="dashboard-export-container">
+        {/* Header */}
+        <div className="dashboard-header">
+        <div>
+          <h1 className="page-title">Financial Operations Dashboard</h1>
+          <p className="page-subtitle">Revenue, expenses, cash flow, and financial metrics</p>
+        </div>
+        <div className="dashboard-actions">
+          <DateRangeSelector value={dateRange} onChange={(value: any) => setDateRange(value)} />
+          <Button variant="outline" size="icon" onClick={() => utils.dashboards.getFinancial.invalidate()} title="Refresh data">
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+          <ExportPDFButton dashboardName="Financial Operations Dashboard" dateRange={dateRange} />
+          <Button variant="outline" asChild>
+            <Link href="/financials/invoices">
+              <FileText className="icon-sm" />
+              View Invoices
+            </Link>
+          </Button>
+        </div>
+      </div>
 
- return (
- <div className="container mx-auto py-8 space-y-8">
- {/* Header */}
- <div className="flex items-center justify-between">
- <div>
- <h1 className="text-3xl font-bold">Finance Dashboard</h1>
- <p className="text-muted-foreground mt-2">
- Manage QuickBooks integration, invoices, and payments
- </p>
- </div>
- </div>
+      {/* Key Financial Metrics */}
+      <div className="dashboard-section">
+        <div className="dashboard-grid">
+        <DashboardStatCard
+          title="Total Revenue"
+          value={`$${summary.totalRevenue.toLocaleString()}`}
+          description="Collected this period"
+          icon={DollarSign}
+          iconColor="success"
+        />
 
- {/* QuickBooks Connection Status */}
- <Card>
- <CardHeader>
- <div className="flex items-center justify-between">
- <div>
- <CardTitle className="flex items-center gap-2">
- QuickBooks Connection
- {connectionStatus?.connected ? (
- <CheckCircle2 className="h-5 w-5 text-success" />
- ) : (
- <XCircle className="h-5 w-5 text-destructive" />
- )}
- </CardTitle>
- <CardDescription>
- {connectionStatus?.connected
- ? `Connected to ${connectionStatus.company_name || "QuickBooks"}`
- : "QuickBooks not connected"}
- </CardDescription>
- </div>
- <Button
- variant="outline"
- size="sm"
- onClick={() => utils.quickbooksSync.getConnectionStatus.invalidate()}
- >
- <RefreshCw className="h-4 w-4 mr-2" />
- Refresh Status
- </Button>
- </div>
- </CardHeader>
- <CardContent className="space-y-4">
- {connectionStatus?.connected ? (
- <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
- <div className="space-y-1">
- <p className="text-sm font-medium text-muted-foreground">Company</p>
- <p className="text-lg font-semibold">{connectionStatus.company_name || "N/A"}</p>
- </div>
- <div className="space-y-1">
- <p className="text-sm font-medium text-muted-foreground">Token Status</p>
- <div>
- {connectionStatus.token_expired ? (
- <Badge variant="destructive">Expired</Badge>
- ) : (
- <Badge variant="default" className="bg-success-muted">Active</Badge>
- )}
- </div>
- </div>
- <div className="space-y-1">
- <p className="text-sm font-medium text-muted-foreground">Connected Since</p>
- <p className="text-lg font-semibold">
- {connectionStatus.connected_at
- ? new Date(connectionStatus.connected_at).toLocaleDateString()
- : "N/A"}
- </p>
- </div>
- </div>
- ) : (
- <Alert>
- <AlertDescription>
- QuickBooks is not connected. Please configure QuickBooks OAuth credentials in your environment variables
- and connect your QuickBooks account.
- </AlertDescription>
- </Alert>
- )}
- </CardContent>
- </Card>
+        <DashboardStatCard
+          title="Total Invoiced"
+          value={`$${summary.totalInvoiced.toLocaleString()}`}
+          description={`${invoices.total} invoices`}
+          icon={FileText}
+          iconColor="primary"
+        />
 
- {/* Sync Statistics */}
- {connectionStatus?.connected && syncStats && (
- <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
- <Card>
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium">Total Syncs</CardTitle>
- <TrendingUp className="h-4 w-4 text-muted-foreground" />
- </CardHeader>
- <CardContent>
- <div className="text-2xl font-bold">{syncStats.totalSyncs}</div>
- <p className="text-xs text-muted-foreground mt-1">
- All-time sync operations
- </p>
- </CardContent>
- </Card>
+        <DashboardStatCard
+          title="Total Expenses"
+          value={`$${summary.totalExpenses.toLocaleString()}`}
+          description="Period expenses"
+          icon={TrendingDown}
+          iconColor="destructive"
+        />
 
- <Card>
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
- <CheckCircle2 className="h-4 w-4 text-success" />
- </CardHeader>
- <CardContent>
- <div className="text-2xl font-bold">{syncStats.successRate}%</div>
- <p className="text-xs text-muted-foreground mt-1">
- {syncStats.completedSyncs} successful
- </p>
- </CardContent>
- </Card>
+        <DashboardStatCard
+          title="Net Profit"
+          value={`$${summary.profit.toLocaleString()}`}
+          description={`${summary.profitMargin >= 0 ? '↑' : '↓'} ${Math.abs(summary.profitMargin).toFixed(1)}% profit margin`}
+          icon={summary.profitMargin >= 0 ? TrendingUp : TrendingDown}
+          iconColor={summary.profitMargin >= 0 ? 'success' : 'destructive'}
+        />
+        </div>
+      </div>
 
- <Card>
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium">Invoices Synced</CardTitle>
- <FileText className="h-4 w-4 text-info" />
- </CardHeader>
- <CardContent>
- <div className="text-2xl font-bold">{syncStats.invoicesSynced}</div>
- <p className="text-xs text-muted-foreground mt-1">
- Total invoices in QuickBooks
- </p>
- </CardContent>
- </Card>
+      {/* Invoice & AR Metrics */}
+      <div className="dashboard-section">
+        <h2 className="section-title">Accounts Receivable & Invoices</h2>
+        <div className="dashboard-grid">
+          <DashboardStatCard
+            title="Total A/R"
+            value={`$${invoices.totalAR.toLocaleString()}`}
+            description="Outstanding receivables"
+            icon={Clock}
+            iconColor="warning"
+          />
 
- <Card>
- <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
- <CardTitle className="text-sm font-medium">Payments Synced</CardTitle>
- <CreditCard className="h-4 w-4 text-secondary" />
- </CardHeader>
- <CardContent>
- <div className="text-2xl font-bold">{syncStats.paymentsSynced}</div>
- <p className="text-xs text-muted-foreground mt-1">
- Total payments in QuickBooks
- </p>
- </CardContent>
- </Card>
- </div>
- )}
+          <DashboardStatCard
+            title="Paid Invoices"
+            value={invoices.paid}
+            description={`$${summary.totalPaid.toLocaleString()} paid`}
+            icon={CheckCircle}
+            iconColor="success"
+          />
 
- {/* Outstanding Invoices - Manual Sync Interface */}
- {connectionStatus?.connected && outstandingInvoices && outstandingInvoices.length > 0 && (
- <Card>
- <CardHeader>
- <CardTitle className="flex items-center gap-2">
- <Clock className="h-5 w-5" />
- Outstanding Invoices
- </CardTitle>
- <CardDescription>
- Invoices pending payment or partial payment - sync to QuickBooks
- </CardDescription>
- </CardHeader>
- <CardContent>
- <Table>
- <TableHeader>
- <TableRow>
- <TableHead>Invoice #</TableHead>
- <TableHead>Order #</TableHead>
- <TableHead>Project</TableHead>
- <TableHead>Customer</TableHead>
- <TableHead>Amount Due</TableHead>
- <TableHead>Status</TableHead>
- <TableHead>Actions</TableHead>
- </TableRow>
- </TableHeader>
- <TableBody>
- {outstandingInvoices.map((invoice) => (
- <TableRow key={invoice.id}>
- <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
- <TableCell>{invoice.production_orders?.order_number || "N/A"}</TableCell>
- <TableCell>{invoice.projects?.name || "N/A"}</TableCell>
- <TableCell>{invoice.customers?.name || "N/A"}</TableCell>
- <TableCell>${Number(invoice.amount_due).toFixed(2)}</TableCell>
- <TableCell>
- <Badge variant={
- invoice.status === "overdue" ? "destructive" :
- invoice.status === "partial_payment" ? "default" :
- "secondary"
- }>
- {invoice.status}
- </Badge>
- </TableCell>
- <TableCell>
- <Button
- variant="outline"
- size="sm"
- onClick={() => handleSyncInvoice(invoice.id)}
- disabled={syncingInvoice}
- >
- {syncingInvoice ? (
- <RefreshCw className="h-4 w-4 animate-spin" />
- ) : (
- "Sync to QB"
- )}
- </Button>
- </TableCell>
- </TableRow>
- ))}
- </TableBody>
- </Table>
- </CardContent>
- </Card>
- )}
+          <DashboardStatCard
+            title="Pending Invoices"
+            value={invoices.pending}
+            description={`$${summary.totalPending.toLocaleString()} pending`}
+            icon={Clock}
+            iconColor="warning"
+          />
 
- {/* Recent Invoices - All Invoices with Sync Option */}
- {connectionStatus?.connected && invoicesData && (
- <Card>
- <CardHeader>
- <CardTitle className="flex items-center gap-2">
- <FileText className="h-5 w-5" />
- Recent Invoices
- </CardTitle>
- <CardDescription>
- All production invoices - sync to QuickBooks as needed
- </CardDescription>
- </CardHeader>
- <CardContent>
- <Table>
- <TableHeader>
- <TableRow>
- <TableHead>Invoice #</TableHead>
- <TableHead>Type</TableHead>
- <TableHead>Date</TableHead>
- <TableHead>Total</TableHead>
- <TableHead>Amount Paid</TableHead>
- <TableHead>Amount Due</TableHead>
- <TableHead>Status</TableHead>
- <TableHead>Actions</TableHead>
- </TableRow>
- </TableHeader>
- <TableBody>
- {invoicesData.items.slice(0, 10).map((invoice: {
- id: string;
- invoice_number: string;
- invoice_type: string;
- invoice_date: Date | string;
- total: number | string;
- amount_paid: number | string;
- amount_due: number | string;
- status: string;
- }) => (
- <TableRow key={invoice.id}>
- <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
- <TableCell>
- <Badge variant="outline">
- {invoice.invoice_type}
- </Badge>
- </TableCell>
- <TableCell>
- {new Date(invoice.invoice_date).toLocaleDateString()}
- </TableCell>
- <TableCell>${Number(invoice.total).toFixed(2)}</TableCell>
- <TableCell>${Number(invoice.amount_paid).toFixed(2)}</TableCell>
- <TableCell>${Number(invoice.amount_due).toFixed(2)}</TableCell>
- <TableCell>
- <Badge variant={
- invoice.status === "paid" ? "default" :
- invoice.status === "overdue" ? "destructive" :
- invoice.status === "partial_payment" ? "secondary" :
- "outline"
- }>
- {invoice.status}
- </Badge>
- </TableCell>
- <TableCell>
- <Button
- variant="outline"
- size="sm"
- onClick={() => handleSyncInvoice(invoice.id)}
- disabled={syncingInvoice}
- >
- {syncingInvoice ? (
- <RefreshCw className="h-4 w-4 animate-spin" />
- ) : (
- "Sync to QB"
- )}
- </Button>
- </TableCell>
- </TableRow>
- ))}
- </TableBody>
- </Table>
- </CardContent>
- </Card>
- )}
+          <DashboardStatCard
+            title="Overdue Invoices"
+            value={invoices.overdue}
+            description={`$${summary.totalOverdue.toLocaleString()} overdue`}
+            icon={AlertTriangle}
+            iconColor="destructive"
+          />
 
- {/* Not Connected Warning */}
- {!connectionStatus?.connected && (
- <Alert>
- <XCircle className="h-4 w-4" />
- <AlertDescription>
- <strong>QuickBooks Not Connected</strong>
- <br />
- To use QuickBooks integration features, please configure your QuickBooks OAuth credentials
- and connect your QuickBooks account.
- </AlertDescription>
- </Alert>
- )}
- </div>
- );
+          <DashboardStatCard
+            title="Avg Invoice Value"
+            value={`$${invoices.avgInvoiceValue.toLocaleString()}`}
+            description="Per invoice"
+            icon={FileText}
+            iconColor="info"
+          />
+        </div>
+      </div>
+
+      {/* Cash Flow Trend */}
+      <div className="dashboard-section">
+        <Card>
+          <CardHeader>
+            <CardTitle>Cash Flow Trend (30 Days)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={cashFlowTrend}>
+                <defs>
+                  <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis
+                  dataKey="date"
+                  stroke="hsl(var(--muted-foreground))"
+                  tick={{ fontSize: 12 }}
+                />
+                <YAxis
+                  stroke="hsl(var(--muted-foreground))"
+                  tick={{ fontSize: 12 }}
+                  tickFormatter={(value) => `$${value.toLocaleString()}`}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px',
+                  }}
+                  formatter={(value: number) => [`$${value.toLocaleString()}`, '']}
+                />
+                <Legend />
+                <Area
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth={2}
+                  fill="url(#revenueGradient)"
+                  name="Revenue"
+                />
+                <Area
+                  type="monotone"
+                  dataKey="expenses"
+                  stroke="hsl(var(--destructive))"
+                  strokeWidth={2}
+                  fill="url(#expenseGradient)"
+                  name="Expenses"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Invoice Status & Payment Methods */}
+      <div className="dashboard-section">
+        <div className="grid-two-columns">
+          {/* Invoice Status Distribution */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Invoice Status Distribution</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <RechartsPieChart>
+                  <Pie
+                    data={invoiceStatusDistribution}
+                    dataKey="count"
+                    nameKey="status"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    label={(entry) => `${entry.status}: ${entry.count}`}
+                  >
+                    {invoiceStatusDistribution.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value: number, name: string, props: any) => [
+                      `${value} invoices ($${props.payload.amount.toLocaleString()})`,
+                      props.payload.status,
+                    ]}
+                  />
+                  <Legend />
+                </RechartsPieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          {/* Payment Methods */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Payment Methods</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={paymentMethods}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis
+                    dataKey="method"
+                    stroke="hsl(var(--muted-foreground))"
+                    tick={{ fontSize: 12 }}
+                  />
+                  <YAxis
+                    stroke="hsl(var(--muted-foreground))"
+                    tick={{ fontSize: 12 }}
+                    tickFormatter={(value) => `$${value.toLocaleString()}`}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px',
+                    }}
+                    formatter={(value: number) => [`$${value.toLocaleString()}`, 'Amount']}
+                  />
+                  <Bar dataKey="amount" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Top Expense Categories */}
+      <div className="dashboard-section">
+        <Card>
+          <CardHeader>
+            <CardTitle>Top Expense Categories</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={topExpenseCategories} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis
+                  type="number"
+                  stroke="hsl(var(--muted-foreground))"
+                  tick={{ fontSize: 12 }}
+                  tickFormatter={(value) => `$${value.toLocaleString()}`}
+                />
+                <YAxis
+                  type="category"
+                  dataKey="category"
+                  stroke="hsl(var(--muted-foreground))"
+                  tick={{ fontSize: 12 }}
+                  width={150}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px',
+                  }}
+                  formatter={(value: number) => [`$${value.toLocaleString()}`, 'Amount']}
+                />
+                <Bar dataKey="amount" fill="hsl(var(--destructive))" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Top Customers by Revenue */}
+      <div className="dashboard-section">
+        <Card>
+          <CardHeader>
+            <CardTitle>Top Customers by Revenue</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="customer-list">
+              {topCustomers.map((customer, index) => (
+                <div key={customer.id} className="customer-list-item">
+                  <div className="customer-rank">
+                    <div className="customer-rank-badge">
+                      {index + 1}
+                    </div>
+                    <div className="customer-info">
+                      <p className="customer-name">{customer.name}</p>
+                    </div>
+                  </div>
+                  <div className="customer-revenue">
+                    <p className="customer-revenue-amount">${customer.revenue.toLocaleString()}</p>
+                    <p className="customer-revenue-label">Total revenue</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Strategic Insights */}
+      {insights && insights.length > 0 && (
+        <div className="dashboard-section">
+          <h2 className="section-title">Financial Insights & Recommendations</h2>
+          <div className="insights-grid">
+            {insights.map((insight, index) => {
+              const Icon = INSIGHT_ICONS[insight.type];
+              const insightClass = INSIGHT_CLASSES[insight.type];
+              return (
+                <Card key={index} className={insightClass}>
+                  <CardHeader>
+                    <div className="insight-header">
+                      <CardTitle className="insight-title">{insight.title}</CardTitle>
+                      <Icon className="insight-icon" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="insight-description">{insight.description}</p>
+                    <Button variant="ghost" size="sm" className="insight-action" asChild>
+                      <Link href={insight.actionLink}>
+                        {insight.action}
+                        <ArrowRight className="icon-xs" />
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Quick Actions */}
+      <div className="dashboard-section">
+        <h2 className="section-title">Quick Actions</h2>
+        <div className="quick-actions-grid">
+          <Button variant="outline" asChild>
+            <Link href="/financials/invoices">
+              <FileText className="icon-sm" />
+              View All Invoices
+            </Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/financials/payments">
+              <CreditCard className="icon-sm" />
+              View Payments
+            </Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/financials/expenses">
+              <TrendingDown className="icon-sm" />
+              View Expenses
+            </Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/crm/customers">
+              <Users className="icon-sm" />
+              View Customers
+            </Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/dashboards/analytics">
+              <PieChart className="icon-sm" />
+              View Analytics
+            </Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/dashboards/executive">
+              <DollarSign className="icon-sm" />
+              View Executive Dashboard
+            </Link>
+          </Button>
+        </div>
+      </div>
+      </div>
+    </div>
+  );
 }

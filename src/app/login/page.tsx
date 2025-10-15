@@ -41,7 +41,7 @@ export default function LoginPage() {
  {mounted ? (
  <Image
  key={resolvedTheme}
- src={resolvedTheme === 'dark' ? '/images/Limn_Logo_Dark_Mode.png' : '/images/Limn_Logo_Light_Mode.png'}
+ src={resolvedTheme === 'dark' ? '/images/Limn_Logo_Light_Mode.png' : '/images/Limn_Logo_Dark_Mode.png'}
  alt="Limn Systems"
  width={180}
  height={50}

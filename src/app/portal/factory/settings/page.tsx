@@ -4,6 +4,13 @@ import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Package } from 'lucide-react';
 
 /**
@@ -42,11 +49,16 @@ export default function FactorySettingsPage() {
             </div>
             <div>
               <Label htmlFor="notifications">Notification Preferences</Label>
-              <select id="notifications" className="w-full border rounded-md px-3 py-2">
-                <option>All notifications</option>
-                <option>Important only</option>
-                <option>None</option>
-              </select>
+              <Select defaultValue="all">
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select notification preference" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All notifications</SelectItem>
+                  <SelectItem value="important">Important only</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </CardContent>

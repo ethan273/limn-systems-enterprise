@@ -4,6 +4,14 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { api } from '@/lib/api/client';
 import {
   Users,
@@ -200,12 +208,12 @@ export default function PortalManagementPage() {
             <CardTitle>Portal Users</CardTitle>
             <div className="flex items-center gap-4">
               {/* Search */}
-              <div className="relative">
+              <div className="relative w-64">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <input
+                <Input
                   type="text"
                   placeholder="Search by email..."
-                  className="pl-8 pr-4 py-2 border rounded-md w-64"
+                  className="pl-8"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -214,17 +222,18 @@ export default function PortalManagementPage() {
               {/* Portal Type Filter */}
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4 text-muted-foreground" />
-                <select
-                  className="border rounded-md px-3 py-2"
-                  value={selectedPortalType}
-                  onChange={(e) => setSelectedPortalType(e.target.value)}
-                >
-                  {portalTypes.map(type => (
-                    <option key={type.value} value={type.value}>
-                      {type.label} ({type.count})
-                    </option>
-                  ))}
-                </select>
+                <Select value={selectedPortalType} onValueChange={setSelectedPortalType}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Select portal type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {portalTypes.map(type => (
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.label} ({type.count})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>

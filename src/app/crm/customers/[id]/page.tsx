@@ -83,14 +83,14 @@ export default function CustomerDetailPage({ params }: PageProps) {
   // Update mutation
   const updateMutation = api.crm.customers.update.useMutation({
     onSuccess: () => {
-      toast.success("Customer updated successfully");
+      toast.success("Client updated successfully");
       setIsEditing(false);
       // Invalidate queries for instant updates
       utils.crm.customers.getById.invalidate();
       utils.crm.customers.list.invalidate();
     },
     onError: (error: any) => {
-      toast.error("Failed to update customer: " + error.message);
+      toast.error("Failed to update client: " + error.message);
     },
   });
 
@@ -133,7 +133,7 @@ export default function CustomerDetailPage({ params }: PageProps) {
   if (isLoading) {
     return (
       <div className="page-container">
-        <LoadingState message="Loading customer details..." size="md" />
+        <LoadingState message="Loading client details..." size="md" />
       </div>
     );
   }
@@ -143,8 +143,8 @@ export default function CustomerDetailPage({ params }: PageProps) {
       <div className="page-container">
         <EmptyState
           icon={User}
-          title="Customer Not Found"
-          description="The customer you're looking for doesn't exist or you don't have permission to view it."
+          title="Client Not Found"
+          description="The client you're looking for doesn't exist or you don't have permission to view it."
           action={{
             label: 'Back to Clients',
             onClick: () => router.push("/crm/customers"),
@@ -173,10 +173,10 @@ export default function CustomerDetailPage({ params }: PageProps) {
         </Button>
       </div>
 
-      {/* Customer Header */}
+      {/* Client Header */}
       <EntityDetailHeader
         icon={User}
-        title={formData.name || "Unnamed Customer"}
+        title={formData.name || "Unnamed Client"}
         subtitle={formData.company || undefined}
         metadata={[
           ...(formData.email ? [{ icon: Mail, value: formData.email, type: 'email' as const }] : []),
@@ -202,7 +202,7 @@ export default function CustomerDetailPage({ params }: PageProps) {
               ]
             : [
                 {
-                  label: 'Edit Customer',
+                  label: 'Edit Client',
                   icon: Edit,
                   onClick: () => setIsEditing(true),
                 },
@@ -282,7 +282,7 @@ export default function CustomerDetailPage({ params }: PageProps) {
 
         {/* Overview Tab */}
         <TabsContent value="overview">
-          <EditableFieldGroup title="Customer Information" isEditing={isEditing} columns={2}>
+          <EditableFieldGroup title="Client Information" isEditing={isEditing} columns={2}>
             <EditableField
               label="Full Name"
               value={formData.name}
@@ -319,7 +319,7 @@ export default function CustomerDetailPage({ params }: PageProps) {
             />
 
             <EditableField
-              label="Customer Type"
+              label="Client Type"
               value={formData.type}
               type="select"
               isEditing={isEditing}
@@ -380,14 +380,14 @@ export default function CustomerDetailPage({ params }: PageProps) {
         <TabsContent value="orders">
           <Card>
             <CardHeader>
-              <CardTitle>Customer Orders</CardTitle>
+              <CardTitle>Client Orders</CardTitle>
             </CardHeader>
             <CardContent>
               {orders.length === 0 ? (
                 <EmptyState
                   icon={ShoppingCart}
                   title="No Orders Yet"
-                  description="Orders from this customer will appear here."
+                  description="Orders from this client will appear here."
                 />
               ) : (
                 <div className="space-y-2">
@@ -412,14 +412,14 @@ export default function CustomerDetailPage({ params }: PageProps) {
         <TabsContent value="invoices">
           <Card>
             <CardHeader>
-              <CardTitle>Customer Invoices</CardTitle>
+              <CardTitle>Client Invoices</CardTitle>
             </CardHeader>
             <CardContent>
               {invoices.length === 0 ? (
                 <EmptyState
                   icon={FileText}
                   title="No Invoices Yet"
-                  description="Invoices for this customer will appear here."
+                  description="Invoices for this client will appear here."
                 />
               ) : (
                 <div className="space-y-2">
@@ -444,7 +444,7 @@ export default function CustomerDetailPage({ params }: PageProps) {
         <TabsContent value="notes">
           <Card>
             <CardHeader>
-              <CardTitle>Customer Notes</CardTitle>
+              <CardTitle>Client Notes</CardTitle>
             </CardHeader>
             <CardContent>
               {isEditing ? (
@@ -465,7 +465,7 @@ export default function CustomerDetailPage({ params }: PageProps) {
                   <EmptyState
                     icon={MessageSquare}
                     title="No Notes"
-                    description="Add notes about this customer to keep track of important information."
+                    description="Add notes about this client to keep track of important information."
                   />
                 )
               )}

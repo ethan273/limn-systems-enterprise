@@ -6,6 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Package,
   Clock,
   Calendar,
@@ -100,19 +107,20 @@ export default function FactoryOrdersPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="flex-1"
             />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="border rounded-md px-3 py-2 bg-background"
-            >
-              <option value="all">All Statuses</option>
-              <option value="awaiting_deposit">Awaiting Deposit</option>
-              <option value="deposit_paid">Ready to Start</option>
-              <option value="in_progress">In Production</option>
-              <option value="awaiting_final_payment">Awaiting Payment</option>
-              <option value="ready_to_ship">Ready to Ship</option>
-              <option value="shipped">Shipped</option>
-            </select>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="All Statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="awaiting_deposit">Awaiting Deposit</SelectItem>
+                <SelectItem value="deposit_paid">Ready to Start</SelectItem>
+                <SelectItem value="in_progress">In Production</SelectItem>
+                <SelectItem value="awaiting_final_payment">Awaiting Payment</SelectItem>
+                <SelectItem value="ready_to_ship">Ready to Ship</SelectItem>
+                <SelectItem value="shipped">Shipped</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>

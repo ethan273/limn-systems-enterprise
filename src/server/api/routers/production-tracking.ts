@@ -169,8 +169,8 @@ export const productionTrackingRouter = createTRPCRouter({
             },
           },
         },
-        limit: input.limit,
-        offset: input.offset,
+        take: input.limit,
+        skip: input.offset,
         orderBy: { order_date: 'desc' },
       });
 
