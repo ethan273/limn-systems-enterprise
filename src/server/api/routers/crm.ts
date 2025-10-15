@@ -5,7 +5,9 @@ import type { orders } from '@prisma/client';
 
 // Contacts Schema (updated to match database schema)
 const createContactSchema = z.object({
-  name: z.string().min(1),
+  name: z.string().min(1).optional(), // Keep for backward compatibility
+  first_name: z.string().min(1),
+  last_name: z.string().optional(),
   email: z.string().email().optional(),
   phone: z.string().optional(),
   company: z.string().optional(),
@@ -21,14 +23,41 @@ const createContactSchema = z.object({
   last_activity_date: z.date().optional(),
 });
 
+// Address Schema
+const createAddressSchema = z.object({
+  address_line_1: z.string().min(1),
+  address_line_2: z.string().optional(),
+  city: z.string().min(1),
+  state_province: z.string().optional(),
+  postal_code: z.string().optional(),
+  country: z.string().default('USA'),
+  address_type: z.enum(['Business', 'Residential']).default('Business'),
+  is_primary: z.boolean().default(false),
+  // Polymorphic relationships - only one should be set
+  contact_id: z.string().uuid().optional(),
+  lead_id: z.string().uuid().optional(),
+  customer_id: z.string().uuid().optional(),
+  created_by: z.string().uuid().optional(),
+});
+
+// Generate CRUD for addresses
+const addressesRouter = createCrudRouter({
+  name: 'Address',
+  model: 'addresses' as any,
+  createSchema: createAddressSchema,
+  updateSchema: createAddressSchema.partial(),
+  searchFields: ['address_line_1', 'city', 'country'],
+  defaultOrderBy: { created_at: 'desc' },
+});
+
 // Generate CRUD for contacts
 const baseContactsRouter = createCrudRouter({
   name: 'Contact',
   model: 'contacts' as any,
   createSchema: createContactSchema,
   updateSchema: createContactSchema.partial(),
-  searchFields: ['name', 'email', 'company'],
-  defaultOrderBy: { name: 'asc' },
+  searchFields: ['name', 'first_name', 'last_name', 'email', 'company'],
+  defaultOrderBy: { created_at: 'desc' },
 });
 
 // Extend contacts router with detail page data
@@ -43,6 +72,11 @@ export const contactsRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const contact = await ctx.db.contacts.findUnique({
         where: { id: input.id },
+        include: {
+          addresses: {
+            orderBy: { is_primary: 'desc' },
+          },
+        },
       });
 
       if (!contact) {
@@ -82,7 +116,9 @@ export const contactsRouter = createTRPCRouter({
 
 // Leads Schema (updated to match database schema)
 const createLeadSchema = z.object({
-  name: z.string().min(1),
+  name: z.string().min(1), // Still required for database
+  first_name: z.string().min(1),
+  last_name: z.string().optional(),
   company: z.string().optional(),
   email: z.string().email().optional(),
   phone: z.string().optional(),
@@ -106,14 +142,16 @@ const createLeadSchema = z.object({
 
 // Customers Schema (for client conversion)
 const createCustomerSchema = z.object({
-  name: z.string().min(1),
+  name: z.string().min(1), // Still required for database
+  first_name: z.string().min(1),
+  last_name: z.string().optional(),
   email: z.string().email().optional(),
   phone: z.string().optional(),
   company: z.string().optional(),
   company_name: z.string().optional(),
-  address: z.record(z.any()).optional(),
-  billing_address: z.record(z.any()).optional(),
-  shipping_address: z.record(z.any()).optional(),
+  address: z.record(z.any()).optional(), // Legacy field, keep for now
+  billing_address: z.record(z.any()).optional(), // Legacy field
+  shipping_address: z.record(z.any()).optional(), // Legacy field
   type: z.string().optional(),
   status: z.string().default('active'),
   notes: z.string().optional(),
@@ -179,6 +217,9 @@ export const customersRouter = createTRPCRouter({
       const customerData = await ctx.db.customers.findUnique({
         where: { id: input.id },
         include: {
+          addresses: {
+            orderBy: { is_primary: 'desc' },
+          },
           orders: {
             orderBy: { created_at: 'desc' },
             take: 10,
@@ -323,6 +364,11 @@ export const leadsRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const lead = await ctx.db.leads.findUnique({
         where: { id: input.id },
+        include: {
+          addresses: {
+            orderBy: { is_primary: 'desc' },
+          },
+        },
       });
 
       if (!lead) {
@@ -593,4 +639,5 @@ export const crmRouter = createTRPCRouter({
   contacts: contactsRouter,
   leads: leadsRouter,
   customers: customersRouter,
+  addresses: addressesRouter,
 });
