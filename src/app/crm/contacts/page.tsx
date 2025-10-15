@@ -105,7 +105,8 @@ export default function ContactsPage() {
 
   // Form fields for create dialog
   const createFormFields: FormField[] = [
-    { name: 'name', label: 'Name', type: 'text', required: true, placeholder: 'Full name' },
+    { name: 'first_name', label: 'First Name', type: 'text', required: true, placeholder: 'John' },
+    { name: 'last_name', label: 'Last Name', type: 'text', placeholder: 'Doe' },
     { name: 'email', label: 'Email', type: 'email', placeholder: 'email@example.com' },
     { name: 'phone', label: 'Phone', type: 'text', placeholder: '+1 (555) 123-4567' },
     { name: 'company', label: 'Company', type: 'text', placeholder: 'Company name' },
@@ -116,7 +117,8 @@ export default function ContactsPage() {
   // Form fields for edit dialog (with default values from selected contact)
   const selectedContact = contactsData?.items?.find(c => c.id === editContactId);
   const editFormFields: FormField[] = [
-    { name: 'name', label: 'Name', type: 'text', required: true, placeholder: 'Full name', defaultValue: selectedContact?.name },
+    { name: 'first_name', label: 'First Name', type: 'text', required: true, placeholder: 'John', defaultValue: selectedContact?.first_name },
+    { name: 'last_name', label: 'Last Name', type: 'text', placeholder: 'Doe', defaultValue: selectedContact?.last_name },
     { name: 'email', label: 'Email', type: 'email', placeholder: 'email@example.com', defaultValue: selectedContact?.email },
     { name: 'phone', label: 'Phone', type: 'text', placeholder: '+1 (555) 123-4567', defaultValue: selectedContact?.phone },
     { name: 'company', label: 'Company', type: 'text', placeholder: 'Company name', defaultValue: selectedContact?.company },
@@ -127,17 +129,20 @@ export default function ContactsPage() {
   // DataTable columns configuration
   const columns: DataTableColumn<any>[] = [
     {
-      key: 'name',
+      key: 'first_name',
       label: 'Name',
       sortable: true,
-      render: (_, row) => (
-        <div className="flex items-center gap-3">
-          <div className="data-table-avatar">
-            <User className="icon-sm" aria-hidden="true" />
+      render: (_, row) => {
+        const fullName = [row.first_name, row.last_name].filter(Boolean).join(' ') || row.name || '—';
+        return (
+          <div className="flex items-center gap-3">
+            <div className="data-table-avatar">
+              <User className="icon-sm" aria-hidden="true" />
+            </div>
+            <span className="font-medium">{fullName}</span>
           </div>
-          <span className="font-medium">{row.name}</span>
-        </div>
-      ),
+        );
+      },
     },
     {
       key: 'company',
@@ -281,8 +286,11 @@ export default function ContactsPage() {
         fields={createFormFields}
         onSubmit={async (data) => {
           console.log('[ContactsPage] CREATE onSubmit called with data:', data);
+          const fullName = [data.first_name, data.last_name].filter(Boolean).join(' ');
           const mutationData = {
-            name: data.name as string,
+            first_name: data.first_name as string,
+            last_name: data.last_name as string || undefined,
+            name: fullName, // Maintain backward compatibility
             email: data.email as string || undefined,
             phone: data.phone as string || undefined,
             company: data.company as string || undefined,
@@ -307,10 +315,13 @@ export default function ContactsPage() {
         fields={editFormFields}
         onSubmit={async (data) => {
           console.log('[ContactsPage] UPDATE onSubmit called with data:', data, 'contactId:', editContactId);
+          const fullName = [data.first_name, data.last_name].filter(Boolean).join(' ');
           const mutationData = {
             id: editContactId,
             data: {
-              name: data.name as string,
+              first_name: data.first_name as string,
+              last_name: data.last_name as string || undefined,
+              name: fullName, // Maintain backward compatibility
               email: data.email as string || undefined,
               phone: data.phone as string || undefined,
               company: data.company as string || undefined,
@@ -362,7 +373,7 @@ export default function ContactsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Contact</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete {contactToDelete?.name}? This action cannot be undone.
+              Are you sure you want to delete {[contactToDelete?.first_name, contactToDelete?.last_name].filter(Boolean).join(' ') || contactToDelete?.name}? This action cannot be undone.
               All associated activities will be preserved but unlinked.
             </AlertDialogDescription>
           </AlertDialogHeader>
