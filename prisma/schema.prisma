@@ -1546,27 +1546,68 @@ model concepts {
   @@schema("public")
 }
 
+/// Enum for address types
+enum address_type {
+  Business
+  Residential
+
+  @@schema("public")
+}
+
+/// Address management table supporting multiple addresses per entity
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model addresses {
+  id             String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  address_line_1 String       @db.VarChar(255)
+  address_line_2 String?      @db.VarChar(255)
+  city           String       @db.VarChar(100)
+  state_province String?      @db.VarChar(100)
+  postal_code    String?      @db.VarChar(20)
+  country        String       @default("USA") @db.VarChar(100)
+  address_type   address_type @default(Business)
+  is_primary     Boolean      @default(false)
+  contact_id     String?      @db.Uuid
+  lead_id        String?      @db.Uuid
+  customer_id    String?      @db.Uuid
+  created_at     DateTime?    @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime?    @default(now()) @db.Timestamptz(6)
+  created_by     String?      @db.Uuid
+  contacts       contacts?    @relation(fields: [contact_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  leads          leads?       @relation(fields: [lead_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  customers      customers?   @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  projects       projects[]
+
+  @@index([contact_id], map: "idx_addresses_contact_id")
+  @@index([lead_id], map: "idx_addresses_lead_id")
+  @@index([customer_id], map: "idx_addresses_customer_id")
+  @@index([is_primary], map: "idx_addresses_is_primary")
+  @@schema("public")
+}
+
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model contacts {
-  id                   String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                   String      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   name                 String?
-  email                String?   @unique
+  first_name           String?     @db.VarChar(255)
+  last_name            String?     @db.VarChar(255)
+  email                String?     @unique
   phone                String?
   company              String?
   position             String?
   notes                String?
-  tags                 String[]  @default([])
-  created_at           DateTime? @default(now()) @db.Timestamptz(6)
-  updated_at           DateTime? @default(now()) @db.Timestamptz(6)
+  tags                 String[]    @default([])
+  created_at           DateTime?   @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime?   @default(now()) @db.Timestamptz(6)
   created_by           String?
   lead_conversion_date String?
-  last_contacted       DateTime? @db.Timestamptz(6)
+  last_contacted       DateTime?   @db.Timestamptz(6)
   source               String?
-  score                Decimal?  @default(0) @db.Decimal
-  assigned_to          String?   @db.Uuid
-  last_activity_date   DateTime? @db.Timestamptz(6)
-  status               String?   @default("active")
+  score                Decimal?    @default(0) @db.Decimal
+  assigned_to          String?     @db.Uuid
+  last_activity_date   DateTime?   @db.Timestamptz(6)
+  status               String?     @default("active")
+  addresses            addresses[]
 
   @@index([company], map: "idx_contacts_company")
   @@index([created_at], map: "idx_contacts_created_at")
@@ -1851,6 +1892,8 @@ model customer_shipping_addresses {
 model customers {
   id                                              String                               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name                                            String
+  first_name                                      String?                              @db.VarChar(255)
+  last_name                                       String?                              @db.VarChar(255)
   email                                           String?                              @unique(map: "customers_email_unique")
   phone                                           String?
   company                                         String?
@@ -1885,6 +1928,7 @@ model customers {
   portal_created_by                               String?                              @db.Uuid
   last_password_reset                             DateTime?                            @db.Timestamptz(6)
   last_activity_date                              DateTime?                            @db.Timestamptz(6)
+  addresses                                       addresses[]
   ar_aging                                        ar_aging[]
   client_files                                    client_files[]
   client_notifications                            client_notifications[]
@@ -3395,31 +3439,34 @@ model items {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model leads {
-  id                       String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  name                     String    @db.VarChar
-  email                    String?   @db.VarChar
-  phone                    String?   @db.VarChar
-  company                  String?   @db.VarChar
-  prospect_status          String?   @db.VarChar
+  id                       String      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name                     String      @db.VarChar
+  first_name               String?     @db.VarChar(255)
+  last_name                String?     @db.VarChar(255)
+  email                    String?     @db.VarChar
+  phone                    String?     @db.VarChar
+  company                  String?     @db.VarChar
+  prospect_status          String?     @db.VarChar
   notes                    String?
-  created_at               DateTime? @default(now()) @db.Timestamptz(6)
-  updated_at               DateTime? @default(now()) @db.Timestamptz(6)
+  created_at               DateTime?   @default(now()) @db.Timestamptz(6)
+  updated_at               DateTime?   @default(now()) @db.Timestamptz(6)
   status                   String?
   converted_to_customer_id String?
-  assigned_to              String?   @db.Uuid
+  assigned_to              String?     @db.Uuid
   lead_source              String?
   interest_level           String?
-  follow_up_date           DateTime? @db.Timestamptz(6)
-  converted_at             DateTime? @db.Timestamptz(6)
+  follow_up_date           DateTime?   @db.Timestamptz(6)
+  converted_at             DateTime?   @db.Timestamptz(6)
   conversion_type          String?
   tags                     String[]
-  last_contacted           DateTime? @db.Timestamptz(6)
+  last_contacted           DateTime?   @db.Timestamptz(6)
   contact_method           String?
-  lead_value               Decimal?  @db.Decimal
+  lead_value               Decimal?    @db.Decimal
   created_by               String?
   website                  String?
-  pipeline_stage           String?   @default("initial")
-  last_activity_date       DateTime? @db.Timestamptz(6)
+  pipeline_stage           String?     @default("initial")
+  last_activity_date       DateTime?   @db.Timestamptz(6)
+  addresses                addresses[]
 
   @@index([created_at], map: "idx_leads_created_at")
   @@schema("public")
@@ -5282,17 +5329,20 @@ model projects {
   budget_estimate           String?
   actual_cost               String?
   project_manager           String?
+  shipping_address_id       String?               @db.Uuid
   invoices                  invoices[]
   orders_old                orders_old[]
   production_invoices       production_invoices[]
   production_orders         production_orders[]
   customers                 customers?            @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   tenants                   tenants?              @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  shipping_address          addresses?            @relation(fields: [shipping_address_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
   prototypes                prototypes[]
   shipments                 shipments[]
 
   @@index([created_by], map: "idx_projects_created_by")
   @@index([customer_id], map: "idx_projects_customer_id")
+  @@index([shipping_address_id], map: "idx_projects_shipping_address_id")
   @@index([tenant_id], map: "idx_projects_tenant_id")
   @@index([user_id, created_at(sort: Desc)], map: "idx_projects_user_id_created_at")
   @@schema("public")
