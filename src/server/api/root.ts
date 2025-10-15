@@ -33,6 +33,7 @@ import { packingRouter } from './routers/packing';
 import { orderedItemsProductionRouter } from './routers/ordered-items-production';
 import { invoicesRouter } from './routers/invoices';
 import { paymentsRouter } from './routers/payments';
+import { expensesRouter } from './routers/expenses';
 import { documentsRouter } from './routers/documents';
 import { dashboardsRouter } from './routers/dashboards';
 import { notificationsRouter } from './routers/notifications';
@@ -146,6 +147,7 @@ export const appRouter = createTRPCRouter({
   // Financials (General Accounting)
   invoices: invoicesRouter,
   payments: paymentsRouter,
+  expenses: expensesRouter,
 
   // Documents & Media (Phase 4)
   documents: documentsRouter,

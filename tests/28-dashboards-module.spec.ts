@@ -169,7 +169,7 @@ test.describe('📊 DASHBOARDS MODULE TESTS @dashboards', () => {
       await page.goto(`${TEST_CONFIG.BASE_URL}/admin/analytics`);
       await page.waitForLoadState('domcontentloaded');
 
-      const revenueChart = page.locator('[data-testid="revenue-chart"], canvas, .chart, text=/revenue/i').first();
+      const revenueChart = page.locator('[data-testid="revenue-chart"]').first();
       const hasChart = await revenueChart.count() > 0;
 
       if (hasChart) {
@@ -186,7 +186,7 @@ test.describe('📊 DASHBOARDS MODULE TESTS @dashboards', () => {
       await page.goto(`${TEST_CONFIG.BASE_URL}/admin/analytics`);
       await page.waitForLoadState('domcontentloaded');
 
-      const productionMetrics = page.locator('[data-testid="production-metrics"], text=/production/i, h2:has-text("Production")').first();
+      const productionMetrics = page.locator('[data-testid="production-metrics"]').first();
       const hasMetrics = await productionMetrics.count() > 0;
 
       if (hasMetrics) {
@@ -203,7 +203,7 @@ test.describe('📊 DASHBOARDS MODULE TESTS @dashboards', () => {
       await page.goto(`${TEST_CONFIG.BASE_URL}/admin/analytics`);
       await page.waitForLoadState('domcontentloaded');
 
-      const qualityMetrics = page.locator('[data-testid="quality-metrics"], text=/quality/i, h2:has-text("Quality")').first();
+      const qualityMetrics = page.locator('[data-testid="quality-metrics"]').first();
       const hasMetrics = await qualityMetrics.count() > 0;
 
       if (hasMetrics) {
@@ -220,7 +220,7 @@ test.describe('📊 DASHBOARDS MODULE TESTS @dashboards', () => {
       await page.goto(`${TEST_CONFIG.BASE_URL}/admin/analytics`);
       await page.waitForLoadState('domcontentloaded');
 
-      const inventorySection = page.locator('[data-testid="inventory"], text=/inventory|stock/i').first();
+      const inventorySection = page.locator('[data-testid="inventory"]').first();
       const hasInventory = await inventorySection.count() > 0;
 
       if (hasInventory) {

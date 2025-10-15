@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { login } from '../helpers/auth-helper';
-import { TEST_CONFIG } from '../config/test-config';
+import { login } from './helpers/auth-helper';
+import { TEST_CONFIG } from './config/test-config';
 
 /**
  * CHAOS TESTS - Test application with messy, incomplete, and edge-case data

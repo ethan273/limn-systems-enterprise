@@ -13,7 +13,7 @@ export default function Home() {
     setMounted(true);
   }, []);
 
-  const logoPath = resolvedTheme === 'dark' ? '/images/Limn_Logo_Light_Mode.png' : '/images/Limn_Logo_Dark_Mode.png';
+  const logoPath = resolvedTheme === 'dark' ? '/images/Limn_Logo_Dark_Mode.png' : '/images/Limn_Logo_Light_Mode.png';
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24">

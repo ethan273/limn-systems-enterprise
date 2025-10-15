@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { getFullName, createFullName, splitFullName } from "@/lib/utils/name-utils";
 
 // Dynamic route configuration
 export const dynamic = 'force-dynamic';
@@ -56,7 +57,8 @@ export default function ContactDetailPage({ params }: PageProps) {
 
   // Form data state for in-place editing
   const [formData, setFormData] = useState({
-    name: '',
+    first_name: '',
+    last_name: '',
     email: '',
     phone: '',
     company: '',
@@ -69,7 +71,8 @@ export default function ContactDetailPage({ params }: PageProps) {
   useEffect(() => {
     if (data?.contact) {
       setFormData({
-        name: data.contact.name || '',
+        first_name: data.contact.first_name || '',
+        last_name: data.contact.last_name || '',
         email: data.contact.email || '',
         phone: data.contact.phone || '',
         company: data.contact.company || '',
@@ -95,15 +98,18 @@ export default function ContactDetailPage({ params }: PageProps) {
   });
 
   const handleSave = async () => {
-    if (!formData.name) {
-      toast.error("Name is required");
+    if (!formData.first_name) {
+      toast.error("First name is required");
       return;
     }
 
+    const fullName = createFullName(formData.first_name, formData.last_name);
     await updateMutation.mutateAsync({
       id,
       data: {
-        name: formData.name,
+        first_name: formData.first_name,
+        last_name: formData.last_name || undefined,
+        name: fullName, // Maintain backward compatibility
         email: formData.email || undefined,
         phone: formData.phone || undefined,
         company: formData.company || undefined,
@@ -118,7 +124,8 @@ export default function ContactDetailPage({ params }: PageProps) {
     // Reset form data to original values
     if (data?.contact) {
       setFormData({
-        name: data.contact.name || '',
+        first_name: data.contact.first_name || '',
+        last_name: data.contact.last_name || '',
         email: data.contact.email || '',
         phone: data.contact.phone || '',
         company: data.contact.company || '',
@@ -174,7 +181,7 @@ export default function ContactDetailPage({ params }: PageProps) {
       {/* Contact Header */}
       <EntityDetailHeader
         icon={User}
-        title={formData.name || "Unnamed Contact"}
+        title={createFullName(formData.first_name, formData.last_name) || "Unnamed Contact"}
         subtitle={formData.position || undefined}
         metadata={[
           ...(formData.company ? [{ icon: Building2, value: formData.company, type: 'text' as const }] : []),
@@ -272,11 +279,19 @@ export default function ContactDetailPage({ params }: PageProps) {
         <TabsContent value="overview">
           <EditableFieldGroup title="Contact Information" isEditing={isEditing} columns={2}>
             <EditableField
-              label="Full Name"
-              value={formData.name}
+              label="First Name"
+              value={formData.first_name}
               isEditing={isEditing}
-              onChange={(value) => setFormData({ ...formData, name: value })}
+              onChange={(value) => setFormData({ ...formData, first_name: value })}
               required
+              icon={User}
+            />
+
+            <EditableField
+              label="Last Name"
+              value={formData.last_name}
+              isEditing={isEditing}
+              onChange={(value) => setFormData({ ...formData, last_name: value })}
               icon={User}
             />
 

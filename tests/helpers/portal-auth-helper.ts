@@ -108,16 +108,16 @@ export async function portalLogin(page: Page, email: string, password: string, p
   }
 
   const data = await response.json();
-  const accessToken = data.access_token;
-  const refreshToken = data.refresh_token;
 
-  if (!accessToken) {
-    throw new Error('No auth token returned from API');
+  // dev-login now returns redirect_url with hashed token (magic link format)
+  // Extract token from redirect_url: /auth/callback?token=XXXXX&type=designer
+  if (!data.redirect_url) {
+    throw new Error('No redirect_url returned from API');
   }
 
-  // Navigate to auth set-session endpoint to establish session
+  // Navigate to the auth callback URL to establish session
   // Use 'load' instead of 'networkidle' because the page redirects immediately
-  await page.goto(`${TEST_CONFIG.BASE_URL}/auth/set-session?access_token=${accessToken}&refresh_token=${refreshToken}`, {
+  await page.goto(`${TEST_CONFIG.BASE_URL}${data.redirect_url}`, {
     waitUntil: 'load',
     timeout: 30000
   });

@@ -29,6 +29,18 @@ export async function POST(request: NextRequest) {
 
     // Define test users with different roles/permissions
     const testUsers: Record<string, { email: string; userId: string; profile: any }> = {
+      admin: {
+        email: 'admin@test.com',
+        userId: '550e8400-e29b-41d4-a716-446655440099',
+        profile: {
+          name: 'Admin User',
+          first_name: 'Admin',
+          last_name: 'User',
+          user_type: 'admin', // Full admin access
+          department: 'administration',
+          job_title: 'Administrator'
+        }
+      },
       dev: {
         email: 'dev-user@limn.us.com',
         userId: '550e8400-e29b-41d4-a716-446655440000',
@@ -104,7 +116,7 @@ export async function POST(request: NextRequest) {
     };
 
     // Validate userType to prevent object injection
-    const allowedUserTypes = ['dev', 'designer', 'customer', 'factory', 'contractor', 'user'] as const;
+    const allowedUserTypes = ['admin', 'dev', 'designer', 'customer', 'factory', 'contractor', 'user'] as const;
     const validUserType = allowedUserTypes.includes(userType as typeof allowedUserTypes[number]) ? userType : 'dev';
     const selectedUser = testUsers[validUserType as keyof typeof testUsers];
     const testEmail = selectedUser.email;
@@ -328,39 +340,33 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Update user password to enable password-based login (bypasses rate limits!)
-    const testPassword = 'TestPassword123!@#Secure';
-
-    const { error: passwordError } = await supabase.auth.admin.updateUserById(actualUserId, {
-      password: testPassword
-    });
-
-    if (passwordError) {
-      console.warn('Could not set password:', passwordError.message);
-      // Continue anyway - user might already have password set
-    }
-
-    // Use password-based sign-in (NO rate limiting on signInWithPassword!)
-    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+    // Generate a magic link using admin API (no password required!)
+    // This creates a one-time use link that automatically logs the user in
+    const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
+      type: 'magiclink',
       email: testEmail,
-      password: testPassword
     });
 
-    if (signInError || !signInData?.session) {
-      console.error('Error signing in:', signInError);
-      return NextResponse.json({ error: 'Failed to sign in' }, { status: 500 });
+    if (linkError || !linkData) {
+      console.error('Error generating auth link:', linkError);
+      return NextResponse.json({ error: 'Failed to generate auth link', details: linkError?.message }, { status: 500 });
     }
 
-    // Return the session tokens
+    // Extract the hashed_token from the properties
+    const hashedToken = linkData.properties?.hashed_token;
+
+    if (!hashedToken) {
+      console.error('No hashed_token in link data');
+      return NextResponse.json({ error: 'Failed to generate session tokens' }, { status: 500 });
+    }
+
+    // Return the hashed token which will be verified by /auth/callback
     return NextResponse.json({
       message: `${selectedUser.profile.name} authenticated`,
       user_id: actualUserId,
       user_type: userType,
       email: testEmail,
-      access_token: signInData.session.access_token,
-      refresh_token: signInData.session.refresh_token,
-      expires_at: signInData.session.expires_at,
-      redirect_url: `/auth/set-session?access_token=${signInData.session.access_token}&refresh_token=${signInData.session.refresh_token}`
+      redirect_url: `/auth/callback?token=${hashedToken}&type=${userType}`
     });
 
   } catch (error) {

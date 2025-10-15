@@ -21,6 +21,11 @@ export function getSupabaseBrowserClient() {
 
   _browserClient = createBrowserClient(url, key, {
     isSingleton: true, // Fix for Next.js 15 / React 19 readonly property error
+    auth: {
+      flowType: 'pkce', // Use PKCE flow for better security
+      detectSessionInUrl: true,
+      persistSession: true,
+    },
   })
   return _browserClient
 }

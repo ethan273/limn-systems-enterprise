@@ -43,7 +43,7 @@ test.describe('Search, Filter, and Sort Functionality', () => {
       await page.goto('/production/orders');
       await page.waitForLoadState('networkidle');
 
-      const searchInput = page.getByPlaceholder(/search/i);
+      const searchInput = page.getByPlaceholder(/search/i).last();
       if (await searchInput.count() > 0) {
         await searchInput.fill('order');
         await page.waitForTimeout(500);

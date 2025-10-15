@@ -55,7 +55,7 @@ test.describe('Export and Download Functionality', () => {
       await page.waitForLoadState('networkidle');
 
       // Apply a filter first
-      const searchInput = page.getByPlaceholder(/search/i);
+      const searchInput = page.getByPlaceholder(/search/i).last();
       if (await searchInput.count() > 0) {
         await searchInput.fill('test');
         await page.waitForTimeout(500);

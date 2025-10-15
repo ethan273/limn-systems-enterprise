@@ -239,7 +239,9 @@ export function DataTable<T extends Record<string, unknown>>({
                     placeholder={filter.placeholder || 'Search...'}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    onInput={(e) => setSearchQuery((e.target as HTMLInputElement).value)}
                     className="search-input"
+                    data-testid="data-table-search-input"
                   />
                 </div>
               );

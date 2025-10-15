@@ -29,6 +29,7 @@ import {
   type DataTableRowAction,
   type StatItem,
 } from "@/components/common";
+import { getFullName } from "@/lib/utils/name-utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -105,7 +106,7 @@ export default function CustomersPage() {
   // DataTable columns configuration
   const columns: DataTableColumn<any>[] = [
     {
-      key: 'name',
+      key: 'first_name',
       label: 'Client Name',
       sortable: true,
       render: (_, row) => (
@@ -113,7 +114,7 @@ export default function CustomersPage() {
           <div className="data-table-avatar">
             <Building className="icon-sm" aria-hidden="true" />
           </div>
-          <span className="font-medium">{row.name}</span>
+          <span className="font-medium">{getFullName(row)}</span>
         </div>
       ),
     },
@@ -255,7 +256,7 @@ export default function CustomersPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Client</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete {customerToDelete?.name}? This action cannot be undone.
+              Are you sure you want to delete {getFullName(customerToDelete || {})}? This action cannot be undone.
               All associated orders, invoices, and activities will be preserved but unlinked.
             </AlertDialogDescription>
           </AlertDialogHeader>

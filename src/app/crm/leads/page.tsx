@@ -1,4 +1,5 @@
 "use client";
+import { getFullName, createFullName } from "@/lib/utils/name-utils";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -178,7 +179,8 @@ export default function LeadsPage() {
 
   // Form fields for create dialog (no prospect_status - defaults to "Not yet")
   const createFormFields: FormField[] = [
-    { name: 'name', label: 'Name', type: 'text', required: true, placeholder: 'Contact name' },
+    { name: 'first_name', label: 'First Name', type: 'text', required: true, placeholder: 'John' },
+    { name: 'last_name', label: 'Last Name', type: 'text', placeholder: 'Doe' },
     { name: 'company', label: 'Company', type: 'text', required: true, placeholder: 'Company name' },
     { name: 'email', label: 'Email', type: 'email', required: true, placeholder: 'email@example.com' },
     { name: 'phone', label: 'Phone', type: 'text', placeholder: '+1 (555) 123-4567' },
@@ -189,7 +191,8 @@ export default function LeadsPage() {
   // Form fields for edit dialog
   const selectedLead = leadsData?.items?.find(l => l.id === editLeadId);
   const editFormFields: FormField[] = [
-    { name: 'name', label: 'Name', type: 'text', required: true, defaultValue: selectedLead?.name },
+    { name: 'first_name', label: 'First Name', type: 'text', required: true, defaultValue: selectedLead?.first_name },
+    { name: 'last_name', label: 'Last Name', type: 'text', defaultValue: selectedLead?.last_name },
     { name: 'email', label: 'Email', type: 'email', defaultValue: selectedLead?.email },
     { name: 'phone', label: 'Phone', type: 'text', defaultValue: selectedLead?.phone },
     { name: 'company', label: 'Company', type: 'text', defaultValue: selectedLead?.company },
@@ -216,7 +219,8 @@ export default function LeadsPage() {
 
   // Form fields for conversion dialog
   const conversionFormFields: FormField[] = [
-    { name: 'name', label: 'Client Name', type: 'text', required: true, defaultValue: selectedLeadForConversion?.name, placeholder: 'Client name' },
+    { name: 'first_name', label: 'First Name', type: 'text', required: true, defaultValue: selectedLeadForConversion?.first_name, placeholder: 'John' },
+    { name: 'last_name', label: 'Last Name', type: 'text', defaultValue: selectedLeadForConversion?.last_name, placeholder: 'Doe' },
     { name: 'email', label: 'Email', type: 'email', defaultValue: selectedLeadForConversion?.email, placeholder: 'email@example.com' },
     { name: 'phone', label: 'Phone', type: 'text', defaultValue: selectedLeadForConversion?.phone, placeholder: '+1 (555) 123-4567' },
     { name: 'company', label: 'Company', type: 'text', defaultValue: selectedLeadForConversion?.company, placeholder: 'Company name' },
@@ -258,7 +262,7 @@ export default function LeadsPage() {
   // DataTable columns configuration
   const columns: DataTableColumn<any>[] = [
     {
-      key: 'name',
+      key: 'first_name',
       label: 'Name',
       sortable: true,
       render: (_, row) => (
@@ -266,7 +270,7 @@ export default function LeadsPage() {
           <div className="data-table-avatar">
             <Users className="icon-sm" aria-hidden="true" />
           </div>
-          <span className="font-medium">{row.name}</span>
+          <span className="font-medium">{getFullName(row)}</span>
         </div>
       ),
     },
@@ -449,14 +453,17 @@ export default function LeadsPage() {
         description="Add a new lead to your sales pipeline."
         fields={createFormFields}
         onSubmit={async (data) => {
+          const fullName = createFullName(data.first_name as string, data.last_name as string);
           await createLeadMutation.mutateAsync({
-            name: data.name as string,
+            first_name: data.first_name as string,
+            last_name: data.last_name as string || undefined,
+            name: fullName,
             company: data.company as string,
             email: data.email as string,
             phone: data.phone as string || undefined,
             status: 'new',
-            source: 'manual',
-            value: data.value ? parseFloat(data.value as string) : undefined,
+            lead_source: 'manual',
+            lead_value: data.value ? parseFloat(data.value as string) : undefined,
             // prospect_status defaults to null ("Not yet") - not set on creation
             notes: data.notes as string || undefined,
             tags: [],
@@ -474,10 +481,13 @@ export default function LeadsPage() {
         description="Update lead information and details."
         fields={editFormFields}
         onSubmit={async (data) => {
+          const fullName = createFullName(data.first_name as string, data.last_name as string);
           await updateLeadMutation.mutateAsync({
             id: editLeadId,
             data: {
-              name: data.name as string,
+              first_name: data.first_name as string,
+              last_name: data.last_name as string || undefined,
+              name: fullName,
               email: data.email as string || undefined,
               phone: data.phone as string || undefined,
               company: data.company as string || undefined,
@@ -497,13 +507,16 @@ export default function LeadsPage() {
         open={isConvertDialogOpen}
         onOpenChange={setIsConvertDialogOpen}
         title="Convert Lead to Client"
-        description={`Convert "${selectedLeadForConversion?.name}" from ${selectedLeadForConversion?.company} to a client.`}
+        description={`Convert "${getFullName(selectedLeadForConversion || {})}" from ${selectedLeadForConversion?.company} to a client.`}
         fields={conversionFormFields}
         onSubmit={async (data) => {
+          const fullName = createFullName(data.first_name as string, data.last_name as string);
           await convertToClientMutation.mutateAsync({
             leadId: selectedLeadForConversion.id,
             clientData: {
-              name: data.name as string,
+              first_name: data.first_name as string,
+              last_name: data.last_name as string || undefined,
+              name: fullName,
               email: data.email as string || undefined,
               phone: data.phone as string || undefined,
               company: data.company as string || undefined,
@@ -555,7 +568,7 @@ export default function LeadsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Lead</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete {leadToDelete?.name} from {leadToDelete?.company}? This action cannot be undone.
+              Are you sure you want to delete {getFullName(leadToDelete || {})} from {leadToDelete?.company}? This action cannot be undone.
               All associated activities will be preserved but unlinked.
             </AlertDialogDescription>
           </AlertDialogHeader>

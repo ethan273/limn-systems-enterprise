@@ -178,7 +178,7 @@ export default function AnalyticsDashboardPage() {
       </div>
 
       {/* Revenue Trend Chart */}
-      <div className="dashboard-section">
+      <div className="dashboard-section" data-testid="revenue-chart">
         <Card className="chart-container">
         <CardHeader className="chart-header">
           <div>
@@ -187,6 +187,7 @@ export default function AnalyticsDashboardPage() {
           </div>
         </CardHeader>
         <CardContent>
+          {analytics.revenueByMonth && analytics.revenueByMonth.length > 0 ? (
           <div className="chart-wrapper">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={analytics.revenueByMonth}>
@@ -212,6 +213,12 @@ export default function AnalyticsDashboardPage() {
               </AreaChart>
             </ResponsiveContainer>
           </div>
+          ) : (
+            <div className="dashboard-empty-state">
+              <BarChart3 className="dashboard-empty-icon" aria-hidden="true" />
+              <p className="dashboard-empty-description">No revenue data available for the selected period</p>
+            </div>
+          )}
         </CardContent>
       </Card>
       </div>
@@ -286,7 +293,7 @@ export default function AnalyticsDashboardPage() {
       </div>
 
       {/* Performance Metrics */}
-      <div className="dashboard-section">
+      <div className="dashboard-section" data-testid="production-metrics">
         <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -295,6 +302,7 @@ export default function AnalyticsDashboardPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
+          {analytics.performance ? (
           <div className="grid-three-columns">
             <div className="performance-stat">
               <div className="performance-stat-value text-primary">{analytics.performance.taskCompletionRate.toFixed(1)}%</div>
@@ -309,6 +317,65 @@ export default function AnalyticsDashboardPage() {
               <p className="performance-stat-label">On-Time Delivery</p>
             </div>
           </div>
+          ) : (
+            <div className="dashboard-empty-state">
+              <Package className="dashboard-empty-icon" aria-hidden="true" />
+              <p className="dashboard-empty-description">No performance data available</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      </div>
+
+      {/* Quality Metrics */}
+      <div className="dashboard-section" data-testid="quality-metrics">
+        <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Package className="icon-sm" aria-hidden="true" />
+            Quality Metrics
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="dashboard-empty-state">
+            <Package className="dashboard-empty-icon" aria-hidden="true" />
+            <p className="dashboard-empty-description">Quality metrics coming soon</p>
+          </div>
+        </CardContent>
+      </Card>
+      </div>
+
+      {/* Inventory Overview */}
+      <div className="dashboard-section" data-testid="inventory">
+        <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Package className="icon-sm" aria-hidden="true" />
+            Inventory Overview
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {analytics.topProducts && analytics.topProducts.length > 0 ? (
+          <div className="grid-three-columns">
+            <div className="performance-stat">
+              <div className="performance-stat-value text-primary">{analytics.summary.totalProducts}</div>
+              <p className="performance-stat-label">Total Products</p>
+            </div>
+            <div className="performance-stat">
+              <div className="performance-stat-value text-success">{analytics.topProducts.length}</div>
+              <p className="performance-stat-label">Top Sellers</p>
+            </div>
+            <div className="performance-stat">
+              <div className="performance-stat-value text-warning">—</div>
+              <p className="performance-stat-label">Low Stock Items</p>
+            </div>
+          </div>
+          ) : (
+            <div className="dashboard-empty-state">
+              <Package className="dashboard-empty-icon" aria-hidden="true" />
+              <p className="dashboard-empty-description">No inventory data available</p>
+            </div>
+          )}
         </CardContent>
       </Card>
       </div>

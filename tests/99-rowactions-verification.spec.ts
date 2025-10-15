@@ -11,6 +11,7 @@
  */
 
 import { test, expect } from '@playwright/test';
+import { TEST_CONFIG } from './config/test-config';
 
 // Pages that should have rowActions with Edit + Delete
 const PAGES_WITH_ROWACTIONS = [
@@ -44,7 +45,7 @@ test.describe('Row Actions Pattern Verification', () => {
     test.describe(`${pageInfo.name} Page`, () => {
 
       test('should display row actions button on data rows', async ({ page }) => {
-        await page.goto(`http://localhost:3001${pageInfo.path}`);
+        await page.goto(`${TEST_CONFIG.BASE_URL}${pageInfo.path}`);
 
         // Wait for page to load
         await page.waitForLoadState('networkidle');
@@ -64,7 +65,7 @@ test.describe('Row Actions Pattern Verification', () => {
       });
 
       test('should open dropdown menu when clicking row actions button', async ({ page }) => {
-        await page.goto(`http://localhost:3001${pageInfo.path}`);
+        await page.goto(`${TEST_CONFIG.BASE_URL}${pageInfo.path}`);
         await page.waitForLoadState('networkidle');
 
         const tableRows = page.locator('table tbody tr');
@@ -84,7 +85,7 @@ test.describe('Row Actions Pattern Verification', () => {
       });
 
       test('should have Edit action in dropdown menu', async ({ page }) => {
-        await page.goto(`http://localhost:3001${pageInfo.path}`);
+        await page.goto(`${TEST_CONFIG.BASE_URL}${pageInfo.path}`);
         await page.waitForLoadState('networkidle');
 
         const tableRows = page.locator('table tbody tr');
@@ -104,7 +105,7 @@ test.describe('Row Actions Pattern Verification', () => {
       });
 
       test('should have Delete action in dropdown menu', async ({ page }) => {
-        await page.goto(`http://localhost:3001${pageInfo.path}`);
+        await page.goto(`${TEST_CONFIG.BASE_URL}${pageInfo.path}`);
         await page.waitForLoadState('networkidle');
 
         const tableRows = page.locator('table tbody tr');
@@ -125,7 +126,7 @@ test.describe('Row Actions Pattern Verification', () => {
 
       if (pageInfo.hasConvert) {
         test('should have Convert action in dropdown menu', async ({ page }) => {
-          await page.goto(`http://localhost:3001${pageInfo.path}`);
+          await page.goto(`${TEST_CONFIG.BASE_URL}${pageInfo.path}`);
           await page.waitForLoadState('networkidle');
 
           const tableRows = page.locator('table tbody tr');
@@ -146,7 +147,7 @@ test.describe('Row Actions Pattern Verification', () => {
       }
 
       test('should open AlertDialog when clicking Delete action', async ({ page }) => {
-        await page.goto(`http://localhost:3001${pageInfo.path}`);
+        await page.goto(`${TEST_CONFIG.BASE_URL}${pageInfo.path}`);
         await page.waitForLoadState('networkidle');
 
         const tableRows = page.locator('table tbody tr');
@@ -185,7 +186,7 @@ test.describe('Row Actions Pattern Verification', () => {
       });
 
       test('should close AlertDialog when clicking Cancel', async ({ page }) => {
-        await page.goto(`http://localhost:3001${pageInfo.path}`);
+        await page.goto(`${TEST_CONFIG.BASE_URL}${pageInfo.path}`);
         await page.waitForLoadState('networkidle');
 
         const tableRows = page.locator('table tbody tr');
@@ -223,7 +224,7 @@ test.describe('Row Actions Pattern Verification', () => {
       const pagesWithData = [];
 
       for (const pageInfo of PAGES_WITH_ROWACTIONS) {
-        await page.goto(`http://localhost:3001${pageInfo.path}`);
+        await page.goto(`${TEST_CONFIG.BASE_URL}${pageInfo.path}`);
         await page.waitForLoadState('networkidle');
 
         const tableRows = page.locator('table tbody tr');

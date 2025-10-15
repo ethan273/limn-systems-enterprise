@@ -45,14 +45,18 @@ test.describe('💰 FINANCIALS MODULE TESTS @financials', () => {
 
     test('Can create new invoice', async ({ page }) => {
       await page.goto(`${TEST_CONFIG.BASE_URL}/financials/invoices`);
-      await page.waitForLoadState('domcontentloaded');
+
+      // Wait for DataTable to ensure page is fully loaded
+      await page.waitForSelector('[data-testid="data-table"]', { timeout: 15000 });
 
       // Look for create/new button
       const createButton = page.locator('button:has-text("New Invoice"), button:has-text("Create Invoice")').first();
 
       if (await createButton.isVisible()) {
         await createButton.click();
-        await page.waitForLoadState('domcontentloaded');
+
+        // Wait for navigation to complete
+        await page.waitForURL(/\/financials\/invoices\/new|\/financials\/invoices\/create/, { timeout: 10000 });
 
         // Should navigate to create page
         const url = page.url();

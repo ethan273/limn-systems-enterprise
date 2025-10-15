@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { getFullName, createFullName } from "@/lib/utils/name-utils";
 
 // Dynamic route configuration
 export const dynamic = 'force-dynamic';
@@ -81,7 +82,8 @@ export default function LeadDetailPage({ params }: PageProps) {
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
+    first_name: '',
+    last_name: '',
     email: '',
     phone: '',
     company: '',
@@ -104,7 +106,8 @@ export default function LeadDetailPage({ params }: PageProps) {
     if (data?.lead) {
       const lead = data.lead;
       setFormData({
-        name: lead.name || '',
+        first_name: lead.first_name || '',
+        last_name: lead.last_name || '',
         email: lead.email || '',
         phone: lead.phone || '',
         company: lead.company || '',
@@ -132,15 +135,18 @@ export default function LeadDetailPage({ params }: PageProps) {
   });
 
   const handleSave = () => {
-    if (!formData.name || !formData.email) {
-      toast.error("Name and email are required");
+    if (!formData.first_name || !formData.email) {
+      toast.error("First name and email are required");
       return;
     }
 
+    const fullName = createFullName(formData.first_name, formData.last_name);
     updateMutation.mutate({
       id: id,
       data: {
-        name: formData.name,
+        first_name: formData.first_name,
+        last_name: formData.last_name || undefined,
+        name: fullName, // Maintain backward compatibility
         email: formData.email,
         phone: formData.phone || undefined,
         company: formData.company || undefined,
@@ -156,7 +162,8 @@ export default function LeadDetailPage({ params }: PageProps) {
     if (data?.lead) {
       const lead = data.lead;
       setFormData({
-        name: lead.name || '',
+        first_name: lead.first_name || '',
+        last_name: lead.last_name || '',
         email: lead.email || '',
         phone: lead.phone || '',
         company: lead.company || '',
@@ -213,7 +220,7 @@ export default function LeadDetailPage({ params }: PageProps) {
       {/* Lead Header */}
       <EntityDetailHeader
         icon={User}
-        title={lead.name || "Unnamed Lead"}
+        title={getFullName(lead) || "Unnamed Lead"}
         subtitle={lead.company || undefined}
         metadata={[
           ...(lead.email ? [{ icon: Mail, value: lead.email, type: 'email' as const }] : []),
@@ -333,11 +340,18 @@ export default function LeadDetailPage({ params }: PageProps) {
             {/* Lead Details */}
             <EditableFieldGroup title="Lead Information" isEditing={isEditing}>
               <EditableField
-                label="Name"
-                value={formData.name}
+                label="First Name"
+                value={formData.first_name}
                 isEditing={isEditing}
-                onChange={(value) => setFormData({ ...formData, name: value })}
+                onChange={(value) => setFormData({ ...formData, first_name: value })}
                 required
+                icon={User}
+              />
+              <EditableField
+                label="Last Name"
+                value={formData.last_name}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, last_name: value })}
                 icon={User}
               />
               <EditableField

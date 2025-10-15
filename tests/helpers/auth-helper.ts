@@ -69,7 +69,7 @@ export async function login(page: Page, email: string, password: string) {
   let userType = 'user'; // default is non-admin user
 
   if (email.includes('admin')) {
-    userType = 'dev'; // Admin uses dev user
+    userType = 'admin'; // Admin user with full admin access
   } else if (email.includes('designer')) {
     userType = 'designer';
   } else if (email.includes('customer')) {
@@ -79,7 +79,9 @@ export async function login(page: Page, email: string, password: string) {
   } else if (email.includes('contractor')) {
     userType = 'contractor';
   } else if (email.includes('manager')) {
-    userType = 'dev'; // Manager uses dev user (admin access)
+    userType = 'admin'; // Manager also gets admin access
+  } else if (email.includes('dev-user')) {
+    userType = 'dev'; // dev-user@limn.us.com maps to 'dev' type
   }
   // testuser and other emails map to 'user' (non-admin employee)
 
