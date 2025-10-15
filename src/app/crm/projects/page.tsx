@@ -56,6 +56,7 @@ import {
 } from "@/components/common";
 import { OrderCreationDialog, type OrderCreationFormData } from "@/components/crm/OrderCreationDialog";
 import { generateProductSku } from "@/lib/utils/product-sku-generator";
+import { getFullName } from "@/lib/utils/name-utils";
 
 interface Project {
  id: string;
@@ -197,7 +198,7 @@ function ProjectDialog({
  <SelectContent>
  {customers?.items?.map((customer) => (
  <SelectItem key={customer.id} value={customer.id}>
- {customer.name} {customer.company ? `(${customer.company})` : ""}
+ {getFullName(customer)} {customer.company ? `(${customer.company})` : ""}
  </SelectItem>
  ))}
  </SelectContent>

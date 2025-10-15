@@ -46,6 +46,7 @@ import {
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { OrderCreationDialog, type OrderItem } from "@/components/crm/OrderCreationDialog";
+import { getFullName } from "@/lib/utils/name-utils";
 
 // Dynamic route configuration
 export const dynamic = 'force-dynamic';
@@ -331,7 +332,7 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
         subtitle={project.description || customer?.company || undefined}
         status={project.status || "planning"}
         metadata={[
-          { icon: User, value: customer?.name || "No customer", type: 'text' as const },
+          { icon: User, value: customer ? getFullName(customer) : "No customer", type: 'text' as const },
           ...(customer?.company ? [{ icon: Building2, value: customer.company, type: 'text' as const }] : []),
           ...(customer?.email ? [{ icon: Mail, value: customer.email, type: 'email' as const }] : []),
           ...(customer?.phone ? [{ icon: Phone, value: customer.phone, type: 'phone' as const }] : []),
@@ -503,7 +504,7 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
             <InfoCard
               title="Customer Information"
               items={customer ? [
-                { label: 'Name', value: customer.name || '—' },
+                { label: 'Name', value: getFullName(customer) || '—' },
                 { label: 'Company', value: customer.company || '—' },
                 { label: 'Email', value: customer.email || '—', type: 'email' },
                 { label: 'Phone', value: customer.phone || '—', type: 'phone' },
