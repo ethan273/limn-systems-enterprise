@@ -203,19 +203,19 @@ export function BoardShareDialog({ _open: open, onOpenChange, boardId, boardName
                     <div className="flex items-center gap-3 flex-1">
                       <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
                         <span className="text-sm font-semibold text-primary">
-                          {collaborator.user_profiles?.first_name?.[0]?.toUpperCase() ||
-                           collaborator.user_profiles?.email?.[0]?.toUpperCase() ||
+                          {collaborator.user_profiles_board_collaborators_user_idTouser_profiles?.first_name?.[0]?.toUpperCase() ||
+                           collaborator.user_profiles_board_collaborators_user_idTouser_profiles?.email?.[0]?.toUpperCase() ||
                            '?'}
                         </span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">
-                          {collaborator.user_profiles?.first_name && collaborator.user_profiles?.last_name
-                            ? `${collaborator.user_profiles.first_name} ${collaborator.user_profiles.last_name}`
-                            : collaborator.user_profiles?.email || 'Unknown User'}
+                          {collaborator.user_profiles_board_collaborators_user_idTouser_profiles?.first_name && collaborator.user_profiles_board_collaborators_user_idTouser_profiles?.last_name
+                            ? `${collaborator.user_profiles_board_collaborators_user_idTouser_profiles.first_name} ${collaborator.user_profiles_board_collaborators_user_idTouser_profiles.last_name}`
+                            : collaborator.user_profiles_board_collaborators_user_idTouser_profiles?.email || 'Unknown User'}
                         </p>
                         <p className="text-xs text-muted-foreground truncate">
-                          {collaborator.user_profiles?.email}
+                          {collaborator.user_profiles_board_collaborators_user_idTouser_profiles?.email}
                         </p>
                       </div>
                     </div>

@@ -34,10 +34,10 @@ export interface AuditLogEntry {
   performed_by: string | null;
   ip_address: string | null;
   user_agent: string | null;
-  success: boolean;
+  success: boolean | null;
   error_message: string | null;
   metadata: Prisma.JsonValue | null;
-  created_at: Date;
+  created_at: Date | null;
 }
 
 /**
@@ -268,8 +268,10 @@ export async function getAuditStatistics(
   // Events by day
   const eventsByDay: Record<string, number> = {};
   logs.forEach(log => {
-    const day = log.created_at.toISOString().split('T')[0];
-    eventsByDay[day] = (eventsByDay[day] || 0) + 1;
+    if (log.created_at) {
+      const day = log.created_at.toISOString().split('T')[0];
+      eventsByDay[day] = (eventsByDay[day] || 0) + 1;
+    }
   });
 
   return {
@@ -448,7 +450,7 @@ export async function exportAuditLogsToCSV(
 
   // CSV rows
   const rows = logs.map(log => [
-    log.created_at.toISOString(),
+    log.created_at ? log.created_at.toISOString() : '',
     log.credential_id,
     log.action,
     log.performed_by || '',

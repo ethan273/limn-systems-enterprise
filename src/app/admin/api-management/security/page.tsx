@@ -219,7 +219,7 @@ export default function SecurityDashboard() {
                       </div>
                       <div className="text-sm text-muted-foreground">
                         {log.ip_address || 'Unknown IP'} •{' '}
-                        {format(new Date(log.created_at), 'PPp')}
+                        {log.created_at ? format(new Date(log.created_at), 'PPp') : 'Unknown time'}
                       </div>
                       {!log.success && log.error_message && (
                         <div className="text-sm text-destructive mt-1">

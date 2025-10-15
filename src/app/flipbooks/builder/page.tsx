@@ -230,7 +230,7 @@ function FlipbookBuilderContent() {
     return <LoadingState message="Loading flipbook..." size="lg" />;
   }
 
-  const selectedPage = flipbook?.pages?.find((p: any) => p.id === selectedPageId);
+  const selectedPage = flipbook?.flipbook_pages?.find((p: any) => p.id === selectedPageId);
 
   return (
     <div className="page-container">
@@ -275,9 +275,9 @@ function FlipbookBuilderContent() {
         <div className="col-span-3 space-y-4">
           <div className="bg-card rounded-lg border p-4">
             <h2 className="text-lg font-semibold mb-4">Pages</h2>
-            {flipbook?.pages && flipbook.pages.length > 0 ? (
+            {flipbook?.flipbook_pages && flipbook.flipbook_pages.length > 0 ? (
               <SortablePageList
-                pages={flipbook.pages as any}
+                pages={flipbook.flipbook_pages as any}
                 selectedPageId={selectedPageId}
                 onPageSelect={setSelectedPageId}
                 onPageReorder={handlePageReorder}

@@ -415,9 +415,9 @@ export async function rollbackRotation(sessionId: string): Promise<void> {
       throw new Error('Rotation session not found');
     }
 
-    if (!['in_progress', 'grace_period', 'failed'].includes(session.status)) {
+    if (!session.status || !['in_progress', 'grace_period', 'failed'].includes(session.status)) {
       throw new Error(
-        `Cannot rollback rotation in status: ${session.status}`
+        `Cannot rollback rotation in status: ${session.status || 'unknown'}`
       );
     }
 

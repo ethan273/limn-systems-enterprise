@@ -98,7 +98,7 @@ export default function FlipbookViewerPage({
   };
 
   // Check if we have pages to show
-  const hasPages = flipbook.pages && flipbook.pages.length > 0;
+  const hasPages = flipbook.flipbook_pages && flipbook.flipbook_pages.length > 0;
 
   return (
     <>
@@ -146,7 +146,7 @@ export default function FlipbookViewerPage({
               </div>
               {hasPages && (
                 <div className="text-sm text-muted-foreground">
-                  Currently viewing page {currentPage} of {flipbook.pages.length}
+                  Currently viewing page {currentPage} of {flipbook.flipbook_pages.length}
                 </div>
               )}
             </div>
@@ -160,7 +160,7 @@ export default function FlipbookViewerPage({
         {hasPages ? (
           <div className="bg-card rounded-lg border overflow-hidden h-[700px]">
             <FlipbookViewer3DWrapper
-              pages={flipbook.pages}
+              pages={flipbook.flipbook_pages}
               initialPage={1}
               onPageChange={handlePageChange}
               onHotspotClick={handleHotspotClick}
@@ -204,7 +204,7 @@ export default function FlipbookViewerPage({
           <dl className="space-y-3 text-sm">
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Created by</dt>
-              <dd className="font-medium">{flipbook.created_by?.full_name || 'Unknown'}</dd>
+              <dd className="font-medium">{flipbook.user_profiles?.full_name || 'Unknown'}</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Status</dt>
@@ -227,9 +227,9 @@ export default function FlipbookViewerPage({
 
         <div className="bg-card rounded-lg border p-6">
           <h3 className="font-semibold mb-4">Recent Versions</h3>
-          {flipbook.versions && flipbook.versions.length > 0 ? (
+          {flipbook.flipbook_versions && flipbook.flipbook_versions.length > 0 ? (
             <div className="space-y-2">
-              {flipbook.versions.map((version: any) => (
+              {flipbook.flipbook_versions.map((version: any) => (
                 <div key={version.id} className="text-sm p-2 bg-muted/50 rounded">
                   <div className="flex justify-between">
                     <span className="font-medium">v{version.version_number}</span>
@@ -251,7 +251,7 @@ export default function FlipbookViewerPage({
     {isFullscreen && hasPages && (
       <div className="fixed inset-0 z-50 bg-background">
         <FlipbookViewer3DWrapper
-          pages={flipbook.pages}
+          pages={flipbook.flipbook_pages}
           initialPage={currentPage}
           onPageChange={handlePageChange}
           onHotspotClick={handleHotspotClick}

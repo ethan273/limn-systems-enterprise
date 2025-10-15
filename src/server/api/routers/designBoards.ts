@@ -204,7 +204,7 @@ export const boardsRouter = createTRPCRouter({
           },
           board_collaborators: {
             include: {
-              user_profiles: true,
+              user_profiles_board_collaborators_user_idTouser_profiles: true,
             },
           },
           board_comments: {
@@ -424,8 +424,8 @@ export const boardCollaboratorsRouter = createTRPCRouter({
       const collaborators = await ctx.db.board_collaborators.findMany({
         where: { board_id: input.board_id },
         include: {
-          user_profiles: true,
-          invited_by_user: true,
+          user_profiles_board_collaborators_user_idTouser_profiles: true,
+          user_profiles_board_collaborators_invited_byTouser_profiles: true,
         },
         orderBy: { created_at: 'desc' },
       });
@@ -476,11 +476,11 @@ export const boardCommentsRouter = createTRPCRouter({
       const comments = await ctx.db.board_comments.findMany({
         where: whereClause,
         include: {
-          user_profiles: true,
-          resolved_by_user: true,
-          replies: {
+          user_profiles_board_comments_user_idTouser_profiles: true,
+          user_profiles_board_comments_resolved_byTouser_profiles: true,
+          other_board_comments: {
             include: {
-              user_profiles: true,
+              user_profiles_board_comments_user_idTouser_profiles: true,
             },
           },
         },
