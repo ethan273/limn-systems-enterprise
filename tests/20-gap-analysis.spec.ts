@@ -208,6 +208,9 @@ test.describe('🔍 GAP ANALYSIS & ENHANCEMENT DETECTION @gap-analysis', () => {
         await page.goto(`${TEST_CONFIG.BASE_URL}${pageInfo.url}`);
         await page.waitForLoadState('domcontentloaded');
 
+        // Wait for page content to load
+        await page.waitForTimeout(2000);
+
         const features = {
           hasAddButton: await page.locator('button:has-text("Add"), button:has-text("New"), button:has-text("Create")').count() > 0,
           hasSearch: await page.locator('input[type="search"], input[placeholder*="search" i]').count() > 0,

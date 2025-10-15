@@ -146,14 +146,14 @@ export const flipbooksRouter = createTRPCRouter({
         take: limit,
         orderBy: { created_at: "desc" },
         include: {
-          created_by: {
+          user_profiles: {
             select: {
               id: true,
               full_name: true,
               email: true,
             },
           },
-          pages: {
+          flipbook_pages: {
             select: {
               id: true,
               page_number: true,
@@ -186,7 +186,7 @@ export const flipbooksRouter = createTRPCRouter({
       const flipbook = await prisma.flipbooks.findUnique({
         where: { id: input.id },
         include: {
-          created_by: {
+          user_profiles: {
             select: {
               id: true,
               full_name: true,
@@ -194,12 +194,12 @@ export const flipbooksRouter = createTRPCRouter({
               avatar_url: true,
             },
           },
-          pages: {
+          flipbook_pages: {
             orderBy: { page_number: "asc" },
             include: {
               hotspots: {
                 include: {
-                  target_product: {
+                  products: {
                     select: {
                       id: true,
                       name: true,
@@ -210,7 +210,7 @@ export const flipbooksRouter = createTRPCRouter({
               },
             },
           },
-          versions: {
+          flipbook_versions: {
             orderBy: { version_number: "desc" },
             take: 5,
           },
@@ -273,7 +273,7 @@ export const flipbooksRouter = createTRPCRouter({
             status: "DRAFT",
           },
           include: {
-            created_by: {
+            user_profiles: {
               select: {
                 id: true,
                 full_name: true,
@@ -344,7 +344,7 @@ export const flipbooksRouter = createTRPCRouter({
         where: { id },
         data: updateData,
         include: {
-          created_by: {
+          user_profiles: {
             select: {
               id: true,
               full_name: true,
@@ -479,7 +479,7 @@ export const flipbooksRouter = createTRPCRouter({
       // Get page with flipbook info for permission check
       const page = await prisma.flipbook_pages.findUnique({
         where: { id: input.pageId },
-        include: { flipbook: { select: { created_by_id: true } } },
+        include: { flipbooks: { select: { created_by_id: true } } },
       });
 
       if (!page) {
@@ -489,7 +489,7 @@ export const flipbooksRouter = createTRPCRouter({
         });
       }
 
-      if (page.flipbook.created_by_id !== ctx.session.user.id) {
+      if (page.flipbooks.created_by_id !== ctx.session.user.id) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You do not have permission to delete this page",
@@ -573,10 +573,10 @@ export const flipbooksRouter = createTRPCRouter({
       // Check permissions via page
       const page = await prisma.flipbook_pages.findUnique({
         where: { id: input.pageId },
-        include: { flipbook: { select: { created_by_id: true } } },
+        include: { flipbooks: { select: { created_by_id: true } } },
       });
 
-      if (!page || page.flipbook.created_by_id !== ctx.session.user.id) {
+      if (!page || page.flipbooks.created_by_id !== ctx.session.user.id) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You do not have permission to add hotspots",
@@ -594,7 +594,7 @@ export const flipbooksRouter = createTRPCRouter({
           target_product_id: input.productId,
         },
         include: {
-          target_product: {
+          products: {
             select: {
               id: true,
               name: true,
@@ -634,15 +634,15 @@ export const flipbooksRouter = createTRPCRouter({
       const hotspot = await prisma.hotspots.findUnique({
         where: { id: hotspotId },
         include: {
-          page: {
+          flipbook_pages: {
             include: {
-              flipbook: { select: { created_by_id: true } },
+              flipbooks: { select: { created_by_id: true } },
             },
           },
         },
       });
 
-      if (!hotspot || hotspot.page.flipbook.created_by_id !== ctx.session.user.id) {
+      if (!hotspot || hotspot.flipbook_pages.flipbooks.created_by_id !== ctx.session.user.id) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You do not have permission to update this hotspot",
@@ -660,7 +660,7 @@ export const flipbooksRouter = createTRPCRouter({
         where: { id: hotspotId },
         data: updateData,
         include: {
-          target_product: {
+          products: {
             select: {
               id: true,
               name: true,
@@ -692,15 +692,15 @@ export const flipbooksRouter = createTRPCRouter({
       const hotspot = await prisma.hotspots.findUnique({
         where: { id: input.hotspotId },
         include: {
-          page: {
+          flipbook_pages: {
             include: {
-              flipbook: { select: { created_by_id: true } },
+              flipbooks: { select: { created_by_id: true } },
             },
           },
         },
       });
 
-      if (!hotspot || hotspot.page.flipbook.created_by_id !== ctx.session.user.id) {
+      if (!hotspot || hotspot.flipbook_pages.flipbooks.created_by_id !== ctx.session.user.id) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You do not have permission to delete this hotspot",

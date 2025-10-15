@@ -44,7 +44,7 @@ export default function DesignBriefsPage() {
     {
       limit: 50,
     },
-    { enabled: !authLoading && !!user }
+    { enabled: true } // Middleware ensures auth
   );
 
   // Get tRPC utils for cache invalidation

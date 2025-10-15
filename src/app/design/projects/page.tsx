@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
-import { useAuthContext } from "@/lib/auth/AuthProvider";
 import { Folder, Calendar, AlertCircle, Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -36,12 +35,12 @@ export default function DesignProjectsPage() {
   const [stageFilter, _setStageFilter] = useState<string>("all");
   const [priorityFilter, _setPriorityFilter] = useState<string>("all");
   const [_searchQuery, _setSearchQuery] = useState("");
-  const { user, loading: authLoading } = useAuthContext();
   const router = useRouter();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<any>(null);
 
   // Auth is handled by middleware - no client-side redirect needed
+  // Allow query to run immediately since middleware validates auth
 
   const { data, isLoading } = api.designProjects.getAll.useQuery(
     {
@@ -49,7 +48,7 @@ export default function DesignProjectsPage() {
       search: undefined,
       limit: 50,
     },
-    { enabled: !authLoading && !!user }
+    { enabled: true } // Middleware ensures auth, so no need to wait for client auth
   );
 
   // Get tRPC utils for cache invalidation
@@ -101,13 +100,8 @@ export default function DesignProjectsPage() {
     return <PriorityBadge priority={priority} />;
   };
 
-  if (authLoading) {
-    return <LoadingState message="Loading..." />;
-  }
-
-  if (!user) {
-    return null;
-  }
+  // Middleware handles authentication - no need for client-side auth checks
+  // Page will be protected by middleware before reaching here
 
   const stats: StatItem[] = [
     {

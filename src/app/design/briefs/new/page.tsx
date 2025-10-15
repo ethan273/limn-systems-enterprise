@@ -37,7 +37,7 @@ export default function NewDesignBriefPage() {
 
   const { data: projectsData } = api.designProjects.getAll.useQuery(
     { limit: 100 },
-    { enabled: !authLoading && !!user }
+    { enabled: true } // Middleware ensures auth
   );
 
   const createBriefMutation = api.designBriefs.create.useMutation();

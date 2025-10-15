@@ -12,8 +12,8 @@ export const usersRouter = createTRPCRouter({
     }))
     .query(async ({ ctx: _ctx, input }) => {
       return await db.findManyUsers({
-        take: input.limit,
-        skip: input.offset,
+        limit: input.limit,
+        offset: input.offset,
         search: input.search,
       });
     }),

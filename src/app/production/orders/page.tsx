@@ -4,7 +4,6 @@ import React from "react";
 import { api } from "@/lib/api/client";
 import { Package, DollarSign, AlertCircle, TrendingUp, Plus } from "lucide-react";
 import Link from "next/link";
-import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { useProductionOrdersRealtime } from "@/hooks/useRealtimeSubscription";
 import { Button } from "@/components/ui/button";
@@ -21,15 +20,15 @@ import {
 } from "@/components/common";
 
 export default function ProductionOrdersPage() {
-  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
   // Auth is handled by middleware - no client-side redirect needed
+  // Allow query to run immediately since middleware validates auth
 
   // Query PRODUCTION ORDERS (Phase 1 system with invoices/payments)
   const { data, isLoading } = api.productionOrders.getAll.useQuery(
     {},
-    { enabled: !authLoading && !!user }
+    { enabled: true } // Middleware ensures auth, so no need to wait for client auth
   );
 
   const orders = data?.items || [];
@@ -37,7 +36,7 @@ export default function ProductionOrdersPage() {
   // Subscribe to realtime updates for production orders
   useProductionOrdersRealtime({
     queryKey: ['productionOrders', 'getAll'],
-    enabled: !authLoading && !!user,
+    enabled: true, // Middleware ensures auth
   });
 
 
@@ -153,15 +152,8 @@ export default function ProductionOrdersPage() {
     },
   ];
 
-  // Show loading state while checking authentication
-  if (authLoading) {
-    return <LoadingState message="Checking authentication..." size="lg" />;
-  }
-
-  // Don't render if not authenticated (will redirect)
-  if (!user) {
-    return null;
-  }
+  // Middleware handles authentication - no need for client-side auth checks
+  // Page will be protected by middleware before reaching here
 
   return (
     <div className="page-container">

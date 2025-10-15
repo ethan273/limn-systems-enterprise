@@ -28,7 +28,7 @@ export default function CRMOrdersPage() {
  // Query CRM ORDERS with production details, invoices, and payments
  const { data, isLoading, error } = api.orders.getWithProductionDetails.useQuery(
  {},
- { enabled: !authLoading && !!user }
+ { enabled: true } // Middleware ensures auth
  );
 
  // Get tRPC utils for cache invalidation

@@ -8,35 +8,30 @@ import {
   StatsGrid,
   DataTable,
   EmptyState,
-  LoadingState,
   StatusBadge,
   type StatItem,
   type DataTableColumn,
 } from "@/components/common";
 import { DollarSign, Package, TrendingUp, AlertCircle, Clock, CheckCircle } from "lucide-react";
 import Link from "next/link";
-import { useAuth } from "@/hooks/useAuth";
 
 export default function ProductionDashboardPage() {
   const [_dateRange, _setDateRange] = useState<"7d" | "30d" | "90d" | "all">("30d");
-  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
   // Auth is handled by middleware - no client-side redirect needed
 
   const { data: stats } = api.productionTracking.getDashboardStats.useQuery(
     { date_range: _dateRange },
-    { enabled: !authLoading && !!user }
+    { enabled: true } // Middleware ensures auth
   );
   const { data: progress } = api.productionTracking.getProductionProgress.useQuery(
     { limit: 10 },
-    { enabled: !authLoading && !!user }
+    { enabled: true } // Middleware ensures auth
   );
 
-  // Don't render if not authenticated (will redirect)
-  if (!user || authLoading) {
-    return <LoadingState message="Loading dashboard..." size="lg" />;
-  }
+  // Middleware handles authentication - no need for client-side auth checks
+  // Page will be protected by middleware before reaching here
 
   const statItems: StatItem[] = [
     {

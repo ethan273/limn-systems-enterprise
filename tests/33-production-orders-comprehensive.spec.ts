@@ -36,7 +36,7 @@ test.beforeAll(async () => {
   // Clean up any existing test orders
   await prisma.production_orders.deleteMany({
     where: {
-      orderNumber: { startsWith: 'PO-TEST-' },
+      order_number: { startsWith: 'PO-TEST-' },
     },
   });
 });
@@ -47,7 +47,7 @@ test.afterAll(async () => {
   }
   await prisma.production_orders.deleteMany({
     where: {
-      orderNumber: { startsWith: 'PO-TEST-' },
+      order_number: { startsWith: 'PO-TEST-' },
     },
   });
   await prisma.$disconnect();

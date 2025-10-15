@@ -113,7 +113,7 @@ export async function middleware(request: NextRequest) {
       .eq('id', user.id)
       .single();
 
-    const isAdmin = userData?.user_type === 'super_admin';
+    const isAdmin = userData?.user_type === 'admin' || userData?.user_type === 'super_admin';
 
     if (!isAdmin) {
       console.log(`🚫 Middleware: User ${user.id} denied access to admin area (user_type: ${userData?.user_type})`);

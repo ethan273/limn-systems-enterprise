@@ -234,7 +234,7 @@ test.describe('🏭 PRODUCTION MODULE TESTS @production', () => {
   test.describe('Quality Control', () => {
 
     test('Quality inspections page loads correctly', async ({ page }) => {
-      await page.goto(`${TEST_CONFIG.BASE_URL}/production/quality`);
+      await page.goto(`${TEST_CONFIG.BASE_URL}/production/qc`);
 
       // Wait for DataTable to render (after auth + tRPC query completes)
       await page.waitForSelector('[data-testid="data-table"]', { timeout: 15000 });
@@ -249,7 +249,7 @@ test.describe('🏭 PRODUCTION MODULE TESTS @production', () => {
     });
 
     test('Can create new quality inspection', async ({ page }) => {
-      await page.goto(`${TEST_CONFIG.BASE_URL}/production/quality`);
+      await page.goto(`${TEST_CONFIG.BASE_URL}/production/qc`);
       await page.waitForLoadState('domcontentloaded');
 
       // Look for create button
@@ -269,7 +269,7 @@ test.describe('🏭 PRODUCTION MODULE TESTS @production', () => {
     });
 
     test('Can view inspection details', async ({ page }) => {
-      await page.goto(`${TEST_CONFIG.BASE_URL}/production/quality`);
+      await page.goto(`${TEST_CONFIG.BASE_URL}/production/qc`);
       await page.waitForLoadState('domcontentloaded');
 
       // Click first inspection
@@ -291,7 +291,7 @@ test.describe('🏭 PRODUCTION MODULE TESTS @production', () => {
     });
 
     test('Can record defects in inspection', async ({ page }) => {
-      await page.goto(`${TEST_CONFIG.BASE_URL}/production/quality`);
+      await page.goto(`${TEST_CONFIG.BASE_URL}/production/qc`);
       await page.waitForLoadState('domcontentloaded');
 
       // Click first inspection
@@ -317,7 +317,7 @@ test.describe('🏭 PRODUCTION MODULE TESTS @production', () => {
     });
 
     test('Can mark inspection as pass/fail', async ({ page }) => {
-      await page.goto(`${TEST_CONFIG.BASE_URL}/production/quality`);
+      await page.goto(`${TEST_CONFIG.BASE_URL}/production/qc`);
       await page.waitForLoadState('domcontentloaded');
 
       // Click first inspection
@@ -341,7 +341,7 @@ test.describe('🏭 PRODUCTION MODULE TESTS @production', () => {
     });
 
     test('Can filter inspections by result', async ({ page }) => {
-      await page.goto(`${TEST_CONFIG.BASE_URL}/production/quality`);
+      await page.goto(`${TEST_CONFIG.BASE_URL}/production/qc`);
       await page.waitForLoadState('domcontentloaded');
 
       // Look for result filter
@@ -639,7 +639,7 @@ test.describe('🏭 PRODUCTION MODULE TESTS @production', () => {
       const productionPages = [
         '/production/orders',
         '/production/shop-drawings',
-        '/production/quality',
+        '/production/qc',
         '/production/prototypes',
         '/production/packing'
       ];

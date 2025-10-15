@@ -76,7 +76,7 @@ export default function ProductionOrderDetailPage({ params }: PageProps) {
  {
  id: id as string,
  },
- { enabled: !authLoading && !!user }
+ { enabled: true } // Middleware ensures auth
  );
 
  // Get tRPC utils for cache invalidation

@@ -5804,6 +5804,10 @@ model qc_inspections {
   @@index([order_id], map: "idx_qc_inspections_order_id")
   @@index([order_item_id], map: "idx_qc_inspections_order_item_id")
   @@index([production_item_id], map: "idx_qc_inspections_production_item_id")
+  @@index([status, created_at], map: "idx_qc_inspections_status_created")
+  @@index([assigned_inspector_id, status, created_at], map: "idx_qc_inspections_inspector_status")
+  @@index([prototype_production_id, status, created_at], map: "idx_qc_inspections_prototype_status")
+  @@index([production_item_id, status, created_at], map: "idx_qc_inspections_item_status")
   @@schema("public")
 }
 

@@ -78,9 +78,10 @@ export async function login(page: Page, email: string, password: string) {
     userType = 'factory';
   } else if (email.includes('contractor')) {
     userType = 'contractor';
-  } else if (email.includes('manager') || email.includes('testuser')) {
-    userType = 'dev';
+  } else if (email.includes('manager')) {
+    userType = 'dev'; // Manager uses dev user (admin access)
   }
+  // testuser and other emails map to 'user' (non-admin employee)
 
   // Try to load session from file first - this ELIMINATES rate limiting!
   const savedSession = loadSessionFromFile(userType);
