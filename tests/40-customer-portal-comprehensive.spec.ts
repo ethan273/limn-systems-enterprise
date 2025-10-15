@@ -173,9 +173,13 @@ test.describe('Customer Portal - Order Detail', () => {
       test.skip();
     }
 
-    // Find an order for this customer
+    // Find an order for this customer via the orders relationship
     const order = await prisma.production_orders.findFirst({
-      where: { customerId: customerUser.id },
+      where: {
+        orders: {
+          customer_id: customerUser.id,
+        },
+      },
     });
 
     if (!order) {
@@ -202,7 +206,11 @@ test.describe('Customer Portal - Order Detail', () => {
     if (!customerUser) test.skip();
 
     const order = await prisma.production_orders.findFirst({
-      where: { customerId: customerUser.id },
+      where: {
+        orders: {
+          customer_id: customerUser.id,
+        },
+      },
     });
 
     if (!order) test.skip();

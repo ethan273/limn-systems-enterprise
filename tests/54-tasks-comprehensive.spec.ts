@@ -120,9 +120,7 @@ test.describe('Tasks - Task Detail', () => {
   });
 
   test('should display task title on detail page', async ({ page }) => {
-    const task = await prisma.tasks.findFirst({
-      where: { title: { not: null } },
-    });
+    const task = await prisma.tasks.findFirst();
 
     if (!task) test.skip();
 

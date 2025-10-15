@@ -125,7 +125,7 @@ test.describe('Financials - Invoice Detail', () => {
 
   test('should display invoice number on detail page', async ({ page }) => {
     const invoice = await prisma.invoices.findFirst({
-      where: { invoiceNumber: { not: null } },
+      where: { invoice_number: { not: null } },
     });
 
     if (!invoice) test.skip();
@@ -134,7 +134,7 @@ test.describe('Financials - Invoice Detail', () => {
     await page.goto(`/financials/invoices/${invoice.id}`, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const hasInvoiceNumber = await page.locator(`text=${invoice.invoiceNumber}`).count() > 0;
+    const hasInvoiceNumber = await page.locator(`text=${invoice.invoice_number}`).count() > 0;
 
     expect(hasInvoiceNumber || true).toBe(true);
   });

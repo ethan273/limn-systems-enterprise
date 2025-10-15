@@ -465,8 +465,7 @@ test.describe('CRM Contacts - Error Handling', () => {
     // Create a contact with specific email
     const existingContact = await prisma.contacts.create({
       data: {
-        firstName: 'Existing',
-        lastName: 'Contact',
+        name: 'Existing Contact',
         email: 'duplicate@test.com',
       },
     });

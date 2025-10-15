@@ -144,7 +144,7 @@ test.describe('Shipping - Shipment Detail', () => {
 
   test('should display tracking number on detail page', async ({ page }) => {
     const shipment = await prisma.shipments.findFirst({
-      where: { trackingNumber: { not: null } },
+      where: { tracking_number: { not: null } },
     });
 
     if (!shipment) test.skip();
@@ -153,7 +153,7 @@ test.describe('Shipping - Shipment Detail', () => {
     await page.goto(`/shipping/shipments/${shipment.id}`, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    const hasTrackingNumber = await page.locator(`text=${shipment.trackingNumber}`).count() > 0;
+    const hasTrackingNumber = await page.locator(`text=${shipment.tracking_number}`).count() > 0;
 
     expect(hasTrackingNumber || true).toBe(true);
   });
@@ -194,16 +194,16 @@ test.describe('Shipping - Tracking', () => {
 
   test('should display tracking detail with database data', async ({ page }) => {
     const shipment = await prisma.shipments.findFirst({
-      where: { trackingNumber: { not: null } },
+      where: { tracking_number: { not: null } },
     });
 
-    if (!shipment || !shipment.trackingNumber) test.skip();
+    if (!shipment || !shipment.tracking_number) test.skip();
 
     await login(page, 'dev-user@limn.us.com', 'password');
-    await page.goto(`/shipping/tracking/${shipment.trackingNumber}`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`/shipping/tracking/${shipment.tracking_number}`, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    expect(page.url()).toContain(`/shipping/tracking/${shipment.trackingNumber}`);
+    expect(page.url()).toContain(`/shipping/tracking/${shipment.tracking_number}`);
 
     const hasContent = await page.locator('main, [class*="tracking"], [class*="detail"]').count() > 0;
     expect(hasContent).toBe(true);
@@ -211,13 +211,13 @@ test.describe('Shipping - Tracking', () => {
 
   test('should display tracking timeline/history', async ({ page }) => {
     const shipment = await prisma.shipments.findFirst({
-      where: { trackingNumber: { not: null } },
+      where: { tracking_number: { not: null } },
     });
 
-    if (!shipment || !shipment.trackingNumber) test.skip();
+    if (!shipment || !shipment.tracking_number) test.skip();
 
     await login(page, 'dev-user@limn.us.com', 'password');
-    await page.goto(`/shipping/tracking/${shipment.trackingNumber}`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`/shipping/tracking/${shipment.tracking_number}`, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
     const hasTimeline = await page.locator('[class*="timeline"], [class*="history"], [class*="status"]').count() > 0;

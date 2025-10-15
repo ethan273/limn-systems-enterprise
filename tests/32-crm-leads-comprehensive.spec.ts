@@ -108,7 +108,7 @@ test.describe('CRM Leads - Create (CRUD: CREATE)', () => {
     });
 
     expect(leadInDb).not.toBeNull();
-    expect(leadInDb?.companyName).toBe(testLead.companyName);
+    expect(leadInDb?.company).toBe(testLead.companyName);
     expect(leadInDb?.email).toBe(testLead.email);
 
     if (leadInDb) {
@@ -122,11 +122,11 @@ test.describe('CRM Leads - Read (CRUD: READ)', () => {
     if (!createdLeadId) {
       const lead = await prisma.leads.create({
         data: {
-          companyName: testLead.companyName,
-          contactName: testLead.contactName,
+          name: testLead.contactName,  // Required field
+          company: testLead.companyName,
           email: testLead.email,
           phone: testLead.phone,
-          source: testLead.source,
+          lead_source: testLead.source,
           status: testLead.status,
         },
       });
@@ -165,7 +165,7 @@ test.describe('CRM Leads - Update (CRUD: UPDATE)', () => {
       where: { id: createdLeadId },
     });
 
-    expect(leadInDb?.contactName).toBe(updatedLead.contactName);
+    expect(leadInDb?.name).toBe(updatedLead.contactName);
     expect(leadInDb?.email).toBe(updatedLead.email);
   });
 });

@@ -109,7 +109,6 @@ test.describe('Partners - Designer Detail', () => {
     const designer = await prisma.partners.findFirst({
       where: {
         type: 'designer',
-        company_name: { not: null }
       },
     });
 
@@ -276,7 +275,6 @@ test.describe('Partners - Factory Detail', () => {
     const factory = await prisma.partners.findFirst({
       where: {
         type: 'manufacturer',
-        company_name: { not: null }
       },
     });
 

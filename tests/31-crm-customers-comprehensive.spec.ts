@@ -182,8 +182,8 @@ test.describe('CRM Customers - Read (CRUD: READ)', () => {
     if (!createdCustomerId) {
       const customer = await prisma.customers.create({
         data: {
-          companyName: testCustomer.companyName,
-          contactName: testCustomer.contactName,
+          name: testCustomer.companyName,  // Required field
+          company_name: testCustomer.companyName,
           email: testCustomer.email,
           phone: testCustomer.phone,
         },

@@ -176,11 +176,11 @@ test.describe('Production Orders - Create (CRUD: CREATE)', () => {
 
     // Verify in database
     const orderInDb = await prisma.production_orders.findUnique({
-      where: { orderNumber: testOrder.orderNumber },
+      where: { order_number: testOrder.orderNumber },
     });
 
     expect(orderInDb).not.toBeNull();
-    expect(orderInDb?.orderNumber).toBe(testOrder.orderNumber);
+    expect(orderInDb?.order_number).toBe(testOrder.orderNumber);
     expect(orderInDb?.quantity).toBe(testOrder.quantity);
 
     if (orderInDb) {
@@ -194,13 +194,14 @@ test.describe('Production Orders - Read (CRUD: READ)', () => {
     if (!createdOrderId) {
       const order = await prisma.production_orders.create({
         data: {
-          orderNumber: testOrder.orderNumber,
-          customerName: testOrder.customerName,
-          productName: testOrder.productName,
+          order_number: testOrder.orderNumber,
+          product_type: 'Custom',
+          item_name: testOrder.productName,
           quantity: testOrder.quantity,
-          dueDate: new Date(testOrder.dueDate),
+          unit_price: 100.00,
+          total_cost: 100.00 * testOrder.quantity,
+          estimated_ship_date: new Date(testOrder.dueDate),
           status: testOrder.status,
-          priority: testOrder.priority,
         },
       });
       createdOrderId = order.id;
