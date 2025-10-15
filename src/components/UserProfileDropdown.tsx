@@ -24,13 +24,15 @@ export default function UserProfileDropdown() {
   const userData = user as any;
   const _supabase = getSupabaseBrowserClient();
 
-  // Debug logging
-  console.log('[UserProfileDropdown] User data:', { userData, isError, error });
+  // Debug logging (dev only)
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('[UserProfileDropdown] User data:', { userData, isError, error });
+  }
 
   // Don't render if user not found
   if (isError || !userData) {
     // User not logged in or session expired
-    if (isError) {
+    if (isError && process.env.NODE_ENV !== 'production') {
       console.warn('[UserProfileDropdown] User not authenticated:', error?.message);
     }
     return null;
@@ -38,7 +40,9 @@ export default function UserProfileDropdown() {
 
   const handleSignOut = async () => {
     try {
-      console.log('[UserProfileDropdown] Signing out...');
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('[UserProfileDropdown] Signing out...');
+      }
 
       // Clear all auth cookies manually
       document.cookie.split(";").forEach((c) => {
@@ -54,17 +58,21 @@ export default function UserProfileDropdown() {
           credentials: 'include',
         });
 
-        if (response.ok) {
+        if (response.ok && process.env.NODE_ENV !== 'production') {
           console.log('[UserProfileDropdown] ✅ Sign out successful');
         }
       } catch (apiError) {
-        console.log('[UserProfileDropdown] API logout failed (continuing anyway):', apiError);
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('[UserProfileDropdown] API logout failed (continuing anyway):', apiError);
+        }
       }
 
       // Always redirect to login
       window.location.href = '/login';
     } catch (error) {
-      console.error('[UserProfileDropdown] Sign out exception:', error);
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('[UserProfileDropdown] Sign out exception:', error);
+      }
       // Force redirect even on error
       window.location.href = '/login';
     }
