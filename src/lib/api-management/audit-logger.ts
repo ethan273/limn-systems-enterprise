@@ -302,12 +302,12 @@ export async function generateComplianceReport(params: {
   // Get statistics
   const stats = await getAuditStatistics(startDate, endDate);
 
-  // Get all logs for detailed analysis
-  const { logs } = await getAuditLogs({
-    startDate,
-    endDate,
-    limit: 10000, // High limit for full analysis
-  });
+  // Get all logs for detailed analysis (currently unused - could be used for detailed evidence)
+  // const { logs } = await getAuditLogs({
+  //   startDate,
+  //   endDate,
+  //   limit: 10000, // High limit for full analysis
+  // });
 
   const sections: ComplianceSection[] = [];
 

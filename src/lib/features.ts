@@ -46,7 +46,8 @@ export const features = {
  * }
  */
 export function isFeatureEnabled(feature: keyof typeof features): boolean {
-  return features[feature];
+  // eslint-disable-next-line security/detect-object-injection
+  return features[feature]; // Type-safe: feature is constrained to keyof typeof features
 }
 
 /**
@@ -69,7 +70,8 @@ export function getEnabledFeatures(): string[] {
  * return <FlipbooksNav />;
  */
 export function useFeature(feature: keyof typeof features): boolean {
-  return features[feature];
+  // eslint-disable-next-line security/detect-object-injection
+  return features[feature]; // Type-safe: feature is constrained to keyof typeof features
 }
 
 // Export feature names as constants for type safety

@@ -590,7 +590,7 @@ export async function runHealthHistoryCleanupJob(): Promise<JobResult> {
  */
 export async function getJobHistory(
   jobType?: JobType,
-  limit = 50
+  _limit = 50
 ): Promise<any[]> {
   // This would query a job_executions table
   // For now, return empty array as placeholder

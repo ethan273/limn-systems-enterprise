@@ -70,7 +70,7 @@ export interface HealthIncident {
  */
 interface HealthCheckStrategy {
   name: string;
-  check: (credential: any) => Promise<{
+  check: (_credential: any) => Promise<{
     success: boolean;
     responseTime: number;
     error?: string;

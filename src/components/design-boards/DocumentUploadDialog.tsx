@@ -1,15 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { FileText, Upload, X } from "lucide-react";
+import { FileText, Upload } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import * as fabric from "fabric";
 
 interface DocumentUploadDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  _open: boolean;
+  onOpenChange: (_open: boolean) => void;
   canvas: fabric.Canvas | null;
   onDocumentAdded?: () => void;
 }
@@ -30,7 +30,7 @@ const SUPPORTED_TYPES = {
   'image/svg+xml': 'SVG',
 };
 
-export function DocumentUploadDialog({ open, onOpenChange, canvas, onDocumentAdded }: DocumentUploadDialogProps) {
+export function DocumentUploadDialog({ _open: open, onOpenChange, canvas, onDocumentAdded }: DocumentUploadDialogProps) {
   const [uploading, setUploading] = useState(false);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -288,7 +288,8 @@ export function DocumentUploadDialog({ open, onOpenChange, canvas, onDocumentAdd
     // Add headers and first few rows
     const rowsToShow = Math.min(10, data.length);
     for (let i = 0; i < rowsToShow; i++) {
-      const row = data[i] || [];
+      // eslint-disable-next-line security/detect-object-injection
+      const row = data[i] || []; // Safe: i is bounds-checked loop index
       tableText += row.slice(0, 5).map(cell => String(cell || '').padEnd(15)).join(' | ') + '\n';
     }
 

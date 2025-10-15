@@ -64,7 +64,7 @@ export default function FlipbookViewerPage({
         <div className="text-center py-12">
           <h1 className="text-2xl font-bold mb-2">Flipbook Not Found</h1>
           <p className="text-muted-foreground mb-6">
-            The flipbook you're looking for doesn't exist or you don't have permission to view it.
+            The flipbook you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to view it.
           </p>
           <Button onClick={() => router.push("/flipbooks")}>
             <ArrowLeft className="h-4 w-4 mr-2" />

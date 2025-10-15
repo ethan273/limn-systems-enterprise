@@ -426,6 +426,7 @@ export function FormDialog({
             </Label>
             {typeof field.defaultValue === 'string' && field.defaultValue ? (
               <div className="mb-2 flex items-center gap-2 p-2 border border-border rounded bg-muted/50">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={field.defaultValue}
                   alt="Current image"

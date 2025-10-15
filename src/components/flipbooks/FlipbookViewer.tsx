@@ -9,7 +9,7 @@
  */
 
 import { useRef, useState, useEffect, useCallback } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, useTexture } from "@react-three/drei";
 import * as THREE from "three";
 import { Button } from "@/components/ui/button";
@@ -45,8 +45,8 @@ interface FlipbookViewerProps {
   flipbookId?: string;
   pages: FlipbookPage[];
   initialPage?: number;
-  onPageChange?: (pageNumber: number) => void;
-  onHotspotClick?: (hotspot: FlipbookHotspot) => void;
+  onPageChange?: (_pageNumber: number) => void;
+  onHotspotClick?: (_hotspot: FlipbookHotspot) => void;
   onClose?: () => void;
   className?: string;
 }
@@ -76,7 +76,7 @@ function Page({
   texture.magFilter = THREE.LinearFilter;
 
   // Animate page turn
-  useFrame((state, delta) => {
+  useFrame((_state, _delta) => {
     if (!meshRef.current) return;
 
     // Subtle hover effect
@@ -177,7 +177,7 @@ function Scene({
 }: {
   currentPage: number;
   pages: FlipbookPage[];
-  onHotspotClick?: (hotspot: FlipbookHotspot) => void;
+  onHotspotClick?: (_hotspot: FlipbookHotspot) => void;
 }) {
   const page = pages[currentPage - 1];
 
@@ -226,7 +226,7 @@ export function FlipbookViewer({
   className,
 }: FlipbookViewerProps) {
   const [currentPage, setCurrentPage] = useState(initialPage);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  // const [isFullscreen, setIsFullscreen] = useState(false); // TODO: implement fullscreen mode
   const [showTOC, setShowTOC] = useState(false);
 
   const totalPages = pages.length;

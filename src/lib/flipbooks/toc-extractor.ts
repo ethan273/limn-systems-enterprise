@@ -80,7 +80,8 @@ async function convertOutlineToTOC(
   const items: TOCItem[] = [];
 
   for (let i = 0; i < outline.length; i++) {
-    const outlineItem = outline[i];
+    // eslint-disable-next-line security/detect-object-injection
+    const outlineItem = outline[i]; // Safe: i is bounds-checked loop index
 
     if (!outlineItem) continue;
 
@@ -331,7 +332,8 @@ export function importTOCFromCSV(csv: string): TOCData {
 
   // Skip header row
   for (let i = 1; i < lines.length; i++) {
-    const line = lines[i];
+    // eslint-disable-next-line security/detect-object-injection
+    const line = lines[i]; // Safe: i is bounds-checked loop index
     if (!line) continue;
 
     // Simple CSV parsing (handles quoted fields)

@@ -534,8 +534,10 @@ export const flipbooksRouter = createTRPCRouter({
 
       // Update page numbers based on new order
       for (let i = 0; i < input.pageIds.length; i++) {
+        // eslint-disable-next-line security/detect-object-injection
+        const pageId = input.pageIds[i]; // Safe: i is bounds-checked loop index
         await prisma.flipbook_pages.update({
-          where: { id: input.pageIds[i] },
+          where: { id: pageId },
           data: { page_number: i + 1 },
         });
       }

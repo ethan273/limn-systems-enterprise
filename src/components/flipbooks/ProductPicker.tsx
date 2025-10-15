@@ -23,7 +23,7 @@ import { Search } from "lucide-react";
 interface ProductPickerProps {
   open: boolean;
   onClose: () => void;
-  onSelect: (productId: string) => void;
+  onSelect: (_productId: string) => void;
 }
 
 export function ProductPicker({ open, onClose, onSelect }: ProductPickerProps) {

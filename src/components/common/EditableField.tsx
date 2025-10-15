@@ -24,8 +24,8 @@ export interface EditableFieldProps {
   value: string | number | null | undefined;
   type?: 'text' | 'email' | 'phone' | 'number' | 'textarea' | 'select' | 'date';
   isEditing?: boolean;
-  onChange?: (value: string) => void;
-  onSave?: (value: string) => void; // Alias for onChange for backward compatibility
+  onChange?: (_value: string) => void;
+  onSave?: (_value: string) => void; // Alias for onChange for backward compatibility
   placeholder?: string;
   options?: { value: string; label: string }[];
   className?: string;
@@ -154,7 +154,7 @@ export function EditableFieldGroup({
         <h3 className="card-title">{title}</h3>
         {isEditing && (
           <p className="text-sm text-muted mt-1">
-            Edit the fields below and click "Save Changes" to update.
+            Edit the fields below and click &quot;Save Changes&quot; to update.
           </p>
         )}
       </div>

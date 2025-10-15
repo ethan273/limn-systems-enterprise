@@ -515,7 +515,7 @@ export default function MaterialsPage() {
   }, [activeHierarchy, activeSubTab, editingItem, parentOptions]);
 
   // DataTable columns
-  const columns: DataTableColumn<MaterialItem>[] = useMemo(() => {
+  const columns: DataTableColumn<MaterialItem>[] = useMemo(() => { // eslint-disable-line react-hooks/exhaustive-deps
     const cols: DataTableColumn<MaterialItem>[] = [];
 
     // Parent column for child items
@@ -574,6 +574,7 @@ export default function MaterialsPage() {
         render: (value, row) =>
           value ? (
             <div className="flex items-center gap-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={value as string}
                 alt={`Swatch for ${row.name}`}
@@ -596,7 +597,7 @@ export default function MaterialsPage() {
     });
 
     return cols;
-  }, [activeHierarchy, getParentName, handleEdit]);
+  }, [activeHierarchy, getParentName]); // handleEdit is stable useCallback and doesn't need to be in deps
 
   // DataTable filters
   const filters: DataTableFilter[] = [
@@ -746,7 +747,7 @@ export default function MaterialsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete {activeHierarchy?.label.slice(0, -1)}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{itemToDelete?.name}"? This action cannot be undone.
+              Are you sure you want to delete &quot;{itemToDelete?.name}&quot;? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -278,7 +278,7 @@ export default function CustomerDocumentsPage() {
           <div>
             <h4 className="font-medium mb-2">Uploading Documents</h4>
             <p className="text-sm text-muted-foreground">
-              Click the "Upload Document" button to add contracts, photos, or other files related
+              Click the &quot;Upload Document&quot; button to add contracts, photos, or other files related
               to your projects.
             </p>
           </div>

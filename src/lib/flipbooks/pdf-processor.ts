@@ -105,6 +105,7 @@ export async function processPdf(pdfBuffer: Buffer): Promise<PdfProcessResult> {
  * Create a placeholder page image
  * In production, this would be replaced by actual PDF page rendering
  */
+// eslint-disable-next-line no-unused-vars
 async function createPlaceholderPageImage(pageNumber: number): Promise<Buffer> {
   // Create a simple placeholder image with page number
   const width = 800;

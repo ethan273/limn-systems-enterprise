@@ -97,7 +97,8 @@ export async function getCredentialField(
     throw new Error(`Field "${fieldName}" not found in credentials for service: ${serviceName}`);
   }
 
-  return credentials[fieldName] as string;
+  // eslint-disable-next-line security/detect-object-injection
+  return credentials[fieldName] as string; // Safe: fieldName existence verified above
 }
 
 /**

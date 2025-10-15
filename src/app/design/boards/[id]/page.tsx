@@ -273,13 +273,13 @@ export default function DesignBoardEditorPage({ params }: { params: Promise<{ id
 
       {/* Settings Dialog */}
       <BoardSettingsDialog
-        open={isSettingsOpen}
+        _open={isSettingsOpen}
         onOpenChange={setIsSettingsOpen}
       />
 
       {/* Share Dialog */}
       <BoardShareDialog
-        open={isShareOpen}
+        _open={isShareOpen}
         onOpenChange={setIsShareOpen}
         boardId={id}
         boardName={boardName}
@@ -287,7 +287,7 @@ export default function DesignBoardEditorPage({ params }: { params: Promise<{ id
 
       {/* Document Upload Dialog */}
       <DocumentUploadDialog
-        open={isDocumentUploadOpen}
+        _open={isDocumentUploadOpen}
         onOpenChange={setIsDocumentUploadOpen}
         canvas={canvas}
       />

@@ -10,11 +10,11 @@ import { useBoardStore } from "@/lib/design-boards/board-store";
 import { Moon, Sun } from "lucide-react";
 
 interface BoardSettingsDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  _open: boolean;
+  onOpenChange: (_open: boolean) => void;
 }
 
-export function BoardSettingsDialog({ open, onOpenChange }: BoardSettingsDialogProps) {
+export function BoardSettingsDialog({ _open: open, onOpenChange }: BoardSettingsDialogProps) {
   const {
     theme,
     setTheme,
@@ -24,8 +24,6 @@ export function BoardSettingsDialog({ open, onOpenChange }: BoardSettingsDialogP
     setCanvasWidth,
     canvasHeight,
     setCanvasHeight,
-    showGrid,
-    setShowGrid,
     gridSize,
     setGridSize,
     gridEnabled,

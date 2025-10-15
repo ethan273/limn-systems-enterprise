@@ -5,99 +5,99 @@ export type Tool = 'select' | 'pen' | 'rectangle' | 'circle' | 'triangle' | 'sta
 export interface BoardState {
   // Active tool
   activeTool: Tool;
-  setActiveTool: (tool: Tool) => void;
+  setActiveTool: (_tool: Tool) => void;
 
   // Canvas settings
   zoom: number;
-  setZoom: (zoom: number) => void;
+  setZoom: (_zoom: number) => void;
 
   pan: { x: number; y: number };
-  setPan: (pan: { x: number; y: number }) => void;
+  setPan: (_pan: { x: number; y: number }) => void;
 
   gridEnabled: boolean;
-  setGridEnabled: (enabled: boolean) => void;
+  setGridEnabled: (_enabled: boolean) => void;
 
   snapToGrid: boolean;
-  setSnapToGrid: (enabled: boolean) => void;
+  setSnapToGrid: (_enabled: boolean) => void;
 
   // Drawing state
   isDrawing: boolean;
-  setIsDrawing: (drawing: boolean) => void;
+  setIsDrawing: (_drawing: boolean) => void;
 
   // Selected objects
   selectedObjects: string[];
-  setSelectedObjects: (ids: string[]) => void;
+  setSelectedObjects: (_ids: string[]) => void;
 
   // Sticky note color
   stickyNoteColor: string;
-  setStickyNoteColor: (color: string) => void;
+  setStickyNoteColor: (_color: string) => void;
 
   // Pen/brush settings
   penColor: string;
-  setPenColor: (color: string) => void;
+  setPenColor: (_color: string) => void;
 
   penWidth: number;
-  setPenWidth: (width: number) => void;
+  setPenWidth: (_width: number) => void;
 
   // Shape settings
   fillColor: string;
-  setFillColor: (color: string) => void;
+  setFillColor: (_color: string) => void;
 
   strokeColor: string;
-  setStrokeColor: (color: string) => void;
+  setStrokeColor: (_color: string) => void;
 
   strokeWidth: number;
-  setStrokeWidth: (width: number) => void;
+  setStrokeWidth: (_width: number) => void;
 
   // Shape size preset
   shapeSize: 'small' | 'medium' | 'large';
-  setShapeSize: (size: 'small' | 'medium' | 'large') => void;
+  setShapeSize: (_size: 'small' | 'medium' | 'large') => void;
 
   // Text formatting
   fontSize: number;
-  setFontSize: (size: number) => void;
+  setFontSize: (_size: number) => void;
 
   fontFamily: string;
-  setFontFamily: (family: string) => void;
+  setFontFamily: (_family: string) => void;
 
   fontWeight: 'normal' | 'bold';
-  setFontWeight: (weight: 'normal' | 'bold') => void;
+  setFontWeight: (_weight: 'normal' | 'bold') => void;
 
   fontStyle: 'normal' | 'italic';
-  setFontStyle: (style: 'normal' | 'italic') => void;
+  setFontStyle: (_style: 'normal' | 'italic') => void;
 
   textDecoration: 'none' | 'underline' | 'line-through';
-  setTextDecoration: (decoration: 'none' | 'underline' | 'line-through') => void;
+  setTextDecoration: (_decoration: 'none' | 'underline' | 'line-through') => void;
 
   textAlign: 'left' | 'center' | 'right';
-  setTextAlign: (align: 'left' | 'center' | 'right') => void;
+  setTextAlign: (_align: 'left' | 'center' | 'right') => void;
 
   textColor: string;
-  setTextColor: (color: string) => void;
+  setTextColor: (_color: string) => void;
 
   // Board settings
   theme: 'light' | 'dark';
-  setTheme: (theme: 'light' | 'dark') => void;
+  setTheme: (_theme: 'light' | 'dark') => void;
 
   backgroundColor: string;
-  setBackgroundColor: (color: string) => void;
+  setBackgroundColor: (_color: string) => void;
 
   canvasWidth: number;
-  setCanvasWidth: (width: number) => void;
+  setCanvasWidth: (_width: number) => void;
 
   canvasHeight: number;
-  setCanvasHeight: (height: number) => void;
+  setCanvasHeight: (_height: number) => void;
 
   showGrid: boolean;
-  setShowGrid: (show: boolean) => void;
+  setShowGrid: (_show: boolean) => void;
 
   gridSize: number;
-  setGridSize: (size: number) => void;
+  setGridSize: (_size: number) => void;
 
   // Undo/Redo
   historyIndex: number;
   history: any[];
-  pushHistory: (state: any) => void;
+  pushHistory: (_state: any) => void;
   undo: () => void;
   redo: () => void;
   canUndo: () => boolean;

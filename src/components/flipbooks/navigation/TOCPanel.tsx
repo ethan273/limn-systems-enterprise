@@ -32,7 +32,7 @@ interface TOCPanelProps {
   currentPage: number;
 
   /** Callback when user navigates to a page */
-  onNavigate: (pageNumber: number) => void;
+  onNavigate: (_pageNumber: number) => void;
 
   /** Display settings */
   settings?: Partial<TOCSettings>;
@@ -44,7 +44,7 @@ interface TOCPanelProps {
 interface TOCItemViewProps {
   item: TOCItem;
   currentPage: number;
-  onNavigate: (pageNumber: number) => void;
+  onNavigate: (_pageNumber: number) => void;
   searchQuery: string;
   settings: TOCSettings;
   level?: number;

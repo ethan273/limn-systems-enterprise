@@ -13,13 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+// Unused: Select components imported but not used in this file
 import { toast } from "sonner";
 import {
   Lightbulb,
@@ -33,8 +27,8 @@ import {
 } from "lucide-react";
 
 interface CreateFromTemplateDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  _open: boolean;
+  onOpenChange: (_open: boolean) => void;
   userId: string;
   projectId?: string;
 }
@@ -50,7 +44,7 @@ const TEMPLATE_CATEGORIES = [
 ] as const;
 
 export function CreateFromTemplateDialog({
-  open,
+  _open: open,
   onOpenChange,
   userId,
   projectId,
@@ -249,7 +243,7 @@ export function CreateFromTemplateDialog({
 
 interface TemplateCardProps {
   template: any;
-  onSelect: (templateId: string) => void;
+  onSelect: (_templateId: string) => void;
   isSelected: boolean;
 }
 

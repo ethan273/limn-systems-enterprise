@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { EntityDetailHeader } from "@/components/common/EntityDetailHeader";
-import { InfoCard } from "@/components/common/InfoCard";
+// Unused: import { InfoCard } from "@/components/common/InfoCard";
 import { EmptyState } from "@/components/common/EmptyState";
 import { LoadingState } from "@/components/common/LoadingState";
 import { EditableField, EditableFieldGroup } from "@/components/common/EditableField";

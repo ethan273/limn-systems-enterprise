@@ -1,6 +1,6 @@
 "use client";
 
-import { MousePointer2, Pencil, Square, Circle, Type, StickyNote, Minus, Eraser, Hand, ZoomIn, ZoomOut, Image, ArrowRight, Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight, Triangle, Star, Hexagon, Diamond, Columns } from "lucide-react";
+import { MousePointer2, Pencil, Square, Circle, Type, StickyNote, Minus, Eraser, ZoomIn, ZoomOut, Image, ArrowRight, Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight, Triangle, Star, Hexagon, Diamond, Columns } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useBoardStore } from "@/lib/design-boards/board-store";
 import { cn } from "@/lib/utils";
-import { useEffect, useRef } from "react";
+// Unused: import { useRef } from "react";
 import * as fabric from "fabric";
 
 interface DrawingToolbarProps {
@@ -27,8 +27,8 @@ export function DrawingToolbar({ canvas }: DrawingToolbarProps) {
     setStrokeColor,
     strokeWidth,
     setStrokeWidth,
-    shapeSize,
-    setShapeSize,
+    // Unused: shapeSize,
+    // Unused: setShapeSize,
     fontSize,
     setFontSize,
     fontFamily,

@@ -12,8 +12,8 @@ import { FlipbookViewer2D } from "./FlipbookViewer2D";
 interface FlipbookViewer3DWrapperProps {
   pages: any[];
   initialPage?: number;
-  onPageChange?: (pageNumber: number) => void;
-  onHotspotClick?: (hotspot: any) => void;
+  onPageChange?: (_pageNumber: number) => void;
+  onHotspotClick?: (_hotspot: any) => void;
   onClose?: () => void;
   use3D?: boolean;
 }

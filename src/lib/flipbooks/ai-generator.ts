@@ -171,7 +171,8 @@ function getProductPosition(
     featured: [{ xPercent: 20, yPercent: 20, width: 60, height: 60 }],
   };
 
-  return positions[layout]?.[index] || positions.single[0]!;
+  // eslint-disable-next-line security/detect-object-injection
+  return positions[layout]?.[index] || positions.single[0]!; // Safe: layout is validated type, index is controlled loop variable
 }
 
 /**

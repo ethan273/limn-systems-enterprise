@@ -307,7 +307,7 @@ export default function CustomerFinancialsPage() {
           <div>
             <h4 className="font-medium mb-2">QuickBooks Payments</h4>
             <p className="text-sm text-muted-foreground">
-              We use QuickBooks for secure payment processing. Click "Pay Now" on any invoice to
+              We use QuickBooks for secure payment processing. Click &quot;Pay Now&quot; on any invoice to
               complete your payment via QuickBooks.
             </p>
           </div>

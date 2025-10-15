@@ -50,7 +50,7 @@ export async function uploadToS3(
 ): Promise<UploadResult> {
   const supabase = getSupabaseAdmin();
 
-  const { data, error } = await supabase.storage
+  const { error } = await supabase.storage
     .from(BUCKET_NAME)
     .upload(key, file, {
       contentType,

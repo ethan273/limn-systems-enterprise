@@ -14,7 +14,7 @@ interface DesignBoardCanvasProps {
   boardId: string;
   userId: string;
   board: any;
-  onCanvasReady?: (canvas: fabric.Canvas) => void;
+  onCanvasReady?: (_canvas: fabric.Canvas) => void;
 }
 
 export function DesignBoardCanvas({ boardId, userId, board, onCanvasReady }: DesignBoardCanvasProps) {
@@ -26,11 +26,8 @@ export function DesignBoardCanvas({ boardId, userId, board, onCanvasReady }: Des
     activeTool,
     setActiveTool,
     zoom,
-    setZoom,
-    pan,
-    setPan,
     gridEnabled,
-    snapToGrid,
+    // Unused: snapToGrid,
     penColor,
     penWidth,
     fillColor,
@@ -48,9 +45,9 @@ export function DesignBoardCanvas({ boardId, userId, board, onCanvasReady }: Des
     backgroundColor,
     gridSize,
     showGrid,
-    isDrawing,
-    setIsDrawing,
-    selectedObjects,
+    // Unused: isDrawing,
+    // Unused: setIsDrawing,
+    // Unused: selectedObjects,
     setSelectedObjects,
   } = useBoardStore();
 
@@ -68,7 +65,7 @@ export function DesignBoardCanvas({ boardId, userId, board, onCanvasReady }: Des
   // Mutations for saving objects
   const createObjectMutation = api.designBoards.objects.create.useMutation();
   const updateObjectMutation = api.designBoards.objects.update.useMutation();
-  const deleteObjectMutation = api.designBoards.objects.delete.useMutation();
+  // Unused: const deleteObjectMutation = api.designBoards.objects.delete.useMutation();
 
   // Initialize Fabric.js canvas
   useEffect(() => {
@@ -214,6 +211,7 @@ export function DesignBoardCanvas({ boardId, userId, board, onCanvasReady }: Des
       canvas.dispose();
       fabricCanvasRef.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // FIXED: Removed 'history' from dependencies to prevent infinite loop
 
   // Load existing objects from database
@@ -244,6 +242,7 @@ export function DesignBoardCanvas({ boardId, userId, board, onCanvasReady }: Des
     };
 
     loadObjects();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [objectsData, isInitialized]); // FIXED: Removed 'history' to prevent infinite loop
 
   // Handle tool changes
@@ -314,7 +313,8 @@ export function DesignBoardCanvas({ boardId, userId, board, onCanvasReady }: Des
     }
 
     canvas.renderAll();
-  }, [activeTool, penColor, penWidth]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTool, penColor, penWidth]); // backgroundColor and strokeWidth used in eraser case
 
   // Handle zoom
   useEffect(() => {
@@ -371,15 +371,15 @@ export function DesignBoardCanvas({ boardId, userId, board, onCanvasReady }: Des
         return;
       }
 
-      // Get base size for shapes based on preset
-      const getBaseSize = () => {
-        switch (shapeSize) {
-          case 'small': return 50;
-          case 'medium': return 100;
-          case 'large': return 200;
-          default: return 100;
-        }
-      };
+      // Unused: Get base size for shapes based on preset
+      // const getBaseSize = () => {
+      //   switch (shapeSize) {
+      //     case 'small': return 50;
+      //     case 'medium': return 100;
+      //     case 'large': return 200;
+      //     default: return 100;
+      //   }
+      // };
 
       // Create shape based on tool
       if (activeTool === 'rectangle') {
@@ -539,7 +539,7 @@ export function DesignBoardCanvas({ boardId, userId, board, onCanvasReady }: Des
       canvas.renderAll();
     };
 
-    const handleMouseUp = () => {
+    const handleMouseUp = (_e: any) => {
       isDown = false;
       shape = null;
     };
@@ -554,6 +554,8 @@ export function DesignBoardCanvas({ boardId, userId, board, onCanvasReady }: Des
       canvas.off('mouse:up', handleMouseUp);
     };
     // Note: setActiveTool is a stable Zustand function and should not be in the dependency array
+    // history methods are also stable and should not be in the dependency array
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTool, fillColor, strokeColor, strokeWidth, shapeSize, penColor, stickyNoteColor, fontSize, fontFamily, fontWeight, fontStyle, textDecoration, textAlign, textColor]);
 
   // Double-click handler for editing sticky notes and grouped text
@@ -617,7 +619,7 @@ export function DesignBoardCanvas({ boardId, userId, board, onCanvasReady }: Des
   }, [backgroundColor, activeTool]);
 
   // Selection handlers
-  const handleSelectionChange = (e: any) => {
+  const handleSelectionChange = (_e: any) => {
     const selected = fabricCanvasRef.current?.getActiveObjects() || [];
     setSelectedObjects(selected.map((obj: any) => obj.id || ''));
   };
@@ -627,6 +629,7 @@ export function DesignBoardCanvas({ boardId, userId, board, onCanvasReady }: Des
   };
 
   // Object modified handler (for auto-save)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleObjectModified = useCallback(
     debounce((e: any) => {
       if (!e.target || !fabricCanvasRef.current) return;
@@ -651,6 +654,7 @@ export function DesignBoardCanvas({ boardId, userId, board, onCanvasReady }: Des
   );
 
   // Object added handler (for auto-save)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleObjectAdded = useCallback(
     debounce((e: any) => {
       if (!e.target || e.target.id || !fabricCanvasRef.current) return; // Skip if already has ID

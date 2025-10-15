@@ -239,7 +239,7 @@ export default function CustomerShippingPage() {
           <div>
             <h4 className="font-medium mb-2">Tracking Your Shipment</h4>
             <p className="text-sm text-muted-foreground">
-              Once your order ships, you'll receive a tracking number. Click the "Track Shipment"
+              Once your order ships, you&apos;ll receive a tracking number. Click the &quot;Track Shipment&quot;
               button to view real-time updates from the carrier.
             </p>
           </div>

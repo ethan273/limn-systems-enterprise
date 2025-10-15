@@ -279,16 +279,22 @@ export const apiCredentialsRouter = createTRPCRouter({
         // Group by day for time series
         const dailyStats = usageLogs.reduce((acc, log) => {
           const day = log.created_at?.toISOString().split('T')[0] || '';
-          if (!acc[day]) {
-            acc[day] = { requests: 0, errors: 0, totalResponseTime: 0, count: 0 };
+          // eslint-disable-next-line security/detect-object-injection
+          if (!acc[day]) { // Safe: day is validated ISO date string
+            // eslint-disable-next-line security/detect-object-injection
+            acc[day] = { requests: 0, errors: 0, totalResponseTime: 0, count: 0 }; // Safe: day is validated ISO date string
           }
-          acc[day].requests += 1;
+          // eslint-disable-next-line security/detect-object-injection
+          acc[day].requests += 1; // Safe: day is validated ISO date string
           if (log.status_code && log.status_code >= 400) {
-            acc[day].errors += 1;
+            // eslint-disable-next-line security/detect-object-injection
+            acc[day].errors += 1; // Safe: day is validated ISO date string
           }
           if (log.response_time_ms) {
-            acc[day].totalResponseTime += log.response_time_ms;
-            acc[day].count += 1;
+            // eslint-disable-next-line security/detect-object-injection
+            acc[day].totalResponseTime += log.response_time_ms; // Safe: day is validated ISO date string
+            // eslint-disable-next-line security/detect-object-injection
+            acc[day].count += 1; // Safe: day is validated ISO date string
           }
           return acc;
         }, {} as Record<string, any>);
@@ -522,9 +528,11 @@ function maskCredentials(credentials: Record<string, unknown>): Record<string, s
 
   for (const [key, value] of Object.entries(credentials)) {
     if (typeof value === 'string') {
-      masked[key] = maskCredential(value);
+      // eslint-disable-next-line security/detect-object-injection
+      masked[key] = maskCredential(value); // Safe: key is from Object.entries iteration
     } else {
-      masked[key] = '[ENCRYPTED]';
+      // eslint-disable-next-line security/detect-object-injection
+      masked[key] = '[ENCRYPTED]'; // Safe: key is from Object.entries iteration
     }
   }
 

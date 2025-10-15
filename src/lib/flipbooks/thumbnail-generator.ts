@@ -215,7 +215,7 @@ export async function uploadThumbnailToStorage(
   try {
     const filename = `${flipbookId}/${pageId}-${size}.webp`;
 
-    const { data, error } = await getSupabaseClient().storage
+    const { error } = await getSupabaseClient().storage
       .from(bucket)
       .upload(filename, buffer, {
         contentType: "image/webp",
@@ -327,7 +327,7 @@ export async function generateThumbnailsForFlipbook(
   flipbookId: string,
   pdfUrl: string,
   pages: Array<{ id: string; pageNumber: number }>,
-  onProgress?: (progress: BulkGenerationProgress) => void
+  onProgress?: (_progress: BulkGenerationProgress) => void
 ): Promise<{
   success: boolean;
   results: BulkGenerationProgress[];
@@ -488,7 +488,7 @@ export async function thumbnailExists(
   bucket: string = "flipbook-thumbnails"
 ): Promise<boolean> {
   try {
-    const filename = `${flipbookId}/${pageId}-${size}.webp`;
+    // const filename = `${flipbookId}/${pageId}-${size}.webp`; // Unused - using inline in some()
     const { data, error } = await getSupabaseClient().storage.from(bucket).list(flipbookId);
 
     if (error || !data) {

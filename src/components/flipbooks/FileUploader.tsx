@@ -181,9 +181,9 @@ export function FileUploader({
         <input {...getInputProps()} />
         <div className="flex flex-col items-center gap-2">
           {type === "pdf" ? (
-            <FileText className="h-12 w-12 text-muted-foreground" />
+            <FileText className="h-12 w-12 text-muted-foreground" aria-label="PDF file icon" />
           ) : (
-            <Image className="h-12 w-12 text-muted-foreground" />
+            <Image className="h-12 w-12 text-muted-foreground" aria-label="Image file icon" />
           )}
           <div>
             <p className="text-sm font-medium">

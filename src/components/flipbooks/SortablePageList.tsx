@@ -38,9 +38,9 @@ interface Page {
 interface SortablePageListProps {
   pages: Page[];
   selectedPageId?: string | null;
-  onPageSelect?: (pageId: string) => void;
-  onPageReorder?: (pageIds: string[]) => void;
-  onPageDelete?: (pageId: string) => void;
+  onPageSelect?: (_pageId: string) => void;
+  onPageReorder?: (_pageIds: string[]) => void;
+  onPageDelete?: (_pageId: string) => void;
   className?: string;
 }
 
@@ -164,7 +164,8 @@ export function SortablePageList({
 
   // Sync with prop changes
   if (initialPages.length !== pages.length ||
-      initialPages.some((p, i) => p.id !== pages[i]?.id)) {
+      // eslint-disable-next-line security/detect-object-injection
+      initialPages.some((p, i) => p.id !== pages[i]?.id)) { // Safe: i is Array.some index
     setPages(initialPages);
   }
 

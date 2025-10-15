@@ -57,15 +57,15 @@ import { api } from "@/lib/api/client";
 interface TOCBuilderProps {
   flipbookId: string;
   initialTOC?: TOCData;
-  onSave?: (tocData: TOCData) => void;
+  onSave?: (_tocData: TOCData) => void;
 }
 
 interface TOCTreeItemProps {
   item: TOCItem;
   level: number;
-  onEdit: (item: TOCItem) => void;
-  onDelete: (itemId: string) => void;
-  onAddChild: (parentItem: TOCItem) => void;
+  onEdit: (_item: TOCItem) => void;
+  onDelete: (_itemId: string) => void;
+  onAddChild: (_parentItem: TOCItem) => void;
   canAddChild: boolean;
 }
 

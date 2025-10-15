@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, X, Grid3x3, LayoutGrid, Maximize2 } from "lucide-react";
+import { Search, X, Grid3x3, LayoutGrid } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ThumbnailGridSettings } from "@/types/flipbook-navigation";
 
@@ -38,10 +38,10 @@ interface ThumbnailGridProps {
   currentPage: number;
 
   /** Callback when user clicks a thumbnail */
-  onPageClick: (pageNumber: number) => void;
+  onPageClick: (_pageNumber: number) => void;
 
   /** Callback when user selects multiple pages */
-  onPagesSelect?: (pageNumbers: number[]) => void;
+  onPagesSelect?: (_pageNumbers: number[]) => void;
 
   /** Display settings */
   settings?: Partial<ThumbnailGridSettings>;

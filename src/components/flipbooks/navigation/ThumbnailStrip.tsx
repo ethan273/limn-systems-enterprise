@@ -30,7 +30,7 @@ interface ThumbnailStripProps {
   currentPage: number;
 
   /** Callback when user clicks a thumbnail */
-  onPageClick: (pageNumber: number) => void;
+  onPageClick: (_pageNumber: number) => void;
 
   /** Display settings */
   settings?: Partial<ThumbnailSettings>;

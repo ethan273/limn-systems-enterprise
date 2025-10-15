@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Users, Mail, Link as LinkIcon, X, Check, ChevronDown } from "lucide-react";
+import { Users, Mail, Link as LinkIcon, X, Check } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,22 +13,15 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 interface BoardShareDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  _open: boolean;
+  onOpenChange: (_open: boolean) => void;
   boardId: string;
   boardName: string;
 }
 
 type CollaboratorRole = 'owner' | 'editor' | 'commenter' | 'viewer';
 
-const roleDescriptions: Record<CollaboratorRole, string> = {
-  owner: 'Full control',
-  editor: 'Can edit and comment',
-  commenter: 'Can only comment',
-  viewer: 'Can only view',
-};
-
-export function BoardShareDialog({ open, onOpenChange, boardId, boardName }: BoardShareDialogProps) {
+export function BoardShareDialog({ _open: open, onOpenChange, boardId, boardName }: BoardShareDialogProps) {
   const { user } = useAuthContext();
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<CollaboratorRole>("editor");
@@ -42,7 +35,7 @@ export function BoardShareDialog({ open, onOpenChange, boardId, boardName }: Boa
 
   // Search users by email
   const [searchEmail, setSearchEmail] = useState("");
-  const { data: searchResults, refetch: searchUsers } = api.users.findByEmail.useQuery(
+  const { refetch: searchUsers } = api.users.findByEmail.useQuery(
     { email: searchEmail },
     { enabled: false }
   );
@@ -151,7 +144,7 @@ export function BoardShareDialog({ open, onOpenChange, boardId, boardName }: Boa
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Share "{boardName}"
+            Share &quot;{boardName}&quot;
           </DialogTitle>
           <DialogDescription>
             Invite people to collaborate on this board

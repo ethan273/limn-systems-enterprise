@@ -7,7 +7,7 @@
  */
 
 import { useState, useRef } from "react";
-import { Plus, Trash2, Move } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -31,9 +31,9 @@ interface PageCanvasProps {
     image_url: string;
     hotspots?: Hotspot[];
   };
-  onHotspotCreate?: (hotspot: Omit<Hotspot, "id">) => void;
-  onHotspotUpdate?: (id: string, updates: Partial<Hotspot>) => void;
-  onHotspotDelete?: (id: string) => void;
+  onHotspotCreate?: (_hotspot: Omit<Hotspot, "id">) => void;
+  onHotspotUpdate?: (_id: string, _updates: Partial<Hotspot>) => void;
+  onHotspotDelete?: (_id: string) => void;
   editable?: boolean;
   className?: string;
 }
@@ -154,6 +154,7 @@ export function PageCanvas({
         onMouseLeave={handleHotspotDragEnd}
       >
         {/* Page image */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={page.image_url}
           alt={`Page ${page.page_number}`}

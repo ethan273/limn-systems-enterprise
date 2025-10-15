@@ -70,12 +70,12 @@ export interface RotationConfig {
 interface RotationStrategy {
   name: string;
   supportsRotation: boolean;
-  generateNewCredential?: (oldCredential: any) => Promise<{
+  generateNewCredential?: (_oldCredential: any) => Promise<{
     newValue: string;
     metadata?: Record<string, unknown>;
   }>;
-  deactivateOldCredential?: (oldCredential: any) => Promise<void>;
-  rollback?: (oldCredential: any, newCredential: any) => Promise<void>;
+  deactivateOldCredential?: (_oldCredential: any) => Promise<void>;
+  rollback?: (_oldCredential: any, _newCredential: any) => Promise<void>;
 }
 
 /**
@@ -104,14 +104,14 @@ function getRotationStrategy(serviceType: string): RotationStrategy {
             },
           };
         },
-        deactivateOldCredential: async (oldCredential) => {
+        deactivateOldCredential: async (_oldCredential) => {
           // Placeholder for revoking old Stripe key
           console.log('Deactivating old Stripe API key...');
 
           // Simulate API call
           await new Promise((resolve) => setTimeout(resolve, 500));
         },
-        rollback: async (oldCredential, newCredential) => {
+        rollback: async (_oldCredential, _newCredential) => {
           // Placeholder for rollback - delete new key
           console.log('Rolling back Stripe rotation...');
 
@@ -124,7 +124,7 @@ function getRotationStrategy(serviceType: string): RotationStrategy {
       return {
         name: 'Google OAuth Credential Refresh',
         supportsRotation: true,
-        generateNewCredential: async (oldCredential) => {
+        generateNewCredential: async (_oldCredential) => {
           // Placeholder for Google OAuth refresh
           console.log('Refreshing Google OAuth credentials...');
 
@@ -138,7 +138,7 @@ function getRotationStrategy(serviceType: string): RotationStrategy {
             },
           };
         },
-        deactivateOldCredential: async (oldCredential) => {
+        deactivateOldCredential: async (_oldCredential) => {
           console.log('Revoking old Google OAuth token...');
           await new Promise((resolve) => setTimeout(resolve, 500));
         },

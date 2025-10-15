@@ -138,7 +138,7 @@ export default function QCUploadPage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle className="h-4 w-4 mt-0.5 text-success" />
-                  <span>Use descriptive file names (e.g., "Project-Name-QC-Report-2024-01-15.pdf")</span>
+                  <span>Use descriptive file names (e.g., &quot;Project-Name-QC-Report-2024-01-15.pdf&quot;)</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle className="h-4 w-4 mt-0.5 text-success" />
@@ -183,7 +183,7 @@ export default function QCUploadPage() {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground mb-4">
-            If you're having trouble uploading reports or have questions about the inspection process,
+            If you&apos;re having trouble uploading reports or have questions about the inspection process,
             please contact your administrator.
           </p>
           <Button variant="outline">

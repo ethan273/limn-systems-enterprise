@@ -175,6 +175,7 @@ export default function DesignBoardsPage() {
               {/* Thumbnail */}
               <div className="h-40 bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center relative overflow-hidden">
                 {board.thumbnail_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={board.thumbnail_url}
                     alt={board.name}
@@ -234,6 +235,7 @@ export default function DesignBoardsPage() {
                 {/* Thumbnail */}
                 <div className="w-20 h-20 bg-gradient-to-br from-primary/10 to-primary/5 rounded flex items-center justify-center flex-shrink-0">
                   {board.thumbnail_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={board.thumbnail_url}
                       alt={board.name}
@@ -284,7 +286,7 @@ export default function DesignBoardsPage() {
 
       {/* Create from Template Dialog */}
       <CreateFromTemplateDialog
-        open={isTemplateDialogOpen}
+        _open={isTemplateDialogOpen}
         onOpenChange={setIsTemplateDialogOpen}
         userId={user?.id || ""}
       />

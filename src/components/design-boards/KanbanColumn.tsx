@@ -240,7 +240,8 @@ export function createKanbanBoard(
       x + (index * COLUMN_SPACING),
       y,
       title,
-      colors[index] || '#3b82f6'
+      // eslint-disable-next-line security/detect-object-injection
+      colors[index] || '#3b82f6' // Safe: index is bounds-checked forEach index
     );
 
     canvas.add(column);
@@ -266,7 +267,7 @@ export function createKanbanBoard(
 }
 
 // Helper function to add a card to a column
-function addCardToColumn(canvas: fabric.Canvas, column: fabric.Group, columnTitle: string) {
+function addCardToColumn(canvas: fabric.Canvas, column: fabric.Group, _columnTitle: string) {
   const kanbanData = (column as any).kanbanData;
   if (!kanbanData) return;
 

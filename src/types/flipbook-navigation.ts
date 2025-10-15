@@ -96,25 +96,25 @@ export interface TOCSettings {
  */
 export interface TOCBuilderActions {
   /** Add new item */
-  addItem: (parentId: string | null, item: Omit<TOCItem, 'id' | 'children'>) => void;
+  addItem: (_parentId: string | null, _item: Omit<TOCItem, 'id' | 'children'>) => void;
 
   /** Update existing item */
-  updateItem: (itemId: string, updates: Partial<Omit<TOCItem, 'id' | 'children'>>) => void;
+  updateItem: (_itemId: string, _updates: Partial<Omit<TOCItem, 'id' | 'children'>>) => void;
 
   /** Delete item */
-  deleteItem: (itemId: string, deleteChildren: boolean) => void;
+  deleteItem: (_itemId: string, _deleteChildren: boolean) => void;
 
   /** Reorder items */
-  reorderItems: (itemIds: string[], newParentId?: string | null) => void;
+  reorderItems: (_itemIds: string[], _newParentId?: string | null) => void;
 
   /** Move item to different parent */
-  moveItem: (itemId: string, newParentId: string | null, newIndex: number) => void;
+  moveItem: (_itemId: string, _newParentId: string | null, _newIndex: number) => void;
 
   /** Import TOC from external source */
-  importTOC: (data: TOCData | TOCItem[]) => void;
+  importTOC: (_data: TOCData | TOCItem[]) => void;
 
   /** Export TOC */
-  exportTOC: (format: 'json' | 'csv') => string | Blob;
+  exportTOC: (_format: 'json' | 'csv') => string | Blob;
 
   /** Clear all items */
   clearAll: () => void;

@@ -246,7 +246,7 @@ export const materialTypesRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        const { id, collection_id, ...data } = input;
+        const { id, collection_id: _collection_id, ...data } = input;
         return await (ctx.db as any).fabric_colors.update({
           where: { id },
           data,

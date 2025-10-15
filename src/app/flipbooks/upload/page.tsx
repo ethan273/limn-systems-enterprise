@@ -297,7 +297,7 @@ export default function FlipbookUploadPage() {
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary mt-0.5">3.</span>
-                <span>You'll be taken to the builder to add interactive hotspots</span>
+                <span>You&apos;ll be taken to the builder to add interactive hotspots</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary mt-0.5">4.</span>

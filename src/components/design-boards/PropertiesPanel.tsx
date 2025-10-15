@@ -66,7 +66,8 @@ export function PropertiesPanel({
         }
       }
     }
-  }, [selectedObjects, singleSelection, activeObjects]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedObjects, singleSelection]); // activeObjects is derived from canvas state
 
   const handleFillColorChange = (color: string) => {
     setFillColor(color);
@@ -193,7 +194,7 @@ export function PropertiesPanel({
     if (obj.type !== 'group') return;
 
     const group = obj as fabric.Group;
-    const items = group.getObjects();
+    // const items = group.getObjects(); // Unused - may be needed for future features
 
     (group as any).toActiveSelection?.();
     canvas.remove(group);
