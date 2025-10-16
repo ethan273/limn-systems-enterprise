@@ -28,6 +28,7 @@ import {
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api/client";
 import { features } from "@/lib/features";
+import { getUserFullName, getUserInitials } from "@/lib/utils/user-utils";
 
 interface NavSubItem {
  label: string;
@@ -54,58 +55,9 @@ export default function Sidebar() {
  // Get user type for permission checking
  const userType = profile?.user_type;
 
- // Construct full name from first_name and last_name
- const getDisplayName = () => {
- if (authLoading) return null;
-
- // Try to construct from first_name and last_name
- if (profile?.first_name || profile?.last_name) {
- const parts = [profile.first_name, profile.last_name].filter(Boolean);
- if (parts.length > 0) return parts.join(' ');
- }
-
- // Fall back to full_name if available
- if (profile?.full_name) return profile.full_name;
-
- // Fall back to legacy name field
- if (profile?.name) return profile.name;
-
- // Fall back to email username or 'User'
- return user?.email?.split('@')[0] || 'User';
- };
-
- const displayName = getDisplayName();
-
- // Get initials for avatar
- const getInitials = () => {
- if (authLoading) return '...';
-
- // Try from first_name and last_name
- if (profile?.first_name || profile?.last_name) {
- const initials = [
- profile.first_name?.[0],
- profile.last_name?.[0]
- ].filter(Boolean).join('').toUpperCase();
- if (initials) return initials;
- }
-
- // Fall back to full_name
- if (profile?.full_name) {
- return profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
- }
-
- // Fall back to legacy name field
- if (profile?.name) {
- return profile.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
- }
-
- // Fall back to email
- if (user?.email) {
- return user.email.slice(0, 2).toUpperCase();
- }
-
- return 'U';
- };
+ // Get display name and initials using utility functions
+ const displayName = authLoading ? null : getUserFullName({ ...profile, email: profile?.email || user?.email });
+ const initials = authLoading ? '...' : getUserInitials({ ...profile, email: profile?.email || user?.email });
 
  useEffect(() => {
  setMounted(true);
@@ -459,7 +411,7 @@ export default function Sidebar() {
  aria-label="Open settings"
  >
  <div className="user-avatar">
-           {getInitials()}
+           {initials}
  </div>
  <div className="user-info">
            <p className="user-name">

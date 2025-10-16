@@ -12,6 +12,7 @@ import {
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { getUserFullName } from "@/lib/utils/user-utils";
 
 export default function UserProfileDropdown() {
   const router = useRouter();
@@ -88,7 +89,7 @@ export default function UserProfileDropdown() {
           {userData?.avatar_url ? (
             <Image
               src={userData.avatar_url}
-              alt={userData.name || 'User'}
+              alt={getUserFullName(userData)}
               width={32}
               height={32}
               className="w-8 h-8 rounded-full object-cover"
@@ -104,7 +105,7 @@ export default function UserProfileDropdown() {
         sideOffset={8}
       >
         <div className="px-2 py-1.5">
-          <p className="text-sm font-medium">{userData?.name || 'Unknown User'}</p>
+          <p className="text-sm font-medium">{getUserFullName(userData)}</p>
           <p className="text-xs text-muted-foreground">{userData?.email || 'No email available'}</p>
           {userData?.user_type && (
             <p className="text-xs text-muted-foreground capitalize mt-0.5">
