@@ -22,7 +22,6 @@ import { Badge } from "@/components/ui/badge";
 import { DimensionDisplay } from "@/components/furniture/DimensionDisplay";
 import { ExternalLink } from "lucide-react";
 import { api } from "@/lib/api/client";
-import { useQueryClient } from "@tanstack/react-query";
 import { EditableField } from "@/components/common";
 
 interface CatalogOverviewTabProps {
@@ -30,7 +29,7 @@ interface CatalogOverviewTabProps {
 }
 
 export default function CatalogOverviewTab({ catalogItem }: CatalogOverviewTabProps) {
-  const queryClient = useQueryClient();
+  const utils = api.useUtils();
   const {
     id,
     name,
@@ -52,7 +51,9 @@ export default function CatalogOverviewTab({ catalogItem }: CatalogOverviewTabPr
   // Update mutation
   const updateMutation = api.items.update.useMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['items'] });
+      // Use tRPC utils for proper invalidation
+      utils.items.getCatalogItemById.invalidate({ itemId: id });
+      utils.items.getAll.invalidate();
     },
   });
 

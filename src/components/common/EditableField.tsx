@@ -59,9 +59,28 @@ export function EditableField({
 
   const handleChange = (newValue: string) => {
     setLocalValue(newValue);
-    // Support both onChange and onSave (onSave is for backward compatibility)
+    // Only call onChange for live updates, not onSave
     onChange?.(newValue);
-    onSave?.(newValue);
+  };
+
+  const handleSave = () => {
+    // Only call onSave when user explicitly saves
+    onSave?.(localValue);
+  };
+
+  const handleBlur = () => {
+    // Save on blur if value changed
+    if (localValue !== value?.toString()) {
+      handleSave();
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Save on Enter key
+    if (e.key === 'Enter' && type !== 'textarea') {
+      e.preventDefault();
+      handleSave();
+    }
   };
 
   const displayValue = value || '—';
@@ -82,12 +101,20 @@ export function EditableField({
             <Textarea
               value={localValue}
               onChange={(e) => handleChange(e.target.value)}
+              onBlur={handleBlur}
               placeholder={placeholder || (label ? `Enter ${label.toLowerCase()}` : 'Enter value')}
               required={required}
               rows={4}
             />
           ) : type === 'select' && options.length > 0 ? (
-            <Select value={localValue} onValueChange={handleChange}>
+            <Select
+              value={localValue}
+              onValueChange={(newValue) => {
+                handleChange(newValue);
+                // Save immediately for selects since there's no blur event
+                onSave?.(newValue);
+              }}
+            >
               <SelectTrigger>
                 <SelectValue placeholder={placeholder || (label ? `Select ${label.toLowerCase()}` : 'Select option')} />
               </SelectTrigger>
@@ -104,6 +131,8 @@ export function EditableField({
               type={type === 'email' ? 'email' : type === 'phone' ? 'tel' : type === 'number' ? 'number' : type === 'date' ? 'date' : 'text'}
               value={localValue}
               onChange={(e) => handleChange(e.target.value)}
+              onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
               placeholder={placeholder || (label ? `Enter ${label.toLowerCase()}` : 'Enter value')}
               required={required}
             />
