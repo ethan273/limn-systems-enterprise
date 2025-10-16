@@ -99,6 +99,25 @@ export default function ContactDetailPage({ params }: PageProps) {
     },
   });
 
+  // Address mutations - MUST be before any conditional returns
+  const createAddressMutation = api.crm.addresses.create.useMutation({
+    onSuccess: () => {
+      utils.crm.contacts.getById.invalidate();
+    },
+  });
+
+  const updateAddressMutation = api.crm.addresses.update.useMutation({
+    onSuccess: () => {
+      utils.crm.contacts.getById.invalidate();
+    },
+  });
+
+  const deleteAddressMutation = api.crm.addresses.delete.useMutation({
+    onSuccess: () => {
+      utils.crm.contacts.getById.invalidate();
+    },
+  });
+
   const handleSave = async () => {
     if (!formData.first_name) {
       toast.error("First name is required");
@@ -166,25 +185,6 @@ export default function ContactDetailPage({ params }: PageProps) {
 
   const { contact, activities, analytics } = data;
   const addresses = (data as any).addresses || [];
-
-  // Address mutations
-  const createAddressMutation = api.crm.addresses.create.useMutation({
-    onSuccess: () => {
-      utils.crm.contacts.getById.invalidate();
-    },
-  });
-
-  const updateAddressMutation = api.crm.addresses.update.useMutation({
-    onSuccess: () => {
-      utils.crm.contacts.getById.invalidate();
-    },
-  });
-
-  const deleteAddressMutation = api.crm.addresses.delete.useMutation({
-    onSuccess: () => {
-      utils.crm.contacts.getById.invalidate();
-    },
-  });
 
   const handleAddAddress = async (address: any) => {
     await createAddressMutation.mutateAsync({

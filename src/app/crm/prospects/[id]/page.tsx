@@ -163,6 +163,24 @@ export default function ProspectDetailPage({ params }: PageProps) {
     },
   });
 
+  // Convert to client mutation - MUST be before any conditional returns
+  const convertToClientMutation = api.crm.leads.convertToClient.useMutation({
+    onSuccess: (data) => {
+      toast.success("Prospect converted to client successfully");
+      // Invalidate queries for instant updates
+      utils.crm.leads.getById.invalidate();
+      utils.crm.leads.getProspects.invalidate();
+      utils.crm.leads.getAll.invalidate();
+      utils.crm.leads.getPipelineStats.invalidate();
+      utils.crm.customers.getAll.invalidate();
+      // Navigate to the new customer page
+      router.push(`/crm/customers/${data.client.id}`);
+    },
+    onError: (error) => {
+      toast.error("Failed to convert prospect: " + error.message);
+    },
+  });
+
   const handleSave = () => {
     if (!formData.name || !formData.email) {
       toast.error("Name and email are required");
@@ -206,24 +224,6 @@ export default function ProspectDetailPage({ params }: PageProps) {
     }
     setIsEditing(false);
   };
-
-  // Convert to client mutation
-  const convertToClientMutation = api.crm.leads.convertToClient.useMutation({
-    onSuccess: (data) => {
-      toast.success("Prospect converted to client successfully");
-      // Invalidate queries for instant updates
-      utils.crm.leads.getById.invalidate();
-      utils.crm.leads.getProspects.invalidate();
-      utils.crm.leads.getAll.invalidate();
-      utils.crm.leads.getPipelineStats.invalidate();
-      utils.crm.customers.getAll.invalidate();
-      // Navigate to the new customer page
-      router.push(`/crm/customers/${data.client.id}`);
-    },
-    onError: (error) => {
-      toast.error("Failed to convert prospect: " + error.message);
-    },
-  });
 
   if (isLoading) {
     return (

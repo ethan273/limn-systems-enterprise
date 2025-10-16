@@ -136,6 +136,25 @@ export default function LeadDetailPage({ params }: PageProps) {
     },
   });
 
+  // Address mutations - MUST be before any conditional returns
+  const createAddressMutation = api.crm.addresses.create.useMutation({
+    onSuccess: () => {
+      utils.crm.leads.getById.invalidate();
+    },
+  });
+
+  const updateAddressMutation = api.crm.addresses.update.useMutation({
+    onSuccess: () => {
+      utils.crm.leads.getById.invalidate();
+    },
+  });
+
+  const deleteAddressMutation = api.crm.addresses.delete.useMutation({
+    onSuccess: () => {
+      utils.crm.leads.getById.invalidate();
+    },
+  });
+
   const handleSave = () => {
     if (!formData.first_name || !formData.email) {
       toast.error("First name and email are required");
@@ -205,25 +224,6 @@ export default function LeadDetailPage({ params }: PageProps) {
 
   const { lead, activities, analytics } = data;
   const addresses = (data as any).addresses || [];
-
-  // Address mutations
-  const createAddressMutation = api.crm.addresses.create.useMutation({
-    onSuccess: () => {
-      utils.crm.leads.getById.invalidate();
-    },
-  });
-
-  const updateAddressMutation = api.crm.addresses.update.useMutation({
-    onSuccess: () => {
-      utils.crm.leads.getById.invalidate();
-    },
-  });
-
-  const deleteAddressMutation = api.crm.addresses.delete.useMutation({
-    onSuccess: () => {
-      utils.crm.leads.getById.invalidate();
-    },
-  });
 
   const handleAddAddress = async (address: any) => {
     await createAddressMutation.mutateAsync({
