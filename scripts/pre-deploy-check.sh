@@ -88,10 +88,17 @@ fi
 echo ""
 
 echo "6. Validating Prisma schema..."
-if npx prisma validate 2>&1 | grep -q "congratulations"; then
-    print_pass "Prisma schema is valid"
+VALIDATION_OUTPUT=$(npx prisma validate 2>&1)
+if echo "$VALIDATION_OUTPUT" | grep -q "The schema.*is valid"; then
+    if echo "$VALIDATION_OUTPUT" | grep -q "Prisma schema warning"; then
+        print_warn "Prisma schema is valid but has warnings"
+        echo "$VALIDATION_OUTPUT" | grep -A 2 "Prisma schema warning"
+    else
+        print_pass "Prisma schema is valid"
+    fi
 else
-    print_warn "Could not validate Prisma schema"
+    print_fail "Prisma schema validation failed"
+    echo "$VALIDATION_OUTPUT"
 fi
 echo ""
 
