@@ -121,16 +121,14 @@ function DesignDocumentsContent() {
     }
   };
 
+  // Auth is handled by middleware - no need for client-side checks
+  // Show loading state only during initial auth check
   if (authLoading) {
     return (
       <div className="page-container">
         <LoadingState message="Loading..." size="lg" />
       </div>
     );
-  }
-
-  if (!user) {
-    return null;
   }
 
   const files = filesData?.files || [];
