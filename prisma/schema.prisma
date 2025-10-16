@@ -400,7 +400,6 @@ model users {
   app_settings                                                          app_settings?
   automation_rules                                                      automation_rules[]
   budgets                                                               budgets[]
-  carving_style_collections                                             carving_style_collections[]
   client_files                                                          client_files[]
   collection_activities_collection_activities_created_byTousers         collection_activities[]             @relation("collection_activities_created_byTousers")
   collection_activities_collection_activities_updated_byTousers         collection_activities[]             @relation("collection_activities_updated_byTousers")
@@ -431,9 +430,6 @@ model users {
   email_campaigns                                                       email_campaigns[]
   export_configurations                                                 export_configurations[]
   export_history                                                        export_history[]
-  fabric_brand_collections                                              fabric_brand_collections[]
-  fabric_collection_collections                                         fabric_collection_collections[]
-  fabric_color_collections                                              fabric_color_collections[]
   factory_review_comments_factory_review_comments_author_idTousers      factory_review_comments[]           @relation("factory_review_comments_author_idTousers")
   factory_review_comments_factory_review_comments_resolved_byTousers    factory_review_comments[]           @relation("factory_review_comments_resolved_byTousers")
   factory_review_documents                                              factory_review_documents[]
@@ -444,14 +440,10 @@ model users {
   manufacturer_communications                                           manufacturer_communications[]
   material_collection_audit                                             material_collection_audit[]
   material_price_history                                                material_price_history[]
-  metal_color_collections                                               metal_color_collections[]
-  metal_finish_collections                                              metal_finish_collections[]
-  metal_type_collections                                                metal_type_collections[]
   mood_boards                                                           mood_boards[]
   notification_queue                                                    notification_queue[]
   oauth_tokens                                                          oauth_tokens[]
   offline_sync_queue                                                    offline_sync_queue[]
-  order_materials                                                       order_materials[]
   ordered_items_production                                              ordered_items_production[]
   orders_old                                                            orders_old[]
   pandadoc_documents                                                    pandadoc_documents[]
@@ -517,8 +509,6 @@ model users {
   sms_scheduled_jobs                                                    sms_scheduled_jobs[]
   sso_login_audit                                                       sso_login_audit[]
   sso_user_mappings                                                     sso_user_mappings[]
-  stone_finish_collections                                              stone_finish_collections[]
-  stone_type_collections                                                stone_type_collections[]
   system_logs                                                           system_logs[]
   task_activity                                                         task_activity[]
   task_comments                                                         task_comments[]
@@ -533,11 +523,6 @@ model users {
   user_profiles_user_profiles_user_idTousers                            user_profiles?                      @relation("user_profiles_user_idTousers")
   user_roles                                                            user_roles[]
   verification_logs                                                     verification_logs[]
-  weaving_color_collections                                             weaving_color_collections[]
-  weaving_material_collections                                          weaving_material_collections[]
-  weaving_pattern_collections                                           weaving_pattern_collections[]
-  wood_finish_collections                                               wood_finish_collections[]
-  wood_type_collections                                                 wood_type_collections[]
 
   @@index([instance_id])
   @@index([is_anonymous])
@@ -1287,55 +1272,6 @@ model budgets {
   @@schema("public")
 }
 
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model carving_options {
-  id                   String                 @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  style                String
-  code                 String                 @unique
-  price_modifier       Decimal?               @default(0) @db.Decimal(10, 2)
-  complexity           String?                @default("standard")
-  active               Boolean?               @default(true)
-  created_at           DateTime?              @default(now()) @db.Timestamptz(6)
-  updated_at           DateTime?              @default(now()) @db.Timestamptz(6)
-  order_item_materials order_item_materials[]
-  product_materials    product_materials[]
-
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model carving_style_collections {
-  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  carving_style_id String         @db.Uuid
-  collection_id    String         @db.Uuid
-  created_by       String?        @db.Uuid
-  created_at       DateTime?      @default(now()) @db.Timestamp(6)
-  carving_styles   carving_styles @relation(fields: [carving_style_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  collections      collections    @relation(fields: [collection_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users            users?         @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@unique([carving_style_id, collection_id])
-  @@index([collection_id], map: "idx_carving_style_collections_collection")
-  @@schema("public")
-}
-
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model carving_styles {
-  id                        String                      @id(map: "carving_styles_pkey1") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name                      String                      @unique
-  description               String?
-  price_modifier            Decimal?                    @default(0) @db.Decimal(5, 2)
-  active                    Boolean?                    @default(true)
-  sort_order                Int?
-  created_at                DateTime?                   @default(now()) @db.Timestamp(6)
-  updated_at                DateTime?                   @default(now()) @db.Timestamp(6)
-  complexity_level          Int?                        @default(1)
-  carving_style_collections carving_style_collections[]
-
-  @@schema("public")
-}
-
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model client_files {
@@ -1484,31 +1420,17 @@ model collections {
   metadata                       Json?
   variation_types                String[]
   designer_id                    String?                          @db.Uuid
-  carving_style_collections      carving_style_collections[]
   designers                      designers?                       @relation(fields: [designer_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_collections_designer")
   concepts                       concepts[]
   design_projects                design_projects[]
   documents                      documents[]
-  fabric_brand_collections       fabric_brand_collections[]
-  fabric_collection_collections  fabric_collection_collections[]
-  fabric_color_collections       fabric_color_collections[]
   items                          items[]
   manufacturer_projects          manufacturer_projects[]
   material_collection_audit      material_collection_audit[]
   material_collections           material_collections[]
   material_furniture_collections material_furniture_collections[]
-  metal_color_collections        metal_color_collections[]
-  metal_finish_collections       metal_finish_collections[]
-  metal_type_collections         metal_type_collections[]
   orders                         orders[]
   prototypes                     prototypes[]
-  stone_finish_collections       stone_finish_collections[]
-  stone_type_collections         stone_type_collections[]
-  weaving_color_collections      weaving_color_collections[]
-  weaving_material_collections   weaving_material_collections[]
-  weaving_pattern_collections    weaving_pattern_collections[]
-  wood_finish_collections        wood_finish_collections[]
-  wood_type_collections          wood_type_collections[]
 
   @@index([designer_id], map: "idx_collections_designer_id")
   @@schema("public")
@@ -2809,132 +2731,6 @@ model export_history {
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model fabric_brand_collections {
-  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  fabric_brand_id String        @db.Uuid
-  collection_id   String        @db.Uuid
-  created_by      String?       @db.Uuid
-  created_at      DateTime?     @default(now()) @db.Timestamp(6)
-  collections     collections   @relation(fields: [collection_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users           users?        @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  fabric_brands   fabric_brands @relation(fields: [fabric_brand_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@unique([fabric_brand_id, collection_id])
-  @@index([collection_id], map: "idx_fabric_brand_collections_collection")
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model fabric_brands {
-  id                       String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name                     String                     @unique
-  description              String?
-  price_modifier           Decimal?                   @default(0) @db.Decimal(5, 2)
-  active                   Boolean?                   @default(true)
-  sort_order               Int?
-  created_at               DateTime?                  @default(now()) @db.Timestamp(6)
-  updated_at               DateTime?                  @default(now()) @db.Timestamp(6)
-  fabric_brand_collections fabric_brand_collections[]
-  fabric_collections       fabric_collections[]
-
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model fabric_collection_collections {
-  id                   String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  fabric_collection_id String             @db.Uuid
-  collection_id        String             @db.Uuid
-  created_by           String?            @db.Uuid
-  created_at           DateTime?          @default(now()) @db.Timestamp(6)
-  collections          collections        @relation(fields: [collection_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users                users?             @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  fabric_collections   fabric_collections @relation(fields: [fabric_collection_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@unique([fabric_collection_id, collection_id])
-  @@index([collection_id], map: "idx_fabric_collection_collections_collection")
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model fabric_collections {
-  id                            String                          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  brand_id                      String?                         @db.Uuid
-  name                          String
-  description                   String?
-  price_modifier                Decimal?                        @default(0) @db.Decimal(5, 2)
-  active                        Boolean?                        @default(true)
-  sort_order                    Int?
-  created_at                    DateTime?                       @default(now()) @db.Timestamp(6)
-  updated_at                    DateTime?                       @default(now()) @db.Timestamp(6)
-  fabric_collection_collections fabric_collection_collections[]
-  fabric_brands                 fabric_brands?                  @relation(fields: [brand_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  fabric_colors                 fabric_colors[]
-
-  @@unique([brand_id, name])
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model fabric_color_collections {
-  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  fabric_color_id String        @db.Uuid
-  collection_id   String        @db.Uuid
-  created_by      String?       @db.Uuid
-  created_at      DateTime?     @default(now()) @db.Timestamp(6)
-  collections     collections   @relation(fields: [collection_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users           users?        @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  fabric_colors   fabric_colors @relation(fields: [fabric_color_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@unique([fabric_color_id, collection_id])
-  @@index([collection_id], map: "idx_fabric_color_collections_collection")
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model fabric_colors {
-  id                       String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  collection_id            String?                    @db.Uuid
-  name                     String
-  hex_code                 String?
-  price_modifier           Decimal?                   @default(0) @db.Decimal(5, 2)
-  active                   Boolean?                   @default(true)
-  sort_order               Int?
-  created_at               DateTime?                  @default(now()) @db.Timestamp(6)
-  updated_at               DateTime?                  @default(now()) @db.Timestamp(6)
-  swatch_url               String?
-  fabric_color_collections fabric_color_collections[]
-  fabric_collections       fabric_collections?        @relation(fields: [collection_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@unique([collection_id, name])
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model fabric_options {
-  id                   String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  brand                String            @db.VarChar(255)
-  collection           String?           @db.VarChar(255)
-  pattern              String?           @db.VarChar(255)
-  color                String?           @db.VarChar(255)
-  material_composition String?
-  width_inches         Decimal?          @db.Decimal(5, 2)
-  repeat_inches        Decimal?          @db.Decimal(5, 2)
-  durability_rating    String?           @db.VarChar(50)
-  price_per_yard       Decimal?          @db.Decimal(10, 2)
-  in_stock             Boolean?          @default(true)
-  lead_time_days       Int?              @default(14)
-  supplier             String?           @db.VarChar(255)
-  sku_code             String?           @unique @db.VarChar(50)
-  is_active            Boolean?          @default(true)
-  created_at           DateTime?         @default(now()) @db.Timestamp(6)
-  updated_at           DateTime?         @default(now()) @db.Timestamp(6)
-  order_materials      order_materials[]
-
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model factory_review_comments {
   id                                               String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   photo_id                                         String?                   @db.Uuid
@@ -3424,7 +3220,6 @@ model items {
   collections                                                collections?            @relation(fields: [collection_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   manufacturer_projects                                      manufacturer_projects[]
   order_items                                                order_items[]
-  product_materials                                          product_materials[]
   production_orders_production_orders_catalog_item_idToitems production_orders[]     @relation("production_orders_catalog_item_idToitems")
   production_orders_production_orders_concept_idToitems      production_orders[]     @relation("production_orders_concept_idToitems")
   production_orders_production_orders_prototype_idToitems    production_orders[]     @relation("production_orders_prototype_idToitems")
@@ -3888,124 +3683,6 @@ model materials {
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model metal_color_collections {
-  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  metal_color_id String       @db.Uuid
-  collection_id  String       @db.Uuid
-  created_by     String?      @db.Uuid
-  created_at     DateTime?    @default(now()) @db.Timestamp(6)
-  collections    collections  @relation(fields: [collection_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users          users?       @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  metal_colors   metal_colors @relation(fields: [metal_color_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@unique([metal_color_id, collection_id])
-  @@index([collection_id], map: "idx_metal_color_collections_collection")
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model metal_colors {
-  id                      String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  metal_finish_id         String?                   @db.Uuid
-  name                    String
-  hex_code                String?
-  price_modifier          Decimal?                  @default(0) @db.Decimal(5, 2)
-  active                  Boolean?                  @default(true)
-  sort_order              Int?
-  created_at              DateTime?                 @default(now()) @db.Timestamp(6)
-  updated_at              DateTime?                 @default(now()) @db.Timestamp(6)
-  metal_color_collections metal_color_collections[]
-  metal_finishes          metal_finishes?           @relation(fields: [metal_finish_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@unique([metal_finish_id, name])
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model metal_finish_collections {
-  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  metal_finish_id String         @db.Uuid
-  collection_id   String         @db.Uuid
-  created_by      String?        @db.Uuid
-  created_at      DateTime?      @default(now()) @db.Timestamp(6)
-  collections     collections    @relation(fields: [collection_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users           users?         @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  metal_finishes  metal_finishes @relation(fields: [metal_finish_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@unique([metal_finish_id, collection_id])
-  @@index([collection_id], map: "idx_metal_finish_collections_collection")
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model metal_finishes {
-  id                       String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  metal_type_id            String?                    @db.Uuid
-  name                     String
-  description              String?
-  price_modifier           Decimal?                   @default(0) @db.Decimal(5, 2)
-  active                   Boolean?                   @default(true)
-  sort_order               Int?
-  created_at               DateTime?                  @default(now()) @db.Timestamp(6)
-  updated_at               DateTime?                  @default(now()) @db.Timestamp(6)
-  metal_colors             metal_colors[]
-  metal_finish_collections metal_finish_collections[]
-  metal_types              metal_types?               @relation(fields: [metal_type_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@unique([metal_type_id, name])
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model metal_options {
-  id                   String                 @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  type                 String
-  finish               String?
-  color                String?
-  code                 String                 @unique
-  price_modifier       Decimal?               @default(0) @db.Decimal(10, 2)
-  active               Boolean?               @default(true)
-  created_at           DateTime?              @default(now()) @db.Timestamptz(6)
-  updated_at           DateTime?              @default(now()) @db.Timestamptz(6)
-  order_item_materials order_item_materials[]
-  product_materials    product_materials[]
-
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model metal_type_collections {
-  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  metal_type_id String      @db.Uuid
-  collection_id String      @db.Uuid
-  created_by    String?     @db.Uuid
-  created_at    DateTime?   @default(now()) @db.Timestamp(6)
-  collections   collections @relation(fields: [collection_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users         users?      @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  metal_types   metal_types @relation(fields: [metal_type_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@unique([metal_type_id, collection_id])
-  @@index([collection_id], map: "idx_metal_type_collections_collection")
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model metal_types {
-  id                     String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name                   String                   @unique
-  description            String?
-  price_modifier         Decimal?                 @default(0) @db.Decimal(5, 2)
-  active                 Boolean?                 @default(true)
-  sort_order             Int?
-  created_at             DateTime?                @default(now()) @db.Timestamp(6)
-  updated_at             DateTime?                @default(now()) @db.Timestamp(6)
-  metal_finishes         metal_finishes[]
-  metal_type_collections metal_type_collections[]
-
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model mood_boards {
   id                String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   board_number      String           @unique
@@ -4126,28 +3803,6 @@ model offline_sync_queue {
   @@schema("public")
 }
 
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model order_item_materials {
-  id                String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  order_item_id     String?          @db.Uuid
-  metal_option_id   String?          @db.Uuid
-  wood_option_id    String?          @db.Uuid
-  stone_option_id   String?          @db.Uuid
-  weave_option_id   String?          @db.Uuid
-  carving_option_id String?          @db.Uuid
-  additional_specs  String?
-  created_at        DateTime?        @default(now()) @db.Timestamptz(6)
-  updated_at        DateTime?        @default(now()) @db.Timestamptz(6)
-  carving_options   carving_options? @relation(fields: [carving_option_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  metal_options     metal_options?   @relation(fields: [metal_option_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  order_items       order_items?     @relation(fields: [order_item_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  stone_options     stone_options?   @relation(fields: [stone_option_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  weave_options     weave_options?   @relation(fields: [weave_option_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  wood_options      wood_options?    @relation(fields: [wood_option_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@schema("public")
-}
-
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model order_items {
@@ -4168,10 +3823,8 @@ model order_items {
   cost_tracking        cost_tracking[]
   documents            documents[]
   invoice_items        invoice_items[]
-  order_item_materials order_item_materials[]
   items                items?                 @relation(fields: [item_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   orders               orders?                @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  order_materials      order_materials[]
   packing_jobs         packing_jobs[]
   production_items     production_items[]
   qc_inspections       qc_inspections[]
@@ -4180,35 +3833,6 @@ model order_items {
   @@index([full_sku], map: "idx_order_items_full_sku")
   @@index([item_id], map: "idx_order_items_item_id_fk")
   @@index([order_id], map: "idx_order_items_order_id_fk")
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model order_materials {
-  id                  String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  order_id            String?         @db.Uuid
-  order_item_id       String?         @db.Uuid
-  fabric_option_id    String?         @db.Uuid
-  wood_option_id      String?         @db.Uuid
-  metal_option_id     String?         @db.Uuid
-  stone_option_id     String?         @db.Uuid
-  weaving_material_id String?         @db.Uuid
-  carving_style_id    String?         @db.Uuid
-  additional_specs    Json?           @default("{}")
-  custom_notes        String?
-  generated_sku       String?         @db.VarChar(255)
-  material_cost       Decimal?        @db.Decimal(10, 2)
-  labor_cost          Decimal?        @db.Decimal(10, 2)
-  total_cost          Decimal?        @db.Decimal(10, 2)
-  created_at          DateTime?       @default(now()) @db.Timestamp(6)
-  updated_at          DateTime?       @default(now()) @db.Timestamp(6)
-  created_by          String?         @db.Uuid
-  users               users?          @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  fabric_options      fabric_options? @relation(fields: [fabric_option_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  orders              orders?         @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  order_items         order_items?    @relation(fields: [order_item_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@index([created_by], map: "idx_order_materials_created_by_fk")
   @@schema("public")
 }
 
@@ -4274,7 +3898,6 @@ model orders {
   document_folders                  document_folders[]
   invoices                          invoices[]
   order_items                       order_items[]
-  order_materials                   order_materials[]
   collections                       collections?                        @relation(fields: [collection_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   customers                         customers?                          @relation(fields: [customer_id], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "orders_customer_id_fkey1")
   pandadoc_documents                pandadoc_documents[]
@@ -4899,29 +4522,6 @@ model portal_users {
   users_portal_users_updated_byTousers   users?               @relation("portal_users_updated_byTousers", fields: [updated_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@unique([customer_id, email])
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model product_materials {
-  id                String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  product_id        String?          @db.Uuid
-  metal_option_id   String?          @db.Uuid
-  wood_option_id    String?          @db.Uuid
-  stone_option_id   String?          @db.Uuid
-  weave_option_id   String?          @db.Uuid
-  carving_option_id String?          @db.Uuid
-  additional_specs  String?
-  is_default        Boolean?         @default(false)
-  created_at        DateTime?        @default(now()) @db.Timestamptz(6)
-  updated_at        DateTime?        @default(now()) @db.Timestamptz(6)
-  carving_options   carving_options? @relation(fields: [carving_option_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  metal_options     metal_options?   @relation(fields: [metal_option_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  items             items?           @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  stone_options     stone_options?   @relation(fields: [stone_option_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  weave_options     weave_options?   @relation(fields: [weave_option_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  wood_options      wood_options?    @relation(fields: [wood_option_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
   @@schema("public")
 }
 
@@ -6856,90 +6456,6 @@ model status_change_log {
   @@schema("public")
 }
 
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model stone_finish_collections {
-  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  stone_finish_id String         @db.Uuid
-  collection_id   String         @db.Uuid
-  created_by      String?        @db.Uuid
-  created_at      DateTime?      @default(now()) @db.Timestamp(6)
-  collections     collections    @relation(fields: [collection_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users           users?         @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  stone_finishes  stone_finishes @relation(fields: [stone_finish_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@unique([stone_finish_id, collection_id])
-  @@index([collection_id], map: "idx_stone_finish_collections_collection")
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model stone_finishes {
-  id                       String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  stone_type_id            String?                    @db.Uuid
-  name                     String
-  description              String?
-  price_modifier           Decimal?                   @default(0) @db.Decimal(5, 2)
-  active                   Boolean?                   @default(true)
-  sort_order               Int?
-  created_at               DateTime?                  @default(now()) @db.Timestamp(6)
-  updated_at               DateTime?                  @default(now()) @db.Timestamp(6)
-  stone_finish_collections stone_finish_collections[]
-  stone_types              stone_types?               @relation(fields: [stone_type_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@unique([stone_type_id, name])
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model stone_options {
-  id                   String                 @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  type                 String
-  finish               String?
-  code                 String                 @unique
-  price_modifier       Decimal?               @default(0) @db.Decimal(10, 2)
-  active               Boolean?               @default(true)
-  created_at           DateTime?              @default(now()) @db.Timestamptz(6)
-  updated_at           DateTime?              @default(now()) @db.Timestamptz(6)
-  order_item_materials order_item_materials[]
-  product_materials    product_materials[]
-
-  @@index([active], map: "idx_stone_options_active")
-  @@index([type], map: "idx_stone_options_type")
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model stone_type_collections {
-  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  stone_type_id String      @db.Uuid
-  collection_id String      @db.Uuid
-  created_by    String?     @db.Uuid
-  created_at    DateTime?   @default(now()) @db.Timestamp(6)
-  collections   collections @relation(fields: [collection_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users         users?      @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  stone_types   stone_types @relation(fields: [stone_type_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@unique([stone_type_id, collection_id])
-  @@index([collection_id], map: "idx_stone_type_collections_collection")
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model stone_types {
-  id                     String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name                   String                   @unique
-  description            String?
-  price_modifier         Decimal?                 @default(0) @db.Decimal(5, 2)
-  active                 Boolean?                 @default(true)
-  sort_order             Int?
-  created_at             DateTime?                @default(now()) @db.Timestamp(6)
-  updated_at             DateTime?                @default(now()) @db.Timestamp(6)
-  stone_finishes         stone_finishes[]
-  stone_type_collections stone_type_collections[]
-
-  @@schema("public")
-}
-
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model system_logs {
@@ -7400,129 +6916,6 @@ model verification_logs {
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model weave_options {
-  id                   String                 @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  material             String
-  pattern              String?
-  color                String?
-  code                 String                 @unique
-  price_modifier       Decimal?               @default(0) @db.Decimal(10, 2)
-  active               Boolean?               @default(true)
-  created_at           DateTime?              @default(now()) @db.Timestamptz(6)
-  updated_at           DateTime?              @default(now()) @db.Timestamptz(6)
-  order_item_materials order_item_materials[]
-  product_materials    product_materials[]
-
-  @@index([active], map: "idx_weave_options_active")
-  @@index([material], map: "idx_weave_options_material")
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model weaving_color_collections {
-  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  weaving_color_id String         @db.Uuid
-  collection_id    String         @db.Uuid
-  created_by       String?        @db.Uuid
-  created_at       DateTime?      @default(now()) @db.Timestamp(6)
-  collections      collections    @relation(fields: [collection_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users            users?         @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  weaving_colors   weaving_colors @relation(fields: [weaving_color_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@unique([weaving_color_id, collection_id])
-  @@index([collection_id], map: "idx_weaving_color_collections_collection")
-  @@index([created_by], map: "idx_weaving_color_collections_created_by")
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model weaving_colors {
-  id                        String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  pattern_id                String?                     @db.Uuid
-  name                      String
-  hex_code                  String?
-  price_modifier            Decimal?                    @default(0) @db.Decimal(5, 2)
-  active                    Boolean?                    @default(true)
-  sort_order                Int?
-  created_at                DateTime?                   @default(now()) @db.Timestamp(6)
-  updated_at                DateTime?                   @default(now()) @db.Timestamp(6)
-  weaving_color_collections weaving_color_collections[]
-  weaving_patterns          weaving_patterns?           @relation(fields: [pattern_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@unique([pattern_id, name])
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model weaving_material_collections {
-  id                  String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  weaving_material_id String            @db.Uuid
-  collection_id       String            @db.Uuid
-  created_by          String?           @db.Uuid
-  created_at          DateTime?         @default(now()) @db.Timestamp(6)
-  collections         collections       @relation(fields: [collection_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users               users?            @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  weaving_materials   weaving_materials @relation(fields: [weaving_material_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@unique([weaving_material_id, collection_id])
-  @@index([collection_id], map: "idx_weaving_material_collections_collection")
-  @@index([created_by], map: "idx_weaving_material_collections_created_by")
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model weaving_materials {
-  id                           String                         @id(map: "weaving_materials_pkey1") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name                         String                         @unique
-  description                  String?
-  price_modifier               Decimal?                       @default(0) @db.Decimal(5, 2)
-  active                       Boolean?                       @default(true)
-  sort_order                   Int?
-  created_at                   DateTime?                      @default(now()) @db.Timestamp(6)
-  updated_at                   DateTime?                      @default(now()) @db.Timestamp(6)
-  weaving_material_collections weaving_material_collections[]
-  weaving_patterns             weaving_patterns[]
-
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model weaving_pattern_collections {
-  id                 String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  weaving_pattern_id String           @db.Uuid
-  collection_id      String           @db.Uuid
-  created_by         String?          @db.Uuid
-  created_at         DateTime?        @default(now()) @db.Timestamp(6)
-  collections        collections      @relation(fields: [collection_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users              users?           @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  weaving_patterns   weaving_patterns @relation(fields: [weaving_pattern_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@unique([weaving_pattern_id, collection_id])
-  @@index([collection_id], map: "idx_weaving_pattern_collections_collection")
-  @@index([created_by], map: "idx_weaving_pattern_collections_created_by")
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model weaving_patterns {
-  id                          String                        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  material_id                 String?                       @db.Uuid
-  name                        String
-  description                 String?
-  price_modifier              Decimal?                      @default(0) @db.Decimal(5, 2)
-  active                      Boolean?                      @default(true)
-  sort_order                  Int?
-  created_at                  DateTime?                     @default(now()) @db.Timestamp(6)
-  updated_at                  DateTime?                     @default(now()) @db.Timestamp(6)
-  weaving_colors              weaving_colors[]
-  weaving_pattern_collections weaving_pattern_collections[]
-  weaving_materials           weaving_materials?            @relation(fields: [material_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@unique([material_id, name])
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model webhook_deliveries {
   id                String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   endpoint_id       String?            @db.Uuid
@@ -7558,93 +6951,6 @@ model webhook_endpoints {
   customers          customers?           @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([customer_id], map: "idx_webhook_endpoints_customer_id")
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model wood_finish_collections {
-  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  wood_finish_id String        @db.Uuid
-  collection_id  String        @db.Uuid
-  created_by     String?       @db.Uuid
-  created_at     DateTime?     @default(now()) @db.Timestamp(6)
-  collections    collections   @relation(fields: [collection_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users          users?        @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  wood_finishes  wood_finishes @relation(fields: [wood_finish_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@unique([wood_finish_id, collection_id])
-  @@index([collection_id], map: "idx_wood_finish_collections_collection")
-  @@index([created_by], map: "idx_wood_finish_collections_created_by")
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model wood_finishes {
-  id                      String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  wood_type_id            String?                   @db.Uuid
-  name                    String
-  description             String?
-  price_modifier          Decimal?                  @default(0) @db.Decimal(5, 2)
-  active                  Boolean?                  @default(true)
-  sort_order              Int?
-  created_at              DateTime?                 @default(now()) @db.Timestamp(6)
-  updated_at              DateTime?                 @default(now()) @db.Timestamp(6)
-  wood_finish_collections wood_finish_collections[]
-  wood_types              wood_types?               @relation(fields: [wood_type_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@unique([wood_type_id, name])
-  @@index([wood_type_id], map: "idx_wood_finishes_wood_type_id")
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model wood_options {
-  id                   String                 @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  type                 String
-  finish               String?
-  code                 String                 @unique
-  price_modifier       Decimal?               @default(0) @db.Decimal(10, 2)
-  active               Boolean?               @default(true)
-  created_at           DateTime?              @default(now()) @db.Timestamptz(6)
-  updated_at           DateTime?              @default(now()) @db.Timestamptz(6)
-  order_item_materials order_item_materials[]
-  product_materials    product_materials[]
-
-  @@index([active], map: "idx_wood_options_active")
-  @@index([type], map: "idx_wood_options_type")
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model wood_type_collections {
-  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  wood_type_id  String      @db.Uuid
-  collection_id String      @db.Uuid
-  created_by    String?     @db.Uuid
-  created_at    DateTime?   @default(now()) @db.Timestamp(6)
-  collections   collections @relation(fields: [collection_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users         users?      @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  wood_types    wood_types  @relation(fields: [wood_type_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@unique([wood_type_id, collection_id])
-  @@index([collection_id], map: "idx_wood_type_collections_collection")
-  @@index([created_by], map: "idx_wood_type_collections_created_by")
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model wood_types {
-  id                    String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name                  String                  @unique
-  description           String?
-  price_modifier        Decimal?                @default(0) @db.Decimal(5, 2)
-  active                Boolean?                @default(true)
-  sort_order            Int?
-  created_at            DateTime?               @default(now()) @db.Timestamp(6)
-  updated_at            DateTime?               @default(now()) @db.Timestamp(6)
-  wood_finishes         wood_finishes[]
-  wood_type_collections wood_type_collections[]
-
   @@schema("public")
 }
 
