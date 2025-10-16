@@ -1,14 +1,14 @@
 /* eslint-disable security/detect-object-injection */
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EntityDetailHeader } from "@/components/common/EntityDetailHeader";
-import { InfoCard } from "@/components/common/InfoCard";
+import { EditableFieldGroup, EditableField } from "@/components/common/EditableField";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { EmptyState } from "@/components/common/EmptyState";
 import { LoadingState } from "@/components/common/LoadingState";
@@ -22,12 +22,17 @@ import {
   CheckCircle,
   MessageSquare,
   AlertCircle,
+  Edit,
+  Check,
+  X,
+  DollarSign,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { MediaUploader } from "@/components/media/MediaUploader";
 import { MediaGallery } from "@/components/media/MediaGallery";
 import FurnitureDimensionsForm from "@/components/furniture/FurnitureDimensionsForm";
 import type { FurnitureType } from "@/lib/utils/dimension-validation";
+import { toast } from "@/hooks/use-toast";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -38,6 +43,25 @@ export default function PrototypeDetailPage({ params }: PageProps) {
   const router = useRouter();
   const prototypeId = resolvedParams.id;
   const [activeTab, setActiveTab] = useState("overview");
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    prototype_number: "",
+    description: "",
+    prototype_type: "",
+    designer_id: "",
+    manufacturer_id: "",
+    collection_id: "",
+    concept_id: "",
+    status: "",
+    priority: "",
+    is_client_specific: false,
+    is_catalog_candidate: false,
+    target_price_usd: 0,
+    target_cost_usd: 0,
+    tags: [] as string[],
+    notes: "",
+  });
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
@@ -58,6 +82,102 @@ export default function PrototypeDetailPage({ params }: PageProps) {
       enabled: !!prototypeId,
     }
   );
+
+  // Sync formData with fetched prototype data
+  useEffect(() => {
+    if (prototype) {
+      setFormData({
+        name: prototype.name || "",
+        prototype_number: prototype.prototype_number || "",
+        description: prototype.description || "",
+        prototype_type: prototype.prototype_type || "",
+        designer_id: prototype.designer_id || "",
+        manufacturer_id: prototype.manufacturer_id || "",
+        collection_id: prototype.collection_id || "",
+        concept_id: prototype.concept_id || "",
+        status: prototype.status || "",
+        priority: prototype.priority || "",
+        is_client_specific: prototype.is_client_specific || false,
+        is_catalog_candidate: prototype.is_catalog_candidate || false,
+        target_price_usd: prototype.target_price_usd ? Number(prototype.target_price_usd) : 0,
+        target_cost_usd: prototype.target_cost_usd ? Number(prototype.target_cost_usd) : 0,
+        tags: prototype.tags || [],
+        notes: prototype.notes || "",
+      });
+    }
+  }, [prototype]);
+
+  // Update mutation
+  const updateMutation = api.products.updatePrototype.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Prototype updated successfully",
+      });
+      setIsEditing(false);
+      // Invalidate queries for instant updates
+      utils.products.getPrototypeById.invalidate({ id: prototypeId });
+      utils.products.getAllPrototypes.invalidate();
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update prototype",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSave = () => {
+    if (!formData.name) {
+      toast({
+        title: "Error",
+        description: "Prototype name is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    updateMutation.mutate({
+      id: prototypeId,
+      name: formData.name,
+      prototype_number: formData.prototype_number || undefined,
+      description: formData.description || undefined,
+      prototype_type: formData.prototype_type || undefined,
+      status: formData.status || undefined,
+      priority: formData.priority || undefined,
+      is_client_specific: formData.is_client_specific,
+      is_catalog_candidate: formData.is_catalog_candidate,
+      target_price_usd: formData.target_price_usd || undefined,
+      target_cost_usd: formData.target_cost_usd || undefined,
+      tags: formData.tags.length > 0 ? formData.tags : undefined,
+      notes: formData.notes || undefined,
+    });
+  };
+
+  const handleCancel = () => {
+    if (prototype) {
+      setFormData({
+        name: prototype.name || "",
+        prototype_number: prototype.prototype_number || "",
+        description: prototype.description || "",
+        prototype_type: prototype.prototype_type || "",
+        designer_id: prototype.designer_id || "",
+        manufacturer_id: prototype.manufacturer_id || "",
+        collection_id: prototype.collection_id || "",
+        concept_id: prototype.concept_id || "",
+        status: prototype.status || "",
+        priority: prototype.priority || "",
+        is_client_specific: prototype.is_client_specific || false,
+        is_catalog_candidate: prototype.is_catalog_candidate || false,
+        target_price_usd: prototype.target_price_usd ? Number(prototype.target_price_usd) : 0,
+        target_cost_usd: prototype.target_cost_usd ? Number(prototype.target_cost_usd) : 0,
+        tags: prototype.tags || [],
+        notes: prototype.notes || "",
+      });
+    }
+    setIsEditing(false);
+  };
 
   const handleMediaRefresh = () => {
     // Invalidate queries for instant updates
@@ -135,17 +255,21 @@ export default function PrototypeDetailPage({ params }: PageProps) {
         title={prototype.name}
         subtitle={prototype.prototype_number ? `Prototype #${prototype.prototype_number}` : "Prototype Details"}
         metadata={[
-          { icon: Package, value: prototype.designer || "—", label: "Designer" },
-          { icon: Package, value: prototype.manufacturer || "—", label: "Manufacturer" },
-          { icon: Package, value: prototype.collection || "—", label: "Collection" },
+          { icon: Package, value: prototype.designers?.name || "—", label: "Designer" },
+          { icon: Package, value: prototype.manufacturers?.name || "—", label: "Manufacturer" },
+          { icon: Package, value: prototype.collections?.name || "—", label: "Collection" },
         ]}
         tags={prototype.tags || []}
-        actions={[
-          {
-            label: 'Edit Prototype',
-            onClick: () => router.push(`/products/prototypes/${prototypeId}/edit`),
-          },
-        ]}
+        actions={
+          isEditing
+            ? [
+                { label: 'Cancel', icon: X, onClick: handleCancel },
+                { label: 'Save Changes', icon: Check, onClick: handleSave },
+              ]
+            : [
+                { label: 'Edit Prototype', icon: Edit, onClick: () => setIsEditing(true) },
+              ]
+        }
         status={prototype.status as string}
       />
 
@@ -176,7 +300,7 @@ export default function PrototypeDetailPage({ params }: PageProps) {
             <CardTitle className="card-title-sm">Feedback</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value">{prototype.feedback_count || 0}</div>
+            <div className="stat-value">{prototype.prototype_feedback?.length || 0}</div>
             <p className="stat-label">Client feedback items</p>
           </CardContent>
         </Card>
@@ -203,42 +327,142 @@ export default function PrototypeDetailPage({ params }: PageProps) {
           </TabsTrigger>
           <TabsTrigger value="feedback" className="tabs-trigger">
             <MessageSquare className="icon-sm" aria-hidden="true" />
-            Feedback ({prototype.feedback_count || 0})
+            Feedback ({prototype.prototype_feedback?.length || 0})
           </TabsTrigger>
           <TabsTrigger value="milestones" className="tabs-trigger">
             <CheckCircle className="icon-sm" aria-hidden="true" />
-            Milestones ({prototype.milestone_count || 0})
+            Milestones ({prototype.prototype_milestones?.length || 0})
           </TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
-        <TabsContent value="overview">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <InfoCard
-              title="Prototype Information"
-              items={[
-                { label: 'Prototype Name', value: prototype.name },
-                { label: 'Prototype Number', value: prototype.prototype_number || '—' },
-                { label: 'Type', value: prototype.prototype_type || '—' },
-                { label: 'Designer', value: prototype.designer || '—' },
-                { label: 'Manufacturer', value: prototype.manufacturer || '—' },
-                { label: 'Collection', value: prototype.collection || '—' },
-                { label: 'Concept', value: prototype.concept || '—' },
-                { label: 'Status', value: <StatusBadge status={prototype.status as string} /> },
-                { label: 'Priority', value: <StatusBadge status={prototype.priority as string} /> },
-                { label: 'Description', value: prototype.description || 'No description provided' },
-              ]}
-            />
+        <TabsContent value="overview" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Prototype Information */}
+            <EditableFieldGroup title="Prototype Information" isEditing={isEditing}>
+              <EditableField
+                label="Prototype Name"
+                value={formData.name}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, name: value })}
+                required
+                icon={Package}
+              />
+              <EditableField
+                label="Prototype Number"
+                value={formData.prototype_number}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, prototype_number: value })}
+                type="text"
+              />
+              <EditableField
+                label="Type"
+                value={formData.prototype_type}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, prototype_type: value })}
+                type="text"
+              />
+              <EditableField
+                label="Description"
+                value={formData.description}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, description: value })}
+                type="textarea"
+              />
+              <EditableField
+                label="Designer"
+                value={prototype.designers?.name || "—"}
+                isEditing={false}
+                icon={Package}
+              />
+              <EditableField
+                label="Manufacturer"
+                value={prototype.manufacturers?.name || "—"}
+                isEditing={false}
+                icon={Package}
+              />
+              <EditableField
+                label="Collection"
+                value={prototype.collections?.name || "—"}
+                isEditing={false}
+                icon={Package}
+              />
+              <EditableField
+                label="Concept"
+                value={prototype.concepts?.name || "—"}
+                isEditing={false}
+                icon={Package}
+              />
+              <EditableField
+                label="Status"
+                value={formData.status}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, status: value })}
+                type="select"
+                options={[
+                  { value: 'initial_design', label: 'Initial Design' },
+                  { value: 'in_development', label: 'In Development' },
+                  { value: 'ready_for_sampling', label: 'Ready for Sampling' },
+                  { value: 'sampling', label: 'Sampling' },
+                  { value: 'review', label: 'Review' },
+                  { value: 'approved', label: 'Approved' },
+                  { value: 'on_hold', label: 'On Hold' },
+                  { value: 'cancelled', label: 'Cancelled' },
+                ]}
+              />
+              <EditableField
+                label="Priority"
+                value={formData.priority}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, priority: value })}
+                type="select"
+                options={[
+                  { value: 'low', label: 'Low' },
+                  { value: 'medium', label: 'Medium' },
+                  { value: 'high', label: 'High' },
+                  { value: 'urgent', label: 'Urgent' },
+                ]}
+              />
+            </EditableFieldGroup>
 
-            <InfoCard
-              title="Pricing & Costs"
-              items={[
-                { label: 'Target Price', value: prototype.target_price_usd ? `$${Number(prototype.target_price_usd).toFixed(2)}` : '—' },
-                { label: 'Target Cost', value: prototype.target_cost_usd ? `$${Number(prototype.target_cost_usd).toFixed(2)}` : '—' },
-                { label: 'Feedback Count', value: (prototype.feedback_count || 0).toString() },
-                { label: 'Milestone Count', value: (prototype.milestone_count || 0).toString() },
-              ]}
-            />
+            {/* Pricing & Costs */}
+            <EditableFieldGroup title="Pricing & Costs" isEditing={isEditing}>
+              <EditableField
+                label="Target Price (USD)"
+                value={String(formData.target_price_usd || 0)}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, target_price_usd: parseFloat(value) || 0 })}
+                type="number"
+                icon={DollarSign}
+              />
+              <EditableField
+                label="Target Cost (USD)"
+                value={String(formData.target_cost_usd || 0)}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, target_cost_usd: parseFloat(value) || 0 })}
+                type="number"
+                icon={DollarSign}
+              />
+              <EditableField
+                label="Feedback Count"
+                value={String(prototype.prototype_feedback?.length || 0)}
+                isEditing={false}
+                icon={MessageSquare}
+              />
+              <EditableField
+                label="Milestone Count"
+                value={String(prototype.prototype_milestones?.length || 0)}
+                isEditing={false}
+                icon={CheckCircle}
+              />
+              <EditableField
+                label="Notes"
+                value={formData.notes}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, notes: value })}
+                type="textarea"
+              />
+            </EditableFieldGroup>
           </div>
 
           {prototype.tags && prototype.tags.length > 0 && (
@@ -272,31 +496,37 @@ export default function PrototypeDetailPage({ params }: PageProps) {
             </Card>
           )}
 
-          {prototype.notes && (
-            <InfoCard
-              title="Notes"
-              items={[
-                { label: '', value: prototype.notes },
-              ]}
-            />
-          )}
-
-          <InfoCard
-            title="Metadata"
-            items={[
-              {
-                label: 'Created',
-                value: formatDistanceToNow(new Date(prototype.created_at), { addSuffix: true })
-              },
-              {
-                label: 'Last Updated',
-                value: prototype.updated_at
-                  ? formatDistanceToNow(new Date(prototype.updated_at), { addSuffix: true })
-                  : "—"
-              },
-              { label: 'Prototype ID', value: <span className="font-mono text-xs text-muted">{prototype.id}</span> },
-            ]}
-          />
+          <Card>
+            <CardHeader>
+              <CardTitle>Metadata</CardTitle>
+            </CardHeader>
+            <CardContent className="card-content-compact">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="editable-field-group">
+                  <label className="editable-field-label">Created</label>
+                  <div className="editable-field-value">
+                    <span>{formatDistanceToNow(new Date(prototype.created_at), { addSuffix: true })}</span>
+                  </div>
+                </div>
+                <div className="editable-field-group">
+                  <label className="editable-field-label">Last Updated</label>
+                  <div className="editable-field-value">
+                    <span>
+                      {prototype.updated_at
+                        ? formatDistanceToNow(new Date(prototype.updated_at), { addSuffix: true })
+                        : "—"}
+                    </span>
+                  </div>
+                </div>
+                <div className="editable-field-group md:col-span-2">
+                  <label className="editable-field-label">Prototype ID</label>
+                  <div className="editable-field-value">
+                    <span className="font-mono text-xs text-muted">{prototype.id}</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Specifications Tab */}

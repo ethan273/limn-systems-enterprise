@@ -1,14 +1,14 @@
 /* eslint-disable security/detect-object-injection */
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EntityDetailHeader } from "@/components/common/EntityDetailHeader";
-import { InfoCard } from "@/components/common/InfoCard";
+import { EditableFieldGroup, EditableField } from "@/components/common/EditableField";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { EmptyState } from "@/components/common/EmptyState";
 import { LoadingState } from "@/components/common/LoadingState";
@@ -21,12 +21,17 @@ import {
   Lightbulb,
   Tag,
   AlertCircle,
+  Edit,
+  Check,
+  X,
+  DollarSign,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { MediaUploader } from "@/components/media/MediaUploader";
 import { MediaGallery } from "@/components/media/MediaGallery";
 import FurnitureDimensionsForm from "@/components/furniture/FurnitureDimensionsForm";
 import type { FurnitureType } from "@/lib/utils/dimension-validation";
+import { toast } from "@/hooks/use-toast";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -37,6 +42,20 @@ export default function ConceptDetailPage({ params }: PageProps) {
   const router = useRouter();
   const conceptId = resolvedParams.id;
   const [activeTab, setActiveTab] = useState("overview");
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    concept_number: "",
+    description: "",
+    designer_id: "",
+    collection_id: "",
+    status: "",
+    priority: "",
+    target_price: 0,
+    estimated_cost: 0,
+    tags: [] as string[],
+    notes: "",
+  });
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
@@ -57,6 +76,89 @@ export default function ConceptDetailPage({ params }: PageProps) {
       enabled: !!conceptId,
     }
   );
+
+  // Sync formData with fetched concept data
+  useEffect(() => {
+    if (concept) {
+      setFormData({
+        name: concept.name || "",
+        concept_number: concept.concept_number || "",
+        description: concept.description || "",
+        designer_id: concept.designer_id || "",
+        collection_id: concept.collection_id || "",
+        status: concept.status || "",
+        priority: concept.priority || "",
+        target_price: concept.target_price ? Number(concept.target_price) : 0,
+        estimated_cost: concept.estimated_cost ? Number(concept.estimated_cost) : 0,
+        tags: concept.tags || [],
+        notes: concept.notes || "",
+      });
+    }
+  }, [concept]);
+
+  // Update mutation
+  const updateMutation = api.products.updateConcept.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Concept updated successfully",
+      });
+      setIsEditing(false);
+      // Invalidate queries for instant updates
+      utils.products.getConceptById.invalidate({ id: conceptId });
+      utils.products.getAllConcepts.invalidate();
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update concept",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSave = () => {
+    if (!formData.name) {
+      toast({
+        title: "Error",
+        description: "Concept name is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    updateMutation.mutate({
+      id: conceptId,
+      name: formData.name,
+      concept_number: formData.concept_number || undefined,
+      description: formData.description || undefined,
+      status: formData.status || undefined,
+      priority: formData.priority || undefined,
+      target_price: formData.target_price || undefined,
+      estimated_cost: formData.estimated_cost || undefined,
+      tags: formData.tags.length > 0 ? formData.tags : undefined,
+      notes: formData.notes || undefined,
+    });
+  };
+
+  const handleCancel = () => {
+    if (concept) {
+      setFormData({
+        name: concept.name || "",
+        concept_number: concept.concept_number || "",
+        description: concept.description || "",
+        designer_id: concept.designer_id || "",
+        collection_id: concept.collection_id || "",
+        status: concept.status || "",
+        priority: concept.priority || "",
+        target_price: concept.target_price ? Number(concept.target_price) : 0,
+        estimated_cost: concept.estimated_cost ? Number(concept.estimated_cost) : 0,
+        tags: concept.tags || [],
+        notes: concept.notes || "",
+      });
+    }
+    setIsEditing(false);
+  };
 
   const handleMediaRefresh = () => {
     // Invalidate queries for instant updates
@@ -134,16 +236,20 @@ export default function ConceptDetailPage({ params }: PageProps) {
         title={concept.name}
         subtitle={concept.concept_number ? `Concept #${concept.concept_number}` : "Concept Details"}
         metadata={[
-          { icon: Lightbulb, value: concept.designer || "—", label: "Designer" },
-          { icon: Package, value: concept.collection || "—", label: "Collection" },
+          { icon: Lightbulb, value: concept.designers?.name || "—", label: "Designer" },
+          { icon: Package, value: concept.collections?.name || "—", label: "Collection" },
         ]}
         tags={concept.tags || []}
-        actions={[
-          {
-            label: 'Edit Concept',
-            onClick: () => router.push(`/products/concepts/${conceptId}/edit`),
-          },
-        ]}
+        actions={
+          isEditing
+            ? [
+                { label: 'Cancel', icon: X, onClick: handleCancel },
+                { label: 'Save Changes', icon: Check, onClick: handleSave },
+              ]
+            : [
+                { label: 'Edit Concept', icon: Edit, onClick: () => setIsEditing(true) },
+              ]
+        }
         status={concept.status as string}
       />
 
@@ -174,7 +280,7 @@ export default function ConceptDetailPage({ params }: PageProps) {
             <CardTitle className="card-title-sm">Prototypes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value">{concept.prototypes_count || 0}</div>
+            <div className="stat-value">{concept.prototypes?.length || 0}</div>
             <p className="stat-label">Physical prototypes</p>
           </CardContent>
         </Card>
@@ -206,29 +312,107 @@ export default function ConceptDetailPage({ params }: PageProps) {
         </TabsList>
 
         {/* Overview Tab */}
-        <TabsContent value="overview">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <InfoCard
-              title="Concept Information"
-              items={[
-                { label: 'Concept Name', value: concept.name },
-                { label: 'Concept Number', value: concept.concept_number || '—' },
-                { label: 'Designer', value: concept.designer || '—' },
-                { label: 'Collection', value: concept.collection || '—' },
-                { label: 'Status', value: <StatusBadge status={concept.status as string} /> },
-                { label: 'Priority', value: <StatusBadge status={concept.priority as string} /> },
-                { label: 'Description', value: concept.description || 'No description provided' },
-              ]}
-            />
+        <TabsContent value="overview" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Concept Information */}
+            <EditableFieldGroup title="Concept Information" isEditing={isEditing}>
+              <EditableField
+                label="Concept Name"
+                value={formData.name}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, name: value })}
+                required
+                icon={Lightbulb}
+              />
+              <EditableField
+                label="Concept Number"
+                value={formData.concept_number}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, concept_number: value })}
+                type="text"
+              />
+              <EditableField
+                label="Description"
+                value={formData.description}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, description: value })}
+                type="textarea"
+              />
+              <EditableField
+                label="Designer"
+                value={concept.designers?.name || "—"}
+                isEditing={false}
+                icon={Lightbulb}
+              />
+              <EditableField
+                label="Collection"
+                value={concept.collections?.name || "—"}
+                isEditing={false}
+                icon={Package}
+              />
+              <EditableField
+                label="Status"
+                value={formData.status}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, status: value })}
+                type="select"
+                options={[
+                  { value: 'draft', label: 'Draft' },
+                  { value: 'in_review', label: 'In Review' },
+                  { value: 'approved', label: 'Approved' },
+                  { value: 'in_development', label: 'In Development' },
+                  { value: 'completed', label: 'Completed' },
+                  { value: 'on_hold', label: 'On Hold' },
+                  { value: 'cancelled', label: 'Cancelled' },
+                ]}
+              />
+              <EditableField
+                label="Priority"
+                value={formData.priority}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, priority: value })}
+                type="select"
+                options={[
+                  { value: 'low', label: 'Low' },
+                  { value: 'medium', label: 'Medium' },
+                  { value: 'high', label: 'High' },
+                  { value: 'urgent', label: 'Urgent' },
+                ]}
+              />
+            </EditableFieldGroup>
 
-            <InfoCard
-              title="Pricing & Costs"
-              items={[
-                { label: 'Target Price', value: concept.target_price ? `$${Number(concept.target_price).toFixed(2)}` : '—' },
-                { label: 'Estimated Cost', value: concept.estimated_cost ? `$${Number(concept.estimated_cost).toFixed(2)}` : '—' },
-                { label: 'Prototypes Count', value: concept.prototypes_count?.toString() || '0' },
-              ]}
-            />
+            {/* Pricing & Costs */}
+            <EditableFieldGroup title="Pricing & Costs" isEditing={isEditing}>
+              <EditableField
+                label="Target Price"
+                value={String(formData.target_price || 0)}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, target_price: parseFloat(value) || 0 })}
+                type="number"
+                icon={DollarSign}
+              />
+              <EditableField
+                label="Estimated Cost"
+                value={String(formData.estimated_cost || 0)}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, estimated_cost: parseFloat(value) || 0 })}
+                type="number"
+                icon={DollarSign}
+              />
+              <EditableField
+                label="Prototypes Count"
+                value={String(concept.prototypes?.length || 0)}
+                isEditing={false}
+                icon={Package}
+              />
+              <EditableField
+                label="Notes"
+                value={formData.notes}
+                isEditing={isEditing}
+                onChange={(value) => setFormData({ ...formData, notes: value })}
+                type="textarea"
+              />
+            </EditableFieldGroup>
           </div>
 
           {concept.tags && concept.tags.length > 0 && (
@@ -251,31 +435,37 @@ export default function ConceptDetailPage({ params }: PageProps) {
             </Card>
           )}
 
-          {concept.notes && (
-            <InfoCard
-              title="Notes"
-              items={[
-                { label: '', value: concept.notes },
-              ]}
-            />
-          )}
-
-          <InfoCard
-            title="Metadata"
-            items={[
-              {
-                label: 'Created',
-                value: formatDistanceToNow(new Date(concept.created_at), { addSuffix: true })
-              },
-              {
-                label: 'Last Updated',
-                value: concept.updated_at
-                  ? formatDistanceToNow(new Date(concept.updated_at), { addSuffix: true })
-                  : "—"
-              },
-              { label: 'Concept ID', value: <span className="font-mono text-xs text-muted">{concept.id}</span> },
-            ]}
-          />
+          <Card>
+            <CardHeader>
+              <CardTitle>Metadata</CardTitle>
+            </CardHeader>
+            <CardContent className="card-content-compact">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="editable-field-group">
+                  <label className="editable-field-label">Created</label>
+                  <div className="editable-field-value">
+                    <span>{formatDistanceToNow(new Date(concept.created_at), { addSuffix: true })}</span>
+                  </div>
+                </div>
+                <div className="editable-field-group">
+                  <label className="editable-field-label">Last Updated</label>
+                  <div className="editable-field-value">
+                    <span>
+                      {concept.updated_at
+                        ? formatDistanceToNow(new Date(concept.updated_at), { addSuffix: true })
+                        : "—"}
+                    </span>
+                  </div>
+                </div>
+                <div className="editable-field-group md:col-span-2">
+                  <label className="editable-field-label">Concept ID</label>
+                  <div className="editable-field-value">
+                    <span className="font-mono text-xs text-muted">{concept.id}</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Specifications Tab */}
@@ -368,11 +558,33 @@ export default function ConceptDetailPage({ params }: PageProps) {
               <CardTitle>Prototypes</CardTitle>
             </CardHeader>
             <CardContent className="card-content-compact">
-              <EmptyState
-                icon={Package}
-                title="No prototypes yet"
-                description="Prototypes will appear here once created from this concept."
-              />
+              {concept.prototypes && concept.prototypes.length > 0 ? (
+                <div className="space-y-3">
+                  {concept.prototypes.map((prototype: any) => (
+                    <div
+                      key={prototype.id}
+                      className="p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                      onClick={() => router.push(`/products/prototypes/${prototype.id}`)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-semibold">{prototype.name}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {prototype.prototype_number || "No number"}
+                          </p>
+                        </div>
+                        <StatusBadge status={prototype.status} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  icon={Package}
+                  title="No prototypes yet"
+                  description="Prototypes will appear here once created from this concept."
+                />
+              )}
             </CardContent>
           </Card>
         </TabsContent>
