@@ -80,3 +80,11 @@ export {
   CRMTaskIntegration,
   QuickTaskButton,
 } from './CRMTaskIntegration';
+
+// Address Management Components
+export { AddressForm } from './AddressForm';
+export type { AddressFormData } from './AddressForm';
+export { AddressList } from './AddressList';
+export type { Address } from './AddressList';
+export { AddressSelector } from './AddressSelector';
+export type { AddressOption } from './AddressSelector';
