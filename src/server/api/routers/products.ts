@@ -909,19 +909,18 @@ export const productsRouter = createTRPCRouter({
             },
           },
           prototype_documents: {
-            include: {
-              documents: {
-                select: {
-                  id: true,
-                  name: true,
-                  type: true,
-                  size: true,
-                  url: true,
-                  media_type: true,
-                  is_primary_image: true,
-                  created_at: true,
-                },
-              },
+            select: {
+              id: true,
+              title: true,
+              document_type: true,
+              file_size: true,
+              file_url: true,
+              file_name: true,
+              mime_type: true,
+              status: true,
+              uploaded_at: true,
+              version: true,
+              description: true,
             },
           },
         },
