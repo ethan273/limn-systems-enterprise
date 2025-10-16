@@ -46,7 +46,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Create Supabase client
+  // Create Supabase client with improved cookie handling
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -62,12 +62,7 @@ export async function middleware(request: NextRequest) {
           return request.cookies.get(name)?.value;
         },
         set(name: string, value: string, options: CookieOptions) {
-          // Next.js 15: request.cookies are readonly, only modify response
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          });
+          // Update response cookies
           response.cookies.set({
             name,
             value,
@@ -75,12 +70,7 @@ export async function middleware(request: NextRequest) {
           });
         },
         remove(name: string, options: CookieOptions) {
-          // Next.js 15: request.cookies are readonly, only modify response
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          });
+          // Update response cookies
           response.cookies.set({
             name,
             value: '',
@@ -94,7 +84,13 @@ export async function middleware(request: NextRequest) {
   // Check if user is authenticated
   const {
     data: { user },
+    error: authError,
   } = await supabase.auth.getUser();
+
+  // Log auth errors for debugging
+  if (authError) {
+    console.error(`❌ Middleware: Auth error for ${pathname}:`, authError.message);
+  }
 
   // If not authenticated, redirect to login
   if (!user) {
