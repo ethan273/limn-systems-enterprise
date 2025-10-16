@@ -21,13 +21,19 @@ import { PrismaClient } from '@prisma/client';
  */
 
 // Check if database is available for testing
+// Skip in CI environments unless explicitly enabled
+const IS_CI = !!process.env.CI;
 const DATABASE_URL = process.env.DATABASE_URL || process.env.TEST_DATABASE_URL;
-const isDatabaseAvailable = !!DATABASE_URL;
+const isDatabaseAvailable = DATABASE_URL && !IS_CI;
 
 // Log warning if tests will be skipped
 if (!isDatabaseAvailable) {
-  console.warn('⚠️  Database Schema Sync tests skipped: DATABASE_URL not available');
-  console.warn('   To enable these tests in CI, set TEST_DATABASE_URL secret in GitHub Actions');
+  if (IS_CI) {
+    console.warn('⚠️  Database Schema Sync tests skipped in CI environment');
+    console.warn('   These tests require a live database connection');
+  } else {
+    console.warn('⚠️  Database Schema Sync tests skipped: DATABASE_URL not available');
+  }
 }
 
 // Skip entire suite if no database available (e.g., in CI without TEST_DATABASE_URL)
