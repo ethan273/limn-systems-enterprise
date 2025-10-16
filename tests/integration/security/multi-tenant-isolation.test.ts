@@ -22,9 +22,25 @@ import { PrismaClient } from '@prisma/client';
  * 2. Data isolation by client_id/company_id
  * 3. Role-based access control (RBAC)
  * 4. Row-level security (RLS) enforcement
+ *
+ * Environment Requirements:
+ * - Requires DATABASE_URL or TEST_DATABASE_URL to be set
+ * - Tests will be skipped in CI if no database is available
+ * - To enable in CI, configure TEST_DATABASE_URL secret in GitHub Actions
  */
 
-describe('Multi-Tenant Isolation Security Tests', () => {
+// Check if database is available for testing
+const DATABASE_URL = process.env.DATABASE_URL || process.env.TEST_DATABASE_URL;
+const isDatabaseAvailable = !!DATABASE_URL;
+
+// Log warning if tests will be skipped
+if (!isDatabaseAvailable) {
+  console.warn('⚠️  Multi-Tenant Isolation tests skipped: DATABASE_URL not available');
+  console.warn('   To enable these tests in CI, set TEST_DATABASE_URL secret in GitHub Actions');
+}
+
+// Skip entire suite if no database available (e.g., in CI without TEST_DATABASE_URL)
+describe.skipIf(!isDatabaseAvailable)('Multi-Tenant Isolation Security Tests', () => {
   let prisma: PrismaClient;
 
   beforeAll(() => {
