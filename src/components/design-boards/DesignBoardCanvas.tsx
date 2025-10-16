@@ -686,15 +686,15 @@ export function DesignBoardCanvas({ boardId, userId, board, onCanvasReady }: Des
   );
 
   return (
-    <div ref={containerRef} className="w-full h-full bg-white relative">
+    <div ref={containerRef} className="w-full h-full bg-white dark:bg-gray-900 relative">
       {/* Grid overlay */}
       {showGrid && gridEnabled && (
         <div
-          className="absolute inset-0 pointer-events-none opacity-20 dark:opacity-10"
+          className="absolute inset-0 pointer-events-none"
           style={{
             backgroundImage: `
-              linear-gradient(to right, #ccc 1px, transparent 1px),
-              linear-gradient(to bottom, #ccc 1px, transparent 1px)
+              linear-gradient(to right, rgba(204, 204, 204, 0.3) 1px, transparent 1px),
+              linear-gradient(to bottom, rgba(204, 204, 204, 0.3) 1px, transparent 1px)
             `,
             backgroundSize: `${gridSize}px ${gridSize}px`,
           }}
