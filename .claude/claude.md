@@ -191,6 +191,7 @@ Before claiming **ANY** task is complete:
 - [ ] Does it work? (tested manually or automatically)
 - [ ] Does it build? (no errors)
 - [ ] Does it type-check? (no errors)
+- [ ] Does schema validate? (`npm run schema:validate` passes)
 - [ ] Is it secure? (no secrets, no vulnerabilities)
 - [ ] Is it documented? (updated relevant docs)
 - [ ] Can it be verified? (repeatable test)
