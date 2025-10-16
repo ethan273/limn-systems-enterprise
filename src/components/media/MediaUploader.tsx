@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { api } from "@/lib/api/client";
 
 interface MediaFile {
   file: File;
@@ -50,6 +51,9 @@ export function MediaUploader({
 }: MediaUploaderProps) {
   const [files, setFiles] = useState<MediaFile[]>([]);
   const [uploading, setUploading] = useState(false);
+
+  // tRPC mutation for recording upload metadata
+  const recordUploadMutation = api.documents.recordUpload.useMutation();
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const newFiles: MediaFile[] = acceptedFiles.map((file) => ({
@@ -147,30 +151,26 @@ export function MediaUploader({
           throw new Error(uploadResult.error || 'Upload failed');
         }
 
-        // Record upload metadata in database
-        await fetch('/api/trpc/documents.recordUpload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            entityType,
-            entityId,
-            fileName: fileData.file.name,
-            originalName: fileData.file.name,
-            fileSize: fileData.file.size,
-            fileType: fileData.file.type,
-            storageType: uploadResult.storageType,
-            url: uploadResult.publicUrl,
-            downloadUrl: uploadResult.publicUrl,
-            googleDriveId: uploadResult.fileId,
-            googleDriveUrl: uploadResult.publicUrl,
-            storageBucket: uploadResult.storageType === 'supabase' ? 'design-documents' : undefined,
-            mediaType: fileData.media_type,
-            useForPackaging: fileData.use_for_packaging,
-            useForLabeling: fileData.use_for_labeling,
-            useForMarketing: fileData.use_for_marketing,
-            isPrimaryImage: fileData.is_primary_image,
-            displayOrder: 0,
-          }),
+        // Record upload metadata in database using tRPC
+        await recordUploadMutation.mutateAsync({
+          entityType,
+          entityId,
+          fileName: fileData.file.name,
+          originalName: fileData.file.name,
+          fileSize: fileData.file.size,
+          fileType: fileData.file.type,
+          storageType: uploadResult.storageType,
+          url: uploadResult.publicUrl,
+          downloadUrl: uploadResult.publicUrl,
+          googleDriveId: uploadResult.fileId,
+          googleDriveUrl: uploadResult.publicUrl,
+          storageBucket: uploadResult.storageType === 'supabase' ? 'design-documents' : undefined,
+          mediaType: fileData.media_type,
+          useForPackaging: fileData.use_for_packaging ?? false,
+          useForLabeling: fileData.use_for_labeling ?? false,
+          useForMarketing: fileData.use_for_marketing ?? false,
+          isPrimaryImage: fileData.is_primary_image ?? false,
+          displayOrder: 0,
         });
       }
 
