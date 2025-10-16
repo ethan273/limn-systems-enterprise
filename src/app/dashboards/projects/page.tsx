@@ -33,6 +33,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { getFullName } from '@/lib/utils/name-utils';
 
 // Dynamic route configuration
 export const dynamic = 'force-dynamic';
@@ -335,7 +336,7 @@ export default function ProjectDashboardPage() {
                       <span className="text-sm font-bold text-primary">#{idx + 1}</span>
                     </div>
                     <div className="flex-1">
-                      <p className="font-medium text-foreground">{item.customer.name}</p>
+                      <p className="font-medium text-foreground">{getFullName(item.customer)}</p>
                       <div className="progress-bar-wrapper mt-1">
                         <div
                           className="progress-bar"

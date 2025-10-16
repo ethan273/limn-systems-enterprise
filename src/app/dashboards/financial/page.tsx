@@ -23,6 +23,7 @@ import {
   Lightbulb,
   RefreshCw,
 } from 'lucide-react';
+import { getFullName } from '@/lib/utils/name-utils';
 import {
   AreaChart,
   Area,
@@ -391,7 +392,7 @@ export default function FinancialDashboardPage() {
                       {index + 1}
                     </div>
                     <div className="customer-info">
-                      <p className="customer-name">{customer.name}</p>
+                      <p className="customer-name">{getFullName(customer)}</p>
                     </div>
                   </div>
                   <div className="customer-revenue">

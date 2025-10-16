@@ -4,6 +4,7 @@ import { createTRPCRouter, publicProcedure } from '../trpc/init';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { generateProjectSku } from '@/lib/utils/project-sku-generator';
 import { generateFullSku } from '@/lib/utils/full-sku-generator';
+import { createFullName } from '@/lib/utils/name-utils';
 
 // Order Schema
 const createOrderSchema = z.object({
@@ -138,10 +139,11 @@ export const ordersRouter = createTRPCRouter({
             throw new Error('Customer not found');
           }
 
+          const customerName = createFullName(customer.first_name || '', customer.last_name);
           const newProject = await ctx.db.projects.create({
             data: {
               customer_id: input.customer_id,
-              name: `${customer.name} - New Project`,
+              name: `${customerName} - New Project`,
               status: 'active',
               description: 'Auto-created project for new order',
               user_id: ctx.session?.user?.id || input.customer_id,

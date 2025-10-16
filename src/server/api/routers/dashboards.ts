@@ -4,6 +4,7 @@ import { z } from 'zod';
 // where TypeScript guarantees type safety. The security rule is overly cautious for typed objects.
 
 import { createTRPCRouter, publicProcedure } from '../trpc/init';
+import { createFullName } from '@/lib/utils/name-utils';
 
 /**
  * Dashboards Router - Provides analytics and aggregated data for all dashboard pages
@@ -1518,7 +1519,9 @@ export const dashboardsRouter = createTRPCRouter({
             const customer = customers.find((c: any) => c.id === customerId);
             // Better customer display: name > company_name > email > truncated ID
             let displayName = 'Unknown Customer';
-            if (customer?.name) {
+            if (customer?.first_name || customer?.last_name) {
+              displayName = createFullName(customer.first_name || '', customer.last_name);
+            } else if (customer?.name) {
               displayName = customer.name;
             } else if (customer?.company_name) {
               displayName = customer.company_name;
