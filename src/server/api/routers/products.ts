@@ -376,6 +376,7 @@ export const productsRouter = createTRPCRouter({
         collection_ids: z.array(z.string()).optional(),
         supplier: z.string().optional(),
         color_sku: z.string().optional(),
+        swatch_url: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -387,6 +388,7 @@ export const productsRouter = createTRPCRouter({
           where: { id: parent_material_id },
           include: {
             material_collections: true,
+            material_categories: true,
           },
         });
 
@@ -394,11 +396,38 @@ export const productsRouter = createTRPCRouter({
           throw new Error('Parent material not found');
         }
 
-        // Validate collection inheritance
+        // Determine material types for inheritance rules
+        const parentCategoryName = parent.material_categories?.name?.toLowerCase() || '';
+        const currentCategoryName = materialData.type?.toLowerCase() || '';
+
+        const parentIsFabric = parentCategoryName.includes('fabric');
+        const currentIsFabric = currentCategoryName.includes('fabric') || parentIsFabric;
+
+        const isFabricBrand = parentIsFabric && parent.hierarchy_level === 1;
+        const isFabricCollection = currentIsFabric && input.hierarchy_level === 2 && parentIsFabric;
+        const isFabricColor = currentIsFabric && input.hierarchy_level === 3 && parentIsFabric;
+
+        // Validate collection inheritance based on material type
         if (collection_ids && collection_ids.length > 0) {
           const parentCollectionIds = parent.material_collections.map((mc: { collection_id: string }) => mc.collection_id);
 
-          if (parentCollectionIds.length > 0) {
+          // Fabric Collections (children of Fabric Brands) can have different collections
+          if (isFabricBrand && isFabricCollection) {
+            // No enforcement - fabric collections can be independent from brands
+            // This allows brands to be available everywhere but specific collections to be limited
+            console.log(`[createMaterial] Fabric Collection inheriting from Fabric Brand - allowing independent collection selection`);
+          }
+          // Fabric Colors must inherit from Fabric Collection
+          else if (isFabricCollection && isFabricColor) {
+            if (parentCollectionIds.length > 0) {
+              const invalidIds = collection_ids.filter((id: string) => !parentCollectionIds.includes(id));
+              if (invalidIds.length > 0) {
+                throw new Error('Fabric colors must inherit collection availability from their fabric collection parent');
+              }
+            }
+          }
+          // All other materials: children must inherit parent restrictions
+          else if (parentCollectionIds.length > 0) {
             const invalidIds = collection_ids.filter((id: string) => !parentCollectionIds.includes(id));
             if (invalidIds.length > 0) {
               throw new Error('Child material cannot be available in collections that parent is not available in');
@@ -458,6 +487,7 @@ export const productsRouter = createTRPCRouter({
         cost_per_unit: z.number().optional(),
         unit_of_measure: z.string().optional(),
         collection_ids: z.array(z.string()).optional(),
+        swatch_url: z.string().optional(),
         // Note: parent_material_id is immutable, not included
       })
     )
@@ -467,9 +497,11 @@ export const productsRouter = createTRPCRouter({
       const existingMaterial = await (ctx.db as any).materials.findUnique({
         where: { id },
         include: {
+          material_categories: true,
           materials: {
             include: {
               material_collections: true,
+              material_categories: true,
             },
           },
         },
@@ -479,16 +511,44 @@ export const productsRouter = createTRPCRouter({
         throw new Error('Material not found');
       }
 
-      // Validate collection inheritance
+      // Validate collection inheritance with fabric-specific rules
       if (collection_ids && existingMaterial.materials) {
-        const parentCollectionIds = existingMaterial.materials.material_collections.map(
+        const parent = existingMaterial.materials;
+        const parentCollectionIds = parent.material_collections.map(
           (mc: { collection_id: string }) => mc.collection_id
         );
 
+        // Determine material types for inheritance rules
+        const parentCategoryName = parent.material_categories?.name?.toLowerCase() || '';
+        const currentCategoryName = existingMaterial.material_categories?.name?.toLowerCase() || '';
+
+        const parentIsFabric = parentCategoryName.includes('fabric');
+        const currentIsFabric = currentCategoryName.includes('fabric') || parentIsFabric;
+
+        const isFabricBrand = parentIsFabric && parent.hierarchy_level === 1;
+        const isFabricCollection = currentIsFabric && existingMaterial.hierarchy_level === 2 && parentIsFabric;
+        const isFabricColor = currentIsFabric && existingMaterial.hierarchy_level === 3 && parentIsFabric;
+
+        // Validate collection inheritance based on material type
         if (parentCollectionIds.length > 0 && collection_ids.length > 0) {
-          const invalidIds = collection_ids.filter((fcId: string) => !parentCollectionIds.includes(fcId));
-          if (invalidIds.length > 0) {
-            throw new Error('Material cannot be available in collections that parent is not available in');
+          // Fabric Collections (children of Fabric Brands) can have different collections
+          if (isFabricBrand && isFabricCollection) {
+            // No enforcement - fabric collections can be independent from brands
+            console.log(`[updateMaterial] Fabric Collection updating - allowing independent collection selection`);
+          }
+          // Fabric Colors must inherit from Fabric Collection
+          else if (isFabricCollection && isFabricColor) {
+            const invalidIds = collection_ids.filter((id: string) => !parentCollectionIds.includes(id));
+            if (invalidIds.length > 0) {
+              throw new Error('Fabric colors must inherit collection availability from their fabric collection parent');
+            }
+          }
+          // All other materials: children must inherit parent restrictions
+          else {
+            const invalidIds = collection_ids.filter((id: string) => !parentCollectionIds.includes(id));
+            if (invalidIds.length > 0) {
+              throw new Error('Child material cannot be available in collections that parent is not available in');
+            }
           }
         }
       }

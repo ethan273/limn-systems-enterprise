@@ -137,20 +137,20 @@ export function OrderCreationDialog({
   // Get furniture collections for filtering
   const { data: _furnitureCollections } = api.products.getAllCollections.useQuery();
 
-  // Get materials filtered by furniture collection (hierarchical, uses parent_material_id)
+  // Get materials filtered by collection (hierarchical, uses parent_material_id)
   const { data: filteredMaterials } = api.products.getMaterialsByCollection.useQuery(
-    { collectionId: formData.furniture_collection_id },
-    { enabled: !!formData.furniture_collection_id }
+    { collectionId: formData.collection_id },
+    { enabled: !!formData.collection_id }
   );
 
-  // Get ALL materials if no furniture collection selected (fallback)
+  // Get ALL materials if no collection selected (fallback)
   const { data: allMaterials } = api.products.getAllMaterials.useQuery(
     undefined,
-    { enabled: !formData.furniture_collection_id }
+    { enabled: !formData.collection_id }
   );
 
-  // Use filtered materials when furniture collection selected, otherwise all materials
-  const availableMaterials = formData.furniture_collection_id ? filteredMaterials : allMaterials;
+  // Use filtered materials when collection selected, otherwise all materials
+  const availableMaterials = formData.collection_id ? filteredMaterials : allMaterials;
 
   // Debug: Log materials data to understand structure
   if (availableMaterials && availableMaterials.length > 0) {

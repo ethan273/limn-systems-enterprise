@@ -3872,6 +3872,7 @@ model materials {
   hierarchy_level                Int?
   hierarchy_path                 String?
   code                           String?                          @unique @db.VarChar
+  swatch_url                     String?
   material_collections           material_collections[]
   material_furniture_collections material_furniture_collections[]
   material_categories            material_categories?             @relation(fields: [category_id], references: [id], onDelete: Cascade, onUpdate: NoAction)

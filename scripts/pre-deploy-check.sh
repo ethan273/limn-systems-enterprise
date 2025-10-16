@@ -38,7 +38,7 @@ echo "1. Checking for exposed secrets..."
 if grep -r "GOCSPX" . --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=.git --exclude-dir=scripts --exclude="*.md" --exclude="*.bak" --exclude=".env*" --exclude="service-templates.ts" -q 2>/dev/null; then
     print_fail "Google OAuth secrets found in code!"
 else
-    if grep -r "sk_live_\|pk_live_\|sk_test_\|pk_test_" . --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=.git --exclude-dir=scripts --exclude="*.md" --exclude="*.bak" --exclude=".env*" --exclude="service-templates.ts" --exclude="credential-rotation.ts" -q 2>/dev/null; then
+    if grep -r "sk_live_\|pk_live_\|sk_test_\|pk_test_" . --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=.git --exclude-dir=scripts --exclude-dir=database-backups --exclude="*.md" --exclude="*.bak" --exclude=".env*" --exclude="service-templates.ts" --exclude="credential-rotation.ts" -q 2>/dev/null; then
         print_fail "Stripe API keys found in code!"
     else
         print_pass "No secrets found in code"

@@ -1825,6 +1825,11 @@ export class DatabaseClient {
       .from('tasks')
       .select('*', { count: 'exact' });
 
+    // Filter out archived tasks by default (unless explicitly requested)
+    if (filters.includeArchived !== true) {
+      query = query.is('archived_at', null);
+    }
+
     // Apply filters
     if (filters.status) {
       query = query.eq('status', filters.status);
@@ -1907,6 +1912,9 @@ export class DatabaseClient {
     let query = getSupabaseAdmin()
       .from('tasks')
       .select('*', { count: 'exact' });
+
+    // Filter out archived tasks by default
+    query = query.is('archived_at', null);
 
     // Build OR conditions for tasks assigned to user, created by user, or watched by user
     const conditions = [
@@ -2501,6 +2509,11 @@ export class DatabaseClient {
       watchers: raw.watchers || [],
       depends_on: raw.depends_on || [],
       blocks: raw.blocks || [],
+      reporter_id: raw.reporter_id,
+      resolution: raw.resolution,
+      archived_at: raw.archived_at ? new Date(raw.archived_at) : null,
+      archived_by: raw.archived_by,
+      last_activity_at: raw.last_activity_at ? new Date(raw.last_activity_at) : null,
     };
   }
 

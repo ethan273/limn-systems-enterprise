@@ -3,21 +3,20 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  try {
-    console.log('Adding swatch_url column to fabric_colors table...');
-
-    await prisma.$executeRaw`
-      ALTER TABLE public.fabric_colors
-      ADD COLUMN IF NOT EXISTS swatch_url TEXT;
-    `;
-
-    console.log('✅ Successfully added swatch_url column to fabric_colors table');
-  } catch (error) {
-    console.error('Error adding column:', error);
-    throw error;
-  } finally {
-    await prisma.$disconnect();
-  }
+  // Add swatch_url column using raw SQL
+  await prisma.$executeRawUnsafe(`
+    ALTER TABLE "public"."materials" 
+    ADD COLUMN IF NOT EXISTS "swatch_url" TEXT;
+  `);
+  
+  console.log('✅ Added swatch_url column to materials table');
 }
 
-main();
+main()
+  .catch((e) => {
+    console.error('❌ Error:', e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

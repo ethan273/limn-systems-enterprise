@@ -4,6 +4,7 @@ import { useState, useMemo, useCallback } from "react";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { RefreshCw, Plus, Palette, TreePine, Hammer, Mountain, Package, Zap, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -29,7 +30,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-// Material hierarchy configuration
+// Material hierarchy configuration - matching old implementation exactly
 const materialCategories = [
   {
     key: "fabric",
@@ -37,44 +38,9 @@ const materialCategories = [
     icon: Palette,
     description: "Brand → Collection → Color",
     hierarchy: [
-      {
-        key: "fabric_brands",
-        label: "Brands",
-        parent: null,
-        hasColors: false,
-        procedures: {
-          get: "getFabricBrands",
-          create: "createFabricBrand",
-          update: "updateFabricBrand",
-          delete: "deleteFabricBrand",
-        },
-      },
-      {
-        key: "fabric_collections",
-        label: "Collections",
-        parent: "brand_id",
-        parentLabel: "Brand",
-        hasColors: false,
-        procedures: {
-          get: "getFabricCollections",
-          create: "createFabricCollection",
-          update: "updateFabricCollection",
-          delete: "deleteFabricCollection",
-        },
-      },
-      {
-        key: "fabric_colors",
-        label: "Colors",
-        parent: "collection_id",
-        parentLabel: "Collection",
-        hasColors: true,
-        procedures: {
-          get: "getFabricColors",
-          create: "createFabricColor",
-          update: "updateFabricColor",
-          delete: "deleteFabricColor",
-        },
-      },
+      { key: 1, label: "Brands", type: "brand", hasSKU: false, hasSwatch: false },
+      { key: 2, label: "Collections", type: "collection", hasSKU: false, hasSwatch: false },
+      { key: 3, label: "Colors", type: "color", hasSKU: true, skuLabel: "Fabric SKU", hasSwatch: true },
     ],
   },
   {
@@ -83,31 +49,8 @@ const materialCategories = [
     icon: TreePine,
     description: "Type → Finish",
     hierarchy: [
-      {
-        key: "wood_types",
-        label: "Types",
-        parent: null,
-        hasColors: false,
-        procedures: {
-          get: "getWoodTypes",
-          create: "createWoodType",
-          update: "updateWoodType",
-          delete: "deleteWoodType",
-        },
-      },
-      {
-        key: "wood_finishes",
-        label: "Finishes",
-        parent: "wood_type_id",
-        parentLabel: "Wood Type",
-        hasColors: true, // Changed to enable swatch upload
-        procedures: {
-          get: "getWoodFinishes",
-          create: "createWoodFinish",
-          update: "updateWoodFinish",
-          delete: "deleteWoodFinish",
-        },
-      },
+      { key: 1, label: "Types", type: "type", hasSKU: false, hasSwatch: false },
+      { key: 2, label: "Finishes", type: "finish", hasSKU: true, skuLabel: "Wood SKU", hasSwatch: true },
     ],
   },
   {
@@ -116,44 +59,9 @@ const materialCategories = [
     icon: Hammer,
     description: "Type → Finish → Color",
     hierarchy: [
-      {
-        key: "metal_types",
-        label: "Types",
-        parent: null,
-        hasColors: false,
-        procedures: {
-          get: "getMetalTypes",
-          create: "createMetalType",
-          update: "updateMetalType",
-          delete: "deleteMetalType",
-        },
-      },
-      {
-        key: "metal_finishes",
-        label: "Finishes",
-        parent: "metal_type_id",
-        parentLabel: "Metal Type",
-        hasColors: false,
-        procedures: {
-          get: "getMetalFinishes",
-          create: "createMetalFinish",
-          update: "updateMetalFinish",
-          delete: "deleteMetalFinish",
-        },
-      },
-      {
-        key: "metal_colors",
-        label: "Colors",
-        parent: "metal_finish_id",
-        parentLabel: "Metal Finish",
-        hasColors: true,
-        procedures: {
-          get: "getMetalColors",
-          create: "createMetalColor",
-          update: "updateMetalColor",
-          delete: "deleteMetalColor",
-        },
-      },
+      { key: 1, label: "Types", type: "type", hasSKU: false, hasSwatch: false },
+      { key: 2, label: "Finishes", type: "finish", hasSKU: false, hasSwatch: false },
+      { key: 3, label: "Colors", type: "color", hasSKU: true, skuLabel: "Metal SKU", hasSwatch: true },
     ],
   },
   {
@@ -162,31 +70,8 @@ const materialCategories = [
     icon: Mountain,
     description: "Type → Finish",
     hierarchy: [
-      {
-        key: "stone_types",
-        label: "Types",
-        parent: null,
-        hasColors: false,
-        procedures: {
-          get: "getStoneTypes",
-          create: "createStoneType",
-          update: "updateStoneType",
-          delete: "deleteStoneType",
-        },
-      },
-      {
-        key: "stone_finishes",
-        label: "Finishes",
-        parent: "stone_type_id",
-        parentLabel: "Stone Type",
-        hasColors: true, // Changed to enable swatch upload
-        procedures: {
-          get: "getStoneFinishes",
-          create: "createStoneFinish",
-          update: "updateStoneFinish",
-          delete: "deleteStoneFinish",
-        },
-      },
+      { key: 1, label: "Types", type: "type", hasSKU: false, hasSwatch: false },
+      { key: 2, label: "Finishes", type: "finish", hasSKU: true, skuLabel: "Stone SKU", hasSwatch: true },
     ],
   },
   {
@@ -195,18 +80,7 @@ const materialCategories = [
     icon: Package,
     description: "Styles Only",
     hierarchy: [
-      {
-        key: "weaving_styles",
-        label: "Styles",
-        parent: null,
-        hasColors: true, // Changed to enable swatch upload
-        procedures: {
-          get: "getWeavingStyles",
-          create: "createWeavingStyle",
-          update: "updateWeavingStyle",
-          delete: "deleteWeavingStyle",
-        },
-      },
+      { key: 1, label: "Styles", type: "style", hasSKU: true, skuLabel: "Weave SKU", hasSwatch: true },
     ],
   },
   {
@@ -215,18 +89,7 @@ const materialCategories = [
     icon: Zap,
     description: "Styles Only",
     hierarchy: [
-      {
-        key: "carving_styles",
-        label: "Styles",
-        parent: null,
-        hasColors: true, // Changed to enable swatch upload
-        procedures: {
-          get: "getCarvingStyles",
-          create: "createCarvingStyle",
-          update: "updateCarvingStyle",
-          delete: "deleteCarvingStyle",
-        },
-      },
+      { key: 1, label: "Styles", type: "style", hasSKU: true, skuLabel: "Carving SKU", hasSwatch: true },
     ],
   },
 ];
@@ -235,201 +98,109 @@ type MaterialItem = Record<string, any>;
 
 export default function MaterialsPage() {
   const [activeTab, setActiveTab] = useState("fabric");
-  const [activeSubTab, setActiveSubTab] = useState("fabric_brands");
+  const [activeHierarchyLevel, setActiveHierarchyLevel] = useState(1);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MaterialItem | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<MaterialItem | null>(null);
 
   const activeCategory = materialCategories.find((cat) => cat.key === activeTab);
-  const activeHierarchy = activeCategory?.hierarchy.find((h) => h.key === activeSubTab);
+  const activeHierarchy = activeCategory?.hierarchy.find((h) => h.key === activeHierarchyLevel);
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
 
-  // Dynamic API queries based on active hierarchy
-  const fabricBrands = api.materialTypes.getFabricBrands.useQuery(undefined, {
-    enabled: activeSubTab === "fabric_brands",
-  });
-  const fabricCollections = api.materialTypes.getFabricCollections.useQuery(undefined, {
-    enabled: activeSubTab === "fabric_collections",
-  });
-  const fabricColors = api.materialTypes.getFabricColors.useQuery(undefined, {
-    enabled: activeSubTab === "fabric_colors",
-  });
-  const woodTypes = api.materialTypes.getWoodTypes.useQuery(undefined, {
-    enabled: activeSubTab === "wood_types",
-  });
-  const woodFinishes = api.materialTypes.getWoodFinishes.useQuery(undefined, {
-    enabled: activeSubTab === "wood_finishes",
-  });
-  const metalTypes = api.materialTypes.getMetalTypes.useQuery(undefined, {
-    enabled: activeSubTab === "metal_types",
-  });
-  const metalFinishes = api.materialTypes.getMetalFinishes.useQuery(undefined, {
-    enabled: activeSubTab === "metal_finishes",
-  });
-  const metalColors = api.materialTypes.getMetalColors.useQuery(undefined, {
-    enabled: activeSubTab === "metal_colors",
-  });
-  const stoneTypes = api.materialTypes.getStoneTypes.useQuery(undefined, {
-    enabled: activeSubTab === "stone_types",
-  });
-  const stoneFinishes = api.materialTypes.getStoneFinishes.useQuery(undefined, {
-    enabled: activeSubTab === "stone_finishes",
-  });
-  const weavingStyles = api.materialTypes.getWeavingStyles.useQuery(undefined, {
-    enabled: activeSubTab === "weaving_styles",
-  });
-  const carvingStyles = api.materialTypes.getCarvingStyles.useQuery(undefined, {
-    enabled: activeSubTab === "carving_styles",
-  });
+  // Queries
+  const { data: categories } = api.products.getMaterialCategories.useQuery();
+  const { data: allCollections } = api.products.getAllCollections.useQuery();
+  const { data: allMaterials, isLoading } = api.products.getAllMaterials.useQuery();
 
-  // Get the appropriate data based on active sub-tab
-  const getCurrentData = () => {
-    switch (activeSubTab) {
-      case "fabric_brands": return fabricBrands.data || [];
-      case "fabric_collections": return fabricCollections.data || [];
-      case "fabric_colors": return fabricColors.data || [];
-      case "wood_types": return woodTypes.data || [];
-      case "wood_finishes": return woodFinishes.data || [];
-      case "metal_types": return metalTypes.data || [];
-      case "metal_finishes": return metalFinishes.data || [];
-      case "metal_colors": return metalColors.data || [];
-      case "stone_types": return stoneTypes.data || [];
-      case "stone_finishes": return stoneFinishes.data || [];
-      case "weaving_styles": return weavingStyles.data || [];
-      case "carving_styles": return carvingStyles.data || [];
-      default: return [];
-    }
-  };
+  // Get category ID for current tab
+  const currentCategoryId = useMemo(() => {
+    const categoryName = activeTab.charAt(0).toUpperCase() + activeTab.slice(1);
+    return categories?.find((c: any) =>
+      c.name.toLowerCase().includes(activeTab.toLowerCase())
+    )?.id;
+  }, [categories, activeTab]);
 
-  const currentData = getCurrentData();
-  const isLoading =
-    fabricBrands.isLoading ||
-    fabricCollections.isLoading ||
-    fabricColors.isLoading ||
-    woodTypes.isLoading ||
-    woodFinishes.isLoading ||
-    metalTypes.isLoading ||
-    metalFinishes.isLoading ||
-    metalColors.isLoading ||
-    stoneTypes.isLoading ||
-    stoneFinishes.isLoading ||
-    weavingStyles.isLoading ||
-    carvingStyles.isLoading;
+  // Filter materials by category and hierarchy level
+  const currentData = useMemo(() => {
+    if (!allMaterials || !currentCategoryId) return [];
+
+    return allMaterials.filter((m: any) =>
+      m.category_id === currentCategoryId &&
+      m.hierarchy_level === activeHierarchyLevel &&
+      m.active !== false
+    );
+  }, [allMaterials, currentCategoryId, activeHierarchyLevel]);
 
   // Get parent options for child items
-  const getParentOptions = () => {
-    if (!activeHierarchy?.parent) return [];
+  const parentOptions = useMemo(() => {
+    if (!allMaterials || !currentCategoryId || activeHierarchyLevel === 1) return [];
 
-    if (activeSubTab === "fabric_collections") return fabricBrands.data || [];
-    if (activeSubTab === "fabric_colors") return fabricCollections.data || [];
-    if (activeSubTab === "wood_finishes") return woodTypes.data || [];
-    if (activeSubTab === "metal_finishes") return metalTypes.data || [];
-    if (activeSubTab === "metal_colors") return metalFinishes.data || [];
-    if (activeSubTab === "stone_finishes") return stoneTypes.data || [];
-
-    return [];
-  };
-
-  const parentOptions = getParentOptions();
+    return allMaterials.filter((m: any) =>
+      m.category_id === currentCategoryId &&
+      m.hierarchy_level === (activeHierarchyLevel - 1) &&
+      m.active !== false
+    );
+  }, [allMaterials, currentCategoryId, activeHierarchyLevel]);
 
   // Get parent name for display
   const getParentName = useCallback((item: MaterialItem) => {
-    if (!activeHierarchy?.parent) return "";
+    if (!item.materials) return "";
 
-    if (activeSubTab === "fabric_collections") return item.fabric_brands?.name || "";
-    if (activeSubTab === "fabric_colors") {
-      const brand = item.fabric_collections?.fabric_brands?.name;
-      const collection = item.fabric_collections?.name;
-      return brand && collection ? `${brand} > ${collection}` : "";
+    const parent = item.materials;
+    if (parent.hierarchy_level === 1) {
+      return parent.name;
+    } else if (parent.materials) {
+      return `${parent.materials.name} > ${parent.name}`;
     }
-    if (activeSubTab === "wood_finishes") return item.wood_types?.name || "";
-    if (activeSubTab === "metal_finishes") return item.metal_types?.name || "";
-    if (activeSubTab === "metal_colors") {
-      const type = item.metal_finishes?.metal_types?.name;
-      const finish = item.metal_finishes?.name;
-      return type && finish ? `${type} > ${finish}` : "";
-    }
-    if (activeSubTab === "stone_finishes") return item.stone_types?.name || "";
-
-    return "";
-  }, [activeSubTab, activeHierarchy]);
-
-  // Get SKU label based on material type
-  const getSkuLabel = useCallback(() => {
-    switch (activeSubTab) {
-      case "fabric_colors": return "Fabric SKU";
-      case "wood_finishes": return "Finish SKU";
-      case "metal_colors": return "Color SKU";
-      case "stone_finishes": return "Finish SKU";
-      case "weaving_styles": return "Style SKU";
-      case "carving_styles": return "Style SKU";
-      default: return "SKU";
-    }
-  }, [activeSubTab]);
+    return parent.name;
+  }, []);
 
   // Mutations
   const invalidateCurrentData = () => {
-    // Invalidate the appropriate query based on active sub-tab
-    switch (activeSubTab) {
-      case "fabric_brands": utils.materialTypes.getFabricBrands.invalidate(); break;
-      case "fabric_collections": utils.materialTypes.getFabricCollections.invalidate(); break;
-      case "fabric_colors": utils.materialTypes.getFabricColors.invalidate(); break;
-      case "wood_types": utils.materialTypes.getWoodTypes.invalidate(); break;
-      case "wood_finishes": utils.materialTypes.getWoodFinishes.invalidate(); break;
-      case "metal_types": utils.materialTypes.getMetalTypes.invalidate(); break;
-      case "metal_finishes": utils.materialTypes.getMetalFinishes.invalidate(); break;
-      case "metal_colors": utils.materialTypes.getMetalColors.invalidate(); break;
-      case "stone_types": utils.materialTypes.getStoneTypes.invalidate(); break;
-      case "stone_finishes": utils.materialTypes.getStoneFinishes.invalidate(); break;
-      case "weaving_styles": utils.materialTypes.getWeavingStyles.invalidate(); break;
-      case "carving_styles": utils.materialTypes.getCarvingStyles.invalidate(); break;
-    }
+    utils.products.getAllMaterials.invalidate();
   };
 
-  const createMutation = (api.materialTypes as any)[activeHierarchy?.procedures.create as any]?.useMutation?.({
+  const createMutation = api.products.createMaterial.useMutation({
     onSuccess: () => {
       toast.success(`${activeHierarchy?.label.slice(0, -1)} created successfully`);
       setIsCreateDialogOpen(false);
-      // Invalidate queries for instant updates
       invalidateCurrentData();
     },
-    onError: (error: Error) => {
+    onError: (error) => {
       toast.error(`Failed to create: ${error.message}`);
     },
   });
 
-  const updateMutation = (api.materialTypes as any)[activeHierarchy?.procedures.update as any]?.useMutation?.({
+  const updateMutation = api.products.updateMaterial.useMutation({
     onSuccess: () => {
       toast.success(`${activeHierarchy?.label.slice(0, -1)} updated successfully`);
       setIsCreateDialogOpen(false);
       setEditingItem(null);
-      // Invalidate queries for instant updates
       invalidateCurrentData();
     },
-    onError: (error: Error) => {
+    onError: (error) => {
       toast.error(`Failed to update: ${error.message}`);
     },
   });
 
-  const deleteMutation = (api.materialTypes as any)[activeHierarchy?.procedures.delete as any]?.useMutation?.({
+  const deleteMutation = api.products.deleteMaterial.useMutation({
     onSuccess: () => {
       toast.success(`${activeHierarchy?.label.slice(0, -1)} deleted successfully`);
-      // Invalidate queries for instant updates
       invalidateCurrentData();
       setDeleteDialogOpen(false);
       setItemToDelete(null);
     },
-    onError: (error: Error) => {
+    onError: (error) => {
       toast.error(`Failed to delete: ${error.message}`);
     },
   });
 
   const handleConfirmDelete = () => {
     if (itemToDelete) {
-      deleteMutation?.mutate({ id: itemToDelete.id });
+      deleteMutation.mutate({ id: itemToDelete.id });
     }
   };
 
@@ -443,17 +214,17 @@ export default function MaterialsPage() {
     const fields: FormField[] = [];
 
     // Parent selector for child items
-    if (activeHierarchy?.parent) {
+    if (activeHierarchyLevel > 1) {
       fields.push({
-        name: activeHierarchy.parent,
-        label: `Parent ${activeHierarchy.parentLabel}`,
+        name: "parent_material_id",
+        label: `Parent ${activeHierarchy?.label.slice(0, -1)}`,
         type: "select",
         required: true,
         options: parentOptions.map((option: any) => ({
           value: option.id,
           label: option.name,
         })),
-        defaultValue: editingItem?.[activeHierarchy.parent],
+        defaultValue: editingItem?.parent_material_id,
       });
     }
 
@@ -468,11 +239,11 @@ export default function MaterialsPage() {
         defaultValue: editingItem?.name,
       },
       {
-        name: "price_modifier",
+        name: "cost_per_unit",
         label: "Price Modifier ($)",
         type: "number",
         placeholder: "0.00",
-        defaultValue: editingItem?.price_modifier?.toString(),
+        defaultValue: editingItem?.cost_per_unit?.toString(),
       },
       {
         name: "description",
@@ -483,16 +254,19 @@ export default function MaterialsPage() {
       }
     );
 
-    // Fabric SKU and Swatch for color items
-    if (activeHierarchy?.hasColors) {
+    // SKU field (only for certain hierarchy levels)
+    if (activeHierarchy?.hasSKU && activeHierarchy.skuLabel) {
       fields.push({
-        name: "hex_code",
-        label: getSkuLabel(),
+        name: "code",
+        label: activeHierarchy.skuLabel,
         type: "text",
-        placeholder: `Enter ${getSkuLabel().toLowerCase()}`,
-        defaultValue: editingItem?.hex_code,
+        placeholder: `Enter ${activeHierarchy.skuLabel.toLowerCase()}`,
+        defaultValue: editingItem?.code,
       });
+    }
 
+    // Swatch image upload (only for certain hierarchy levels)
+    if (activeHierarchy?.hasSwatch) {
       fields.push({
         name: "swatch_url",
         label: "Color Swatch Image",
@@ -504,35 +278,30 @@ export default function MaterialsPage() {
       });
     }
 
-    // Sort order
-    fields.push({
-      name: "sort_order",
-      label: "Sort Order",
-      type: "number",
-      placeholder: "Optional",
-      defaultValue: editingItem?.sort_order?.toString(),
-    });
-
-    // Complexity level for carving
-    if (activeSubTab === "carving_styles") {
+    // Collection associations - multi-select
+    if (allCollections && allCollections.length > 0) {
       fields.push({
-        name: "complexity_level",
-        label: "Complexity Level",
-        type: "number",
-        placeholder: "1",
-        defaultValue: editingItem?.complexity_level?.toString(),
+        name: "collection_ids",
+        label: "Available in Collections",
+        type: "select" as any, // Using multiselect functionality
+        options: allCollections.map((c: any) => ({
+          value: c.id,
+          label: c.name,
+        })),
+        defaultValue: editingItem?.collections?.map((c: any) => c.id) || [],
+        helperText: "Select which furniture collections this material is available for. Leave empty for all collections.",
       });
     }
 
     return fields;
-  }, [activeHierarchy, activeSubTab, editingItem, parentOptions, getSkuLabel]);
+  }, [activeHierarchy, activeHierarchyLevel, editingItem, parentOptions, allCollections]);
 
   // DataTable columns
-  const columns: DataTableColumn<MaterialItem>[] = useMemo(() => { // eslint-disable-line react-hooks/exhaustive-deps
+  const columns: DataTableColumn<MaterialItem>[] = useMemo(() => {
     const cols: DataTableColumn<MaterialItem>[] = [];
 
     // Parent column for child items
-    if (activeHierarchy?.parent) {
+    if (activeHierarchyLevel > 1) {
       cols.push({
         key: "parent",
         label: "Parent",
@@ -557,21 +326,29 @@ export default function MaterialsPage() {
       ),
     });
 
-    // Price modifier column
-    cols.push({
-      key: "price_modifier",
-      label: "Price Modifier",
-      sortable: true,
-      render: (value) => (
-        <span className="text-sm">${typeof value === "number" ? value.toFixed(2) : "0.00"}</span>
-      ),
-    });
-
-    // Fabric SKU and Swatch for color items
-    if (activeHierarchy?.hasColors) {
+    // Price Modifier column (only on the last/deepest hierarchy level)
+    const isLastHierarchyLevel = activeCategory && activeHierarchyLevel === activeCategory.hierarchy.length;
+    if (isLastHierarchyLevel) {
       cols.push({
-        key: "hex_code",
-        label: getSkuLabel(),
+        key: "cost_per_unit",
+        label: "Price Modifier",
+        sortable: true,
+        render: (value) => {
+          const cost = typeof value === 'number' ? value : parseFloat(value as string);
+          return (
+            <span className="text-sm">
+              ${!isNaN(cost) ? cost.toFixed(2) : "0.00"}
+            </span>
+          );
+        },
+      });
+    }
+
+    // SKU column (only for certain hierarchy levels)
+    if (activeHierarchy?.hasSKU && activeHierarchy.skuLabel) {
+      cols.push({
+        key: "code",
+        label: activeHierarchy.skuLabel,
         render: (value) =>
           value ? (
             <span className="text-sm font-mono">{value as string}</span>
@@ -579,8 +356,10 @@ export default function MaterialsPage() {
             <span className="text-muted">No SKU</span>
           ),
       });
+    }
 
-      // Swatch column
+    // Swatch column (only for certain hierarchy levels)
+    if (activeHierarchy?.hasSwatch) {
       cols.push({
         key: "swatch_url",
         label: "Swatch",
@@ -600,6 +379,32 @@ export default function MaterialsPage() {
       });
     }
 
+    // Collections column - show badges
+    cols.push({
+      key: "collections",
+      label: "Collections",
+      render: (value) => {
+        const collections = value as any[] || [];
+        if (collections.length === 0) {
+          return <span className="text-sm text-muted">All collections</span>;
+        }
+        return (
+          <div className="flex flex-wrap gap-1">
+            {collections.slice(0, 2).map((c: any) => (
+              <Badge key={c.id} variant="outline" className="text-xs">
+                {c.name}
+              </Badge>
+            ))}
+            {collections.length > 2 && (
+              <Badge variant="outline" className="text-xs">
+                +{collections.length - 2}
+              </Badge>
+            )}
+          </div>
+        );
+      },
+    });
+
     // Status column
     cols.push({
       key: "active",
@@ -610,7 +415,7 @@ export default function MaterialsPage() {
     });
 
     return cols;
-  }, [activeHierarchy, getParentName, getSkuLabel]); // handleEdit is stable useCallback and doesn't need to be in deps
+  }, [activeHierarchyLevel, activeHierarchy, getParentName]);
 
   // DataTable filters
   const filters: DataTableFilter[] = [
@@ -641,20 +446,17 @@ export default function MaterialsPage() {
     },
   ];
 
-  // Update active sub-tab when active tab changes
+  // Update active hierarchy level when active tab changes
   const handleTabChange = (value: string) => {
     setActiveTab(value);
-    const category = materialCategories.find((cat) => cat.key === value);
-    if (category) {
-      setActiveSubTab(category.hierarchy[0].key);
-    }
+    setActiveHierarchyLevel(1); // Reset to first level
   };
 
   return (
     <div className="page-container">
       <PageHeader
         title="Materials Management"
-        subtitle="Manage all material options and their cascading relationships for order configuration"
+        subtitle="Manage all material options in unified system with collection associations"
         actions={[
           {
             label: "Refresh Data",
@@ -687,9 +489,9 @@ export default function MaterialsPage() {
                   {category.hierarchy.map((level, index) => (
                     <Button
                       key={level.key}
-                      variant={activeSubTab === level.key ? "default" : "ghost"}
+                      variant={activeHierarchyLevel === level.key ? "default" : "ghost"}
                       size="sm"
-                      onClick={() => setActiveSubTab(level.key)}
+                      onClick={() => setActiveHierarchyLevel(level.key)}
                       className="material-subtab-btn"
                     >
                       {index > 0 && <span className="text-muted mx-1">→</span>}
@@ -761,6 +563,11 @@ export default function MaterialsPage() {
             <AlertDialogTitle>Delete {activeHierarchy?.label.slice(0, -1)}</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete &quot;{itemToDelete?.name}&quot;? This action cannot be undone.
+              {itemToDelete && itemToDelete.other_materials?.length > 0 && (
+                <span className="block mt-2 text-destructive">
+                  Warning: This material has {itemToDelete.other_materials.length} child materials that must be deleted first.
+                </span>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -768,9 +575,9 @@ export default function MaterialsPage() {
             <AlertDialogAction
               onClick={handleConfirmDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={deleteMutation?.isPending}
+              disabled={deleteMutation.isPending}
             >
-              {deleteMutation?.isPending ? 'Deleting...' : 'Delete'}
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -789,30 +596,26 @@ export default function MaterialsPage() {
         onSubmit={async (data) => {
           const payload: any = {
             name: data.name as string,
+            code: data.code as string || `${activeTab.toUpperCase()}-${Date.now()}`, // Auto-generate if not provided
+            type: activeHierarchy?.type || "",
             description: data.description as string || undefined,
-            price_modifier: data.price_modifier ? parseFloat(data.price_modifier as string) : 0,
-            sort_order: data.sort_order ? parseInt(data.sort_order as string) : undefined,
+            category_id: currentCategoryId!,
+            active: true,
+            cost_per_unit: data.cost_per_unit ? parseFloat(data.cost_per_unit as string) : undefined,
+            hierarchy_level: activeHierarchyLevel,
+            parent_material_id: data.parent_material_id as string || undefined,
+            collection_ids: (data.collection_ids as string[]) || [],
           };
 
-          // Add parent ID if applicable
-          if (activeHierarchy?.parent && data[activeHierarchy.parent]) {
-            payload[activeHierarchy.parent] = data[activeHierarchy.parent];
-          }
-
-          // Add hex_code for color items
-          if (activeHierarchy?.hasColors && data.hex_code) {
-            payload.hex_code = data.hex_code as string;
-          }
-
           // Handle swatch image upload
-          if (activeHierarchy?.hasColors && data.swatch_url) {
+          if (activeHierarchy?.hasSwatch && data.swatch_url) {
             if (data.swatch_url instanceof File) {
               // Upload new file to materials bucket
               const formData = new FormData();
               formData.append('file', data.swatch_url);
               formData.append('bucket', 'materials');
-              formData.append('category', 'fabric-swatches');
-              formData.append('projectId', activeHierarchy.key);
+              formData.append('category', 'material-swatches');
+              formData.append('projectId', activeHierarchy.key.toString());
 
               const uploadResponse = await fetch('/api/upload', {
                 method: 'POST',
@@ -839,20 +642,14 @@ export default function MaterialsPage() {
             }
           }
 
-          // Add complexity_level for carving
-          if (activeSubTab === "carving_styles" && data.complexity_level) {
-            payload.complexity_level = parseInt(data.complexity_level as string);
-          }
-
           if (editingItem) {
-            payload.id = editingItem.id;
-            await updateMutation?.mutateAsync(payload);
+            await updateMutation.mutateAsync({ id: editingItem.id, ...payload });
           } else {
-            await createMutation?.mutateAsync(payload);
+            await createMutation.mutateAsync(payload);
           }
         }}
         submitLabel={editingItem ? "Update" : "Create"}
-        isLoading={createMutation?.isPending || updateMutation?.isPending}
+        isLoading={createMutation.isPending || updateMutation.isPending}
       />
     </div>
   );
