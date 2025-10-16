@@ -72,8 +72,10 @@ export const productionTrackingRouter = createTRPCRouter({
       let dateFilter: Date | undefined;
       if (input.date_range !== 'all') {
         const days = parseInt(input.date_range.replace('d', ''));
-        dateFilter = new Date();
-        dateFilter.setDate(dateFilter.getDate() - days);
+        const now = new Date();
+        now.setDate(now.getDate() - days);
+        // Convert to ISO string to avoid timezone format issues
+        dateFilter = new Date(now.toISOString());
       }
 
       // Get all production orders with filters
