@@ -156,7 +156,7 @@ export default function PrototypeDetailPage({ params }: PageProps) {
             <CardTitle className="card-title-sm">Target Price</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value">${prototype.target_price_usd?.toFixed(2) || "—"}</div>
+            <div className="stat-value">{prototype.target_price_usd ? `$${Number(prototype.target_price_usd).toFixed(2)}` : "—"}</div>
             <p className="stat-label">Estimated retail</p>
           </CardContent>
         </Card>
@@ -166,7 +166,7 @@ export default function PrototypeDetailPage({ params }: PageProps) {
             <CardTitle className="card-title-sm">Target Cost</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value">${prototype.target_cost_usd?.toFixed(2) || "—"}</div>
+            <div className="stat-value">{prototype.target_cost_usd ? `$${Number(prototype.target_cost_usd).toFixed(2)}` : "—"}</div>
             <p className="stat-label">Manufacturing cost</p>
           </CardContent>
         </Card>
