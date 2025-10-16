@@ -294,15 +294,15 @@ export default function ShippingDashboardPage() {
       </Card>
 
       {/* SEKO Integration Notice */}
-      <Card className="bg-info-muted border-info">
+      <Card className="bg-info/10 border-info/20 dark:bg-info/5 dark:border-info/30">
         <CardContent className="card-content-compact">
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-info-muted rounded-lg">
+            <div className="p-2 bg-info/20 dark:bg-info/10 rounded-lg">
               <Ship className="w-5 h-5 text-info" aria-hidden="true" />
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold text-info">SEKO Integration Active</h3>
-              <p className="text-sm text-info mt-1">
+              <h3 className="font-semibold text-info dark:text-info">SEKO Integration Active</h3>
+              <p className="text-sm text-info/90 dark:text-info/80 mt-1">
                 This shipping module is integrated with SEKO for real-time rates, label generation, and tracking.
               </p>
             </div>

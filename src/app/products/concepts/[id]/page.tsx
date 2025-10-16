@@ -154,7 +154,7 @@ export default function ConceptDetailPage({ params }: PageProps) {
             <CardTitle className="card-title-sm">Target Price</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value">${concept.target_price?.toFixed(2) || "—"}</div>
+            <div className="stat-value">{concept.target_price ? `$${Number(concept.target_price).toFixed(2)}` : "—"}</div>
             <p className="stat-label">Estimated retail</p>
           </CardContent>
         </Card>
@@ -164,7 +164,7 @@ export default function ConceptDetailPage({ params }: PageProps) {
             <CardTitle className="card-title-sm">Estimated Cost</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value">${concept.estimated_cost?.toFixed(2) || "—"}</div>
+            <div className="stat-value">{concept.estimated_cost ? `$${Number(concept.estimated_cost).toFixed(2)}` : "—"}</div>
             <p className="stat-label">Manufacturing cost</p>
           </CardContent>
         </Card>
@@ -224,8 +224,8 @@ export default function ConceptDetailPage({ params }: PageProps) {
             <InfoCard
               title="Pricing & Costs"
               items={[
-                { label: 'Target Price', value: concept.target_price ? `$${concept.target_price.toFixed(2)}` : '—' },
-                { label: 'Estimated Cost', value: concept.estimated_cost ? `$${concept.estimated_cost.toFixed(2)}` : '—' },
+                { label: 'Target Price', value: concept.target_price ? `$${Number(concept.target_price).toFixed(2)}` : '—' },
+                { label: 'Estimated Cost', value: concept.estimated_cost ? `$${Number(concept.estimated_cost).toFixed(2)}` : '—' },
                 { label: 'Prototypes Count', value: concept.prototypes_count?.toString() || '0' },
               ]}
             />

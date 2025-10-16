@@ -266,19 +266,19 @@ export default function TrackingPage() {
 
       {/* Instructions (shown when no search attempted) */}
       {!searchAttempted && (
-        <Card className="bg-info-muted border-info">
+        <Card className="bg-info/10 border-info/20 dark:bg-info/5 dark:border-info/30">
           <CardContent className="card-content-compact">
             <div className="flex items-start gap-3">
-              <div className="p-2 bg-info-muted rounded-lg">
+              <div className="p-2 bg-info/20 dark:bg-info/10 rounded-lg">
                 <MapPin className="w-5 h-5 text-info" aria-hidden="true" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-info">How to Track Your Shipment</h3>
-                <p className="text-sm text-info mt-1">
+                <h3 className="font-semibold text-info dark:text-info">How to Track Your Shipment</h3>
+                <p className="text-sm text-info/90 dark:text-info/80 mt-1">
                   Enter your tracking number in the search box above. Tracking numbers are typically provided
                   in your shipping confirmation email or can be found on your packing slip.
                 </p>
-                <ul className="text-sm text-info mt-2 space-y-1 list-disc list-inside">
+                <ul className="text-sm text-info/90 dark:text-info/80 mt-2 space-y-1 list-disc list-inside">
                   <li>Tracking numbers are usually 10-20 characters long</li>
                   <li>They may contain letters and numbers</li>
                   <li>Real-time tracking information is powered by SEKO</li>

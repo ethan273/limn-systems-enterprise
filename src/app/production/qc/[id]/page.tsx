@@ -324,20 +324,20 @@ export default function QCInspectionDetailPage({ params }: PageProps) {
  </CardHeader>
  <CardContent>
  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
- <div className="text-center p-4 bg-destructive-muted rounded-lg border border-destructive">
+ <div className="text-center p-4 bg-destructive/10 dark:bg-destructive/5 rounded-lg border border-destructive/20 dark:border-destructive/30">
  <p className="text-2xl font-bold text-destructive">{defectStats.critical}</p>
  <p className="text-sm text-muted-foreground">Critical</p>
  </div>
- <div className="text-center p-4 bg-warning-muted rounded-lg border border-warning">
+ <div className="text-center p-4 bg-warning/10 dark:bg-warning/5 rounded-lg border border-warning/20 dark:border-warning/30">
  <p className="text-2xl font-bold text-warning">{defectStats.major}</p>
  <p className="text-sm text-muted-foreground">Major</p>
  </div>
- <div className="text-center p-4 bg-warning-muted rounded-lg border border-warning">
+ <div className="text-center p-4 bg-warning/10 dark:bg-warning/5 rounded-lg border border-warning/20 dark:border-warning/30">
  <p className="text-2xl font-bold text-warning">{defectStats.minor}</p>
  <p className="text-sm text-muted-foreground">Minor</p>
  </div>
- <div className="text-center p-4 card rounded-lg border border">
- <p className="text-2xl font-bold ">{defectStats.cosmetic}</p>
+ <div className="text-center p-4 bg-muted/50 dark:bg-muted/20 rounded-lg border border-border">
+ <p className="text-2xl font-bold">{defectStats.cosmetic}</p>
  <p className="text-sm text-muted-foreground">Cosmetic</p>
  </div>
  </div>

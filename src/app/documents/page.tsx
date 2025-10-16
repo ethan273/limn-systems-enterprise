@@ -296,15 +296,15 @@ export default function DocumentsPage() {
 
 
       {/* Google Drive Integration Notice */}
-      <Card className="bg-success-muted border-success">
+      <Card className="bg-success/10 border-success/20 dark:bg-success/5 dark:border-success/30">
         <CardContent className="card-content-compact">
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-success-muted rounded-lg">
+            <div className="p-2 bg-success/20 dark:bg-success/10 rounded-lg">
               <ExternalLink className="w-5 h-5 text-success" aria-hidden="true" />
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold text-success">Google Drive Integration Active</h3>
-              <p className="text-sm text-success mt-1">
+              <h3 className="font-semibold text-success dark:text-success">Google Drive Integration Active</h3>
+              <p className="text-sm text-success/90 dark:text-success/80 mt-1">
                 This document hub is integrated with Google Drive for centralized file storage. Upload documents
                 to Google Drive or Supabase Storage for different use cases.
               </p>
