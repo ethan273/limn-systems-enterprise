@@ -88,12 +88,12 @@ export function FurnitureDimensionsForm({
  initialDualDimensions[baseField] = dbToDualDimensions(
  unit === 'inches' ? value : pairedValue,
  unit === 'cm' ? value : pairedValue,
- userPreferredUnit
+ 'inches' // Always use inches as default for initial load to prevent infinite loop
  );
  }
  }
  setDimensions(initialDualDimensions);
- }, [initialFurnitureType, initialDimensions, userPreferredUnit]);
+ }, [initialFurnitureType, initialDimensions]); // Removed userPreferredUnit to prevent infinite loop
 
  // Validate dimensions when they change
  useEffect(() => {

@@ -233,8 +233,8 @@ export default function PrototypeDetailPage({ params }: PageProps) {
             <InfoCard
               title="Pricing & Costs"
               items={[
-                { label: 'Target Price', value: prototype.target_price_usd ? `$${prototype.target_price_usd.toFixed(2)}` : '—' },
-                { label: 'Target Cost', value: prototype.target_cost_usd ? `$${prototype.target_cost_usd.toFixed(2)}` : '—' },
+                { label: 'Target Price', value: prototype.target_price_usd ? `$${Number(prototype.target_price_usd).toFixed(2)}` : '—' },
+                { label: 'Target Cost', value: prototype.target_cost_usd ? `$${Number(prototype.target_cost_usd).toFixed(2)}` : '—' },
                 { label: 'Feedback Count', value: (prototype.feedback_count || 0).toString() },
                 { label: 'Milestone Count', value: (prototype.milestone_count || 0).toString() },
               ]}
