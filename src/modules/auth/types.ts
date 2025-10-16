@@ -11,7 +11,9 @@ export type RequestStatus = z.infer<typeof RequestStatusEnum>
 // User profile schema
 export const UserProfileSchema = z.object({
   id: z.string().uuid(),
-  email: z.string().email(),
+  email: z.string().email().nullable(),
+  first_name: z.string().nullable(),
+  last_name: z.string().nullable(),
   full_name: z.string().nullable(),
   company_name: z.string().nullable(),
   phone: z.string().nullable(),

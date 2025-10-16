@@ -54,6 +54,51 @@ export default function Sidebar() {
  // Get user type for permission checking
  const userType = profile?.user_type;
 
+ // Construct full name from first_name and last_name
+ const getDisplayName = () => {
+ if (authLoading) return null;
+
+ // Try to construct from first_name and last_name
+ if (profile?.first_name || profile?.last_name) {
+ const parts = [profile.first_name, profile.last_name].filter(Boolean);
+ if (parts.length > 0) return parts.join(' ');
+ }
+
+ // Fall back to full_name if available
+ if (profile?.full_name) return profile.full_name;
+
+ // Fall back to email username or 'User'
+ return user?.email?.split('@')[0] || 'User';
+ };
+
+ const displayName = getDisplayName();
+
+ // Get initials for avatar
+ const getInitials = () => {
+ if (authLoading) return '...';
+
+ // Try from first_name and last_name
+ if (profile?.first_name || profile?.last_name) {
+ const initials = [
+ profile.first_name?.[0],
+ profile.last_name?.[0]
+ ].filter(Boolean).join('').toUpperCase();
+ if (initials) return initials;
+ }
+
+ // Fall back to full_name
+ if (profile?.full_name) {
+ return profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+ }
+
+ // Fall back to email
+ if (user?.email) {
+ return user.email.slice(0, 2).toUpperCase();
+ }
+
+ return 'U';
+ };
+
  useEffect(() => {
  setMounted(true);
  }, []);
@@ -406,29 +451,21 @@ export default function Sidebar() {
  aria-label="Open settings"
  >
  <div className="user-avatar">
-           {authLoading ? (
-             <span className="animate-pulse">...</span>
-           ) : profile?.full_name ? (
-             profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-           ) : user?.email ? (
-             user.email.slice(0, 2).toUpperCase()
-           ) : (
-             'U'
-           )}
+           {getInitials()}
  </div>
  <div className="user-info">
            <p className="user-name">
              {authLoading ? (
                <span className="animate-pulse">Loading...</span>
              ) : (
-               profile?.full_name || user?.email?.split('@')[0] || 'User'
+               displayName
              )}
            </p>
            <p className="user-email">
              {authLoading ? (
                <span className="animate-pulse">Loading...</span>
              ) : (
-               user?.email || 'No email'
+               (profile?.email || user?.email) || 'No email'
              )}
            </p>
  </div>
