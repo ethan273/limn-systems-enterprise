@@ -12,6 +12,7 @@ export type RequestStatus = z.infer<typeof RequestStatusEnum>
 export const UserProfileSchema = z.object({
   id: z.string().uuid(),
   email: z.string().email().nullable(),
+  name: z.string().nullable(), // Legacy field
   first_name: z.string().nullable(),
   last_name: z.string().nullable(),
   full_name: z.string().nullable(),

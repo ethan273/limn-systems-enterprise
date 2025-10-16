@@ -67,6 +67,9 @@ export default function Sidebar() {
  // Fall back to full_name if available
  if (profile?.full_name) return profile.full_name;
 
+ // Fall back to legacy name field
+ if (profile?.name) return profile.name;
+
  // Fall back to email username or 'User'
  return user?.email?.split('@')[0] || 'User';
  };
@@ -89,6 +92,11 @@ export default function Sidebar() {
  // Fall back to full_name
  if (profile?.full_name) {
  return profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+ }
+
+ // Fall back to legacy name field
+ if (profile?.name) {
+ return profile.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
  }
 
  // Fall back to email
