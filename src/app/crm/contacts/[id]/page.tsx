@@ -28,10 +28,12 @@ import {
   X,
   Check,
   Briefcase,
+  MapPin,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { getFullName, createFullName, splitFullName } from "@/lib/utils/name-utils";
+import { AddressList } from "@/components/crm";
 
 // Dynamic route configuration
 export const dynamic = 'force-dynamic';
@@ -163,6 +165,44 @@ export default function ContactDetailPage({ params }: PageProps) {
   }
 
   const { contact, activities, analytics } = data;
+  const addresses = (data as any).addresses || [];
+
+  // Address mutations
+  const createAddressMutation = api.crm.addresses.create.useMutation({
+    onSuccess: () => {
+      utils.crm.contacts.getById.invalidate();
+    },
+  });
+
+  const updateAddressMutation = api.crm.addresses.update.useMutation({
+    onSuccess: () => {
+      utils.crm.contacts.getById.invalidate();
+    },
+  });
+
+  const deleteAddressMutation = api.crm.addresses.delete.useMutation({
+    onSuccess: () => {
+      utils.crm.contacts.getById.invalidate();
+    },
+  });
+
+  const handleAddAddress = async (address: any) => {
+    await createAddressMutation.mutateAsync({
+      ...address,
+      contact_id: id,
+    });
+  };
+
+  const handleUpdateAddress = async (addressId: string, address: any) => {
+    await updateAddressMutation.mutateAsync({
+      id: addressId,
+      data: address,
+    });
+  };
+
+  const handleDeleteAddress = async (addressId: string) => {
+    await deleteAddressMutation.mutateAsync({ id: addressId });
+  };
 
   return (
     <div className="page-container">
@@ -268,6 +308,10 @@ export default function ContactDetailPage({ params }: PageProps) {
           <TabsTrigger value="activities" className="tabs-trigger">
             <MessageSquare className="icon-sm" aria-hidden="true" />
             Activities ({activities.length})
+          </TabsTrigger>
+          <TabsTrigger value="addresses" className="tabs-trigger">
+            <MapPin className="icon-sm" aria-hidden="true" />
+            Addresses ({addresses.length})
           </TabsTrigger>
           <TabsTrigger value="notes" className="tabs-trigger">
             <MessageSquare className="icon-sm" aria-hidden="true" />
@@ -414,6 +458,28 @@ export default function ContactDetailPage({ params }: PageProps) {
                   ))}
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Addresses Tab */}
+        <TabsContent value="addresses">
+          <Card>
+            <CardHeader>
+              <CardTitle>Contact Addresses</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AddressList
+                addresses={addresses}
+                onAdd={handleAddAddress}
+                onUpdate={handleUpdateAddress}
+                onDelete={handleDeleteAddress}
+                isLoading={
+                  createAddressMutation.isPending ||
+                  updateAddressMutation.isPending ||
+                  deleteAddressMutation.isPending
+                }
+              />
             </CardContent>
           </Card>
         </TabsContent>
