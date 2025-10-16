@@ -291,7 +291,7 @@ export function MilestonesManager({ prototypeId }: MilestonesManagerProps) {
                   <div className="flex items-center gap-3">
                     <Slider
                       value={[milestone.completion_percentage || 0]}
-                      onValueChange={(value) => {
+                      onValueChange={(_value) => {
                         if (editingProgress === milestone.id) {
                           // Real-time update while dragging
                           setEditingProgress(milestone.id);

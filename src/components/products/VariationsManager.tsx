@@ -10,7 +10,7 @@ import { toast } from "sonner";
 
 interface VariationsManagerProps {
   variations: string[];
-  onSave: (variations: string[]) => Promise<void>;
+  onSave: (_updatedVariations: string[]) => Promise<void>;
   isEditing?: boolean;
 }
 
@@ -139,7 +139,7 @@ export function VariationsManager({
           </div>
           <p className="text-xs text-muted-foreground">
             Variation types define the different configurations available for items in this collection
-            (e.g., "Small", "Medium", "Large" or "Modern", "Classic", "Contemporary")
+            (e.g., &ldquo;Small&rdquo;, &ldquo;Medium&rdquo;, &ldquo;Large&rdquo; or &ldquo;Modern&rdquo;, &ldquo;Classic&rdquo;, &ldquo;Contemporary&rdquo;)
           </p>
         </div>
 

@@ -40,9 +40,9 @@ export interface Address {
 
 interface AddressListProps {
   addresses: Address[];
-  onAdd: (address: Omit<Address, "id">) => Promise<void>;
-  onUpdate: (id: string, address: Partial<Address>) => Promise<void>;
-  onDelete: (id: string) => Promise<void>;
+  onAdd: (_newAddress: Omit<Address, "id">) => Promise<void>;
+  onUpdate: (_addressId: string, _updatedAddress: Partial<Address>) => Promise<void>;
+  onDelete: (_addressId: string) => Promise<void>;
   isLoading?: boolean;
 }
 

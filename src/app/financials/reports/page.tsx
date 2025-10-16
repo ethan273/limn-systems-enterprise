@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
 import { FileText, DollarSign, TrendingUp, Download } from "lucide-react";
-import { format } from "date-fns";
 import { useState } from "react";
 
 export const dynamic = 'force-dynamic';

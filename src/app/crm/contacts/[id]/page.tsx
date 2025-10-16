@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { getFullName, createFullName, splitFullName } from "@/lib/utils/name-utils";
+import { createFullName } from "@/lib/utils/name-utils";
 import { AddressList } from "@/components/crm";
 
 // Dynamic route configuration

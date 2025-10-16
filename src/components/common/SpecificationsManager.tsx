@@ -10,7 +10,7 @@ import { toast } from "sonner";
 
 interface SpecificationsManagerProps {
   specifications: Record<string, any>;
-  onSave: (specifications: Record<string, any>) => Promise<void>;
+  onSave: (_specs: Record<string, any>) => Promise<void>;
   isEditing?: boolean;
 }
 
@@ -30,6 +30,7 @@ export function SpecificationsManager({
       return;
     }
 
+    // eslint-disable-next-line security/detect-object-injection
     if (specs[newKey]) {
       toast.error("A specification with this name already exists");
       return;
@@ -43,6 +44,7 @@ export function SpecificationsManager({
 
   const handleRemoveSpec = (key: string) => {
     const newSpecs = { ...specs };
+    // eslint-disable-next-line security/detect-object-injection
     delete newSpecs[key];
     setSpecs(newSpecs);
     toast.success("Specification removed. Click Save to persist changes.");

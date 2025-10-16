@@ -183,20 +183,28 @@ export const expensesRouter = createTRPCRouter({
 
       const byStatus = expenses.reduce((acc: Record<string, { count: number; total: number }>, exp) => {
         const status = exp.approval_status || 'pending';
+        // eslint-disable-next-line security/detect-object-injection
         if (!acc[status]) {
+          // eslint-disable-next-line security/detect-object-injection
           acc[status] = { count: 0, total: 0 };
         }
+        // eslint-disable-next-line security/detect-object-injection
         acc[status]!.count++;
+        // eslint-disable-next-line security/detect-object-injection
         acc[status]!.total += Number(exp.amount);
         return acc;
       }, {} as Record<string, { count: number; total: number }>);
 
       const byCategory = expenses.reduce((acc: Record<string, { count: number; total: number }>, exp) => {
         const cat = exp.category || 'uncategorized';
+        // eslint-disable-next-line security/detect-object-injection
         if (!acc[cat]) {
+          // eslint-disable-next-line security/detect-object-injection
           acc[cat] = { count: 0, total: 0 };
         }
+        // eslint-disable-next-line security/detect-object-injection
         acc[cat]!.count++;
+        // eslint-disable-next-line security/detect-object-injection
         acc[cat]!.total += Number(exp.amount);
         return acc;
       }, {} as Record<string, { count: number; total: number }>);

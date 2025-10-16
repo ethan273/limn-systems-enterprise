@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
-import { Package, Plus, Search } from "lucide-react";
+import { Package, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
 

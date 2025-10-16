@@ -25,7 +25,7 @@ export interface AddressFormData {
 
 interface AddressFormProps {
   data: AddressFormData;
-  onChange: (data: AddressFormData) => void;
+  onChange: (_updatedData: AddressFormData) => void;
   disabled?: boolean;
 }
 

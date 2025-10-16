@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { PageHeader } from "@/components/common";
-import { getUserFullName, getUserFirstName, getUserLastName } from "@/lib/utils/user-utils";
+import { getUserFirstName, getUserLastName } from "@/lib/utils/user-utils";
 
 export default function SettingsPage() {
   const { toast } = useToast();

@@ -135,7 +135,7 @@ export function OrderCreationDialog({
   };
 
   // Get furniture collections for filtering
-  const { data: furnitureCollections } = api.products.getAllCollections.useQuery();
+  const { data: _furnitureCollections } = api.products.getAllCollections.useQuery();
 
   // Get materials filtered by furniture collection (hierarchical, uses parent_material_id)
   const { data: filteredMaterials } = api.products.getMaterialsByCollection.useQuery(

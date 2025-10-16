@@ -27,7 +27,7 @@ export interface AddressOption {
 interface AddressSelectorProps {
   addresses: AddressOption[];
   selectedAddressId?: string | null;
-  onSelect: (addressId: string | null) => void;
+  onSelect: (_selectedId: string | null) => void;
   label?: string;
   placeholder?: string;
   disabled?: boolean;
