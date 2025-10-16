@@ -47,7 +47,11 @@ export default function CatalogItemsPage() {
     offset: 0,
   });
 
+  // Query collections for the create form
+  const { data: collectionsData } = api.collections.getAll.useQuery({});
+
   const items = data?.items || [];
+  const collections = collectionsData?.items || [];
 
   // Filter to only show production-ready items
   const productionReadyItems = items.filter((item: any) =>
@@ -56,12 +60,13 @@ export default function CatalogItemsPage() {
 
   // Create mutation
   const createMutation = api.items.create.useMutation({
-    onSuccess: () => {
+    onSuccess: (newItem) => {
       toast.success("Catalog item created successfully");
       // Invalidate queries for instant updates
       utils.items.getAll.invalidate();
       queryClient.invalidateQueries({ queryKey: ['items'] });
-      setIsFormOpen(false);
+      // Navigate to the new item's detail page in edit mode
+      router.push(`/products/catalog/${newItem.id}`);
     },
     onError: (error) => {
       toast.error("Failed to create catalog item: " + error.message);
@@ -322,27 +327,26 @@ export default function CatalogItemsPage() {
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
         title="Create New Catalog Item"
-        description="Add a new production-ready item to the catalog"
+        description="Enter basic information to create a new catalog item. You'll be able to add all details on the next page."
         fields={[
-          { name: 'sku', label: 'SKU', type: 'text', required: true },
-          { name: 'name', label: 'Item Name', type: 'text', required: true },
-          { name: 'collection_id', label: 'Collection ID', type: 'text', required: true, placeholder: 'Enter collection UUID' },
-          { name: 'furniture_type', label: 'Furniture Type', type: 'text', placeholder: 'chair, table, sofa/loveseat, etc.' },
-          { name: 'category', label: 'Category', type: 'text' },
-          { name: 'subcategory', label: 'Subcategory', type: 'text' },
-          { name: 'description', label: 'Description', type: 'textarea' },
-          { name: 'list_price', label: 'List Price', type: 'number', required: true },
-          { name: 'currency', label: 'Currency', type: 'text', placeholder: 'USD' },
-          { name: 'lead_time_days', label: 'Lead Time (Days)', type: 'number' },
-          { name: 'min_order_quantity', label: 'Min Order Qty', type: 'number', placeholder: '1' },
-          { name: 'is_customizable', label: 'Customizable', type: 'checkbox' },
-          { name: 'type', label: 'Item Type', type: 'text', placeholder: 'Production Ready' },
+          { name: 'name', label: 'Item Name', type: 'text', required: true, placeholder: 'Enter item name' },
+          { name: 'sku', label: 'SKU', type: 'text', required: true, placeholder: 'Enter SKU' },
+          {
+            name: 'collection_id',
+            label: 'Collection',
+            type: 'select',
+            required: true,
+            options: collections.map((c: any) => ({ value: c.id, label: c.name }))
+          },
+          { name: 'list_price', label: 'List Price', type: 'number', required: true, placeholder: '0.00' },
         ]}
         onSubmit={async (data) => {
           await createMutation.mutateAsync({
             ...(data as any),
             type: 'Production Ready' as const,
             active: true,
+            currency: 'USD',
+            min_order_quantity: 1,
           });
         }}
       />

@@ -48,12 +48,13 @@ export default function PrototypesPage() {
 
   // Create mutation
   const createMutation = api.products.createPrototype.useMutation({
-    onSuccess: () => {
+    onSuccess: (newPrototype) => {
       toast.success("Prototype created successfully");
       // Invalidate queries for instant updates
       utils.products.getAllPrototypes.invalidate();
       queryClient.invalidateQueries({ queryKey: ['products'] });
-      setIsFormOpen(false);
+      // Navigate to the new prototype's detail page in edit mode
+      router.push(`/products/prototypes/${newPrototype.id}`);
     },
     onError: (error) => {
       toast.error("Failed to create prototype: " + error.message);
@@ -283,19 +284,16 @@ export default function PrototypesPage() {
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
         title="Create New Prototype"
-        description="Add a new furniture prototype to the system"
+        description="Enter basic information to create a new prototype. You'll be able to add all details on the next page."
         fields={[
-          { name: 'name', label: 'Prototype Name', type: 'text', required: true },
-          { name: 'prototype_number', label: 'Prototype Number', type: 'text', required: true },
-          { name: 'description', label: 'Description', type: 'textarea' },
-          { name: 'prototype_type', label: 'Prototype Type', type: 'text' },
-          { name: 'status', label: 'Status', type: 'text' },
-          { name: 'priority', label: 'Priority', type: 'text' },
-          { name: 'target_price_usd', label: 'Target Price (USD)', type: 'number' },
-          { name: 'target_cost_usd', label: 'Target Cost (USD)', type: 'number' },
+          { name: 'name', label: 'Prototype Name', type: 'text', required: true, placeholder: 'Enter prototype name' },
+          { name: 'prototype_number', label: 'Prototype Number', type: 'text', required: true, placeholder: 'e.g., PROTO-001' },
         ]}
         onSubmit={async (data) => {
-          await createMutation.mutateAsync(data as any);
+          await createMutation.mutateAsync({
+            name: data.name,
+            prototype_number: data.prototype_number
+          } as any);
         }}
       />
     </div>

@@ -48,12 +48,13 @@ export default function ConceptsPage() {
 
   // Create mutation
   const createMutation = api.products.createConcept.useMutation({
-    onSuccess: () => {
+    onSuccess: (newConcept) => {
       toast.success("Concept created successfully");
       // Invalidate queries for instant updates
       utils.products.getAllConcepts.invalidate();
       queryClient.invalidateQueries({ queryKey: ['products'] });
-      setIsFormOpen(false);
+      // Navigate to the new concept's detail page in edit mode
+      router.push(`/products/concepts/${newConcept.id}`);
     },
     onError: (error) => {
       toast.error("Failed to create concept: " + error.message);
@@ -283,18 +284,12 @@ export default function ConceptsPage() {
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
         title="Create New Concept"
-        description="Add a new furniture concept to the system"
+        description="Enter a name to create a new concept. You'll be able to add all details on the next page."
         fields={[
-          { name: 'name', label: 'Concept Name', type: 'text', required: true },
-          { name: 'concept_number', label: 'Concept Number', type: 'text' },
-          { name: 'description', label: 'Description', type: 'textarea' },
-          { name: 'status', label: 'Status', type: 'text' },
-          { name: 'priority', label: 'Priority', type: 'text' },
-          { name: 'target_price', label: 'Target Price', type: 'number' },
-          { name: 'estimated_cost', label: 'Estimated Cost', type: 'number' },
+          { name: 'name', label: 'Concept Name', type: 'text', required: true, placeholder: 'Enter concept name' },
         ]}
         onSubmit={async (data) => {
-          await createMutation.mutateAsync(data as any);
+          await createMutation.mutateAsync({ name: data.name } as any);
         }}
       />
     </div>
