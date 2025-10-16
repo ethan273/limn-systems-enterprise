@@ -152,108 +152,133 @@ export function OrderCreationDialog({
   // Use filtered materials when furniture collection selected, otherwise all materials
   const availableMaterials = formData.furniture_collection_id ? filteredMaterials : allMaterials;
 
-  // Filter by material category and hierarchy level
-  // Check both material_categories.name and type field for material type
+  // Debug: Log materials data to understand structure
+  if (availableMaterials && availableMaterials.length > 0) {
+    console.log('[OrderCreationDialog] Total materials available:', availableMaterials.length);
+    console.log('[OrderCreationDialog] Sample material:', availableMaterials[0]);
+  }
+
+  // Filter by material category using parent-child relationships
+  // Database uses parent_material_id for hierarchy (Brand → Collection → Color)
   const fabricBrands = availableMaterials?.filter((m: any) => {
     const categoryName = m.material_categories?.name?.toLowerCase() || '';
     const materialType = m.type?.toLowerCase() || '';
-    return (categoryName.includes('fabric') || materialType.includes('fabric')) && m.hierarchy_level === 1;
+    const matchesType = categoryName.includes('fabric') || materialType.includes('fabric');
+    const isTopLevel = !m.parent_material_id; // Top level = no parent
+    return matchesType && isTopLevel;
   }) || [];
 
   const fabricCollections = availableMaterials?.filter((m: any) => {
     const categoryName = m.material_categories?.name?.toLowerCase() || '';
     const materialType = m.type?.toLowerCase() || '';
-    return (categoryName.includes('fabric') || materialType.includes('fabric')) &&
-      m.hierarchy_level === 2 &&
-      (!formData.fabric_brand_id || m.parent_material_id === formData.fabric_brand_id);
+    const matchesType = categoryName.includes('fabric') || materialType.includes('fabric');
+    const matchesParent = !formData.fabric_brand_id || m.parent_material_id === formData.fabric_brand_id;
+    return matchesType && matchesParent && m.parent_material_id; // Must have a parent
   }) || [];
 
   const fabricColors = availableMaterials?.filter((m: any) => {
     const categoryName = m.material_categories?.name?.toLowerCase() || '';
     const materialType = m.type?.toLowerCase() || '';
-    return (categoryName.includes('fabric') || materialType.includes('fabric')) &&
-      m.hierarchy_level === 3 &&
-      (!formData.fabric_collection_id || m.parent_material_id === formData.fabric_collection_id);
+    const matchesType = categoryName.includes('fabric') || materialType.includes('fabric');
+    const matchesParent = !formData.fabric_collection_id || m.parent_material_id === formData.fabric_collection_id;
+    // Colors are children of collections - need to find materials whose parent is the selected collection
+    return matchesType && matchesParent && m.parent_material_id;
   }) || [];
 
   const woodTypes = availableMaterials?.filter((m: any) => {
     const categoryName = m.material_categories?.name?.toLowerCase() || '';
     const materialType = m.type?.toLowerCase() || '';
-    return (categoryName.includes('wood') || materialType.includes('wood')) && m.hierarchy_level === 1;
+    const matchesType = categoryName.includes('wood') || materialType.includes('wood');
+    const isTopLevel = !m.parent_material_id;
+    return matchesType && isTopLevel;
   }) || [];
 
   const woodFinishes = availableMaterials?.filter((m: any) => {
     const categoryName = m.material_categories?.name?.toLowerCase() || '';
     const materialType = m.type?.toLowerCase() || '';
-    return (categoryName.includes('wood') || materialType.includes('wood')) &&
-      m.hierarchy_level === 2 &&
-      (!formData.wood_type_id || m.parent_material_id === formData.wood_type_id);
+    const matchesType = categoryName.includes('wood') || materialType.includes('wood');
+    const matchesParent = !formData.wood_type_id || m.parent_material_id === formData.wood_type_id;
+    return matchesType && matchesParent && m.parent_material_id;
   }) || [];
 
   const metalTypes = availableMaterials?.filter((m: any) => {
     const categoryName = m.material_categories?.name?.toLowerCase() || '';
     const materialType = m.type?.toLowerCase() || '';
-    return (categoryName.includes('metal') || materialType.includes('metal')) && m.hierarchy_level === 1;
+    const matchesType = categoryName.includes('metal') || materialType.includes('metal');
+    const isTopLevel = !m.parent_material_id;
+    return matchesType && isTopLevel;
   }) || [];
 
   const metalFinishes = availableMaterials?.filter((m: any) => {
     const categoryName = m.material_categories?.name?.toLowerCase() || '';
     const materialType = m.type?.toLowerCase() || '';
-    return (categoryName.includes('metal') || materialType.includes('metal')) &&
-      m.hierarchy_level === 2 &&
-      (!formData.metal_type_id || m.parent_material_id === formData.metal_type_id);
+    const matchesType = categoryName.includes('metal') || materialType.includes('metal');
+    const matchesParent = !formData.metal_type_id || m.parent_material_id === formData.metal_type_id;
+    return matchesType && matchesParent && m.parent_material_id;
   }) || [];
 
   const metalColors = availableMaterials?.filter((m: any) => {
     const categoryName = m.material_categories?.name?.toLowerCase() || '';
     const materialType = m.type?.toLowerCase() || '';
-    return (categoryName.includes('metal') || materialType.includes('metal')) &&
-      m.hierarchy_level === 3 &&
-      (!formData.metal_finish_id || m.parent_material_id === formData.metal_finish_id);
+    const matchesType = categoryName.includes('metal') || materialType.includes('metal');
+    const matchesParent = !formData.metal_finish_id || m.parent_material_id === formData.metal_finish_id;
+    return matchesType && matchesParent && m.parent_material_id;
   }) || [];
 
   const stoneTypes = availableMaterials?.filter((m: any) => {
     const categoryName = m.material_categories?.name?.toLowerCase() || '';
     const materialType = m.type?.toLowerCase() || '';
-    return (categoryName.includes('stone') || materialType.includes('stone')) && m.hierarchy_level === 1;
+    const matchesType = categoryName.includes('stone') || materialType.includes('stone');
+    const isTopLevel = !m.parent_material_id;
+    return matchesType && isTopLevel;
   }) || [];
 
   const stoneFinishes = availableMaterials?.filter((m: any) => {
     const categoryName = m.material_categories?.name?.toLowerCase() || '';
     const materialType = m.type?.toLowerCase() || '';
-    return (categoryName.includes('stone') || materialType.includes('stone')) &&
-      m.hierarchy_level === 2 &&
-      (!formData.stone_type_id || m.parent_material_id === formData.stone_type_id);
+    const matchesType = categoryName.includes('stone') || materialType.includes('stone');
+    const matchesParent = !formData.stone_type_id || m.parent_material_id === formData.stone_type_id;
+    return matchesType && matchesParent && m.parent_material_id;
   }) || [];
 
   const weavingMaterials = availableMaterials?.filter((m: any) => {
     const categoryName = m.material_categories?.name?.toLowerCase() || '';
     const materialType = m.type?.toLowerCase() || '';
-    return (categoryName.includes('weaving') || materialType.includes('weaving')) && m.hierarchy_level === 1;
+    const matchesType = categoryName.includes('weaving') || materialType.includes('weaving');
+    const isTopLevel = !m.parent_material_id;
+    return matchesType && isTopLevel;
   }) || [];
 
   const weavingPatterns = availableMaterials?.filter((m: any) => {
     const categoryName = m.material_categories?.name?.toLowerCase() || '';
     const materialType = m.type?.toLowerCase() || '';
-    return (categoryName.includes('weaving') || materialType.includes('weaving')) && m.hierarchy_level === 2;
+    const matchesType = categoryName.includes('weaving') || materialType.includes('weaving');
+    const matchesParent = !formData.weaving_material_id || m.parent_material_id === formData.weaving_material_id;
+    return matchesType && matchesParent && m.parent_material_id;
   }) || [];
 
   const weavingColors = availableMaterials?.filter((m: any) => {
     const categoryName = m.material_categories?.name?.toLowerCase() || '';
     const materialType = m.type?.toLowerCase() || '';
-    return (categoryName.includes('weaving') || materialType.includes('weaving')) && m.hierarchy_level === 3;
+    const matchesType = categoryName.includes('weaving') || materialType.includes('weaving');
+    const matchesParent = !formData.weaving_pattern_id || m.parent_material_id === formData.weaving_pattern_id;
+    return matchesType && matchesParent && m.parent_material_id;
   }) || [];
 
   const carvingStyles = availableMaterials?.filter((m: any) => {
     const categoryName = m.material_categories?.name?.toLowerCase() || '';
     const materialType = m.type?.toLowerCase() || '';
-    return (categoryName.includes('carving') || materialType.includes('carving')) && m.hierarchy_level === 1;
+    const matchesType = categoryName.includes('carving') || materialType.includes('carving');
+    const isTopLevel = !m.parent_material_id;
+    return matchesType && isTopLevel;
   }) || [];
 
   const carvingPatterns = availableMaterials?.filter((m: any) => {
     const categoryName = m.material_categories?.name?.toLowerCase() || '';
     const materialType = m.type?.toLowerCase() || '';
-    return (categoryName.includes('carving') || materialType.includes('carving')) && m.hierarchy_level === 2;
+    const matchesType = categoryName.includes('carving') || materialType.includes('carving');
+    const matchesParent = !formData.carving_style_id || m.parent_material_id === formData.carving_style_id;
+    return matchesType && matchesParent && m.parent_material_id;
   }) || [];
 
   // Check if basic order info is complete
@@ -555,58 +580,9 @@ export function OrderCreationDialog({
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Material Specifications</h3>
 
-                {/* Furniture Collection Selector */}
-                <div className="space-y-2 border-b pb-4">
-                  <Label htmlFor="furniture_collection_id">Filter by Furniture Collection (Optional)</Label>
-                  <Select
-                    value={formData.furniture_collection_id || "all"}
-                    onValueChange={(value) => setFormData({
-                      ...formData,
-                      furniture_collection_id: value === "all" ? "" : value,
-                      fabric_brand_id: "",
-                      fabric_collection_id: "",
-                      fabric_color_id: "",
-                      wood_type_id: "",
-                      wood_finish_id: "",
-                      metal_type_id: "",
-                      metal_finish_id: "",
-                      metal_color_id: "",
-                      stone_type_id: "",
-                      stone_finish_id: "",
-                      weaving_material_id: "",
-                      weaving_pattern_id: "",
-                      weaving_color_id: "",
-                      carving_style_id: "",
-                      carving_pattern_id: "",
-                    })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="All furniture collections" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Collections (No Filter)</SelectItem>
-                      {furnitureCollections?.map((fc: any) => (
-                        <SelectItem key={fc.id} value={fc.id}>
-                          {fc.name} {fc.prefix ? `(${fc.prefix})` : ''}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {formData.furniture_collection_id && (
-                    <p className="text-xs text-muted-foreground">
-                      Materials filtered to: {(furnitureCollections?.find((fc: any) => fc.id === formData.furniture_collection_id) as any)?.name}
-                    </p>
-                  )}
-                  {!formData.furniture_collection_id && (
-                    <p className="text-xs text-muted-foreground">
-                      Showing all available materials from all collections
-                    </p>
-                  )}
-                </div>
-
                 {/* Fabric Materials */}
-                <div className="space-y-3">
-                  <h4 className="font-medium text-secondary dark:text-secondary">Fabric Materials (Hierarchical: Brand → Collection → Color)</h4>
+                <div className="space-y-3 border-t pt-4">
+                  <h4 className="font-medium">Fabric Materials</h4>
                   <div className="grid grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="fabric_brand_id">Fabric Brand</Label>
@@ -692,8 +668,8 @@ export function OrderCreationDialog({
                 </div>
 
                 {/* Wood Materials */}
-                <div className="space-y-3">
-                  <h4 className="font-medium text-muted dark:text-muted">Wood Materials (Hierarchical: Type → Finish)</h4>
+                <div className="space-y-3 border-t pt-4">
+                  <h4 className="font-medium">Wood Materials</h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="wood_type_id">Wood Type</Label>
@@ -746,8 +722,8 @@ export function OrderCreationDialog({
                 </div>
 
                 {/* Metal Materials */}
-                <div className="space-y-3">
-                  <h4 className="font-medium">Metal Materials (Hierarchical: Type → Finish → Color)</h4>
+                <div className="space-y-3 border-t pt-4">
+                  <h4 className="font-medium">Metal Materials</h4>
                   <div className="grid grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="metal_type_id">Metal Type</Label>
@@ -828,8 +804,8 @@ export function OrderCreationDialog({
                 </div>
 
                 {/* Stone Materials */}
-                <div className="space-y-3">
-                  <h4 className="font-medium text-muted dark:text-muted">Stone Materials (Hierarchical: Type → Finish)</h4>
+                <div className="space-y-3 border-t pt-4">
+                  <h4 className="font-medium">Stone Materials</h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="stone_type_id">Stone Type</Label>
@@ -882,8 +858,8 @@ export function OrderCreationDialog({
                 </div>
 
                 {/* Weaving Materials */}
-                <div className="space-y-3">
-                  <h4 className="font-medium text-success dark:text-success">Weaving Materials (Independent selection: Material, Pattern, Color)</h4>
+                <div className="space-y-3 border-t pt-4">
+                  <h4 className="font-medium">Weaving Materials</h4>
                   <div className="grid grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="weaving_material_id">Weaving Material</Label>
@@ -949,8 +925,8 @@ export function OrderCreationDialog({
                 </div>
 
                 {/* Carving */}
-                <div className="space-y-3">
-                  <h4 className="font-medium text-warning dark:text-warning">Carving (Independent selection: Style, Pattern)</h4>
+                <div className="space-y-3 border-t pt-4">
+                  <h4 className="font-medium">Carving</h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="carving_style_id">Carving Style</Label>

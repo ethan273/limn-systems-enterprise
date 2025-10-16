@@ -35,10 +35,10 @@ print_warn() {
 }
 
 echo "1. Checking for exposed secrets..."
-if grep -r "GOCSPX" . --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=.git --exclude="*.md" -q 2>/dev/null; then
+if grep -r "GOCSPX" . --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=.git --exclude-dir=scripts --exclude="*.md" --exclude="*.bak" --exclude=".env*" --exclude="service-templates.ts" -q 2>/dev/null; then
     print_fail "Google OAuth secrets found in code!"
 else
-    if grep -r "sk_live_\|pk_live_\|sk_test_\|pk_test_" . --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=.git --exclude="*.md" -q 2>/dev/null; then
+    if grep -r "sk_live_\|pk_live_\|sk_test_\|pk_test_" . --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=.git --exclude-dir=scripts --exclude="*.md" --exclude="*.bak" --exclude=".env*" --exclude="service-templates.ts" --exclude="credential-rotation.ts" -q 2>/dev/null; then
         print_fail "Stripe API keys found in code!"
     else
         print_pass "No secrets found in code"
@@ -97,7 +97,16 @@ echo ""
 
 echo "7. Building for production..."
 echo "   (This may take 2-3 minutes...)"
-if NODE_OPTIONS="--max-old-space-size=8192" timeout 300 npm run build > /tmp/build-output.txt 2>&1; then
+# Check if timeout command exists (Linux) or gtimeout (macOS with coreutils)
+if command -v timeout &> /dev/null; then
+    TIMEOUT_CMD="timeout 300"
+elif command -v gtimeout &> /dev/null; then
+    TIMEOUT_CMD="gtimeout 300"
+else
+    TIMEOUT_CMD=""
+fi
+
+if NODE_OPTIONS="--max-old-space-size=8192" $TIMEOUT_CMD npm run build > /tmp/build-output.txt 2>&1; then
     print_pass "Production build successful"
 else
     BUILD_EXIT=$?

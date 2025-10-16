@@ -207,6 +207,7 @@ export const productsRouter = createTRPCRouter({
         prefix: z.string().optional(),
         designer: z.string().optional(),
         is_active: z.boolean().optional(),
+        variation_types: z.array(z.string()).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -218,6 +219,7 @@ export const productsRouter = createTRPCRouter({
           prefix: input.prefix,
           designer: input.designer,
           is_active: input.is_active,
+          variation_types: input.variation_types,
         },
       });
     }),
@@ -325,6 +327,30 @@ export const productsRouter = createTRPCRouter({
         { name: 'asc' },
       ],
     });
+
+    console.log(`[getAllMaterials] Found ${materials.length} materials`);
+    if (materials.length > 0) {
+      console.log('[getAllMaterials] Sample material:', {
+        id: materials[0].id,
+        name: materials[0].name,
+        type: materials[0].type,
+        hierarchy_level: materials[0].hierarchy_level,
+        parent_material_id: materials[0].parent_material_id,
+        category: materials[0].material_categories?.name,
+      });
+
+      // Log materials with parents
+      const materialsWithParents = materials.filter((m: any) => m.parent_material_id);
+      console.log(`[getAllMaterials] Materials with parents: ${materialsWithParents.length}`);
+      if (materialsWithParents.length > 0) {
+        console.log('[getAllMaterials] Sample child material:', {
+          id: materialsWithParents[0].id,
+          name: materialsWithParents[0].name,
+          parent_material_id: materialsWithParents[0].parent_material_id,
+          category: materialsWithParents[0].material_categories?.name,
+        });
+      }
+    }
 
     return materials.map((material: { material_collections?: { collections: unknown }[] }) => ({
       ...material,

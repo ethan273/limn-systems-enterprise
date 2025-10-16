@@ -13,7 +13,7 @@ export const userProfileRouter = createTRPCRouter({
     .query(async ({ ctx }) => {
       const { data: user, error } = await supabase
         .from('user_profiles')
-        .select('id, email, name, avatar_url, user_type, department, created_at')
+        .select('id, email, name, first_name, last_name, avatar_url, user_type, department, created_at')
         .eq('id', ctx.user!.id)
         .single();
 
@@ -33,6 +33,8 @@ export const userProfileRouter = createTRPCRouter({
   updateProfile: protectedProcedure
     .input(z.object({
       name: z.string().min(1).optional(),
+      first_name: z.string().optional(),
+      last_name: z.string().optional(),
       email: z.string().email().optional(),
       avatar_url: z.string().url().optional(),
     }))
@@ -59,7 +61,7 @@ export const userProfileRouter = createTRPCRouter({
         // @ts-expect-error - Supabase types not available for update
         .update(input)
         .eq('id', ctx.user!.id)
-        .select('id, email, name, avatar_url')
+        .select('id, email, name, first_name, last_name, avatar_url')
         .single();
 
       if (error) {

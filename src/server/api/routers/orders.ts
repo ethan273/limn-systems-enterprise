@@ -139,7 +139,7 @@ export const ordersRouter = createTRPCRouter({
             throw new Error('Customer not found');
           }
 
-          const customerName = createFullName(customer.first_name || '', customer.last_name);
+          const customerName = createFullName(customer.first_name || '', customer.last_name || undefined);
           const newProject = await ctx.db.projects.create({
             data: {
               customer_id: input.customer_id,

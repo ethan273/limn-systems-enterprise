@@ -23,6 +23,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { MediaUploader } from "@/components/media/MediaUploader";
 import { MediaGallery } from "@/components/media/MediaGallery";
+import { VariationsManager } from "@/components/products/VariationsManager";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -33,6 +34,7 @@ export default function CollectionDetailPage({ params }: PageProps) {
   const router = useRouter();
   const collectionId = resolvedParams.id;
   const [activeTab, setActiveTab] = useState("overview");
+  const [isEditingVariations, setIsEditingVariations] = useState(false);
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
@@ -56,6 +58,21 @@ export default function CollectionDetailPage({ params }: PageProps) {
     // Invalidate queries for instant updates
     utils.products.getAllCollections.invalidate();
     utils.documents.getByEntity.invalidate({ entityType: "collection", entityId: collectionId });
+  };
+
+  const updateCollectionMutation = api.products.updateCollection.useMutation({
+    onSuccess: () => {
+      utils.products.getAllCollections.invalidate();
+      setIsEditingVariations(false);
+    },
+  });
+
+  const handleSaveVariations = async (variations: string[]) => {
+    await updateCollectionMutation.mutateAsync({
+      id: collectionId,
+      name: collection.name,
+      variation_types: variations,
+    });
   };
 
   if (isLoading) {
@@ -108,8 +125,8 @@ export default function CollectionDetailPage({ params }: PageProps) {
         tags={collection.variation_types || []}
         actions={[
           {
-            label: 'Edit Collection',
-            onClick: () => router.push(`/products/collections/${collectionId}/edit`),
+            label: isEditingVariations ? 'Cancel Editing' : 'Edit Variations',
+            onClick: () => setIsEditingVariations(!isEditingVariations),
           },
         ]}
         status={collection.is_active !== false ? "active" : "inactive"}
@@ -174,7 +191,7 @@ export default function CollectionDetailPage({ params }: PageProps) {
         </TabsList>
 
         {/* Overview Tab */}
-        <TabsContent value="overview">
+        <TabsContent value="overview" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <InfoCard
               title="Collection Information"
@@ -205,6 +222,12 @@ export default function CollectionDetailPage({ params }: PageProps) {
               ]}
             />
           </div>
+
+          <VariationsManager
+            variations={collection.variation_types || []}
+            onSave={handleSaveVariations}
+            isEditing={isEditingVariations}
+          />
         </TabsContent>
 
         {/* Media Tab */}

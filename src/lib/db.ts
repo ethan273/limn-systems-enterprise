@@ -103,6 +103,8 @@ export interface User {
 export interface Customer {
   id: string;
   name: string;
+  first_name?: string | null;
+  last_name?: string | null;
   email?: string | null;
   phone?: string | null;
   company?: string | null;
@@ -176,6 +178,8 @@ export interface Order {
 export interface Lead {
   id: string;
   name: string;
+  first_name?: string | null;
+  last_name?: string | null;
   company?: string | null;
   email?: string | null;
   phone?: string | null;
@@ -205,7 +209,9 @@ export interface Lead {
 // Contact types
 export interface Contact {
   id: string;
-  name: string;
+  name?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
   email?: string | null;
   phone?: string | null;
   company?: string | null;
@@ -222,6 +228,7 @@ export interface Contact {
   score?: number | null;
   assigned_to?: string | null;
   last_activity_date?: Date | null;
+  status?: string | null;
 }
 
 // Auth-related types
@@ -559,6 +566,7 @@ export class DatabaseClient {
 
   // User Management
   user_profiles = prisma.user_profiles;
+  addresses = prisma.addresses;
 
   // =====================================================
   // TRANSACTION SUPPORT

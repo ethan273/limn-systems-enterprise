@@ -165,7 +165,7 @@ export function MediaUploader({
           googleDriveId: uploadResult.fileId,
           googleDriveUrl: uploadResult.publicUrl,
           storageBucket: uploadResult.storageType === 'supabase' ? 'design-documents' : undefined,
-          mediaType: fileData.media_type,
+          mediaType: fileData.media_type as "line_drawing" | "isometric" | "3d_model" | "rendering" | "other" | "photo" | "technical_drawing" | undefined,
           useForPackaging: fileData.use_for_packaging ?? false,
           useForLabeling: fileData.use_for_labeling ?? false,
           useForMarketing: fileData.use_for_marketing ?? false,

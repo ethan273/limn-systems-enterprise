@@ -43,7 +43,7 @@ export function MilestonesManager({ prototypeId }: MilestonesManagerProps) {
     onSuccess: () => {
       toast.success("Milestone created successfully");
       utils.prototypes.getMilestones.invalidate({ prototypeId });
-      utils.prototypes.getPrototypeById.invalidate({ id: prototypeId });
+      utils.prototypes.getById.invalidate({ id: prototypeId });
       setIsAdding(false);
       setFormData({
         milestoneName: "",
@@ -63,7 +63,7 @@ export function MilestonesManager({ prototypeId }: MilestonesManagerProps) {
     onSuccess: () => {
       toast.success("Milestone status updated");
       utils.prototypes.getMilestones.invalidate({ prototypeId });
-      utils.prototypes.getPrototypeById.invalidate({ id: prototypeId });
+      utils.prototypes.getById.invalidate({ id: prototypeId });
     },
     onError: (error) => {
       toast.error(error.message || "Failed to update status");
@@ -85,7 +85,7 @@ export function MilestonesManager({ prototypeId }: MilestonesManagerProps) {
     onSuccess: () => {
       toast.success("Milestone deleted");
       utils.prototypes.getMilestones.invalidate({ prototypeId });
-      utils.prototypes.getPrototypeById.invalidate({ id: prototypeId });
+      utils.prototypes.getById.invalidate({ id: prototypeId });
     },
     onError: (error) => {
       toast.error(error.message || "Failed to delete milestone");
@@ -318,8 +318,7 @@ export function MilestonesManager({ prototypeId }: MilestonesManagerProps) {
                       onValueChange={(value) =>
                         updateStatusMutation.mutate({
                           id: milestone.id,
-                          status: value,
-                          completedBy: value === "completed" ? "current-user-id" : undefined,
+                          status: value as "pending" | "completed" | "in_progress" | "skipped" | "blocked",
                         })
                       }
                     >

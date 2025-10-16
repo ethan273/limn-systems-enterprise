@@ -47,17 +47,22 @@ export default function Sidebar() {
  const pathname = usePathname();
  const router = useRouter();
  const { resolvedTheme } = useTheme();
- const { user, profile, loading: authLoading } = useAuthContext();
+ const { user, loading: authLoading } = useAuthContext();
  const [isOpen, setIsOpen] = useState(false);
  const [mounted, setMounted] = useState(false);
  const isOnTasksPage = pathname.startsWith('/tasks');
+
+ // Use tRPC to get user profile (more reliable than Supabase direct query)
+ const { data: profile } = api.userProfile.getCurrentUser.useQuery(undefined, {
+   enabled: !!user?.id,
+ }) as { data: { id: string; email: string; name?: string; first_name?: string; last_name?: string; avatar_url?: string; user_type?: string; department?: string; created_at?: Date } | undefined };
 
  // Get user type for permission checking
  const userType = profile?.user_type;
 
  // Get display name and initials using utility functions
- const displayName = authLoading ? null : getUserFullName({ ...profile, email: profile?.email || user?.email });
- const initials = authLoading ? '...' : getUserInitials({ ...profile, email: profile?.email || user?.email });
+ const displayName = authLoading ? null : getUserFullName({ ...(profile || {}), email: profile?.email || user?.email });
+ const initials = authLoading ? '...' : getUserInitials({ ...(profile || {}), email: profile?.email || user?.email });
 
  useEffect(() => {
  setMounted(true);

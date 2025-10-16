@@ -43,7 +43,7 @@ export function FeedbackManager({ prototypeId }: FeedbackManagerProps) {
     onSuccess: () => {
       toast.success("Feedback submitted successfully");
       utils.prototypes.getFeedback.invalidate({ prototypeId });
-      utils.prototypes.getPrototypeById.invalidate({ id: prototypeId });
+      utils.prototypes.getById.invalidate({ id: prototypeId });
       setIsAdding(false);
       setFormData({
         feedbackType: "general",
@@ -64,7 +64,7 @@ export function FeedbackManager({ prototypeId }: FeedbackManagerProps) {
     onSuccess: () => {
       toast.success("Feedback marked as addressed");
       utils.prototypes.getFeedback.invalidate({ prototypeId });
-      utils.prototypes.getPrototypeById.invalidate({ id: prototypeId });
+      utils.prototypes.getById.invalidate({ id: prototypeId });
     },
     onError: (error) => {
       toast.error(error.message || "Failed to address feedback");
@@ -75,7 +75,7 @@ export function FeedbackManager({ prototypeId }: FeedbackManagerProps) {
     onSuccess: () => {
       toast.success("Feedback closed");
       utils.prototypes.getFeedback.invalidate({ prototypeId });
-      utils.prototypes.getPrototypeById.invalidate({ id: prototypeId });
+      utils.prototypes.getById.invalidate({ id: prototypeId });
     },
     onError: (error) => {
       toast.error(error.message || "Failed to close feedback");

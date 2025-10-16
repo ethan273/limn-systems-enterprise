@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { Package, Plus, Pencil, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -43,6 +44,7 @@ interface Collection {
 }
 
 export default function CollectionsPage() {
+  const router = useRouter();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editCollectionId, setEditCollectionId] = useState<string>("");
@@ -311,6 +313,7 @@ export default function CollectionsPage() {
           columns={columns as any}
           filters={filters}
           rowActions={rowActions as any}
+          onRowClick={(row) => router.push(`/products/collections/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}
           emptyState={{
             icon: Package,

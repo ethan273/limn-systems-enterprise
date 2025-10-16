@@ -1520,7 +1520,7 @@ export const dashboardsRouter = createTRPCRouter({
             // Better customer display: name > company_name > email > truncated ID
             let displayName = 'Unknown Customer';
             if (customer?.first_name || customer?.last_name) {
-              displayName = createFullName(customer.first_name || '', customer.last_name);
+              displayName = createFullName(customer.first_name || '', customer.last_name || undefined);
             } else if (customer?.name) {
               displayName = customer.name;
             } else if (customer?.company_name) {
