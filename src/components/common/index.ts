@@ -35,6 +35,8 @@ export { StatusBadge, PriorityBadge, DepartmentBadge } from './StatusBadge';
 export { EditableField, EditableFieldGroup } from './EditableField';
 export type { EditableFieldProps, EditableFieldGroupProps } from './EditableField';
 
+export { SpecificationsManager } from './SpecificationsManager';
+
 export { Breadcrumbs } from './Breadcrumbs';
 export type { BreadcrumbsProps, BreadcrumbItem } from './Breadcrumbs';
 

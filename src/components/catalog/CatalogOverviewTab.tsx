@@ -22,7 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { DimensionDisplay } from "@/components/furniture/DimensionDisplay";
 import { ExternalLink } from "lucide-react";
 import { api } from "@/lib/api/client";
-import { EditableField } from "@/components/common";
+import { EditableField, SpecificationsManager } from "@/components/common";
 
 interface CatalogOverviewTabProps {
   catalogItem: any; // Full catalog item with relations
@@ -47,6 +47,7 @@ export default function CatalogOverviewTab({ catalogItem, isEditing = false }: C
     is_customizable,
     furniture_dimensions,
     item_images,
+    specifications,
   } = catalogItem;
 
   // Update mutation
@@ -57,6 +58,13 @@ export default function CatalogOverviewTab({ catalogItem, isEditing = false }: C
       utils.items.getAll.invalidate();
     },
   });
+
+  const handleSaveSpecifications = async (specs: Record<string, any>) => {
+    await updateMutation.mutateAsync({
+      id,
+      data: { specifications: specs },
+    });
+  };
 
   return (
     <div className="catalog-overview-tab">
@@ -300,6 +308,21 @@ export default function CatalogOverviewTab({ catalogItem, isEditing = false }: C
                 type="textarea"
                 className="product-description"
                 placeholder="Add a product description..."
+              />
+            </CardContent>
+          </Card>
+
+          {/* Specifications */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Specifications</CardTitle>
+              <CardDescription>Product-specific details and attributes</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <SpecificationsManager
+                specifications={specifications || {}}
+                onSave={handleSaveSpecifications}
+                isEditing={isEditing}
               />
             </CardContent>
           </Card>
