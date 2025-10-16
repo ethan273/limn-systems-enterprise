@@ -78,7 +78,7 @@ test.describe('Products - Catalog', () => {
 
   test('should display catalog item detail with database data', async ({ page }) => {
     // Get real catalog item ID from database
-    const catalogItem = await prisma.furniture_catalog.findFirst();
+    const catalogItem = await prisma.products.findFirst();
 
     if (!catalogItem) test.skip();
 
@@ -126,7 +126,7 @@ test.describe('Products - Concepts', () => {
   });
 
   test('should display concept detail with database data', async ({ page }) => {
-    const concept = await prisma.furniture_concepts.findFirst();
+    const concept = await prisma.concepts.findFirst();
 
     if (!concept) test.skip();
 
@@ -173,7 +173,7 @@ test.describe('Products - Prototypes', () => {
   });
 
   test('should display prototype detail with database data', async ({ page }) => {
-    const prototype = await prisma.furniture_prototypes.findFirst();
+    const prototype = await prisma.prototypes.findFirst();
 
     if (!prototype) test.skip();
 
@@ -210,7 +210,7 @@ test.describe('Products - Collections', () => {
   });
 
   test('should display collection detail with database data', async ({ page }) => {
-    const collection = await prisma.furniture_collections.findFirst();
+    const collection = await prisma.collections.findFirst();
 
     if (!collection) test.skip();
 

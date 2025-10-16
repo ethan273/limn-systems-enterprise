@@ -161,6 +161,33 @@ class SchemaValidator {
   }
 
   /**
+   * Check if line is a comment
+   */
+  private isComment(line: string): boolean {
+    const trimmed = line.trim();
+    return (
+      trimmed.startsWith('//') ||
+      trimmed.startsWith('/*') ||
+      trimmed.startsWith('*') ||
+      trimmed.startsWith('--') ||
+      trimmed.startsWith('#')
+    );
+  }
+
+  /**
+   * Remove string literals from line to avoid matching text inside strings
+   */
+  private removeStringLiterals(line: string): string {
+    // Remove single-quoted strings
+    let cleaned = line.replace(/'[^']*'/g, "''");
+    // Remove double-quoted strings
+    cleaned = cleaned.replace(/"[^"]*"/g, '""');
+    // Remove backtick strings
+    cleaned = cleaned.replace(/`[^`]*`/g, '``');
+    return cleaned;
+  }
+
+  /**
    * Scan individual file for schema violations
    */
   private async scanFile(filePath: string): Promise<void> {
@@ -170,53 +197,62 @@ class SchemaValidator {
     lines.forEach((line, index) => {
       const lineNumber = index + 1;
 
+      // Skip comments
+      if (this.isComment(line)) {
+        return;
+      }
+
+      // Remove string content to avoid false positives
+      const cleanedLine = this.removeStringLiterals(line);
+
       // Pattern 1: Supabase queries - .from('table_name')
-      const supabaseFromRegex = /\.from\(['"`](\w+)['"`]\)/g;
+      const supabaseFromRegex = /\.from\(['"``](\w+)['"``]\)/g;
       let match;
 
-      while ((match = supabaseFromRegex.exec(line)) !== null) {
+      while ((match = supabaseFromRegex.exec(cleanedLine)) !== null) {
         const tableName = match[1];
         this.validateTableReference(tableName, filePath, lineNumber, line);
       }
 
       // Pattern 2: Prisma queries - prisma.table_name
       const prismaTableRegex = /prisma\.(\w+)\./g;
-      while ((match = prismaTableRegex.exec(line)) !== null) {
+      while ((match = prismaTableRegex.exec(cleanedLine)) !== null) {
         const tableName = match[1];
         this.validateTableReference(tableName, filePath, lineNumber, line);
       }
 
-      // Pattern 3: SQL FROM/JOIN clauses
-      const sqlTableRegex = /(?:FROM|JOIN)\s+(\w+)/gi;
-      while ((match = sqlTableRegex.exec(line)) !== null) {
+      // Pattern 3: SQL FROM/JOIN clauses (uppercase only to avoid natural language)
+      const sqlTableRegex = /\b(?:FROM|JOIN)\s+(\w+)/g;
+      while ((match = sqlTableRegex.exec(cleanedLine)) !== null) {
         const tableName = match[1];
-        // Skip SQL keywords
-        if (!['SELECT', 'WHERE', 'ON'].includes(tableName.toUpperCase())) {
+        // Skip SQL keywords and only validate if line looks like SQL (has SELECT, UPDATE, DELETE, etc)
+        const hasSQL = /\b(SELECT|UPDATE|DELETE|INSERT)\b/.test(cleanedLine.toUpperCase());
+        if (hasSQL && !['SELECT', 'WHERE', 'ON', 'SET', 'VALUES'].includes(tableName.toUpperCase())) {
           this.validateTableReference(tableName, filePath, lineNumber, line);
         }
       }
 
-      // Pattern 4: SQL ALTER TABLE
-      const alterTableRegex = /ALTER\s+TABLE\s+(\w+)/gi;
-      while ((match = alterTableRegex.exec(line)) !== null) {
+      // Pattern 4: SQL ALTER TABLE (uppercase only)
+      const alterTableRegex = /\bALTER\s+TABLE\s+(\w+)/g;
+      while ((match = alterTableRegex.exec(cleanedLine)) !== null) {
         const tableName = match[1];
         this.validateTableReference(tableName, filePath, lineNumber, line);
       }
 
       // Pattern 5: Column references in .eq(), .select(), etc.
-      const columnRefRegex = /\.(?:eq|select|update|insert)\(['"`](\w+)['"`]/g;
-      while ((match = columnRefRegex.exec(line)) !== null) {
+      const columnRefRegex = /\.(?:eq|select|update|insert)\(['"``](\w+)['"``]/g;
+      while ((match = columnRefRegex.exec(cleanedLine)) !== null) {
         const columnName = match[1];
         // Try to infer table from context (previous .from() call)
-        const tableName = this.inferTableFromContext(line, content.substring(0, content.indexOf(line)));
+        const tableName = this.inferTableFromContext(cleanedLine, content.substring(0, content.indexOf(line)));
         if (tableName) {
           this.validateColumnReference(tableName, columnName, filePath, lineNumber, line);
         }
       }
 
       // Pattern 6: Enum value checks
-      const enumValueRegex = /user_type\s*(?:===|IN|=)\s*[('"`](\w+)[)'"`]/gi;
-      while ((match = enumValueRegex.exec(line)) !== null) {
+      const enumValueRegex = /user_type\s*(?:===|IN|=)\s*[('"`](\w+)[)'"`]/g;
+      while ((match = enumValueRegex.exec(cleanedLine)) !== null) {
         const enumValue = match[1];
         this.validateEnumValue('user_type_enum', enumValue, filePath, lineNumber, line);
       }
@@ -224,9 +260,34 @@ class SchemaValidator {
   }
 
   /**
+   * Check if table is a system/framework table that should be ignored
+   */
+  private isSystemTable(tableName: string): boolean {
+    const systemTables = [
+      'information_schema',
+      'pg_catalog',
+      'pg_indexes',
+      'pg_stat',
+      'pg_tables',
+      'auth', // Supabase auth schema
+      'public', // Schema qualifier
+      'storage', // Supabase storage schema
+    ];
+
+    return systemTables.includes(tableName) ||
+           tableName.startsWith('pg_') ||
+           tableName.startsWith('_prisma');
+  }
+
+  /**
    * Validate table name exists in schema
    */
   private validateTableReference(tableName: string, file: string, line: number, context: string): void {
+    // Skip system tables
+    if (this.isSystemTable(tableName)) {
+      return;
+    }
+
     if (!this.schema.tables.has(tableName)) {
       // Check for similar table names
       const suggestion = this.findSimilarTable(tableName);

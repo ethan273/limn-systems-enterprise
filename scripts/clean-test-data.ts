@@ -17,49 +17,49 @@ async function cleanTestData() {
     // Delete in reverse order of dependencies to avoid foreign key violations
 
     console.log('Deleting test payments...');
-    const deletedPayments = await prisma.payment.deleteMany({
+    const deletedPayments = await prisma.payments.deleteMany({
       where: { id: { startsWith: 'test-' } },
     });
     console.log(`✅ Deleted ${deletedPayments.count} test payments\n`);
 
     console.log('Deleting test invoices...');
-    const deletedInvoices = await prisma.invoice.deleteMany({
+    const deletedInvoices = await prisma.invoices.deleteMany({
       where: { id: { startsWith: 'test-' } },
     });
     console.log(`✅ Deleted ${deletedInvoices.count} test invoices\n`);
 
     console.log('Deleting test orders...');
-    const deletedOrders = await prisma.order.deleteMany({
+    const deletedOrders = await prisma.orders.deleteMany({
       where: { id: { startsWith: 'test-' } },
     });
     console.log(`✅ Deleted ${deletedOrders.count} test orders\n`);
 
     console.log('Deleting test products...');
-    const deletedProducts = await prisma.product.deleteMany({
+    const deletedProducts = await prisma.products.deleteMany({
       where: { id: { startsWith: 'test-' } },
     });
     console.log(`✅ Deleted ${deletedProducts.count} test products\n`);
 
     console.log('Deleting test projects...');
-    const deletedProjects = await prisma.project.deleteMany({
+    const deletedProjects = await prisma.projects.deleteMany({
       where: { id: { startsWith: 'test-' } },
     });
     console.log(`✅ Deleted ${deletedProjects.count} test projects\n`);
 
     console.log('Deleting test tasks...');
-    const deletedTasks = await prisma.task.deleteMany({
+    const deletedTasks = await prisma.tasks.deleteMany({
       where: { id: { startsWith: 'test-' } },
     });
     console.log(`✅ Deleted ${deletedTasks.count} test tasks\n`);
 
     console.log('Deleting test contacts...');
-    const deletedContacts = await prisma.contact.deleteMany({
+    const deletedContacts = await prisma.contacts.deleteMany({
       where: { email: { contains: '@example.com' } },
     });
     console.log(`✅ Deleted ${deletedContacts.count} test contacts\n`);
 
     console.log('Deleting test leads...');
-    const deletedLeads = await prisma.lead.deleteMany({
+    const deletedLeads = await prisma.leads.deleteMany({
       where: {
         OR: [
           { email: { contains: '@startup.com' } },
@@ -71,7 +71,7 @@ async function cleanTestData() {
     console.log(`✅ Deleted ${deletedLeads.count} test leads\n`);
 
     console.log('Deleting test clients...');
-    const deletedClients = await prisma.client.deleteMany({
+    const deletedClients = await prisma.clients.deleteMany({
       where: { id: { startsWith: 'test-' } },
     });
     console.log(`✅ Deleted ${deletedClients.count} test clients\n`);

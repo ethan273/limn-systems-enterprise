@@ -25,7 +25,7 @@ ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE shipments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE production_orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
-ALTER TABLE invoice_line_items ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE invoice_line_items ENABLE ROW LEVEL SECURITY; -- Table does not exist (use production_invoice_line_items instead)
 ALTER TABLE payment_allocations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE customer_portal_access ENABLE ROW LEVEL SECURITY;
@@ -270,38 +270,40 @@ CREATE POLICY "admins_manage_order_items"
 -- ============================================================================
 -- STEP 9: INVOICE LINE ITEMS TABLE POLICIES
 -- ============================================================================
+-- NOTE: Table 'invoice_line_items' does not exist in current schema
+-- Consider using 'production_invoice_line_items' instead if needed
 
-CREATE POLICY "customers_view_own_invoice_line_items"
-  ON invoice_line_items FOR SELECT
-  USING (
-    invoice_id IN (
-      SELECT id FROM invoices
-      WHERE customer_id IN (
-        SELECT customer_id FROM customer_portal_access
-        WHERE user_id = auth.uid() AND is_active = true
-      )
-    )
-  );
+-- CREATE POLICY "customers_view_own_invoice_line_items"
+--   ON invoice_line_items FOR SELECT
+--   USING (
+--     invoice_id IN (
+--       SELECT id FROM invoices
+--       WHERE customer_id IN (
+--         SELECT customer_id FROM customer_portal_access
+--         WHERE user_id = auth.uid() AND is_active = true
+--       )
+--     )
+--   );
 
-CREATE POLICY "employees_view_all_invoice_line_items"
-  ON invoice_line_items FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM user_profiles
-      WHERE id = auth.uid()
-      AND user_type IN ('employee', 'admin', 'super_admin')
-    )
-  );
+-- CREATE POLICY "employees_view_all_invoice_line_items"
+--   ON invoice_line_items FOR SELECT
+--   USING (
+--     EXISTS (
+--       SELECT 1 FROM user_profiles
+--       WHERE id = auth.uid()
+--       AND user_type IN ('employee', 'admin', 'super_admin')
+--     )
+--   );
 
-CREATE POLICY "admins_manage_invoice_line_items"
-  ON invoice_line_items FOR ALL
-  USING (
-    EXISTS (
-      SELECT 1 FROM user_profiles
-      WHERE id = auth.uid()
-      AND user_type IN ('admin', 'super_admin')
-    )
-  );
+-- CREATE POLICY "admins_manage_invoice_line_items"
+--   ON invoice_line_items FOR ALL
+--   USING (
+--     EXISTS (
+--       SELECT 1 FROM user_profiles
+--       WHERE id = auth.uid()
+--       AND user_type IN ('admin', 'super_admin')
+--     )
+--   );
 
 -- ============================================================================
 -- STEP 10: PAYMENT ALLOCATIONS TABLE POLICIES
@@ -462,7 +464,7 @@ ALTER TABLE invoices DISABLE ROW LEVEL SECURITY;
 ALTER TABLE shipments DISABLE ROW LEVEL SECURITY;
 ALTER TABLE production_orders DISABLE ROW LEVEL SECURITY;
 ALTER TABLE order_items DISABLE ROW LEVEL SECURITY;
-ALTER TABLE invoice_line_items DISABLE ROW LEVEL SECURITY;
+-- ALTER TABLE invoice_line_items DISABLE ROW LEVEL SECURITY; -- Table does not exist
 ALTER TABLE payment_allocations DISABLE ROW LEVEL SECURITY;
 ALTER TABLE projects DISABLE ROW LEVEL SECURITY;
 ALTER TABLE customer_portal_access DISABLE ROW LEVEL SECURITY;
