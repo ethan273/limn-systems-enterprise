@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -64,8 +64,16 @@ export function FurnitureDimensionsForm({
  warnings: []
  });
 
- // Initialize form data
+ // Track if we've already initialized to prevent infinite loops
+ const hasInitialized = useRef(false);
+
+ // Initialize form data only once
  useEffect(() => {
+ // Skip if already initialized
+ if (hasInitialized.current) {
+ return;
+ }
+
  if (initialFurnitureType) {
  setFurnitureType(initialFurnitureType);
  }
@@ -88,12 +96,15 @@ export function FurnitureDimensionsForm({
  initialDualDimensions[baseField] = dbToDualDimensions(
  unit === 'inches' ? value : pairedValue,
  unit === 'cm' ? value : pairedValue,
- 'inches' // Always use inches as default for initial load to prevent infinite loop
+ 'inches' // Always use inches as default for initial load
  );
  }
  }
  setDimensions(initialDualDimensions);
- }, [initialFurnitureType, initialDimensions]); // Removed userPreferredUnit to prevent infinite loop
+
+ // Mark as initialized
+ hasInitialized.current = true;
+ }, [initialFurnitureType, initialDimensions]);
 
  // Validate dimensions when they change
  useEffect(() => {
