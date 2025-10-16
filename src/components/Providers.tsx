@@ -21,8 +21,8 @@ export function Providers({ children }: { children: ReactNode }) {
 
  return (
  <ThemeProvider>
- <TRPCProvider>
  <AuthProvider>
+ <TRPCProvider>
  <AppContext.Provider value={{ sidebarOpen, setSidebarOpen }}>
  {children}
  <Toaster richColors position="top-right" />
@@ -30,8 +30,8 @@ export function Providers({ children }: { children: ReactNode }) {
  <NetworkStatus />
  <InstallPrompt />
  </AppContext.Provider>
- </AuthProvider>
  </TRPCProvider>
+ </AuthProvider>
  </ThemeProvider>
  );
 }

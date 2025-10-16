@@ -46,7 +46,7 @@ export default function Sidebar() {
  const pathname = usePathname();
  const router = useRouter();
  const { resolvedTheme } = useTheme();
- const { user, profile } = useAuthContext();
+ const { user, profile, loading: authLoading } = useAuthContext();
  const [isOpen, setIsOpen] = useState(false);
  const [mounted, setMounted] = useState(false);
  const isOnTasksPage = pathname.startsWith('/tasks');
@@ -406,13 +406,31 @@ export default function Sidebar() {
  aria-label="Open settings"
  >
  <div className="user-avatar">
-           {profile?.full_name
-             ? profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-             : user?.email?.slice(0, 2).toUpperCase() || 'U'}
+           {authLoading ? (
+             <span className="animate-pulse">...</span>
+           ) : profile?.full_name ? (
+             profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+           ) : user?.email ? (
+             user.email.slice(0, 2).toUpperCase()
+           ) : (
+             'U'
+           )}
  </div>
  <div className="user-info">
-         <p className="user-name">{profile?.full_name || user?.email?.split('@')[0] || 'User'}</p>
-         <p className="user-email">{user?.email || 'No email'}</p>
+           <p className="user-name">
+             {authLoading ? (
+               <span className="animate-pulse">Loading...</span>
+             ) : (
+               profile?.full_name || user?.email?.split('@')[0] || 'User'
+             )}
+           </p>
+           <p className="user-email">
+             {authLoading ? (
+               <span className="animate-pulse">Loading...</span>
+             ) : (
+               user?.email || 'No email'
+             )}
+           </p>
  </div>
  <LogOutIcon className="user-logout-icon" />
  </div>
