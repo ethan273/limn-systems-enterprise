@@ -10,6 +10,7 @@
 import { z } from 'zod';
 import { createTRPCRouter, adminProcedure } from '../trpc/init';
 import { PrismaClient, user_type_enum } from '@prisma/client';
+import { getUserFullName } from '@/lib/utils/user-utils';
 
 const prisma = new PrismaClient();
 
@@ -81,7 +82,14 @@ export const adminRouter = createTRPCRouter({
         if (search) {
           where.OR = [
             { email: { contains: search, mode: 'insensitive' } },
-            { user_profiles: { name: { contains: search, mode: 'insensitive' } } },
+            { user_profiles: {
+              OR: [
+                { first_name: { contains: search, mode: 'insensitive' } },
+                { last_name: { contains: search, mode: 'insensitive' } },
+                { full_name: { contains: search, mode: 'insensitive' } },
+                { name: { contains: search, mode: 'insensitive' } },
+              ]
+            } },
           ];
         }
 
@@ -149,7 +157,7 @@ export const adminRouter = createTRPCRouter({
             return {
               id: user.id,
               email: user.email,
-              name: profile?.name || null,
+              name: getUserFullName(profile) || null,
               avatarUrl: profile?.avatar_url || null,
               userType: profile?.user_type || 'employee',
               title: profile?.title || null,
@@ -212,7 +220,7 @@ export const adminRouter = createTRPCRouter({
         return {
           id: user.id,
           email: user.email,
-          name: profile?.name || null,
+          name: getUserFullName(profile) || null,
           avatarUrl: profile?.avatar_url || null,
           userType: profile?.user_type || 'employee',
           title: profile?.title || null,
@@ -710,7 +718,11 @@ export const adminRouter = createTRPCRouter({
           where: { id: { in: userIds } },
           select: {
             id: true,
+            first_name: true,
+            last_name: true,
+            full_name: true,
             name: true,
+            email: true,
             user_type: true,
             is_active: true,
           },
@@ -725,7 +737,7 @@ export const adminRouter = createTRPCRouter({
             return {
               userId: ur.user_id!,
               email: ur.users?.email || '',
-              name: profile?.name,
+              name: getUserFullName(profile),
               userType: profile?.user_type,
               isActive: profile?.is_active,
               assignedAt: ur.created_at,

@@ -11,6 +11,7 @@
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '../trpc/init';
 import { PrismaClient } from '@prisma/client';
+import { getUserFullName } from '@/lib/utils/user-utils';
 
 const prisma = new PrismaClient();
 
@@ -81,7 +82,11 @@ export const exportRouter = createTRPCRouter({
         },
         select: {
           id: true,
+          first_name: true,
+          last_name: true,
+          full_name: true,
           name: true,
+          email: true,
           user_type: true,
           title: true,
           department: true,
@@ -98,7 +103,7 @@ export const exportRouter = createTRPCRouter({
           return {
             id: user.id,
             email: user.email,
-            name: profile.name || '',
+            name: getUserFullName(profile),
             userType: profile.user_type || 'employee',
             title: profile.title || '',
             department: profile.department || '',

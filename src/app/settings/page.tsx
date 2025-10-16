@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { PageHeader } from "@/components/common";
+import { getUserFullName, getUserFirstName, getUserLastName } from "@/lib/utils/user-utils";
 
 export default function SettingsPage() {
   const { toast } = useToast();
@@ -23,13 +24,17 @@ export default function SettingsPage() {
   const userData = user as any;
   const userPrefs = preferences as any;
 
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
 
   // Update local state when user data loads
   useEffect(() => {
-    if (userData?.name) setName(userData.name);
-    if (userData?.email) setEmail(userData.email);
+    if (userData) {
+      setFirstName(getUserFirstName(userData));
+      setLastName(getUserLastName(userData));
+      setEmail(userData.email || "");
+    }
   }, [userData]);
 
   const updateProfile = api.userProfile.updateProfile.useMutation({
@@ -65,7 +70,11 @@ export default function SettingsPage() {
   });
 
   const handleSaveProfile = () => {
-    updateProfile.mutate({ name, email });
+    updateProfile.mutate({
+      first_name: firstName,
+      last_name: lastName,
+      email
+    });
   };
 
   const handleThemeChange = (theme: "light" | "dark" | "system") => {
@@ -95,14 +104,25 @@ export default function SettingsPage() {
             </div>
             <div className="card-content">
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input
-                    id="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Your name"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">First Name</Label>
+                    <Input
+                      id="firstName"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder="First name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Last Name</Label>
+                    <Input
+                      id="lastName"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder="Last name"
+                    />
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
