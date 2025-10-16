@@ -240,7 +240,7 @@ export default function HealthMonitoringPage() {
                   <div className="mt-2 flex items-center gap-6 text-sm text-secondary">
                     <div className="flex items-center gap-2">
                       <TrendingUp className="h-4 w-4" />
-                      <span>24h Uptime: {credential.uptime_24h.toFixed(2)}%</span>
+                      <span>24h Uptime: {Number(credential.uptime_24h).toFixed(2)}%</span>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -317,7 +317,7 @@ export default function HealthMonitoringPage() {
               <div className="bg-muted/30 p-4 rounded-lg">
                 <p className="text-sm text-muted-foreground">Uptime</p>
                 <p className="text-2xl font-bold text-primary">
-                  {uptimeMetrics.uptime_percentage.toFixed(2)}%
+                  {Number(uptimeMetrics.uptime_percentage).toFixed(2)}%
                 </p>
               </div>
 

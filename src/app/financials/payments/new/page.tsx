@@ -184,7 +184,7 @@ export default function NewPaymentPage() {
                     ) : (
                       unpaidInvoices.map((invoice: { id: string; invoice_number: string; amount_due: number; payment_status: string }) => (
                         <SelectItem key={invoice.id} value={invoice.id}>
-                          {invoice.invoice_number} - ${invoice.amount_due?.toFixed(2) || '0.00'} ({invoice.payment_status})
+                          {invoice.invoice_number} - ${invoice.amount_due ? Number(invoice.amount_due).toFixed(2) : '0.00'} ({invoice.payment_status})
                         </SelectItem>
                       ))
                     )}
