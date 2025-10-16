@@ -21,6 +21,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { DataTable, type DataTableColumn } from "@/components/common";
+import { getUserFullName } from "@/lib/utils/user-utils";
 
 // Dynamic route configuration
 export const dynamic = 'force-dynamic';
@@ -60,10 +61,10 @@ export default function AnalyticsDashboardPage() {
   // DataTable columns configuration
   const columns: DataTableColumn<any>[] = [
     {
-      key: 'name',
+      key: 'first_name',
       label: 'User',
       sortable: true,
-      render: (value) => <span className="font-medium">{(value as string) || '—'}</span>,
+      render: (_, row) => <span className="font-medium">{getUserFullName(row) || '—'}</span>,
     },
     {
       key: 'email',

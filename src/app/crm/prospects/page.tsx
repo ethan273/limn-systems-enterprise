@@ -25,6 +25,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { getFullName } from "@/lib/utils/name-utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -194,10 +195,10 @@ export default function ProspectsPage() {
       },
     },
     {
-      key: 'name',
+      key: 'first_name',
       label: 'Name',
       sortable: true,
-      render: (value) => <span className="font-medium">{value as string}</span>,
+      render: (_, row) => <span className="font-medium">{getFullName(row)}</span>,
     },
     {
       key: 'company',
@@ -339,7 +340,7 @@ export default function ProspectsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Prospect</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete {prospectToDelete?.name}? This action cannot be undone.
+              Are you sure you want to delete {getFullName(prospectToDelete || {})}? This action cannot be undone.
               All associated activities will be preserved but unlinked.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -362,7 +363,7 @@ export default function ProspectsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Convert to Client</AlertDialogTitle>
             <AlertDialogDescription>
-              Convert {prospectToConvert?.name} to a client? This will create a new customer record
+              Convert {getFullName(prospectToConvert || {})} to a client? This will create a new customer record
               and move this prospect out of your sales pipeline.
             </AlertDialogDescription>
           </AlertDialogHeader>

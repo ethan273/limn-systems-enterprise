@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { toast } from "sonner";
+import { getFullName } from "@/lib/utils/name-utils";
 import {
   Plus,
   Building,
@@ -218,7 +219,7 @@ export default function ClientsPage() {
   // DataTable columns configuration
   const columns: DataTableColumn<any>[] = [
     {
-      key: 'name',
+      key: 'first_name',
       label: 'Name',
       sortable: true,
       render: (_, row) => (
@@ -226,7 +227,7 @@ export default function ClientsPage() {
           <div className="data-table-avatar">
             <Users className="icon-sm" aria-hidden="true" />
           </div>
-          <span className="font-medium">{row.name}</span>
+          <span className="font-medium">{getFullName(row)}</span>
         </div>
       ),
     },
@@ -436,7 +437,7 @@ export default function ClientsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Client</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete {clientToDelete?.name}? This action cannot be undone.
+              Are you sure you want to delete {getFullName(clientToDelete || {})}? This action cannot be undone.
               All associated orders, invoices, and activities will be preserved but unlinked.
             </AlertDialogDescription>
           </AlertDialogHeader>

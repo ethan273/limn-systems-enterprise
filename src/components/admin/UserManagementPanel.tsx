@@ -12,6 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from '@/hooks/use-toast';
 import { PermissionPanel } from './PermissionPanel';
 import { CreateUserModal } from './CreateUserModal';
+import { getUserFullName, getUserInitials as getInitials } from '@/lib/utils/user-utils';
 
 const USER_TYPES = [
   { value: 'all', label: 'All Users' },
@@ -71,20 +72,7 @@ export function UserManagementPanel() {
     },
   });
 
-  const getUserInitials = (name: string | null, email: string | null) => {
-    if (name) {
-      return name
-        .split(' ')
-        .map((n) => n[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2);
-    }
-    if (email) {
-      return email.slice(0, 2).toUpperCase();
-    }
-    return '?';
-  };
+  // Removed local getUserInitials function - now using utility function
 
   const handleEditUser = (user: NonNullable<typeof data>['users'][number]) => {
     setEditingUserId(user.id);
@@ -136,7 +124,7 @@ export function UserManagementPanel() {
       ['Email', 'Name', 'User Type', 'Title', 'Department', 'Status', 'Last Sign In'],
       ...data.users.map((user) => [
         user.email || '',
-        user.name || '',
+        getUserFullName(user) || '',
         user.userType.replace('_', ' '),
         user.title || '',
         user.department || '',
@@ -258,13 +246,13 @@ export function UserManagementPanel() {
                           {user.avatarUrl ? (
                             <Image
                               src={user.avatarUrl}
-                              alt={user.name || user.email || ''}
+                              alt={getUserFullName(user) || user.email || ''}
                               width={40}
                               height={40}
                               className="rounded-full"
                             />
                           ) : (
-                            <span>{getUserInitials(user.name, user.email)}</span>
+                            <span>{getInitials(user)}</span>
                           )}
                         </div>
 
