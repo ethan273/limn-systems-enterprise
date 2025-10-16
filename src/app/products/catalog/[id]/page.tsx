@@ -15,7 +15,7 @@
  * Architecture: See /docs/catalog-detail-page/CATALOG_ITEM_DETAIL_IMPLEMENTATION_PLAN.md
  */
 
-import { use } from "react";
+import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -25,8 +25,9 @@ import {
   LoadingState,
   EmptyState,
 } from "@/components/common";
-import { ArrowLeft, Package, DollarSign, Tag } from "lucide-react";
+import { ArrowLeft, Package, DollarSign, Tag, Edit, Check, X } from "lucide-react";
 import type { FurnitureType } from "@/lib/utils/dimension-validation";
+import { toast } from "@/hooks/use-toast";
 
 // Tab components
 import CatalogOverviewTab from "@/components/catalog/CatalogOverviewTab";
@@ -44,6 +45,7 @@ interface CatalogDetailPageProps {
 export default function CatalogDetailPage({ params }: CatalogDetailPageProps) {
   const { id } = use(params);
   const router = useRouter();
+  const [isEditing, setIsEditing] = useState(false);
 
   // Fetch catalog item with full details
   const { data: catalogItem, isLoading, error } = api.items.getCatalogItemById.useQuery({
@@ -52,6 +54,28 @@ export default function CatalogDetailPage({ params }: CatalogDetailPageProps) {
 
   // Furniture dimensions mutation
   const utils = api.useUtils();
+
+  // Update mutation
+  const updateMutation = api.items.update.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Catalog item updated successfully",
+      });
+      setIsEditing(false);
+      // Invalidate queries for instant updates
+      utils.items.getCatalogItemById.invalidate({ itemId: id });
+      utils.items.getAll.invalidate();
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update catalog item",
+        variant: "destructive",
+      });
+    },
+  });
+
   const updateDimensionsMutation = api.items.updateFurnitureDimensions.useMutation({
     onSuccess: () => {
       // Invalidate query to refetch updated data
@@ -126,6 +150,16 @@ export default function CatalogDetailPage({ params }: CatalogDetailPageProps) {
           ...(catalogItem.list_price ? [{ icon: DollarSign, value: `$${Number(catalogItem.list_price).toLocaleString()}`, label: 'Price' }] : []),
           ...(catalogItem.furniture_type ? [{ icon: Package, value: catalogItem.furniture_type.replace(/_/g, " "), label: 'Type' }] : []),
         ]}
+        actions={
+          isEditing
+            ? [
+                { label: 'Cancel', icon: X, onClick: () => setIsEditing(false) },
+                { label: 'Save Changes', icon: Check, onClick: () => setIsEditing(false) },
+              ]
+            : [
+                { label: 'Edit Item', icon: Edit, onClick: () => setIsEditing(true) },
+              ]
+        }
       />
 
       {/* 5-Tab Interface */}
@@ -140,7 +174,7 @@ export default function CatalogDetailPage({ params }: CatalogDetailPageProps) {
           </TabsList>
 
           <TabsContent value="overview" className="tab-content">
-            <CatalogOverviewTab catalogItem={catalogItem} />
+            <CatalogOverviewTab catalogItem={catalogItem} isEditing={isEditing} />
           </TabsContent>
 
           <TabsContent value="dimensions" className="tab-content">

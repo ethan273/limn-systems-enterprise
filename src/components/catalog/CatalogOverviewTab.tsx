@@ -26,9 +26,10 @@ import { EditableField } from "@/components/common";
 
 interface CatalogOverviewTabProps {
   catalogItem: any; // Full catalog item with relations
+  isEditing?: boolean;
 }
 
-export default function CatalogOverviewTab({ catalogItem }: CatalogOverviewTabProps) {
+export default function CatalogOverviewTab({ catalogItem, isEditing = false }: CatalogOverviewTabProps) {
   const utils = api.useUtils();
   const {
     id,
@@ -134,7 +135,8 @@ export default function CatalogOverviewTab({ catalogItem }: CatalogOverviewTabPr
                   <span className="spec-label">Product Name</span>
                   <EditableField
                     value={name}
-                    onSave={(newValue) =>
+                    isEditing={isEditing}
+                    onChange={(newValue) =>
                       updateMutation.mutate({
                         id,
                         data: { name: newValue },
@@ -179,7 +181,8 @@ export default function CatalogOverviewTab({ catalogItem }: CatalogOverviewTabPr
                     <span className="spec-label">Category</span>
                     <EditableField
                       value={category}
-                      onSave={(newValue) =>
+                      isEditing={isEditing}
+                      onChange={(newValue) =>
                         updateMutation.mutate({
                           id,
                           data: { category: newValue },
@@ -196,7 +199,8 @@ export default function CatalogOverviewTab({ catalogItem }: CatalogOverviewTabPr
                     <span className="spec-label">Subcategory</span>
                     <EditableField
                       value={subcategory}
-                      onSave={(newValue) =>
+                      isEditing={isEditing}
+                      onChange={(newValue) =>
                         updateMutation.mutate({
                           id,
                           data: { subcategory: newValue },
@@ -212,7 +216,8 @@ export default function CatalogOverviewTab({ catalogItem }: CatalogOverviewTabPr
                   <span className="spec-label">List Price</span>
                   <EditableField
                     value={list_price}
-                    onSave={(newValue) =>
+                    isEditing={isEditing}
+                    onChange={(newValue) =>
                       updateMutation.mutate({
                         id,
                         data: { list_price: parseFloat(newValue) },
@@ -230,7 +235,8 @@ export default function CatalogOverviewTab({ catalogItem }: CatalogOverviewTabPr
                     <span className="spec-label">Lead Time</span>
                     <EditableField
                       value={lead_time_days}
-                      onSave={(newValue) =>
+                      isEditing={isEditing}
+                      onChange={(newValue) =>
                         updateMutation.mutate({
                           id,
                           data: { lead_time_days: parseInt(newValue) },
@@ -248,7 +254,8 @@ export default function CatalogOverviewTab({ catalogItem }: CatalogOverviewTabPr
                     <span className="spec-label">Minimum Order Qty</span>
                     <EditableField
                       value={min_order_quantity}
-                      onSave={(newValue) =>
+                      isEditing={isEditing}
+                      onChange={(newValue) =>
                         updateMutation.mutate({
                           id,
                           data: { min_order_quantity: parseInt(newValue) },
@@ -283,7 +290,8 @@ export default function CatalogOverviewTab({ catalogItem }: CatalogOverviewTabPr
             <CardContent>
               <EditableField
                 value={description || ''}
-                onSave={(newValue) =>
+                isEditing={isEditing}
+                onChange={(newValue) =>
                   updateMutation.mutate({
                     id,
                     data: { description: newValue || undefined },
