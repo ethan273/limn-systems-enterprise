@@ -6,7 +6,8 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  // directUrl is optional - only needed for connection pooling (e.g., Supabase)
+  // directUrl = env("DIRECT_URL")
   schemas   = ["auth", "flipbook", "public"]
 }
 
