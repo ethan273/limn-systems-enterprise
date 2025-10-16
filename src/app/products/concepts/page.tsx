@@ -192,9 +192,9 @@ export default function ConceptsPage() {
   // Row actions configuration
   const rowActions: DataTableRowAction<any>[] = [
     {
-      label: 'Edit',
+      label: 'View Details',
       icon: Pencil,
-      onClick: (row) => router.push(`/products/concepts/${row.id}/edit`),
+      onClick: (row) => router.push(`/products/concepts/${row.id}`),
     },
     {
       label: 'Delete',

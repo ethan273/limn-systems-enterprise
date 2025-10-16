@@ -192,9 +192,9 @@ export default function PrototypesPage() {
   // Row actions configuration
   const rowActions: DataTableRowAction<any>[] = [
     {
-      label: 'Edit',
+      label: 'View Details',
       icon: Pencil,
-      onClick: (row) => router.push(`/products/prototypes/${row.id}/edit`),
+      onClick: (row) => router.push(`/products/prototypes/${row.id}`),
     },
     {
       label: 'Delete',

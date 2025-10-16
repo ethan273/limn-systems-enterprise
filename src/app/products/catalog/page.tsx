@@ -230,9 +230,9 @@ export default function CatalogItemsPage() {
   // Row actions configuration
   const rowActions: DataTableRowAction<any>[] = [
     {
-      label: 'Edit',
+      label: 'View Details',
       icon: Pencil,
-      onClick: (row) => router.push(`/products/catalog/${row.id}/edit`),
+      onClick: (row) => router.push(`/products/catalog/${row.id}`),
     },
     {
       label: 'Delete',
