@@ -42,11 +42,13 @@ import {
   Target,
   MessageSquare,
   Plus,
+  MapPin,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { OrderCreationDialog, type OrderItem } from "@/components/crm/OrderCreationDialog";
 import { getFullName } from "@/lib/utils/name-utils";
+import { AddressSelector } from "@/components/crm";
 
 // Dynamic route configuration
 export const dynamic = 'force-dynamic';
@@ -89,6 +91,7 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
     end_date: '',
     completion_percentage: 0,
     notes: '',
+    shipping_address_id: null as string | null,
   });
 
   const { data, isLoading, error } = api.projects.getById.useQuery(
@@ -114,6 +117,7 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
         end_date: project.end_date ? format(new Date(project.end_date), "yyyy-MM-dd") : '',
         completion_percentage: project.completion_percentage || 0,
         notes: project.notes || '',
+        shipping_address_id: (project as any).shipping_address_id || null,
       });
     }
   }, [data]);
@@ -156,6 +160,7 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
         end_date: formData.end_date || undefined,
         completion_percentage: formData.completion_percentage || undefined,
         notes: formData.notes || undefined,
+        shipping_address_id: formData.shipping_address_id || undefined,
       },
     });
   };
@@ -174,6 +179,7 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
         end_date: project.end_date ? format(new Date(project.end_date), "yyyy-MM-dd") : '',
         completion_percentage: project.completion_percentage || 0,
         notes: project.notes || '',
+        shipping_address_id: (project as any).shipping_address_id || null,
       });
     }
     setIsEditing(false);
@@ -300,6 +306,7 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
   }
 
   const { project, customer, orders, orderedItems, analytics } = data;
+  const customerAddresses = (data as any).customerAddresses || [];
 
   const getPriorityColor = (priority: string) => {
     const priorityColors: Record<string, string> = {
@@ -492,6 +499,32 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
                 onChange={(value) => setFormData({ ...formData, completion_percentage: parseInt(value) || 0 })}
                 type="text"
               />
+              <div className="col-span-2">
+                {isEditing ? (
+                  <AddressSelector
+                    addresses={customerAddresses}
+                    selectedAddressId={formData.shipping_address_id}
+                    onSelect={(addressId) => setFormData({ ...formData, shipping_address_id: addressId })}
+                    label="Shipping Address"
+                    placeholder="Select shipping address"
+                    disabled={false}
+                    allowNone={true}
+                  />
+                ) : (
+                  <EditableField
+                    label="Shipping Address"
+                    value={
+                      formData.shipping_address_id
+                        ? customerAddresses.find((a: any) => a.id === formData.shipping_address_id)
+                          ? `${customerAddresses.find((a: any) => a.id === formData.shipping_address_id).address_line_1}, ${customerAddresses.find((a: any) => a.id === formData.shipping_address_id).city}, ${customerAddresses.find((a: any) => a.id === formData.shipping_address_id).country}`
+                          : "—"
+                        : "No address selected"
+                    }
+                    isEditing={false}
+                    icon={MapPin}
+                  />
+                )}
+              </div>
               <EditableField
                 label="Created"
                 value={project.created_at ? format(new Date(project.created_at), "MMM d, yyyy h:mm a") : '—'}

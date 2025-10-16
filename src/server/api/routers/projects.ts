@@ -15,7 +15,9 @@ const createProjectSchema = z.object({
   metadata: z.record(z.any()).optional(),
 });
 
-const updateProjectSchema = createProjectSchema.partial();
+const updateProjectSchema = createProjectSchema.partial().extend({
+  shipping_address_id: z.string().uuid().nullish(),
+});
 
 // Generate base CRUD for projects
 const baseProjectsRouter = createCrudRouter({
@@ -53,6 +55,8 @@ export const projectsRouter = createTRPCRouter({
             select: {
               id: true,
               name: true,
+              first_name: true,
+              last_name: true,
               email: true,
               phone: true,
               company: true,
@@ -65,6 +69,15 @@ export const projectsRouter = createTRPCRouter({
       if (!project) {
         throw new Error('Project not found');
       }
+
+      // Get customer addresses for shipping address selection
+      const customerAddresses = project.customer_id ? await ctx.db.addresses.findMany({
+        where: { customer_id: project.customer_id },
+        orderBy: [
+          { is_primary: 'desc' },
+          { created_at: 'desc' },
+        ],
+      }) : [];
 
       // TODO: Get orders related to this project when project_id field is restored to orders table
       // For now, return empty array since orders table doesn't have project_id column
@@ -91,6 +104,7 @@ export const projectsRouter = createTRPCRouter({
       return {
         project,
         customer: (project as any).customers,
+        customerAddresses,
         orders,
         orderedItems,
         analytics,
