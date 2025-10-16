@@ -48,7 +48,7 @@ export const orderItemsRouter = createTRPCRouter({
         .from('order_items')
         .select(`
           *,
-          orders!inner(
+          orders(
             id,
             order_number,
             customer_id,
