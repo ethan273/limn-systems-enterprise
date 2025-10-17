@@ -37,8 +37,7 @@ export default function PortalManagementPage() {
   const [configPortalType, setConfigPortalType] = useState<'customer' | 'designer' | 'factory' | 'qc'>('customer');
 
   // Fetch all portal access records
-  // @ts-expect-error - getAllPortalUsers procedure exists but types not yet regenerated
-  const { data: portalUsers, isLoading } = api.admin.getAllPortalUsers.useQuery();
+  const { data: portalUsers, isLoading } = api.admin.roles.getAllPortalUsers.useQuery();
 
   const portalTypes = [
     { value: 'all', label: 'All Portals', count: portalUsers?.length || 0 },

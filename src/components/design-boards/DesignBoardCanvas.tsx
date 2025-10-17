@@ -686,7 +686,7 @@ export function DesignBoardCanvas({ boardId, userId, board, onCanvasReady }: Des
   );
 
   return (
-    <div ref={containerRef} className="w-full h-full bg-white dark:bg-gray-900 relative">
+    <div ref={containerRef} className="w-full h-full bg-background relative">
       {/* Grid overlay */}
       {showGrid && gridEnabled && (
         <div

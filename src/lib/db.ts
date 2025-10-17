@@ -545,19 +545,20 @@ export class DatabaseClient {
   material_categories = prisma.material_categories;
   material_collections = prisma.material_collections;
   material_furniture_collections = prisma.material_furniture_collections;
-  fabric_brands = prisma.fabric_brands;
-  fabric_brand_collections = prisma.fabric_brand_collections;
-  fabric_collections = prisma.fabric_collections;
-  fabric_colors = prisma.fabric_colors;
-  wood_types = prisma.wood_types;
-  wood_finishes = prisma.wood_finishes;
-  metal_types = prisma.metal_types;
-  metal_finishes = prisma.metal_finishes;
-  metal_colors = prisma.metal_colors;
-  stone_types = prisma.stone_types;
-  stone_finishes = prisma.stone_finishes;
-  weaving_patterns = prisma.weaving_patterns;  // Note: Called "styles" in UI, stored as "patterns" in DB
-  carving_styles = prisma.carving_styles;
+  // Fabric, wood, metal, stone, weaving, and carving tables removed from schema
+  // fabric_brands = prisma.fabric_brands;
+  // fabric_brand_collections = prisma.fabric_brand_collections;
+  // fabric_collections = prisma.fabric_collections;
+  // fabric_colors = prisma.fabric_colors;
+  // wood_types = prisma.wood_types;
+  // wood_finishes = prisma.wood_finishes;
+  // metal_types = prisma.metal_types;
+  // metal_finishes = prisma.metal_finishes;
+  // metal_colors = prisma.metal_colors;
+  // stone_types = prisma.stone_types;
+  // stone_finishes = prisma.stone_finishes;
+  // weaving_patterns = prisma.weaving_patterns;
+  // carving_styles = prisma.carving_styles;
   documents = prisma.documents;
 
   // API Credentials Management
