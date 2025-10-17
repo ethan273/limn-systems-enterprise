@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "postinstall": "prisma generate",
     "dev": "next dev --turbo",
     "dev:fast": "SKIP_ENV_VALIDATION=true next dev --turbo",
     "build": "NODE_OPTIONS='--max-old-space-size=8192' next build",
