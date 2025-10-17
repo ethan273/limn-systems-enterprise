@@ -121,6 +121,8 @@ const enforcePortalAccessByType = async (ctx: Context, requiredType?: string) =>
 
 /**
  * Portal Procedure - Protected procedure with portal access enforcement
+ * DEPRECATED: Only for customer-portal-specific endpoints
+ * For universal endpoints, use universalPortalProcedure
  */
 const portalProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   const { customerId, customer } = await enforcePortalAccess(ctx);
@@ -130,6 +132,29 @@ const portalProcedure = protectedProcedure.use(async ({ ctx, next }) => {
       ...ctx,
       customerId,
       customer,
+    },
+  });
+});
+
+/**
+ * Universal Portal Procedure - Works for ALL portal types (customer, designer, factory, QC)
+ * Returns portal type, entity info, and legacy customer fields for backward compatibility
+ */
+const universalPortalProcedure = protectedProcedure.use(async ({ ctx, next }) => {
+  const portalData = await enforcePortalAccessByType(ctx);
+
+  return next({
+    ctx: {
+      ...ctx,
+      // New universal fields
+      portalType: portalData.portalType,
+      entityType: portalData.entityType,
+      entityId: portalData.entityId,
+      entity: portalData.entity,
+      portalRole: portalData.portalRole,
+      // Backward compatibility (will be null for non-customer portals)
+      customerId: portalData.customerId,
+      customer: portalData.customer,
     },
   });
 });
@@ -197,9 +222,10 @@ export const portalRouter = createTRPCRouter({
   // ============================================
 
   /**
-   * Get Portal Access Information
+   * Get Portal Access Information (Universal)
+   * Works for all portal types
    */
-  getPortalAccess: portalProcedure
+  getPortalAccess: universalPortalProcedure
     .query(async ({ ctx }) => {
       const access = await prisma.customer_portal_access.findFirst({
         where: {
@@ -1343,9 +1369,10 @@ export const portalRouter = createTRPCRouter({
   // ============================================
 
   /**
-   * Log Portal Activity
+   * Log Portal Activity (Universal)
+   * Works for all portal types
    */
-  logActivity: portalProcedure
+  logActivity: universalPortalProcedure
     .input(z.object({
       action: z.string().min(1).max(100),
       entity_type: z.string().max(50).optional(),
@@ -1355,10 +1382,10 @@ export const portalRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       return prisma.portal_activity_log.create({
         data: {
-          customer_id: ctx.customerId,
+          customer_id: ctx.customerId || null,
           user_id: ctx.session.user.id,
           activity_type: input.action,
-          description: `Customer portal: ${input.action}`,
+          description: `${ctx.portalType || 'customer'} portal: ${input.action}`,
           metadata: input.metadata || {},
         },
       });
@@ -1405,8 +1432,108 @@ export const portalRouter = createTRPCRouter({
     }),
 
   /**
-   * Get Customer Profile
-   * Returns full customer profile information
+   * Get Portal Profile (Universal)
+   * Returns profile information for ANY portal type (customer, designer, factory, QC)
+   * Replaces getCustomerProfile with universal support
+   */
+  getPortalProfile: universalPortalProcedure
+    .query(async ({ ctx }) => {
+      // Return profile based on portal type
+      if (ctx.portalType === 'customer' && ctx.customerId) {
+        // Customer portal - return customer profile
+        const customer = await prisma.customers.findUnique({
+          where: { id: ctx.customerId },
+          include: {
+            projects: {
+              select: {
+                id: true,
+                name: true,
+                status: true,
+              },
+              orderBy: {
+                created_at: 'desc',
+              },
+              take: 5,
+            },
+          },
+        });
+
+        if (!customer) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Customer profile not found',
+          });
+        }
+
+        return {
+          type: 'customer' as const,
+          profile: customer,
+        };
+      }
+
+      if ((ctx.portalType === 'designer' || ctx.portalType === 'factory') && ctx.entityId) {
+        // Designer/Factory portal - return partner profile
+        const partner = await prisma.partners.findUnique({
+          where: { id: ctx.entityId },
+          include: {
+            design_projects_design_projects_designer_idTopartners: {
+              select: {
+                id: true,
+                project_name: true,
+                current_stage: true,
+                created_at: true,
+              },
+              orderBy: {
+                created_at: 'desc',
+              },
+              take: 5,
+            },
+          },
+        });
+
+        if (!partner) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: `${ctx.portalType === 'designer' ? 'Designer' : 'Factory'} profile not found`,
+          });
+        }
+
+        return {
+          type: (ctx.portalType === 'designer' ? 'designer' : 'factory') as const,
+          profile: partner,
+        };
+      }
+
+      if (ctx.portalType === 'qc' && ctx.entityId) {
+        // QC portal - return QC tester profile
+        const qcTester = await prisma.qc_testers.findUnique({
+          where: { id: ctx.entityId },
+        });
+
+        if (!qcTester) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'QC tester profile not found',
+          });
+        }
+
+        return {
+          type: 'qc' as const,
+          profile: qcTester,
+        };
+      }
+
+      // Fallback error
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: `Portal type '${ctx.portalType}' is not supported or entity ID is missing`,
+      });
+    }),
+
+  /**
+   * Get Customer Profile (DEPRECATED)
+   * Use getPortalProfile instead
+   * Kept for backward compatibility
    */
   getCustomerProfile: portalProcedure
     .query(async ({ ctx }) => {

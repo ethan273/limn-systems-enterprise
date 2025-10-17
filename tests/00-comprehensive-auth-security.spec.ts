@@ -496,7 +496,10 @@ test.describe('🔒 COMPREHENSIVE AUTH & SECURITY TESTS', () => {
       await page.fill('input[type="email"]', 'test_designer@limnsystems.com');
       await page.fill('input[type="password"]', 'TestDesigner123!');
       await page.click('button[type="submit"]');
-      await page.waitForTimeout(2000);
+
+      // Wait for navigation away from login page
+      await page.waitForURL(url => !url.includes('/portal/login'), { timeout: 5000 });
+      await page.waitForLoadState('domcontentloaded');
 
       const url = page.url();
       expect(url).not.toContain('/portal/login');
@@ -588,7 +591,10 @@ test.describe('🔒 COMPREHENSIVE AUTH & SECURITY TESTS', () => {
       await page.fill('input[type="email"]', 'test_qc@limnsystems.com');
       await page.fill('input[type="password"]', 'TestQC123!');
       await page.click('button[type="submit"]');
-      await page.waitForTimeout(2000);
+
+      // Wait for navigation away from login page
+      await page.waitForURL(url => !url.includes('/portal/login'), { timeout: 5000 });
+      await page.waitForLoadState('domcontentloaded');
 
       const url = page.url();
       expect(url).not.toContain('/portal/login');

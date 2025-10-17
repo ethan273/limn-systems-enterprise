@@ -18,31 +18,32 @@ import {
   CheckCircle,
   Calendar,
   Package,
+  Briefcase,
 } from 'lucide-react';
 import { LoadingState, PageHeader } from '@/components/common';
 
 /**
- * Customer Portal - Profile Page
- * Allows customers to view and edit their profile information
+ * Universal Portal Profile Page
+ * Works for ALL portal types: customer, designer, factory, QC
  * Phase 3: Portal completion
  */
 export default function PortalProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
 
-  // Fetch customer profile
-  const { data: profile, isLoading } = api.portal.getCustomerProfile.useQuery();
+  // Fetch portal profile (works for all portal types)
+  const { data: profileData, isLoading } = api.portal.getPortalProfile.useQuery();
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
 
-  // Update profile mutation
+  // Update profile mutation (currently only for customers)
   const updateProfile = api.portal.updateCustomerProfile.useMutation({
     onSuccess: () => {
       setSaveStatus('success');
       setIsEditing(false);
       // Invalidate queries for instant updates
-      utils.portal.getCustomerProfile.invalidate();
+      utils.portal.getPortalProfile.invalidate();
       setTimeout(() => setSaveStatus('idle'), 3000);
     },
     onError: () => {
@@ -60,11 +61,12 @@ export default function PortalProfilePage() {
   });
 
   // Initialize form data when profile loads
+  const profile = profileData?.profile;
   if (profile && !isEditing && formData.name === '') {
     setFormData({
-      name: profile.name || '',
-      email: profile.email || '',
-      phone: profile.phone || '',
+      name: profile.name || profile.company_name || '',
+      email: profile.email || profile.contact_email || '',
+      phone: profile.phone || profile.contact_phone || '',
       company_name: profile.company_name || '',
       notes: profile.notes || '',
     });
@@ -73,9 +75,9 @@ export default function PortalProfilePage() {
   const handleEdit = () => {
     if (profile) {
       setFormData({
-        name: profile.name || '',
-        email: profile.email || '',
-        phone: profile.phone || '',
+        name: profile.name || profile.company_name || '',
+        email: profile.email || profile.contact_email || '',
+        phone: profile.phone || profile.contact_phone || '',
         company_name: profile.company_name || '',
         notes: profile.notes || '',
       });
@@ -89,6 +91,10 @@ export default function PortalProfilePage() {
   };
 
   const handleSave = () => {
+    if (profileData?.type !== 'customer') {
+      alert('Profile editing is currently only available for customer portal users. Designer, Factory, and QC profiles coming soon!');
+      return;
+    }
     setSaveStatus('saving');
     updateProfile.mutate(formData);
   };
@@ -105,7 +111,7 @@ export default function PortalProfilePage() {
     );
   }
 
-  if (!profile) {
+  if (!profile || !profileData) {
     return (
       <div className="page-container">
         <div className="text-center py-12">
@@ -125,11 +131,19 @@ export default function PortalProfilePage() {
     });
   };
 
+  // Get portal type display
+  const portalTypeDisplay = {
+    customer: 'Customer',
+    designer: 'Designer',
+    factory: 'Factory',
+    qc: 'QC Tester',
+  }[profileData.type] || 'Portal User';
+
   return (
     <div className="page-container">
       <PageHeader
         title="My Profile"
-        subtitle="Manage your account information and preferences"
+        subtitle={`Manage your ${portalTypeDisplay.toLowerCase()} account information`}
       />
 
       {/* Status Messages */}
@@ -157,7 +171,7 @@ export default function PortalProfilePage() {
               <User className="h-5 w-5" />
               Profile Information
             </CardTitle>
-            {!isEditing && (
+            {!isEditing && profileData.type === 'customer' && (
               <Button onClick={handleEdit} variant="outline">
                 Edit Profile
               </Button>
@@ -165,9 +179,9 @@ export default function PortalProfilePage() {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          {isEditing ? (
+          {isEditing && profileData.type === 'customer' ? (
             <>
-              {/* Edit Mode */}
+              {/* Edit Mode (customer only) */}
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name *</Label>
@@ -269,13 +283,19 @@ export default function PortalProfilePage() {
             </>
           ) : (
             <>
-              {/* View Mode */}
+              {/* View Mode - Universal for all portal types */}
               <div className="grid gap-6 md:grid-cols-2">
                 <div>
-                  <label className="text-sm text-muted-foreground mb-1 block">Full Name</label>
+                  <label className="text-sm text-muted-foreground mb-1 block">
+                    {profileData.type === 'customer' ? 'Full Name' : 'Company Name'}
+                  </label>
                   <p className="font-medium flex items-center gap-2">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    {profile.name}
+                    {profileData.type === 'customer' ? (
+                      <User className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Building2 className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    {profile.name || profile.company_name}
                   </p>
                 </div>
 
@@ -283,7 +303,7 @@ export default function PortalProfilePage() {
                   <label className="text-sm text-muted-foreground mb-1 block">Email Address</label>
                   <p className="font-medium flex items-center gap-2">
                     <Mail className="h-4 w-4 text-muted-foreground" />
-                    {profile.email}
+                    {profile.email || profile.contact_email || '—'}
                   </p>
                 </div>
 
@@ -291,17 +311,27 @@ export default function PortalProfilePage() {
                   <label className="text-sm text-muted-foreground mb-1 block">Phone Number</label>
                   <p className="font-medium flex items-center gap-2">
                     <Phone className="h-4 w-4 text-muted-foreground" />
-                    {profile.phone || '—'}
+                    {profile.phone || profile.contact_phone || '—'}
                   </p>
                 </div>
 
-                <div className="md:col-span-2">
-                  <label className="text-sm text-muted-foreground mb-1 block">Company Name</label>
-                  <p className="font-medium flex items-center gap-2">
-                    <Building2 className="h-4 w-4 text-muted-foreground" />
-                    {profile.company_name || '—'}
-                  </p>
+                <div>
+                  <label className="text-sm text-muted-foreground mb-1 block">Portal Type</label>
+                  <Badge variant="default" className="flex w-fit items-center gap-2">
+                    <Briefcase className="h-3 w-3" />
+                    {portalTypeDisplay}
+                  </Badge>
                 </div>
+
+                {profileData.type !== 'customer' && profile.company_name && (
+                  <div className="md:col-span-2">
+                    <label className="text-sm text-muted-foreground mb-1 block">Company Name</label>
+                    <p className="font-medium flex items-center gap-2">
+                      <Building2 className="h-4 w-4 text-muted-foreground" />
+                      {profile.company_name}
+                    </p>
+                  </div>
+                )}
 
                 {profile.notes && (
                   <div className="md:col-span-2">
@@ -316,7 +346,9 @@ export default function PortalProfilePage() {
               {/* Account Metadata */}
               <div className="pt-6 border-t grid gap-4 md:grid-cols-2">
                 <div>
-                  <label className="text-sm text-muted-foreground mb-1 block">Customer Since</label>
+                  <label className="text-sm text-muted-foreground mb-1 block">
+                    {portalTypeDisplay} Since
+                  </label>
                   <p className="text-sm flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     {formatDate(profile.created_at)}
@@ -333,8 +365,8 @@ export default function PortalProfilePage() {
         </CardContent>
       </Card>
 
-      {/* Recent Projects */}
-      {profile.projects && profile.projects.length > 0 && (
+      {/* Recent Projects (Customer) */}
+      {profileData.type === 'customer' && profile.projects && profile.projects.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -356,6 +388,37 @@ export default function PortalProfilePage() {
                     </p>
                   </div>
                   <Badge variant="outline">{project.status}</Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Recent Design Projects (Designer/Factory) */}
+      {(profileData.type === 'designer' || profileData.type === 'factory') &&
+       profile.design_projects_design_projects_designer_idTopartners?.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Briefcase className="h-5 w-5" />
+              Recent Design Projects
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {profile.design_projects_design_projects_designer_idTopartners.map((project: any) => (
+                <div
+                  key={project.id}
+                  className="border rounded-lg p-4 flex items-center justify-between hover:bg-muted/50 transition-colors"
+                >
+                  <div>
+                    <h4 className="font-semibold">{project.project_name}</h4>
+                    <p className="text-sm text-muted-foreground capitalize">
+                      Stage: {project.current_stage}
+                    </p>
+                  </div>
+                  <Badge variant="outline">{project.current_stage}</Badge>
                 </div>
               ))}
             </div>
