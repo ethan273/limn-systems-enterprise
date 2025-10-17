@@ -9,6 +9,40 @@ export async function middleware(request: NextRequest) {
   console.log('🚨 MIDDLEWARE ENTRY:', request.nextUrl.pathname);
   const { pathname } = request.nextUrl;
 
+  // Validate required environment variables
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('❌ MIDDLEWARE ERROR: Missing required Supabase environment variables');
+    console.error('Required environment variables:');
+    console.error('  - NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? '✅ SET' : '❌ MISSING');
+    console.error('  - NEXT_PUBLIC_SUPABASE_ANON_KEY:', supabaseAnonKey ? '✅ SET' : '❌ MISSING');
+    console.error('');
+    console.error('For GitHub Actions, configure these secrets in:');
+    console.error('  Repository Settings > Secrets and variables > Actions');
+    console.error('');
+    console.error('For local development, ensure .env or .env.local contains:');
+    console.error('  NEXT_PUBLIC_SUPABASE_URL=your_supabase_url');
+    console.error('  NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key');
+
+    // Return 500 error with helpful message
+    return new NextResponse(
+      JSON.stringify({
+        error: 'Configuration Error',
+        message: 'Missing required Supabase environment variables. See server logs for details.',
+        details: {
+          NEXT_PUBLIC_SUPABASE_URL: supabaseUrl ? 'configured' : 'missing',
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseAnonKey ? 'configured' : 'missing',
+        },
+      }),
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+  }
+
   // Define public paths that don't require authentication
   const publicPaths = [
     '/login',
@@ -55,8 +89,8 @@ export async function middleware(request: NextRequest) {
   });
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         get(name: string) {
