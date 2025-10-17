@@ -19,11 +19,11 @@ import {
 import { CommentCard } from "@/components/shop-drawings/CommentCard";
 import { VersionTimeline } from "@/components/shop-drawings/VersionTimeline";
 import { ApprovalStatus } from "@/components/shop-drawings/ApprovalStatus";
-import dynamic from "next/dynamic";
+import dynamicImport from "next/dynamic";
 import { Loader2 } from "lucide-react";
 
 // Dynamically import PDF viewer to reduce initial bundle size
-const PDFViewer = dynamic(
+const PDFViewer = dynamicImport(
   () => import("@/components/shop-drawings/PDFViewer").then((mod) => mod.PDFViewer),
   {
     ssr: false,
