@@ -6,6 +6,7 @@ import { NextResponse, type NextRequest } from 'next/server';
  * Protects all routes except public paths (login, auth, public assets)
  */
 export async function middleware(request: NextRequest) {
+  console.log('🚨 MIDDLEWARE ENTRY:', request.nextUrl.pathname);
   const { pathname } = request.nextUrl;
 
   // Define public paths that don't require authentication
@@ -92,10 +93,20 @@ export async function middleware(request: NextRequest) {
     console.error(`❌ Middleware: Auth error for ${pathname}:`, authError.message);
   }
 
-  // If not authenticated, redirect to login
+  // If not authenticated, redirect to appropriate login page
   if (!user) {
-    console.log(`🔒 Middleware: Redirecting unauthenticated user from ${pathname} to /login`);
     const redirectUrl = request.nextUrl.clone();
+
+    // Portal routes redirect to portal login
+    if (pathname.startsWith('/portal')) {
+      console.log(`🔒 Middleware: Redirecting unauthenticated user from ${pathname} to /portal/login`);
+      redirectUrl.pathname = '/portal/login';
+      redirectUrl.searchParams.set('redirect', pathname);
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    // All other routes redirect to main login
+    console.log(`🔒 Middleware: Redirecting unauthenticated user from ${pathname} to /login`);
     redirectUrl.pathname = '/login';
     redirectUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(redirectUrl);
@@ -138,7 +149,7 @@ export async function middleware(request: NextRequest) {
     if (!portalAccess) {
       console.log(`🚫 Middleware: User ${user.id} denied access to ${requestedPortalType} portal`);
       const redirectUrl = request.nextUrl.clone();
-      redirectUrl.pathname = '/login';
+      redirectUrl.pathname = '/portal/login';
       redirectUrl.searchParams.set('error', 'unauthorized_portal');
       return NextResponse.redirect(redirectUrl);
     }
@@ -156,11 +167,11 @@ export const config = {
   matcher: [
     /*
      * Match all routes except:
-     * - API routes
-     * - Static files (_next/static, _next/image)
-     * - Public assets (images, icons, fonts)
-     * - Public pages (login, auth, privacy, terms)
+     * - API routes (/_next/static, /_next/image, /api)
+     * - Static files and assets
+     * - Sentry tunnel route
+     * - Public pages (login, auth, privacy, terms, share)
      */
-    '/((?!api|_next/static|_next/image|icons|images|manifest|favicon|sw|workbox|fallback)(?!.*\\.(?:ico|png|jpg|jpeg|gif|svg|webp|woff|woff2|ttf|otf|eot)$).*)',
+    '/((?!api|_next/static|_next/image|icons|images|manifest|favicon|sw|workbox|fallback|sentry-tunnel|monitoring)(?!.*\\.(?:ico|png|jpg|jpeg|gif|svg|webp|woff|woff2|ttf|otf|eot)$).*)',
   ],
 };

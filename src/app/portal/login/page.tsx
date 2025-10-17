@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
@@ -18,6 +18,7 @@ import { Loader2, Lock, Mail } from 'lucide-react';
 
 export default function PortalLoginPage() {
  const router = useRouter();
+ const searchParams = useSearchParams();
  const { resolvedTheme } = useTheme();
  const [mounted, setMounted] = useState(false);
  const [email, setEmail] = useState('');
@@ -27,7 +28,22 @@ export default function PortalLoginPage() {
 
  useEffect(() => {
   setMounted(true);
- }, []);
+
+  // Check for error messages from URL query parameters
+  const errorParam = searchParams.get('error');
+  if (errorParam) {
+   switch (errorParam) {
+    case 'unauthorized_portal':
+     setError('You do not have access to this portal type. Please contact support.');
+     break;
+    case 'no_portal_access':
+     setError('Your account does not have portal access. Please contact support.');
+     break;
+    default:
+     setError('An error occurred. Please try again.');
+   }
+  }
+ }, [searchParams]);
 
  const handleLogin = async (e: React.FormEvent) => {
  e.preventDefault();
@@ -64,8 +80,10 @@ export default function PortalLoginPage() {
  throw new Error('You do not have access to the client portal. Please contact support.');
  }
 
- // Redirect to portal dashboard
- router.push('/portal');
+ // Redirect to original destination or portal dashboard
+ const redirect = searchParams.get('redirect');
+ const destination = redirect && redirect.startsWith('/portal') ? redirect : '/portal';
+ router.push(destination);
  router.refresh();
  } catch (err) {
  console.error('Login error:', err);

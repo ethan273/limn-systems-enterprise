@@ -4,6 +4,7 @@ const withPWA = require('@ducanh2912/next-pwa').default({
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === 'development' && process.env.ENABLE_PWA !== 'true',
+  buildExcludes: [/middleware-manifest\.json$/], // Critical: prevent PWA from caching middleware manifest
   runtimeCaching: [
     // Supabase API calls
     {
@@ -275,7 +276,8 @@ const nextConfig = {
   },
 
   // Output configuration for optimal builds
-  output: 'standalone',
+  // REMOVED: output: 'standalone' - breaks middleware execution in dev (GitHub Issue #43319)
+  // TODO: Re-enable conditionally for Docker builds only: output: process.env.DOCKER_BUILD === 'true' ? 'standalone' : undefined,
 
   // Disable webpack configuration when using Turbopack
   // Turbopack handles module resolution automatically and more efficiently
