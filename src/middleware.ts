@@ -47,29 +47,22 @@ export async function middleware(request: NextRequest) {
     );
   }
 
-  // Define public paths that don't require authentication
+  // Define exact public paths that don't require authentication
   const publicPaths = [
-    '/',  // Landing page - accessible to all
     '/login',
-    '/auth/callback',
-    '/auth/set-session',
-    '/auth/dev',
-    '/auth/contractor',
-    '/auth/customer',
-    '/auth/employee',
-    '/portal/login',
-    '/api/auth',
-    '/share',
     '/privacy',
     '/terms',
   ];
 
-  // Define public prefixes (e.g., /_next, /icons, etc.)
+  // Define public path prefixes (paths that start with these)
   const publicPrefixes = [
     '/_next',
     '/icons',
     '/images',
+    '/auth/',           // All auth routes (callback, dev, employee, etc.)
     '/api/auth',
+    '/portal/login',
+    '/share',
     '/manifest.json',
     '/favicon',
     '/sw.js',
@@ -77,8 +70,8 @@ export async function middleware(request: NextRequest) {
     '/fallback',
   ];
 
-  // Check if path is public
-  const isPublicPath = publicPaths.some(path => pathname === path || pathname.startsWith(path));
+  // Check if path is public (exact match only)
+  const isPublicPath = publicPaths.includes(pathname);
   const isPublicPrefix = publicPrefixes.some(prefix => pathname.startsWith(prefix));
 
   // Allow public paths
@@ -130,6 +123,20 @@ export async function middleware(request: NextRequest) {
   // Log auth errors for debugging (keep errors in production for monitoring)
   if (authError) {
     console.error(`❌ Middleware: Auth error for ${pathname}:`, authError.message);
+  }
+
+  // Handle root path - redirect based on authentication status
+  if (pathname === '/') {
+    const redirectUrl = request.nextUrl.clone();
+    if (user) {
+      // Authenticated users go to dashboard
+      redirectUrl.pathname = '/dashboard';
+      return NextResponse.redirect(redirectUrl);
+    } else {
+      // Unauthenticated users go to login
+      redirectUrl.pathname = '/login';
+      return NextResponse.redirect(redirectUrl);
+    }
   }
 
   // If not authenticated, redirect to appropriate login page
