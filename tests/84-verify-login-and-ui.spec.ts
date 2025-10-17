@@ -16,7 +16,7 @@ test.describe('Verify Login and UI Patterns', () => {
 
     // Take screenshot
     await page.screenshot({
-      path: '/Users/eko3/limn-systems-enterprise-docs/02-TESTING/test-results/contacts-page-actual.png',
+      path: 'test-results/contacts-page-actual.png',
       fullPage: true
     });
 
@@ -70,7 +70,7 @@ test.describe('Verify Login and UI Patterns', () => {
     await page.waitForTimeout(3000);
 
     await page.screenshot({
-      path: '/Users/eko3/limn-systems-enterprise-docs/02-TESTING/test-results/invoices-page-actual.png',
+      path: 'test-results/invoices-page-actual.png',
       fullPage: true
     });
 

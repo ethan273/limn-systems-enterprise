@@ -65,7 +65,7 @@ test.describe('🔍 GAP ANALYSIS & ENHANCEMENT DETECTION @gap-analysis', () => {
     test('Scan and inventory all existing pages', async ({ page }) => {
       // Scan src/app directory for page.tsx files
       const { stdout } = await execAsync(
-        'find /Users/eko3/limn-systems-enterprise/src/app -name "page.tsx" -type f'
+        'find src/app -name "page.tsx" -type f'
       );
 
       const pages = stdout
@@ -94,7 +94,7 @@ test.describe('🔍 GAP ANALYSIS & ENHANCEMENT DETECTION @gap-analysis', () => {
     test('Identify missing expected pages', async ({ page }) => {
       // Get actual pages
       const { stdout } = await execAsync(
-        'find /Users/eko3/limn-systems-enterprise/src/app -name "page.tsx" -type f'
+        'find src/app -name "page.tsx" -type f'
       );
 
       const actualPages = stdout
@@ -145,7 +145,7 @@ test.describe('🔍 GAP ANALYSIS & ENHANCEMENT DETECTION @gap-analysis', () => {
 
     test('Identify unexpected/undocumented pages', async ({ page }) => {
       const { stdout } = await execAsync(
-        'find /Users/eko3/limn-systems-enterprise/src/app -name "page.tsx" -type f'
+        'find src/app -name "page.tsx" -type f'
       );
 
       const actualPages = stdout

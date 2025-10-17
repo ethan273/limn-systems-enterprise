@@ -127,7 +127,7 @@ test.describe('TRUE Functional Test - CRM', () => {
 
       // Take screenshot before clicking
       await page.screenshot({
-        path: '/Users/eko3/limn-systems-enterprise-docs/02-TESTING/test-results/contacts-before-submit.png',
+        path: 'test-results/contacts-before-submit.png',
       });
 
       // Trigger form submission directly via JavaScript
@@ -194,7 +194,7 @@ test.describe('TRUE Functional Test - CRM', () => {
 
         // Take screenshot of failure
         await page.screenshot({
-          path: '/Users/eko3/limn-systems-enterprise-docs/02-TESTING/test-results/contacts-create-failed.png',
+          path: 'test-results/contacts-create-failed.png',
           fullPage: true
         });
       }
@@ -204,7 +204,7 @@ test.describe('TRUE Functional Test - CRM', () => {
 
       // Take screenshot of error
       await page.screenshot({
-        path: '/Users/eko3/limn-systems-enterprise-docs/02-TESTING/test-results/contacts-create-error.png',
+        path: 'test-results/contacts-create-error.png',
         fullPage: true
       });
     }
