@@ -115,3 +115,4 @@ test-*.mjs
 # Session documentation with potentially sensitive info
 SESSION-*.md
 production-credentials.env
+*CREDENTIALS.md

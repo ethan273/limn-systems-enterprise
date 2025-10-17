@@ -18,9 +18,10 @@ async function verifyPortalAccess() {
 
   // First, get ALL users (handle pagination)
   const testEmails = [
-    'test_customer@example.com',
+    'test_customer@limnsystems.com',
     'test_designer@limnsystems.com',
-    'test_factory@limnsystems.com'
+    'test_factory@limnsystems.com',
+    'test_qc@limnsystems.com'
   ];
 
   console.log(`Looking for test emails: ${testEmails.join(', ')}\n`);
@@ -63,6 +64,7 @@ async function verifyPortalAccess() {
     const customerMatches = allUsers.filter(u => (u.email || '').includes('customer'));
     const designerMatches = allUsers.filter(u => (u.email || '').includes('designer'));
     const factoryMatches = allUsers.filter(u => (u.email || '').includes('factory'));
+    const qcMatches = allUsers.filter(u => (u.email || '').includes('qc'));
 
     console.log(`\nCustomer-related (${customerMatches.length}):`);
     customerMatches.slice(0, 5).forEach(u => console.log(`  - ${u.email}`));
@@ -72,6 +74,9 @@ async function verifyPortalAccess() {
 
     console.log(`\nFactory-related (${factoryMatches.length}):`);
     factoryMatches.slice(0, 5).forEach(u => console.log(`  - ${u.email}`));
+
+    console.log(`\nQC-related (${qcMatches.length}):`);
+    qcMatches.slice(0, 5).forEach(u => console.log(`  - ${u.email}`));
 
     process.exit(1);
   }

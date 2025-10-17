@@ -77,7 +77,18 @@ export default function PortalLoginPage() {
 
  if (!portalAccess) {
  await supabase.auth.signOut();
- throw new Error('You do not have access to the client portal. Please contact support.');
+
+ // Determine which portal they were trying to access from redirect parameter
+ const redirect = searchParams.get('redirect');
+ let portalType = 'portal';
+ if (redirect) {
+ const match = redirect.match(/\/portal\/(customer|designer|factory|qc)/);
+ if (match) {
+ portalType = `${match[1]} portal`;
+ }
+ }
+
+ throw new Error(`You do not have access to the ${portalType}. Please contact support.`);
  }
 
  // Redirect to original destination or portal dashboard
