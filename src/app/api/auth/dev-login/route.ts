@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
           name: 'Admin User',
           first_name: 'Admin',
           last_name: 'User',
-          user_type: 'admin', // Full admin access
+          user_type: 'super_admin', // Full admin access (matches user_type_enum in schema)
           department: 'administration',
           job_title: 'Administrator'
         }

@@ -138,15 +138,14 @@ export async function middleware(request: NextRequest) {
     const requestedPortalType = portalMatch[1];
 
     // Query customer_portal_access to check if user has access to this portal type
-    const { data: portalAccess } = await supabase
+    const { data: portalAccessRecords } = await supabase
       .from('customer_portal_access')
       .select('portal_type, is_active')
       .eq('user_id', user.id)
       .eq('portal_type', requestedPortalType)
-      .eq('is_active', true)
-      .single();
+      .eq('is_active', true);
 
-    if (!portalAccess) {
+    if (!portalAccessRecords || portalAccessRecords.length === 0) {
       console.log(`🚫 Middleware: User ${user.id} denied access to ${requestedPortalType} portal`);
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = '/portal/login';

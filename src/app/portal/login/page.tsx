@@ -67,15 +67,14 @@ export default function PortalLoginPage() {
  throw new Error('No user data returned');
  }
 
- // Verify user has portal access
- const { data: portalAccess } = await supabase
+ // Verify user has portal access (any active access record)
+ const { data: portalAccessRecords } = await supabase
  .from('customer_portal_access')
  .select('*')
  .eq('user_id', data.user.id)
- .eq('is_active', true)
- .single();
+ .eq('is_active', true);
 
- if (!portalAccess) {
+ if (!portalAccessRecords || portalAccessRecords.length === 0) {
  await supabase.auth.signOut();
 
  // Determine which portal they were trying to access from redirect parameter
