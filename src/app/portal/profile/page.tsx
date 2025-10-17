@@ -62,24 +62,32 @@ export default function PortalProfilePage() {
 
   // Initialize form data when profile loads
   const profile = profileData?.profile;
-  if (profile && !isEditing && formData.name === '') {
+  if (profile && !isEditing && formData.name === '' && profileData) {
+    const name = profileData.type === 'customer' ? (profile as any).name : (profile as any).company_name;
+    const email = profileData.type === 'customer' ? (profile as any).email : (profile as any).primary_email;
+    const phone = profileData.type === 'customer' ? (profile as any).phone : (profile as any).primary_phone;
+
     setFormData({
-      name: profile.name || profile.company_name || '',
-      email: profile.email || profile.contact_email || '',
-      phone: profile.phone || profile.contact_phone || '',
-      company_name: profile.company_name || '',
-      notes: profile.notes || '',
+      name: name || '',
+      email: email || '',
+      phone: phone || '',
+      company_name: (profile as any).company_name || '',
+      notes: (profile as any).notes || '',
     });
   }
 
   const handleEdit = () => {
-    if (profile) {
+    if (profile && profileData) {
+      const name = profileData.type === 'customer' ? (profile as any).name : (profile as any).company_name;
+      const email = profileData.type === 'customer' ? (profile as any).email : (profile as any).primary_email;
+      const phone = profileData.type === 'customer' ? (profile as any).phone : (profile as any).primary_phone;
+
       setFormData({
-        name: profile.name || profile.company_name || '',
-        email: profile.email || profile.contact_email || '',
-        phone: profile.phone || profile.contact_phone || '',
-        company_name: profile.company_name || '',
-        notes: profile.notes || '',
+        name: name || '',
+        email: email || '',
+        phone: phone || '',
+        company_name: (profile as any).company_name || '',
+        notes: (profile as any).notes || '',
       });
       setIsEditing(true);
     }
@@ -295,7 +303,7 @@ export default function PortalProfilePage() {
                     ) : (
                       <Building2 className="h-4 w-4 text-muted-foreground" />
                     )}
-                    {profile.name || profile.company_name}
+                    {profileData.type === 'customer' ? (profile as any).name : (profile as any).company_name}
                   </p>
                 </div>
 
@@ -303,7 +311,7 @@ export default function PortalProfilePage() {
                   <label className="text-sm text-muted-foreground mb-1 block">Email Address</label>
                   <p className="font-medium flex items-center gap-2">
                     <Mail className="h-4 w-4 text-muted-foreground" />
-                    {profile.email || profile.contact_email || '—'}
+                    {profileData.type === 'customer' ? (profile as any).email : (profile as any).primary_email || '—'}
                   </p>
                 </div>
 
@@ -311,7 +319,7 @@ export default function PortalProfilePage() {
                   <label className="text-sm text-muted-foreground mb-1 block">Phone Number</label>
                   <p className="font-medium flex items-center gap-2">
                     <Phone className="h-4 w-4 text-muted-foreground" />
-                    {profile.phone || profile.contact_phone || '—'}
+                    {profileData.type === 'customer' ? (profile as any).phone : (profile as any).primary_phone || '—'}
                   </p>
                 </div>
 
@@ -323,22 +331,22 @@ export default function PortalProfilePage() {
                   </Badge>
                 </div>
 
-                {profileData.type !== 'customer' && profile.company_name && (
+                {profileData.type !== 'customer' && (profile as any).company_name && (
                   <div className="md:col-span-2">
                     <label className="text-sm text-muted-foreground mb-1 block">Company Name</label>
                     <p className="font-medium flex items-center gap-2">
                       <Building2 className="h-4 w-4 text-muted-foreground" />
-                      {profile.company_name}
+                      {(profile as any).company_name}
                     </p>
                   </div>
                 )}
 
-                {profile.notes && (
+                {(profile as any).notes && (
                   <div className="md:col-span-2">
                     <label className="text-sm text-muted-foreground mb-1 block">
                       Additional Notes
                     </label>
-                    <p className="text-sm whitespace-pre-wrap">{profile.notes}</p>
+                    <p className="text-sm whitespace-pre-wrap">{(profile as any).notes}</p>
                   </div>
                 )}
               </div>
@@ -351,7 +359,7 @@ export default function PortalProfilePage() {
                   </label>
                   <p className="text-sm flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                    {formatDate(profile.created_at)}
+                    {formatDate((profile as any).created_at)}
                   </p>
                 </div>
 
@@ -366,7 +374,7 @@ export default function PortalProfilePage() {
       </Card>
 
       {/* Recent Projects (Customer) */}
-      {profileData.type === 'customer' && profile.projects && profile.projects.length > 0 && (
+      {profileData.type === 'customer' && (profile as any).projects && (profile as any).projects.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -376,7 +384,7 @@ export default function PortalProfilePage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {profile.projects.map((project: any) => (
+              {(profile as any).projects.map((project: any) => (
                 <div
                   key={project.id}
                   className="border rounded-lg p-4 flex items-center justify-between hover:bg-muted/50 transition-colors"
@@ -395,30 +403,30 @@ export default function PortalProfilePage() {
         </Card>
       )}
 
-      {/* Recent Design Projects (Designer/Factory) */}
+      {/* Recent Production Orders (Designer/Factory) */}
       {(profileData.type === 'designer' || profileData.type === 'factory') &&
-       profile.design_projects_design_projects_designer_idTopartners?.length > 0 && (
+       (profile as any).production_orders?.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Briefcase className="h-5 w-5" />
-              Recent Design Projects
+              Recent Production Orders
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {profile.design_projects_design_projects_designer_idTopartners.map((project: any) => (
+              {(profile as any).production_orders.map((order: any) => (
                 <div
-                  key={project.id}
+                  key={order.id}
                   className="border rounded-lg p-4 flex items-center justify-between hover:bg-muted/50 transition-colors"
                 >
                   <div>
-                    <h4 className="font-semibold">{project.project_name}</h4>
+                    <h4 className="font-semibold">{order.order_number}</h4>
                     <p className="text-sm text-muted-foreground capitalize">
-                      Stage: {project.current_stage}
+                      Status: {order.status}
                     </p>
                   </div>
-                  <Badge variant="outline">{project.current_stage}</Badge>
+                  <Badge variant="outline">{order.status}</Badge>
                 </div>
               ))}
             </div>

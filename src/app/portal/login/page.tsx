@@ -5,7 +5,7 @@
  * Phase 3: Customer Self-Service Portal
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import Image from 'next/image';
@@ -16,7 +16,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Lock, Mail } from 'lucide-react';
 
-export default function PortalLoginPage() {
+function PortalLoginForm() {
  const router = useRouter();
  const searchParams = useSearchParams();
  const { resolvedTheme } = useTheme();
@@ -90,9 +90,35 @@ export default function PortalLoginPage() {
  throw new Error(`You do not have access to the ${portalType}. Please contact support.`);
  }
 
- // Redirect to original destination or portal dashboard
+ // Determine portal type and redirect to appropriate dashboard
  const redirect = searchParams.get('redirect');
- const destination = redirect && redirect.startsWith('/portal') ? redirect : '/portal';
+ let destination = '/portal'; // Default to customer portal
+
+ // If redirect parameter exists and is valid, use it
+ if (redirect && redirect.startsWith('/portal')) {
+ destination = redirect;
+ } else {
+ // Otherwise, redirect based on user's portal type
+ const portalAccess = portalAccessRecords[0];
+ const portalType = portalAccess.portal_type || 'customer';
+
+ switch (portalType) {
+ case 'designer':
+ destination = '/portal/designer';
+ break;
+ case 'factory':
+ destination = '/portal/factory';
+ break;
+ case 'qc':
+ destination = '/portal/qc';
+ break;
+ case 'customer':
+ default:
+ destination = '/portal';
+ break;
+ }
+ }
+
  router.push(destination);
  router.refresh();
  } catch (err) {
@@ -202,4 +228,19 @@ export default function PortalLoginPage() {
  </div>
  </div>
  );
+}
+
+export default function PortalLoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="w-full max-w-md text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    }>
+      <PortalLoginForm />
+    </Suspense>
+  );
 }

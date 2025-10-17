@@ -113,9 +113,9 @@ const enforcePortalAccessByType = async (ctx: Context, requiredType?: string) =>
     entityId: portalAccess.entity_id as string,
     entity,
     portalRole: portalAccess.portal_role as string,
-    // Backward compatibility
-    customerId: portalAccess.customer_id as string,
-    customer: portalAccess.customers,
+    // Backward compatibility: For customer portals, use customer_id if set, otherwise fall back to entity_id
+    customerId: (portalAccess.customer_id || (portalAccess.entity_type === 'customer' ? portalAccess.entity_id : null)) as string,
+    customer: portalAccess.customers || entity, // Use entity if customers is null
   };
 };
 
@@ -1439,10 +1439,12 @@ export const portalRouter = createTRPCRouter({
   getPortalProfile: universalPortalProcedure
     .query(async ({ ctx }) => {
       // Return profile based on portal type
-      if (ctx.portalType === 'customer' && ctx.customerId) {
+      // For customer portals, use customerId (legacy) OR entityId (new)
+      if (ctx.portalType === 'customer' && (ctx.customerId || ctx.entityId)) {
         // Customer portal - return customer profile
+        const customerId = ctx.customerId || ctx.entityId;
         const customer = await prisma.customers.findUnique({
-          where: { id: ctx.customerId },
+          where: { id: customerId },
           include: {
             projects: {
               select: {
@@ -1473,14 +1475,16 @@ export const portalRouter = createTRPCRouter({
 
       if ((ctx.portalType === 'designer' || ctx.portalType === 'factory') && ctx.entityId) {
         // Designer/Factory portal - return partner profile
+        // NOTE: design_projects table references the legacy 'designers' table, not 'partners'
+        // Production orders link to partners via factory_id, but that's only for factories
         const partner = await prisma.partners.findUnique({
           where: { id: ctx.entityId },
           include: {
-            design_projects_design_projects_designer_idTopartners: {
+            production_orders: {
               select: {
                 id: true,
-                project_name: true,
-                current_stage: true,
+                order_number: true,
+                status: true,
                 created_at: true,
               },
               orderBy: {
@@ -1499,7 +1503,7 @@ export const portalRouter = createTRPCRouter({
         }
 
         return {
-          type: (ctx.portalType === 'designer' ? 'designer' : 'factory') as const,
+          type: ctx.portalType === 'designer' ? ('designer' as const) : ('factory' as const),
           profile: partner,
         };
       }
@@ -1979,7 +1983,10 @@ export const portalRouter = createTRPCRouter({
         prisma.quality_inspections.count({
           where: {
             inspector_name: ctx.entity?.company_name,
-            inspection_date: new Date().toISOString().split('T')[0],
+            inspection_date: {
+              gte: new Date(new Date().setHours(0, 0, 0, 0)),
+              lt: new Date(new Date().setHours(23, 59, 59, 999)),
+            },
             passed: {
               not: null,
             },
@@ -1991,7 +1998,7 @@ export const portalRouter = createTRPCRouter({
           where: {
             inspector_name: ctx.entity?.company_name,
             inspection_date: {
-              gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+              gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
             },
           },
           _sum: {
