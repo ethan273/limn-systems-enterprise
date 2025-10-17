@@ -106,10 +106,15 @@ export async function getAccessToken(userId: string): Promise<{ accessToken: str
 export async function switchUserContext(page: Page, userId: string): Promise<void> {
   const tokens = await getAccessToken(userId);
 
+  // Extract Supabase project ID from URL for dynamic cookie name
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://gwqkbjymbarkufwvdmar.supabase.co';
+  const projectId = new URL(supabaseUrl).hostname.split('.')[0];
+  const cookieName = `sb-${projectId}-auth-token`;
+
   // Set auth cookie in browser
   await page.context().addCookies([
     {
-      name: 'sb-gwqkbjymbarkufwvdmar-auth-token',
+      name: cookieName,
       value: `base64-${Buffer.from(
         JSON.stringify({
           access_token: tokens.accessToken,

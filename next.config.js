@@ -1,4 +1,10 @@
 const { withSentryConfig } = require('@sentry/nextjs');
+
+// Extract Supabase hostname from environment variable for dynamic configuration
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://gwqkbjymbarkufwvdmar.supabase.co';
+const supabaseHostname = new URL(supabaseUrl).hostname;
+const supabaseUrlPattern = new RegExp(`^https:\\/\\/${supabaseHostname.replace('.', '\\.')}\\/.*`, 'i');
+
 const withPWA = require('@ducanh2912/next-pwa').default({
   dest: 'public',
   register: true,
@@ -6,9 +12,9 @@ const withPWA = require('@ducanh2912/next-pwa').default({
   disable: process.env.NODE_ENV === 'development' && process.env.ENABLE_PWA !== 'true',
   buildExcludes: [/middleware-manifest\.json$/], // Critical: prevent PWA from caching middleware manifest
   runtimeCaching: [
-    // Supabase API calls
+    // Supabase API calls - uses NEXT_PUBLIC_SUPABASE_URL
     {
-      urlPattern: /^https:\/\/gwqkbjymbarkufwvdmar\.supabase\.co\/.*/i,
+      urlPattern: supabaseUrlPattern,
       handler: 'NetworkFirst',
       options: {
         cacheName: 'supabase-api-cache',
@@ -151,7 +157,7 @@ const nextConfig = {
     // Cache TTL for optimized images
     minimumCacheTTL: 60,
 
-    // Allowed image domains
+    // Allowed image domains - uses NEXT_PUBLIC_SUPABASE_URL
     remotePatterns: [
       {
         protocol: 'http',
@@ -163,7 +169,7 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'gwqkbjymbarkufwvdmar.supabase.co',
+        hostname: supabaseHostname,
       },
     ],
   },
@@ -244,9 +250,9 @@ const nextConfig = {
       "script-src 'self' 'unsafe-eval' 'unsafe-inline'", // tRPC requires unsafe-eval
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com", // Tailwind + Google Fonts
       "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com", // Explicit style-src-elem for external stylesheets
-      "img-src 'self' data: blob: https://gwqkbjymbarkufwvdmar.supabase.co",
+      `img-src 'self' data: blob: https://${supabaseHostname}`,
       "font-src 'self' https://fonts.gstatic.com", // Google Fonts
-      "connect-src 'self' https://gwqkbjymbarkufwvdmar.supabase.co wss://gwqkbjymbarkufwvdmar.supabase.co https://*.ingest.us.sentry.io", // Supabase + Sentry
+      `connect-src 'self' https://${supabaseHostname} wss://${supabaseHostname} https://*.ingest.us.sentry.io`, // Supabase + Sentry
       "worker-src 'self' blob:", // Web Workers
       "frame-src 'none'",
       "object-src 'none'",

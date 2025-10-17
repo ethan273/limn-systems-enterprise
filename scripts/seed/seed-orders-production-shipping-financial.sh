@@ -3,13 +3,30 @@
 # Extended Seeding: Orders → Production → Shipping → Financial
 # Builds complete business workflows on top of existing 25 customer journeys
 
-PGHOST="db.gwqkbjymbarkufwvdmar.supabase.co"
-PGUSER="postgres"
-PGDATABASE="postgres"
-PGPORT="5432"
-PGPASSWORD="kegquT-vyspi4-javwon"
+# SECURITY: Use environment variables for database credentials
+# Set these before running:
+#   export PGHOST="db.your-project.supabase.co"
+#   export PGUSER="postgres"
+#   export PGDATABASE="postgres"
+#   export PGPORT="5432"
+#   export PGPASSWORD="your-password"
 
-export PGPASSWORD
+# Validate required environment variables
+if [ -z "$PGHOST" ] || [ -z "$PGUSER" ] || [ -z "$PGDATABASE" ] || [ -z "$PGPASSWORD" ]; then
+  echo "❌ ERROR: Missing required database environment variables"
+  echo "Please set: PGHOST, PGUSER, PGDATABASE, PGPORT, PGPASSWORD"
+  echo ""
+  echo "Example:"
+  echo "  export PGHOST=\"db.your-project.supabase.co\""
+  echo "  export PGUSER=\"postgres\""
+  echo "  export PGDATABASE=\"postgres\""
+  echo "  export PGPORT=\"5432\""
+  echo "  export PGPASSWORD=\"your-password\""
+  exit 1
+fi
+
+# Default PGPORT if not set
+PGPORT="${PGPORT:-5432}"
 
 echo ""
 echo "🚀 Starting Orders → Production → Shipping → Financial seeding..."
