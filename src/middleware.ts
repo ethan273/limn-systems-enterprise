@@ -49,6 +49,7 @@ export async function middleware(request: NextRequest) {
 
   // Define public paths that don't require authentication
   const publicPaths = [
+    '/',  // Landing page - accessible to all
     '/login',
     '/auth/callback',
     '/auth/set-session',
