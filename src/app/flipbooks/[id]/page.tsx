@@ -9,8 +9,17 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LoadingState, PageHeader } from "@/components/common";
 import { formatDistanceToNow } from "date-fns";
-import { FlipbookViewer3DWrapper } from "@/components/flipbooks/FlipbookViewer3DWrapper";
 import { toast } from "sonner";
+import dynamic from "next/dynamic";
+
+// Dynamically import 3D flipbook viewer to reduce initial bundle size
+const FlipbookViewer3DWrapper = dynamic(
+  () => import("@/components/flipbooks/FlipbookViewer3DWrapper").then((mod) => mod.FlipbookViewer3DWrapper),
+  {
+    ssr: false, // Disable server-side rendering for 3D viewer
+    loading: () => <LoadingState message="Loading 3D viewer..." size="lg" />,
+  }
+);
 
 /**
  * Flipbook Viewer Page

@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api/client";
 import { useAuthContext } from "@/lib/auth/AuthProvider";
 import { toast } from "sonner";
-import { DesignBoardCanvas } from "@/components/design-boards/DesignBoardCanvas";
+import dynamic from "next/dynamic";
+import { Loader2 } from "lucide-react";
 import { DrawingToolbar } from "@/components/design-boards/DrawingToolbar";
 import { PropertiesPanel } from "@/components/design-boards/PropertiesPanel";
 import { LayersPanel } from "@/components/design-boards/LayersPanel";
@@ -16,6 +17,19 @@ import { BoardSettingsDialog } from "@/components/design-boards/BoardSettingsDia
 import { BoardShareDialog } from "@/components/design-boards/BoardShareDialog";
 import { DocumentUploadDialog } from "@/components/design-boards/DocumentUploadDialog";
 import * as fabric from "fabric";
+
+// Dynamically import heavy canvas component
+const DesignBoardCanvas = dynamic(
+  () => import("@/components/design-boards/DesignBoardCanvas").then((mod) => mod.DesignBoardCanvas),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center h-full bg-muted/10">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    ),
+  }
+);
 import { useBoardStore } from "@/lib/design-boards/board-store";
 import { exportToPNG, exportToSVG, exportToJSON } from "@/lib/design-boards/export-utils";
 import {

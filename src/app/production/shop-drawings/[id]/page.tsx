@@ -16,10 +16,24 @@ import {
  SelectTrigger,
  SelectValue
 } from "@/components/ui/select";
-import { PDFViewer } from "@/components/shop-drawings/PDFViewer";
 import { CommentCard } from "@/components/shop-drawings/CommentCard";
 import { VersionTimeline } from "@/components/shop-drawings/VersionTimeline";
 import { ApprovalStatus } from "@/components/shop-drawings/ApprovalStatus";
+import dynamic from "next/dynamic";
+import { Loader2 } from "lucide-react";
+
+// Dynamically import PDF viewer to reduce initial bundle size
+const PDFViewer = dynamic(
+  () => import("@/components/shop-drawings/PDFViewer").then((mod) => mod.PDFViewer),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    ),
+  }
+);
 import {
  ArrowLeft,
  FileText,
@@ -29,7 +43,6 @@ import {
  XCircle,
  Clock,
  AlertTriangle,
- Loader2,
  MessageSquare,
  ThumbsUp,
  ThumbsDown,

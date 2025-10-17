@@ -6,8 +6,12 @@ import { NextResponse, type NextRequest } from 'next/server';
  * Protects all routes except public paths (login, auth, public assets)
  */
 export async function middleware(request: NextRequest) {
-  console.log('🚨 MIDDLEWARE ENTRY:', request.nextUrl.pathname);
   const { pathname } = request.nextUrl;
+
+  // Only log in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🚨 MIDDLEWARE ENTRY:', pathname);
+  }
 
   // Validate required environment variables
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -122,7 +126,7 @@ export async function middleware(request: NextRequest) {
     error: authError,
   } = await supabase.auth.getUser();
 
-  // Log auth errors for debugging
+  // Log auth errors for debugging (keep errors in production for monitoring)
   if (authError) {
     console.error(`❌ Middleware: Auth error for ${pathname}:`, authError.message);
   }
@@ -133,14 +137,18 @@ export async function middleware(request: NextRequest) {
 
     // Portal routes redirect to portal login
     if (pathname.startsWith('/portal')) {
-      console.log(`🔒 Middleware: Redirecting unauthenticated user from ${pathname} to /portal/login`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`🔒 Middleware: Redirecting unauthenticated user from ${pathname} to /portal/login`);
+      }
       redirectUrl.pathname = '/portal/login';
       redirectUrl.searchParams.set('redirect', pathname);
       return NextResponse.redirect(redirectUrl);
     }
 
     // All other routes redirect to main login
-    console.log(`🔒 Middleware: Redirecting unauthenticated user from ${pathname} to /login`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`🔒 Middleware: Redirecting unauthenticated user from ${pathname} to /login`);
+    }
     redirectUrl.pathname = '/login';
     redirectUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(redirectUrl);
@@ -157,13 +165,17 @@ export async function middleware(request: NextRequest) {
     const isAdmin = userData?.user_type === 'super_admin';
 
     if (!isAdmin) {
-      console.log(`🚫 Middleware: User ${user.id} denied access to admin area (user_type: ${userData?.user_type})`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`🚫 Middleware: User ${user.id} denied access to admin area (user_type: ${userData?.user_type})`);
+      }
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = '/dashboard';
       return NextResponse.redirect(redirectUrl);
     }
 
-    console.log(`✅ Middleware: User ${user.id} has admin access (user_type: ${userData?.user_type})`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`✅ Middleware: User ${user.id} has admin access (user_type: ${userData?.user_type})`);
+    }
   }
 
   // Portal access control - verify user has access to specific portal type
@@ -180,17 +192,23 @@ export async function middleware(request: NextRequest) {
       .eq('is_active', true);
 
     if (!portalAccessRecords || portalAccessRecords.length === 0) {
-      console.log(`🚫 Middleware: User ${user.id} denied access to ${requestedPortalType} portal`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`🚫 Middleware: User ${user.id} denied access to ${requestedPortalType} portal`);
+      }
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = '/portal/login';
       redirectUrl.searchParams.set('error', 'unauthorized_portal');
       return NextResponse.redirect(redirectUrl);
     }
 
-    console.log(`✅ Middleware: User ${user.id} has valid ${requestedPortalType} portal access`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`✅ Middleware: User ${user.id} has valid ${requestedPortalType} portal access`);
+    }
   }
 
-  console.log(`✅ Middleware: Allowing authenticated user (${user.id}) to access ${pathname}`);
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`✅ Middleware: Allowing authenticated user (${user.id}) to access ${pathname}`);
+  }
   // User is authenticated, allow access
   return response;
 }
