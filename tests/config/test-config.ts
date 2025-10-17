@@ -11,8 +11,8 @@ export const TEST_CONFIG = {
   USER_EMAIL: process.env.USER_EMAIL || 'user@test.com',
   USER_PASSWORD: process.env.USER_PASSWORD || 'user123',
   TIMEOUT: 30000,
-  // Screenshots are saved to 02-TESTING folder, managed by run-all-tests.sh script
-  SCREENSHOT_DIR: '/Users/eko3/limn-systems-enterprise-docs/02-TESTING/test-results/screenshots'
+  // Screenshots are saved to test-results folder (cross-platform compatible)
+  SCREENSHOT_DIR: path.resolve(process.cwd(), 'test-results', 'screenshots')
 };
 
 export default TEST_CONFIG;
