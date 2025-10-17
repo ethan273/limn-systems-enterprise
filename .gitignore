@@ -116,3 +116,39 @@ test-*.mjs
 SESSION-*.md
 production-credentials.env
 *CREDENTIALS.md
+
+# Documentation files (should go in docs repo)
+*-SUMMARY.md
+*-COMPLETE.md
+*-IMPLEMENTATION*.md
+*-GUIDE.md
+*-PROGRESS.md
+*-PLAN.md
+*-STATUS.md
+*-REPORT.md
+*-AUDIT.md
+*-ANALYSIS.md
+*-RESULTS.md
+*-FIXES*.md
+PHASE-*.md
+EXECUTIVE-*.md
+CRITICAL-*.md
+
+# Screenshots and images (should go in docs repo)
+*.png
+*.jpg
+*.jpeg
+!public/**/*.png
+!public/**/*.jpg
+!public/**/*.jpeg
+
+# Reports and analysis folders
+reports/
+screenshots/
+errors/
+
+# One-off scripts (should go in docs repo maintenance)
+maintenance/
+analyze-*.py
+app-analysis.json
+schema-summary.txt
