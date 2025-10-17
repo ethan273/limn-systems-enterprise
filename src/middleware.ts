@@ -87,7 +87,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Create Supabase client with improved cookie handling
-  let response = NextResponse.next({
+  const response = NextResponse.next({
     request: {
       headers: request.headers,
     },
