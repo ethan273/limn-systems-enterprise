@@ -71,9 +71,9 @@ const enforceUserIsSuperAdmin = t.middleware(async ({ ctx, next }) => {
   }
 
   // Get user profile to check user_type
+  // Note: select not supported by wrapper, fetching full record
   const userProfile = await ctx.db.user_profiles.findUnique({
     where: { id: ctx.session.user.id },
-    select: { user_type: true, full_name: true },
   });
 
   // Only super_admin can access

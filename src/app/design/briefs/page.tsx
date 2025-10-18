@@ -33,7 +33,7 @@ import {
 export const dynamic = 'force-dynamic';
 
 export default function DesignBriefsPage() {
-  const { user, loading: authLoading } = useAuthContext();
+  const { loading: authLoading } = useAuthContext();
   const router = useRouter();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [briefToDelete, setBriefToDelete] = useState<any>(null);

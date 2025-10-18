@@ -61,7 +61,7 @@ function DesignDocumentsContent() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [fileToDelete, setFileToDelete] = useState<any>(null);
 
-  const { user, loading: authLoading } = useAuthContext();
+  const { loading: authLoading } = useAuthContext();
 
   // Get Google Drive service account status
   const { data: driveStatus } = api.storage.getDriveStatus.useQuery();

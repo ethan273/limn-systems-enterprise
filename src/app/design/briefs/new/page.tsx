@@ -19,7 +19,7 @@ export const dynamic = 'force-dynamic';
 
 export default function NewDesignBriefPage() {
   const router = useRouter();
-  const { user, loading: authLoading } = useAuthContext();
+  const { loading: authLoading } = useAuthContext();
 
   const [formData, setFormData] = useState({
     title: "",

@@ -76,12 +76,15 @@ export async function generateBaseSku(
  * Validate that a base SKU is unique
  */
 export async function isBaseSkuUnique(baseSku: string, excludeItemId?: string): Promise<boolean> {
-  const existing = await prisma.items.findFirst({
+  // Note: findFirst not supported by wrapper, using findMany
+  const existingArray = await prisma.items.findMany({
     where: {
       base_sku: baseSku,
       ...(excludeItemId && { id: { not: excludeItemId } })
-    }
+    },
+    take: 1,
   });
+  const existing = existingArray.length > 0 ? existingArray[0] : null;
 
   return !existing;
 }

@@ -255,8 +255,9 @@ export default function CollectionDetailPage({ params }: PageProps) {
               <MediaGallery
                 entityType="collection"
                 entityId={collectionId}
-                media={media.map(m => ({
+                media={media.map((m: Record<string, any>) => ({
                   ...m,
+                  id: m.id,
                   file_name: m.name ?? '',
                   file_url: m.url ?? '',
                   file_type: m.type ?? '',

@@ -594,7 +594,8 @@ export const partnersRouter = createTRPCRouter({
 
   // Get partner by portal user (for factory portal)
   getByPortalUser: protectedProcedure.query(async ({ ctx }) => {
-    const partner = await ctx.db.partners.findFirst({
+    // Note: findFirst not supported by wrapper, using findMany
+    const partner = (await ctx.db.partners.findMany({
       where: {
         portal_user_id: ctx.session.user.id,
       },
@@ -609,7 +610,8 @@ export const partnersRouter = createTRPCRouter({
           },
         },
       },
-    });
+      take: 1,
+    }))[0];
 
     return partner;
   }),

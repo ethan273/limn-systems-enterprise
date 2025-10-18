@@ -303,24 +303,25 @@ export const orderedItemsProductionRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const updatedItems = await ctx.db.ordered_items_production.updateMany({
-        where: {
-          id: {
-            in: input.ids,
+      // Note: updateMany not supported by wrapper, using Promise.all with individual updates
+      const updatePromises = input.ids.map(id =>
+        ctx.db.ordered_items_production.update({
+          where: { id },
+          data: {
+            qc_status: input.qcStatus,
+            qc_notes: input.qcNotes,
+            qc_date: new Date(),
+            qc_by: ctx.user?.id,
           },
-        },
-        data: {
-          qc_status: input.qcStatus,
-          qc_notes: input.qcNotes,
-          qc_date: new Date(),
-          qc_by: ctx.user?.id,
-        },
-      });
+        })
+      );
+
+      const updatedItems = await Promise.all(updatePromises);
 
       return {
         success: true,
-        count: updatedItems.count,
-        message: `Updated ${updatedItems.count} items to ${input.qcStatus}`,
+        count: updatedItems.length,
+        message: `Updated ${updatedItems.length} items to ${input.qcStatus}`,
       };
     }),
 

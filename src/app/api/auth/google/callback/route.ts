@@ -60,12 +60,13 @@ export async function GET(request: NextRequest) {
 
     // Store tokens in database
     // Check if user already has tokens stored
-    const existingToken = await db.oauth_tokens.findFirst({
+    const existingTokens = await db.oauth_tokens.findMany({
       where: {
         user_id: userId,
         provider: 'google_drive',
       },
     });
+    const existingToken = existingTokens.length > 0 ? existingTokens[0] : null;
 
     if (existingToken) {
       // Update existing tokens

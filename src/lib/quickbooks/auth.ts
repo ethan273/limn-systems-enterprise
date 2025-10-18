@@ -20,7 +20,8 @@ export async function getQuickBooksClient(
   realmId?: string
 ): Promise<QuickBooksClient> {
   // Get connection from database
-  const connection = await prisma.quickbooks_connections.findFirst({
+  // Note: findFirst not supported by wrapper, using findMany
+  const connectionArray = await prisma.quickbooks_connections.findMany({
     where: {
       user_id: userId,
       is_active: true,
@@ -29,7 +30,9 @@ export async function getQuickBooksClient(
     orderBy: {
       updated_at: 'desc',
     },
+    take: 1,
   });
+  const connection = connectionArray.length > 0 ? connectionArray[0] : null;
 
   if (!connection) {
     throw new Error('No active QuickBooks connection found. Please connect to QuickBooks first.');
@@ -77,12 +80,15 @@ export async function getQuickBooksClient(
  */
 export async function getQuickBooksClientByRealm(realmId: string): Promise<QuickBooksClient> {
   // Get connection from database
-  const connection = await prisma.quickbooks_connections.findFirst({
+  // Note: findFirst not supported by wrapper, using findMany
+  const connectionArray = await prisma.quickbooks_connections.findMany({
     where: {
       realm_id: realmId,
       is_active: true,
     },
+    take: 1,
   });
+  const connection = connectionArray.length > 0 ? connectionArray[0] : null;
 
   if (!connection) {
     throw new Error(`No active QuickBooks connection found for realm: ${realmId}`);
@@ -99,12 +105,15 @@ export async function getQuickBooksClientByRealm(realmId: string): Promise<Quick
  * @returns boolean indicating if user has active connection
  */
 export async function hasQuickBooksConnection(userId: string): Promise<boolean> {
-  const connection = await prisma.quickbooks_connections.findFirst({
+  // Note: findFirst not supported by wrapper, using findMany
+  const connectionArray = await prisma.quickbooks_connections.findMany({
     where: {
       user_id: userId,
       is_active: true,
     },
+    take: 1,
   });
+  const connection = connectionArray.length > 0 ? connectionArray[0] : null;
 
   if (!connection) {
     return false;
@@ -123,7 +132,8 @@ export async function hasQuickBooksConnection(userId: string): Promise<boolean> 
  * @returns Connection details or null
  */
 export async function getQuickBooksConnection(userId: string, realmId?: string) {
-  return await prisma.quickbooks_connections.findFirst({
+  // Note: findFirst not supported by wrapper, using findMany
+  const connectionArray = await prisma.quickbooks_connections.findMany({
     where: {
       user_id: userId,
       is_active: true,
@@ -132,7 +142,9 @@ export async function getQuickBooksConnection(userId: string, realmId?: string) 
     orderBy: {
       updated_at: 'desc',
     },
+    take: 1,
   });
+  return connectionArray.length > 0 ? connectionArray[0] : null;
 }
 
 /**

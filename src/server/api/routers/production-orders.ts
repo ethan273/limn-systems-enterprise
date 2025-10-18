@@ -420,14 +420,17 @@ export const productionOrdersRouter = createTRPCRouter({
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       // Check if order can be deleted (no payments made)
-      const invoicesWithPayments = await ctx.db.production_invoices.findFirst({
+      // Note: findFirst not supported by wrapper, using findMany
+      const invoicesWithPaymentsArray = await ctx.db.production_invoices.findMany({
         where: {
           production_order_id: input.id,
           amount_paid: {
             gt: 0,
           },
         },
+        take: 1,
       });
+      const invoicesWithPayments = invoicesWithPaymentsArray.length > 0 ? invoicesWithPaymentsArray[0] : null;
 
       if (invoicesWithPayments) {
         throw new Error('Cannot delete production order with payments received. Please cancel instead.');

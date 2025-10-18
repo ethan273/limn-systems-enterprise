@@ -112,14 +112,16 @@ export const shippingRouter = createTRPCRouter({
     }))
     .query(async ({ ctx, input }) => {
       // Get the most recent quote request for this production order
-      const quoteRequest = await ctx.db.shipping_quotes.findFirst({
+      // Note: findFirst not supported by wrapper, using findMany
+      const quoteRequest = (await ctx.db.shipping_quotes.findMany({
         where: {
           production_order_id: input.production_order_id,
         },
         orderBy: {
           requested_at: 'desc',
         },
-      });
+        take: 1,
+      }))[0];
 
       if (!quoteRequest) {
         return {
@@ -238,9 +240,11 @@ export const shippingRouter = createTRPCRouter({
         const tracking = await sekoClient.trackShipment(input.tracking_number);
 
         // Update shipment status in database
-        const shipment = await ctx.db.shipments.findFirst({
+        // Note: findFirst not supported by wrapper, using findMany
+        const shipment = (await ctx.db.shipments.findMany({
           where: { tracking_number: input.tracking_number },
-        });
+          take: 1,
+        }))[0];
 
         if (shipment) {
           await ctx.db.shipments.update({
@@ -471,9 +475,11 @@ export const shippingRouter = createTRPCRouter({
   getTrackingInfo: publicProcedure
     .input(z.object({ trackingNumber: z.string().min(1) }))
     .query(async ({ ctx, input }) => {
-      const shipment = await ctx.db.shipments.findFirst({
+      // Note: findFirst not supported by wrapper, using findMany
+      const shipment = (await ctx.db.shipments.findMany({
         where: { tracking_number: input.trackingNumber },
-      });
+        take: 1,
+      }))[0];
 
       if (!shipment) {
         throw new TRPCError({

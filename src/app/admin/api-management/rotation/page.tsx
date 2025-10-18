@@ -110,7 +110,7 @@ export default function CredentialRotationPage() {
         </div>
 
         <div className="divide-y">
-          {credentials?.map((credential) => (
+          {credentials?.map((credential: Record<string, any>) => (
             <div
               key={credential.id}
               className={`p-6 hover-card cursor-pointer ${

@@ -749,8 +749,9 @@ export function ProductDetailPage({ productId, productType }: ProductDetailPageP
               <MediaGallery
                 entityType={entityType as any}
                 entityId={productId}
-                media={media.map(m => ({
+                media={media.map((m: Record<string, any>) => ({
                   ...m,
+                  id: m.id,
                   file_name: m.name ?? '',
                   file_url: m.url ?? '',
                   file_type: m.type ?? '',

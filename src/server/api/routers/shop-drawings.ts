@@ -210,7 +210,7 @@ export const shopDrawingsRouter = createTRPCRouter({
 
       // Generate drawing number: SD-2025-0001
       const year = new Date().getFullYear();
-      const lastDrawing = await ctx.db.shop_drawings.findFirst({
+      const lastDrawings = await ctx.db.shop_drawings.findMany({
         where: {
           drawing_number: {
             startsWith: `SD-${year}-`,
@@ -220,6 +220,7 @@ export const shopDrawingsRouter = createTRPCRouter({
           drawing_number: 'desc',
         },
       });
+      const lastDrawing = lastDrawings.length > 0 ? lastDrawings[0] : null;
 
       let nextNumber = 1;
       if (lastDrawing) {

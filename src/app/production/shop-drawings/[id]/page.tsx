@@ -503,7 +503,7 @@ export default function ShopDrawingDetailPage({ params }: PageProps) {
  <TabsContent value="versions" className="space-y-4">
  {versions && versions.length > 0 ? (
  <VersionTimeline
- versions={versions.map((v) => ({
+ versions={versions.map((v: Record<string, any>) => ({
  id: v.id,
  versionNumber: String(v.version_number),
  fileName: v.file_name,

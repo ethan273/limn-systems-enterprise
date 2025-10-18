@@ -117,7 +117,6 @@ export default function MaterialsPage() {
 
   // Get category ID for current tab
   const currentCategoryId = useMemo(() => {
-    const categoryName = activeTab.charAt(0).toUpperCase() + activeTab.slice(1);
     return categories?.find((c: any) =>
       c.name.toLowerCase().includes(activeTab.toLowerCase())
     )?.id;
@@ -415,7 +414,7 @@ export default function MaterialsPage() {
     });
 
     return cols;
-  }, [activeHierarchyLevel, activeHierarchy, getParentName]);
+  }, [activeHierarchyLevel, activeHierarchy, activeCategory, getParentName]);
 
   // DataTable filters
   const filters: DataTableFilter[] = [

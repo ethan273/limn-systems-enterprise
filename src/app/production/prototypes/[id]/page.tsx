@@ -324,7 +324,7 @@ export default function PrototypeDetailPage({ params }: PageProps) {
  </CardHeader>
  <CardContent>
  <div className="font-semibold text-lg">
- {milestones?.filter((m: { status: string }) => m.status === 'completed').length || 0} / {milestones?.length || 0}
+ {milestones?.filter((m: Record<string, any>) => m.status === 'completed').length || 0} / {milestones?.length || 0}
  </div>
  </CardContent>
  </Card>

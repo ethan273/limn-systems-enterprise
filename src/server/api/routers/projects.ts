@@ -79,9 +79,21 @@ export const projectsRouter = createTRPCRouter({
         ],
       }) : [];
 
-      // TODO: Get orders related to this project when project_id field is restored to orders table
-      // For now, return empty array since orders table doesn't have project_id column
-      const orders: any[] = [];
+      // Get orders related to this project
+      const orders = await ctx.db.orders.findMany({
+        where: { project_id: input.id },
+        include: {
+          order_items: true,
+          customers: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: { created_at: 'desc' },
+      });
 
       // Get all ordered items from these orders
       const orderIds = orders.map(o => o.id);
@@ -121,16 +133,18 @@ export const projectsRouter = createTRPCRouter({
         where: { id: input.projectId },
         include: {
           customers: true,
-          // TODO: Add orders relationship when project_id field is restored to orders table
-          // orders: {
-          //   include: {
-          //     order_items: {
-          //       include: {
-          //         items: true,
-          //       },
-          //     },
-          //   },
-          // },
+          orders: {
+            include: {
+              order_items: true,
+              customers: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -138,10 +152,11 @@ export const projectsRouter = createTRPCRouter({
         throw new Error('Project not found');
       }
 
-      // Calculate project metrics
-      // TODO: Add orders relationship when project_id field is restored to orders table
-      const orders: any[] = []; // Empty array since orders relationship is not available
-      const totalSpent = 0; // Will be calculated when orders relationship is restored
+      // Calculate project metrics from orders
+      const orders = (project as any).orders || [];
+      const totalSpent = orders.reduce((sum: number, order: any) => {
+        return sum + (order.total_amount ? Number(order.total_amount) : 0);
+      }, 0);
       const budgetRemaining = project.budget ?
         Number(project.budget) - totalSpent : null;
 
@@ -166,18 +181,17 @@ export const projectsRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const projects = await ctx.db.projects.findMany({
         where: { customer_id: input.customerId },
-        // TODO: Add orders relationship when project_id field is restored to orders table
-        // include: input.includeOrders ? {
-        //   orders: {
-        //     select: {
-        //       id: true,
-        //       order_number: true,
-        //       status: true,
-        //       total_amount: true,
-        //       created_at: true,
-        //     },
-        //   },
-        // } : undefined,
+        include: input.includeOrders ? {
+          orders: {
+            select: {
+              id: true,
+              order_number: true,
+              status: true,
+              total_amount: true,
+              created_at: true,
+            },
+          },
+        } : undefined,
         orderBy: { created_at: 'desc' },
       });
 
@@ -192,24 +206,26 @@ export const projectsRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const project = await ctx.db.projects.findUnique({
         where: { id: input.projectId },
-        // TODO: Add orders relationship when project_id field is restored to orders table
-        // include: {
-        //   orders: {
-        //     where: {
-        //       status: {
-        //         notIn: ['cancelled', 'draft'],
-        //       },
-        //     },
-        //   },
-        // },
+        include: {
+          orders: {
+            where: {
+              status: {
+                notIn: ['cancelled', 'draft'],
+              },
+            },
+          },
+        },
       });
 
       if (!project) {
         throw new Error('Project not found');
       }
 
-      // TODO: Calculate from orders when project_id field is restored to orders table
-      const totalSpent = 0; // Will be calculated when orders relationship is restored
+      // Calculate total spent from orders
+      const orders = (project as any).orders || [];
+      const totalSpent = orders.reduce((sum: number, order: any) => {
+        return sum + (order.total_amount ? Number(order.total_amount) : 0);
+      }, 0);
       
       const now = new Date();
       const endDate = project.end_date ? new Date(project.end_date) : null;
@@ -233,10 +249,10 @@ export const projectsRouter = createTRPCRouter({
         healthStatus,
         budget: project.budget,
         totalSpent,
-        budgetUsedPercentage: project.budget ? 
+        budgetUsedPercentage: project.budget ?
           (totalSpent / Number(project.budget)) * 100 : null,
         daysRemaining,
-        orderCount: 0, // TODO: Calculate from orders when project_id field is restored
+        orderCount: orders.length,
       };
     }),
 
@@ -268,7 +284,7 @@ export const projectsRouter = createTRPCRouter({
           order = await tx.orders.create({
             data: {
               customer_id: input.project.customer_id,
-              // TODO: Add project_id when project_id field is restored to orders table
+              project_id: project.id,
               ...input.order,
               status: 'draft',
             },

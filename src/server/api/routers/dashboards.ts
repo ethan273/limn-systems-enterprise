@@ -479,7 +479,7 @@ export const dashboardsRouter = createTRPCRouter({
         .sort(([, a], [, b]) => b.revenue - a.revenue)
         .slice(0, 10)
         .map(([productId, data]) => {
-          const product = products.find((p: any) => p.id === productId);
+          const product = products.find((p: any) => p.id === productId) as any;
           return {
             id: productId,
             name: product?.name || 'Unknown Product',
@@ -1169,7 +1169,7 @@ export const dashboardsRouter = createTRPCRouter({
         .sort(([, a], [, b]) => b - a)
         .slice(0, 10)
         .map(([productId, quantity]) => {
-          const product = products.find((p: any) => p.id === productId);
+          const product = products.find((p: any) => p.id === productId) as any;
           return {
             id: productId,
             name: product?.name || 'Unknown Product',

@@ -287,16 +287,33 @@ export const storageRouter = createTRPCRouter({
 
     const userId = ctx.session.user.id;
 
-    const stats = await ctx.db.design_files.groupBy({
-      by: ['storage_type'],
+    // Note: groupBy not supported by wrapper, using findMany + manual grouping
+    const allFiles = await ctx.db.design_files.findMany({
       where: {
         uploaded_by: userId,
       },
-      _count: true,
-      _sum: {
+      select: {
+        storage_type: true,
         file_size: true,
       },
     });
+
+    // Group by storage_type and calculate _count and _sum manually
+    const groupedStats = allFiles.reduce((acc: Record<string, { _count: number; _sum: { file_size: number } }>, file) => {
+      const storageType = file.storage_type;
+      if (!acc[storageType]) {
+        acc[storageType] = { _count: 0, _sum: { file_size: 0 } };
+      }
+      acc[storageType]._count += 1;
+      acc[storageType]._sum.file_size += file.file_size || 0;
+      return acc;
+    }, {});
+
+    const stats = Object.entries(groupedStats).map(([storage_type, data]) => ({
+      storage_type,
+      _count: data._count,
+      _sum: { file_size: data._sum.file_size },
+    }));
 
     const totalFiles = stats.reduce((sum: number, s) => sum + s._count, 0);
     const totalSize = stats.reduce((sum: number, s) => sum + (s._sum.file_size || 0), 0);

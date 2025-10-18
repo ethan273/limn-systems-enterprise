@@ -11,10 +11,12 @@ import type { QuickBooksInvoice, QuickBooksPayment, QuickBooksCustomer } from '@
  * Get QuickBooks tokens from database and set them on the client
  */
 async function loadQuickBooksTokens(ctx: any) {
-  const auth = await ctx.db.quickbooks_auth.findFirst({
+  // Note: findFirst not supported by wrapper, using findMany
+  const auth = (await ctx.db.quickbooks_auth.findMany({
     where: { is_active: true },
     orderBy: { created_at: 'desc' },
-  });
+    take: 1,
+  }))[0];
 
   if (!auth) {
     throw new Error('QuickBooks not connected. Please connect your QuickBooks account first.');
@@ -60,12 +62,14 @@ async function getOrCreateCustomerMapping(
   customerData: any
 ): Promise<string> {
   // Check if customer already mapped
-  const existing = await ctx.db.quickbooks_entity_mapping.findFirst({
+  // Note: findFirst not supported by wrapper, using findMany
+  const existing = (await ctx.db.quickbooks_entity_mapping.findMany({
     where: {
       entity_type: 'customer',
       limn_id: limnCustomerId,
     },
-  });
+    take: 1,
+  }))[0];
 
   if (existing) {
     return existing.quickbooks_id;
@@ -101,12 +105,14 @@ async function getOrCreateCustomerMapping(
  */
 async function getDefaultItemId(ctx: any): Promise<string> {
   // Check if we have a default item mapped
-  const existing = await ctx.db.quickbooks_entity_mapping.findFirst({
+  // Note: findFirst not supported by wrapper, using findMany
+  const existing = (await ctx.db.quickbooks_entity_mapping.findMany({
     where: {
       entity_type: 'item',
       limn_id: 'default-production-item',
     },
-  });
+    take: 1,
+  }))[0];
 
   if (existing) {
     return existing.quickbooks_id;
@@ -127,10 +133,12 @@ export const quickbooksSyncRouter = createTRPCRouter({
 
   // Check QuickBooks connection status
   getConnectionStatus: publicProcedure.query(async ({ ctx }) => {
-    const auth = await ctx.db.quickbooks_auth.findFirst({
+    // Note: findFirst not supported by wrapper, using findMany
+    const auth = (await ctx.db.quickbooks_auth.findMany({
       where: { is_active: true },
       orderBy: { created_at: 'desc' },
-    });
+      take: 1,
+    }))[0];
 
     if (!auth) {
       return {
@@ -183,12 +191,14 @@ export const quickbooksSyncRouter = createTRPCRouter({
         }
 
         // Check if already synced
-        const existingMapping = await ctx.db.quickbooks_entity_mapping.findFirst({
+        // Note: findFirst not supported by wrapper, using findMany
+        const existingMapping = (await ctx.db.quickbooks_entity_mapping.findMany({
           where: {
             entity_type: 'invoice',
             limn_id: input.production_invoice_id,
           },
-        });
+          take: 1,
+        }))[0];
 
         // Get or create customer mapping
         const customer = invoice.production_orders?.projects?.customers;
@@ -334,12 +344,14 @@ export const quickbooksSyncRouter = createTRPCRouter({
         }
 
         // Check if already synced
-        const existingMapping = await ctx.db.quickbooks_entity_mapping.findFirst({
+        // Note: findFirst not supported by wrapper, using findMany
+        const existingMapping = (await ctx.db.quickbooks_entity_mapping.findMany({
           where: {
             entity_type: 'payment',
             limn_id: input.production_payment_id,
           },
-        });
+          take: 1,
+        }))[0];
 
         if (existingMapping) {
           return {
@@ -358,12 +370,14 @@ export const quickbooksSyncRouter = createTRPCRouter({
         const qbCustomerId = await getOrCreateCustomerMapping(ctx, customer.id, customer);
 
         // Get invoice mapping
-        const invoiceMapping = await ctx.db.quickbooks_entity_mapping.findFirst({
+        // Note: findFirst not supported by wrapper, using findMany
+        const invoiceMapping = (await ctx.db.quickbooks_entity_mapping.findMany({
           where: {
             entity_type: 'invoice',
             limn_id: payment.production_invoice_id,
           },
-        });
+          take: 1,
+        }))[0];
 
         if (!invoiceMapping) {
           throw new Error('Invoice must be synced to QuickBooks before syncing payment');

@@ -60,12 +60,15 @@ async function processInvoiceUpdate(
 ) {
   try {
     // Find mapping in our database
-    const mapping = await prisma.quickbooks_entity_mapping.findFirst({
+    // Note: findFirst not supported by wrapper, using findMany
+    const mappingArray = await prisma.quickbooks_entity_mapping.findMany({
       where: {
         entity_type: 'invoice',
         quickbooks_id: invoiceId,
       },
+      take: 1,
     });
+    const mapping = mappingArray.length > 0 ? mappingArray[0] : null;
 
     if (!mapping) {
       console.log(`[QuickBooks Webhook] Invoice ${invoiceId} not found in mappings - skipping`);
@@ -126,12 +129,15 @@ async function processPaymentUpdate(
 ) {
   try {
     // Find mapping in our database
-    const mapping = await prisma.quickbooks_entity_mapping.findFirst({
+    // Note: findFirst not supported by wrapper, using findMany
+    const mappingArray = await prisma.quickbooks_entity_mapping.findMany({
       where: {
         entity_type: 'payment',
         quickbooks_id: paymentId,
       },
+      take: 1,
     });
+    const mapping = mappingArray.length > 0 ? mappingArray[0] : null;
 
     if (!mapping) {
       console.log(`[QuickBooks Webhook] Payment ${paymentId} not found in mappings - skipping`);
@@ -181,12 +187,15 @@ async function processCustomerUpdate(
 ) {
   try {
     // Find mapping in our database
-    const mapping = await prisma.quickbooks_entity_mapping.findFirst({
+    // Note: findFirst not supported by wrapper, using findMany
+    const mappingArray = await prisma.quickbooks_entity_mapping.findMany({
       where: {
         entity_type: 'customer',
         quickbooks_id: customerId,
       },
+      take: 1,
     });
+    const mapping = mappingArray.length > 0 ? mappingArray[0] : null;
 
     if (!mapping) {
       console.log(`[QuickBooks Webhook] Customer ${customerId} not found in mappings - skipping`);

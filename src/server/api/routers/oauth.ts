@@ -14,6 +14,19 @@ import {
 import { encryptToken, decryptToken } from '@/lib/oauth/token-encryption';
 import { TRPCError } from '@trpc/server';
 
+/**
+ * Helper function to find first oauth token (wrapper around findMany)
+ */
+async function findFirstOAuthToken(db: any, userId: string, provider: string) {
+  const tokens = await db.oauth_tokens.findMany({
+    where: {
+      user_id: userId,
+      provider,
+    },
+  });
+  return tokens.length > 0 ? tokens[0] : null;
+}
+
 export const oauthRouter = createTRPCRouter({
   /**
    * Generate Google OAuth authorization URL
@@ -47,12 +60,7 @@ export const oauthRouter = createTRPCRouter({
 
     const userId = ctx.session.user.id;
 
-    const token = await ctx.db.oauth_tokens.findFirst({
-      where: {
-        user_id: userId,
-        provider: 'google_drive',
-      },
-    });
+    const token = await findFirstOAuthToken(ctx.db, userId, 'google_drive');
 
     if (!token) {
       return {
@@ -85,12 +93,7 @@ export const oauthRouter = createTRPCRouter({
     const userId = ctx.session.user.id;
 
     // Get existing token
-    const token = await ctx.db.oauth_tokens.findFirst({
-      where: {
-        user_id: userId,
-        provider: 'google_drive',
-      },
-    });
+    const token = await findFirstOAuthToken(ctx.db, userId, 'google_drive');
 
     if (!token) {
       throw new TRPCError({
@@ -145,12 +148,7 @@ export const oauthRouter = createTRPCRouter({
     const userId = ctx.session.user.id;
 
     // Get existing token
-    const token = await ctx.db.oauth_tokens.findFirst({
-      where: {
-        user_id: userId,
-        provider: 'google_drive',
-      },
-    });
+    const token = await findFirstOAuthToken(ctx.db, userId, 'google_drive');
 
     if (!token) {
       throw new TRPCError({
@@ -196,12 +194,7 @@ export const oauthRouter = createTRPCRouter({
     const userId = ctx.session.user.id;
 
     // Get existing token
-    const token = await ctx.db.oauth_tokens.findFirst({
-      where: {
-        user_id: userId,
-        provider: 'google_drive',
-      },
-    });
+    const token = await findFirstOAuthToken(ctx.db, userId, 'google_drive');
 
     if (!token) {
       throw new TRPCError({

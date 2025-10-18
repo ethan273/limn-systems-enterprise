@@ -749,20 +749,22 @@ export const adminRouter = createTRPCRouter({
      * Get role statistics
      */
     getRoleStats: adminProcedure.query(async () => {
-      const roles = await prisma.user_roles.groupBy({
-        by: ['role'],
-        _count: true,
-        orderBy: {
-          _count: {
-            role: 'desc',
-          },
-        },
+      // Note: groupBy not supported by wrapper, using findMany + manual grouping
+      const allRoles = await prisma.user_roles.findMany();
+
+      // Manual grouping
+      const roleCountMap = new Map<string, number>();
+      allRoles.forEach(ur => {
+        const role = ur.role || 'unknown';
+        roleCountMap.set(role, (roleCountMap.get(role) || 0) + 1);
       });
 
-      return roles.map((r) => ({
-        role: r.role,
-        count: r._count,
-      }));
+      // Convert to array and sort by count descending
+      const roles = Array.from(roleCountMap.entries())
+        .map(([role, count]) => ({ role, count }))
+        .sort((a, b) => b.count - a.count);
+
+      return roles;
     }),
 
     /**
@@ -848,16 +850,19 @@ export const adminRouter = createTRPCRouter({
       .mutation(async ({ input }) => {
         // Upsert each module setting
         // Note: Prisma doesn't support null in unique constraint where clauses
-        // So we need to handle this with findFirst + create/update
+        // So we need to handle this with findMany + create/update
         await Promise.all(
           input.modules.map(async (mod) => {
-            const existing = await prisma.portal_module_settings.findFirst({
+            // Note: findFirst not supported by wrapper, using findMany
+            const existingArray = await prisma.portal_module_settings.findMany({
               where: {
                 portal_type: input.portalType,
                 entity_id: input.entityId || null,
                 module_key: mod.moduleKey,
               },
+              take: 1,
             });
+            const existing = existingArray.length > 0 ? existingArray[0] : null;
 
             if (existing) {
               await prisma.portal_module_settings.update({

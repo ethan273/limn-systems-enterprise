@@ -70,27 +70,7 @@ export const documentsRouter = createTRPCRouter({
           { display_order: 'asc' },
           { created_at: 'desc' },
         ],
-        select: {
-          id: true,
-          name: true,
-          original_name: true,
-          type: true,
-          size: true,
-          url: true,
-          download_url: true,
-          google_drive_url: true,
-          google_drive_id: true,
-          storage_type: true,
-          media_type: true,
-          use_for_packaging: true,
-          use_for_labeling: true,
-          use_for_marketing: true,
-          is_primary_image: true,
-          display_order: true,
-          created_at: true,
-          updated_at: true,
-          uploaded_by_user: true,
-        },
+        // Note: select not supported by Supabase wrapper - returns all fields
       });
 
       return documents;
@@ -280,27 +260,7 @@ export const documentsRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const document = await ctx.db.documents.findUnique({
         where: { id: input.id },
-        select: {
-          id: true,
-          name: true,
-          original_name: true,
-          type: true,
-          size: true,
-          url: true,
-          download_url: true,
-          google_drive_url: true,
-          google_drive_id: true,
-          storage_type: true,
-          media_type: true,
-          use_for_packaging: true,
-          use_for_labeling: true,
-          use_for_marketing: true,
-          is_primary_image: true,
-          display_order: true,
-          created_at: true,
-          updated_at: true,
-          uploaded_by_user: true,
-        },
+        // Note: select not supported by Supabase wrapper - returns all fields
       });
 
       if (!document) {
@@ -354,10 +314,22 @@ export const documentsRouter = createTRPCRouter({
       }
 
       // Unset all primary images for this entity
-      await ctx.db.documents.updateMany({
-        where: whereClause,
-        data: { is_primary_image: false },
+      // Note: updateMany not supported by wrapper, using findMany + individual updates
+      const existingPrimaryImages = await ctx.db.documents.findMany({
+        where: {
+          ...whereClause,
+          is_primary_image: true,
+        },
       });
+
+      await Promise.all(
+        existingPrimaryImages.map((doc: any) =>
+          ctx.db.documents.update({
+            where: { id: doc.id },
+            data: { is_primary_image: false },
+          })
+        )
+      );
 
       // Set new primary image
       await ctx.db.documents.update({

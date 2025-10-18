@@ -222,13 +222,26 @@ export const boardsRouter = createTRPCRouter({
       }
 
       // Get vote counts per object
-      const votes = await ctx.db.board_votes.groupBy({
-        by: ['object_id', 'vote_type'],
+      const allVotes = await ctx.db.board_votes.findMany({
         where: { board_id: input.id },
-        _sum: {
-          vote_count: true,
-        },
       });
+
+      // Manual grouping (since groupBy not supported by wrapper)
+      const votes = allVotes.reduce((acc: any[], vote) => {
+        const existing = acc.find(v => v.object_id === vote.object_id && v.vote_type === vote.vote_type);
+
+        if (existing) {
+          existing._sum = { vote_count: (existing._sum?.vote_count || 0) + (vote.vote_count || 1) };
+        } else {
+          acc.push({
+            object_id: vote.object_id,
+            vote_type: vote.vote_type,
+            _sum: { vote_count: vote.vote_count || 1 },
+          });
+        }
+
+        return acc;
+      }, []);
 
       // Get activity log
       const activities = await ctx.db.board_activity_log.findMany({
@@ -572,7 +585,7 @@ export const boardVotesRouter = createTRPCRouter({
     }))
     .mutation(async ({ ctx, input }) => {
       // Check if vote exists
-      const existingVote = await ctx.db.board_votes.findFirst({
+      const existingVotes = await ctx.db.board_votes.findMany({
         where: {
           board_id: input.board_id,
           object_id: input.object_id,
@@ -580,6 +593,7 @@ export const boardVotesRouter = createTRPCRouter({
           vote_type: input.vote_type,
         },
       });
+      const existingVote = existingVotes.length > 0 ? existingVotes[0] : null;
 
       if (existingVote) {
         // Remove vote

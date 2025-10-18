@@ -38,7 +38,8 @@ export async function POST(request: NextRequest) {
     const realmId = body.realmId;
 
     // Get connection to refresh
-    const connection = await prisma.quickbooks_connections.findFirst({
+    // Note: findFirst not supported by wrapper, using findMany
+    const connectionArray = await prisma.quickbooks_connections.findMany({
       where: {
         user_id: user.id,
         is_active: true,
@@ -47,7 +48,9 @@ export async function POST(request: NextRequest) {
       orderBy: {
         updated_at: 'desc',
       },
+      take: 1,
     });
+    const connection = connectionArray.length > 0 ? connectionArray[0] : null;
 
     if (!connection) {
       return NextResponse.json(

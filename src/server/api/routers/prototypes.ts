@@ -216,41 +216,42 @@ export const prototypesRouter = createTRPCRouter({
    * Get prototype statistics
    */
   getStats: publicProcedure.query(async ({ ctx }) => {
+    // Note: groupBy not supported by wrapper, using findMany + manual grouping
     const [
+      total,
+      allPrototypes,
+    ] = await Promise.all([
+      ctx.db.prototypes.count(),
+      ctx.db.prototypes.findMany(),
+    ]);
+
+    // Manual grouping by status, priority, and type
+    const byStatus: Record<string, number> = {};
+    const byPriority: Record<string, number> = {};
+    const byType: Record<string, number> = {};
+
+    allPrototypes.forEach((proto: any) => {
+      // Count by status
+      if (proto.status) {
+        byStatus[proto.status] = (byStatus[proto.status] || 0) + 1;
+      }
+
+      // Count by priority
+      if (proto.priority) {
+        byPriority[proto.priority] = (byPriority[proto.priority] || 0) + 1;
+      }
+
+      // Count by prototype_type
+      if (proto.prototype_type) {
+        byType[proto.prototype_type] = (byType[proto.prototype_type] || 0) + 1;
+      }
+    });
+
+    return {
       total,
       byStatus,
       byPriority,
       byType,
-    ] = await Promise.all([
-      ctx.db.prototypes.count(),
-      ctx.db.prototypes.groupBy({
-        by: ['status'],
-        _count: true,
-      }),
-      ctx.db.prototypes.groupBy({
-        by: ['priority'],
-        _count: true,
-      }),
-      ctx.db.prototypes.groupBy({
-        by: ['prototype_type'],
-        _count: true,
-      }),
-    ]);
-
-    return {
-      total,
-      byStatus: byStatus.reduce((acc: Record<string, number>, curr: any) => {
-        acc[curr.status] = curr._count;
-        return acc;
-      }, {} as Record<string, number>),
-      byPriority: byPriority.reduce((acc: Record<string, number>, curr: any) => {
-        acc[curr.priority] = curr._count;
-        return acc;
-      }, {} as Record<string, number>),
-      byType: byType.reduce((acc: Record<string, number>, curr: any) => {
-        acc[curr.prototype_type] = curr._count;
-        return acc;
-      }, {} as Record<string, number>),
     };
   }),
 
@@ -288,7 +289,7 @@ export const prototypesRouter = createTRPCRouter({
 
       // Generate prototype number: PROTO-2025-0001
       const year = new Date().getFullYear();
-      const lastPrototype = await ctx.db.prototypes.findFirst({
+      const lastPrototypes = await ctx.db.prototypes.findMany({
         where: {
           prototype_number: {
             startsWith: `PROTO-${year}-`,
@@ -298,6 +299,7 @@ export const prototypesRouter = createTRPCRouter({
           prototype_number: 'desc',
         },
       });
+      const lastPrototype = lastPrototypes.length > 0 ? lastPrototypes[0] : null;
 
       let nextNumber = 1;
       if (lastPrototype) {
@@ -1378,15 +1380,27 @@ export const prototypesRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       // Remove featured flag from all photos of this prototype
-      await ctx.db.prototype_photos.updateMany({
+      // Note: updateMany not supported by wrapper, using findMany + Promise.all with individual updates
+      const featuredPhotos = await ctx.db.prototype_photos.findMany({
         where: {
           prototype_id: input.prototypeId,
           is_featured: true,
         },
-        data: {
-          is_featured: false,
+        select: {
+          id: true,
         },
       });
+
+      if (featuredPhotos.length > 0) {
+        await Promise.all(
+          featuredPhotos.map(photo =>
+            ctx.db.prototype_photos.update({
+              where: { id: photo.id },
+              data: { is_featured: false },
+            })
+          )
+        );
+      }
 
       // Set the specified photo as featured
       const photo = await ctx.db.prototype_photos.update({

@@ -96,9 +96,12 @@ export async function POST(request: NextRequest) {
     // If approved, create the user account
     if (action === 'approve') {
       // Check if user already exists by email
-      const existingUser = await prisma.users.findFirst({
+      // Note: findFirst not supported by wrapper, using findMany
+      const existingUserArray = await prisma.users.findMany({
         where: { email: updatedSignUp.email },
+        take: 1,
       });
+      const existingUser = existingUserArray.length > 0 ? existingUserArray[0] : null;
 
       if (!existingUser) {
         // Generate UUID for new user

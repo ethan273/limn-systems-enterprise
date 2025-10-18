@@ -180,7 +180,7 @@ export default function NewFactoryReviewSessionPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Select a prototype</SelectItem>
-                    {prototypeProductionData?.prototypes?.map((proto: { id: string; name: string; prototype_number?: string }) => (
+                    {prototypeProductionData?.prototypes?.map((proto: Record<string, any>) => (
                       <SelectItem key={proto.id} value={proto.id}>
                         {proto.name || 'Unnamed'} {proto.prototype_number ? `(${proto.prototype_number})` : ''}
                       </SelectItem>

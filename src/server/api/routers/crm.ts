@@ -524,23 +524,29 @@ export const leadsRouter = createTRPCRouter({
         const allLeads = await ctx.db.leads.findMany();
 
         // Group by status
-        const statusStats = await ctx.db.leads.groupBy({
-          by: ['status'],
-          _count: {
-            id: true,
-          },
-        });
+        // Note: groupBy not supported by wrapper, using manual grouping
+        const statusGroups = allLeads.reduce((acc: Record<string, number>, lead) => {
+          const status = lead.status || 'unknown';
+          acc[status] = (acc[status] || 0) + 1;
+          return acc;
+        }, {});
+        const statusStats = Object.entries(statusGroups).map(([status, count]) => ({
+          status,
+          _count: { id: count },
+        }));
 
         // Group by prospect_status (only leads with prospect_status set)
-        const prospectStats = await ctx.db.leads.groupBy({
-          by: ['prospect_status'],
-          where: {
-            prospect_status: { not: null },
-          },
-          _count: {
-            id: true,
-          },
-        });
+        // Note: groupBy not supported by wrapper, using manual grouping
+        const prospectLeads = allLeads.filter(lead => lead.prospect_status !== null);
+        const prospectGroups = prospectLeads.reduce((acc: Record<string, number>, lead) => {
+          const prospectStatus = lead.prospect_status!;
+          acc[prospectStatus] = (acc[prospectStatus] || 0) + 1;
+          return acc;
+        }, {});
+        const prospectStats = Object.entries(prospectGroups).map(([prospect_status, count]) => ({
+          prospect_status,
+          _count: { id: count },
+        }));
 
         // Calculate total value
         const totalValueSum = allLeads.reduce((sum, lead) => {
@@ -594,9 +600,12 @@ export const leadsRouter = createTRPCRouter({
         // Check if customer already exists with this email
         let client;
         if (input.clientData.email) {
-          const existingCustomer = await (tx.customers as any).findFirst({
+          // Note: findFirst not supported by wrapper, using findMany
+          const existingCustomers = await (tx.customers as any).findMany({
             where: { email: input.clientData.email },
+            take: 1,
           });
+          const existingCustomer = existingCustomers.length > 0 ? existingCustomers[0] : null;
 
           if (existingCustomer) {
             // Link to existing customer instead of creating new one

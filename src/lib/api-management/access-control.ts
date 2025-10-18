@@ -302,11 +302,6 @@ export async function checkAccess(params: {
     // Get credential with access control settings
     const credential = await db.api_credentials.findUnique({
       where: { id: credentialId },
-      select: {
-        allowed_ips: true,
-        allowed_domains: true,
-        is_active: true,
-      },
     });
 
     if (!credential) {

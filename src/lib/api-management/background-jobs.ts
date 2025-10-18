@@ -341,7 +341,8 @@ export async function runCredentialExpirationWarningJob(): Promise<JobResult> {
 
       for (const credential of expiringCredentials) {
         // Check if we've already warned for this threshold
-        const lastWarning = await prisma.api_credential_audit_logs.findFirst({
+        // Note: findFirst not supported by wrapper, using findMany
+        const lastWarningArray = await prisma.api_credential_audit_logs.findMany({
           where: {
             credential_id: credential.id,
             action: 'expiration_warning',
@@ -349,7 +350,9 @@ export async function runCredentialExpirationWarningJob(): Promise<JobResult> {
               gte: new Date(now.getTime() - 24 * 60 * 60 * 1000), // Last 24 hours
             },
           },
+          take: 1,
         });
+        const lastWarning = lastWarningArray.length > 0 ? lastWarningArray[0] : null;
 
         if (!lastWarning) {
           // Log warning

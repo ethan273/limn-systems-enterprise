@@ -58,7 +58,7 @@ export default function AnalyticsPage() {
 
     const serviceCount: Record<string, number> = {};
     credentials.forEach((cred) => {
-      const service = cred.service_template || 'Custom';
+      const service = cred.service_name || 'Custom';
       serviceCount[service] = (serviceCount[service] || 0) + 1;
     });
 

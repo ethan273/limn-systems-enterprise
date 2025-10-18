@@ -66,46 +66,45 @@ export const ordersRouter = createTRPCRouter({
   ...baseOrdersRouter._def.procedures,
 
   // Get orders by project
-  // TODO: Re-implement getByProject when project_id field is added to orders table
-  // getByProject: publicProcedure
-  //   .input(z.object({
-  //     projectId: z.string().uuid(),
-  //     includeItems: z.boolean().default(false),
-  //   }))
-  //   .query(async ({ ctx, input }) => {
-  //     const orders = await ctx.db.orders.findMany({
-  //       where: { project_id: input.projectId },
-  //       include: {
-  //         customers: {
-  //           select: {
-  //             id: true,
-  //             name: true,
-  //             email: true,
-  //           },
-  //         },
-  //         order_items: input.includeItems ? {
-  //           include: {
-  //             items: true,
-  //           },
-  //         } : false,
-  //       },
-  //       orderBy: { created_at: 'desc' },
-  //     });
-  //
-  //     // Calculate totals
-  //     const summary = {
-  //       totalOrders: orders.length,
-  //       totalAmount: orders.reduce((sum, order) =>
-  //         sum + (Number(order.total_amount) || 0), 0
-  //       ),
-  //       byStatus: orders.reduce((acc, order) => {
-  //         acc[order.status] = (acc[order.status] || 0) + 1;
-  //         return acc;
-  //       }, {} as Record<string, number>),
-  //     };
-  //
-  //     return { orders, summary };
-  //   }),
+  getByProject: publicProcedure
+    .input(z.object({
+      projectId: z.string().uuid(),
+      includeItems: z.boolean().default(false),
+    }))
+    .query(async ({ ctx, input }) => {
+      const orders = await ctx.db.orders.findMany({
+        where: { project_id: input.projectId },
+        include: {
+          customers: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          order_items: input.includeItems ? {
+            include: {
+              items: true,
+            },
+          } : false,
+        },
+        orderBy: { created_at: 'desc' },
+      });
+
+      // Calculate totals
+      const summary = {
+        totalOrders: orders.length,
+        totalAmount: orders.reduce((sum, order) =>
+          sum + (Number(order.total_amount) || 0), 0
+        ),
+        byStatus: orders.reduce((acc, order) => {
+          acc[order.status as string] = (acc[order.status as string] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>),
+      };
+
+      return { orders, summary };
+    }),
 
   // Create order with automatic project assignment
   createWithAutoProject: publicProcedure
@@ -119,13 +118,15 @@ export const ordersRouter = createTRPCRouter({
 
       // If no project specified, find or create default project
       if (!projectId) {
-        const existingProject = await ctx.db.projects.findFirst({
-          where: { 
+        // Note: findFirst not supported by wrapper, using findMany
+        const existingProject = (await ctx.db.projects.findMany({
+          where: {
             customer_id: input.customer_id,
             status: { in: ['planning', 'active'] },
           },
           orderBy: { created_at: 'desc' },
-        });
+          take: 1,
+        }))[0];
 
         if (existingProject) {
           projectId = existingProject.id;
@@ -160,11 +161,17 @@ export const ordersRouter = createTRPCRouter({
         data: {
           ...input.order_data,
           customer_id: input.customer_id,
-          // TODO: Add project_id when projects table relationship is restored
+          project_id: projectId,
         },
         include: {
           customers: true,
-          // TODO: Add projects include when projects table relationship is restored
+          projects: {
+            select: {
+              id: true,
+              name: true,
+              status: true,
+            },
+          },
         },
       });
 
@@ -181,12 +188,11 @@ export const ordersRouter = createTRPCRouter({
         where: { id: input.orderId },
         include: {
           customers: true,
-          // TODO: Add projects relationship when projects table is restored
-          // projects: {
-          //   include: {
-          //     customers: true,
-          //   },
-          // },
+          projects: {
+            include: {
+              customers: true,
+            },
+          },
           order_items: {
             include: {
               items: {
@@ -364,7 +370,13 @@ export const ordersRouter = createTRPCRouter({
         },
         include: {
           customers: true,
-          // TODO: Add projects include when projects table is restored
+          projects: {
+            select: {
+              id: true,
+              name: true,
+              status: true,
+            },
+          },
         },
       });
 

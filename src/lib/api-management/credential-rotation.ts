@@ -183,14 +183,17 @@ export async function initiateRotation(
     }
 
     // Check if rotation is already in progress
-    const existingSession = await prisma.api_credential_rotations.findFirst({
+    // Note: findFirst not supported by wrapper, using findMany
+    const existingSessionArray = await prisma.api_credential_rotations.findMany({
       where: {
         credential_id: credentialId,
         status: {
           in: ['in_progress', 'grace_period'],
         },
       },
+      take: 1,
     });
+    const existingSession = existingSessionArray.length > 0 ? existingSessionArray[0] : null;
 
     if (existingSession) {
       throw new Error('Rotation already in progress for this credential');
@@ -465,7 +468,8 @@ export async function getRotationStatus(
   canRotate: boolean;
 }> {
   // Get current session
-  const currentSession = await prisma.api_credential_rotations.findFirst({
+  // Note: findFirst not supported by wrapper, using findMany
+  const currentSessionArray = await prisma.api_credential_rotations.findMany({
     where: {
       credential_id: credentialId,
       status: {
@@ -473,10 +477,13 @@ export async function getRotationStatus(
       },
     },
     orderBy: { started_at: 'desc' },
+    take: 1,
   });
+  const currentSession = currentSessionArray.length > 0 ? currentSessionArray[0] : null;
 
   // Get last completed rotation
-  const lastRotation = await prisma.api_credential_rotations.findFirst({
+  // Note: findFirst not supported by wrapper, using findMany
+  const lastRotationArray = await prisma.api_credential_rotations.findMany({
     where: {
       credential_id: credentialId,
       status: {
@@ -484,7 +491,9 @@ export async function getRotationStatus(
       },
     },
     orderBy: { started_at: 'desc' },
+    take: 1,
   });
+  const lastRotation = lastRotationArray.length > 0 ? lastRotationArray[0] : null;
 
   // Get credential to check service type
   const credential = await prisma.api_credentials.findUnique({

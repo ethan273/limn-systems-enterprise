@@ -1,36 +1,44 @@
 import { z } from 'zod';
 import { createTRPCRouter, superAdminProcedure } from '../trpc/init';
 import { encryptCredentials, maskCredential } from '@/lib/encryption/credentials';
+import type { ApiCredentialWithRelations } from '@/types/api-credentials';
+import { PrismaClient } from '@prisma/client';
+
+// Direct Prisma client for accessing users table (not exposed by Supabase wrapper)
+const prisma = new PrismaClient();
 
 export const apiCredentialsRouter = createTRPCRouter({
   /**
    * Get all API credentials (with masked sensitive data)
    */
-  getAll: superAdminProcedure.query(async ({ ctx }) => {
+  getAll: superAdminProcedure.query(async ({ ctx }): Promise<ApiCredentialWithRelations[]> => {
     try {
+      // Note: include with select not supported by wrapper, fetching full records
       const credentials = await ctx.db.api_credentials.findMany({
         orderBy: { created_at: 'desc' },
-        include: {
-          users_api_credentials_created_byTousers: {
-            select: {
-              email: true,
-              id: true,
-            },
-          },
-          users_api_credentials_updated_byTousers: {
-            select: {
-              email: true,
-              id: true,
-            },
-          },
-        },
       });
 
-      // Mask sensitive credential data
+      // Get unique user IDs
+      const userIds = new Set<string>();
+      credentials.forEach(cred => {
+        if (cred.created_by) userIds.add(cred.created_by);
+        if (cred.updated_by) userIds.add(cred.updated_by);
+      });
+
+      // Fetch user data separately
+      const users = await prisma.users.findMany({
+        where: { id: { in: Array.from(userIds) } },
+      });
+
+      const userMap = new Map(users.map(u => [u.id, { email: u.email, id: u.id }]));
+
+      // Mask sensitive credential data and add user relations
       return credentials.map((cred) => ({
         ...cred,
         credentials: maskCredentials(cred.credentials as Record<string, unknown>),
-      }));
+        users_api_credentials_created_byTousers: cred.created_by ? userMap.get(cred.created_by) ?? null : null,
+        users_api_credentials_updated_byTousers: cred.updated_by ? userMap.get(cred.updated_by) ?? null : null,
+      })) as ApiCredentialWithRelations[];
     } catch (error) {
       console.error('Error fetching API credentials:', error);
       throw new Error('Failed to fetch API credentials');
@@ -42,36 +50,33 @@ export const apiCredentialsRouter = createTRPCRouter({
    */
   getById: superAdminProcedure
     .input(z.object({ id: z.string() }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ ctx, input }): Promise<ApiCredentialWithRelations> => {
       try {
+        // Note: include with select not supported by wrapper
         const credential = await ctx.db.api_credentials.findUnique({
           where: { id: input.id },
-          include: {
-            users_api_credentials_created_byTousers: {
-              select: {
-                email: true,
-                id: true,
-              },
-            },
-            users_api_credentials_updated_byTousers: {
-              select: {
-                email: true,
-                id: true,
-              },
-            },
-          },
         });
 
         if (!credential) {
           throw new Error('API credential not found');
         }
 
+        // Fetch related user data separately
+        const userIds = [credential.created_by, credential.updated_by].filter((id): id is string => !!id);
+        const users = userIds.length > 0
+          ? await prisma.users.findMany({ where: { id: { in: userIds } } })
+          : [];
+
+        const userMap = new Map(users.map(u => [u.id, { email: u.email, id: u.id }]));
+
         // Return with decrypted credentials for editing
         // In production, consider additional authorization checks
         return {
           ...credential,
-          credentials: credential.credentials as Record<string, unknown>,
-        };
+          credentials: credential.credentials as unknown as Record<string, string>,
+          users_api_credentials_created_byTousers: credential.created_by ? userMap.get(credential.created_by) ?? null : null,
+          users_api_credentials_updated_byTousers: credential.updated_by ? userMap.get(credential.updated_by) ?? null : null,
+        } as ApiCredentialWithRelations;
       } catch (error) {
         console.error('Error fetching API credential:', error);
         throw new Error('Failed to fetch API credential');
@@ -207,7 +212,7 @@ export const apiCredentialsRouter = createTRPCRouter({
   /**
    * Get expiring credentials (within next 30 days)
    */
-  getExpiring: superAdminProcedure.query(async ({ ctx }) => {
+  getExpiring: superAdminProcedure.query(async ({ ctx }): Promise<ApiCredentialWithRelations[]> => {
     try {
       const thirtyDaysFromNow = new Date();
       thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
@@ -223,10 +228,26 @@ export const apiCredentialsRouter = createTRPCRouter({
         orderBy: { expires_at: 'asc' },
       });
 
+      // Get unique user IDs
+      const userIds = new Set<string>();
+      expiringCredentials.forEach(cred => {
+        if (cred.created_by) userIds.add(cred.created_by);
+        if (cred.updated_by) userIds.add(cred.updated_by);
+      });
+
+      // Fetch user data separately if needed
+      const users = userIds.size > 0
+        ? await prisma.users.findMany({ where: { id: { in: Array.from(userIds) } } })
+        : [];
+
+      const userMap = new Map(users.map(u => [u.id, { email: u.email, id: u.id }]));
+
       return expiringCredentials.map((cred) => ({
         ...cred,
         credentials: maskCredentials(cred.credentials as Record<string, unknown>),
-      }));
+        users_api_credentials_created_byTousers: cred.created_by ? userMap.get(cred.created_by) ?? null : null,
+        users_api_credentials_updated_byTousers: cred.updated_by ? userMap.get(cred.updated_by) ?? null : null,
+      })) as ApiCredentialWithRelations[];
     } catch (error) {
       console.error('Error fetching expiring credentials:', error);
       throw new Error('Failed to fetch expiring credentials');

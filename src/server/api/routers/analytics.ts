@@ -53,33 +53,41 @@ export const analyticsRouter = createTRPCRouter({
       };
 
       // Total revenue from paid invoices
-      const revenueData = await (ctx.db as any).production_invoices.aggregate({
+      // Note: aggregate not supported by wrapper, using findMany + manual aggregation
+      // Note: select not supported by wrapper, fetching full records
+      const paidInvoices = await (ctx.db as any).production_invoices.findMany({
         where: {
           status: 'paid',
           ...(Object.keys(dateFilter).length > 0 && { payment_date: dateFilter }),
         },
+      });
+      const revenueData = {
         _sum: {
-          total_amount: true,
-          amount_paid: true,
+          total_amount: paidInvoices.reduce((sum: number, inv: any) => sum + (Number(inv.total_amount) || 0), 0),
+          amount_paid: paidInvoices.reduce((sum: number, inv: any) => sum + (Number(inv.amount_paid) || 0), 0),
         },
         _count: {
-          id: true,
+          id: paidInvoices.length,
         },
-      });
+      };
 
       // Outstanding invoices
-      const outstandingData = await (ctx.db as any).production_invoices.aggregate({
+      // Note: aggregate not supported by wrapper, using findMany + manual aggregation
+      // Note: select not supported by wrapper, fetching full records
+      const outstandingInvoices = await (ctx.db as any).production_invoices.findMany({
         where: {
           status: { in: ['sent', 'pending'] },
           ...(Object.keys(dateFilter).length > 0 && { invoice_date: dateFilter }),
         },
+      });
+      const outstandingData = {
         _sum: {
-          total_amount: true,
+          total_amount: outstandingInvoices.reduce((sum: number, inv: any) => sum + (Number(inv.total_amount) || 0), 0),
         },
         _count: {
-          id: true,
+          id: outstandingInvoices.length,
         },
-      });
+      };
 
       // Average invoice value
       const avgInvoiceValue = revenueData._count.id > 0
@@ -210,36 +218,43 @@ export const analyticsRouter = createTRPCRouter({
       };
 
       // Total orders
-      const ordersData = await (ctx.db as any).production_orders.aggregate({
+      // Note: aggregate not supported by wrapper, using count() for simple counts
+      const ordersCount = await (ctx.db as any).production_orders.count({
         where: {
           ...(Object.keys(dateFilter).length > 0 && { created_at: dateFilter }),
         },
-        _count: {
-          id: true,
-        },
       });
+      const ordersData = {
+        _count: {
+          id: ordersCount,
+        },
+      };
 
       // Orders by status
-      const statusCounts = await (ctx.db as any).production_orders.groupBy({
-        by: ['status'],
+      // Note: groupBy not supported by wrapper, using findMany + manual grouping
+      // Note: select not supported by wrapper, fetching full records
+      const allOrders = await (ctx.db as any).production_orders.findMany({
         where: {
           ...(Object.keys(dateFilter).length > 0 && { created_at: dateFilter }),
         },
-        _count: {
-          id: true,
-        },
       });
+      const statusGroups = allOrders.reduce((acc: Record<string, number>, order: any) => {
+        const status = order.status;
+        acc[status] = (acc[status] || 0) + 1;
+        return acc;
+      }, {});
+      const statusCounts = Object.entries(statusGroups).map(([status, count]) => ({
+        status,
+        _count: { id: count },
+      }));
 
       // Average production time (completed orders only)
+      // Note: select not supported by wrapper, fetching full records
       const completedOrders = await ctx.db.production_orders.findMany({
         where: {
           status: 'completed',
           completed_at: { not: null },
           ...(Object.keys(dateFilter).length > 0 && { created_at: dateFilter }),
-        },
-        select: {
-          created_at: true,
-          completed_at: true,
         },
       });
 
@@ -258,7 +273,7 @@ export const analyticsRouter = createTRPCRouter({
         totalOrders: ordersData._count.id,
         statusBreakdown: statusCounts.map(s => ({
           status: s.status,
-          count: s._count.id,
+          count: Number(s._count.id),
         })),
         averageProductionDays: Math.round(avgProductionDays * 10) / 10,
         completedCount: completedOrders.length,
@@ -394,40 +409,53 @@ export const analyticsRouter = createTRPCRouter({
       };
 
       // Total inspections
-      const inspectionsData = await (ctx.db as any).qc_inspections.aggregate({
+      // Note: aggregate not supported by wrapper, using count() for simple counts
+      const inspectionsCount = await (ctx.db as any).qc_inspections.count({
         where: {
           ...(Object.keys(dateFilter).length > 0 && { inspection_date: dateFilter }),
         },
-        _count: {
-          id: true,
-        },
       });
+      const inspectionsData = {
+        _count: {
+          id: inspectionsCount,
+        },
+      };
 
       // Inspections by result
-      const resultCounts = await (ctx.db as any).qc_inspections.groupBy({
-        by: ['result'],
+      // Note: groupBy not supported by wrapper, using findMany + manual grouping
+      // Note: select not supported by wrapper, fetching full records
+      const allInspections = await (ctx.db as any).qc_inspections.findMany({
         where: {
           ...(Object.keys(dateFilter).length > 0 && { inspection_date: dateFilter }),
         },
-        _count: {
-          id: true,
-        },
       });
+      const resultGroups = allInspections.reduce((acc: Record<string, number>, inspection: any) => {
+        const result = inspection.result;
+        acc[result] = (acc[result] || 0) + 1;
+        return acc;
+      }, {});
+      const resultCounts = Object.entries(resultGroups).map(([result, count]) => ({
+        result,
+        _count: { id: count },
+      }));
 
       // Defect analysis
-      const defectData = await (ctx.db as any).qc_defects.aggregate({
+      // Note: aggregate not supported by wrapper, using count() for simple counts
+      const defectCount = await (ctx.db as any).qc_defects.count({
         where: {
           qc_inspections: {
             ...(Object.keys(dateFilter).length > 0 && { inspection_date: dateFilter }),
           },
         },
-        _count: {
-          id: true,
-        },
       });
+      const defectData = {
+        _count: {
+          id: defectCount,
+        },
+      };
 
       const totalInspections = inspectionsData._count.id;
-      const passedCount = resultCounts.find(r => r.result === 'passed')?._count.id || 0;
+      const passedCount = Number(resultCounts.find(r => r.result === 'passed')?._count.id || 0);
       const passRate = totalInspections > 0 ? (passedCount / totalInspections) * 100 : 0;
 
       return {

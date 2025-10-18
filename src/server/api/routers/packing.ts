@@ -412,7 +412,7 @@ export const packingRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const box = await ctx.db.packing_boxes.findUnique({
         where: { id: input.id },
-        select: { packing_job_id: true },
+        // Note: select not supported by wrapper - returns all fields
       });
 
       if (!box) {
@@ -462,32 +462,24 @@ export const packingRouter = createTRPCRouter({
         where.order_id = input.orderId;
       }
 
+      // Note: aggregate not supported by wrapper, using findMany + manual sum
+      const allJobs = await ctx.db.packing_jobs.findMany({ where });
+
+      const totalBoxCount = allJobs.reduce((sum: number, job: any) => sum + (job.box_count || 0), 0);
+      const totalWeightSum = allJobs.reduce((sum: number, job: any) => sum + (job.total_weight || 0), 0);
+
       const [
         totalJobs,
         pendingJobs,
         inProgressJobs,
         packedJobs,
         shippedJobs,
-        totalBoxes,
-        totalWeight,
       ] = await Promise.all([
         ctx.db.packing_jobs.count({ where }),
         ctx.db.packing_jobs.count({ where: { ...where, packing_status: 'pending' } }),
         ctx.db.packing_jobs.count({ where: { ...where, packing_status: 'in_progress' } }),
         ctx.db.packing_jobs.count({ where: { ...where, packing_status: 'packed' } }),
         ctx.db.packing_jobs.count({ where: { ...where, packing_status: 'shipped' } }),
-        ctx.db.packing_jobs.aggregate({
-          where,
-          _sum: {
-            box_count: true,
-          },
-        }),
-        ctx.db.packing_jobs.aggregate({
-          where,
-          _sum: {
-            total_weight: true,
-          },
-        }),
       ]);
 
       return {
@@ -499,10 +491,10 @@ export const packingRouter = createTRPCRouter({
           shipped: shippedJobs,
         },
         boxes: {
-          total: totalBoxes._sum.box_count || 0,
+          total: totalBoxCount,
         },
         weight: {
-          total: Number(totalWeight._sum.total_weight || 0),
+          total: Number(totalWeightSum),
         },
       };
     }),

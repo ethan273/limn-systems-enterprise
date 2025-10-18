@@ -97,7 +97,8 @@ export const moodBoardsRouter = createTRPCRouter({
   getByShareToken: publicProcedure
     .input(z.object({ token: z.string() }))
     .query(async ({ ctx, input }) => {
-      const board = await ctx.db.mood_boards.findFirst({
+      // Note: findFirst not supported by wrapper, using findMany
+      const board = (await ctx.db.mood_boards.findMany({
         where: {
           share_token: input.token,
           is_shared: true,
@@ -121,7 +122,8 @@ export const moodBoardsRouter = createTRPCRouter({
             },
           },
         },
-      });
+        take: 1,
+      }))[0];
 
       if (!board) {
         throw new Error('Board not found or share link expired');
@@ -148,10 +150,12 @@ export const moodBoardsRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       // Generate unique board number
-      const latestBoard = await ctx.db.mood_boards.findFirst({
+      // Note: findFirst not supported by wrapper, using findMany
+      const latestBoard = (await ctx.db.mood_boards.findMany({
         orderBy: { created_at: 'desc' },
         select: { board_number: true },
-      });
+        take: 1,
+      }))[0];
 
       const year = new Date().getFullYear();
       const nextNumber = latestBoard

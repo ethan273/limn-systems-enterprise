@@ -180,10 +180,6 @@ export const securityRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const credential = await ctx.db.api_credentials.findUnique({
         where: { id: input.credentialId },
-        select: {
-          rate_limit: true,
-          concurrent_limit: true,
-        },
       });
 
       if (!credential) {

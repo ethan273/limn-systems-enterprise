@@ -344,6 +344,23 @@ model sso_providers {
   @@schema("auth")
 }
 
+/// Pending sign-up table for email verification workflow
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// NOTE: In public schema due to Supabase auth schema write restrictions
+model pending_sign_up {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email             String   @unique
+  verification_token String   @unique
+  expires_at        DateTime @db.Timestamptz(6)
+  user_type         String   @db.VarChar(50)
+  metadata          Json?
+  created_at        DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([email], map: "idx_pending_sign_up_email")
+  @@index([verification_token], map: "idx_pending_sign_up_token")
+  @@index([expires_at], map: "idx_pending_sign_up_expires_at")
+}
+
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -3878,6 +3895,7 @@ model orders {
   updated_at                        DateTime?                           @default(now()) @db.Timestamptz(6)
   customer_id                       String?                             @db.Uuid
   collection_id                     String?                             @db.Uuid
+  project_id                        String?                             @db.Uuid
   priority                          String?
   due_date                          DateTime?                           @db.Timestamptz(6)
   estimated_completion              DateTime?                           @db.Timestamptz(6)
@@ -3900,6 +3918,7 @@ model orders {
   order_items                       order_items[]
   collections                       collections?                        @relation(fields: [collection_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   customers                         customers?                          @relation(fields: [customer_id], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "orders_customer_id_fkey1")
+  projects                          projects?                           @relation(fields: [project_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
   pandadoc_documents                pandadoc_documents[]
   production_invoices               production_invoices[]
   production_items                  production_items[]
@@ -3908,6 +3927,7 @@ model orders {
 
   @@index([collection_id], map: "idx_orders_collection_id")
   @@index([created_at], map: "idx_orders_created_at")
+  @@index([project_id], map: "idx_orders_project_id")
   @@schema("public")
 }
 
@@ -4933,6 +4953,7 @@ model projects {
   project_manager           String?
   shipping_address_id       String?               @db.Uuid
   invoices                  invoices[]
+  orders                    orders[]
   orders_old                orders_old[]
   production_invoices       production_invoices[]
   production_orders         production_orders[]

@@ -369,11 +369,13 @@ export const invoicesRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       // Get current max sort_order
-      const maxSortOrder = await ctx.db.invoice_items.findFirst({
+      // Note: findFirst not supported by wrapper, using findMany
+      const maxSortOrder = (await ctx.db.invoice_items.findMany({
         where: { invoice_id: input.invoiceId },
         orderBy: { sort_order: 'desc' },
         select: { sort_order: true },
-      });
+        take: 1,
+      }))[0];
 
       const lineItem = await ctx.db.invoice_items.create({
         data: {

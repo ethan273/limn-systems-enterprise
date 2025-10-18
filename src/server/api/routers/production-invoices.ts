@@ -80,10 +80,12 @@ async function attemptQuickBooksSync(
 ) {
   try {
     // Check if QuickBooks is connected
-    const auth = await db.quickbooks_auth.findFirst({
+    // Note: findFirst not supported by wrapper, using findMany
+    const auth = (await db.quickbooks_auth.findMany({
       where: { is_active: true },
       orderBy: { created_at: 'desc' },
-    });
+      take: 1,
+    }))[0];
 
     if (!auth) {
       console.log('QuickBooks not connected - skipping sync');
@@ -100,12 +102,14 @@ async function attemptQuickBooksSync(
     });
 
     // Sync invoice first (if not already synced)
-    const invoiceMapping = await db.quickbooks_entity_mapping.findFirst({
+    // Note: findFirst not supported by wrapper, using findMany
+    const invoiceMapping = (await db.quickbooks_entity_mapping.findMany({
       where: {
         entity_type: 'invoice',
         limn_id: invoiceId,
       },
-    });
+      take: 1,
+    }))[0];
 
     if (!invoiceMapping) {
       console.log(`Attempting to sync invoice ${invoiceId} to QuickBooks...`);
@@ -116,12 +120,14 @@ async function attemptQuickBooksSync(
 
     // Sync payment (if provided and not already synced)
     if (paymentId) {
-      const paymentMapping = await db.quickbooks_entity_mapping.findFirst({
+      // Note: findFirst not supported by wrapper, using findMany
+      const paymentMapping = (await db.quickbooks_entity_mapping.findMany({
         where: {
           entity_type: 'payment',
           limn_id: paymentId,
         },
-      });
+        take: 1,
+      }))[0];
 
       if (!paymentMapping) {
         console.log(`Attempting to sync payment ${paymentId} to QuickBooks...`);

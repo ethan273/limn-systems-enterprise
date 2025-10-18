@@ -352,14 +352,16 @@ export const paymentsRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       // Generate payment number
-      const lastPayment = await ctx.db.payments.findFirst({
+      // Note: findFirst not supported by wrapper, using findMany
+      const lastPayment = (await ctx.db.payments.findMany({
         orderBy: {
           created_at: 'desc',
         },
         select: {
           payment_number: true,
         },
-      });
+        take: 1,
+      }))[0];
 
       let paymentNumber = 'PAY-00001';
       if (lastPayment?.payment_number) {
@@ -431,14 +433,16 @@ export const paymentsRouter = createTRPCRouter({
       }
 
       // Generate payment number
-      const lastPayment = await ctx.db.payments.findFirst({
+      // Note: findFirst not supported by wrapper, using findMany
+      const lastPayment = (await ctx.db.payments.findMany({
         orderBy: {
           created_at: 'desc',
         },
         select: {
           payment_number: true,
         },
-      });
+        take: 1,
+      }))[0];
 
       let paymentNumber = 'PAY-00001';
       if (lastPayment?.payment_number) {

@@ -28,7 +28,8 @@ const enforcePortalAccess = async (ctx: Context) => {
   }
 
   // Check if user has active portal access
-  const portalAccess = await prisma.customer_portal_access.findFirst({
+  // Note: findFirst not supported by wrapper, using findMany
+  const portalAccess = (await prisma.customer_portal_access.findMany({
     where: {
       user_id: ctx.session.user.id,
       is_active: true,
@@ -36,7 +37,8 @@ const enforcePortalAccess = async (ctx: Context) => {
     include: {
       customers: true,
     },
-  });
+    take: 1,
+  }))[0];
 
   if (!portalAccess) {
     throw new TRPCError({
@@ -67,7 +69,8 @@ const enforcePortalAccessByType = async (ctx: Context, requiredType?: string) =>
   }
 
   // Check if user has active portal access
-  const portalAccess = await prisma.customer_portal_access.findFirst({
+  // Note: findFirst not supported by wrapper, using findMany
+  const portalAccess = (await prisma.customer_portal_access.findMany({
     where: {
       user_id: ctx.session.user.id,
       is_active: true,
@@ -76,7 +79,8 @@ const enforcePortalAccessByType = async (ctx: Context, requiredType?: string) =>
     include: {
       customers: true,
     },
-  });
+    take: 1,
+  }))[0];
 
   if (!portalAccess) {
     throw new TRPCError({
@@ -227,7 +231,8 @@ export const portalRouter = createTRPCRouter({
    */
   getPortalAccess: universalPortalProcedure
     .query(async ({ ctx }) => {
-      const access = await prisma.customer_portal_access.findFirst({
+      // Note: findFirst not supported by wrapper, using findMany
+      const access = (await prisma.customer_portal_access.findMany({
         where: {
           user_id: ctx.session.user.id,
           is_active: true,
@@ -235,7 +240,8 @@ export const portalRouter = createTRPCRouter({
         include: {
           customers: true,
         },
-      });
+        take: 1,
+      }))[0];
 
       return access;
     }),
@@ -247,12 +253,14 @@ export const portalRouter = createTRPCRouter({
   getPortalSettings: protectedProcedure
     .query(async ({ ctx }) => {
       // Determine portal type from portal access (default to 'customer' for backward compatibility)
-      const portalAccess = await prisma.customer_portal_access.findFirst({
+      // Note: findFirst not supported by wrapper, using findMany
+      const portalAccess = (await prisma.customer_portal_access.findMany({
         where: {
           user_id: ctx.session.user.id,
           is_active: true,
         },
-      });
+        take: 1,
+      }))[0];
 
       const portalType = portalAccess?.portal_type || 'customer';
       const entityId = portalAccess?.entity_id || portalAccess?.customer_id;
@@ -484,12 +492,14 @@ export const portalRouter = createTRPCRouter({
     }))
     .mutation(async ({ ctx, input }) => {
       // Verify notification belongs to customer
-      const notification = await prisma.customer_notifications.findFirst({
+      // Note: findFirst not supported by wrapper, using findMany
+      const notification = (await prisma.customer_notifications.findMany({
         where: {
           id: input.notificationId,
           customer_id: ctx.customerId,
         },
-      });
+        take: 1,
+      }))[0];
 
       if (!notification) {
         throw new TRPCError({
@@ -512,18 +522,27 @@ export const portalRouter = createTRPCRouter({
    */
   markAllNotificationsAsRead: portalProcedure
     .mutation(async ({ ctx }) => {
-      const result = await prisma.customer_notifications.updateMany({
+      // Note: updateMany not supported by wrapper, using findMany + Promise.all
+      const unreadNotifications = await prisma.customer_notifications.findMany({
         where: {
           customer_id: ctx.customerId,
           read: false,
         },
-        data: {
-          read: true,
-          read_at: new Date(),
-        },
       });
 
-      return { count: result.count };
+      await Promise.all(
+        unreadNotifications.map(notif =>
+          prisma.customer_notifications.update({
+            where: { id: notif.id },
+            data: {
+              read: true,
+              read_at: new Date(),
+            },
+          })
+        )
+      );
+
+      return { count: unreadNotifications.length };
     }),
 
   /**
@@ -593,15 +612,21 @@ export const portalRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       // If setting as default, unset all other defaults
       if (input.is_default) {
-        await prisma.customer_shipping_addresses.updateMany({
+        // Note: updateMany not supported by wrapper, using findMany + Promise.all
+        const existingDefaults = await prisma.customer_shipping_addresses.findMany({
           where: {
             customer_id: ctx.customerId,
             is_default: true,
           },
-          data: {
-            is_default: false,
-          },
         });
+        await Promise.all(
+          existingDefaults.map(addr =>
+            prisma.customer_shipping_addresses.update({
+              where: { id: addr.id },
+              data: { is_default: false },
+            })
+          )
+        );
       }
 
       return prisma.customer_shipping_addresses.create({
@@ -633,12 +658,14 @@ export const portalRouter = createTRPCRouter({
       const { addressId, ...updateData } = input;
 
       // Verify address belongs to customer
-      const address = await prisma.customer_shipping_addresses.findFirst({
+      // Note: findFirst not supported by wrapper, using findMany
+      const address = (await prisma.customer_shipping_addresses.findMany({
         where: {
           id: addressId,
           customer_id: ctx.customerId,
         },
-      });
+        take: 1,
+      }))[0];
 
       if (!address) {
         throw new TRPCError({
@@ -649,15 +676,21 @@ export const portalRouter = createTRPCRouter({
 
       // If setting as default, unset all other defaults
       if (input.is_default) {
-        await prisma.customer_shipping_addresses.updateMany({
+        // Note: updateMany not supported by wrapper, using findMany + Promise.all
+        const existingDefaults = await prisma.customer_shipping_addresses.findMany({
           where: {
             customer_id: ctx.customerId,
             is_default: true,
           },
-          data: {
-            is_default: false,
-          },
         });
+        await Promise.all(
+          existingDefaults.map(addr =>
+            prisma.customer_shipping_addresses.update({
+              where: { id: addr.id },
+              data: { is_default: false },
+            })
+          )
+        );
       }
 
       return prisma.customer_shipping_addresses.update({
@@ -675,12 +708,14 @@ export const portalRouter = createTRPCRouter({
     }))
     .mutation(async ({ ctx, input }) => {
       // Verify address belongs to customer
-      const address = await prisma.customer_shipping_addresses.findFirst({
+      // Note: findFirst not supported by wrapper, using findMany
+      const address = (await prisma.customer_shipping_addresses.findMany({
         where: {
           id: input.addressId,
           customer_id: ctx.customerId,
         },
-      });
+        take: 1,
+      }))[0];
 
       if (!address) {
         throw new TRPCError({
@@ -767,7 +802,8 @@ export const portalRouter = createTRPCRouter({
       orderId: z.string().uuid(),
     }))
     .query(async ({ ctx, input }) => {
-      const order = await prisma.production_orders.findFirst({
+      // Note: findFirst not supported by wrapper, using findMany
+      const order = (await prisma.production_orders.findMany({
         where: {
           id: input.orderId,
           projects: {
@@ -789,7 +825,8 @@ export const portalRouter = createTRPCRouter({
             },
           },
         },
-      });
+        take: 1,
+      }))[0];
 
       if (!order) {
         throw new TRPCError({
@@ -811,7 +848,8 @@ export const portalRouter = createTRPCRouter({
     }))
     .query(async ({ ctx, input }) => {
       // Verify order belongs to customer
-      const order = await prisma.production_orders.findFirst({
+      // Note: findFirst not supported by wrapper, using findMany
+      const order = (await prisma.production_orders.findMany({
         where: {
           id: input.orderId,
           projects: {
@@ -825,7 +863,8 @@ export const portalRouter = createTRPCRouter({
             },
           },
         },
-      });
+        take: 1,
+      }))[0];
 
       if (!order) {
         throw new TRPCError({
@@ -939,7 +978,8 @@ export const portalRouter = createTRPCRouter({
     }))
     .query(async ({ ctx, input }) => {
       // Verify order belongs to customer
-      const order = await prisma.production_orders.findFirst({
+      // Note: findFirst not supported by wrapper, using findMany
+      const order = (await prisma.production_orders.findMany({
         where: {
           id: input.orderId,
           projects: {
@@ -952,7 +992,8 @@ export const portalRouter = createTRPCRouter({
           quantity: true,
           total_cost: true,
         },
-      });
+        take: 1,
+      }))[0];
 
       if (!order) {
         throw new TRPCError({
@@ -981,14 +1022,16 @@ export const portalRouter = createTRPCRouter({
     }))
     .query(async ({ ctx, input }) => {
       // Verify order belongs to customer
-      const order = await prisma.production_orders.findFirst({
+      // Note: findFirst not supported by wrapper, using findMany
+      const order = (await prisma.production_orders.findMany({
         where: {
           id: input.orderId,
           projects: {
             customer_id: ctx.customerId,
           },
         },
-      });
+        take: 1,
+      }))[0];
 
       if (!order) {
         throw new TRPCError({
@@ -1032,7 +1075,8 @@ export const portalRouter = createTRPCRouter({
     }))
     .query(async ({ ctx, input }) => {
       // Verify order belongs to customer and get project_id
-      const order = await prisma.production_orders.findFirst({
+      // Note: findFirst not supported by wrapper, using findMany
+      const order = (await prisma.production_orders.findMany({
         where: {
           id: input.orderId,
           projects: {
@@ -1043,7 +1087,8 @@ export const portalRouter = createTRPCRouter({
           id: true,
           project_id: true,
         },
-      });
+        take: 1,
+      }))[0];
 
       if (!order) {
         throw new TRPCError({
@@ -1075,7 +1120,8 @@ export const portalRouter = createTRPCRouter({
       shipmentId: z.string().uuid(),
     }))
     .query(async ({ ctx, input }) => {
-      const shipment = await prisma.shipments.findFirst({
+      // Note: findFirst not supported by wrapper, using findMany
+      const shipment = (await prisma.shipments.findMany({
         where: {
           id: input.shipmentId,
           projects: {
@@ -1089,7 +1135,8 @@ export const portalRouter = createTRPCRouter({
             },
           },
         },
-      });
+        take: 1,
+      }))[0];
 
       if (!shipment) {
         throw new TRPCError({
@@ -1195,12 +1242,14 @@ export const portalRouter = createTRPCRouter({
       documentId: z.string().uuid(),
     }))
     .query(async ({ ctx, input }) => {
-      const document = await prisma.documents.findFirst({
+      // Note: findFirst not supported by wrapper, using findMany
+      const document = (await prisma.documents.findMany({
         where: {
           id: input.documentId,
           customer_id: ctx.customerId,
         },
-      });
+        take: 1,
+      }))[0];
 
       if (!document) {
         throw new TRPCError({
@@ -1230,13 +1279,15 @@ export const portalRouter = createTRPCRouter({
 
       if (input.orderId) {
         // Find production order's project
-        const order = await prisma.production_orders.findFirst({
+        // Note: findFirst not supported by wrapper, using findMany
+        const order = (await prisma.production_orders.findMany({
           where: {
             id: input.orderId,
             projects: { customer_id: ctx.customerId },
           },
           select: { project_id: true },
-        });
+          take: 1,
+        }))[0];
 
         if (order?.project_id) {
           where.project_id = order.project_id;
@@ -1339,7 +1390,8 @@ export const portalRouter = createTRPCRouter({
       invoiceId: z.string().uuid(),
     }))
     .query(async ({ ctx, input }) => {
-      const invoice = await prisma.production_invoices.findFirst({
+      // Note: findFirst not supported by wrapper, using findMany
+      const invoice = (await prisma.production_invoices.findMany({
         where: {
           id: input.invoiceId,
           customer_id: ctx.customerId,
@@ -1352,7 +1404,8 @@ export const portalRouter = createTRPCRouter({
             },
           },
         },
-      });
+        take: 1,
+      }))[0];
 
       if (!invoice) {
         throw new TRPCError({
@@ -1584,7 +1637,8 @@ export const portalRouter = createTRPCRouter({
     }))
     .mutation(async ({ ctx, input }) => {
       // Verify invoice belongs to customer
-      const invoice = await prisma.production_invoices.findFirst({
+      // Note: findFirst not supported by wrapper, using findMany
+      const invoice = (await prisma.production_invoices.findMany({
         where: {
           id: input.invoiceId,
           customer_id: ctx.customerId,
@@ -1596,7 +1650,8 @@ export const portalRouter = createTRPCRouter({
             },
           },
         },
-      });
+        take: 1,
+      }))[0];
 
       if (!invoice) {
         throw new TRPCError({
@@ -1614,14 +1669,16 @@ export const portalRouter = createTRPCRouter({
       }
 
       // Get QuickBooks connection (admin-configured)
-      const qbConnection = await prisma.quickbooks_auth.findFirst({
+      // Note: findFirst not supported by wrapper, using findMany
+      const qbConnection = (await prisma.quickbooks_auth.findMany({
         where: {
           is_active: true,
         },
         orderBy: {
           created_at: 'desc',
         },
-      });
+        take: 1,
+      }))[0];
 
       if (!qbConnection) {
         throw new TRPCError({
@@ -1664,12 +1721,14 @@ export const portalRouter = createTRPCRouter({
       queueId: z.string().uuid(),
     }))
     .query(async ({ ctx, input }) => {
-      const queueEntry = await prisma.quickbooks_payment_queue.findFirst({
+      // Note: findFirst not supported by wrapper, using findMany
+      const queueEntry = (await prisma.quickbooks_payment_queue.findMany({
         where: {
           id: input.queueId,
           customer_id: ctx.customerId,
         },
-      });
+        take: 1,
+      }))[0];
 
       if (!queueEntry) {
         throw new TRPCError({
@@ -1685,7 +1744,8 @@ export const portalRouter = createTRPCRouter({
       // Fetch invoice details if available
       let invoiceInfo: any = null;
       if (productionInvoiceId) {
-        const invoice = await prisma.production_invoices.findFirst({
+        // Note: findFirst not supported by wrapper, using findMany
+        const invoice = (await prisma.production_invoices.findMany({
           where: {
             id: productionInvoiceId,
             customer_id: ctx.customerId,
@@ -1696,7 +1756,8 @@ export const portalRouter = createTRPCRouter({
             amount_paid: true,
             amount_due: true,
           },
-        });
+          take: 1,
+        }))[0];
         invoiceInfo = invoice;
       }
 
@@ -1753,7 +1814,8 @@ export const portalRouter = createTRPCRouter({
 
           let invoiceNumber: string | null | undefined = null;
           if (productionInvoiceId) {
-            const invoice = await prisma.production_invoices.findFirst({
+            // Note: findFirst not supported by wrapper, using findMany
+            const invoice = (await prisma.production_invoices.findMany({
               where: {
                 id: productionInvoiceId,
                 customer_id: ctx.customerId,
@@ -1761,7 +1823,8 @@ export const portalRouter = createTRPCRouter({
               select: {
                 invoice_number: true,
               },
-            });
+              take: 1,
+            }))[0];
             invoiceNumber = invoice?.invoice_number;
           }
 
@@ -1994,23 +2057,24 @@ export const portalRouter = createTRPCRouter({
         }),
 
         // Defects found (last 30 days)
-        prisma.quality_inspections.aggregate({
+        // Note: aggregate not supported by wrapper, using findMany + manual summation
+        prisma.quality_inspections.findMany({
           where: {
             inspector_name: ctx.entity?.company_name,
             inspection_date: {
               gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
             },
           },
-          _sum: {
-            defects_found: true,
-          },
         }),
       ]);
+
+      // Manual summation for defects_found
+      const totalDefects = defectsFound.reduce((sum, inspection) => sum + (inspection.defects_found || 0), 0);
 
       return {
         pendingInspections,
         completedToday,
-        defectsFound: defectsFound._sum.defects_found || 0,
+        defectsFound: totalDefects,
       };
     }),
 
@@ -2052,7 +2116,8 @@ export const portalRouter = createTRPCRouter({
       inspectionId: z.string().uuid(),
     }))
     .query(async ({ ctx, input }) => {
-      const inspection = await prisma.quality_inspections.findFirst({
+      // Note: findFirst not supported by wrapper, using findMany
+      const inspection = (await prisma.quality_inspections.findMany({
         where: {
           id: input.inspectionId,
           inspector_name: ctx.entity?.company_name,
@@ -2060,7 +2125,8 @@ export const portalRouter = createTRPCRouter({
         include: {
           manufacturer_projects: true,
         },
-      });
+        take: 1,
+      }))[0];
 
       if (!inspection) {
         throw new TRPCError({

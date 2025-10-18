@@ -18,6 +18,13 @@ import { format } from 'date-fns';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
+// Extend jsPDF type to include autoTable plugin properties
+interface jsPDFWithAutoTable extends jsPDF {
+  lastAutoTable: {
+    finalY: number;
+  };
+}
+
 export default function CompliancePage() {
   const [reportType, setReportType] = useState<'soc2' | 'pci_dss' | 'all'>('all');
   const [dateRange, setDateRange] = useState({
@@ -74,7 +81,7 @@ export default function CompliancePage() {
     });
 
     // Compliance Sections
-    let currentY = (doc as any).lastAutoTable.finalY + 10;
+    let currentY = (doc as jsPDFWithAutoTable).lastAutoTable.finalY + 10;
 
     report.sections.forEach((section) => {
       if (currentY > 250) {
@@ -110,7 +117,7 @@ export default function CompliancePage() {
           margin: { left: 14, right: 14 },
         });
 
-        currentY = (doc as any).lastAutoTable.finalY + 10;
+        currentY = (doc as jsPDFWithAutoTable).lastAutoTable.finalY + 10;
       } else {
         currentY += 25;
       }

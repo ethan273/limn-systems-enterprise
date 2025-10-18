@@ -662,16 +662,19 @@ export default function ApiKeysPage() {
       <div className="card">
         <DataTable
           data={(filteredCredentials || []) as unknown as Record<string, unknown>[]}
-          columns={columns}
+          columns={columns as unknown as DataTableColumn<Record<string, unknown>>[]}
           isLoading={isLoading}
           rowActions={[
             {
               label: 'Edit',
-              onClick: handleEdit,
+              onClick: (row) => handleEdit(row as unknown as ApiCredential),
             },
             {
               label: 'Delete',
-              onClick: (row) => handleDelete(row.id, row.display_name),
+              onClick: (row) => {
+                const cred = row as unknown as ApiCredential;
+                handleDelete(cred.id, cred.display_name);
+              },
               variant: 'destructive',
             },
           ]}

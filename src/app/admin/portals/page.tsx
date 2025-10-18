@@ -85,7 +85,7 @@ export default function PortalManagementPage() {
       sortable: true,
       render: (value) => (
         <span className="font-medium">
-          {(value as any)?.email || 'N/A'}
+          {(value as { email?: string | null } | null)?.email || 'N/A'}
         </span>
       ),
     },

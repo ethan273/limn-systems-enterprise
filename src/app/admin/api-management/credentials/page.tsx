@@ -643,17 +643,17 @@ export default function ApiCredentialsPage() {
       {/* Credentials Table */}
       <div className="card">
         <DataTable
-          data={filteredCredentials || []}
-          columns={columns}
+          data={(filteredCredentials || []) as unknown as Record<string, unknown>[]}
+          columns={columns as unknown as DataTableColumn<Record<string, unknown>>[]}
           isLoading={isLoading}
           rowActions={[
             {
               label: 'Edit',
-              onClick: handleEdit,
+              onClick: (row) => handleEdit(row as unknown as ApiCredential),
             },
             {
               label: 'Delete',
-              onClick: (row) => handleDelete(row.id, row.display_name),
+              onClick: (row) => handleDelete((row as unknown as ApiCredential).id, (row as unknown as ApiCredential).display_name),
               variant: 'destructive',
             },
           ]}

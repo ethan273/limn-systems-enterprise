@@ -193,7 +193,7 @@ export default function NewQCInspectionPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">Select an item</SelectItem>
-                      {productionItemsData?.items?.map((item: { id: string; name: string; sku?: string }) => (
+                      {productionItemsData?.items?.map((item: Record<string, any>) => (
                         <SelectItem key={item.id} value={item.id}>
                           {item.name} {item.sku ? `(${item.sku})` : ''}
                         </SelectItem>
@@ -220,7 +220,7 @@ export default function NewQCInspectionPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">Select a prototype</SelectItem>
-                      {prototypesData?.prototypes?.map((proto: { id: string; name: string; prototype_number?: string }) => (
+                      {prototypesData?.prototypes?.map((proto: Record<string, any>) => (
                         <SelectItem key={proto.id} value={proto.id}>
                           {proto.name || 'Unnamed'} {proto.prototype_number ? `(${proto.prototype_number})` : ''}
                         </SelectItem>

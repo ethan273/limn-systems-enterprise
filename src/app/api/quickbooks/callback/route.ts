@@ -50,14 +50,17 @@ export async function GET(request: NextRequest) {
     }
 
     // Verify state token and get user
-    const oauthState = await prisma.quickbooks_oauth_states.findFirst({
+    // Note: findFirst not supported by wrapper, using findMany
+    const oauthStateArray = await prisma.quickbooks_oauth_states.findMany({
       where: {
         state,
         expires_at: {
           gt: new Date(),
         },
       },
+      take: 1,
     });
+    const oauthState = oauthStateArray.length > 0 ? oauthStateArray[0] : null;
 
     if (!oauthState) {
       console.error('[QuickBooks Callback] Invalid or expired state token');

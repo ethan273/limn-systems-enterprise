@@ -255,9 +255,9 @@ export const auditRouter = createTRPCRouter({
 
       // Get user profiles for the logs
       const userIds = logs.map((log) => log.user_id).filter((id): id is string => id !== null);
+      // Note: select not supported by wrapper, fetching full records
       const profiles = await prisma.user_profiles.findMany({
         where: { id: { in: userIds } },
-        select: { id: true, name: true },
       });
       const profileMap = new Map(profiles.map((p) => [p.id, p.name]));
 
@@ -324,35 +324,59 @@ export const auditRouter = createTRPCRouter({
       ]);
 
       // Get recent actions breakdown
-      const recentActions = await prisma.admin_audit_log.groupBy({
-        by: ['action'],
+      // Note: groupBy not supported by wrapper, using findMany + manual grouping
+      const allActions = await prisma.admin_audit_log.findMany({
         where: {
           created_at: { gte: startDate },
         },
-        _count: true,
-        orderBy: {
-          _count: {
-            action: 'desc',
-          },
+        select: {
+          action: true,
         },
-        take: 10,
       });
 
+      // Group by action manually
+      const actionGroups = allActions.reduce((acc: Record<string, number>, log) => {
+        const action = log.action || 'unknown';
+        acc[action] = (acc[action] || 0) + 1;
+        return acc;
+      }, {});
+
+      // Convert to array and sort by count
+      const recentActions = Object.entries(actionGroups)
+        .map(([action, count]) => ({
+          action,
+          _count: count,
+        }))
+        .sort((a, b) => b._count - a._count)
+        .slice(0, 10);
+
       // Get top users by activity
-      const topUsers = await prisma.admin_audit_log.groupBy({
-        by: ['user_email'],
+      // Note: groupBy not supported by wrapper, using findMany + manual grouping
+      const allUserActions = await prisma.admin_audit_log.findMany({
         where: {
           created_at: { gte: startDate },
           user_email: { not: null },
         },
-        _count: true,
-        orderBy: {
-          _count: {
-            user_email: 'desc',
-          },
+        select: {
+          user_email: true,
         },
-        take: 10,
       });
+
+      // Group by user_email manually
+      const userGroups = allUserActions.reduce((acc: Record<string, number>, log) => {
+        const email = log.user_email!;
+        acc[email] = (acc[email] || 0) + 1;
+        return acc;
+      }, {});
+
+      // Convert to array and sort by count
+      const topUsers = Object.entries(userGroups)
+        .map(([user_email, count]) => ({
+          user_email,
+          _count: count,
+        }))
+        .sort((a, b) => b._count - a._count)
+        .slice(0, 10);
 
       return {
         adminLogsCount,
@@ -385,7 +409,8 @@ export const auditRouter = createTRPCRouter({
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
 
-      const [adminActions, securityEvents, loginAttempts, lastLogin] = await Promise.all([
+      // Note: findFirst not supported by wrapper, using findMany
+      const [adminActions, securityEvents, loginAttempts, lastLoginArray] = await Promise.all([
         prisma.admin_audit_log.count({
           where: {
             user_id: userId,
@@ -404,15 +429,17 @@ export const auditRouter = createTRPCRouter({
             login_time: { gte: startDate },
           },
         }),
-        prisma.sso_login_audit.findFirst({
+        prisma.sso_login_audit.findMany({
           where: {
             user_id: userId,
             success: true,
           },
           orderBy: { login_time: 'desc' },
-          select: { login_time: true },
+          take: 1,
         }),
       ]);
+
+      const lastLogin = lastLoginArray.length > 0 ? { login_time: lastLoginArray[0]?.login_time } : null;
 
       return {
         adminActions,

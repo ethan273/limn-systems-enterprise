@@ -37,24 +37,9 @@ import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
-interface Production {
- id: string;
- status: string;
- overall_progress: number;
- current_phase: string | null;
- start_date: Date | null;
- target_date: Date | null;
- estimated_completion: Date | null;
- actual_completion: Date | null;
- quality_score: number | null;
- defects_found: number;
- rework_required: boolean;
- notes: string | null;
-}
-
 interface ProgressTrackerProps {
  prototypeId: string;
- production: Production | null;
+ production: Record<string, any> | null;
  onUpdate?: () => void;
 }
 
