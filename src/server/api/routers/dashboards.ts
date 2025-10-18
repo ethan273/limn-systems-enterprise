@@ -653,47 +653,59 @@ export const dashboardsRouter = createTRPCRouter({
       dateRange: z.enum(['7d', '30d', '90d', '1y', 'all']).default('30d'),
     }).optional())
     .query(async ({ ctx, input }) => {
-      const dateRange = input?.dateRange || '30d';
+      try {
+        const dateRange = input?.dateRange || '30d';
 
-      // Calculate date ranges for comparison
-      const now = new Date();
-      let startDate: Date | null = null;
-      let previousStartDate: Date | null = null;
+        // Calculate date ranges for comparison
+        const now = new Date();
+        let startDate: Date | null = null;
+        let previousStartDate: Date | null = null;
 
-      if (dateRange === '7d') {
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        previousStartDate = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
-      } else if (dateRange === '30d') {
-        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        previousStartDate = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
-      } else if (dateRange === '90d') {
-        startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-        previousStartDate = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
-      } else if (dateRange === '1y') {
-        startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-        previousStartDate = new Date(now.getTime() - 730 * 24 * 60 * 60 * 1000);
-      }
+        if (dateRange === '7d') {
+          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          previousStartDate = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+        } else if (dateRange === '30d') {
+          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          previousStartDate = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+        } else if (dateRange === '90d') {
+          startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+          previousStartDate = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
+        } else if (dateRange === '1y') {
+          startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+          previousStartDate = new Date(now.getTime() - 730 * 24 * 60 * 60 * 1000);
+        }
 
-      // Fetch all data (in-memory filtering to avoid Supabase timezone bug)
-      const [
-        allOrders,
-        allInvoices,
-        allPayments,
-        customers,
-        projects,
-        tasks,
-        productionOrders,
-        shipments,
-      ] = await Promise.all([
-        ctx.db.orders.findMany(),
-        ctx.db.invoices.findMany(),
-        ctx.db.payments.findMany(),
-        ctx.db.customers.findMany(),
-        ctx.db.projects.findMany(),
-        ctx.db.tasks.findMany(),
-        ctx.db.production_orders.findMany(),
-        ctx.db.shipments.findMany(),
-      ]);
+        // Fetch all data (in-memory filtering to avoid Supabase timezone bug)
+        console.log('[getExecutive] Fetching data from database...');
+        const [
+          allOrders,
+          allInvoices,
+          allPayments,
+          customers,
+          projects,
+          tasks,
+          productionOrders,
+          shipments,
+        ] = await Promise.all([
+          ctx.db.orders.findMany(),
+          ctx.db.invoices.findMany(),
+          ctx.db.payments.findMany(),
+          ctx.db.customers.findMany(),
+          ctx.db.projects.findMany(),
+          ctx.db.tasks.findMany(),
+          ctx.db.production_orders.findMany(),
+          ctx.db.shipments.findMany(),
+        ]);
+        console.log('[getExecutive] Data fetched successfully', {
+          orders: allOrders.length,
+          invoices: allInvoices.length,
+          payments: allPayments.length,
+          customers: customers.length,
+          projects: projects.length,
+          tasks: tasks.length,
+          productionOrders: productionOrders.length,
+          shipments: shipments.length,
+        });
 
       // Filter by date range
       const orders = startDate
@@ -877,6 +889,21 @@ export const dashboardsRouter = createTRPCRouter({
         revenueTrend,
         departments,
       };
+      } catch (error: any) {
+        console.error('[getExecutive] CRITICAL ERROR:', {
+          message: error?.message,
+          stack: error?.stack,
+          name: error?.name,
+          cause: error?.cause,
+          envCheck: {
+            hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+            hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+          }
+        });
+
+        // Re-throw with more context
+        throw new Error(`Dashboard data fetch failed: ${error?.message || 'Unknown error'}. Check Vercel logs for details.`);
+      }
     }),
 
   /**
@@ -888,13 +915,29 @@ export const dashboardsRouter = createTRPCRouter({
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
       // Fetch data for insights
-      const [allOrders, allInvoices, projects, tasks, productionOrders] = await Promise.all([
-        ctx.db.orders.findMany(),
-        ctx.db.invoices.findMany(),
-        ctx.db.projects.findMany(),
-        ctx.db.tasks.findMany(),
-        ctx.db.production_orders.findMany(),
-      ]);
+      console.log('[getExecutiveInsights] Fetching data from database...');
+
+      let allOrders, allInvoices, projects, tasks, productionOrders;
+      try {
+        [allOrders, allInvoices, projects, tasks, productionOrders] = await Promise.all([
+          ctx.db.orders.findMany(),
+          ctx.db.invoices.findMany(),
+          ctx.db.projects.findMany(),
+          ctx.db.tasks.findMany(),
+          ctx.db.production_orders.findMany(),
+        ]);
+        console.log('[getExecutiveInsights] Data fetched successfully');
+      } catch (error: any) {
+        console.error('[getExecutiveInsights] Database fetch CRITICAL ERROR:', {
+          message: error?.message,
+          stack: error?.stack,
+          envCheck: {
+            hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+            hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+          }
+        });
+        throw new Error(`Executive insights data fetch failed: ${error?.message || 'Unknown error'}`);
+      }
 
       const insights: Array<{
         type: 'success' | 'warning' | 'error' | 'info';
