@@ -7,7 +7,7 @@ import { NextResponse } from 'next/server';
 export async function GET() {
   // Only allow in development or with special header
   if (process.env.NODE_ENV === 'production') {
-    const isDiagnostic = false; // Set to true temporarily for testing
+    const isDiagnostic = true; // Set to true temporarily for testing
     if (!isDiagnostic) {
       return NextResponse.json({ error: 'Not available' }, { status: 404 });
     }
