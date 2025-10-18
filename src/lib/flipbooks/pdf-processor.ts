@@ -7,7 +7,16 @@
 
 import { PDFDocument } from "pdf-lib";
 import sharp from "sharp";
-import { createCanvas } from "canvas";
+
+// Dynamic import for canvas (server-side only, uses DOMMatrix)
+let canvasLib: any = null;
+
+async function getCanvasLib() {
+  if (!canvasLib && typeof window === "undefined") {
+    canvasLib = await import("canvas");
+  }
+  return canvasLib;
+}
 
 // Dynamic import for pdfjs-dist (server-side only)
 // Note: pdfjs-dist will be imported dynamically in functions to avoid build issues
@@ -64,14 +73,20 @@ export async function processPdf(pdfBuffer: Buffer): Promise<PdfProcessResult> {
 
   const pages: Buffer[] = [];
 
+  // Get canvas library dynamically
+  const canvas = await getCanvasLib();
+  if (!canvas) {
+    throw new Error("Canvas library not available");
+  }
+
   // Render each page to image
   for (let i = 1; i <= pageCount; i++) {
     const page = await pdf.getPage(i);
     const viewport = page.getViewport({ scale: 2.0 }); // 2x scale for quality
 
     // Create canvas using node-canvas
-    const canvas = createCanvas(viewport.width, viewport.height);
-    const context = canvas.getContext("2d");
+    const canvasInstance = canvas.createCanvas(viewport.width, viewport.height);
+    const context = canvasInstance.getContext("2d");
 
     // Render PDF page to canvas
     await page.render({
@@ -80,7 +95,7 @@ export async function processPdf(pdfBuffer: Buffer): Promise<PdfProcessResult> {
     }).promise;
 
     // Convert canvas to buffer
-    const imageBuffer = canvas.toBuffer("image/png");
+    const imageBuffer = canvasInstance.toBuffer("image/png");
 
     // Convert to JPEG with sharp for better compression
     const jpegBuffer = await sharp(imageBuffer)

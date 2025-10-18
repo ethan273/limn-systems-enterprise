@@ -5,22 +5,32 @@
  * Phase 1: TOC & Thumbnails Enhancement
  */
 
-import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs';
+// Dynamic import to avoid loading PDF.js on server side
+// Only import when actually needed (in extractTOCFromPDF function)
+let pdfjsLib: any = null;
+
+async function getPdfjsLib() {
+  if (!pdfjsLib) {
+    pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs');
+
+    // Configure PDF.js - disable worker for Node.js, enable for browser
+    if (typeof window === 'undefined') {
+      // Node.js environment: disable worker
+      pdfjsLib.GlobalWorkerOptions.workerPort = null;
+    } else {
+      // Browser environment: use worker
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.mjs`;
+    }
+  }
+  return pdfjsLib;
+}
+
 import type {
   TOCItem,
   TOCData,
   PDFOutlineItem,
   PDFTOCExtractionResult,
 } from '@/types/flipbook-navigation';
-
-// Configure PDF.js - disable worker for Node.js, enable for browser
-if (typeof window === 'undefined') {
-  // Node.js environment: disable worker
-  pdfjs.GlobalWorkerOptions.workerPort = null;
-} else {
-  // Browser environment: use worker
-  pdfjs.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.mjs`;
-}
 
 /**
  * Extract TOC from PDF file
@@ -29,6 +39,9 @@ export async function extractTOCFromPDF(
   pdfUrl: string
 ): Promise<PDFTOCExtractionResult> {
   try {
+    // Dynamically load PDF.js
+    const pdfjs = await getPdfjsLib();
+
     // Load PDF document (disable worker for Node.js)
     const loadingTask = pdfjs.getDocument({
       url: pdfUrl,
@@ -73,7 +86,7 @@ export async function extractTOCFromPDF(
  */
 async function convertOutlineToTOC(
   outline: PDFOutlineItem[],
-  pdf: pdfjs.PDFDocumentProxy,
+  pdf: any, // PDFDocumentProxy from pdfjs-dist
   level: 1 | 2 | 3 | 4 = 1,
   parentSortOrder: number = 0
 ): Promise<TOCItem[]> {
@@ -130,7 +143,7 @@ async function convertOutlineToTOC(
  */
 async function getPageNumberFromDest(
   dest: string | unknown[] | undefined | null,
-  pdf: pdfjs.PDFDocumentProxy
+  pdf: any // PDFDocumentProxy from pdfjs-dist
 ): Promise<number | null> {
   if (!dest) return null;
 
