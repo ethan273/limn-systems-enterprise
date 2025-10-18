@@ -21,18 +21,18 @@ export default defineConfig({
     '**/*.test.js',
     '**/node_modules/**'
   ],
-  outputDir: '/Users/eko3/limn-systems-enterprise-docs/02-TESTING/test-results/test-artifacts',
+  outputDir: path.join(__dirname, 'test-results', 'test-artifacts'),
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 1,  // Retry failed tests: 2 for CI, 1 for local
   workers: process.env.CI ? 1 : 2,  // Memory-safe: 1 for CI, 2 for local (NOT 3+)
   reporter: [
     ['html', {
-      outputFolder: '/Users/eko3/limn-systems-enterprise-docs/02-TESTING/test-results/html-report',
+      outputFolder: path.join(__dirname, 'test-results', 'html-report'),
       open: 'never'
     }],
     ['json', {
-      outputFile: '/Users/eko3/limn-systems-enterprise-docs/02-TESTING/test-results/results.json'
+      outputFile: path.join(__dirname, 'test-results', 'results.json')
     }],
     ['list', { printSteps: true }]
   ],
