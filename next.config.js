@@ -36,9 +36,9 @@ const withPWA = require('@ducanh2912/next-pwa').default({
         cacheName: 'trpc-api-cache',
         expiration: {
           maxEntries: 200,
-          maxAgeSeconds: 5 * 60 // 5 minutes for fresh data
+          maxAgeSeconds: 30 // 30 seconds for fresher data
         },
-        networkTimeoutSeconds: 10,
+        networkTimeoutSeconds: 5, // Faster timeout
         cacheableResponse: {
           statuses: [0, 200]
         }

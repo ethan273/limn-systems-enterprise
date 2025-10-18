@@ -4,9 +4,12 @@ import { createContext } from '@/server/api/trpc/context';
 import type { NextRequest } from 'next/server';
 
 /**
- * Use Node.js runtime for Prisma compatibility
+ * Vercel-optimized configuration for tRPC
  */
-export const runtime = 'nodejs';
+export const runtime = 'nodejs'; // Use Node.js runtime for Prisma compatibility
+export const dynamic = 'force-dynamic'; // Prevent static optimization of API routes
+export const maxDuration = 30; // Set explicit 30-second timeout for Vercel
+export const revalidate = 0; // Disable ISR caching - we want real-time data
 
 /**
  * Handle tRPC requests
