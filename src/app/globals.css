@@ -1187,6 +1187,31 @@ body {
   border-color: hsl(var(--border));
 }
 
+/* Status Icon Containers - For verification pages and status displays */
+.status-icon-container-loading {
+  background: hsl(var(--primary) / 0.1);
+}
+
+.status-icon-loading {
+  color: hsl(var(--primary));
+}
+
+.status-icon-container-success {
+  background: hsl(142 76% 36% / 0.1);
+}
+
+.status-icon-success {
+  color: hsl(142 76% 36%);
+}
+
+.status-icon-container-error {
+  background: hsl(var(--destructive) / 0.1);
+}
+
+.status-icon-error {
+  color: hsl(var(--destructive));
+}
+
 /* Design Module Badges - WCAG AA Compliant */
 .badge-material {
   background: hsl(220 13% 91%);

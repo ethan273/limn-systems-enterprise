@@ -30,7 +30,7 @@ function SessionEstablisher() {
       <div className="text-center">
         <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
         <h2 className="text-xl font-semibold text-foreground mb-2">Establishing Session...</h2>
-        <p className="text-muted-foreground">You'll be redirected in a moment</p>
+        <p className="text-muted-foreground">You&apos;ll be redirected in a moment</p>
       </div>
     </div>
   );
