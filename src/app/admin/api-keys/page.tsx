@@ -96,9 +96,12 @@ export default function ApiKeysPage() {
   const [showExpiringOnly, setShowExpiringOnly] = useState(false);
 
   // Fetch credentials
-  const { data: credentials, isLoading } = api.apiCredentials.getAll.useQuery();
+  const { data: credentialsRaw, isLoading } = api.apiCredentials.getAll.useQuery();
   const { data: expiringCredentials } = api.apiCredentials.getExpiring.useQuery();
   const { data: envScan } = api.apiCredentials.scanEnvironment.useQuery();
+
+  // Cast to proper type
+  const credentials = credentialsRaw as ApiCredential[] | undefined;
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
@@ -405,11 +408,11 @@ export default function ApiKeysPage() {
   // Filter credentials
   const filteredCredentials = credentials?.filter((cred) => {
     const matchesSearch =
-      cred.display_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      cred.service_name.toLowerCase().includes(searchQuery.toLowerCase());
+      (cred as ApiCredential).display_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (cred as ApiCredential).service_name?.toLowerCase().includes(searchQuery.toLowerCase());
 
     if (showExpiringOnly) {
-      const daysUntil = getDaysUntilExpiration(cred.expires_at);
+      const daysUntil = getDaysUntilExpiration((cred as ApiCredential).expires_at);
       return matchesSearch && daysUntil !== null && daysUntil < 30;
     }
 
@@ -658,7 +661,7 @@ export default function ApiKeysPage() {
       {/* Credentials Table */}
       <div className="card">
         <DataTable
-          data={filteredCredentials || []}
+          data={(filteredCredentials || []) as unknown as Record<string, unknown>[]}
           columns={columns}
           isLoading={isLoading}
           rowActions={[
