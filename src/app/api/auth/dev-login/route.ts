@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
           name: 'Development User',
           first_name: 'Development',
           last_name: 'User',
-          user_type: 'employee', // Admin role managed via permissions, not user_type enum
+          user_type: 'super_admin', // Full admin access for development
           department: 'development',
           job_title: 'Developer'
         }

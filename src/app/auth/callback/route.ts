@@ -164,18 +164,22 @@ export async function GET(request: NextRequest) {
         // Provision user profile (creates/updates user_profiles record)
         await provisionUserProfile(userId, userEmail, userMetadata);
 
-        // Determine redirect URL
-        let redirectUrl = `${origin}/dashboard`;
+        // Determine final destination URL
+        let destination = '/dashboard';
 
         // For dev login, always go to dashboard
         if (userType === 'dev' || userEmail === 'dev-user@limn.us.com') {
-          redirectUrl = `${origin}/dashboard`;
+          destination = '/dashboard';
         } else if (userEmail?.endsWith('@limn.us.com')) {
           // Route based on email domain for other magic link logins
-          redirectUrl = `${origin}/dashboard`;
+          destination = '/dashboard';
         } else {
-          redirectUrl = `${origin}/portal`;
+          destination = '/portal';
         }
+
+        // Redirect to intermediate session establishment page to avoid race condition
+        // This ensures cookies are set before middleware runs on the final destination
+        const redirectUrl = `${origin}/auth/establish-session?destination=${encodeURIComponent(destination)}`;
 
         // Create redirect response with all cookies from Supabase
         const response = NextResponse.redirect(redirectUrl);
@@ -234,14 +238,14 @@ export async function GET(request: NextRequest) {
         // Provision user profile (creates/updates user_profiles record)
         await provisionUserProfile(userId, userEmail, userMetadata);
 
-        // Create response with redirect
-        let redirectUrl = `${origin}/dashboard`;
+        // Determine final destination
+        let destination = '/dashboard';
 
         // Route based on user email domain and type
         if (userType === 'employee') {
           // Verify employee has @limn.us.com email
           if (userEmail?.endsWith('@limn.us.com')) {
-            redirectUrl = `${origin}/dashboard`;
+            destination = '/dashboard';
           } else {
             // Sign out non-company users trying to use employee login
             await supabase.auth.signOut()
@@ -253,16 +257,19 @@ export async function GET(request: NextRequest) {
             await supabase.auth.signOut()
             return NextResponse.redirect(`${origin}/login?error=employee_use_sso`)
           } else {
-            redirectUrl = `${origin}/portal`;
+            destination = '/portal';
           }
         } else {
           // Default routing based on email domain
           if (userEmail?.endsWith('@limn.us.com')) {
-            redirectUrl = `${origin}/dashboard`;
+            destination = '/dashboard';
           } else {
-            redirectUrl = `${origin}/portal`;
+            destination = '/portal';
           }
         }
+
+        // Redirect to intermediate session establishment page to avoid race condition
+        const redirectUrl = `${origin}/auth/establish-session?destination=${encodeURIComponent(destination)}`;
 
         // Create redirect response with all cookies from Supabase
         const response = NextResponse.redirect(redirectUrl);
