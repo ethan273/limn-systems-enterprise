@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { prisma } from '@/lib/db';
 import { renderToStream } from '@react-pdf/renderer';
 import { InvoicePDF, InvoiceData } from '@/lib/pdf/invoice-template';
+import { sendInvoiceEmail } from '@/lib/email/email-service';
 
 /**
  * Invoice PDF Generation API
@@ -134,25 +135,39 @@ export async function GET(
     // Generate PDF stream
     const stream = await renderToStream(<InvoicePDF data={invoiceData} />);
 
-    // Check if email parameter is provided
-    const searchParams = request.nextUrl.searchParams;
-    const emailTo = searchParams.get('email');
-
-    if (emailTo) {
-      // TODO: Implement email sending
-      // For now, just return success
-      return NextResponse.json({
-        success: true,
-        message: `Email functionality not yet implemented. PDF would be sent to ${emailTo}`,
-      });
-    }
-
-    // Convert stream to buffer for response
+    // Convert stream to buffer
     const chunks: Buffer[] = [];
     for await (const chunk of stream) {
       chunks.push(Buffer.from(chunk));
     }
     const pdfBuffer = Buffer.concat(chunks);
+
+    // Check if email parameter is provided
+    const searchParams = request.nextUrl.searchParams;
+    const emailTo = searchParams.get('email');
+
+    if (emailTo) {
+      // Send invoice via email
+      const emailResult = await sendInvoiceEmail(
+        emailTo,
+        invoice.invoice_number,
+        invoiceData.customerName,
+        pdfBuffer
+      );
+
+      if (!emailResult.success) {
+        return NextResponse.json(
+          { error: emailResult.error || 'Failed to send email' },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: `Invoice #${invoice.invoice_number} sent to ${emailTo}`,
+        messageId: emailResult.messageId,
+      });
+    }
 
     // Return PDF as downloadable file
     const filename = `invoice-${invoice.invoice_number}.pdf`;

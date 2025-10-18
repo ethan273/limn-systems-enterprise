@@ -10,6 +10,7 @@
 import { z } from 'zod';
 import { createTRPCRouter, publicProcedure } from '../trpc/init';
 import { TRPCError } from '@trpc/server';
+import { getSupabaseAdmin } from '@/lib/supabase';
 
 // Entity type validation
 const entityTypeEnum = z.enum([
@@ -71,6 +72,28 @@ export const documentsRouter = createTRPCRouter({
           { created_at: 'desc' },
         ],
         // Note: select not supported by Supabase wrapper - returns all fields
+      });
+
+      return documents;
+    }),
+
+  /**
+   * Get documents for a specific catalog item
+   * Convenience method for getByEntity with entityType='catalog_item'
+   */
+  getByItemId: publicProcedure
+    .input(z.object({
+      itemId: z.string().uuid(),
+    }))
+    .query(async ({ ctx, input }) => {
+      const documents = await ctx.db.documents.findMany({
+        where: {
+          catalog_item_id: input.itemId,
+        },
+        orderBy: [
+          { display_order: 'asc' },
+          { created_at: 'desc' },
+        ],
       });
 
       return documents;
@@ -238,8 +261,41 @@ export const documentsRouter = createTRPCRouter({
         });
       }
 
-      // TODO: Delete from storage (Supabase or Google Drive)
-      // This will be implemented when storage service is integrated
+      // Delete from storage based on storage type
+      try {
+        if (document.file_source === 'supabase' || document.storage_type === 'supabase') {
+          // Delete from Supabase Storage
+          if (document.url) {
+            const supabase = getSupabaseAdmin();
+            // Extract the file path from the URL
+            // URL format: https://{project}.supabase.co/storage/v1/object/public/{bucket}/{path}
+            const urlObj = new URL(document.url);
+            const pathParts = urlObj.pathname.split('/');
+            const bucketIndex = pathParts.indexOf('public') + 1;
+            if (bucketIndex > 0 && bucketIndex < pathParts.length) {
+              const bucket = pathParts[bucketIndex];
+              const filePath = pathParts.slice(bucketIndex + 1).join('/');
+
+              const { error: deleteError } = await supabase.storage
+                .from(bucket)
+                .remove([filePath]);
+
+              if (deleteError) {
+                console.error('Supabase storage delete error:', deleteError);
+                // Don't throw - continue with database deletion even if storage delete fails
+              }
+            }
+          }
+        } else if (document.file_source === 'google_drive' && document.google_drive_file_id) {
+          // Google Drive deletion would go here
+          // For now, we'll just log it as it requires Google Drive API setup
+          console.log('Google Drive file deletion not implemented:', document.google_drive_file_id);
+          // TODO: Implement Google Drive file deletion when API is configured
+        }
+      } catch (storageError) {
+        console.error('Storage deletion error:', storageError);
+        // Continue with database deletion even if storage deletion fails
+      }
 
       // Delete from database
       await ctx.db.documents.delete({

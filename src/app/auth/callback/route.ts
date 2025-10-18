@@ -63,15 +63,19 @@ async function provisionUserProfile(
     }
 
     // Determine user_type based on email domain
+    // Default: external users are customers
+    // Company emails: employees (super_admin must be manually assigned in database)
     let userType: 'super_admin' | 'employee' | 'customer' = 'customer';
     let department = 'General';
 
-    if (email.endsWith('@limn.us.com')) {
-      // Company emails get admin or employee status
-      // For now, grant super_admin to all company emails
-      // TODO: Add more granular role assignment logic
-      userType = 'super_admin';
-      department = 'Administration';
+    if (email.endsWith('@limn.us.com') || email.endsWith('@limnsystems.com')) {
+      // Company emails get employee status by default
+      // Super admin, specific departments, and roles should be assigned manually:
+      // 1. Via database: UPDATE user_profiles SET user_type = 'super_admin', role = 'admin' WHERE email = 'user@limn.us.com'
+      // 2. Via admin panel (if available)
+      // 3. Via role field in user_profiles table (checked by role-service.ts)
+      userType = 'employee';
+      department = 'General'; // Can be updated later via admin panel
     }
 
     // Get name from OAuth provider metadata (Google, etc.) or derive from email

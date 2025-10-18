@@ -603,6 +603,25 @@ export class DatabaseClient {
       this.countGeneric('design_revisions', options),
   };
 
+  // Time Tracking
+  time_entries = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('time_entries', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('time_entries', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('time_entries', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('time_entries', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('time_entries', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('time_entries', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('time_entries', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('time_entries', options),
+  };
+
   // Design Boards (collaborative whiteboards)
   design_boards = {
     findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('design_boards', options),

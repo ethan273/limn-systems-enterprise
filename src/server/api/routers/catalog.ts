@@ -1,8 +1,6 @@
 import { z } from 'zod';
 import { createCrudRouter } from '../utils/crud-generator';
 import { createTRPCRouter, publicProcedure } from '../trpc/init';
-// TODO: These imports will be used for full dimension form integration
-// import { createDualDimension, dualDimensionToDb } from '@/lib/utils/unit-conversion';
 import { validateFurnitureDimensions, type FurnitureType } from '@/lib/utils/dimension-validation';
 import { generateBaseSku, regenerateBaseSku } from '@/lib/utils/base-sku-generator';
 
@@ -85,6 +83,7 @@ const createItemSchema = z.object({
   furniture_type: z.enum(['chair', 'bench', 'table', 'sofa/loveseat', 'sectional', 'lounge', 'chaise_lounge', 'ottoman']).optional(),
   base_sku: z.string().optional(), // Auto-generated but can be manually set
   variation_type: z.string().optional(), // e.g., "Deep", "Short", "Wide"
+  specifications: z.any().optional(), // Product specifications (materials, finishes, construction details, etc.)
 });
 
 // Furniture Dimensions Schema

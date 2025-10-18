@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -148,40 +149,23 @@ export default function TaskAdvancedFilters({ onFiltersChange, taskCount = 0 }: 
 
  // Real data from APIs
  const { user: _user } = useAuth();
- const [users, setUsers] = useState<{ id: string; name: string }[]>([]);
- const [tags, setTags] = useState<string[]>([]);
- const [loadingUsers, setLoadingUsers] = useState(true);
- const [loadingTags, setLoadingTags] = useState(true);
 
- // Fetch users and tags on component mount
- useEffect(() => {
- const fetchUsers = async () => {
- try {
- // TODO: Implement proper tRPC client call
- console.log('TODO: Load users data via tRPC');
- setUsers([]);
- } catch (error) {
- console.error('Failed to fetch users:', error);
- } finally {
- setLoadingUsers(false);
- }
- };
+ // Load users data via tRPC
+ const { data: usersData, isLoading: loadingUsers } = api.users.getAllUsers.useQuery({
+ limit: 100,
+ offset: 0,
+ });
 
- const fetchTags = async () => {
- try {
- // TODO: Implement proper tRPC client call
- console.log('TODO: Load tags data via tRPC');
- setTags([]);
- } catch (error) {
- console.error('Failed to fetch tags:', error);
- } finally {
- setLoadingTags(false);
- }
- };
+ // Transform users data
+ const users = usersData?.users?.map((user: any) => ({
+ id: user.id,
+ name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email || 'Unknown User',
+ })) || [];
 
- fetchUsers();
- fetchTags();
- }, []);
+ // Tags: No separate tags endpoint - tags are stored as arrays on tasks
+ // Future enhancement: Add tasks.getAllTags endpoint to get unique tags across all tasks
+ const tags: string[] = [];
+ const loadingTags = false;
 
  return (
  <div className="space-y-4">

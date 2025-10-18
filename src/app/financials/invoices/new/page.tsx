@@ -19,20 +19,29 @@ import {
   ArrowLeft,
   Loader2,
   FileText,
-  DollarSign,
-  Plus,
-  AlertCircle
+  AlertCircle,
+  Save
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { LineItemsManager, type LineItem } from "@/components/invoices/LineItemsManager";
 
 export default function NewInvoicePage() {
   const router = useRouter();
   const [orderId, setOrderId] = useState("");
   const [invoiceType, setInvoiceType] = useState("");
-  const [amount, setAmount] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [notes, setNotes] = useState("");
+  const [lineItems, setLineItems] = useState<LineItem[]>([
+    {
+      description: "",
+      quantity: 1,
+      unitPrice: 0,
+      discountPercent: 0,
+      discountAmount: 0,
+      taxRate: 0,
+    },
+  ]);
 
   // Fetch orders with production details
   const { data: ordersData, isLoading: ordersLoading } = api.orders.getWithProductionDetails.useQuery({});
@@ -86,15 +95,6 @@ export default function NewInvoicePage() {
       return;
     }
 
-    if (!amount || parseFloat(amount) <= 0) {
-      toast({
-        title: "Validation Error",
-        description: "Please enter a valid amount greater than 0.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     if (!dueDate) {
       toast({
         title: "Validation Error",
@@ -104,27 +104,70 @@ export default function NewInvoicePage() {
       return;
     }
 
+    if (lineItems.length === 0) {
+      toast({
+        title: "Validation Error",
+        description: "Please add at least one line item.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate line items
+    for (let i = 0; i < lineItems.length; i++) {
+      const item = lineItems[i];
+      if (!item.description || item.description.trim() === "") {
+        toast({
+          title: "Validation Error",
+          description: `Line item #${i + 1}: Description is required.`,
+          variant: "destructive",
+        });
+        return;
+      }
+      if (item.quantity <= 0) {
+        toast({
+          title: "Validation Error",
+          description: `Line item #${i + 1}: Quantity must be greater than 0.`,
+          variant: "destructive",
+        });
+        return;
+      }
+      if (item.unitPrice <= 0) {
+        toast({
+          title: "Validation Error",
+          description: `Line item #${i + 1}: Unit price must be greater than 0.`,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     // Create invoice with line items
-    // TODO: This page needs a complete rewrite to properly handle line items
-    // For now, creating a single line item with the entered amount
     createInvoiceMutation.mutate({
-      lineItems: [
-        {
-          description: notes.trim() || `Invoice for order ${orderId}`,
-          quantity: 1,
-          unitPrice: parseFloat(amount),
-          discountPercent: 0,
-          discountAmount: 0,
-          taxRate: 0,
-        },
-      ],
+      lineItems: lineItems.map((item) => ({
+        description: item.description,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        discountPercent: item.discountPercent || 0,
+        discountAmount: item.discountAmount || 0,
+        taxRate: item.taxRate || 0,
+      })),
     });
   };
 
-  const isFormValid = orderId && invoiceType && amount && parseFloat(amount) > 0 && dueDate;
+  const isFormValid =
+    orderId &&
+    invoiceType &&
+    dueDate &&
+    lineItems.length > 0 &&
+    lineItems.every(item =>
+      item.description.trim() !== "" &&
+      item.quantity > 0 &&
+      item.unitPrice > 0
+    );
 
   return (
-    <div className="container mx-auto p-6 max-w-3xl">
+    <div className="container mx-auto p-6 max-w-5xl">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -140,7 +183,7 @@ export default function NewInvoicePage() {
             </Button>
             <div>
               <h1 className="text-3xl font-bold">Create New Invoice</h1>
-              <p className="text-muted-foreground">Generate an invoice for an order</p>
+              <p className="text-muted-foreground">Generate an invoice with multiple line items</p>
             </div>
           </div>
         </div>
@@ -154,7 +197,8 @@ export default function NewInvoicePage() {
         </Alert>
 
         {/* Form */}
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Invoice Information Card */}
           <Card>
             <CardHeader>
               <CardTitle>Invoice Information</CardTitle>
@@ -185,59 +229,42 @@ export default function NewInvoicePage() {
                 </Select>
               </div>
 
-              {/* Invoice Type */}
-              <div className="space-y-2">
-                <Label htmlFor="invoice-type">
-                  Invoice Type
-                  <span className="text-destructive ml-1">*</span>
-                </Label>
-                <Select
-                  value={invoiceType}
-                  onValueChange={setInvoiceType}
-                  disabled={createInvoiceMutation.isPending}
-                >
-                  <SelectTrigger id="invoice-type">
-                    <SelectValue placeholder="Select invoice type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="deposit">Deposit</SelectItem>
-                    <SelectItem value="final">Final</SelectItem>
-                    <SelectItem value="full">Full Payment</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* Invoice Type and Due Date */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="invoice-type">
+                    Invoice Type
+                    <span className="text-destructive ml-1">*</span>
+                  </Label>
+                  <Select
+                    value={invoiceType}
+                    onValueChange={setInvoiceType}
+                    disabled={createInvoiceMutation.isPending}
+                  >
+                    <SelectTrigger id="invoice-type">
+                      <SelectValue placeholder="Select invoice type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="deposit">Deposit</SelectItem>
+                      <SelectItem value="final">Final</SelectItem>
+                      <SelectItem value="full">Full Payment</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              {/* Amount */}
-              <div className="space-y-2">
-                <Label htmlFor="amount" className="flex items-center gap-2">
-                  <DollarSign className="w-4 h-4" aria-hidden="true" />
-                  Amount
-                  <span className="text-destructive ml-1">*</span>
-                </Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  disabled={createInvoiceMutation.isPending}
-                />
-              </div>
-
-              {/* Due Date */}
-              <div className="space-y-2">
-                <Label htmlFor="due-date">
-                  Due Date
-                  <span className="text-destructive ml-1">*</span>
-                </Label>
-                <Input
-                  id="due-date"
-                  type="date"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                  disabled={createInvoiceMutation.isPending}
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="due-date">
+                    Due Date
+                    <span className="text-destructive ml-1">*</span>
+                  </Label>
+                  <Input
+                    id="due-date"
+                    type="date"
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
+                    disabled={createInvoiceMutation.isPending}
+                  />
+                </div>
               </div>
 
               {/* Notes */}
@@ -255,8 +282,15 @@ export default function NewInvoicePage() {
             </CardContent>
           </Card>
 
+          {/* Line Items Manager */}
+          <LineItemsManager
+            lineItems={lineItems}
+            onChange={setLineItems}
+            disabled={createInvoiceMutation.isPending}
+          />
+
           {/* Actions */}
-          <div className="flex items-center justify-between mt-6">
+          <div className="flex items-center justify-between">
             <Button
               type="button"
               variant="outline"
@@ -268,15 +302,16 @@ export default function NewInvoicePage() {
             <Button
               type="submit"
               disabled={!isFormValid || createInvoiceMutation.isPending}
+              size="lg"
             >
               {createInvoiceMutation.isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
-                  Creating...
+                  Creating Invoice...
                 </>
               ) : (
                 <>
-                  <Plus className="w-4 h-4 mr-2" aria-hidden="true" />
+                  <Save className="w-4 h-4 mr-2" aria-hidden="true" />
                   Create Invoice
                 </>
               )}

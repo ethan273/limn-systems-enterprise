@@ -303,7 +303,6 @@ class PushNotificationManager {
 
   private async sendSubscriptionToServer(subscription: PushSubscriptionData): Promise<void> {
     try {
-      // TODO: Implement server endpoint to store push subscription
       const response = await fetch('/api/push/subscribe', {
         method: 'POST',
         headers: {
@@ -322,7 +321,6 @@ class PushNotificationManager {
 
   private async removeSubscriptionFromServer(subscription: PushSubscriptionData): Promise<void> {
     try {
-      // TODO: Implement server endpoint to remove push subscription
       const response = await fetch('/api/push/unsubscribe', {
         method: 'POST',
         headers: {

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { api } from "@/lib/api/client";
 
 interface MediaItem {
   id: string;
@@ -53,22 +54,28 @@ export function MediaGallery({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [mediaToDelete, setMediaToDelete] = useState<string | null>(null);
 
-  const handleDelete = async () => {
-    if (!mediaToDelete) return;
-
-    try {
-      // TODO: Implement actual delete logic via tRPC
-      console.log("Deleting media:", mediaToDelete);
-
-      onDelete?.(mediaToDelete);
+  // Delete mutation
+  const deleteMutation = api.documents.delete.useMutation({
+    onSuccess: () => {
       toast.success("Media deleted successfully");
       setDeleteDialogOpen(false);
       setMediaToDelete(null);
       onRefresh?.();
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error("Delete error:", error);
       toast.error("Failed to delete media");
-    }
+    },
+  });
+
+  const handleDelete = async () => {
+    if (!mediaToDelete) return;
+
+    // Call tRPC delete mutation
+    deleteMutation.mutate({ id: mediaToDelete });
+
+    // Also call the onDelete callback if provided
+    onDelete?.(mediaToDelete);
   };
 
   const formatFileSize = (bytes: number): string => {

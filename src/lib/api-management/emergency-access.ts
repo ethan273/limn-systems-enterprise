@@ -100,19 +100,12 @@ export async function requestEmergencyAccess(params: {
     throw new Error('Cannot grant emergency access to inactive credential');
   }
 
-  // Get requesting user
+  // Get requesting user and validate super admin status
   const user = await prisma.users.findUnique({
     where: { id: requestedBy },
     select: {
       id: true,
       email: true,
-// NOTE: profiles relation not available in current schema
-      // profiles: {
-      //   select: {
-      //     user_type: true,
-      //     full_name: true,
-      //   },
-      // },
     },
   });
 
@@ -120,11 +113,22 @@ export async function requestEmergencyAccess(params: {
     throw new Error('User not found');
   }
 
-  // TODO: Validate user type when profiles relation is available
-  // const profile = user.profiles[0];
-  // if (profile?.user_type !== 'super_admin') {
-  //   throw new Error('Only super admins can request emergency access');
-  // }
+  // Validate user type via user_profiles table
+  const userProfile = await prisma.user_profiles.findUnique({
+    where: { id: requestedBy },
+    select: {
+      user_type: true,
+      name: true,
+    },
+  });
+
+  if (!userProfile) {
+    throw new Error('User profile not found');
+  }
+
+  if (userProfile.user_type !== 'super_admin') {
+    throw new Error('Only super admins can request emergency access. Current user type: ' + userProfile.user_type);
+  }
 
   // Generate secure access token
   const accessToken = crypto.randomBytes(32).toString('hex');
@@ -171,18 +175,63 @@ export async function requestEmergencyAccess(params: {
     },
   });
 
-  // TODO: Send notifications to all super admins (Phase 3)
-  // This would integrate with the existing notification system
-  // For now, we'll mark notifications as sent
+  // Send notifications to all super admins
+  try {
+    // Get all super admin users
+    const superAdmins = await prisma.user_profiles.findMany({
+      where: {
+        user_type: 'super_admin',
+        is_active: true,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
+    });
 
-  // Update notification status
-  emergencyLog.notificationsSent = true;
-  await prisma.api_credentials.update({
-    where: { id: credentialId },
-    data: {
-      emergency_access_log: emergencyLog as any,
-    },
-  });
+    // Create notification for each super admin
+    const notificationPromises = superAdmins.map(async (admin) => {
+      return prisma.notifications.create({
+        data: {
+          user_id: admin.id,
+          type: 'security_alert',
+          title: '🚨 Emergency API Access Granted',
+          message: `Emergency access to "${credential.display_name}" (${credential.service_name}) has been granted by ${userProfile.name || user.email}.\n\nReason: ${reason.trim()}\nDuration: ${durationHours} hours\nExpires: ${expiresAt.toLocaleString()}`,
+          data: {
+            credentialId,
+            credentialName: credential.display_name,
+            serviceName: credential.service_name,
+            grantedBy: requestedBy,
+            grantedByName: userProfile.name || user.email,
+            reason: reason.trim(),
+            durationHours,
+            expiresAt: expiresAt.toISOString(),
+          },
+          read: false,
+          priority: 'high',
+          entity_type: 'api_credential',
+          entity_id: credentialId,
+          link: `/admin/api-credentials/${credentialId}`,
+        },
+      });
+    });
+
+    await Promise.all(notificationPromises);
+    emergencyLog.notificationsSent = true;
+
+    // Update credential with notification status
+    await prisma.api_credentials.update({
+      where: { id: credentialId },
+      data: {
+        emergency_access_log: emergencyLog as any,
+      },
+    });
+  } catch (notificationError) {
+    console.error('Failed to send admin notifications:', notificationError);
+    // Don't fail the entire operation if notifications fail
+    // Emergency access is still granted
+  }
 
   return {
     accessToken,

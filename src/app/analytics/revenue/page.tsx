@@ -101,8 +101,56 @@ export default function RevenueAnalyticsPage() {
   };
 
   const handleExport = (format: 'csv' | 'excel' | 'pdf') => {
-    // TODO: Implement export functionality
-    alert(`Export to ${format.toUpperCase()} - To be implemented`);
+    // Get current data to export (use trends data which has the chart data)
+    const exportData = trends || [];
+
+    if (exportData.length === 0) {
+      alert('No data available to export');
+      return;
+    }
+
+    if (format === 'csv') {
+      exportToCSV(exportData);
+    } else if (format === 'excel') {
+      // Excel export would use a library like xlsx
+      alert('Excel export requires xlsx library - falling back to CSV');
+      exportToCSV(exportData);
+    } else if (format === 'pdf') {
+      alert('PDF export would use jsPDF - falling back to CSV');
+      exportToCSV(exportData);
+    }
+  };
+
+  const exportToCSV = (data: any[]) => {
+    // Create CSV headers
+    const headers = ['Period', 'Revenue', 'Orders', 'Average Order Value'];
+
+    // Create CSV rows
+    const rows = data.map((item: any) => [
+      item.period || item.date || item.month || 'N/A',
+      item.revenue?.toFixed(2) || '0.00',
+      item.orders || item.orderCount || '0',
+      item.averageOrderValue?.toFixed(2) || '0.00',
+    ]);
+
+    // Combine headers and rows
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(',')),
+    ].join('\n');
+
+    // Create blob and download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+
+    link.setAttribute('href', url);
+    link.setAttribute('download', `revenue-export-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (

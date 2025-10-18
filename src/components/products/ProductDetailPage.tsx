@@ -228,19 +228,17 @@ export function ProductDetailPage({ productId, productType }: ProductDetailPageP
   };
 
   const handleSaveSpecifications = async (specifications: Record<string, any>) => {
-    // TODO: Update router to support specifications field update
-    console.log('Specifications update requested:', specifications);
-    // if (productType === "catalog") {
-    //   await catalogUpdateMutation.mutateAsync({
-    //     id: productId,
-    //     data: { specifications },
-    //   });
-    // } else {
-    //   await updateMutation.mutateAsync({
-    //     id: productId,
-    //     specifications,
-    //   } as any);
-    // }
+    if (productType === "catalog") {
+      await catalogUpdateMutation.mutateAsync({
+        id: productId,
+        data: { specifications },
+      });
+    } else {
+      await updateMutation.mutateAsync({
+        id: productId,
+        specifications,
+      } as any);
+    }
   };
 
   // Configuration based on product type

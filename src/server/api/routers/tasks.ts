@@ -73,8 +73,7 @@ const baseCrud = createCrudRouter({
   updateSchema: updateTaskSchema,
   defaultOrderBy: { created_at: 'desc' },
   defaultInclude: {
-    // TODO: Add projects relationship when schema is available
-    // project: true,
+    project: true,
   },
   searchFields: ['title', 'description'],
 });
@@ -438,5 +437,84 @@ export const tasksRouter = createTRPCRouter({
   getUniqueTags: publicProcedure
     .query(async ({ ctx: _ctx }) => {
       return await db.getUniqueTags();
+    }),
+
+  // TIME TRACKING
+  getTimeEntries: publicProcedure
+    .input(z.object({
+      taskId: z.string().uuid(),
+    }))
+    .query(async ({ ctx: _ctx, input }) => {
+      return await db.time_entries.findMany({
+        where: { task_id: input.taskId },
+        orderBy: { start_time: 'desc' },
+      });
+    }),
+
+  addTimeEntry: publicProcedure
+    .input(z.object({
+      taskId: z.string().uuid(),
+      userId: z.string(),
+      description: z.string().optional(),
+      startTime: z.string().datetime(),
+      endTime: z.string().datetime().optional(),
+      duration: z.number().int().positive(),
+    }))
+    .mutation(async ({ ctx: _ctx, input }) => {
+      const entry = await db.time_entries.create({
+        data: {
+          task_id: input.taskId,
+          user_id: input.userId,
+          description: input.description,
+          start_time: input.startTime,
+          end_time: input.endTime,
+          duration: input.duration,
+        },
+      });
+
+      // Update task last_activity_at
+      await db.updateTask({
+        id: input.taskId,
+        last_activity_at: new Date().toISOString(),
+      });
+
+      return entry;
+    }),
+
+  updateTimeEntry: publicProcedure
+    .input(z.object({
+      id: z.string().uuid(),
+      description: z.string().optional(),
+      startTime: z.string().datetime().optional(),
+      endTime: z.string().datetime().optional(),
+      duration: z.number().int().positive().optional(),
+    }))
+    .mutation(async ({ ctx: _ctx, input }) => {
+      const { id, ...data } = input;
+      const updateData: any = {};
+
+      if (data.description !== undefined) updateData.description = data.description;
+      if (data.startTime) updateData.start_time = data.startTime;
+      if (data.endTime) updateData.end_time = data.endTime;
+      if (data.duration) updateData.duration = data.duration;
+
+      return await db.time_entries.update({
+        where: { id },
+        data: {
+          ...updateData,
+          updated_at: new Date().toISOString(),
+        },
+      });
+    }),
+
+  deleteTimeEntry: publicProcedure
+    .input(z.object({
+      id: z.string().uuid(),
+    }))
+    .mutation(async ({ ctx: _ctx, input }) => {
+      await db.time_entries.delete({
+        where: { id: input.id },
+      });
+      return { success: true };
     }),
 });

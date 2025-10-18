@@ -18,6 +18,7 @@
  */
 
 import { useState } from "react";
+import { api } from "@/lib/api/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -93,11 +94,9 @@ export default function CatalogDocumentsTab({ itemId: _itemId }: CatalogDocument
   const [documentToDelete, setDocumentToDelete] = useState<any>(null);
 
   // Fetch documents for this catalog item
-  // TODO: Implement documents.getByItemId API endpoint
-  // For now using empty array as placeholder
-  const documents: any[] = [];
-  const isLoading = false;
-  const refetch = () => {};
+  const { data: documents = [], isLoading, refetch } = api.documents.getByItemId.useQuery({
+    itemId: _itemId,
+  });
 
   // Filter documents
   const filteredDocuments = documents?.filter((doc: any) => {

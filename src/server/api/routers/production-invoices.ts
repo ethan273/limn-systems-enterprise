@@ -4,6 +4,37 @@ import { Prisma } from '@prisma/client';
 import { quickbooksClient } from '@/lib/quickbooks/client';
 
 // ============================================================================
+// HELPER FUNCTIONS - Shipping
+// ============================================================================
+
+/**
+ * Calculate shipping cost based on order total and production order details
+ * This is a basic implementation that can be enhanced with:
+ * - Actual shipping carrier rates
+ * - Weight/dimensions from production order
+ * - Destination address from customer
+ * - Shipping method selection
+ */
+function calculateShippingCost(orderTotal: number, _productionOrderId: string): number {
+  // Basic tier-based shipping calculation
+  // TODO: Replace with actual shipping carrier API integration
+
+  if (orderTotal >= 10000) {
+    // Free shipping for orders over $10,000
+    return 0;
+  } else if (orderTotal >= 5000) {
+    // Flat rate for medium orders
+    return 250;
+  } else if (orderTotal >= 1000) {
+    // Percentage-based for smaller orders
+    return orderTotal * 0.05; // 5% of order total
+  } else {
+    // Minimum shipping fee
+    return 100;
+  }
+}
+
+// ============================================================================
 // SCHEMAS
 // ============================================================================
 
@@ -471,7 +502,11 @@ export const productionInvoicesRouter = createTRPCRouter({
 
       // Calculate amounts based on invoice type
       const subtotal = input.invoice_type === 'deposit' ? totalCost * 0.5 : totalCost * 0.5;
-      const shipping = input.invoice_type === 'final' ? 0 : 0; // TODO: Calculate shipping
+
+      // Calculate shipping for final invoice
+      // Deposit invoices don't include shipping (paid on final)
+      const shipping = input.invoice_type === 'final' ? calculateShippingCost(totalCost, input.order_id) : 0;
+
       const total = subtotal + shipping;
 
       // Generate invoice number

@@ -11,15 +11,11 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-// Unused for now - kept for future PDF rendering implementation
-// import { processPdf, extractCover, createThumbnail } from "@/lib/flipbooks/pdf-processor";
+import { processPdf } from "@/lib/flipbooks/pdf-processor";
 import {
   uploadToS3,
   generatePdfKey,
-  // Unused for now - will be used when PDF rendering is implemented
-  // generatePageImageKey,
-  // generateCoverKey,
-  // generateThumbnailKey,
+  generatePageImageKey,
   initializeStorage,
 } from "@/lib/flipbooks/storage";
 import { features } from "@/lib/features";
@@ -67,25 +63,35 @@ export async function POST(request: NextRequest) {
     const pdfKey = generatePdfKey(flipbookId, file.name);
     const pdfUpload = await uploadToS3(buffer, pdfKey, "application/pdf");
 
-    // Get page count using pdf-lib (doesn't require rendering)
-    const { getPdfPageCount } = await import("@/lib/flipbooks/pdf-processor");
-    const pageCount = await getPdfPageCount(buffer);
+    // Process PDF and render pages to images
+    console.log(`Processing PDF: ${file.name} for flipbook ${flipbookId}`);
+    const pdfResult = await processPdf(buffer);
+    const { pageCount, pages: pageImages } = pdfResult;
 
-    // TODO: Implement PDF page rendering with a different solution (ImageMagick, Ghostscript, or pdf2pic)
-    // For now, we'll just store the PDF and create placeholder page records
+    console.log(`PDF processed: ${pageCount} pages rendered`);
 
-    // Create placeholder page records (actual rendering will be added later)
+    // Upload each page image to S3 and create page records
     const pages: any[] = [];
-    for (let i = 1; i <= pageCount; i++) {
+    for (let i = 0; i < pageCount; i++) {
+      const pageNumber = i + 1;
+      const pageBuffer = pageImages[i];
+
+      // Upload page image to S3
+      const pageKey = generatePageImageKey(flipbookId, pageNumber);
+      const pageUpload = await uploadToS3(pageBuffer!, pageKey, "image/jpeg");
+
+      // Create page record with actual image URL
       const page = await prisma.flipbook_pages.create({
         data: {
           flipbook_id: flipbookId,
-          page_number: i,
-          image_url: pdfUpload.cdnUrl, // Temporarily use PDF URL
+          page_number: pageNumber,
+          image_url: pageUpload.cdnUrl,
           page_type: "CONTENT",
         },
       });
+
       pages.push(page as any);
+      console.log(`Uploaded page ${pageNumber}/${pageCount}`);
     }
 
     // Update flipbook with metadata

@@ -359,6 +359,7 @@ model pending_sign_up {
   @@index([email], map: "idx_pending_sign_up_email")
   @@index([verification_token], map: "idx_pending_sign_up_token")
   @@index([expires_at], map: "idx_pending_sign_up_expires_at")
+  @@schema("public")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -3231,6 +3232,7 @@ model items {
   type                                                       String?                 @db.VarChar(50)
   base_sku                                                   String?                 @unique @db.VarChar(50)
   product_sku                                                String?                 @db.VarChar(100)
+  specifications                                             Json?
   furniture_dimensions                                       furniture_dimensions[]
   invoice_items                                              invoice_items[]
   item_images                                                item_images[]
@@ -3687,6 +3689,7 @@ model materials {
   swatch_url                     String?
   material_collections           material_collections[]
   material_furniture_collections material_furniture_collections[]
+  order_item_materials           order_item_materials[]
   material_categories            material_categories?             @relation(fields: [category_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   materials                      materials?                       @relation("materialsTomaterials", fields: [parent_material_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   other_materials                materials[]                      @relation("materialsTomaterials")
@@ -3823,25 +3826,26 @@ model offline_sync_queue {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model order_items {
-  id                   String                 @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  order_id             String?                @db.Uuid
-  item_id              String?                @db.Uuid
-  quantity             Int?                   @default(1)
-  unit_price           Decimal?               @db.Decimal(10, 2)
-  created_at           DateTime?              @default(now()) @db.Timestamptz(6)
-  updated_at           DateTime?              @default(now()) @db.Timestamptz(6)
+  id                   String                  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  order_id             String?                 @db.Uuid
+  item_id              String?                 @db.Uuid
+  quantity             Int?                    @default(1)
+  unit_price           Decimal?                @db.Decimal(10, 2)
+  created_at           DateTime?               @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime?               @default(now()) @db.Timestamptz(6)
   project_sku          String?
   description          String?
   specifications       Json?
-  due_date             DateTime?              @db.Timestamptz(6)
+  due_date             DateTime?               @db.Timestamptz(6)
   status               String?
   notes                String?
-  full_sku             String?                @db.VarChar(200)
+  full_sku             String?                 @db.VarChar(200)
   cost_tracking        cost_tracking[]
   documents            documents[]
   invoice_items        invoice_items[]
-  items                items?                 @relation(fields: [item_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  orders               orders?                @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  items                items?                  @relation(fields: [item_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  orders               orders?                 @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  order_item_materials order_item_materials[]
   packing_jobs         packing_jobs[]
   production_items     production_items[]
   qc_inspections       qc_inspections[]
@@ -3850,6 +3854,28 @@ model order_items {
   @@index([full_sku], map: "idx_order_items_full_sku")
   @@index([item_id], map: "idx_order_items_item_id_fk")
   @@index([order_id], map: "idx_order_items_order_id_fk")
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model order_item_materials {
+  id            String      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  order_item_id String      @db.Uuid
+  material_id   String      @db.Uuid
+  quantity      Decimal?    @default(1) @db.Decimal(10, 2)
+  material_type String?     @db.VarChar(100)
+  notes         String?
+  created_at    DateTime    @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime    @default(now()) @db.Timestamptz(6)
+  created_by    String?     @db.VarChar(255)
+  order_items   order_items @relation(fields: [order_item_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  materials     materials   @relation(fields: [material_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([order_item_id, material_id], map: "idx_order_item_materials_unique")
+  @@index([created_at], map: "idx_order_item_materials_created_at")
+  @@index([material_id], map: "idx_order_item_materials_material_id")
+  @@index([material_type], map: "idx_order_item_materials_material_type")
+  @@index([order_item_id], map: "idx_order_item_materials_order_item_id")
   @@schema("public")
 }
 
@@ -4961,6 +4987,7 @@ model projects {
   tenants                   tenants?              @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   shipping_address          addresses?            @relation(fields: [shipping_address_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
   prototypes                prototypes[]
+  tasks                     tasks[]
   shipments                 shipments[]
 
   @@index([created_by], map: "idx_projects_created_by")
@@ -6642,10 +6669,35 @@ model tasks {
   task_activities   task_activities[]
   task_attachments  task_attachments[]
   task_entity_links task_entity_links[]
+  time_entries      time_entries[]
+  project           projects?           @relation(fields: [project_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([assigned_to], map: "idx_tasks_assigned_to")
   @@index([created_at], map: "idx_tasks_created_at")
   @@index([priority], map: "idx_tasks_priority")
+  @@index([project_id], map: "idx_tasks_project_id")
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model time_entries {
+  id          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  task_id     String    @db.Uuid
+  user_id     String    @db.VarChar(255)
+  description String?
+  start_time  DateTime  @db.Timestamptz(6)
+  end_time    DateTime? @db.Timestamptz(6)
+  duration    Int?
+  created_at  DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime? @default(now()) @db.Timestamptz(6)
+  tasks       tasks     @relation(fields: [task_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([task_id], map: "idx_time_entries_task_id")
+  @@index([user_id], map: "idx_time_entries_user_id")
+  @@index([start_time], map: "idx_time_entries_start_time")
+  @@index([end_time], map: "idx_time_entries_end_time")
+  @@index([created_at], map: "idx_time_entries_created_at")
+  @@index([task_id, user_id], map: "idx_time_entries_task_user")
   @@schema("public")
 }
 

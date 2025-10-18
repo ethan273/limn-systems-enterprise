@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { api } from "@/lib/api/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -38,13 +38,33 @@ export default function TaskActivities({ taskId, onUpdate }: TaskActivitiesProps
  const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
  const [commentText, setCommentText] = useState("");
  const [isSubmitting, setIsSubmitting] = useState(false);
- const [users, setUsers] = useState<Record<string, { name: string; initials: string; avatar: string | null }>>({});
- const [_loadingUsers, setLoadingUsers] = useState(true);
-
  const { data: activities, isLoading, refetch } = api.tasks.getActivities.useQuery({
  task_id: taskId,
  limit: 10,
  offset: 0,
+ });
+
+ // Load users data via tRPC
+ const { data: usersData } = api.users.getAllUsers.useQuery({
+ limit: 100,
+ offset: 0,
+ });
+
+ // Transform users data into lookup map
+ const users: Record<string, { name: string; initials: string; avatar: string | null }> = {};
+ usersData?.users?.forEach((user: any) => {
+ const firstName = user.first_name || '';
+ const lastName = user.last_name || '';
+ const fullName = `${firstName} ${lastName}`.trim() || user.email || 'Unknown User';
+ const initials = firstName && lastName
+   ? `${firstName[0]}${lastName[0]}`.toUpperCase()
+   : fullName.substring(0, 2).toUpperCase();
+
+ users[user.id] = {
+   name: fullName,
+   initials,
+   avatar: user.avatar_url || null,
+ };
  });
 
  const addActivityMutation = api.tasks.addActivity.useMutation({
@@ -62,25 +82,6 @@ export default function TaskActivities({ taskId, onUpdate }: TaskActivitiesProps
 
  // Get current user ID from auth
  const currentUserId = user?.id;
-
- // Load users data
- useEffect(() => {
- const fetchUsers = async () => {
- try {
- // TODO: Implement proper tRPC client call
- // const result = await api.users.getAllUsers.fetch({ limit: 100 });
- console.log('TODO: Load users data via tRPC');
- // TODO: Process user data when API is properly implemented
- setUsers({});
- } catch (error) {
- console.error('Failed to fetch users:', error);
- } finally {
- setLoadingUsers(false);
- }
- };
-
- fetchUsers();
- }, []);
 
  const handleAddComment = async () => {
  if (!commentText.trim() || isSubmitting || !currentUserId) return;

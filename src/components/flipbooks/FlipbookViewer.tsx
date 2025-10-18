@@ -13,7 +13,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, useTexture } from "@react-three/drei";
 import * as THREE from "three";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, Menu } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, Menu, Maximize, Minimize } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api/client";
 import { TOCPanel } from "@/components/flipbooks/navigation/TOCPanel";
@@ -226,8 +226,9 @@ export function FlipbookViewer({
   className,
 }: FlipbookViewerProps) {
   const [currentPage, setCurrentPage] = useState(initialPage);
-  // const [isFullscreen, setIsFullscreen] = useState(false); // TODO: implement fullscreen mode
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [showTOC, setShowTOC] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const totalPages = pages.length;
 
@@ -264,6 +265,33 @@ export function FlipbookViewer({
     [totalPages, onPageChange]
   );
 
+  // Fullscreen handlers
+  const toggleFullscreen = useCallback(() => {
+    if (!containerRef.current) return;
+
+    if (!document.fullscreenElement) {
+      containerRef.current
+        .requestFullscreen()
+        .then(() => setIsFullscreen(true))
+        .catch((err) => console.error('Fullscreen request failed:', err));
+    } else {
+      document
+        .exitFullscreen()
+        .then(() => setIsFullscreen(false))
+        .catch((err) => console.error('Exit fullscreen failed:', err));
+    }
+  }, []);
+
+  // Monitor fullscreen changes (e.g., ESC key)
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -279,18 +307,29 @@ export function FlipbookViewer({
       } else if (e.key === "End") {
         e.preventDefault();
         goToPage(totalPages);
+      } else if (e.key === "f" || e.key === "F") {
+        e.preventDefault();
+        toggleFullscreen();
       } else if (e.key === "Escape") {
         e.preventDefault();
-        onClose?.();
+        // ESC exits fullscreen first, then closes viewer
+        if (document.fullscreenElement) {
+          document.exitFullscreen();
+        } else {
+          onClose?.();
+        }
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [goToNextPage, goToPreviousPage, goToPage, totalPages, onClose]);
+  }, [goToNextPage, goToPreviousPage, goToPage, totalPages, toggleFullscreen, onClose]);
 
   return (
-    <div className={cn("relative h-full w-full bg-background flex", className)}>
+    <div
+      ref={containerRef}
+      className={cn("relative h-full w-full bg-background flex", className)}
+    >
       {/* TOC Panel (collapsible sidebar) */}
       {showTOC && tocData?.tocData && (
         <div className="w-80 border-r bg-background flex-shrink-0 z-20">
@@ -420,16 +459,29 @@ export function FlipbookViewer({
             </Button>
           </div>
 
-          {onClose && (
+          <div className="flex gap-2">
+            {/* Fullscreen Toggle Button */}
             <Button
               variant="outline"
               size="icon"
-              onClick={onClose}
+              onClick={toggleFullscreen}
               className="bg-white/10 text-white hover:bg-white/20"
+              title={isFullscreen ? "Exit fullscreen (F)" : "Enter fullscreen (F)"}
             >
-              <X className="h-5 w-5" />
+              {isFullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
             </Button>
-          )}
+
+            {onClose && (
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={onClose}
+                className="bg-white/10 text-white hover:bg-white/20"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -440,6 +492,7 @@ export function FlipbookViewer({
           <div>← → Arrow keys to navigate</div>
           <div>Space for next page</div>
           <div>Home/End for first/last</div>
+          <div>F for fullscreen</div>
           <div>ESC to close</div>
           {tocData?.tocData && <div>Click menu icon for TOC</div>}
         </div>

@@ -200,12 +200,11 @@ export const ordersRouter = createTRPCRouter({
                   collections: true,
                 },
               },
-              // TODO: Fix order_item_materials relationship when materials schema is corrected
-              // order_item_materials: {
-              //   include: {
-              //     materials: true,
-              //   },
-              // },
+              order_item_materials: {
+                include: {
+                  materials: true,
+                },
+              },
             },
           },
           shipments: true,

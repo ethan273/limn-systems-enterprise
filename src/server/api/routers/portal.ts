@@ -2188,12 +2188,29 @@ export const portalRouter = createTRPCRouter({
       limit: z.number().min(1).max(100).default(50),
       offset: z.number().min(0).default(0),
     }))
-    .query(async ({ ctx: _ctx, input }) => {
+    .query(async ({ ctx, input }) => {
+      // Get all manufacturer projects that have QC inspections assigned to this QC tester
+      const inspections = await prisma.quality_inspections.findMany({
+        where: {
+          inspector_name: ctx.entity?.company_name,
+        },
+        select: {
+          manufacturer_project_id: true,
+        },
+      });
+
+      // Extract unique project IDs
+      const projectIds = [...new Set(inspections.map(i => i.manufacturer_project_id).filter(Boolean))];
+
+      if (projectIds.length === 0) {
+        return { documents: [] };
+      }
+
+      // Filter documents by QC-related manufacturer projects and optional category
       const documents = await prisma.documents.findMany({
         where: {
-          category: input.documentType,
-          // Filter by QC-related documents
-          // TODO: Add proper relationship filtering when schema is clarified
+          ...(input.documentType && { category: input.documentType }),
+          manufacturer_project_id: { in: projectIds as string[] },
         },
         orderBy: {
           created_at: 'desc',

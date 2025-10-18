@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card as _Card, CardContent as _CardContent, CardHeader as _CardHeader, CardTitle as _CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -73,37 +74,37 @@ interface TaskNotificationsProps {
 export default function TaskNotifications({ onNotificationClick }: TaskNotificationsProps) {
  const { user } = useAuth();
  const [isOpen, setIsOpen] = useState(false);
- const [notifications, setNotifications] = useState<TaskNotification[]>([]);
- const [isLoading, setIsLoading] = useState(true);
 
  // Get current user ID from auth
  const currentUserId = user?.id;
 
- // Load notifications from API
- useEffect(() => {
- const loadNotifications = async () => {
- if (!currentUserId) {
- setIsLoading(false);
- return;
+ // Load notifications from API using React Query hook
+ const { data: notificationsData, isLoading, refetch } = api.notifications.getNotifications.useQuery(
+ {
+ limit: 50,
+ unreadOnly: false,
+ },
+ {
+ enabled: !!currentUserId,
  }
+ );
 
- try {
- // TODO: Implement notifications API endpoint
- // const notificationsData = await api.notifications.getUserNotifications.query({ userId: currentUserId });
- // setNotifications(notificationsData);
- console.log('Loading notifications for user:', currentUserId);
- // For now, set empty array since we don't have the API yet
- setNotifications([]);
- } catch (error) {
- console.error('Failed to load notifications:', error);
- setNotifications([]);
- } finally {
- setIsLoading(false);
- }
- };
-
- loadNotifications();
- }, [currentUserId]);
+ // Transform API response to match TaskNotification interface
+ const notifications: TaskNotification[] = notificationsData?.notifications?.map((notif: any) => ({
+ id: notif.id,
+ type: notif.type || 'task_assigned',
+ title: notif.title || 'Notification',
+ message: notif.message || '',
+ taskId: notif.entity_id || '',
+ taskTitle: (notif.data as any)?.taskTitle || notif.title || '',
+ userId: (notif.data as any)?.userId || notif.user_id || '',
+ userName: (notif.data as any)?.userName || 'System',
+ userAvatar: (notif.data as any)?.userAvatar,
+ isRead: !!notif.read_at,
+ isImportant: notif.priority === 'high' || notif.priority === 'urgent',
+ createdAt: notif.created_at ? new Date(notif.created_at) : new Date(),
+ actionUrl: notif.link,
+ })) || [];
 
  const unreadCount = notifications.filter(n => !n.isRead).length;
  const _importantUnreadCount = notifications.filter(n => !n.isRead && n.isImportant).length;
@@ -154,87 +155,55 @@ export default function TaskNotifications({ onNotificationClick }: TaskNotificat
  }
  };
 
- const markAsRead = async (notificationId: string) => {
- setNotifications(prev =>
- prev.map(n =>
- n.id === notificationId ? { ...n, isRead: true } : n
- )
- );
+ // Mutations
+ const markAsReadMutation = api.notifications.markAsRead.useMutation({
+ onSuccess: () => {
+ refetch();
+ },
+ });
 
- try {
- // TODO: Implement notification API endpoints
- // await api.notifications.markAsRead.mutate({ notificationId });
- console.log('Marking notification as read:', notificationId);
- } catch (error) {
- console.error('Failed to mark notification as read:', error);
- // Revert the optimistic update
- setNotifications(prev =>
- prev.map(n =>
- n.id === notificationId ? { ...n, isRead: false } : n
- )
- );
- }
+ const markAllAsReadMutation = api.notifications.markAllAsRead.useMutation({
+ onSuccess: () => {
+ refetch();
+ },
+ });
+
+ const deleteNotificationMutation = api.notifications.deleteNotification.useMutation({
+ onSuccess: () => {
+ refetch();
+ },
+ });
+
+ const clearAllMutation = api.notifications.clearAll.useMutation({
+ onSuccess: () => {
+ refetch();
+ },
+ });
+
+ const markAsUnreadMutation = api.notifications.markAsUnread.useMutation({
+ onSuccess: () => {
+ refetch();
+ },
+ });
+
+ const markAsRead = (notificationId: string) => {
+ markAsReadMutation.mutate({ notificationId });
  };
 
- const markAllAsRead = async () => {
- const unreadNotifications = notifications.filter(n => !n.isRead);
-
- setNotifications(prev =>
- prev.map(n => ({ ...n, isRead: true }))
- );
-
- try {
- // TODO: Implement notification API endpoints
- // await api.notifications.markAllAsRead.mutate({ userId: currentUserId });
- console.log('Marking all notifications as read for user:', currentUserId);
- } catch (error) {
- console.error('Failed to mark all notifications as read:', error);
- // Revert the optimistic update
- setNotifications(prev =>
- prev.map(n => {
- const wasUnread = unreadNotifications.find(un => un.id === n.id);
- return wasUnread ? { ...n, isRead: false } : n;
- })
- );
- }
+ const markAsUnread = (notificationId: string) => {
+ markAsUnreadMutation.mutate({ notificationId });
  };
 
- const deleteNotification = async (notificationId: string) => {
- const deletedNotification = notifications.find(n => n.id === notificationId);
-
- setNotifications(prev =>
- prev.filter(n => n.id !== notificationId)
- );
-
- try {
- // TODO: Implement notification API endpoints
- // await api.notifications.deleteNotification.mutate({ notificationId });
- console.log('Deleting notification:', notificationId);
- } catch (error) {
- console.error('Failed to delete notification:', error);
- // Revert the optimistic update
- if (deletedNotification) {
- setNotifications(prev => [...prev, deletedNotification].sort((a, b) =>
- new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
- ));
- }
- }
+ const markAllAsRead = () => {
+ markAllAsReadMutation.mutate();
  };
 
- const clearAllNotifications = async () => {
- const previousNotifications = [...notifications];
+ const deleteNotification = (notificationId: string) => {
+ deleteNotificationMutation.mutate({ notificationId });
+ };
 
- setNotifications([]);
-
- try {
- // TODO: Implement notification API endpoints
- // await api.notifications.clearAll.mutate({ userId: currentUserId });
- console.log('Clearing all notifications for user:', currentUserId);
- } catch (error) {
- console.error('Failed to clear all notifications:', error);
- // Revert the optimistic update
- setNotifications(previousNotifications);
- }
+ const clearAllNotifications = () => {
+ clearAllMutation.mutate();
  };
 
  const handleNotificationClick = (notification: TaskNotification) => {
@@ -398,11 +367,7 @@ export default function TaskNotifications({ onNotificationClick }: TaskNotificat
  <DropdownMenuItem
  onClick={(e) => {
  e.stopPropagation();
- setNotifications(prev =>
- prev.map(n =>
- n.id === notification.id ? { ...n, isRead: false } : n
- )
- );
+ markAsUnread(notification.id);
  }}
  >
  <Bell className="h-4 w-4 mr-2" />

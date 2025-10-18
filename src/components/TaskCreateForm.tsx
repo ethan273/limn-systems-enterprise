@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { api } from "@/lib/api/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -45,29 +45,23 @@ export default function TaskCreateForm({ onSuccess, onCancel }: TaskCreateFormPr
  const [tags, setTags] = useState<string[]>([]);
  const [newTag, setNewTag] = useState("");
  const [visibility, setVisibility] = useState<"company" | "project" | "private">("company");
- const [availableUsers, setAvailableUsers] = useState<Array<{ id: string; name: string; email: string; department: string }>>([]);
- const [loadingUsers, setLoadingUsers] = useState(true);
 
  // Get current user ID from auth
  const currentUserId = user?.id;
 
- // Load users data
- useEffect(() => {
- const fetchUsers = async () => {
- try {
- // TODO: Implement proper tRPC client call
- console.log('TODO: Load users data via tRPC');
- setAvailableUsers([]);
- } catch (error) {
- console.error('Failed to fetch users:', error);
- setAvailableUsers([]);
- } finally {
- setLoadingUsers(false);
- }
- };
+ // Load users data via tRPC
+ const { data: usersData, isLoading: loadingUsers } = api.users.getAllUsers.useQuery({
+ limit: 100,
+ offset: 0,
+ });
 
- fetchUsers();
- }, []);
+ // Transform users data for the form
+ const availableUsers = usersData?.users?.map((user: any) => ({
+ id: user.id,
+ name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email || 'Unknown User',
+ email: user.email || '',
+ department: user.department || 'admin',
+ })) || [];
 
  const createTaskMutation = api.tasks.create.useMutation({
  onSuccess: () => {

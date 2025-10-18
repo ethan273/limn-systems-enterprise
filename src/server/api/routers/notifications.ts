@@ -134,6 +134,53 @@ export const notificationsRouter = createTRPCRouter({
     }),
 
   /**
+   * Mark notification as unread
+   */
+  markAsUnread: protectedProcedure
+    .input(z.object({
+      notificationId: z.string().uuid(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // Verify notification belongs to user
+      const { data: notification, error: fetchError } = await supabase
+        .from('notifications')
+        .select('user_id')
+        .eq('id', input.notificationId)
+        .single();
+
+      if (fetchError || !notification) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Notification not found',
+        });
+      }
+
+      const notif = notification as any;
+      if (notif.user_id !== ctx.user!.id) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Cannot mark another user\'s notification',
+        });
+      }
+
+      // Mark as unread by setting read_at to null
+      const { error: updateError } = await supabase
+        .from('notifications')
+        // @ts-expect-error - Supabase types not available for update
+        .update({ read_at: null })
+        .eq('id', input.notificationId);
+
+      if (updateError) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to mark notification as unread',
+        });
+      }
+
+      return { success: true };
+    }),
+
+  /**
    * Mark all notifications as read
    */
   markAllAsRead: protectedProcedure
@@ -199,6 +246,27 @@ export const notificationsRouter = createTRPCRouter({
       }
 
       return { success: true };
+    }),
+
+  /**
+   * Clear all notifications (delete all for user)
+   */
+  clearAll: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      const { data, error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('user_id', ctx.user!.id)
+        .select();
+
+      if (error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to clear all notifications',
+        });
+      }
+
+      return { count: data?.length || 0 };
     }),
 
   /**

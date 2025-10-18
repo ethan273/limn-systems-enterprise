@@ -8,6 +8,7 @@
 import { z } from 'zod';
 import { createTRPCRouter, publicProcedure } from '../trpc/init';
 import { TRPCError } from '@trpc/server';
+import { getUserRole } from '@/lib/services/role-service';
 
 export const shopDrawingsRouter = createTRPCRouter({
   /**
@@ -248,6 +249,9 @@ export const shopDrawingsRouter = createTRPCRouter({
           },
         });
 
+        // Determine user role
+        const userRole = await getUserRole(userId);
+
         // Create first version
         await tx.shop_drawing_versions.create({
           data: {
@@ -258,7 +262,7 @@ export const shopDrawingsRouter = createTRPCRouter({
             file_size: BigInt(input.fileSize),
             mime_type: 'application/pdf',
             uploaded_by: userId,
-            uploaded_by_role: 'factory', // TODO: Determine role from user
+            uploaded_by_role: userRole,
             upload_notes: 'Initial submission',
             status: 'current',
           },
@@ -329,6 +333,9 @@ export const shopDrawingsRouter = createTRPCRouter({
           });
         }
 
+        // Determine user role
+        const userRole = await getUserRole(userId);
+
         // Create new version
         const newVersion = await tx.shop_drawing_versions.create({
           data: {
@@ -339,7 +346,7 @@ export const shopDrawingsRouter = createTRPCRouter({
             file_size: BigInt(input.fileSize),
             mime_type: 'application/pdf',
             uploaded_by: userId,
-            uploaded_by_role: 'factory', // TODO: Determine role from user
+            uploaded_by_role: userRole,
             upload_notes: input.uploadNotes,
             status: 'current',
           },
@@ -391,6 +398,9 @@ export const shopDrawingsRouter = createTRPCRouter({
 
       const userId = ctx.session.user.id;
 
+      // Determine user role
+      const userRole = await getUserRole(userId);
+
       const comment = await ctx.db.shop_drawing_comments.create({
         data: {
           drawing_version_id: input.drawingVersionId,
@@ -401,7 +411,7 @@ export const shopDrawingsRouter = createTRPCRouter({
           pdf_y_coordinate: input.pdfYCoordinate,
           annotation_data: input.annotationData,
           author_id: userId,
-          author_role: 'limn_team', // TODO: Determine role from user
+          author_role: userRole,
           status: 'open',
           parent_comment_id: input.parentCommentId,
         },
@@ -496,15 +506,15 @@ export const shopDrawingsRouter = createTRPCRouter({
         });
       }
 
-      // Determine approver role (TODO: from user role/permissions)
-      const approverRole = 'limn_team'; // or 'designer'
+      // Determine approver role from user
+      const userRole = await getUserRole(userId);
 
       // Create approval record
       const approval = await ctx.db.shop_drawing_approvals.create({
         data: {
           drawing_version_id: input.drawingVersionId,
           approver_id: userId,
-          approver_role: approverRole,
+          approver_role: userRole,
           decision: input.decision,
           comments: input.comments,
           is_conditional: input.isConditional,
