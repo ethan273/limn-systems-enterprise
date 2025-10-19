@@ -211,8 +211,8 @@ export default function TasksKanbanPage() {
             const StatusIcon = config.icon;
 
             return (
-              <Card key={status} className="card flex flex-col">
-                <CardHeader className="pb-3">
+              <Card key={status} className="flex flex-col border-none shadow-none bg-transparent">
+                <CardHeader className="pb-2 px-0">
                   <CardTitle className="card-title flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
                       <StatusIcon className={`h-4 w-4 ${config.textColor}`} />
@@ -224,8 +224,8 @@ export default function TasksKanbanPage() {
                   </CardTitle>
                 </CardHeader>
 
-                <CardContent className="flex-1 pt-0">
-                  <div className="space-y-3 max-h-[calc(100vh-400px)] overflow-y-auto">
+                <CardContent className="flex-1 px-0 py-0">
+                  <div className="space-y-2 max-h-[calc(100vh-400px)] overflow-y-auto">
                     {tasks.map((task) => {
                       const assignedUsers = task.assigned_to || [];
 

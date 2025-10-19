@@ -66,7 +66,13 @@ export default function EmployeeLoginPage() {
  }, [router, supabase])
 
  useEffect(() => {
+ // Skip session check if we're in the middle of an OAuth flow
+ const urlParams = new URLSearchParams(window.location.search)
+ const isOAuthCallback = urlParams.has('code') || urlParams.has('token')
+
+ if (!isOAuthCallback) {
  checkExistingSession()
+ }
  checkForOAuthErrors()
  }, [checkExistingSession])
 
@@ -131,7 +137,7 @@ export default function EmployeeLoginPage() {
  <div className="mb-6 flex justify-center">
  {mounted ? (
  <Image
- src={resolvedTheme === 'dark' ? '/images/Limn_Logo_Light_Mode.png' : '/images/Limn_Logo_Dark_Mode.png'}
+ src={resolvedTheme === 'dark' ? '/images/Limn_Logo_Dark_Mode.png' : '/images/Limn_Logo_Light_Mode.png'}
  alt="Limn Systems"
  width={180}
  height={50}

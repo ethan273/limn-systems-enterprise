@@ -2798,12 +2798,12 @@ export class DatabaseClient {
 
     // Build OR conditions for tasks assigned to user, created by user, or watched by user
     const conditions = [
-      `assigned_to.ov.{${userId}}`,
+      `assigned_to.cs.{${userId}}`,
       `created_by.eq.${userId}`
     ];
 
     if (includeWatching) {
-      conditions.push(`watchers.ov.{${userId}}`);
+      conditions.push(`watchers.cs.{${userId}}`);
     }
 
     query = query.or(conditions.join(','));

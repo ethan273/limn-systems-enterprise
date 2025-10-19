@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { api } from "@/lib/api/client";
 import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -65,10 +66,12 @@ export default function TaskCreateForm({ onSuccess, onCancel }: TaskCreateFormPr
 
  const createTaskMutation = api.tasks.create.useMutation({
  onSuccess: () => {
+ toast.success("Task created successfully");
  onSuccess?.();
  },
  onError: (error) => {
  console.error("Failed to create task:", error);
+ toast.error(`Failed to create task: ${error.message}`);
  },
  });
 
