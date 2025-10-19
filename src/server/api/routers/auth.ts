@@ -235,18 +235,22 @@ export const authRouter = createTRPCRouter({
         const total = allList.length;
 
         // Get recent activity (last 7 days)
+        // Filter in memory since wrapper doesn't support complex where clauses
         const sevenDaysAgo = new Date()
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
 
-        const recentRequests = await ctx.db.pending_user_requests.findMany({
-          where: {
-            requested_at: {
-              gte: sevenDaysAgo
-            }
-          },
-          orderBy: { requested_at: 'desc' },
-          take: 10
-        })
+        const recentRequests = allList
+          .filter((req: any) => {
+            if (!req.requested_at) return false;
+            const requestDate = new Date(req.requested_at);
+            return requestDate >= sevenDaysAgo;
+          })
+          .sort((a: any, b: any) => {
+            const dateA = new Date(a.requested_at || 0);
+            const dateB = new Date(b.requested_at || 0);
+            return dateB.getTime() - dateA.getTime();
+          })
+          .slice(0, 10);
 
         return {
           stats: {

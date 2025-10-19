@@ -26,8 +26,10 @@ export default function DashboardPage() {
  const isAdmin = (currentUser as any)?.user_type === 'super_admin';
 
  // Fetch admin stats for pending requests - only if user is admin
+ // Set retry to false to prevent blocking the UI if the query fails
  const { data: adminStats } = api.auth.getRequestStats.useQuery(undefined, {
- enabled: isAdmin
+ enabled: isAdmin,
+ retry: false
  })
 
  // Fetch executive dashboard data for business metrics

@@ -256,8 +256,9 @@ export default function Sidebar() {
  // If no allowedUserTypes specified, module is accessible to all
  if (!module.allowedUserTypes) return true;
 
- // If profile is not loaded yet, show all modules temporarily
- if (!userType) return true;
+ // If profile is not loaded yet, hide restricted modules (don't show temporarily)
+ // This prevents showing admin-only options before we know the user's role
+ if (!userType) return false;
 
  // Otherwise, check if user's type is in the allowed list
  return module.allowedUserTypes.includes(userType);
