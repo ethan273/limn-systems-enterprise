@@ -21,6 +21,9 @@ export default function SettingsPage() {
   const { data: user } = api.userProfile.getCurrentUser.useQuery();
   const { data: preferences, isLoading: prefsLoading } = api.userProfile.getPreferences.useQuery();
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   const userData = user as any;
   const userPrefs = preferences as any;
 
@@ -43,6 +46,8 @@ export default function SettingsPage() {
         title: "Profile updated",
         description: "Your profile has been updated successfully.",
       });
+      // Invalidate user profile query to refresh data
+      utils.userProfile.getCurrentUser.invalidate();
     },
     onError: (error) => {
       toast({
@@ -59,6 +64,8 @@ export default function SettingsPage() {
         title: "Preferences updated",
         description: "Your preferences have been updated successfully.",
       });
+      // Invalidate preferences query to refresh data
+      utils.userProfile.getPreferences.invalidate();
     },
     onError: (error) => {
       toast({
