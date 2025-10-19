@@ -128,33 +128,21 @@ export default function MaterialsPage() {
   // Get category ID for current tab
   const currentCategoryId = useMemo(() => {
     const expectedName = categoryNameMap[activeTab];
-    console.log('[Materials Debug] Active tab:', activeTab);
-    console.log('[Materials Debug] Expected category name:', expectedName);
-    console.log('[Materials Debug] Available categories:', categories?.map((c: any) => ({ id: c.id, name: c.name })));
     const found = categories?.find((c: any) => c.name === expectedName);
-    console.log('[Materials Debug] Found category ID:', found?.id);
     return found?.id;
   }, [categories, activeTab]);
 
   // Filter materials by category and hierarchy level
   const currentData = useMemo(() => {
     if (!allMaterials || !currentCategoryId) {
-      console.log('[Materials Debug] Filtering failed - allMaterials:', !!allMaterials, 'currentCategoryId:', currentCategoryId);
       return [];
     }
 
-    console.log('[Materials Debug] Sample material:', allMaterials[0]);
-    console.log('[Materials Debug] Total materials:', allMaterials.length);
-    const filtered = allMaterials.filter((m: any) => {
+    return allMaterials.filter((m: any) => {
       const matchesCategory = m.category_id === currentCategoryId;
       const matchesLevel = m.hierarchy_level === activeHierarchyLevel;
-      // Temporarily show ALL materials regardless of active status
-      // const matchesActive = m.active !== false;
-      console.log('[Materials Debug] Material', m.name, '- Category match:', matchesCategory, 'Level match:', matchesLevel, 'category_id:', m.category_id, 'level:', m.hierarchy_level);
       return matchesCategory && matchesLevel;
     });
-    console.log('[Materials Debug] Filtered', filtered.length, 'materials for category', currentCategoryId, 'level', activeHierarchyLevel);
-    return filtered;
   }, [allMaterials, currentCategoryId, activeHierarchyLevel]);
 
   // Get parent options for child items

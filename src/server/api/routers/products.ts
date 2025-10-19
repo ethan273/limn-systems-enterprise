@@ -297,8 +297,7 @@ export const productsRouter = createTRPCRouter({
     console.log(`[getAllMaterials] Total materials in DB: ${totalCount}, Active: ${activeCount}`);
 
     const materials = await (ctx.db as any).materials.findMany({
-      // Remove active filter to get ALL materials
-      // where: { active: true },
+      where: { active: true },
       include: {
         material_categories: true,
         materials: {
@@ -307,6 +306,13 @@ export const productsRouter = createTRPCRouter({
             name: true,
             hierarchy_path: true,
             type: true,
+            hierarchy_level: true,
+            materials: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
           },
         },
         other_materials: {
@@ -332,6 +338,8 @@ export const productsRouter = createTRPCRouter({
         { hierarchy_path: 'asc' },
         { name: 'asc' },
       ],
+      // Add explicit limit to fetch all materials (database wrapper defaults to 20)
+      take: 1000,
     });
 
     console.log(`[getAllMaterials] Found ${materials.length} materials`);
