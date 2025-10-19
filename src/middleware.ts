@@ -92,7 +92,12 @@ export async function middleware(request: NextRequest) {
     {
       cookies: {
         get(name: string) {
-          return request.cookies.get(name)?.value;
+          const value = request.cookies.get(name)?.value;
+          // Debug logging in production to diagnose cookie issues
+          if (name.includes('supabase') && process.env.NODE_ENV === 'production') {
+            console.log(`[Middleware Cookie Read] ${name}: ${value ? 'EXISTS' : 'MISSING'}`);
+          }
+          return value;
         },
         set(name: string, value: string, options: CookieOptions) {
           // Update response cookies
@@ -120,9 +125,15 @@ export async function middleware(request: NextRequest) {
     error: authError,
   } = await supabase.auth.getUser();
 
-  // Log auth errors for debugging (keep errors in production for monitoring)
+  // Enhanced logging for auth debugging
   if (authError) {
     console.error(`❌ Middleware: Auth error for ${pathname}:`, authError.message);
+
+    // Log all cookies to debug
+    const allCookies = request.cookies.getAll();
+    const supabaseCookies = allCookies.filter(c => c.name.includes('supabase'));
+    console.error(`   Supabase cookies present: ${supabaseCookies.length}`);
+    console.error(`   Cookie names:`, supabaseCookies.map(c => c.name));
   }
 
   // Handle root path - redirect based on authentication status

@@ -206,14 +206,17 @@ export async function GET(request: NextRequest) {
 
         // Apply all cookies that Supabase tried to set
         // CRITICAL: Ensure cookies work in production (Vercel)
+        console.log(`[Auth Callback] Setting ${cookiesToSetMagic.length} cookies for user ${userEmail}`);
         cookiesToSetMagic.forEach(({ name, value, options }) => {
-          response.cookies.set(name, value, {
+          const cookieOptions = {
             ...options,
             path: '/',
-            sameSite: 'lax',
+            sameSite: 'lax' as const,
             secure: process.env.NODE_ENV === 'production',
             httpOnly: true,
-          });
+          };
+          response.cookies.set(name, value, cookieOptions);
+          console.log(`[Auth Callback] Cookie set: ${name}, secure=${cookieOptions.secure}, httpOnly=${cookieOptions.httpOnly}`);
         });
 
         return response;
@@ -303,14 +306,17 @@ export async function GET(request: NextRequest) {
 
         // Apply all cookies that Supabase tried to set
         // CRITICAL: Ensure cookies work in production (Vercel)
+        console.log(`[Auth Callback OAuth] Setting ${cookiesToSet.length} cookies for user ${userEmail}`);
         cookiesToSet.forEach(({ name, value, options }) => {
-          response.cookies.set(name, value, {
+          const cookieOptions = {
             ...options,
             path: '/',
-            sameSite: 'lax',
+            sameSite: 'lax' as const,
             secure: process.env.NODE_ENV === 'production',
             httpOnly: true,
-          });
+          };
+          response.cookies.set(name, value, cookieOptions);
+          console.log(`[Auth Callback OAuth] Cookie set: ${name}, secure=${cookieOptions.secure}, httpOnly=${cookieOptions.httpOnly}`);
         });
 
         return response;
