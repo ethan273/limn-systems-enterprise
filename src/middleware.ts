@@ -100,19 +100,26 @@ export async function middleware(request: NextRequest) {
           return value;
         },
         set(name: string, value: string, options: CookieOptions) {
-          // Update response cookies
+          // Update response cookies with explicit sameSite configuration
+          // CRITICAL: Use 'none' in production to support incognito mode
+          const sameSiteValue = process.env.NODE_ENV === 'production' ? 'none' : 'lax';
           response.cookies.set({
             name,
             value,
             ...options,
+            sameSite: sameSiteValue as 'none' | 'lax',
+            secure: process.env.NODE_ENV === 'production',
           });
         },
         remove(name: string, options: CookieOptions) {
-          // Update response cookies
+          // Update response cookies with explicit sameSite configuration
+          const sameSiteValue = process.env.NODE_ENV === 'production' ? 'none' : 'lax';
           response.cookies.set({
             name,
             value: '',
             ...options,
+            sameSite: sameSiteValue as 'none' | 'lax',
+            secure: process.env.NODE_ENV === 'production',
           });
         },
       },

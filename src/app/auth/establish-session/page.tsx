@@ -16,11 +16,12 @@ function SessionEstablisher() {
   const destination = searchParams.get('destination') || '/dashboard';
 
   useEffect(() => {
-    // Small delay to ensure cookies are set
+    // Increased delay to ensure cookies are fully propagated in incognito mode
+    // OAuth redirect chains in incognito require more time for cookie persistence
     const timer = setTimeout(() => {
       router.push(destination);
       router.refresh(); // Force a refresh to re-run middleware with new session
-    }, 500);
+    }, 1500); // Increased from 500ms to 1500ms
 
     return () => clearTimeout(timer);
   }, [router, destination]);
