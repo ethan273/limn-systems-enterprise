@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { createTRPCRouter, publicProcedure } from '../trpc/init';
 import { db } from '@/lib/db';
+import { getCachedUserProfile } from '@/lib/cache';
 
 export const usersRouter = createTRPCRouter({
   // Get all users with search and pagination
@@ -19,12 +20,14 @@ export const usersRouter = createTRPCRouter({
     }),
 
   // Get a single user by ID
+  // ✅ CACHED: Uses server-side cache (5-minute TTL)
   getById: publicProcedure
     .input(z.object({
       id: z.string().uuid(),
     }))
     .query(async ({ ctx: _ctx, input }) => {
-      const user = await db.findUser(input.id);
+      // Use cached user profile instead of direct database call
+      const user = await getCachedUserProfile(input.id);
       if (!user) {
         throw new Error('User not found');
       }
