@@ -9,6 +9,15 @@ export function getSupabaseAdmin() {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
+    // CRITICAL DEBUG: Log env var status in production
+    console.log('[getSupabaseAdmin] Environment check:', {
+      hasUrl: !!supabaseUrl,
+      urlValue: supabaseUrl ? `${supabaseUrl.substring(0, 30)}...` : 'MISSING',
+      hasServiceKey: !!supabaseServiceKey,
+      serviceKeyPrefix: supabaseServiceKey ? supabaseServiceKey.substring(0, 20) + '...' : 'MISSING',
+      nodeEnv: process.env.NODE_ENV,
+    });
+
     if (!supabaseUrl || !supabaseServiceKey) {
       const missingVars: string[] = [];
       if (!supabaseUrl) missingVars.push('NEXT_PUBLIC_SUPABASE_URL');
