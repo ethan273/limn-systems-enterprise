@@ -205,8 +205,15 @@ export async function GET(request: NextRequest) {
         const response = NextResponse.redirect(redirectUrl);
 
         // Apply all cookies that Supabase tried to set
+        // CRITICAL: Ensure cookies work in production (Vercel)
         cookiesToSetMagic.forEach(({ name, value, options }) => {
-          response.cookies.set(name, value, options);
+          response.cookies.set(name, value, {
+            ...options,
+            path: '/',
+            sameSite: 'lax',
+            secure: process.env.NODE_ENV === 'production',
+            httpOnly: true,
+          });
         });
 
         return response;
@@ -295,8 +302,15 @@ export async function GET(request: NextRequest) {
         const response = NextResponse.redirect(redirectUrl);
 
         // Apply all cookies that Supabase tried to set
+        // CRITICAL: Ensure cookies work in production (Vercel)
         cookiesToSet.forEach(({ name, value, options }) => {
-          response.cookies.set(name, value, options);
+          response.cookies.set(name, value, {
+            ...options,
+            path: '/',
+            sameSite: 'lax',
+            secure: process.env.NODE_ENV === 'production',
+            httpOnly: true,
+          });
         });
 
         return response;
