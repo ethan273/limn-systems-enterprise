@@ -792,6 +792,49 @@ export const adminRouter = createTRPCRouter({
 
       return portalUsers;
     }),
+
+    /**
+     * Update portal user access
+     */
+    updatePortalUser: adminProcedure
+      .input(
+        z.object({
+          id: z.string().uuid(),
+          portalRole: z.string().optional(),
+          isActive: z.boolean().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { id, portalRole, isActive } = input;
+
+        const updateData: any = {};
+        if (portalRole !== undefined) updateData.portal_role = portalRole;
+        if (isActive !== undefined) updateData.is_active = isActive;
+
+        await prisma.customer_portal_access.update({
+          where: { id },
+          data: updateData,
+        });
+
+        return { success: true };
+      }),
+
+    /**
+     * Delete portal user access
+     */
+    deletePortalUser: adminProcedure
+      .input(
+        z.object({
+          id: z.string().uuid(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        await prisma.customer_portal_access.delete({
+          where: { id: input.id },
+        });
+
+        return { success: true };
+      }),
   }),
 
   // ==========================================

@@ -91,10 +91,16 @@ export default function AnalyticsDashboardPage() {
       sortable: true,
       render: (value) => {
         if (!value) return '—';
+        const date = new Date(value as string);
         return (
-          <div className="flex items-center gap-2">
-            <Clock className="icon-sm icon-muted" aria-hidden="true" />
-            <span>{new Date(value as string).toLocaleDateString()}</span>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <Clock className="icon-sm icon-muted" aria-hidden="true" />
+              <span className="font-medium">{date.toLocaleDateString()}</span>
+            </div>
+            <span className="text-xs text-muted-foreground ml-6">
+              {date.toLocaleTimeString()}
+            </span>
           </div>
         );
       },

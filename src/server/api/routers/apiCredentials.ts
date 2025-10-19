@@ -216,16 +216,21 @@ export const apiCredentialsRouter = createTRPCRouter({
     try {
       const thirtyDaysFromNow = new Date();
       thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+      const now = new Date();
 
-      const expiringCredentials = await ctx.db.api_credentials.findMany({
+      // WORKAROUND: Fetch all active credentials and filter in memory to avoid Supabase timezone bug
+      const allCredentials = await ctx.db.api_credentials.findMany({
         where: {
           is_active: true,
-          expires_at: {
-            lte: thirtyDaysFromNow,
-            gte: new Date(),
-          },
         },
         orderBy: { expires_at: 'asc' },
+      });
+
+      // Filter for expiring credentials in memory
+      const expiringCredentials = allCredentials.filter((cred) => {
+        if (!cred.expires_at) return false;
+        const expiresAt = new Date(cred.expires_at);
+        return expiresAt >= now && expiresAt <= thirtyDaysFromNow;
       });
 
       // Get unique user IDs

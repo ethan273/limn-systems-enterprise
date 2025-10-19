@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -12,6 +13,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { api } from '@/lib/api/client';
 import {
   Users,
@@ -21,9 +30,12 @@ import {
   Settings,
   Search,
   Filter,
+  Trash2,
+  Edit,
 } from 'lucide-react';
 import { PortalModuleConfigDialog } from '@/components/admin/PortalModuleConfigDialog';
 import { DataTable, type DataTableColumn } from '@/components/common';
+import { toast } from '@/hooks/use-toast';
 
 /**
  * Portal Management Dashboard
@@ -35,9 +47,72 @@ export default function PortalManagementPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [configDialogOpen, setConfigDialogOpen] = useState(false);
   const [configPortalType, setConfigPortalType] = useState<'customer' | 'designer' | 'factory' | 'qc'>('customer');
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<any>(null);
 
   // Fetch all portal access records
   const { data: portalUsers, isLoading } = api.admin.roles.getAllPortalUsers.useQuery();
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
+  // Update mutation
+  const updateMutation = api.admin.roles.updatePortalUser.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Portal user updated successfully",
+      });
+      utils.admin.roles.getAllPortalUsers.invalidate();
+      setEditDialogOpen(false);
+      setEditingUser(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update portal user",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete mutation
+  const deleteMutation = api.admin.roles.deletePortalUser.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Portal user deleted successfully",
+      });
+      utils.admin.roles.getAllPortalUsers.invalidate();
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete portal user",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEdit = (user: any) => {
+    setEditingUser(user);
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingUser) return;
+    updateMutation.mutate({
+      id: editingUser.id,
+      portalRole: editingUser.portal_role,
+      isActive: editingUser.is_active,
+    });
+  };
+
+  const handleDelete = (id: string, email: string) => {
+    if (confirm(`Are you sure you want to delete portal access for ${email}?`)) {
+      deleteMutation.mutate({ id });
+    }
+  };
 
   const portalTypes = [
     { value: 'all', label: 'All Portals', count: portalUsers?.length || 0 },
@@ -123,10 +198,20 @@ export default function PortalManagementPage() {
     {
       key: 'id',
       label: 'Actions',
-      render: () => (
-        <div className="text-right">
-          <Button variant="ghost" size="sm">
-            Edit
+      render: (_value, row) => (
+        <div className="flex gap-2 justify-end">
+          <Button variant="ghost" size="sm" onClick={() => handleEdit(row)}>
+            <Edit className="icon-sm" aria-hidden="true" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleDelete(
+              row.id as string,
+              (row.users_customer_portal_access_user_idTousers as { email?: string } | null)?.email || 'this user'
+            )}
+          >
+            <Trash2 className="icon-sm icon-destructive" aria-hidden="true" />
           </Button>
         </div>
       ),
@@ -308,6 +393,64 @@ export default function PortalManagementPage() {
         isOpen={configDialogOpen}
         onClose={() => setConfigDialogOpen(false)}
       />
+
+      {/* Edit Portal User Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Portal Access</DialogTitle>
+            <DialogDescription>
+              Update portal role and status for{' '}
+              {editingUser?.users_customer_portal_access_user_idTousers?.email || 'user'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="form-container">
+            <div className="form-field">
+              <Label htmlFor="portal-role">Portal Role</Label>
+              <Select
+                value={editingUser?.portal_role || 'viewer'}
+                onValueChange={(value) =>
+                  setEditingUser({ ...editingUser, portal_role: value })
+                }
+              >
+                <SelectTrigger id="portal-role">
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="editor">Editor</SelectItem>
+                  <SelectItem value="viewer">Viewer</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="form-field">
+              <Label htmlFor="is-active">Status</Label>
+              <Select
+                value={editingUser?.is_active ? 'active' : 'inactive'}
+                onValueChange={(value) =>
+                  setEditingUser({ ...editingUser, is_active: value === 'active' })
+                }
+              >
+                <SelectTrigger id="is-active">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEdit} disabled={updateMutation.isPending}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

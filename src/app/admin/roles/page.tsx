@@ -52,6 +52,22 @@ export default function RolesManagementPage() {
   // Fetch role statistics
   const { data: roleStats, isLoading } = api.admin.roles.getRoleStats.useQuery();
 
+  // Fetch users by role - MOVED BEFORE CONDITIONAL RETURN
+  const { data: roleUsers } = api.admin.roles.getUsersByRole.useQuery(
+    { role: selectedRole },
+    { enabled: !!selectedRole }
+  );
+
+  // Fetch all users for assignment - MOVED BEFORE CONDITIONAL RETURN
+  const { data: allUsers } = api.admin.users.list.useQuery({
+    search: searchQuery || undefined,
+    limit: 50,
+    offset: 0,
+  });
+
+  // Get tRPC utils for cache invalidation - MOVED BEFORE CONDITIONAL RETURN
+  const utils = api.useUtils();
+
   if (isLoading) {
     return (
       <div className="page-container">
@@ -59,22 +75,6 @@ export default function RolesManagementPage() {
       </div>
     );
   }
-
-  // Fetch users by role
-  const { data: roleUsers } = api.admin.roles.getUsersByRole.useQuery(
-    { role: selectedRole },
-    { enabled: !!selectedRole }
-  );
-
-  // Fetch all users for assignment
-  const { data: allUsers } = api.admin.users.list.useQuery({
-    search: searchQuery || undefined,
-    limit: 50,
-    offset: 0,
-  });
-
-  // Get tRPC utils for cache invalidation
-  const utils = api.useUtils();
 
   // Assign role mutation
   const assignMutation = api.admin.roles.assignRole.useMutation({
