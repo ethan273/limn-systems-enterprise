@@ -14,6 +14,7 @@ import {
   Save,
   Building2,
 } from 'lucide-react';
+import { LoadingState } from '@/components/ui/loading-state';
 
 /**
  * QC Portal Settings
@@ -26,12 +27,20 @@ export default function QCSettingsPage() {
   const [smsNotifications, setSmsNotifications] = useState(false);
   const [inAppNotifications, setInAppNotifications] = useState(true);
 
-  const { data: userInfo } = api.portal.getCurrentUser.useQuery();
-  const { data: _portalSettings } = api.portal.getPortalSettings.useQuery();
+  const { data: userInfo, isLoading: isLoadingUser } = api.portal.getCurrentUser.useQuery();
+  const { data: _portalSettings, isLoading: isLoadingSettings } = api.portal.getPortalSettings.useQuery();
   const updatePreferencesMutation = api.portal.updateNotificationPreferences.useMutation();
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
+
+  if (isLoadingUser || isLoadingSettings) {
+    return (
+      <div className="page-container">
+        <LoadingState message="Loading settings..." size="lg" />
+      </div>
+    );
+  }
 
   const handleSave = async () => {
     try {

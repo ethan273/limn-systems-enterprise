@@ -12,6 +12,7 @@ import {
   type StatItem,
   type DataTableColumn,
 } from "@/components/common";
+import { LoadingState } from "@/components/ui/loading-state";
 import { DollarSign, Package, TrendingUp, AlertCircle, Clock, CheckCircle } from "lucide-react";
 import Link from "next/link";
 
@@ -21,14 +22,22 @@ export default function ProductionDashboardPage() {
 
   // Auth is handled by middleware - no client-side redirect needed
 
-  const { data: stats } = api.productionTracking.getDashboardStats.useQuery(
+  const { data: stats, isLoading: isLoadingStats } = api.productionTracking.getDashboardStats.useQuery(
     { date_range: _dateRange },
     { enabled: true } // Middleware ensures auth
   );
-  const { data: progress } = api.productionTracking.getProductionProgress.useQuery(
+  const { data: progress, isLoading: isLoadingProgress } = api.productionTracking.getProductionProgress.useQuery(
     { limit: 10 },
     { enabled: true } // Middleware ensures auth
   );
+
+  if (isLoadingStats || isLoadingProgress) {
+    return (
+      <div className="page-container">
+        <LoadingState message="Loading production dashboard..." size="lg" />
+      </div>
+    );
+  }
 
   // Middleware handles authentication - no need for client-side auth checks
   // Page will be protected by middleware before reaching here

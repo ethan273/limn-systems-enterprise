@@ -8,6 +8,7 @@
 
 import { useState } from 'react';
 import { api } from '@/lib/api/client';
+import { LoadingState } from '@/components/ui/loading-state';
 import Link from 'next/link';
 import {
   RefreshCw,
@@ -24,7 +25,15 @@ export default function CredentialRotationPage() {
   const [confirmRotation, setConfirmRotation] = useState(false);
 
   // Fetch all credentials
-  const { data: credentials } = api.apiCredentials.getAll.useQuery();
+  const { data: credentials, isLoading } = api.apiCredentials.getAll.useQuery();
+
+  if (isLoading) {
+    return (
+      <div className="page-container">
+        <LoadingState message="Loading credentials..." size="lg" />
+      </div>
+    );
+  }
 
   // Fetch rotation status for selected credential
   const { data: rotationStatus, refetch: refetchStatus } =

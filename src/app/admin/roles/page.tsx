@@ -25,6 +25,7 @@ import {
 import { UserCog, Plus, Trash2, Search } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { DataTable, type DataTableColumn } from "@/components/common";
+import { LoadingState } from "@/components/ui/loading-state";
 
 // Dynamic route configuration
 export const dynamic = 'force-dynamic';
@@ -50,7 +51,15 @@ export default function RolesManagementPage() {
   });
 
   // Fetch role statistics
-  const { data: roleStats } = api.admin.roles.getRoleStats.useQuery();
+  const { data: roleStats, isLoading } = api.admin.roles.getRoleStats.useQuery();
+
+  if (isLoading) {
+    return (
+      <div className="page-container">
+        <LoadingState message="Loading roles..." size="lg" />
+      </div>
+    );
+  }
 
   // Fetch users by role
   const { data: roleUsers } = api.admin.roles.getUsersByRole.useQuery(

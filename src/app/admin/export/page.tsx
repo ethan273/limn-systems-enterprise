@@ -5,6 +5,7 @@ import { api } from "@/lib/api/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { LoadingState } from "@/components/ui/loading-state";
 import {
   Select,
   SelectContent,
@@ -26,7 +27,15 @@ export default function DataExportPage() {
   const [exportFormat, setExportFormat] = useState<ExportFormat>('csv');
 
   // Fetch export stats
-  const { data: stats } = api.export.getExportStats.useQuery();
+  const { data: stats, isLoading } = api.export.getExportStats.useQuery();
+
+  if (isLoading) {
+    return (
+      <div className="page-container">
+        <LoadingState message="Loading export data..." size="lg" />
+      </div>
+    );
+  }
 
   // Export mutations
   const exportUsersMutation = api.export.exportUsers.useMutation({

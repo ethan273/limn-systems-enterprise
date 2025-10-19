@@ -57,6 +57,7 @@ import {
 import { OrderCreationDialog, type OrderCreationFormData } from "@/components/crm/OrderCreationDialog";
 import { generateProductSku } from "@/lib/utils/product-sku-generator";
 import { getFullName } from "@/lib/utils/name-utils";
+import { LoadingState } from "@/components/ui/loading-state";
 
 interface Project {
  id: string;
@@ -325,7 +326,7 @@ export default function ProjectsPage() {
  const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
 
  // Query all materials at parent level for SKU generation in handleSaveOrder
- const { data: allMaterialsForSKU } = api.products.getAllMaterials.useQuery();
+ const { data: allMaterialsForSKU, isLoading: isLoadingMaterials } = api.products.getAllMaterials.useQuery();
 
  // State for tracking order items across dialog sessions
  const [orderItems, setOrderItems] = useState<Array<{
@@ -342,7 +343,7 @@ export default function ProjectsPage() {
  }>>([]);
 
  // Get projects from API
- const { data: projectsData } = api.projects.getAll.useQuery({
+ const { data: projectsData, isLoading: isLoadingProjects } = api.projects.getAll.useQuery({
  limit: 100,
  offset: 0,
  });
@@ -350,12 +351,21 @@ export default function ProjectsPage() {
  const projects = projectsData?.items || [];
 
  // Get collections and customers for SKU generation
- const { data: collections } = api.products.getAllCollections.useQuery();
- const { data: customersData } = api.crm.customers.getAll.useQuery({
+ const { data: collections, isLoading: isLoadingCollections } = api.products.getAllCollections.useQuery();
+ const { data: customersData, isLoading: isLoadingCustomers } = api.crm.customers.getAll.useQuery({
  limit: 100,
  offset: 0,
  });
  const _customers = customersData?.items || [];
+
+ // Loading state check
+ if (isLoadingProjects || isLoadingMaterials || isLoadingCollections || isLoadingCustomers) {
+   return (
+     <div className="page-container">
+       <LoadingState message="Loading projects..." size="lg" />
+     </div>
+   );
+ }
 
  const filteredProjects = projects.filter((project: any) => {
  const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

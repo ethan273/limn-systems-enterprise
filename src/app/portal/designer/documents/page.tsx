@@ -2,6 +2,7 @@
 
 import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { LoadingState } from '@/components/ui/loading-state';
 import { FileText } from 'lucide-react';
 
 /**
@@ -10,7 +11,15 @@ import { FileText } from 'lucide-react';
  * Phase 3: Portal router integration
  */
 export default function DesignerDocumentsPage() {
-  const { data: _userInfo } = api.portal.getCurrentUser.useQuery();
+  const { data: _userInfo, isLoading } = api.portal.getCurrentUser.useQuery();
+
+  if (isLoading) {
+    return (
+      <div className="page-container">
+        <LoadingState message="Loading documents..." size="lg" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

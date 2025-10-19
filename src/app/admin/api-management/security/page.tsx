@@ -4,6 +4,7 @@ import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { LoadingState } from '@/components/ui/loading-state';
 import Link from 'next/link';
 import {
   Shield,
@@ -22,10 +23,10 @@ export default function SecurityDashboard() {
   };
 
   // Fetch security metrics
-  const { data: metrics } = api.apiSecurity.getSecurityMetrics.useQuery();
+  const { data: metrics, isLoading: isLoadingMetrics } = api.apiSecurity.getSecurityMetrics.useQuery();
 
   // Fetch recent audit logs
-  const { data: auditData } = api.apiAudit.getAuditLogs.useQuery({
+  const { data: auditData, isLoading: isLoadingAudit } = api.apiAudit.getAuditLogs.useQuery({
     limit: 50,
     offset: 0,
     startDate: dateRange.start,
@@ -33,13 +34,21 @@ export default function SecurityDashboard() {
   });
 
   // Fetch audit statistics
-  const { data: stats } = api.apiAudit.getAuditStatistics.useQuery({
+  const { data: stats, isLoading: isLoadingStats } = api.apiAudit.getAuditStatistics.useQuery({
     startDate: dateRange.start,
     endDate: dateRange.end,
   });
 
   // Fetch active emergency access
-  const { data: emergencyAccess } = api.apiSecurity.getActiveEmergencyAccess.useQuery();
+  const { data: emergencyAccess, isLoading: isLoadingEmergency } = api.apiSecurity.getActiveEmergencyAccess.useQuery();
+
+  if (isLoadingMetrics || isLoadingAudit || isLoadingStats || isLoadingEmergency) {
+    return (
+      <div className="page-container">
+        <LoadingState message="Loading security dashboard..." size="lg" />
+      </div>
+    );
+  }
 
   const logs = auditData?.logs || [];
   const totalLogs = auditData?.total || 0;

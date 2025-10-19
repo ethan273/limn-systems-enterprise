@@ -36,21 +36,30 @@ import {
 } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { LoadingState } from '@/components/ui/loading-state';
 
 export default function AnalyticsPage() {
   const [dateRange, setDateRange] = useState<7 | 30 | 90>(30);
 
   // Fetch analytics data
-  const { data: credentials, refetch: refetchCredentials } = api.apiCredentials.getAll.useQuery(undefined, {
+  const { data: credentials, refetch: refetchCredentials, isLoading: isLoadingCredentials } = api.apiCredentials.getAll.useQuery(undefined, {
     refetchOnMount: true,
   });
 
-  const { data: auditStats, refetch: refetchAuditStats } = api.apiAudit.getAuditStatistics.useQuery({
+  const { data: auditStats, refetch: refetchAuditStats, isLoading: isLoadingAudit } = api.apiAudit.getAuditStatistics.useQuery({
     startDate: new Date(Date.now() - dateRange * 24 * 60 * 60 * 1000).toISOString(),
     endDate: new Date().toISOString(),
   });
 
-  const { data: healthDashboard, refetch: refetchHealthDashboard } = api.apiHealth.getHealthDashboard.useQuery();
+  const { data: healthDashboard, refetch: refetchHealthDashboard, isLoading: isLoadingHealth } = api.apiHealth.getHealthDashboard.useQuery();
+
+  if (isLoadingCredentials || isLoadingAudit || isLoadingHealth) {
+    return (
+      <div className="page-container">
+        <LoadingState message="Loading analytics..." size="lg" />
+      </div>
+    );
+  }
 
   // Calculate analytics data
   const calculateUsageByService = () => {

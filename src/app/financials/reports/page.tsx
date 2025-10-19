@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
+import { LoadingState } from "@/components/ui/loading-state";
 import { FileText, DollarSign, TrendingUp, Download } from "lucide-react";
 import { useState } from "react";
 
@@ -15,7 +16,7 @@ export default function FinancialReportsPage() {
   const [dateTo, setDateTo] = useState("");
 
   // Fetch invoices for reporting
-  const { data: invoicesData } = api.invoices.getAll.useQuery(
+  const { data: invoicesData, isLoading: isLoadingInvoices } = api.invoices.getAll.useQuery(
     {
       limit: 1000,
       offset: 0,
@@ -26,7 +27,7 @@ export default function FinancialReportsPage() {
   );
 
   // Fetch payments for reporting
-  const { data: paymentsData } = api.payments.getAll.useQuery(
+  const { data: paymentsData, isLoading: isLoadingPayments } = api.payments.getAll.useQuery(
     {
       limit: 1000,
       offset: 0,
@@ -37,7 +38,7 @@ export default function FinancialReportsPage() {
   );
 
   // Fetch expenses stats
-  const { data: expensesStats } = api.expenses.getStats.useQuery(
+  const { data: expensesStats, isLoading: isLoadingExpenses } = api.expenses.getStats.useQuery(
     {
       dateFrom,
       dateTo,
@@ -46,6 +47,14 @@ export default function FinancialReportsPage() {
       enabled: true,
     }
   );
+
+  if (isLoadingInvoices || isLoadingPayments || isLoadingExpenses) {
+    return (
+      <div className="page-container">
+        <LoadingState message="Loading financial reports..." size="lg" />
+      </div>
+    );
+  }
 
   const invoices = invoicesData?.items || [];
   const payments = paymentsData?.items || [];

@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { LoadingState } from '@/components/ui/loading-state';
 import { Palette } from 'lucide-react';
 
 /**
@@ -19,7 +20,15 @@ import { Palette } from 'lucide-react';
  * Phase 3: Portal router integration
  */
 export default function DesignerSettingsPage() {
-  const { data: userInfo } = api.portal.getCurrentUser.useQuery();
+  const { data: userInfo, isLoading } = api.portal.getCurrentUser.useQuery();
+
+  if (isLoading) {
+    return (
+      <div className="page-container">
+        <LoadingState message="Loading settings..." size="lg" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { api } from '@/lib/api/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { LoadingState } from '@/components/ui/loading-state';
 import {
   Shield,
   Key,
@@ -19,8 +20,16 @@ import {
 
 export default function ApiManagementDashboard() {
   // Fetch credentials for stats
-  const { data: credentials } = api.apiCredentials.getAll.useQuery();
-  const { data: expiringCredentials } = api.apiCredentials.getExpiring.useQuery();
+  const { data: credentials, isLoading: isLoadingCredentials } = api.apiCredentials.getAll.useQuery();
+  const { data: expiringCredentials, isLoading: isLoadingExpiring } = api.apiCredentials.getExpiring.useQuery();
+
+  if (isLoadingCredentials || isLoadingExpiring) {
+    return (
+      <div className="page-container">
+        <LoadingState message="Loading API management dashboard..." size="lg" />
+      </div>
+    );
+  }
 
   // Calculate stats
   const totalCredentials = credentials?.length || 0;

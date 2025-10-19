@@ -19,6 +19,7 @@ import {
   Edit,
   CheckCircle,
 } from 'lucide-react';
+import { LoadingState } from '@/components/ui/loading-state';
 
 /**
  * Customer Portal Profile Page
@@ -28,12 +29,20 @@ export default function CustomerProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success'>('idle');
 
-  const { data: userInfo } = api.portal.getCurrentUser.useQuery();
-  const { data: portalSettings } = api.portal.getPortalSettings.useQuery();
+  const { data: userInfo, isLoading: isLoadingUser } = api.portal.getCurrentUser.useQuery();
+  const { data: portalSettings, isLoading: isLoadingSettings } = api.portal.getPortalSettings.useQuery();
   const updatePreferencesMutation = api.portal.updateNotificationPreferences.useMutation();
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
+
+  if (isLoadingUser || isLoadingSettings) {
+    return (
+      <div className="page-container">
+        <LoadingState message="Loading profile..." size="lg" />
+      </div>
+    );
+  }
 
   // Extract notification preferences
   const notificationPrefs = (portalSettings?.notification_preferences as any) || {

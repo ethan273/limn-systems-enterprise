@@ -8,6 +8,7 @@
 
 import { useState } from 'react';
 import { api } from '@/lib/api/client';
+import { LoadingState } from '@/components/ui/loading-state';
 import Link from 'next/link';
 import {
   Activity,
@@ -33,11 +34,19 @@ export default function HealthMonitoringPage() {
   const [autoRefresh, setAutoRefresh] = useState(true);
 
   // Fetch health dashboard with real-time updates
-  const { data: dashboard, refetch: refetchDashboard } =
+  const { data: dashboard, refetch: refetchDashboard, isLoading } =
     api.apiHealth.getHealthDashboard.useQuery(undefined, {
       refetchInterval: autoRefresh ? 30000 : false, // Refresh every 30 seconds when enabled
       refetchOnWindowFocus: true,
     });
+
+  if (isLoading) {
+    return (
+      <div className="page-container">
+        <LoadingState message="Loading health dashboard..." size="lg" />
+      </div>
+    );
+  }
 
   // Fetch detailed metrics for selected credential with real-time updates
   const { data: uptimeMetrics } = api.apiHealth.getUptimeMetrics.useQuery(

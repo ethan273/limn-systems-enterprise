@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DashboardStatCard } from "@/components/dashboard/DashboardStatCard";
+import { LoadingState } from "@/components/ui/loading-state";
 import {
   Users,
   Activity,
@@ -24,10 +25,18 @@ export const dynamic = 'force-dynamic';
 
 export default function AdminDashboardPage() {
   // Fetch overview data
-  const { data: usersData } = api.admin.users.list.useQuery({ limit: 100, offset: 0 });
-  const { data: activityStats } = api.audit.getActivityStats.useQuery({ days: 30 });
-  const { data: roleStats } = api.admin.roles.getRoleStats.useQuery();
-  const { data: exportStats } = api.export.getExportStats.useQuery();
+  const { data: usersData, isLoading: isLoadingUsers } = api.admin.users.list.useQuery({ limit: 100, offset: 0 });
+  const { data: activityStats, isLoading: isLoadingActivity } = api.audit.getActivityStats.useQuery({ days: 30 });
+  const { data: roleStats, isLoading: isLoadingRoles } = api.admin.roles.getRoleStats.useQuery();
+  const { data: exportStats, isLoading: isLoadingExport } = api.export.getExportStats.useQuery();
+
+  if (isLoadingUsers || isLoadingActivity || isLoadingRoles || isLoadingExport) {
+    return (
+      <div className="page-container">
+        <LoadingState message="Loading admin dashboard..." size="lg" />
+      </div>
+    );
+  }
 
   const totalUsers = usersData?.total || 0;
   const activeUsers = usersData?.users.filter((u) => u.isActive).length || 0;
