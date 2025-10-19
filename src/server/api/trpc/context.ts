@@ -3,12 +3,14 @@ import type { CreateNextContextOptions } from '@trpc/server/adapters/next';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import type { Session } from '@supabase/supabase-js';
+import { cache } from 'react';
 
 /**
  * Create Supabase server client to get session
  * Uses getUser() instead of getSession() for security - validates with Supabase server
+ * ✅ WRAPPED WITH cache() FOR REQUEST DEDUPLICATION (Phase 3)
  */
-async function getSession(): Promise<Session | null> {
+const getSession = cache(async (): Promise<Session | null> => {
   try {
     const cookieStore = await cookies();
 
@@ -61,7 +63,7 @@ async function getSession(): Promise<Session | null> {
     console.error('[tRPC Context] Error getting session:', error);
     return null;
   }
-}
+});
 
 interface CreateContextOptions {
   session?: Session | null;
@@ -71,9 +73,11 @@ interface CreateContextOptions {
 
 /**
  * Creates context for an incoming request
+ * ✅ WRAPPED WITH cache() FOR REQUEST DEDUPLICATION (Phase 3)
+ * Prevents duplicate context creation and session checks within same request
  * @link https://trpc.io/docs/context
  */
-export async function createContext(opts: CreateNextContextOptions | CreateContextOptions) {
+export const createContext = cache(async (opts: CreateNextContextOptions | CreateContextOptions) => {
   // Get session from Supabase if not provided
   const session = 'session' in opts && opts.session !== undefined
     ? opts.session
@@ -86,6 +90,6 @@ export async function createContext(opts: CreateNextContextOptions | CreateConte
     req: 'req' in opts ? opts.req : undefined,
     res: 'res' in opts ? opts.res : undefined,
   };
-}
+});
 
 export type Context = Awaited<ReturnType<typeof createContext>>;
