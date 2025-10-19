@@ -187,6 +187,69 @@ export const storageRouter = createTRPCRouter({
     }),
 
   /**
+   * Update file metadata
+   */
+  updateFile: publicProcedure
+    .input(
+      z.object({
+        fileId: z.string(),
+        fileName: z.string().optional(),
+        category: z.string().optional(),
+        projectId: z.string().optional(),
+        briefId: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.session?.user?.id) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'User must be logged in',
+        });
+      }
+
+      const userId = ctx.session.user.id;
+
+      // Get file record
+      const file = await ctx.db.design_files.findUnique({
+        where: { id: input.fileId },
+      });
+
+      if (!file) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'File not found',
+        });
+      }
+
+      // Check if user owns the file
+      if (file.uploaded_by !== userId) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You do not have permission to update this file',
+        });
+      }
+
+      // Build update data
+      const updateData: any = {};
+      if (input.fileName !== undefined) updateData.file_name = input.fileName;
+      if (input.category !== undefined) updateData.category = input.category;
+      if (input.projectId !== undefined) updateData.project_id = input.projectId;
+      if (input.briefId !== undefined) updateData.design_brief_id = input.briefId;
+
+      // Update database
+      const updatedFile = await ctx.db.design_files.update({
+        where: { id: input.fileId },
+        data: updateData,
+      });
+
+      return {
+        success: true,
+        message: 'File updated successfully',
+        file: updatedFile,
+      };
+    }),
+
+  /**
    * Delete file
    */
   deleteFile: publicProcedure

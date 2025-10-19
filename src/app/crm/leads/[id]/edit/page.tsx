@@ -24,6 +24,8 @@ import {
   AlertCircle,
   TrendingUp,
   Target,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
 import { PageHeader, LoadingState } from '@/components/common';
 import { toast } from 'sonner';
@@ -59,9 +61,11 @@ export default function EditLeadPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { data: leadData, isLoading } = api.crm.leads.getById.useQuery({
+  const { data: leadData, isLoading, error: queryError } = api.crm.leads.getById.useQuery({
     id: leadId,
   });
+
+  const utils = api.useUtils();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -138,6 +142,32 @@ export default function EditLeadPage() {
     return (
       <div className="page-container">
         <LoadingState message="Loading lead..." size="lg" />
+      </div>
+    );
+  }
+
+  if (queryError) {
+    return (
+      <div className="page-container">
+        <div className="flex flex-col items-center justify-center py-12 space-y-4">
+          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-destructive/10">
+            <AlertTriangle className="w-8 h-8 text-destructive" />
+          </div>
+          <div className="text-center space-y-2">
+            <h3 className="text-lg font-semibold">Failed to load lead</h3>
+            <p className="text-sm text-muted-foreground max-w-md">
+              {queryError.message || 'An error occurred while loading the lead.'}
+            </p>
+          </div>
+          <Button
+            onClick={() => utils.crm.leads.getById.invalidate({ id: leadId })}
+            variant="outline"
+            className="gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Try Again
+          </Button>
+        </div>
       </div>
     );
   }

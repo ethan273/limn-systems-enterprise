@@ -16,6 +16,8 @@ import {
   Save,
   X,
   AlertCircle,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
 import { PageHeader, LoadingState } from '@/components/common';
 import { toast } from 'sonner';
@@ -27,9 +29,11 @@ export default function EditCustomerPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { data: customerData, isLoading } = api.crm.customers.getById.useQuery({
+  const { data: customerData, isLoading, error: queryError } = api.crm.customers.getById.useQuery({
     id: customerId,
   });
+
+  const utils = api.useUtils();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -105,6 +109,32 @@ export default function EditCustomerPage() {
     return (
       <div className="page-container">
         <LoadingState message="Loading customer..." size="lg" />
+      </div>
+    );
+  }
+
+  if (queryError) {
+    return (
+      <div className="page-container">
+        <div className="flex flex-col items-center justify-center py-12 space-y-4">
+          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-destructive/10">
+            <AlertTriangle className="w-8 h-8 text-destructive" />
+          </div>
+          <div className="text-center space-y-2">
+            <h3 className="text-lg font-semibold">Failed to load customer</h3>
+            <p className="text-sm text-muted-foreground max-w-md">
+              {queryError.message || 'An error occurred while loading the customer.'}
+            </p>
+          </div>
+          <Button
+            onClick={() => utils.crm.customers.getById.invalidate({ id: customerId })}
+            variant="outline"
+            className="gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Try Again
+          </Button>
+        </div>
       </div>
     );
   }
