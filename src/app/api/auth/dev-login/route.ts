@@ -101,6 +101,18 @@ export async function POST(request: NextRequest) {
           job_title: 'Independent Contractor'
         }
       },
+      qc: {
+        email: 'qc-user@limn.us.com',
+        userId: '550e8400-e29b-41d4-a716-446655440006',
+        profile: {
+          name: 'QC User',
+          first_name: 'QC',
+          last_name: 'User',
+          user_type: 'employee',
+          department: 'quality_control',
+          job_title: 'Quality Control Inspector'
+        }
+      },
       user: {
         email: 'regular-user@limn.us.com',
         userId: '550e8400-e29b-41d4-a716-446655440005',
@@ -116,7 +128,7 @@ export async function POST(request: NextRequest) {
     };
 
     // Validate userType to prevent object injection
-    const allowedUserTypes = ['admin', 'dev', 'designer', 'customer', 'factory', 'contractor', 'user'] as const;
+    const allowedUserTypes = ['admin', 'dev', 'designer', 'customer', 'factory', 'contractor', 'qc', 'user'] as const;
     const validUserType = allowedUserTypes.includes(userType as typeof allowedUserTypes[number]) ? userType : 'dev';
     const selectedUser = testUsers[validUserType as keyof typeof testUsers];
     const testEmail = selectedUser.email;
@@ -223,8 +235,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create portal access for portal users (designer, customer, factory)
-    if (['designer', 'customer', 'factory'].includes(userType as string)) {
+    // Create portal access for portal users (designer, customer, factory, qc)
+    if (['designer', 'customer', 'factory', 'qc'].includes(userType as string)) {
       // Check if portal access already exists
       const { data: existingAccess } = await supabase
         .from('customer_portal_access')
@@ -270,7 +282,7 @@ export async function POST(request: NextRequest) {
               entityId = (newCustomer as any).id;
             }
           }
-        } else if (userType === 'designer' || userType === 'factory') {
+        } else if (userType === 'designer' || userType === 'factory' || userType === 'qc') {
           // Create or find test partner record
           entityType = 'partner';
 
@@ -284,10 +296,12 @@ export async function POST(request: NextRequest) {
             entityId = (existingPartner as any).id;
           } else {
             // Create test partner with all required fields
+            // Type mapping: designer -> 'designer', factory/qc -> 'manufacturer'
+            const partnerType = userType === 'designer' ? 'designer' : 'manufacturer';
             const { data: newPartner, error: partnerError } = await supabase
               .from('partners')
               .insert({
-                type: userType === 'designer' ? 'designer' : 'manufacturer',
+                type: partnerType,
                 company_name: `${selectedUser.profile.name} Company`,
                 primary_contact: selectedUser.profile.name,
                 primary_email: testEmail,

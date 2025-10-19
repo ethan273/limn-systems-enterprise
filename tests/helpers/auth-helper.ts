@@ -76,6 +76,8 @@ export async function login(page: Page, email: string, password: string) {
     userType = 'customer';
   } else if (email.includes('factory')) {
     userType = 'factory';
+  } else if (email.includes('qc')) {
+    userType = 'qc';
   } else if (email.includes('contractor')) {
     userType = 'contractor';
   } else if (email.includes('manager')) {
