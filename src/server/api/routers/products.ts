@@ -291,8 +291,14 @@ export const productsRouter = createTRPCRouter({
 
   // Materials Management
   getAllMaterials: publicProcedure.query(async ({ ctx }) => {
+    // First check total count
+    const totalCount = await (ctx.db as any).materials.count();
+    const activeCount = await (ctx.db as any).materials.count({ where: { active: true } });
+    console.log(`[getAllMaterials] Total materials in DB: ${totalCount}, Active: ${activeCount}`);
+
     const materials = await (ctx.db as any).materials.findMany({
-      where: { active: true },
+      // Remove active filter to get ALL materials
+      // where: { active: true },
       include: {
         material_categories: true,
         materials: {
