@@ -152,3 +152,9 @@ maintenance/
 analyze-*.py
 app-analysis.json
 schema-summary.txt
+
+# PWA build artifacts
+public/sw.js
+public/sw.js.map
+public/workbox-*.js
+public/fallback-*.js
