@@ -19,18 +19,18 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import {
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  Area,
-  AreaChart,
-} from 'recharts';
+  LazyRechartsPie as PieChart,
+  LazyPie as Pie,
+  LazyCell as Cell,
+  LazyXAxis as XAxis,
+  LazyYAxis as YAxis,
+  LazyCartesianGrid as CartesianGrid,
+  LazyTooltip as Tooltip,
+  LazyLegend as Legend,
+  LazyResponsiveContainer as ResponsiveContainer,
+  LazyArea as Area,
+  LazyRechartsArea as AreaChart,
+} from '@/components/lazy';
 
 // Dynamic route configuration
 export const dynamic = 'force-dynamic';

@@ -1,15 +1,17 @@
 'use client';
 
-import dynamic from 'next/dynamic';
-import { Skeleton } from '@/components/ui/skeleton';
-
 /**
  * Lazy-loaded Chart Components
  * Phase 4: Bundle Optimization
  *
- * Only loads Chart.js when charts are rendered
- * Reduces initial bundle by ~200KB
+ * NOTE: This file is a placeholder for future Chart.js-based chart components.
+ * Currently, the application uses recharts (see LazyRecharts.tsx).
+ *
+ * These exports are kept for future compatibility when custom Chart.js
+ * components are created in @/components/charts/
  */
+
+import { Skeleton } from '@/components/ui/skeleton';
 
 const ChartSkeleton = () => (
   <div className="w-full h-64 flex items-center justify-center bg-muted/30 rounded-lg">
@@ -17,42 +19,8 @@ const ChartSkeleton = () => (
   </div>
 );
 
-export const LazyLineChart = dynamic(
-  () => import('@/components/charts/LineChart').catch(() => ({
-    default: () => <div>Line Chart not available</div>
-  })),
-  {
-    loading: () => <ChartSkeleton />,
-    ssr: false,
-  }
-);
-
-export const LazyBarChart = dynamic(
-  () => import('@/components/charts/BarChart').catch(() => ({
-    default: () => <div>Bar Chart not available</div>
-  })),
-  {
-    loading: () => <ChartSkeleton />,
-    ssr: false,
-  }
-);
-
-export const LazyPieChart = dynamic(
-  () => import('@/components/charts/PieChart').catch(() => ({
-    default: () => <div>Pie Chart not available</div>
-  })),
-  {
-    loading: () => <ChartSkeleton />,
-    ssr: false,
-  }
-);
-
-export const LazyAreaChart = dynamic(
-  () => import('@/components/charts/AreaChart').catch(() => ({
-    default: () => <div>Area Chart not available</div>
-  })),
-  {
-    loading: () => <ChartSkeleton />,
-    ssr: false,
-  }
-);
+// Placeholder components - will be implemented when Chart.js components are created
+export const LazyLineChart = ChartSkeleton;
+export const LazyBarChart = ChartSkeleton;
+export const LazyPieChart = ChartSkeleton;
+export const LazyAreaChart = ChartSkeleton;

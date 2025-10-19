@@ -18,11 +18,12 @@ import {
   type DataTableFilter,
   type StatItem,
 } from "@/components/common";
+import { DataErrorBoundary } from "@/components/error-handling";
 
 // Dynamic route configuration
 export const dynamic = 'force-dynamic';
 
-export default function InvoicesPage() {
+function InvoicesPageContent() {
   const router = useRouter();
   const { user } = useAuth();
   const [searchQuery, _setSearchQuery] = useState("");
@@ -289,5 +290,13 @@ export default function InvoicesPage() {
         />
       )}
     </div>
+  );
+}
+
+export default function InvoicesPage() {
+  return (
+    <DataErrorBoundary context="invoices">
+      <InvoicesPageContent />
+    </DataErrorBoundary>
   );
 }

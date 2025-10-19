@@ -1,32 +1,31 @@
 'use client';
 
-import dynamic from 'next/dynamic';
-import { Skeleton } from '@/components/ui/skeleton';
-
 /**
  * Lazy-loaded PDF Viewer
  * Phase 4: Bundle Optimization
  *
- * Only loads PDF.js when component is rendered
- * Reduces initial bundle by ~500KB
+ * NOTE: This file is a placeholder for future PDF viewer components.
+ * The application currently uses PDFViewer from @/components/shop-drawings
+ * which is already dynamically imported in pages that use it.
+ *
+ * This export is kept for future compatibility when a centralized
+ * PDF viewer component is created in @/components/documents/
  */
-export const LazyPDFViewer = dynamic(
-  () => import('@/components/documents/PDFViewer').catch(() => ({
-    default: () => <div>PDF Viewer not available</div>
-  })),
-  {
-    loading: () => (
-      <div className="w-full h-96 flex items-center justify-center bg-muted/30">
-        <div className="space-y-4 w-full p-4">
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-64 w-full" />
-          <Skeleton className="h-12 w-full" />
-          <div className="flex justify-center items-center h-32">
-            <p className="text-sm text-muted-foreground">Loading PDF viewer...</p>
-          </div>
-        </div>
+
+import { Skeleton } from '@/components/ui/skeleton';
+
+const PDFSkeleton = () => (
+  <div className="w-full h-96 flex items-center justify-center bg-muted/30">
+    <div className="space-y-4 w-full p-4">
+      <Skeleton className="h-12 w-full" />
+      <Skeleton className="h-64 w-full" />
+      <Skeleton className="h-12 w-full" />
+      <div className="flex justify-center items-center h-32">
+        <p className="text-sm text-muted-foreground">Loading PDF viewer...</p>
       </div>
-    ),
-    ssr: false, // PDF.js uses Canvas API - don't render on server
-  }
+    </div>
+  </div>
 );
+
+// Placeholder component - will be implemented when PDF viewer component is created
+export const LazyPDFViewer = PDFSkeleton;

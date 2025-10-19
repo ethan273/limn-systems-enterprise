@@ -18,8 +18,9 @@ import {
   type DataTableFilter,
   type StatItem,
 } from "@/components/common";
+import { DataErrorBoundary } from "@/components/error-handling";
 
-export default function ProductionOrdersPage() {
+function ProductionOrdersPageContent() {
   const router = useRouter();
 
   // Auth is handled by middleware - no client-side redirect needed
@@ -212,5 +213,13 @@ export default function ProductionOrdersPage() {
         />
       )}
     </div>
+  );
+}
+
+export default function ProductionOrdersPage() {
+  return (
+    <DataErrorBoundary context="production orders">
+      <ProductionOrdersPageContent />
+    </DataErrorBoundary>
   );
 }

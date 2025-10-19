@@ -207,7 +207,7 @@ async function createFinalInvoice(
 
 export const productionOrdersRouter = createTRPCRouter({
 
-  // Get all production orders with filters
+  // Get all production orders with filters - LEGACY OFFSET-BASED
   getAll: publicProcedure
     .input(
       z.object({
@@ -245,6 +245,60 @@ export const productionOrdersRouter = createTRPCRouter({
         items,
         total: items.length,
         hasMore: items.length === limit,
+      };
+    }),
+
+  /**
+   * Get all production orders with CURSOR-BASED pagination
+   * ✅ PHASE 5: Optimized cursor pagination for scalability
+   * Consistent O(1) performance regardless of page number
+   */
+  getAllCursor: publicProcedure
+    .input(
+      z.object({
+        status: z.string().optional(),
+        project_id: z.string().uuid().optional(),
+        factory_id: z.string().uuid().optional(),
+        cursor: z.string().uuid().optional(),
+        limit: z.number().min(1).max(100).default(50),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { cursor, limit, status, project_id, factory_id } = input;
+
+      const where: any = {};
+      if (status) where.status = status;
+      if (project_id) where.project_id = project_id;
+      if (factory_id) where.factory_id = factory_id;
+
+      const items = await ctx.db.production_orders.findMany({
+        where,
+        take: limit + 1,
+        ...(cursor && {
+          cursor: { id: cursor },
+          skip: 1,
+        }),
+        orderBy: { created_at: 'desc' },
+        include: {
+          projects: {
+            select: {
+              id: true,
+              name: true,
+              customer_id: true,
+            },
+          },
+        },
+      });
+
+      let nextCursor: string | undefined = undefined;
+      if (items.length > limit) {
+        const nextItem = items.pop();
+        nextCursor = nextItem!.id;
+      }
+
+      return {
+        items,
+        nextCursor,
       };
     }),
 

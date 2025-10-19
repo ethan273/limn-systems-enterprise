@@ -1,15 +1,17 @@
 'use client';
 
-import dynamic from 'next/dynamic';
-import { Skeleton } from '@/components/ui/skeleton';
-
 /**
  * Lazy-loaded Data Table Components
  * Phase 4: Bundle Optimization
  *
- * Only loads heavy table libraries when needed
- * Reduces initial bundle by ~100KB
+ * NOTE: This file is a placeholder for future table library components.
+ * The application currently uses DataTable from @/components/common.
+ *
+ * These exports are kept for future compatibility when separate
+ * table components are created in @/components/tables/
  */
+
+import { Skeleton } from '@/components/ui/skeleton';
 
 const TableSkeleton = () => (
   <div className="w-full space-y-3">
@@ -22,22 +24,6 @@ const TableSkeleton = () => (
   </div>
 );
 
-export const LazyDataTable = dynamic(
-  () => import('@/components/tables/DataTable').catch(() => ({
-    default: () => <div>Data Table not available</div>
-  })),
-  {
-    loading: () => <TableSkeleton />,
-    ssr: true, // Tables can be server-rendered
-  }
-);
-
-export const LazyAdvancedTable = dynamic(
-  () => import('@/components/tables/AdvancedTable').catch(() => ({
-    default: () => <div>Advanced Table not available</div>
-  })),
-  {
-    loading: () => <TableSkeleton />,
-    ssr: false, // Advanced features may need client-side
-  }
-);
+// Placeholder components - will be implemented when table components are created
+export const LazyDataTable = TableSkeleton;
+export const LazyAdvancedTable = TableSkeleton;
