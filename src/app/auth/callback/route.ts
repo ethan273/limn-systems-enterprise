@@ -284,7 +284,7 @@ export async function GET(request: NextRequest) {
             path: '/',
             sameSite: sameSiteValue as 'none' | 'lax',
             secure: process.env.NODE_ENV === 'production',
-            httpOnly: true,
+            // IMPORTANT: Don't override httpOnly - let Supabase decide (some cookies need client-side access)
           };
           response.cookies.set(name, value, cookieOptions);
           console.log(`[Auth Callback] Cookie set: ${name}, sameSite=${cookieOptions.sameSite}, secure=${cookieOptions.secure}, httpOnly=${cookieOptions.httpOnly}`);
@@ -408,7 +408,7 @@ export async function GET(request: NextRequest) {
             path: '/',
             sameSite: sameSiteValue as 'none' | 'lax',
             secure: process.env.NODE_ENV === 'production',
-            httpOnly: true,
+            // IMPORTANT: Don't override httpOnly - let Supabase decide (some cookies need client-side access)
           };
           response.cookies.set(name, value, cookieOptions);
           console.log(`[Auth Callback OAuth] Cookie set: ${name}, sameSite=${cookieOptions.sameSite}, secure=${cookieOptions.secure}, httpOnly=${cookieOptions.httpOnly}`);
