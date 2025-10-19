@@ -25,20 +25,24 @@ describe('StatusBadge', () => {
  it('should apply correct color classes for success status', () => {
  const { container } = render(<StatusBadge status="success" />);
  const badge = container.firstChild;
- expect(badge).toHaveClass('bg-green-500/20');
- expect(badge).toHaveClass('text-green-300');
+ expect(badge).toHaveClass('bg-success');
+ expect(badge).toHaveClass('text-success');
+ expect(badge).toHaveClass('border-success');
  });
 
  it('should apply correct color classes for error status', () => {
  const { container } = render(<StatusBadge status="error" />);
  const badge = container.firstChild;
- expect(badge).toHaveClass('bg-red-500/20');
- expect(badge).toHaveClass('text-red-300');
+ expect(badge).toHaveClass('bg-destructive');
+ expect(badge).toHaveClass('text-destructive');
+ expect(badge).toHaveClass('border-destructive');
  });
 
  it('should handle unknown statuses with default info styling', () => {
  const { container } = render(<StatusBadge status="unknown_status" />);
  const badge = container.firstChild;
- expect(badge).toHaveClass('bg-blue-500/20');
+ expect(badge).toHaveClass('bg-info');
+ expect(badge).toHaveClass('text-info');
+ expect(badge).toHaveClass('border-info');
  });
 });

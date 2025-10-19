@@ -224,5 +224,9 @@
     "vite": "^7.1.9",
     "vitest": "^3.2.4",
     "webpack-bundle-analyzer": "^4.10.2"
+  },
+  "overrides": {
+    "playwright": "$@playwright/test",
+    "@playwright/test": "1.55.1"
   }
 }

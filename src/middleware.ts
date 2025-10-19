@@ -247,8 +247,9 @@ export const config = {
      * - API routes (/_next/static, /_next/image, /api)
      * - Static files and assets
      * - Sentry tunnel route
+     * - Test files and node_modules (absolute paths from E2E tests)
      * - Public pages (login, auth, privacy, terms, share)
      */
-    '/((?!api|_next/static|_next/image|icons|images|manifest|favicon|sw|workbox|fallback|sentry-tunnel|monitoring)(?!.*\\.(?:ico|png|jpg|jpeg|gif|svg|webp|woff|woff2|ttf|otf|eot)$).*)',
+    '/((?!api|_next/static|_next/image|icons|images|manifest|favicon|sw|workbox|fallback|sentry-tunnel|monitoring|Users)(?!.*\\.(?:ico|png|jpg|jpeg|gif|svg|webp|woff|woff2|ttf|otf|eot|ts|js|spec|test)$).*)',
   ],
 };
