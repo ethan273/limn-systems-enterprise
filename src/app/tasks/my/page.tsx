@@ -69,7 +69,7 @@ export default function MyTasksPage() {
     limit: 100,
     offset: 0,
     includeWatching: false,
-  }, { enabled: activeTab === "assigned" && !!currentUserId });
+  }, { enabled: activeTab === "assigned" });
 
   // Get tasks I'm watching
   const { data: watchingTasksData, isLoading: isLoadingWatching } = api.tasks.getMyTasks.useQuery({
@@ -77,7 +77,7 @@ export default function MyTasksPage() {
     limit: 100,
     offset: 0,
     includeWatching: true,
-  }, { enabled: activeTab === "watching" && !!currentUserId });
+  }, { enabled: activeTab === "watching" });
 
   // Get tasks I created
   const { data: createdTasksData, isLoading: isLoadingCreated } = api.tasks.getAllTasks.useQuery({
@@ -85,6 +85,7 @@ export default function MyTasksPage() {
     offset: 0,
     sortBy: 'created_at',
     sortOrder: 'desc',
+    created_by: currentUserId,
   }, { enabled: activeTab === "created" });
 
   // Get tRPC utils for cache invalidation

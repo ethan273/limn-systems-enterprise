@@ -430,7 +430,7 @@ export default function AnalyticsPage() {
             <CardTitle>Events by Action Type</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
+            <div className="w-full">
               <table className="min-w-full divide-y divide-border">
                 <thead className="bg-muted/30">
                   <tr>

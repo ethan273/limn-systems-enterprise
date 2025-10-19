@@ -96,7 +96,7 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
 
   const { data, isLoading, error } = api.projects.getById.useQuery(
     { id: id },
-    { enabled: !!id }
+    { enabled: !!user && !!id }
   );
 
   // Get tRPC utils for cache invalidation

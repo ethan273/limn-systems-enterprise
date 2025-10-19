@@ -121,7 +121,7 @@ export default function ProspectDetailPage({ params }: PageProps) {
 
   const { data, isLoading, error } = api.crm.leads.getById.useQuery(
     { id: id },
-    { enabled: !!id }
+    { enabled: !!user && !!id }
   );
 
   // Get tRPC utils for cache invalidation

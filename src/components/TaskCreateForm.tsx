@@ -74,7 +74,13 @@ export default function TaskCreateForm({ onSuccess, onCancel }: TaskCreateFormPr
 
  const handleSubmit = async (e: React.FormEvent) => {
  e.preventDefault();
- if (!title.trim() || !currentUserId) return;
+ if (!title.trim()) {
+   return;
+ }
+ if (!currentUserId) {
+   console.warn('Cannot submit task: user not loaded yet');
+   return;
+ }
 
  setIsSubmitting(true);
 
@@ -382,7 +388,7 @@ export default function TaskCreateForm({ onSuccess, onCancel }: TaskCreateFormPr
  </Button>
  <Button
  type="submit"
- disabled={!title.trim() || isSubmitting || !currentUserId}
+ disabled={!title.trim() || isSubmitting}
  className={cn(
  "min-w-24",
  isSubmitting && "opacity-50 cursor-not-allowed"

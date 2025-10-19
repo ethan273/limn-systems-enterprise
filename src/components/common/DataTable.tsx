@@ -274,11 +274,10 @@ export function DataTable<T extends Record<string, unknown>>({
         </div>
       )}
 
-      {/* Table - Mobile Responsive with Horizontal Scroll */}
+      {/* Table - Mobile Responsive */}
       <div className="card-content-compact">
-        {/* Horizontal scroll wrapper for mobile */}
-        <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
-          {/* Scroll indicator shadow */}
+        {/* Responsive table wrapper - columns hide on mobile using mobileHidden prop */}
+        <div className="w-full">
           <div className="relative">
             <Table data-testid="data-table">
               <TableHeader>

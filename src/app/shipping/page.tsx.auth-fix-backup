@@ -41,7 +41,7 @@ export default function ShippingDashboardPage() {
       offset: 0,
     },
     {
-      enabled: true,
+      enabled: !!user,
     }
   );
 

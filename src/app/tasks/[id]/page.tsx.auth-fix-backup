@@ -111,7 +111,7 @@ export default function TaskDetailPage({ params }: PageProps) {
 
   const { data: task, isLoading, error } = api.tasks.getFullDetails.useQuery(
     { id: id },
-    { enabled: !!id }
+    { enabled: !!user && !!id }
   );
 
   // Get tRPC utils for cache invalidation

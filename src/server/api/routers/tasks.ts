@@ -100,6 +100,7 @@ export const tasksRouter = createTRPCRouter({
       search: z.string().optional(),
       sortBy: z.enum(['created_at', 'due_date', 'priority', 'status', 'title']).default('created_at'),
       sortOrder: z.enum(['asc', 'desc']).default('desc'),
+      created_by: z.string().uuid().optional(),
     }))
     .query(async ({ ctx: _ctx, input }) => {
       return await db.findManyTasks({
@@ -112,6 +113,7 @@ export const tasksRouter = createTRPCRouter({
           priority: input.priority,
           department: input.department,
           search: input.search,
+          created_by: input.created_by,
         },
       });
     }),

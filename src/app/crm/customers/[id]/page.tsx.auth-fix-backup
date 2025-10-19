@@ -51,7 +51,7 @@ export default function CustomerDetailPage({ params }: PageProps) {
 
   const { data, isLoading, error } = api.crm.customers.getById.useQuery(
     { id: id },
-    { enabled: !!id }
+    { enabled: !!user && !!id }
   );
 
   // Get tRPC utils for cache invalidation

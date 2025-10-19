@@ -35,7 +35,7 @@ export default function DesignBriefDetailPage({ params }: { params: Promise<{ id
 
   const { data: brief, isLoading } = api.designBriefs.getById.useQuery(
     { id: id },
-    { enabled: !!id }
+    { enabled: !authLoading && !!user && !!id }
   );
 
   // Get tRPC utils for cache invalidation

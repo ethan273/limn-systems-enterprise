@@ -21,7 +21,7 @@ export default function FinancialReportsPage() {
       offset: 0,
     },
     {
-      enabled: !!user,
+      enabled: true,
     }
   );
 
@@ -32,7 +32,7 @@ export default function FinancialReportsPage() {
       offset: 0,
     },
     {
-      enabled: !!user,
+      enabled: true,
     }
   );
 
@@ -43,7 +43,7 @@ export default function FinancialReportsPage() {
       dateTo,
     },
     {
-      enabled: !!user,
+      enabled: true,
     }
   );
 

@@ -38,14 +38,14 @@ export default function PaymentsPage() {
       offset: 0,
     },
     {
-      enabled: true,
+      enabled: !!user,
     }
   );
 
   const { data: statsData } = api.payments.getStats.useQuery(
     {},
     {
-      enabled: true,
+      enabled: !!user,
     }
   );
 

@@ -50,14 +50,14 @@ export default function DocumentsPage() {
       offset: 0,
     },
     {
-      enabled: true,
+      enabled: !!user,
     }
   );
 
   const { data: statsData } = api.storage.getStorageStats.useQuery(
     undefined,
     {
-      enabled: true,
+      enabled: !!user,
     }
   );
 

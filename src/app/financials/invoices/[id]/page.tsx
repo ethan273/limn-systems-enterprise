@@ -280,7 +280,7 @@ export default function InvoiceDetailPage({ params }: PageProps) {
               <CardTitle>Line Items</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
+              <div className="w-full">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b">

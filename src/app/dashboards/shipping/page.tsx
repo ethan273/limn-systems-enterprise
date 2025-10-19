@@ -303,7 +303,7 @@ export default function ShippingDashboardPage() {
             <CardTitle>Top Carrier Performance</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
+            <div className="w-full">
               <table className="data-table">
                 <thead>
                   <tr>

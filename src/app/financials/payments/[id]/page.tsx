@@ -210,14 +210,14 @@ export default function PaymentDetailPage({ params }: PageProps) {
         </CardHeader>
         <CardContent>
           {payment.payment_allocations && payment.payment_allocations.length > 0 ? (
-            <div className="overflow-x-auto">
+            <div className="w-full">
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
                     <th className="text-left p-2">Invoice</th>
-                    <th className="text-left p-2">Customer</th>
+                    <th className="text-left p-2 hidden sm:table-cell">Customer</th>
                     <th className="text-right p-2">Allocated Amount</th>
-                    <th className="text-left p-2">Allocation Date</th>
+                    <th className="text-left p-2 hidden md:table-cell">Allocation Date</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -228,13 +228,13 @@ export default function PaymentDetailPage({ params }: PageProps) {
                         <td className="p-2">
                           <p className="font-medium">{allocation.invoices?.id?.substring(0, 8) || "N/A"}</p>
                         </td>
-                        <td className="p-2">
+                        <td className="p-2 hidden sm:table-cell">
                           {invoiceCustomer?.company_name || invoiceCustomer?.name || "N/A"}
                         </td>
                         <td className="text-right p-2 font-medium text-success">
                           ${Number(allocation.allocated_amount).toFixed(2)}
                         </td>
-                        <td className="p-2">
+                        <td className="p-2 hidden md:table-cell">
                           {allocation.created_at && format(new Date(allocation.created_at), "MMM dd, yyyy")}
                         </td>
                       </tr>

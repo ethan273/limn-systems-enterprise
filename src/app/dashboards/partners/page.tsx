@@ -344,7 +344,7 @@ export default function PartnerDashboardPage() {
           </CardHeader>
           <CardContent>
             {topPartners.length > 0 ? (
-              <div className="overflow-x-auto">
+              <div className="w-full">
                 <table className="data-table">
                   <thead>
                     <tr>

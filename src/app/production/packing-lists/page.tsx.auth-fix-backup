@@ -21,7 +21,7 @@ export default function PackingListsPage() {
       offset: 0,
     },
     {
-      enabled: true,
+      enabled: !!user,
     }
   );
 

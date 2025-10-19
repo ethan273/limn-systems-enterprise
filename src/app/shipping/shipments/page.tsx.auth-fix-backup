@@ -39,7 +39,7 @@ export default function ShipmentsPage() {
       offset: 0,
     },
     {
-      enabled: true,
+      enabled: !!user,
     }
   );
 
@@ -48,7 +48,7 @@ export default function ShipmentsPage() {
   // Subscribe to realtime updates for shipments
   useShipmentsRealtime({
     queryKey: ['shipping', 'getAllShipments'],
-    enabled: true,
+    enabled: !!user,
   });
 
   const stats: StatItem[] = [

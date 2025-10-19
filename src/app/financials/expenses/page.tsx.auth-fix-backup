@@ -18,7 +18,7 @@ export default function ExpensesPage() {
       offset: 0,
     },
     {
-      enabled: true,
+      enabled: !!user,
     }
   );
 

@@ -280,7 +280,7 @@ export default function CredentialRotationPage() {
             </h2>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="w-full">
             <table className="min-w-full divide-y divide-border">
               <thead className="bg-muted/30">
                 <tr>

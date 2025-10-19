@@ -37,14 +37,14 @@ function InvoicesPageContent() {
       offset: 0,
     },
     {
-      enabled: true,
+      enabled: !!user,
     }
   );
 
   const { data: statsData } = api.invoices.getStats.useQuery(
     {},
     {
-      enabled: true,
+      enabled: !!user,
     }
   );
 
@@ -120,7 +120,7 @@ function InvoicesPageContent() {
   // Subscribe to realtime updates for invoices
   useInvoicesRealtime({
     queryKey: ['invoices', 'getAll'],
-    enabled: true,
+    enabled: !!user,
   });
 
   // Stats configuration

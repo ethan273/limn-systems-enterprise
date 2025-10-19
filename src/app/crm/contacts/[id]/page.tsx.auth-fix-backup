@@ -22,17 +22,17 @@ import {
   ArrowLeft,
   Edit,
   MessageSquare,
-  DollarSign,
-  Package,
-  ShoppingCart,
-  FileText,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
   X,
   Check,
+  Briefcase,
   MapPin,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { getFullName, createFullName } from "@/lib/utils/name-utils";
+import { createFullName } from "@/lib/utils/name-utils";
 import { AddressList } from "@/components/crm";
 
 // Dynamic route configuration
@@ -42,16 +42,16 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-export default function CustomerDetailPage({ params }: PageProps) {
+export default function ContactDetailPage({ params }: PageProps) {
   const { id } = use(params);
   const router = useRouter();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditing, setIsEditing] = useState(false);
 
-  const { data, isLoading, error } = api.crm.customers.getById.useQuery(
+  const { data, isLoading, error } = api.crm.contacts.getById.useQuery(
     { id: id },
-    { enabled: !!id }
+    { enabled: !!user && !!id }
   );
 
   // Get tRPC utils for cache invalidation
@@ -64,57 +64,57 @@ export default function CustomerDetailPage({ params }: PageProps) {
     email: '',
     phone: '',
     company: '',
-    type: '',
-    status: '',
+    position: '',
+    source: '',
     notes: '',
   });
 
-  // Sync form data with fetched customer data
+  // Sync form data with fetched contact data
   useEffect(() => {
-    if (data?.customer) {
+    if (data?.contact) {
       setFormData({
-        first_name: data.customer.first_name || '',
-        last_name: data.customer.last_name || '',
-        email: data.customer.email || '',
-        phone: data.customer.phone || '',
-        company: data.customer.company || '',
-        type: data.customer.type || '',
-        status: data.customer.status || '',
-        notes: data.customer.notes || '',
+        first_name: data.contact.first_name || '',
+        last_name: data.contact.last_name || '',
+        email: data.contact.email || '',
+        phone: data.contact.phone || '',
+        company: data.contact.company || '',
+        position: data.contact.position || '',
+        source: data.contact.source || '',
+        notes: data.contact.notes || '',
       });
     }
   }, [data]);
 
   // Update mutation
-  const updateMutation = api.crm.customers.update.useMutation({
+  const updateMutation = api.crm.contacts.update.useMutation({
     onSuccess: () => {
-      toast.success("Client updated successfully");
+      toast.success("Contact updated successfully");
       setIsEditing(false);
       // Invalidate queries for instant updates
-      utils.crm.customers.getById.invalidate();
-      utils.crm.customers.list.invalidate();
+      utils.crm.contacts.getById.invalidate();
+      utils.crm.contacts.getAll.invalidate();
     },
     onError: (error: any) => {
-      toast.error("Failed to update client: " + error.message);
+      toast.error("Failed to update contact: " + error.message);
     },
   });
 
   // Address mutations - MUST be before any conditional returns
   const createAddressMutation = api.crm.addresses.create.useMutation({
     onSuccess: () => {
-      utils.crm.customers.getById.invalidate();
+      utils.crm.contacts.getById.invalidate();
     },
   });
 
   const updateAddressMutation = api.crm.addresses.update.useMutation({
     onSuccess: () => {
-      utils.crm.customers.getById.invalidate();
+      utils.crm.contacts.getById.invalidate();
     },
   });
 
   const deleteAddressMutation = api.crm.addresses.delete.useMutation({
     onSuccess: () => {
-      utils.crm.customers.getById.invalidate();
+      utils.crm.contacts.getById.invalidate();
     },
   });
 
@@ -134,8 +134,8 @@ export default function CustomerDetailPage({ params }: PageProps) {
         email: formData.email || undefined,
         phone: formData.phone || undefined,
         company: formData.company || undefined,
-        type: formData.type || undefined,
-        status: formData.status || undefined,
+        position: formData.position || undefined,
+        source: formData.source || undefined,
         notes: formData.notes || undefined,
       },
     });
@@ -143,16 +143,16 @@ export default function CustomerDetailPage({ params }: PageProps) {
 
   const handleCancel = () => {
     // Reset form data to original values
-    if (data?.customer) {
+    if (data?.contact) {
       setFormData({
-        first_name: data.customer.first_name || '',
-        last_name: data.customer.last_name || '',
-        email: data.customer.email || '',
-        phone: data.customer.phone || '',
-        company: data.customer.company || '',
-        type: data.customer.type || '',
-        status: data.customer.status || '',
-        notes: data.customer.notes || '',
+        first_name: data.contact.first_name || '',
+        last_name: data.contact.last_name || '',
+        email: data.contact.email || '',
+        phone: data.contact.phone || '',
+        company: data.contact.company || '',
+        position: data.contact.position || '',
+        source: data.contact.source || '',
+        notes: data.contact.notes || '',
       });
     }
     setIsEditing(false);
@@ -161,7 +161,7 @@ export default function CustomerDetailPage({ params }: PageProps) {
   if (isLoading) {
     return (
       <div className="page-container">
-        <LoadingState message="Loading client details..." size="md" />
+        <LoadingState message="Loading contact details..." size="md" />
       </div>
     );
   }
@@ -170,12 +170,12 @@ export default function CustomerDetailPage({ params }: PageProps) {
     return (
       <div className="page-container">
         <EmptyState
-          icon={User}
-          title="Client Not Found"
-          description="The client you're looking for doesn't exist or you don't have permission to view it."
+          icon={AlertCircle}
+          title="Contact Not Found"
+          description="The contact you're looking for doesn't exist or you don't have permission to view it."
           action={{
-            label: 'Back to Clients',
-            onClick: () => router.push("/crm/customers"),
+            label: 'Back to Contacts',
+            onClick: () => router.push("/crm/contacts"),
             icon: ArrowLeft,
           }}
         />
@@ -183,15 +183,13 @@ export default function CustomerDetailPage({ params }: PageProps) {
     );
   }
 
-  const customer = data.customer;
-  const orders = (data as any).orders || [];
-  const invoices = (data as any).invoices || [];
+  const { contact, activities, analytics } = data;
   const addresses = (data as any).addresses || [];
 
   const handleAddAddress = async (address: any) => {
     await createAddressMutation.mutateAsync({
       ...address,
-      customer_id: id,
+      contact_id: id,
     });
   };
 
@@ -211,7 +209,7 @@ export default function CustomerDetailPage({ params }: PageProps) {
       {/* Header Section */}
       <div className="page-header">
         <Button
-          onClick={() => router.push("/crm/customers")}
+          onClick={() => router.push("/crm/contacts")}
           variant="ghost"
           className="btn-secondary"
         >
@@ -220,17 +218,17 @@ export default function CustomerDetailPage({ params }: PageProps) {
         </Button>
       </div>
 
-      {/* Client Header */}
+      {/* Contact Header */}
       <EntityDetailHeader
         icon={User}
-        title={getFullName(formData) || "Unnamed Client"}
-        subtitle={formData.company || undefined}
+        title={createFullName(formData.first_name, formData.last_name) || "Unnamed Contact"}
+        subtitle={formData.position || undefined}
         metadata={[
+          ...(formData.company ? [{ icon: Building2, value: formData.company, type: 'text' as const }] : []),
           ...(formData.email ? [{ icon: Mail, value: formData.email, type: 'email' as const }] : []),
           ...(formData.phone ? [{ icon: Phone, value: formData.phone, type: 'phone' as const }] : []),
-          ...(formData.type ? [{ icon: Building2, value: formData.type, label: 'Type' }] : []),
         ]}
-        status={formData.status || 'active'}
+        tags={contact.tags || []}
         actions={
           isEditing
             ? [
@@ -249,7 +247,7 @@ export default function CustomerDetailPage({ params }: PageProps) {
               ]
             : [
                 {
-                  label: 'Edit Client',
+                  label: 'Edit Contact',
                   icon: Edit,
                   onClick: () => setIsEditing(true),
                 },
@@ -261,47 +259,41 @@ export default function CustomerDetailPage({ params }: PageProps) {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="card-header-sm">
-            <CardTitle className="card-title-sm">Total Orders</CardTitle>
+            <CardTitle className="card-title-sm">Total Activities</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value">{orders.length || 0}</div>
-            <p className="stat-label">
-              <ShoppingCart className="icon-xs inline" aria-hidden="true" /> All time
-            </p>
+            <div className="stat-value">{analytics?.totalActivities || 0}</div>
+            <p className="stat-label">All time</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="card-header-sm">
-            <CardTitle className="card-title-sm">Total Invoices</CardTitle>
+            <CardTitle className="card-title-sm">Completed</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value">{invoices.length || 0}</div>
-            <p className="stat-label">
-              <FileText className="icon-xs inline" aria-hidden="true" /> All time
-            </p>
+            <div className="stat-value stat-success">{analytics?.completedActivities || 0}</div>
+            <p className="stat-label">Activities completed</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="card-header-sm">
-            <CardTitle className="card-title-sm">Lifetime Value</CardTitle>
+            <CardTitle className="card-title-sm">Pending</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value stat-success">${customer.lifetime_value?.toLocaleString() || 0}</div>
-            <p className="stat-label">
-              <DollarSign className="icon-xs inline" aria-hidden="true" /> Total revenue
-            </p>
+            <div className="stat-value stat-warning">{analytics?.pendingActivities || 0}</div>
+            <p className="stat-label">Awaiting action</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="card-header-sm">
-            <CardTitle className="card-title-sm">Status</CardTitle>
+            <CardTitle className="card-title-sm">Engagement Score</CardTitle>
           </CardHeader>
           <CardContent>
-            <StatusBadge status={formData.status || 'active'} />
-            <p className="stat-label mt-2">Current status</p>
+            <div className="stat-value">{analytics?.engagementScore || 0}</div>
+            <p className="stat-label">Out of 100</p>
           </CardContent>
         </Card>
       </div>
@@ -313,13 +305,9 @@ export default function CustomerDetailPage({ params }: PageProps) {
             <Activity className="icon-sm" aria-hidden="true" />
             Overview
           </TabsTrigger>
-          <TabsTrigger value="orders" className="tabs-trigger">
-            <ShoppingCart className="icon-sm" aria-hidden="true" />
-            Orders ({orders.length})
-          </TabsTrigger>
-          <TabsTrigger value="invoices" className="tabs-trigger">
-            <FileText className="icon-sm" aria-hidden="true" />
-            Invoices ({invoices.length})
+          <TabsTrigger value="activities" className="tabs-trigger">
+            <MessageSquare className="icon-sm" aria-hidden="true" />
+            Activities ({activities.length})
           </TabsTrigger>
           <TabsTrigger value="addresses" className="tabs-trigger">
             <MapPin className="icon-sm" aria-hidden="true" />
@@ -333,7 +321,7 @@ export default function CustomerDetailPage({ params }: PageProps) {
 
         {/* Overview Tab */}
         <TabsContent value="overview">
-          <EditableFieldGroup title="Client Information" isEditing={isEditing} columns={2}>
+          <EditableFieldGroup title="Contact Information" isEditing={isEditing} columns={2}>
             <EditableField
               label="First Name"
               value={formData.first_name}
@@ -352,11 +340,11 @@ export default function CustomerDetailPage({ params }: PageProps) {
             />
 
             <EditableField
-              label="Company"
-              value={formData.company}
+              label="Position"
+              value={formData.position}
               isEditing={isEditing}
-              onChange={(value) => setFormData({ ...formData, company: value })}
-              icon={Building2}
+              onChange={(value) => setFormData({ ...formData, position: value })}
+              icon={Briefcase}
             />
 
             <EditableField
@@ -378,37 +366,24 @@ export default function CustomerDetailPage({ params }: PageProps) {
             />
 
             <EditableField
-              label="Client Type"
-              value={formData.type}
-              type="select"
+              label="Company"
+              value={formData.company}
               isEditing={isEditing}
-              onChange={(value) => setFormData({ ...formData, type: value })}
-              options={[
-                { value: 'individual', label: 'Individual' },
-                { value: 'business', label: 'Business' },
-                { value: 'enterprise', label: 'Enterprise' },
-              ]}
-              icon={Package}
+              onChange={(value) => setFormData({ ...formData, company: value })}
+              icon={Building2}
             />
 
             <EditableField
-              label="Status"
-              value={formData.status}
-              type="select"
+              label="Source"
+              value={formData.source}
               isEditing={isEditing}
-              onChange={(value) => setFormData({ ...formData, status: value })}
-              options={[
-                { value: 'active', label: 'Active' },
-                { value: 'inactive', label: 'Inactive' },
-                { value: 'pending', label: 'Pending' },
-                { value: 'suspended', label: 'Suspended' },
-              ]}
+              onChange={(value) => setFormData({ ...formData, source: value })}
             />
 
             <div className="col-span-2">
               <EditableField
                 label="Created"
-                value={customer.created_at ? format(new Date(customer.created_at), "MMM d, yyyy h:mm a") : "—"}
+                value={contact.created_at ? format(new Date(contact.created_at), "MMM d, yyyy h:mm a") : "—"}
                 isEditing={false}
                 icon={Calendar}
               />
@@ -416,10 +391,10 @@ export default function CustomerDetailPage({ params }: PageProps) {
 
             <div className="col-span-2">
               <EditableField
-                label="Lifetime Value"
-                value={customer.lifetime_value ? `$${customer.lifetime_value.toLocaleString()}` : "$0"}
+                label="Last Contacted"
+                value={analytics?.lastContactDate ? format(new Date(analytics.lastContactDate), "MMM d, yyyy") : "Never"}
                 isEditing={false}
-                icon={DollarSign}
+                icon={Clock}
               />
             </div>
 
@@ -435,62 +410,50 @@ export default function CustomerDetailPage({ params }: PageProps) {
           </EditableFieldGroup>
         </TabsContent>
 
-        {/* Orders Tab */}
-        <TabsContent value="orders">
+        {/* Activities Tab */}
+        <TabsContent value="activities">
           <Card>
             <CardHeader>
-              <CardTitle>Client Orders</CardTitle>
+              <CardTitle>Activity Timeline</CardTitle>
             </CardHeader>
-            <CardContent>
-              {orders.length === 0 ? (
+            <CardContent className="card-content-compact">
+              {activities.length === 0 ? (
                 <EmptyState
-                  icon={ShoppingCart}
-                  title="No Orders Yet"
-                  description="Orders from this client will appear here."
+                  icon={Clock}
+                  title="No Activities Yet"
+                  description="Activities like calls, emails, and meetings will appear here."
                 />
               ) : (
-                <div className="space-y-2">
-                  {orders.map((order: any) => (
-                    <div key={order.id} className="border-b pb-2 last:border-0">
-                      <div className="flex justify-between">
-                        <span className="font-medium">{order.order_number || 'Order'}</span>
-                        <StatusBadge status={order.status || 'pending'} />
+                <div className="activity-timeline">
+                  {activities.map((activity: any) => (
+                    <div key={activity.id} className="activity-timeline-item">
+                      <div className="activity-timeline-icon">
+                        {activity.status === "completed" ? (
+                          <CheckCircle2 className="icon-sm status-completed" aria-hidden="true" />
+                        ) : (
+                          <Clock className="icon-sm status-pending" aria-hidden="true" />
+                        )}
                       </div>
-                      {order.total_amount && (
-                        <p className="text-sm text-muted-foreground">${order.total_amount.toLocaleString()}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Invoices Tab */}
-        <TabsContent value="invoices">
-          <Card>
-            <CardHeader>
-              <CardTitle>Client Invoices</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {invoices.length === 0 ? (
-                <EmptyState
-                  icon={FileText}
-                  title="No Invoices Yet"
-                  description="Invoices for this client will appear here."
-                />
-              ) : (
-                <div className="space-y-2">
-                  {invoices.map((invoice: any) => (
-                    <div key={invoice.id} className="border-b pb-2 last:border-0">
-                      <div className="flex justify-between">
-                        <span className="font-medium">{invoice.invoice_number || 'Invoice'}</span>
-                        <StatusBadge status={invoice.status || 'pending'} />
+                      <div className="activity-timeline-content">
+                        <div className="activity-timeline-header">
+                          <h4 className="activity-timeline-title">{activity.title || "Untitled Activity"}</h4>
+                          <StatusBadge status={activity.status || "unknown"} />
+                        </div>
+                        {activity.type && (
+                          <p className="activity-timeline-type">
+                            <span className="activity-type-badge">{activity.type}</span>
+                          </p>
+                        )}
+                        {activity.description && (
+                          <p className="activity-timeline-description">{activity.description}</p>
+                        )}
+                        {activity.created_at && (
+                          <p className="activity-timeline-date">
+                            <Calendar className="icon-xs" aria-hidden="true" />
+                            {format(new Date(activity.created_at), "MMM d, yyyy h:mm a")}
+                          </p>
+                        )}
                       </div>
-                      {invoice.total_amount && (
-                        <p className="text-sm text-muted-foreground">${invoice.total_amount.toLocaleString()}</p>
-                      )}
                     </div>
                   ))}
                 </div>
@@ -503,7 +466,7 @@ export default function CustomerDetailPage({ params }: PageProps) {
         <TabsContent value="addresses">
           <Card>
             <CardHeader>
-              <CardTitle>Client Addresses</CardTitle>
+              <CardTitle>Contact Addresses</CardTitle>
             </CardHeader>
             <CardContent>
               <AddressList
@@ -525,7 +488,7 @@ export default function CustomerDetailPage({ params }: PageProps) {
         <TabsContent value="notes">
           <Card>
             <CardHeader>
-              <CardTitle>Client Notes</CardTitle>
+              <CardTitle>Contact Notes</CardTitle>
             </CardHeader>
             <CardContent>
               {isEditing ? (
@@ -546,7 +509,7 @@ export default function CustomerDetailPage({ params }: PageProps) {
                   <EmptyState
                     icon={MessageSquare}
                     title="No Notes"
-                    description="Add notes about this client to keep track of important information."
+                    description="Add notes about this contact to keep track of important information."
                   />
                 )
               )}

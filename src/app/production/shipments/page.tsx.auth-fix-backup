@@ -40,7 +40,7 @@ export default function ProductionShipmentsPage() {
       offset: 0,
     },
     {
-      enabled: true,
+      enabled: !!user,
     }
   );
 

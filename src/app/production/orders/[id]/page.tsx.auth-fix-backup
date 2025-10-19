@@ -153,7 +153,7 @@ export default function ProductionOrderDetailPage({ params }: PageProps) {
  useProductionOrdersRealtime({
  orderId: id as string,
  queryKey: ['productionOrders', 'getById', { id }],
- enabled: true, // Middleware ensures auth
+ enabled: !authLoading && !!user,
  });
 
  // Subscribe to realtime updates for shipments
