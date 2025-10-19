@@ -61,6 +61,49 @@ export function getSupabaseAdmin() {
         persistSession: false,
       },
     })
+
+    // DIAGNOSTIC: Test database connectivity and permissions
+    // This runs only once when the client is first created
+    ;(async () => {
+      try {
+        console.log('[getSupabaseAdmin] Testing database connectivity...');
+
+        // Test 1: Can we query a table?
+        const testQuery = await _adminClient!.from('orders').select('id').limit(1);
+
+        if (testQuery.error) {
+          console.error('[getSupabaseAdmin] ❌ Database test FAILED:', {
+            code: testQuery.error.code,
+            message: testQuery.error.message,
+            details: testQuery.error.details,
+            hint: testQuery.error.hint,
+          });
+
+          // Check if it's a permission error
+          if (testQuery.error.code === '42501') {
+            console.error('[getSupabaseAdmin] 🚨 PERMISSION DENIED ERROR:');
+            console.error('  This suggests the SUPABASE_SERVICE_ROLE_KEY may be incorrect.');
+            console.error('  The service role key should have full database access.');
+            console.error('  Please verify in Vercel Dashboard that:');
+            console.error('  1. SUPABASE_SERVICE_ROLE_KEY contains the SERVICE ROLE key (not the anon key)');
+            console.error('  2. The key is from the correct Supabase project');
+            console.error('  3. The key matches the NEXT_PUBLIC_SUPABASE_URL');
+          }
+
+          // Check if it's a "table not found" error
+          if (testQuery.error.code === '42P01' || testQuery.error.message?.includes('does not exist')) {
+            console.error('[getSupabaseAdmin] 🚨 TABLE NOT FOUND ERROR:');
+            console.error('  The "orders" table does not exist in the database.');
+            console.error('  This suggests you may be pointing to the wrong Supabase project.');
+            console.error('  Please verify NEXT_PUBLIC_SUPABASE_URL points to the correct project.');
+          }
+        } else {
+          console.log('[getSupabaseAdmin] ✅ Database test PASSED - successfully queried orders table');
+        }
+      } catch (testError) {
+        console.error('[getSupabaseAdmin] ❌ Database test threw exception:', testError);
+      }
+    })();
   }
   return _adminClient
 }
