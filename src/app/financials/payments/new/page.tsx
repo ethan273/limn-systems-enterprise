@@ -21,7 +21,9 @@ import {
   CreditCard,
   DollarSign,
   Plus,
-  AlertCircle
+  AlertCircle,
+  AlertTriangle,
+  RefreshCw
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -36,7 +38,7 @@ export default function NewPaymentPage() {
   const [notes, setNotes] = useState("");
 
   // Fetch unpaid/partial invoices
-  const { data: invoicesData, isLoading: invoicesLoading } = api.invoices.getAll.useQuery({
+  const { data: invoicesData, isLoading: invoicesLoading, error } = api.invoices.getAll.useQuery({
     limit: 100,
   });
 
@@ -125,6 +127,28 @@ export default function NewPaymentPage() {
   const unpaidInvoices = invoicesData?.items?.filter((invoice: { payment_status: string }) =>
     invoice.payment_status === 'unpaid' || invoice.payment_status === 'partial'
   ) || [];
+
+  // Handle errors
+  if (error) {
+    return (
+      <div className="container mx-auto p-6 max-w-3xl">
+        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+          <AlertTriangle className="w-12 h-12 text-destructive" aria-hidden="true" />
+          <h2 className="text-2xl font-semibold">Failed to Load Invoices</h2>
+          <p className="text-muted-foreground text-center max-w-md">
+            {error.message || "An unexpected error occurred while loading invoices data."}
+          </p>
+          <button
+            onClick={() => utils.invoices.getAll.invalidate()}
+            className="btn-primary flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" aria-hidden="true" />
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 max-w-3xl">

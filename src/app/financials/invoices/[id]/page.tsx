@@ -30,6 +30,8 @@ import {
   Calendar,
   DollarSign,
   Edit,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
@@ -75,7 +77,7 @@ export default function InvoiceDetailPage({ params }: PageProps) {
   const [activeTab, setActiveTab] = useState("overview");
 
   // Fetch invoice details
-  const { data: invoice, isLoading } = api.invoices.getById.useQuery(
+  const { data: invoice, isLoading, error } = api.invoices.getById.useQuery(
     { id: id },
     { enabled: !!id }
   );
@@ -114,6 +116,27 @@ export default function InvoiceDetailPage({ params }: PageProps) {
     return (
       <div className="page-container">
         <LoadingState message="Loading invoice details..." size="md" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="page-container">
+        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+          <AlertTriangle className="w-12 h-12 text-destructive" aria-hidden="true" />
+          <h2 className="text-2xl font-semibold">Failed to Load Invoice</h2>
+          <p className="text-muted-foreground text-center max-w-md">
+            {error.message || "An unexpected error occurred while loading the invoice."}
+          </p>
+          <button
+            onClick={() => utils.invoices.getById.invalidate({ id })}
+            className="btn-primary flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" aria-hidden="true" />
+            Retry
+          </button>
+        </div>
       </div>
     );
   }

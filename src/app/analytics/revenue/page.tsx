@@ -46,15 +46,47 @@ export default function RevenueAnalyticsPage() {
   const [groupBy, setGroupBy] = useState<'day' | 'week' | 'month'>('month');
 
   // Fetch analytics data
-  const { data: overview, isLoading: overviewLoading } = api.analytics.getRevenueOverview.useQuery(dateRange);
-  const { data: trends, isLoading: trendsLoading } = api.analytics.getRevenueTrends.useQuery({
+  const { data: overview, isLoading: overviewLoading, error: overviewError } = api.analytics.getRevenueOverview.useQuery(dateRange);
+  const { data: trends, isLoading: trendsLoading, error: trendsError } = api.analytics.getRevenueTrends.useQuery({
     ...dateRange,
     groupBy,
   });
-  const { data: topCustomers, isLoading: customersLoading } = api.analytics.getRevenueByCustomer.useQuery({
+  const { data: topCustomers, isLoading: customersLoading, error: customersError } = api.analytics.getRevenueByCustomer.useQuery({
     ...dateRange,
     limit: 10,
   });
+
+  const utils = api.useUtils();
+
+  // Handle query errors
+  const error = overviewError || trendsError || customersError;
+  if (error) {
+    return (
+      <div className="analytics-page">
+        <div className="page-container">
+          <div className="card border-destructive p-6">
+            <div className="flex items-start gap-4">
+              <div className="text-destructive text-3xl">⚠️</div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-lg mb-2">Failed to Load Revenue Analytics</h3>
+                <p className="text-muted-foreground mb-4">{error.message}</p>
+                <button
+                  onClick={() => {
+                    utils.analytics.getRevenueOverview.invalidate();
+                    utils.analytics.getRevenueTrends.invalidate();
+                    utils.analytics.getRevenueByCustomer.invalidate();
+                  }}
+                  className="btn btn-outline"
+                >
+                  🔄 Retry
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {

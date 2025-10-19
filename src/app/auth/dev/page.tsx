@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useTheme } from 'next-themes';
+import { useTheme } from '@/components/providers/ThemeProvider';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
@@ -93,6 +93,8 @@ export default function DevLoginPage() {
  <div className="text-center">
  <div className="mb-6 flex justify-center">
  {mounted ? (
+ // CORRECT: Use Light_Mode.png for light theme, Dark_Mode.png for dark theme
+ // See LOGO-USAGE-PERMANENT-REFERENCE.md for full explanation
  <Image
  src={resolvedTheme === 'dark' ? '/images/Limn_Logo_Dark_Mode.png' : '/images/Limn_Logo_Light_Mode.png'}
  alt="Limn Systems"

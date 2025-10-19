@@ -20,6 +20,8 @@ import {
   TruckIcon,
   CheckCircle2,
   Plus,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -33,7 +35,7 @@ export default function ProductionShipmentsPage() {
   const [_searchQuery, _setSearchQuery] = useState("");
 
   // Fetch shipments from production orders
-  const { data, isLoading } = api.shipping.getAllShipments.useQuery(
+  const { data, isLoading, error } = api.shipping.getAllShipments.useQuery(
     {
       status: _statusFilter === "all" ? undefined : _statusFilter,
       limit: 100,
@@ -45,6 +47,9 @@ export default function ProductionShipmentsPage() {
   );
 
   const shipments = data?.items || [];
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   // Statistics
   const stats: StatItem[] = [
@@ -173,6 +178,28 @@ export default function ProductionShipmentsPage() {
       ],
     },
   ];
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Production Shipments"
+          subtitle="Prepare and track shipments from production orders"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load shipments"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.shipping.getAllShipments.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

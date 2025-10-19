@@ -15,6 +15,7 @@ import {
   FileText,
   ArrowLeft,
   User,
+  RefreshCw,
 } from 'lucide-react';
 
 /**
@@ -24,9 +25,10 @@ import {
 export default function QCInspectionDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const utils = api.useUtils();
   const inspectionId = params?.id as string;
 
-  const { data: inspection, isLoading } = api.portal.getQCInspectionById.useQuery(
+  const { data: inspection, isLoading, error } = api.portal.getQCInspectionById.useQuery(
     { inspectionId },
     { enabled: !!inspectionId }
   );
@@ -61,6 +63,28 @@ export default function QCInspectionDetailPage() {
       </Badge>
     );
   };
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="page-header">
+          <h1 className="page-title">Inspection Details</h1>
+          <p className="page-subtitle">Quality control inspection information</p>
+        </div>
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load inspection"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.portal.getQCInspectionById.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

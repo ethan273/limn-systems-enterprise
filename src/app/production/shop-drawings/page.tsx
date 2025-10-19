@@ -9,6 +9,8 @@ import {
   Building2,
   Package,
   Plus,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -58,9 +60,10 @@ export default function ShopDrawingsPage() {
   const [statusFilter, _setStatusFilter] = useState<string>("all");
   const [page, _setPage] = useState(0);
   const limit = 20;
+  const utils = api.useUtils();
 
   // Fetch shop drawings with filters
-  const { data, isLoading } = api.shopDrawings.getAll.useQuery({
+  const { data, isLoading, error } = api.shopDrawings.getAll.useQuery({
     productionOrderId: orderFilter === "all" ? undefined : orderFilter,
     factoryId: factoryFilter === "all" ? undefined : factoryFilter,
     status: statusFilter === "all" ? undefined : statusFilter,
@@ -70,12 +73,12 @@ export default function ShopDrawingsPage() {
   });
 
   // Fetch production orders for filter
-  const { data: ordersData } = api.productionOrders.getAll.useQuery({
+  const { data: ordersData, error: ordersError } = api.productionOrders.getAll.useQuery({
     limit: 100,
   });
 
   // Fetch factories for filter
-  const { data: factoriesData } = api.partners.getAll.useQuery({
+  const { data: factoriesData, error: factoriesError } = api.partners.getAll.useQuery({
     type: "factory",
     limit: 100,
   });
@@ -241,6 +244,28 @@ export default function ShopDrawingsPage() {
         ),
     },
   ];
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Shop Drawings"
+          description="Manage production drawings with version control and approvals"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load shop drawings"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.shopDrawings.getAll.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

@@ -4,9 +4,9 @@ import { features } from "@/lib/features";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { PageHeader, LoadingState } from "@/components/common";
+import { PageHeader, LoadingState, EmptyState } from "@/components/common";
 import { api } from "@/lib/api/client";
-import { Sparkles, Wand2, Settings, Check, Loader2, ArrowRight } from "lucide-react";
+import { Sparkles, Wand2, Settings, Check, Loader2, ArrowRight, AlertTriangle, RefreshCw } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -54,11 +54,14 @@ export default function AIGenerationPage() {
   }
 
   // Query products for selection
-  const { data: productsData, isLoading: productsLoading } = api.products.list.useQuery({
+  const { data: productsData, isLoading: productsLoading, error: productsError } = api.products.list.useQuery({
     limit: 100,
   });
 
   const products = productsData?.items || [];
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   // Handle product selection toggle
   const toggleProduct = (productId: string) => {
@@ -119,6 +122,28 @@ export default function AIGenerationPage() {
       setIsGenerating(false);
     }
   };
+
+  // Handle query error
+  if (productsError) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="AI Flipbook Generation"
+          subtitle="Let AI create stunning flipbooks from your product catalog"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load products"
+          description={productsError.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.products.list.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

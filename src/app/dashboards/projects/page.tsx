@@ -51,7 +51,7 @@ export default function ProjectDashboardPage() {
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d');
 
   // Fetch projects analytics
-  const { data: analytics, isLoading } = api.dashboards.getProjectsAnalytics.useQuery(
+  const { data: analytics, isLoading, error } = api.dashboards.getProjectsAnalytics.useQuery(
     { dateRange },
     { refetchInterval: 60000 } // Auto-refresh every 60 seconds
   );
@@ -60,7 +60,7 @@ export default function ProjectDashboardPage() {
   const utils = api.useUtils();
 
   // Fetch AI insights
-  const { data: insights } = api.dashboards.getProjectsInsights.useQuery();
+  const { data: insights, error: insightsError } = api.dashboards.getProjectsInsights.useQuery();
 
   if (isLoading) {
     return (
@@ -73,15 +73,21 @@ export default function ProjectDashboardPage() {
     );
   }
 
-  if (!analytics) {
+  if (error || !analytics) {
     return (
       <div className="dashboard-page">
-        <div className="dashboard-empty-state">
-          <Folder className="dashboard-empty-icon" aria-hidden="true" />
-          <h2 className="dashboard-empty-title">No Projects Data</h2>
-          <p className="dashboard-empty-description">
-            Unable to load projects analytics. Please try again.
-          </p>
+        <div className="dashboard-error">
+          <AlertTriangle className="error-icon" />
+          <h2>Failed to load projects data</h2>
+          <p>{error?.message || 'Unable to retrieve projects dashboard data. Please try again.'}</p>
+          <Button
+            variant="outline"
+            onClick={() => utils.dashboards.getProjectsAnalytics.invalidate()}
+            className="mt-4"
+          >
+            <RefreshCw className="icon-sm mr-2" />
+            Retry
+          </Button>
         </div>
       </div>
     );

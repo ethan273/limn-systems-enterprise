@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ExpandableTableRowWithTrigger } from "@/components/ui/expandable-table-row";
-import { Search, Package, DollarSign, FileText, AlertCircle } from "lucide-react";
+import { Search, Package, DollarSign, FileText, AlertCircle, AlertTriangle, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
@@ -154,12 +154,25 @@ export default function CRMOrdersPage() {
  if (error) {
  return (
  <div className="container mx-auto py-6">
- <ErrorState
- title="Failed to load orders"
- message="There was an error loading the orders. Please try again."
- error={error?.message || String(error)}
- onRetry={() => window.location.reload()}
- />
+ <div className="flex flex-col items-center justify-center py-12 space-y-4">
+ <div className="flex items-center justify-center w-16 h-16 rounded-full bg-destructive/10">
+ <AlertTriangle className="w-8 h-8 text-destructive" />
+ </div>
+ <div className="text-center space-y-2">
+ <h3 className="text-lg font-semibold">Failed to load orders</h3>
+ <p className="text-sm text-muted-foreground max-w-md">
+ {error?.message || 'An error occurred while loading the orders.'}
+ </p>
+ </div>
+ <Button
+ onClick={() => utils.orders.getWithProductionDetails.invalidate()}
+ variant="outline"
+ className="gap-2"
+ >
+ <RefreshCw className="w-4 h-4" />
+ Try Again
+ </Button>
+ </div>
  </div>
  );
  }

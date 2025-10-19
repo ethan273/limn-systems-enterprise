@@ -17,6 +17,8 @@ import {
   Clock,
   AlertCircle,
   Ship,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -31,7 +33,7 @@ export default function TrackingPage() {
   const [searchAttempted, setSearchAttempted] = useState(false);
 
   // Track shipment query
-  const { data: trackingData, isLoading } = api.shipping.trackShipment.useQuery(
+  const { data: trackingData, isLoading, error } = api.shipping.trackShipment.useQuery(
     {
       tracking_number: trackingNumber,
     },
@@ -52,6 +54,50 @@ export default function TrackingPage() {
   };
 
   const shipment = trackingData;
+
+  // Handle query error
+  if (error && searchAttempted) {
+    return (
+      <div className="page-container">
+        <div className="page-header">
+          <div>
+            <h1 className="page-title">Track Shipment</h1>
+            <p className="page-description">
+              Enter a tracking number to view real-time shipment status
+            </p>
+          </div>
+          <Button
+            onClick={() => router.push("/shipping/shipments")}
+            variant="outline"
+            className="btn-outline"
+          >
+            View All Shipments
+          </Button>
+        </div>
+        <Card>
+          <CardContent className="card-content-compact">
+            <div className="empty-state">
+              <AlertTriangle className="empty-state-icon text-destructive" aria-hidden="true" />
+              <h3 className="empty-state-title">Failed to load tracking information</h3>
+              <p className="empty-state-description">
+                {error.message || "An unexpected error occurred. Please try again."}
+              </p>
+              <Button
+                onClick={() => {
+                  utils.shipping.trackShipment.invalidate();
+                  handleTrack();
+                }}
+                className="btn-primary mt-4"
+              >
+                <RefreshCw className="icon-sm" aria-hidden="true" />
+                Try Again
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

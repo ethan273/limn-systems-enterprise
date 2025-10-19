@@ -247,8 +247,14 @@ export const adminRouter = createTRPCRouter({
           }),
         })
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
         const { userId, data } = input;
+
+        // Get user email for audit log
+        const user = await prisma.users.findUnique({
+          where: { id: userId },
+          select: { email: true },
+        });
 
         // Update user_profiles
         const updated = await prisma.user_profiles.update({
@@ -258,6 +264,22 @@ export const adminRouter = createTRPCRouter({
             title: data.title,
             department: data.department,
             is_active: data.isActive,
+          },
+        });
+
+        // Create audit log entry
+        await prisma.admin_audit_log.create({
+          data: {
+            action: 'UPDATE_USER_PROFILE',
+            user_id: ctx.session?.user?.id || null,
+            user_email: ctx.session?.user?.email || null,
+            resource_type: 'user_profile',
+            resource_id: userId,
+            metadata: {
+              target_user_email: user?.email,
+              changes: data,
+            },
+            created_at: new Date(),
           },
         });
 
@@ -390,8 +412,14 @@ export const adminRouter = createTRPCRouter({
           value: z.boolean(),
         })
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
         const { userId, module, permission, value } = input;
+
+        // Get user email for audit log
+        const user = await prisma.users.findUnique({
+          where: { id: userId },
+          select: { email: true },
+        });
 
         // Check if user-specific permission exists
         const existingPermission = await prisma.user_permissions.findUnique({
@@ -427,6 +455,24 @@ export const adminRouter = createTRPCRouter({
             },
           });
         }
+
+        // Create audit log entry
+        await prisma.admin_audit_log.create({
+          data: {
+            action: 'UPDATE_USER_PERMISSION',
+            user_id: ctx.session?.user?.id || null,
+            user_email: ctx.session?.user?.email || null,
+            resource_type: 'user_permission',
+            resource_id: userId,
+            metadata: {
+              target_user_email: user?.email,
+              module,
+              permission,
+              value,
+            },
+            created_at: new Date(),
+          },
+        });
 
         return { success: true };
       }),
@@ -658,13 +704,32 @@ export const adminRouter = createTRPCRouter({
           role: z.string(),
         })
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
         const { userId, role } = input;
+
+        // Get user email for audit log
+        const user = await prisma.users.findUnique({
+          where: { id: userId },
+          select: { email: true },
+        });
 
         await prisma.user_roles.create({
           data: {
             user_id: userId,
             role,
+          },
+        });
+
+        // Create audit log entry
+        await prisma.admin_audit_log.create({
+          data: {
+            action: 'ASSIGN_ROLE',
+            user_id: ctx.session?.user?.id || null,
+            user_email: ctx.session?.user?.email || null,
+            resource_type: 'user_role',
+            resource_id: userId,
+            metadata: { role, target_user_email: user?.email },
+            created_at: new Date(),
           },
         });
 
@@ -681,13 +746,32 @@ export const adminRouter = createTRPCRouter({
           role: z.string(),
         })
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
         const { userId, role } = input;
+
+        // Get user email for audit log
+        const user = await prisma.users.findUnique({
+          where: { id: userId },
+          select: { email: true },
+        });
 
         await prisma.user_roles.deleteMany({
           where: {
             user_id: userId,
             role,
+          },
+        });
+
+        // Create audit log entry
+        await prisma.admin_audit_log.create({
+          data: {
+            action: 'REMOVE_ROLE',
+            user_id: ctx.session?.user?.id || null,
+            user_email: ctx.session?.user?.email || null,
+            resource_type: 'user_role',
+            resource_id: userId,
+            metadata: { role, target_user_email: user?.email },
+            created_at: new Date(),
           },
         });
 

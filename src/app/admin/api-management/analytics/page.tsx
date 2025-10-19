@@ -19,6 +19,7 @@ import {
   Calendar,
   ArrowLeft,
   RefreshCw,
+  AlertTriangle,
 } from 'lucide-react';
 import {
   BarChart,
@@ -36,27 +37,66 @@ import {
 } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoadingState } from '@/components/common';
+import { LoadingState, EmptyState } from '@/components/common';
 
 export default function AnalyticsPage() {
   const [dateRange, setDateRange] = useState<7 | 30 | 90>(30);
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   // Fetch analytics data
-  const { data: credentials, refetch: refetchCredentials, isLoading: isLoadingCredentials } = api.apiCredentials.getAll.useQuery(undefined, {
+  const { data: credentials, error: credentialsError, refetch: refetchCredentials, isLoading: isLoadingCredentials } = api.apiCredentials.getAll.useQuery(undefined, {
     refetchOnMount: true,
   });
 
-  const { data: auditStats, refetch: refetchAuditStats, isLoading: isLoadingAudit } = api.apiAudit.getAuditStatistics.useQuery({
+  const { data: auditStats, error: auditError, refetch: refetchAuditStats, isLoading: isLoadingAudit } = api.apiAudit.getAuditStatistics.useQuery({
     startDate: new Date(Date.now() - dateRange * 24 * 60 * 60 * 1000).toISOString(),
     endDate: new Date().toISOString(),
   });
 
-  const { data: healthDashboard, refetch: refetchHealthDashboard, isLoading: isLoadingHealth } = api.apiHealth.getHealthDashboard.useQuery();
+  const { data: healthDashboard, error: healthError, refetch: refetchHealthDashboard, isLoading: isLoadingHealth } = api.apiHealth.getHealthDashboard.useQuery();
 
   if (isLoadingCredentials || isLoadingAudit || isLoadingHealth) {
     return (
       <div className="page-container">
         <LoadingState message="Loading analytics..." size="lg" />
+      </div>
+    );
+  }
+
+  // Handle query errors
+  const error = credentialsError || auditError || healthError;
+  if (error) {
+    return (
+      <div className="page-container">
+        <div className="page-header">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+              <BarChart3 className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="page-title">Analytics & Insights</h1>
+              <p className="page-description">
+                Comprehensive analytics for API credential usage and health
+              </p>
+            </div>
+          </div>
+        </div>
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load analytics data"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => {
+              if (credentialsError) utils.apiCredentials.getAll.invalidate();
+              if (auditError) utils.apiAudit.getAuditStatistics.invalidate();
+              if (healthError) utils.apiHealth.getHealthDashboard.invalidate();
+            },
+            icon: RefreshCw,
+          }}
+        />
       </div>
     );
   }

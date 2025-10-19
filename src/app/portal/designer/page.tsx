@@ -11,6 +11,8 @@ import {
   CheckCircle,
   FileText,
   Calendar,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
 
 /**
@@ -20,11 +22,12 @@ import {
  */
 export default function DesignerPortalPage() {
   const router = useRouter();
+  const utils = api.useUtils();
 
   // Use portal router procedures (enforces designer portal access)
-  const { data: _userInfo } = api.portal.getCurrentUser.useQuery();
-  const { data: stats, isLoading: _statsLoading } = api.portal.getDesignerDashboardStats.useQuery();
-  const { data: projectsData, isLoading: projectsLoading } = api.portal.getDesignerProjects.useQuery({
+  const { data: _userInfo, error: userError } = api.portal.getCurrentUser.useQuery();
+  const { data: stats, isLoading: _statsLoading, error: statsError } = api.portal.getDesignerDashboardStats.useQuery();
+  const { data: projectsData, isLoading: projectsLoading, error: projectsError } = api.portal.getDesignerProjects.useQuery({
     limit: 50,
     offset: 0,
   });
@@ -54,6 +57,90 @@ export default function DesignerPortalPage() {
       day: 'numeric',
     });
   };
+
+  // Handle user query error
+  if (userError) {
+    return (
+      <div className="space-y-6">
+        <div className="page-header">
+          <h1 className="page-title">Designer Dashboard</h1>
+          <p className="page-subtitle">Manage your design projects and track your performance</p>
+        </div>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center space-y-4">
+            <AlertTriangle className="w-12 h-12 text-destructive mx-auto" />
+            <div>
+              <h3 className="text-lg font-semibold">Failed to load user information</h3>
+              <p className="text-muted-foreground mt-2">{userError.message || "An unexpected error occurred. Please try again."}</p>
+            </div>
+            <button
+              onClick={() => utils.portal.getCurrentUser.invalidate()}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle stats query error
+  if (statsError) {
+    return (
+      <div className="space-y-6">
+        <div className="page-header">
+          <h1 className="page-title">Designer Dashboard</h1>
+          <p className="page-subtitle">Manage your design projects and track your performance</p>
+        </div>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center space-y-4">
+            <AlertTriangle className="w-12 h-12 text-destructive mx-auto" />
+            <div>
+              <h3 className="text-lg font-semibold">Failed to load dashboard statistics</h3>
+              <p className="text-muted-foreground mt-2">{statsError.message || "An unexpected error occurred. Please try again."}</p>
+            </div>
+            <button
+              onClick={() => utils.portal.getDesignerDashboardStats.invalidate()}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle projects query error
+  if (projectsError) {
+    return (
+      <div className="space-y-6">
+        <div className="page-header">
+          <h1 className="page-title">Designer Dashboard</h1>
+          <p className="page-subtitle">Manage your design projects and track your performance</p>
+        </div>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center space-y-4">
+            <AlertTriangle className="w-12 h-12 text-destructive mx-auto" />
+            <div>
+              <h3 className="text-lg font-semibold">Failed to load projects</h3>
+              <p className="text-muted-foreground mt-2">{projectsError.message || "An unexpected error occurred. Please try again."}</p>
+            </div>
+            <button
+              onClick={() => utils.portal.getDesignerProjects.invalidate()}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

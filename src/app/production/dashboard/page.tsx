@@ -13,7 +13,7 @@ import {
   type DataTableColumn,
   LoadingState,
 } from "@/components/common";
-import { DollarSign, Package, TrendingUp, AlertCircle, Clock, CheckCircle } from "lucide-react";
+import { DollarSign, Package, TrendingUp, AlertCircle, Clock, CheckCircle, RefreshCw } from "lucide-react";
 import Link from "next/link";
 
 export default function ProductionDashboardPage() {
@@ -22,14 +22,43 @@ export default function ProductionDashboardPage() {
 
   // Auth is handled by middleware - no client-side redirect needed
 
-  const { data: stats, isLoading: isLoadingStats } = api.productionTracking.getDashboardStats.useQuery(
+  const { data: stats, isLoading: isLoadingStats, error: statsError } = api.productionTracking.getDashboardStats.useQuery(
     { date_range: _dateRange },
     { enabled: true } // Middleware ensures auth
   );
-  const { data: progress, isLoading: isLoadingProgress } = api.productionTracking.getProductionProgress.useQuery(
+  const { data: progress, isLoading: isLoadingProgress, error: progressError } = api.productionTracking.getProductionProgress.useQuery(
     { limit: 10 },
     { enabled: true } // Middleware ensures auth
   );
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
+  // Handle query error
+  if (statsError || progressError) {
+    const error = statsError || progressError;
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Production Dashboard"
+          subtitle="Track production orders and progress in real-time"
+        />
+        <EmptyState
+          icon={AlertCircle}
+          title="Failed to load dashboard data"
+          description={error?.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => {
+              utils.productionTracking.getDashboardStats.invalidate();
+              utils.productionTracking.getProductionProgress.invalidate();
+            },
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   if (isLoadingStats || isLoadingProgress) {
     return (

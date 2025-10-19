@@ -10,6 +10,8 @@ import { ShippingStatusBadge } from "@/components/ui/status-badge";
 import {
   TruckIcon,
   Package,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import { format } from "date-fns";
 import {
@@ -32,7 +34,7 @@ export default function ShipmentsPage() {
   const [statusFilter, _setStatusFilter] = useState<string>("all");
   const [searchQuery, _setSearchQuery] = useState("");
 
-  const { data, isLoading } = api.shipping.getAllShipments.useQuery(
+  const { data, isLoading, error } = api.shipping.getAllShipments.useQuery(
     {
       status: statusFilter === "all" ? undefined : statusFilter,
       limit: 100,
@@ -44,6 +46,9 @@ export default function ShipmentsPage() {
   );
 
   const shipments = data?.items || [];
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   // Subscribe to realtime updates for shipments
   useShipmentsRealtime({
@@ -208,6 +213,28 @@ export default function ShipmentsPage() {
       shipment.orders?.order_number?.toLowerCase().includes(searchLower)
     );
   });
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="All Shipments"
+          description="Comprehensive shipment management with SEKO integration"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load shipments"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.shipping.getAllShipments.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

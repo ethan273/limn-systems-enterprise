@@ -9,6 +9,8 @@ import {
   CheckCircle2,
   Calendar,
   AlertCircle,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
@@ -86,12 +88,35 @@ const invoiceTypeConfig: Record<string, { label: string; className: string }> = 
 
 export default function FinancialsPage() {
   const router = useRouter();
+  const utils = api.useUtils();
 
-  const { data, isLoading } = api.portal.getCustomerInvoices.useQuery({
+  const { data, isLoading, error } = api.portal.getCustomerInvoices.useQuery({
     status: undefined,
     limit: 100,
     offset: 0,
   });
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Financials"
+          subtitle="View your invoices and payment history"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load invoices"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.portal.getCustomerInvoices.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   const invoices = data?.invoices || [];
 

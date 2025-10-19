@@ -34,6 +34,7 @@ import {
   CheckCircle2,
   ListTodo,
   XCircle,
+  RefreshCw,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -71,7 +72,10 @@ const statusConfig = {
 export default function TasksKanbanPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
-  const { data: tasksData, isLoading } = api.tasks.getAllTasks.useQuery({
+  // Get current user from tRPC (standardized auth pattern)
+  const { data: _currentUser, isLoading: authLoading } = api.userProfile.getCurrentUser.useQuery();
+
+  const { data: tasksData, isLoading, error } = api.tasks.getAllTasks.useQuery({
     limit: 100,
     offset: 0,
     sortBy: 'created_at',
@@ -156,6 +160,37 @@ export default function TasksKanbanPage() {
       iconColor: 'destructive',
     },
   ];
+
+  // Handle auth loading
+  if (authLoading) {
+    return (
+      <div className="page-container">
+        <LoadingState message="Loading..." size="lg" />
+      </div>
+    );
+  }
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Tasks Kanban"
+          subtitle="Visual task management board - drag and drop to update status"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load tasks"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.tasks.getAllTasks.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

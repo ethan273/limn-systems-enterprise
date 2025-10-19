@@ -5,6 +5,8 @@ import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/common/EmptyState';
+import { PageHeader } from '@/components/common/PageHeader';
 import {
   Package,
   DollarSign,
@@ -15,6 +17,8 @@ import {
   ShoppingCart,
   CreditCard,
   Upload,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
 
 /**
@@ -24,11 +28,12 @@ import {
  */
 export default function CustomerPortalPage() {
   const router = useRouter();
+  const utils = api.useUtils();
 
   // Use portal router procedures
-  const { data: _userInfo } = api.portal.getCurrentUser.useQuery();
-  const { data: stats, isLoading: _statsLoading } = api.portal.getDashboardStats.useQuery();
-  const { data: ordersData, isLoading: ordersLoading } = api.portal.getCustomerOrders.useQuery({
+  const { data: _userInfo, error: userError } = api.portal.getCurrentUser.useQuery();
+  const { data: stats, isLoading: _statsLoading, error: statsError } = api.portal.getDashboardStats.useQuery();
+  const { data: ordersData, isLoading: ordersLoading, error: ordersError } = api.portal.getCustomerOrders.useQuery({
     status: 'all',
     limit: 5,
     offset: 0,
@@ -68,6 +73,33 @@ export default function CustomerPortalPage() {
       day: 'numeric',
     });
   };
+
+  // Handle query errors
+  if (userError || statsError || ordersError) {
+    const error = userError || statsError || ordersError;
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Customer Portal"
+          subtitle="Track your orders, manage payments, and view shipment status"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load dashboard data"
+          description={error?.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => {
+              utils.portal.getCurrentUser.invalidate();
+              utils.portal.getDashboardStats.invalidate();
+              utils.portal.getCustomerOrders.invalidate();
+            },
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

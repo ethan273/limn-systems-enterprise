@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useTheme } from 'next-themes'
+import { useTheme } from '@/components/providers/ThemeProvider'
 import Image from 'next/image'
 import { Users, Building, ShoppingCart } from 'lucide-react'
 

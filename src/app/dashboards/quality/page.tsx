@@ -20,6 +20,8 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { ExportPDFButton } from '@/components/ExportPDFButton';
+import { EmptyState } from '@/components/common/EmptyState';
+import { PageHeader } from '@/components/common/PageHeader';
 import {
   LineChart,
   Line,
@@ -58,7 +60,7 @@ const CHART_COLORS = ['hsl(var(--primary))', 'hsl(var(--destructive))', 'hsl(var
 export default function QualityDashboardPage() {
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d');
 
-  const { data: quality, isLoading } = api.dashboards.getQuality.useQuery(
+  const { data: quality, isLoading, error } = api.dashboards.getQuality.useQuery(
     { dateRange },
     { refetchInterval: 60000 } // Auto-refresh every 60 seconds
   );
@@ -66,7 +68,7 @@ export default function QualityDashboardPage() {
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
 
-  const { data: insights } = api.dashboards.getQualityInsights.useQuery();
+  const { data: insights, error: insightsError } = api.dashboards.getQualityInsights.useQuery();
 
   if (isLoading) {
     return (
@@ -79,13 +81,23 @@ export default function QualityDashboardPage() {
     );
   }
 
-  if (!quality) {
+  if (error || !quality) {
     return (
       <div className="dashboard-page">
-        <div className="dashboard-error">
-          <AlertTriangle className="error-icon" />
-          <p>Failed to load quality data</p>
-        </div>
+        <PageHeader
+          title="Quality Control Dashboard"
+          subtitle="Quality inspections, pass rates, and defect analysis"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load quality data"
+          description={error?.message || 'Unable to retrieve quality dashboard data. Please try again.'}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.dashboards.getQuality.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
       </div>
     );
   }

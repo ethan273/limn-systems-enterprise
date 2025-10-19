@@ -7,7 +7,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useTheme } from 'next-themes';
+import { useTheme } from '@/components/providers/ThemeProvider';
 import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -134,6 +134,8 @@ function PortalLoginForm() {
  {/* Logo */}
  <div className="mb-8 flex justify-center">
  {mounted ? (
+ // CORRECT: Use Light_Mode.png for light theme, Dark_Mode.png for dark theme
+ // See LOGO-USAGE-PERMANENT-REFERENCE.md for full explanation
  <Image
  key={resolvedTheme}
  src={resolvedTheme === 'dark' ? '/images/Limn_Logo_Dark_Mode.png' : '/images/Limn_Logo_Light_Mode.png'}

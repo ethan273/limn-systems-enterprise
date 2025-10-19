@@ -8,7 +8,7 @@
 
 import { useState } from 'react';
 import { api } from '@/lib/api/client';
-import { LoadingState } from '@/components/common';
+import { LoadingState, EmptyState } from '@/components/common';
 import Link from 'next/link';
 import {
   RefreshCw,
@@ -24,13 +24,47 @@ export default function CredentialRotationPage() {
   const [selectedCredential, setSelectedCredential] = useState<string | null>(null);
   const [confirmRotation, setConfirmRotation] = useState(false);
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   // Fetch all credentials
-  const { data: credentials, isLoading } = api.apiCredentials.getAll.useQuery();
+  const { data: credentials, error, isLoading } = api.apiCredentials.getAll.useQuery();
 
   if (isLoading) {
     return (
       <div className="page-container">
         <LoadingState message="Loading credentials..." size="lg" />
+      </div>
+    );
+  }
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <Link
+          href="/admin/api-management"
+          className="inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-4 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to API Management
+        </Link>
+        <div className="page-header">
+          <h1 className="page-title">Credential Rotation</h1>
+          <p className="page-description">
+            Zero-downtime rotation for supported credential types
+          </p>
+        </div>
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load credentials"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.apiCredentials.getAll.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
       </div>
     );
   }

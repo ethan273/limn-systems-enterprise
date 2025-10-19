@@ -17,7 +17,10 @@ import {
   ArrowRight,
   BarChart3,
   RefreshCw,
+  AlertTriangle,
 } from 'lucide-react';
+import { EmptyState } from '@/components/common/EmptyState';
+import { PageHeader } from '@/components/common/PageHeader';
 import {
   LazyRechartsPie as PieChart,
   LazyPie as Pie,
@@ -46,7 +49,7 @@ const STATUS_COLORS: Record<string, string> = {
 export default function AnalyticsDashboardPage() {
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | 'year' | 'all'>('30d');
 
-  const { data: analytics, isLoading } = api.dashboards.getAnalytics.useQuery(
+  const { data: analytics, isLoading, error } = api.dashboards.getAnalytics.useQuery(
     { dateRange },
     { refetchInterval: 60000 } // Auto-refresh every 60 seconds
   );
@@ -54,7 +57,7 @@ export default function AnalyticsDashboardPage() {
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
 
-  const { data: insights } = api.dashboards.getAnalyticsInsights.useQuery();
+  const { data: insights, error: insightsError } = api.dashboards.getAnalyticsInsights.useQuery();
 
   if (isLoading) {
     return (
@@ -63,6 +66,27 @@ export default function AnalyticsDashboardPage() {
           <div className="loading-spinner"></div>
           <p>Loading analytics...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="dashboard-page">
+        <PageHeader
+          title="Analytics Dashboard"
+          subtitle="Comprehensive business performance metrics and trends"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load analytics data"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.dashboards.getAnalytics.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
       </div>
     );
   }

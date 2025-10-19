@@ -10,6 +10,8 @@ import {
   Clock,
   Calendar,
   Search,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -20,11 +22,12 @@ import { useState } from 'react';
  */
 export default function DesignerProjectsPage() {
   const router = useRouter();
+  const utils = api.useUtils();
   const [searchQuery, setSearchQuery] = useState('');
 
   // Use portal router procedures
-  const { data: _userInfo } = api.portal.getCurrentUser.useQuery();
-  const { data: projectsData, isLoading } = api.portal.getDesignerProjects.useQuery({
+  const { data: _userInfo, error: userError } = api.portal.getCurrentUser.useQuery();
+  const { data: projectsData, isLoading, error: projectsError } = api.portal.getDesignerProjects.useQuery({
     limit: 100,
     offset: 0,
   });
@@ -60,6 +63,62 @@ export default function DesignerProjectsPage() {
       day: 'numeric',
     });
   };
+
+  // Handle user query error
+  if (userError) {
+    return (
+      <div className="space-y-6">
+        <div className="page-header">
+          <h1 className="page-title">Design Projects</h1>
+          <p className="page-subtitle">View and manage all your assigned design projects</p>
+        </div>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center space-y-4">
+            <AlertTriangle className="w-12 h-12 text-destructive mx-auto" />
+            <div>
+              <h3 className="text-lg font-semibold">Failed to load user information</h3>
+              <p className="text-muted-foreground mt-2">{userError.message || "An unexpected error occurred. Please try again."}</p>
+            </div>
+            <button
+              onClick={() => utils.portal.getCurrentUser.invalidate()}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle projects query error
+  if (projectsError) {
+    return (
+      <div className="space-y-6">
+        <div className="page-header">
+          <h1 className="page-title">Design Projects</h1>
+          <p className="page-subtitle">View and manage all your assigned design projects</p>
+        </div>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center space-y-4">
+            <AlertTriangle className="w-12 h-12 text-destructive mx-auto" />
+            <div>
+              <h3 className="text-lg font-semibold">Failed to load projects</h3>
+              <p className="text-muted-foreground mt-2">{projectsError.message || "An unexpected error occurred. Please try again."}</p>
+            </div>
+            <button
+              onClick={() => utils.portal.getDesignerProjects.invalidate()}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

@@ -34,7 +34,7 @@ import {
   Edit,
 } from 'lucide-react';
 import { PortalModuleConfigDialog } from '@/components/admin/PortalModuleConfigDialog';
-import { DataTable, type DataTableColumn } from '@/components/common';
+import { DataTable, LoadingState, type DataTableColumn } from '@/components/common';
 import { toast } from '@/hooks/use-toast';
 
 /**
@@ -49,6 +49,9 @@ export default function PortalManagementPage() {
   const [configPortalType, setConfigPortalType] = useState<'customer' | 'designer' | 'factory' | 'qc'>('customer');
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
+
+  // Get current user from tRPC (standardized auth pattern)
+  const { data: _currentUser, isLoading: authLoading } = api.userProfile.getCurrentUser.useQuery();
 
   // Fetch all portal access records
   const { data: portalUsers, isLoading } = api.admin.roles.getAllPortalUsers.useQuery();
@@ -217,6 +220,15 @@ export default function PortalManagementPage() {
       ),
     },
   ];
+
+  // Handle auth loading
+  if (authLoading) {
+    return (
+      <div className="page-container">
+        <LoadingState message="Loading..." size="lg" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

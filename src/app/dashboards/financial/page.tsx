@@ -62,7 +62,7 @@ const INSIGHT_CLASSES = {
 export default function FinancialDashboardPage() {
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | '1y' | 'all'>('30d');
 
-  const { data: financial, isLoading } = api.dashboards.getFinancial.useQuery(
+  const { data: financial, isLoading, error } = api.dashboards.getFinancial.useQuery(
     { dateRange },
     {
       refetchInterval: 60000, // Auto-refresh every 60 seconds
@@ -72,7 +72,7 @@ export default function FinancialDashboardPage() {
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
 
-  const { data: insights } = api.dashboards.getFinancialInsights.useQuery(undefined, {
+  const { data: insights, error: insightsError } = api.dashboards.getFinancialInsights.useQuery(undefined, {
     refetchInterval: 60000, // Auto-refresh every 60 seconds
   });
 
@@ -87,12 +87,21 @@ export default function FinancialDashboardPage() {
     );
   }
 
-  if (!financial) {
+  if (error || !financial) {
     return (
       <div className="dashboard-page">
         <div className="dashboard-error">
           <AlertTriangle className="error-icon" />
-          <p>Failed to load financial data</p>
+          <h2>Failed to load financial data</h2>
+          <p>{error?.message || 'Unable to retrieve financial dashboard data. Please try again.'}</p>
+          <Button
+            variant="outline"
+            onClick={() => utils.dashboards.getFinancial.invalidate()}
+            className="mt-4"
+          >
+            <RefreshCw className="icon-sm mr-2" />
+            Retry
+          </Button>
         </div>
       </div>
     );

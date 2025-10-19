@@ -6,16 +6,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/common/EmptyState';
+import { PageHeader } from '@/components/common/PageHeader';
 import {
   Package,
   Calendar,
   DollarSign,
   Truck,
-  
   Clock,
   CheckCircle,
   ArrowLeft,
-  
+  AlertTriangle,
+  RefreshCw,
   Factory,
   User,
 } from 'lucide-react';
@@ -28,8 +29,9 @@ export default function CustomerOrderDetailPage() {
   const params = useParams();
   const router = useRouter();
   const orderId = params?.id as string;
+  const utils = api.useUtils();
 
-  const { data: order, isLoading } = api.portal.getOrderById.useQuery(
+  const { data: order, isLoading, error } = api.portal.getOrderById.useQuery(
     { orderId },
     { enabled: !!orderId }
   );
@@ -63,6 +65,28 @@ export default function CustomerOrderDetailPage() {
     const config = statusConfig[status as keyof typeof statusConfig] || { label: status, variant: 'outline' as const };
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Order Details"
+          subtitle="View order information"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load order"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.portal.getOrderById.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

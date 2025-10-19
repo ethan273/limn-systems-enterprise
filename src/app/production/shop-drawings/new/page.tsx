@@ -23,9 +23,12 @@ import {
  Package,
  Building2,
  X,
- CheckCircle2
+ CheckCircle2,
+ AlertTriangle,
+ RefreshCw
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { EmptyState } from "@/components/common/EmptyState";
 
 export default function NewShopDrawingPage() {
  const router = useRouter();
@@ -40,13 +43,16 @@ export default function NewShopDrawingPage() {
  const [file, setFile] = useState<File | null>(null);
  const [uploading, setUploading] = useState(false);
 
+ // Get tRPC utils for cache invalidation
+ const utils = api.useUtils();
+
  // Fetch production orders
- const { data: ordersData, isLoading: ordersLoading } = api.productionOrders.getAll.useQuery({
+ const { data: ordersData, isLoading: ordersLoading, error: ordersError } = api.productionOrders.getAll.useQuery({
  limit: 100,
  });
 
  // Fetch factories
- const { data: factoriesData, isLoading: factoriesLoading } = api.partners.getAll.useQuery({
+ const { data: factoriesData, isLoading: factoriesLoading, error: factoriesError } = api.partners.getAll.useQuery({
  type: "factory",
  limit: 100,
  });
@@ -191,6 +197,40 @@ export default function NewShopDrawingPage() {
  setUploading(false);
  }
  };
+
+ // Handle query errors
+ if (ordersError || factoriesError) {
+ const error = ordersError || factoriesError;
+ return (
+ <div className="container mx-auto p-6 max-w-3xl">
+ <div className="space-y-6">
+ <div className="flex items-center gap-4">
+ <Button variant="ghost" size="sm" onClick={handleBack}>
+ <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
+ Back
+ </Button>
+ <div>
+ <h1 className="text-3xl font-bold">Upload New Shop Drawing</h1>
+ <p className="text-muted-foreground">Create a new shop drawing with PDF file</p>
+ </div>
+ </div>
+ <EmptyState
+ icon={AlertTriangle}
+ title="Failed to load form data"
+ description={error?.message || "An unexpected error occurred. Please try again."}
+ action={{
+ label: 'Try Again',
+ onClick: () => {
+ if (ordersError) utils.productionOrders.getAll.invalidate();
+ if (factoriesError) utils.partners.getAll.invalidate();
+ },
+ icon: RefreshCw,
+ }}
+ />
+ </div>
+ </div>
+ );
+ }
 
  const isFormValid = productionOrderId && drawingName.trim() && file;
 

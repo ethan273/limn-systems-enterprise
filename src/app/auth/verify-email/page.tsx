@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { CheckCircle, XCircle, Loader2, Mail } from 'lucide-react';
 import Link from 'next/link';
-import { useTheme } from 'next-themes';
+import { useTheme } from '@/components/providers/ThemeProvider';
 import Image from 'next/image';
 
 type VerificationStatus = 'loading' | 'success' | 'error';
@@ -70,6 +70,8 @@ function VerifyEmailContent() {
             <div className="text-center">
               <div className="mb-6 flex justify-center">
                 {mounted ? (
+                  // CORRECT: Use Light_Mode.png for light theme, Dark_Mode.png for dark theme
+                  // See LOGO-USAGE-PERMANENT-REFERENCE.md for full explanation
                   <Image
                     src={
                       resolvedTheme === 'dark'

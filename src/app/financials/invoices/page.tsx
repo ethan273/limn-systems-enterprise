@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
 import { useInvoicesRealtime } from "@/hooks/useRealtimeSubscription";
-import { FileText, DollarSign, Clock, CheckCircle2, Download, Plus } from "lucide-react";
+import { FileText, DollarSign, Clock, CheckCircle2, Download, Plus, AlertTriangle, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import {
   PageHeader,
@@ -29,7 +29,7 @@ function InvoicesPageContent() {
   const [searchQuery, _setSearchQuery] = useState("");
   const [statusFilter, _setStatusFilter] = useState<string>("all");
 
-  const { data, isLoading } = api.invoices.getAll.useQuery(
+  const { data, isLoading, error } = api.invoices.getAll.useQuery(
     {
       search: searchQuery || undefined,
       status: statusFilter === "all" ? undefined : statusFilter,
@@ -41,12 +41,14 @@ function InvoicesPageContent() {
     }
   );
 
-  const { data: statsData } = api.invoices.getStats.useQuery(
+  const { data: statsData, error: statsError } = api.invoices.getStats.useQuery(
     {},
     {
       enabled: true,
     }
   );
+
+  const utils = api.useUtils();
 
   const invoices = data?.items || [];
 
@@ -240,6 +242,31 @@ function InvoicesPageContent() {
       ],
     },
   ];
+
+  // Handle errors
+  if (error || statsError) {
+    return (
+      <div className="page-container">
+        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+          <AlertTriangle className="w-12 h-12 text-destructive" aria-hidden="true" />
+          <h2 className="text-2xl font-semibold">Failed to Load Invoices</h2>
+          <p className="text-muted-foreground text-center max-w-md">
+            {error?.message || statsError?.message || "An unexpected error occurred while loading invoices data."}
+          </p>
+          <button
+            onClick={() => {
+              utils.invoices.getAll.invalidate();
+              utils.invoices.getStats.invalidate();
+            }}
+            className="btn-primary flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" aria-hidden="true" />
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

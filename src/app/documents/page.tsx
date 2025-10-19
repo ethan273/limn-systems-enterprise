@@ -31,6 +31,8 @@ import {
   Download,
   ExternalLink,
   HardDrive,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -43,7 +45,7 @@ export default function DocumentsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [storageFilter, setStorageFilter] = useState<"all" | "google_drive" | "supabase">("all");
 
-  const { data, isLoading } = api.storage.listFiles.useQuery(
+  const { data, isLoading, error } = api.storage.listFiles.useQuery(
     {
       storageType: storageFilter === "all" ? undefined : storageFilter,
       limit: 100,
@@ -54,12 +56,14 @@ export default function DocumentsPage() {
     }
   );
 
-  const { data: statsData } = api.storage.getStorageStats.useQuery(
+  const { data: statsData, error: statsError } = api.storage.getStorageStats.useQuery(
     undefined,
     {
       enabled: true,
     }
   );
+
+  const utils = api.useUtils();
 
   const documents = data?.files || [];
   const stats = statsData || {
@@ -87,6 +91,39 @@ export default function DocumentsPage() {
     const sizeLabel = i >= 0 && i < sizes.length ? sizes[i] : "Bytes";
     return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizeLabel;
   };
+
+  // Error handling
+  if (error || statsError) {
+    return (
+      <div className="page-container">
+        <div className="page-header">
+          <div>
+            <h1 className="page-title">Documents</h1>
+            <p className="page-description">
+              Global document hub with Google Drive integration
+            </p>
+          </div>
+        </div>
+        <div className="error-state">
+          <AlertTriangle className="error-state-icon" aria-hidden="true" />
+          <h3 className="error-state-title">Failed to Load Documents</h3>
+          <p className="error-state-description">
+            {error?.message || statsError?.message || "An error occurred while loading documents"}
+          </p>
+          <button
+            onClick={() => {
+              void utils.storage.listFiles.invalidate();
+              void utils.storage.getStorageStats.invalidate();
+            }}
+            className="btn-primary mt-4"
+          >
+            <RefreshCw className="icon-sm" aria-hidden="true" />
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

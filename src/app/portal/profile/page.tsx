@@ -19,8 +19,10 @@ import {
   Calendar,
   Package,
   Briefcase,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
-import { LoadingState, PageHeader } from '@/components/common';
+import { LoadingState, PageHeader, EmptyState } from '@/components/common';
 
 /**
  * Universal Portal Profile Page
@@ -32,7 +34,7 @@ export default function PortalProfilePage() {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
 
   // Fetch portal profile (works for all portal types)
-  const { data: profileData, isLoading } = api.portal.getPortalProfile.useQuery();
+  const { data: profileData, isLoading, error } = api.portal.getPortalProfile.useQuery();
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
@@ -110,6 +112,28 @@ export default function PortalProfilePage() {
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="My Profile"
+          subtitle="Manage your account information"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load profile"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.portal.getPortalProfile.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

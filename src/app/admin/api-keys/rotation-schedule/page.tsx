@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { api } from '@/lib/api/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { EmptyState, PageHeader } from '@/components/common';
 import {
   RefreshCw,
   Calendar,
@@ -13,6 +14,7 @@ import {
   Plus,
   Search,
   Filter,
+  AlertTriangle,
 } from 'lucide-react';
 import {
   Select,
@@ -27,7 +29,10 @@ export default function RotationSchedulePage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch rotation schedule
-  const { data: scheduleData, isLoading } = api.apiCredentials.getRotationSchedule.useQuery();
+  const { data: scheduleData, isLoading, error } = api.apiCredentials.getRotationSchedule.useQuery();
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -68,6 +73,28 @@ export default function RotationSchedulePage() {
     item.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     item.serviceName.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Rotation Schedule"
+          subtitle="Manage and automate your API credential rotation schedule"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load rotation schedule"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.apiCredentials.getRotationSchedule.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

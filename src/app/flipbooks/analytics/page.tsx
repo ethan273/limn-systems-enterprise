@@ -4,7 +4,7 @@ import { features } from "@/lib/features";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { api } from "@/lib/api/client";
-import { BarChart3, Eye, MousePointerClick, Clock, TrendingUp } from "lucide-react";
+import { BarChart3, Eye, MousePointerClick, Clock, TrendingUp, AlertTriangle, RefreshCw } from "lucide-react";
 import { PageHeader, LoadingState, StatsGrid, EmptyState, type StatItem } from "@/components/common";
 
 /**
@@ -31,11 +31,14 @@ export default function AnalyticsPage() {
   }
 
   // Query all flipbooks for aggregate analytics
-  const { data, isLoading } = api.flipbooks.list.useQuery({
+  const { data, isLoading, error } = api.flipbooks.list.useQuery({
     limit: 100,
   });
 
   const flipbooks = data?.flipbooks || [];
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   // Calculate aggregate stats
   const totalViews = flipbooks.reduce((sum: number, f: any) => sum + (f.view_count || 0), 0);
@@ -73,6 +76,28 @@ export default function AnalyticsPage() {
       iconColor: 'info',
     },
   ];
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Flipbook Analytics"
+          subtitle="View performance metrics across all your flipbooks"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load analytics"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.flipbooks.list.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   if (isLoading) {
     return <LoadingState message="Loading analytics..." size="lg" />;

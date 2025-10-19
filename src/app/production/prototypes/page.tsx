@@ -20,7 +20,8 @@ import {
   CheckCircle2,
   Clock,
   AlertTriangle,
-  Lightbulb
+  Lightbulb,
+  RefreshCw
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -51,9 +52,10 @@ export default function PrototypesPage() {
   const [crmProjectFilter, _setCrmProjectFilter] = useState<string>("all");
   const [page, _setPage] = useState(0);
   const limit = 20;
+  const utils = api.useUtils();
 
   // Fetch prototypes with filters
-  const { data, isLoading } = api.prototypes.getAll.useQuery({
+  const { data, isLoading, error } = api.prototypes.getAll.useQuery({
     status: statusFilter === "all" ? undefined : statusFilter,
     priority: priorityFilter === "all" ? undefined : priorityFilter,
     prototypeType: typeFilter === "all" ? undefined : typeFilter,
@@ -64,12 +66,12 @@ export default function PrototypesPage() {
   });
 
   // Fetch design projects for filter
-  const { data: _designProjectsData } = api.designProjects.getAll.useQuery({
+  const { data: _designProjectsData, error: _designProjectsError } = api.designProjects.getAll.useQuery({
     limit: 100,
   });
 
   // Fetch CRM projects for filter
-  const { data: _crmProjectsData } = api.projects.getAll.useQuery({
+  const { data: _crmProjectsData, error: _crmProjectsError } = api.projects.getAll.useQuery({
     limit: 100,
   });
 
@@ -246,6 +248,28 @@ export default function PrototypesPage() {
       ],
     },
   ];
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Prototypes"
+          subtitle="Manage prototype development from concept to catalog"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load prototypes"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.prototypes.getAll.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

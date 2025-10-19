@@ -3,6 +3,7 @@
 import { api } from '@/lib/api/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { EmptyState, PageHeader } from '@/components/common';
 import {
   Shield,
   Clock,
@@ -12,11 +13,15 @@ import {
   AlertTriangle,
   Info,
   TrendingUp,
+  RefreshCw,
 } from 'lucide-react';
 
 export default function MonitoringPage() {
   // Fetch security metrics
-  const { data: securityData, isLoading } = api.apiCredentials.getSecurityMetrics.useQuery();
+  const { data: securityData, isLoading, error } = api.apiCredentials.getSecurityMetrics.useQuery();
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   const getScoreColor = (score: number) => {
     if (score >= 90) return 'text-success';
@@ -51,6 +56,28 @@ export default function MonitoringPage() {
     };
     return styles[severity as keyof typeof styles] || styles.info;
   };
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Security Monitoring"
+          subtitle="Real-time security insights and alerts for your API credentials"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load security metrics"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.apiCredentials.getSecurityMetrics.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

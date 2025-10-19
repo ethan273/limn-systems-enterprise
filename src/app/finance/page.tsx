@@ -61,7 +61,7 @@ const INSIGHT_CLASSES = {
 export default function FinancialDashboardPage() {
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | '1y' | 'all'>('30d');
 
-  const { data: financial, isLoading } = api.dashboards.getFinancial.useQuery(
+  const { data: financial, isLoading, error } = api.dashboards.getFinancial.useQuery(
     { dateRange },
     {
       refetchInterval: 60000, // Auto-refresh every 60 seconds
@@ -71,7 +71,7 @@ export default function FinancialDashboardPage() {
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
 
-  const { data: insights } = api.dashboards.getFinancialInsights.useQuery(undefined, {
+  const { data: insights, error: insightsError } = api.dashboards.getFinancialInsights.useQuery(undefined, {
     refetchInterval: 60000, // Auto-refresh every 60 seconds
   });
 
@@ -81,6 +81,37 @@ export default function FinancialDashboardPage() {
         <div className="dashboard-loading">
           <div className="loading-spinner"></div>
           <p>Loading financial dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || insightsError) {
+    return (
+      <div className="dashboard-page">
+        <div className="dashboard-header">
+          <div>
+            <h1 className="page-title">Financial Operations Dashboard</h1>
+            <p className="page-subtitle">Revenue, expenses, cash flow, and financial metrics</p>
+          </div>
+        </div>
+        <div className="dashboard-error">
+          <AlertTriangle className="error-icon" aria-hidden="true" />
+          <h3 className="error-state-title">Failed to Load Financial Data</h3>
+          <p className="error-state-description">
+            {error?.message || insightsError?.message || "An error occurred while loading financial data"}
+          </p>
+          <Button
+            variant="outline"
+            onClick={() => {
+              void utils.dashboards.getFinancial.invalidate();
+              void utils.dashboards.getFinancialInsights.invalidate();
+            }}
+            className="mt-4"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" aria-hidden="true" />
+            Retry
+          </Button>
         </div>
       </div>
     );

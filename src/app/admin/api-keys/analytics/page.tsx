@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { api } from '@/lib/api/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { EmptyState, PageHeader } from '@/components/common';
 import {
   BarChart3,
   Activity,
@@ -13,6 +14,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Code,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
 
 export default function AnalyticsPage() {
@@ -20,10 +23,15 @@ export default function AnalyticsPage() {
   const [days, setDays] = useState(7);
 
   // Fetch usage analytics
-  const { data: analyticsData, isLoading } = api.apiCredentials.getUsageAnalytics.useQuery({ days });
+  const { data: analyticsData, isLoading, error: analyticsError } = api.apiCredentials.getUsageAnalytics.useQuery({ days });
 
   // Fetch all credentials for filter dropdown
-  const { data: credentials } = api.apiCredentials.getAll.useQuery();
+  const { data: credentials, error: credentialsError } = api.apiCredentials.getAll.useQuery();
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
+  const error = analyticsError || credentialsError;
 
   // Calculate date range
   const today = new Date();
@@ -44,6 +52,31 @@ export default function AnalyticsPage() {
   const handleNext = () => {
     setDays(prev => Math.max(prev - 7, 7));
   };
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Analytics"
+          subtitle="Detailed usage analytics and insights for your API keys"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load analytics"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => {
+              utils.apiCredentials.getUsageAnalytics.invalidate();
+              utils.apiCredentials.getAll.invalidate();
+            },
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

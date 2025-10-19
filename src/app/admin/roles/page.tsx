@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { UserCog, Plus, Trash2, Search } from "lucide-react";
+import { UserCog, Plus, Trash2, Search, AlertTriangle, RefreshCw } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { DataTable, type DataTableColumn, LoadingState } from "@/components/common";
 
@@ -50,16 +50,23 @@ export default function RolesManagementPage() {
   });
 
   // Fetch role statistics
-  const { data: roleStats, isLoading } = api.admin.roles.getRoleStats.useQuery();
+  const { data: roleStats, isLoading, error: roleStatsError } = api.admin.roles.getRoleStats.useQuery();
+
+  // Auto-select first role when roleStats loads
+  React.useEffect(() => {
+    if (roleStats && roleStats.length > 0 && !selectedRole) {
+      setSelectedRole(roleStats[0].role);
+    }
+  }, [roleStats, selectedRole]);
 
   // Fetch users by role - MOVED BEFORE CONDITIONAL RETURN
-  const { data: roleUsers } = api.admin.roles.getUsersByRole.useQuery(
+  const { data: roleUsers, error: roleUsersError } = api.admin.roles.getUsersByRole.useQuery(
     { role: selectedRole },
     { enabled: !!selectedRole }
   );
 
   // Fetch all users for assignment - MOVED BEFORE CONDITIONAL RETURN
-  const { data: allUsers } = api.admin.users.list.useQuery({
+  const { data: allUsers, error: allUsersError } = api.admin.users.list.useQuery({
     search: searchQuery || undefined,
     limit: 50,
     offset: 0,
@@ -68,15 +75,7 @@ export default function RolesManagementPage() {
   // Get tRPC utils for cache invalidation - MOVED BEFORE CONDITIONAL RETURN
   const utils = api.useUtils();
 
-  if (isLoading) {
-    return (
-      <div className="page-container">
-        <LoadingState message="Loading roles..." size="lg" />
-      </div>
-    );
-  }
-
-  // Assign role mutation
+  // Assign role mutation - MOVED BEFORE CONDITIONAL RETURN
   const assignMutation = api.admin.roles.assignRole.useMutation({
     onSuccess: () => {
       toast({
@@ -98,7 +97,7 @@ export default function RolesManagementPage() {
     },
   });
 
-  // Remove role mutation
+  // Remove role mutation - MOVED BEFORE CONDITIONAL RETURN
   const removeMutation = api.admin.roles.removeRole.useMutation({
     onSuccess: () => {
       toast({
@@ -117,6 +116,46 @@ export default function RolesManagementPage() {
       });
     },
   });
+
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <div className="page-container">
+        <LoadingState message="Loading roles..." size="lg" />
+      </div>
+    );
+  }
+
+  // Handle query errors
+  const error = roleStatsError || roleUsersError || allUsersError;
+  if (error) {
+    return (
+      <div className="page-container">
+        <Card className="border-destructive">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-4">
+              <AlertTriangle className="h-8 w-8 text-destructive flex-shrink-0" />
+              <div className="flex-1">
+                <h3 className="font-semibold text-lg mb-2">Failed to Load Role Data</h3>
+                <p className="text-muted-foreground mb-4">{error.message}</p>
+                <Button
+                  onClick={() => {
+                    utils.admin.roles.getRoleStats.invalidate();
+                    utils.admin.roles.getUsersByRole.invalidate();
+                    utils.admin.users.list.invalidate();
+                  }}
+                  variant="outline"
+                >
+                  <RefreshCw className="icon-sm" />
+                  Retry
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const handleAssign = () => {
     if (!assignData.userId || !assignData.role) {

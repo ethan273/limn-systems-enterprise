@@ -3,16 +3,19 @@
 import { useRouter, useParams } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { format } from "date-fns";
+import { AlertTriangle, RefreshCw } from "lucide-react";
 
 export default function ExpenseDetailPage() {
   const router = useRouter();
   const params = useParams();
   const expenseId = params.id as string;
 
-  const { data: expense, isLoading } = api.expenses.getById.useQuery(
+  const { data: expense, isLoading, error } = api.expenses.getById.useQuery(
     { id: expenseId },
     { enabled: !!expenseId }
   );
+
+  const utils = api.useUtils();
 
   const deleteExpense = api.expenses.delete.useMutation({
     onSuccess: () => {
@@ -26,6 +29,28 @@ export default function ExpenseDetailPage() {
     return (
       <div className="page-container">
         <p>Loading expense details...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="page-container">
+        <div className="page-header">
+          <h1>Expense Details</h1>
+        </div>
+        <div className="error-state">
+          <AlertTriangle className="w-12 h-12 text-destructive mb-4" aria-hidden="true" />
+          <h3>Failed to Load Expense</h3>
+          <p className="text-tertiary">{error.message}</p>
+          <button
+            onClick={() => void utils.expenses.getById.invalidate()}
+            className="btn btn-primary mt-4"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" aria-hidden="true" />
+            Retry
+          </button>
+        </div>
       </div>
     );
   }

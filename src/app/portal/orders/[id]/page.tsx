@@ -13,6 +13,7 @@ import { InfoCard } from "@/components/common/InfoCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { EmptyState } from "@/components/common/EmptyState";
 import { LoadingState } from "@/components/common/LoadingState";
+import { PageHeader } from "@/components/common/PageHeader";
 import {
   Package,
   ArrowLeft,
@@ -21,6 +22,8 @@ import {
   CreditCard,
   Truck,
   DollarSign,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -36,17 +39,64 @@ export default function OrderDetailPage({ params }: PageProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("overview");
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   // Fetch order details
-  const { data: order, isLoading } = api.portal.getOrderById.useQuery(
+  const { data: order, isLoading, error } = api.portal.getOrderById.useQuery(
     { orderId: id },
     { enabled: !!id }
   );
 
   // Fetch shipments
-  const { data: shipments } = api.portal.getOrderShipments.useQuery(
+  const { data: shipments, error: shipmentsError } = api.portal.getOrderShipments.useQuery(
     { orderId: id },
     { enabled: !!id }
   );
+
+  // Handle order query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Order Details"
+          subtitle="View order information"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load order details"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.portal.getOrderById.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
+
+  // Handle shipments query error
+  if (shipmentsError) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Order Details"
+          subtitle="View order information"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load shipment data"
+          description={shipmentsError.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.portal.getOrderShipments.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

@@ -19,8 +19,10 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
-import { DataTable, type DataTableColumn } from "@/components/common";
+import { DataTable, type DataTableColumn, EmptyState, PageHeader } from "@/components/common";
 import { getUserFullName } from "@/lib/utils/user-utils";
 
 // Dynamic route configuration
@@ -30,21 +32,25 @@ export default function AnalyticsDashboardPage() {
   const [timeRange, setTimeRange] = useState<number>(30);
 
   // Fetch activity stats
-  const { data: stats, isLoading: isLoadingStats } = api.audit.getActivityStats.useQuery({
+  const { data: stats, isLoading: isLoadingStats, error: statsError } = api.audit.getActivityStats.useQuery({
     days: timeRange,
   });
 
   // Fetch all users
-  const { data: usersData, isLoading: isLoadingUsers } = api.admin.users.list.useQuery({
+  const { data: usersData, isLoading: isLoadingUsers, error: usersError } = api.admin.users.list.useQuery({
     limit: 100,
     offset: 0,
   });
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   const activeUsers = usersData?.users.filter((u) => u.isActive).length || 0;
   const inactiveUsers = usersData?.users.filter((u) => !u.isActive).length || 0;
   const totalUsers = usersData?.total || 0;
 
   const isLoading = isLoadingStats || isLoadingUsers;
+  const error = statsError || usersError;
 
   // Prepare recently active users data
   const recentlyActiveUsers = usersData?.users
@@ -117,6 +123,31 @@ export default function AnalyticsDashboardPage() {
       ),
     },
   ];
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Analytics Dashboard"
+          subtitle="System activity metrics and user analytics"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load analytics data"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => {
+              utils.audit.getActivityStats.invalidate();
+              utils.admin.users.list.invalidate();
+            },
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="container">

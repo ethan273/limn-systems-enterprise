@@ -13,8 +13,10 @@ import {
   Bell,
   Save,
   Building2,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
-import { LoadingState } from '@/components/common';
+import { LoadingState, EmptyState } from '@/components/common';
 
 /**
  * QC Portal Settings
@@ -27,12 +29,38 @@ export default function QCSettingsPage() {
   const [smsNotifications, setSmsNotifications] = useState(false);
   const [inAppNotifications, setInAppNotifications] = useState(true);
 
-  const { data: userInfo, isLoading: isLoadingUser } = api.portal.getCurrentUser.useQuery();
-  const { data: _portalSettings, isLoading: isLoadingSettings } = api.portal.getPortalSettings.useQuery();
+  const { data: userInfo, isLoading: isLoadingUser, error: userError } = api.portal.getCurrentUser.useQuery();
+  const { data: _portalSettings, isLoading: isLoadingSettings, error: settingsError } = api.portal.getPortalSettings.useQuery();
   const updatePreferencesMutation = api.portal.updateNotificationPreferences.useMutation();
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
+
+  // Handle query errors
+  if (userError || settingsError) {
+    const error = userError || settingsError;
+    return (
+      <div className="page-container">
+        <div className="page-header">
+          <h1 className="page-title">Settings</h1>
+          <p className="page-subtitle">Manage your QC portal preferences</p>
+        </div>
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load settings"
+          description={error?.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => {
+              if (userError) utils.portal.getCurrentUser.invalidate();
+              if (settingsError) utils.portal.getPortalSettings.invalidate();
+            },
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   if (isLoadingUser || isLoadingSettings) {
     return (

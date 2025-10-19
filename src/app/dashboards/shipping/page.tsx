@@ -58,7 +58,7 @@ const CHART_COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(-
 export default function ShippingDashboardPage() {
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d');
 
-  const { data: shipping, isLoading } = api.dashboards.getShipping.useQuery(
+  const { data: shipping, isLoading, error } = api.dashboards.getShipping.useQuery(
     { dateRange },
     { refetchInterval: 60000 } // Auto-refresh every 60 seconds
   );
@@ -79,12 +79,21 @@ export default function ShippingDashboardPage() {
     );
   }
 
-  if (!shipping) {
+  if (error || !shipping) {
     return (
       <div className="dashboard-page">
         <div className="dashboard-error">
           <AlertTriangle className="error-icon" />
-          <p>Failed to load shipping data</p>
+          <h2>Failed to load shipping data</h2>
+          <p>{error?.message || 'Unable to retrieve shipping dashboard data. Please try again.'}</p>
+          <Button
+            variant="outline"
+            onClick={() => utils.dashboards.getShipping.invalidate()}
+            className="mt-4"
+          >
+            <RefreshCw className="icon-sm mr-2" />
+            Retry
+          </Button>
         </div>
       </div>
     );

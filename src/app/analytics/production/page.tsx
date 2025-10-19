@@ -23,6 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { PageHeader, EmptyState } from '@/components/common';
 
 /**
  * Production Analytics Dashboard
@@ -51,12 +53,43 @@ export default function ProductionAnalyticsPage() {
   const [groupBy, setGroupBy] = useState<'day' | 'week' | 'month'>('month');
 
   // Fetch analytics data
-  const { data: overview, isLoading: overviewLoading } = api.analytics.getProductionOverview.useQuery(dateRange);
-  const { data: throughput, isLoading: throughputLoading } = api.analytics.getProductionThroughput.useQuery({
+  const { data: overview, isLoading: overviewLoading, error: overviewError } = api.analytics.getProductionOverview.useQuery(dateRange);
+  const { data: throughput, isLoading: throughputLoading, error: throughputError } = api.analytics.getProductionThroughput.useQuery({
     ...dateRange,
     groupBy,
   });
-  const { data: efficiency, isLoading: efficiencyLoading } = api.analytics.getProductionEfficiency.useQuery(dateRange);
+  const { data: efficiency, isLoading: efficiencyLoading, error: efficiencyError } = api.analytics.getProductionEfficiency.useQuery(dateRange);
+
+  const utils = api.useUtils();
+
+  // Handle query errors
+  const error = overviewError || throughputError || efficiencyError;
+  if (error) {
+    return (
+      <div className="analytics-page">
+        <div className="page-container">
+          <PageHeader
+            title="Production Analytics"
+            subtitle="Comprehensive production analytics with trends and efficiency metrics"
+          />
+          <EmptyState
+            icon={AlertTriangle}
+            title="Failed to load production analytics"
+            description={error.message || "An unexpected error occurred. Please try again."}
+            action={{
+              label: 'Try Again',
+              onClick: () => {
+                utils.analytics.getProductionOverview.invalidate();
+                utils.analytics.getProductionThroughput.invalidate();
+                utils.analytics.getProductionEfficiency.invalidate();
+              },
+              icon: RefreshCw,
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {

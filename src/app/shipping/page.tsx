@@ -24,6 +24,8 @@ import {
   Ship,
   Plus,
   ArrowRight,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -35,7 +37,7 @@ export default function ShippingDashboardPage() {
   const { user: _user } = useAuth();
 
   // Fetch all shipments
-  const { data: shipmentsData, isLoading: shipmentsLoading } = api.shipping.getAllShipments.useQuery(
+  const { data: shipmentsData, isLoading: shipmentsLoading, error: shipmentsError } = api.shipping.getAllShipments.useQuery(
     {
       limit: 10,
       offset: 0,
@@ -46,6 +48,9 @@ export default function ShippingDashboardPage() {
   );
 
   const shipments = shipmentsData?.items || [];
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   // Calculate statistics
   const stats = {
@@ -58,6 +63,58 @@ export default function ShippingDashboardPage() {
 
   // Get recent shipments (last 5)
   const recentShipments = shipments.slice(0, 5);
+
+  // Handle query error
+  if (shipmentsError) {
+    return (
+      <div className="page-container">
+        {/* Header */}
+        <div className="page-header">
+          <div>
+            <h1 className="page-title">Shipping Dashboard</h1>
+            <p className="page-description">
+              Comprehensive shipping management with SEKO integration
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => router.push("/shipping/tracking")}
+              variant="outline"
+              className="btn-outline"
+            >
+              <Search className="icon-sm" aria-hidden="true" />
+              Track Shipment
+            </Button>
+            <Button
+              onClick={() => router.push("/shipping/shipments")}
+              className="btn-primary"
+            >
+              <Plus className="icon-sm" aria-hidden="true" />
+              All Shipments
+            </Button>
+          </div>
+        </div>
+        <Card>
+          <CardContent className="card-content-compact">
+            <div className="empty-state">
+              <AlertTriangle className="empty-state-icon text-destructive" aria-hidden="true" />
+              <h3 className="empty-state-title">Failed to load shipments</h3>
+              <p className="empty-state-description">
+                {shipmentsError.message || "An unexpected error occurred. Please try again."}
+              </p>
+              <Button
+                onClick={() => utils.shipping.getAllShipments.invalidate()}
+                className="btn-primary mt-4"
+              >
+                <RefreshCw className="icon-sm" aria-hidden="true" />
+                Try Again
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

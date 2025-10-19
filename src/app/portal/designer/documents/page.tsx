@@ -2,8 +2,8 @@
 
 import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoadingState } from '@/components/common';
-import { FileText } from 'lucide-react';
+import { LoadingState, EmptyState } from '@/components/common';
+import { FileText, AlertTriangle, RefreshCw } from 'lucide-react';
 
 /**
  * Designer Documents Page
@@ -11,7 +11,32 @@ import { FileText } from 'lucide-react';
  * Phase 3: Portal router integration
  */
 export default function DesignerDocumentsPage() {
-  const { data: _userInfo, isLoading } = api.portal.getCurrentUser.useQuery();
+  const { data: _userInfo, isLoading, error } = api.portal.getCurrentUser.useQuery();
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <div className="page-header">
+          <h1 className="page-title">Design Documents</h1>
+          <p className="page-subtitle">Access and manage your project documentation</p>
+        </div>
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load user information"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.portal.getCurrentUser.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

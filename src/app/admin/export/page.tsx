@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FileDown, Download, Database, Users, Activity, Settings as SettingsIcon } from "lucide-react";
+import { FileDown, Download, Database, Users, Activity, Settings as SettingsIcon, AlertTriangle, RefreshCw } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 // Dynamic route configuration
@@ -27,12 +27,39 @@ export default function DataExportPage() {
   const [exportFormat, setExportFormat] = useState<ExportFormat>('csv');
 
   // Fetch export stats
-  const { data: stats, isLoading } = api.export.getExportStats.useQuery();
+  const { data: stats, isLoading, error } = api.export.getExportStats.useQuery();
+  const utils = api.useUtils();
 
   if (isLoading) {
     return (
       <div className="page-container">
         <LoadingState message="Loading export data..." size="lg" />
+      </div>
+    );
+  }
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <Card className="border-destructive">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-4">
+              <AlertTriangle className="h-8 w-8 text-destructive flex-shrink-0" />
+              <div className="flex-1">
+                <h3 className="font-semibold text-lg mb-2">Failed to Load Export Data</h3>
+                <p className="text-muted-foreground mb-4">{error.message}</p>
+                <Button
+                  onClick={() => utils.export.getExportStats.invalidate()}
+                  variant="outline"
+                >
+                  <RefreshCw className="icon-sm" />
+                  Retry
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }

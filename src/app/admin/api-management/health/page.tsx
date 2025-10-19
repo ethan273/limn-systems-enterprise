@@ -8,7 +8,7 @@
 
 import { useState } from 'react';
 import { api } from '@/lib/api/client';
-import { LoadingState } from '@/components/common';
+import { LoadingState, EmptyState } from '@/components/common';
 import Link from 'next/link';
 import {
   Activity,
@@ -33,8 +33,11 @@ export default function HealthMonitoringPage() {
   const [uptimePeriod, setUptimePeriod] = useState<1 | 7 | 30 | 90>(30);
   const [autoRefresh, setAutoRefresh] = useState(true);
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   // Fetch health dashboard with real-time updates
-  const { data: dashboard, refetch: refetchDashboard, isLoading } =
+  const { data: dashboard, error, refetch: refetchDashboard, isLoading } =
     api.apiHealth.getHealthDashboard.useQuery(undefined, {
       refetchInterval: autoRefresh ? 30000 : false, // Refresh every 30 seconds when enabled
       refetchOnWindowFocus: true,
@@ -44,6 +47,39 @@ export default function HealthMonitoringPage() {
     return (
       <div className="page-container">
         <LoadingState message="Loading health dashboard..." size="lg" />
+      </div>
+    );
+  }
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <Link
+          href="/admin/api-management"
+          className="inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-4 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to API Management
+        </Link>
+        <div className="page-header">
+          <div>
+            <h1 className="page-title">Health Monitoring</h1>
+            <p className="page-description">
+              Real-time health status for all API credentials
+            </p>
+          </div>
+        </div>
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load health dashboard"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.apiHealth.getHealthDashboard.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
       </div>
     );
   }

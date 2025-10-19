@@ -13,7 +13,7 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { LoadingState } from "@/components/common/LoadingState";
 import { EditableFieldGroup, EditableField } from "@/components/common/EditableField";
 import { toast } from "@/hooks/use-toast";
-import { ArrowLeft, Calendar, DollarSign, FileText, Image, Layers, Briefcase, User, Edit, Check, X, Target, MessageSquare } from "lucide-react";
+import { ArrowLeft, Calendar, DollarSign, FileText, Image, Layers, Briefcase, User, Edit, Check, X, Target, MessageSquare, AlertTriangle, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 
@@ -54,13 +54,13 @@ export default function DesignProjectDetailPage({ params }: { params: Promise<{ 
 
  // Auth is handled by middleware - no client-side redirect needed
 
- const { data: project, isLoading } = api.designProjects.getById.useQuery(
+ // Get tRPC utils for cache invalidation
+ const utils = api.useUtils();
+
+ const { data: project, isLoading, error } = api.designProjects.getById.useQuery(
  { id: id },
  { enabled: !!id }
  );
-
- // Get tRPC utils for cache invalidation
- const utils = api.useUtils();
 
  // Sync formData with fetched project data
  useEffect(() => {
@@ -162,6 +162,31 @@ export default function DesignProjectDetailPage({ params }: { params: Promise<{ 
  return (
  <div className="page-container">
  <LoadingState message="Loading project details..." size="md" />
+ </div>
+ );
+ }
+
+ // Error handling - show error state with retry
+ if (error) {
+ return (
+ <div className="page-container">
+ <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+ <AlertTriangle className="h-12 w-12 text-destructive" />
+ <h2 className="text-2xl font-bold">Failed to Load Project</h2>
+ <p className="text-muted-foreground text-center max-w-md">
+ {error.message || "An error occurred while loading the project."}
+ </p>
+ <div className="flex gap-3">
+ <Button onClick={() => utils.designProjects.getById.invalidate({ id })}>
+ <RefreshCw className="mr-2 h-4 w-4" />
+ Try Again
+ </Button>
+ <Button variant="outline" onClick={() => router.push("/design/projects")}>
+ <ArrowLeft className="mr-2 h-4 w-4" />
+ Back to Projects
+ </Button>
+ </div>
+ </div>
  </div>
  );
  }

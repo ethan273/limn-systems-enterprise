@@ -23,6 +23,8 @@ import {
  ArrowLeft,
  XCircle,
  Clock,
+ AlertTriangle,
+ RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -30,6 +32,7 @@ import { toast } from "@/hooks/use-toast";
 import { QCDefectsList } from "@/components/qc/QCDefectsList";
 import { QCPhotoGallery } from "@/components/qc/QCPhotoGallery";
 import { QCCheckpointsList } from "@/components/qc/QCCheckpointsList";
+import { EmptyState } from "@/components/common";
 
 // Dynamic route configuration
 export const dynamic = 'force-dynamic';
@@ -71,14 +74,14 @@ export default function QCInspectionDetailPage({ params }: PageProps) {
  const router = useRouter();
  const [activeTab, setActiveTab] = useState("overview");
 
+ // Get tRPC utils for cache invalidation
+ const utils = api.useUtils();
+
  // Fetch inspection details
- const { data: inspection, isLoading } = api.qc.getInspectionById.useQuery(
+ const { data: inspection, isLoading, error } = api.qc.getInspectionById.useQuery(
  { id: id },
  { enabled: !!id }
  );
-
- // Get tRPC utils for cache invalidation
- const utils = api.useUtils();
 
  // Update inspection status mutation
  const updateStatusMutation = api.qc.updateInspectionStatus.useMutation({
@@ -106,6 +109,34 @@ export default function QCInspectionDetailPage({ params }: PageProps) {
  status: newStatus as any,
  });
  };
+
+ // Handle query error
+ if (error) {
+ return (
+ <div className="container mx-auto p-6">
+ <div className="flex items-center gap-4 mb-6">
+ <Button variant="ghost" size="sm" onClick={() => router.push("/qc")}>
+ <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
+ Back
+ </Button>
+ <div>
+ <h1 className="text-3xl font-bold">QC Inspection</h1>
+ <p className="text-muted-foreground">Inspection Details</p>
+ </div>
+ </div>
+ <EmptyState
+ icon={AlertTriangle}
+ title="Failed to load QC inspection"
+ description={error.message || "An unexpected error occurred. Please try again."}
+ action={{
+ label: 'Try Again',
+ onClick: () => utils.qc.getInspectionById.invalidate(),
+ icon: RefreshCw,
+ }}
+ />
+ </div>
+ );
+ }
 
  if (isLoading) {
  return (

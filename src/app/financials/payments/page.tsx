@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
-import { DollarSign, CreditCard, CheckCircle2, Clock, Download, Plus } from "lucide-react";
+import { DollarSign, CreditCard, CheckCircle2, Clock, Download, Plus, AlertTriangle, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -29,7 +29,7 @@ export default function PaymentsPage() {
   const [statusFilter, _setStatusFilter] = useState<string>("all");
   const [methodFilter, _setMethodFilter] = useState<string>("all");
 
-  const { data, isLoading } = api.payments.getAll.useQuery(
+  const { data, isLoading, error } = api.payments.getAll.useQuery(
     {
       search: searchQuery || undefined,
       status: statusFilter === "all" ? undefined : statusFilter,
@@ -42,12 +42,39 @@ export default function PaymentsPage() {
     }
   );
 
-  const { data: statsData } = api.payments.getStats.useQuery(
+  const { data: statsData, error: statsError } = api.payments.getStats.useQuery(
     {},
     {
       enabled: true,
     }
   );
+
+  const utils = api.useUtils();
+
+  // Handle errors
+  if (error || statsError) {
+    return (
+      <div className="page-container">
+        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+          <AlertTriangle className="w-12 h-12 text-destructive" aria-hidden="true" />
+          <h2 className="text-2xl font-semibold">Failed to Load Payments</h2>
+          <p className="text-muted-foreground text-center max-w-md">
+            {error?.message || statsError?.message || "An unexpected error occurred while loading payments data."}
+          </p>
+          <button
+            onClick={() => {
+              utils.payments.getAll.invalidate();
+              utils.payments.getStats.invalidate();
+            }}
+            className="btn-primary flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" aria-hidden="true" />
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const payments = data?.items || [];
   const stats = statsData || {

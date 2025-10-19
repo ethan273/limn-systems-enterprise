@@ -14,6 +14,7 @@ import { InfoCard } from '@/components/common/InfoCard';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { EmptyState } from '@/components/common/EmptyState';
 import { LoadingState } from '@/components/common/LoadingState';
+import { PageHeader } from '@/components/common/PageHeader';
 import {
   ArrowLeft,
   Package,
@@ -23,8 +24,9 @@ import {
   FileText,
   Info,
   CreditCard,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
-import { notFound } from 'next/navigation';
 
 interface FactoryOrderDetailPageProps {
   params: Promise<{
@@ -37,8 +39,11 @@ export default function FactoryOrderDetailPage({ params }: FactoryOrderDetailPag
   const router = useRouter();
   const { user: currentUser, loading: userLoading } = useAuth();
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   // Get partner profile
-  const { data: partner } = api.partners.getByPortalUser.useQuery(
+  const { data: partner, error: partnerError } = api.partners.getByPortalUser.useQuery(
     undefined,
     { enabled: !!currentUser }
   );
@@ -62,8 +67,48 @@ export default function FactoryOrderDetailPage({ params }: FactoryOrderDetailPag
     }
   }, [order, partner, router]);
 
+  // Handle partner query error
+  if (partnerError) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Order Details"
+          subtitle="View order information"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load partner profile"
+          description={partnerError.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.partners.getByPortalUser.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
+
+  // Handle order query error
   if (error) {
-    notFound();
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Order Details"
+          subtitle="View order information"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load order details"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.productionOrders.getById.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
   }
 
   if (isLoading || !order || !partner) {

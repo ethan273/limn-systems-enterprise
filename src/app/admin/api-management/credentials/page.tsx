@@ -17,11 +17,13 @@ import {
   Shield,
   AlertTriangle,
   ArrowLeft,
+  RefreshCw,
 } from 'lucide-react';
 import { FormDialog } from '@/components/common/FormDialog';
 import type { FormField } from '@/components/common/FormDialog';
 import { DataTable } from '@/components/common/DataTable';
 import type { DataTableColumn } from '@/components/common/DataTable';
+import { EmptyState } from '@/components/common';
 import { SERVICE_TEMPLATES, getTemplate } from '@/lib/api-management/service-templates';
 
 interface ApiCredential {
@@ -53,7 +55,7 @@ export default function ApiCredentialsPage() {
   const [showExpiringOnly, setShowExpiringOnly] = useState(false);
 
   // Fetch credentials
-  const { data: credentials, isLoading } = api.apiCredentials.getAll.useQuery();
+  const { data: credentials, error, isLoading } = api.apiCredentials.getAll.useQuery();
   const { data: expiringCredentials } = api.apiCredentials.getExpiring.useQuery();
   const { data: envScan } = api.apiCredentials.scanEnvironment.useQuery();
 
@@ -377,6 +379,44 @@ export default function ApiCredentialsPage() {
       },
     },
   ];
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <Link
+          href="/admin/api-management"
+          className="inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-4 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to API Management
+        </Link>
+        <div className="page-header">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+              <Shield className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="page-title">API Credentials</h1>
+              <p className="page-description">
+                Securely manage API keys and credentials for all integrations
+              </p>
+            </div>
+          </div>
+        </div>
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load credentials"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.apiCredentials.getAll.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   // Filter credentials
   const filteredCredentials = credentials?.filter((cred) => {

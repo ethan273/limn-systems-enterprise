@@ -21,18 +21,78 @@ import {
  ArrowRight,
  Bell,
  Loader2,
+ AlertTriangle,
+ RefreshCw,
 } from 'lucide-react';
 
 export default function PortalDashboard() {
+ const utils = api.useUtils();
+
  // Fetch dashboard stats
- const { data: stats, isLoading: statsLoading } = api.portal.getDashboardStats.useQuery();
+ const { data: stats, isLoading: statsLoading, error: statsError } = api.portal.getDashboardStats.useQuery();
 
  // Fetch recent notifications
- const { data: notificationData, isLoading: notificationsLoading } =
+ const { data: notificationData, isLoading: notificationsLoading, error: notificationsError } =
  api.portal.getNotifications.useQuery({
  limit: 5,
  offset: 0,
  });
+
+ // Handle stats query error
+ if (statsError) {
+ return (
+ <div className="space-y-8">
+ <div>
+ <h1 className="text-3xl font-bold">Dashboard</h1>
+ <p className=" mt-2">Welcome back! Here is an overview of your account.</p>
+ </div>
+ <div className="flex items-center justify-center min-h-[400px]">
+ <div className="text-center space-y-4">
+ <AlertTriangle className="w-12 h-12 text-destructive mx-auto" />
+ <div>
+ <h3 className="text-lg font-semibold">Failed to load dashboard</h3>
+ <p className="text-muted-foreground mt-2">{statsError.message || "An unexpected error occurred. Please try again."}</p>
+ </div>
+ <button
+ onClick={() => utils.portal.getDashboardStats.invalidate()}
+ className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+ >
+ <RefreshCw className="w-4 h-4" />
+ Try Again
+ </button>
+ </div>
+ </div>
+ </div>
+ );
+ }
+
+ // Handle notifications query error
+ if (notificationsError) {
+ return (
+ <div className="space-y-8">
+ <div>
+ <h1 className="text-3xl font-bold">Dashboard</h1>
+ <p className=" mt-2">Welcome back! Here is an overview of your account.</p>
+ </div>
+ <div className="flex items-center justify-center min-h-[400px]">
+ <div className="text-center space-y-4">
+ <AlertTriangle className="w-12 h-12 text-destructive mx-auto" />
+ <div>
+ <h3 className="text-lg font-semibold">Failed to load notifications</h3>
+ <p className="text-muted-foreground mt-2">{notificationsError.message || "An unexpected error occurred. Please try again."}</p>
+ </div>
+ <button
+ onClick={() => utils.portal.getNotifications.invalidate()}
+ className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+ >
+ <RefreshCw className="w-4 h-4" />
+ Try Again
+ </button>
+ </div>
+ </div>
+ </div>
+ );
+ }
 
  if (statsLoading) {
  return (

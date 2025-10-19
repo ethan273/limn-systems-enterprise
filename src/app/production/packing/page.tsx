@@ -23,6 +23,8 @@ import {
   Weight,
   Plus,
   AlertCircle,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 
 // Dynamic route configuration
@@ -32,9 +34,10 @@ export default function PackingJobsPage() {
   const router = useRouter();
   const [_statusFilter, _setStatusFilter] = useState<string>("all");
   const [_searchQuery, _setSearchQuery] = useState("");
+  const utils = api.useUtils();
 
   // Fetch packing jobs
-  const { data, isLoading } = api.packing.getAllJobs.useQuery({
+  const { data, isLoading, error } = api.packing.getAllJobs.useQuery({
     status: _statusFilter === "all" ? undefined : _statusFilter as any,
     limit: 50,
     offset: 0,
@@ -182,6 +185,28 @@ export default function PackingJobsPage() {
       ],
     },
   ];
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Packing Jobs"
+          subtitle="Manage packing and prepare items for shipment"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load packing jobs"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.packing.getAllJobs.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

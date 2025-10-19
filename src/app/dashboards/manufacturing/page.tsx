@@ -63,7 +63,7 @@ const INSIGHT_CLASSES = {
 export default function ManufacturingDashboardPage() {
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d');
 
-  const { data: manufacturing, isLoading } = api.dashboards.getManufacturing.useQuery(
+  const { data: manufacturing, isLoading, error } = api.dashboards.getManufacturing.useQuery(
     { dateRange },
     { refetchInterval: 60000 } // Auto-refresh every 60 seconds
   );
@@ -71,7 +71,7 @@ export default function ManufacturingDashboardPage() {
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
 
-  const { data: insights } = api.dashboards.getManufacturingInsights.useQuery();
+  const { data: insights, error: insightsError } = api.dashboards.getManufacturingInsights.useQuery();
 
   if (isLoading) {
     return (
@@ -84,12 +84,21 @@ export default function ManufacturingDashboardPage() {
     );
   }
 
-  if (!manufacturing) {
+  if (error || !manufacturing) {
     return (
       <div className="dashboard-page">
         <div className="dashboard-error">
           <AlertTriangle className="error-icon" />
-          <p>Failed to load manufacturing data</p>
+          <h2>Failed to load manufacturing data</h2>
+          <p>{error?.message || 'Unable to retrieve manufacturing dashboard data. Please try again.'}</p>
+          <Button
+            variant="outline"
+            onClick={() => utils.dashboards.getManufacturing.invalidate()}
+            className="mt-4"
+          >
+            <RefreshCw className="icon-sm mr-2" />
+            Retry
+          </Button>
         </div>
       </div>
     );

@@ -15,8 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Save, X, AlertCircle, Package } from 'lucide-react';
-import { PageHeader, LoadingState } from '@/components/common';
+import { Save, X, AlertCircle, Package, AlertTriangle, RefreshCw } from 'lucide-react';
+import { PageHeader, LoadingState, EmptyState } from '@/components/common';
 import { toast } from 'sonner';
 
 export default function EditProductionOrderPage() {
@@ -26,7 +26,10 @@ export default function EditProductionOrderPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { data: orderData, isLoading } = api.productionOrders.getById.useQuery({
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
+  const { data: orderData, isLoading, error: queryError } = api.productionOrders.getById.useQuery({
     id: orderId,
   });
 
@@ -90,6 +93,28 @@ export default function EditProductionOrderPage() {
   const handleCancel = () => {
     router.push(`/production/orders/${orderId}`);
   };
+
+  // Handle query error
+  if (queryError) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Edit Production Order"
+          subtitle="Update order details"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load production order"
+          description={queryError.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.productionOrders.getById.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

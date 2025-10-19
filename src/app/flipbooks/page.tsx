@@ -4,7 +4,7 @@ import { features } from "@/lib/features";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
-import { BookOpen, Eye, Pencil, Trash2, Upload } from "lucide-react";
+import { BookOpen, Eye, Pencil, Trash2, Upload, AlertTriangle, RefreshCw } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -58,7 +58,7 @@ export default function FlipbooksPage() {
   }
 
   // Query flipbooks
-  const { data, isLoading } = api.flipbooks.list.useQuery({
+  const { data, isLoading, error } = api.flipbooks.list.useQuery({
     limit: 50,
   });
 
@@ -233,6 +233,28 @@ export default function FlipbooksPage() {
       },
     },
   ];
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Flipbook Library"
+          subtitle="Create and manage interactive flipbooks"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load flipbooks"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.flipbooks.list.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

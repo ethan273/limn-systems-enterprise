@@ -221,12 +221,18 @@ export const authRouter = createTRPCRouter({
   getRequestStats: adminProcedure
     .query(async ({ ctx }) => {
       try {
-        const [pending, approved, denied, total] = await Promise.all([
-          ctx.db.pending_user_requests.count({ where: { status: 'pending' } }),
-          ctx.db.pending_user_requests.count({ where: { status: 'approved' } }),
-          ctx.db.pending_user_requests.count({ where: { status: 'denied' } }),
-          ctx.db.pending_user_requests.count()
+        // Supabase wrapper doesn't support .count(), so we use findMany and count manually
+        const [pendingList, approvedList, deniedList, allList] = await Promise.all([
+          ctx.db.pending_user_requests.findMany({ where: { status: 'pending' } }),
+          ctx.db.pending_user_requests.findMany({ where: { status: 'approved' } }),
+          ctx.db.pending_user_requests.findMany({ where: { status: 'denied' } }),
+          ctx.db.pending_user_requests.findMany()
         ])
+
+        const pending = pendingList.length;
+        const approved = approvedList.length;
+        const denied = deniedList.length;
+        const total = allList.length;
 
         // Get recent activity (last 7 days)
         const sevenDaysAgo = new Date()
@@ -245,7 +251,7 @@ export const authRouter = createTRPCRouter({
         return {
           stats: {
             pending,
-            approved, 
+            approved,
             denied,
             total,
             approvalRate: total > 0 ? ((approved / total) * 100).toFixed(1) : 0
@@ -253,6 +259,7 @@ export const authRouter = createTRPCRouter({
           recentRequests
         }
       } catch (error) {
+        console.error('[getRequestStats] Error:', error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to fetch request statistics'

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/common/EmptyState';
+import { PageHeader } from '@/components/common/PageHeader';
 import {
   Select,
   SelectContent,
@@ -25,6 +26,8 @@ import {
   FileImage,
   FileSpreadsheet,
   Calendar,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
 
 /**
@@ -32,10 +35,11 @@ import {
  * View and download project documents
  */
 export default function CustomerDocumentsPage() {
+  const utils = api.useUtils();
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
 
-  const { data: documentsData, isLoading } = api.portal.getCustomerDocuments.useQuery({
+  const { data: documentsData, isLoading, error } = api.portal.getCustomerDocuments.useQuery({
     documentType: typeFilter === 'all' ? undefined : typeFilter,
     limit: 100,
     offset: 0,
@@ -106,6 +110,28 @@ export default function CustomerDocumentsPage() {
   }, {});
 
   const documentTypes = Object.keys(documentsByType).sort();
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Documents"
+          subtitle="View and download project documents"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load documents"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.portal.getCustomerDocuments.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

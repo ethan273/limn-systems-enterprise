@@ -31,6 +31,8 @@ import {
   TrendingUp,
   Target,
   MapPin,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -205,7 +207,43 @@ export default function LeadDetailPage({ params }: PageProps) {
     );
   }
 
-  if (error || !data) {
+  if (error) {
+    return (
+      <div className="page-container">
+        <div className="flex flex-col items-center justify-center py-12 space-y-4">
+          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-destructive/10">
+            <AlertTriangle className="w-8 h-8 text-destructive" />
+          </div>
+          <div className="text-center space-y-2">
+            <h3 className="text-lg font-semibold">Failed to load lead</h3>
+            <p className="text-sm text-muted-foreground max-w-md">
+              {error.message || 'An error occurred while loading the lead.'}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => utils.crm.leads.getById.invalidate({ id })}
+              variant="outline"
+              className="gap-2"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Try Again
+            </Button>
+            <Button
+              onClick={() => router.push("/crm/leads")}
+              variant="outline"
+              className="gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Leads
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!data) {
     return (
       <div className="page-container">
         <EmptyState

@@ -47,7 +47,8 @@ import {
  ThumbsUp,
  ThumbsDown,
  GitCommit,
- Activity
+ Activity,
+ RefreshCw
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -105,12 +106,12 @@ export default function ShopDrawingDetailPage({ params }: PageProps) {
  const [approvalComments, setApprovalComments] = useState("");
 
  // Fetch drawing details
- const { data: drawing, isLoading: drawingLoading } = api.shopDrawings.getById.useQuery({
+ const { data: drawing, isLoading: drawingLoading, error: drawingError } = api.shopDrawings.getById.useQuery({
  id: id,
  });
 
  // Fetch versions
- const { data: versions } = api.shopDrawings.getVersionHistory.useQuery({
+ const { data: versions, error: versionsError } = api.shopDrawings.getVersionHistory.useQuery({
  shopDrawingId: id,
  });
 
@@ -121,7 +122,7 @@ export default function ShopDrawingDetailPage({ params }: PageProps) {
  const utils = api.useUtils();
 
  // Fetch comments for current version
- const { data: comments } = api.shopDrawings.getComments.useQuery(
+ const { data: comments, error: commentsError } = api.shopDrawings.getComments.useQuery(
  {
  drawingVersionId: currentVersionId,
  },
@@ -131,12 +132,12 @@ export default function ShopDrawingDetailPage({ params }: PageProps) {
  );
 
  // Fetch approval status
- const { data: approvalStatus } = api.shopDrawings.getApprovalStatus.useQuery({
+ const { data: approvalStatus, error: approvalError } = api.shopDrawings.getApprovalStatus.useQuery({
  shopDrawingId: id,
  });
 
  // Fetch activity log
- const { data: activityLog } = api.shopDrawings.getActivityLog.useQuery({
+ const { data: activityLog, error: activityError } = api.shopDrawings.getActivityLog.useQuery({
  shopDrawingId: id,
  });
 
@@ -229,6 +230,36 @@ export default function ShopDrawingDetailPage({ params }: PageProps) {
  comments: approvalComments.trim() || undefined,
  });
  };
+
+ // Handle query error
+ if (drawingError || versionsError || commentsError || approvalError || activityError) {
+ const error = drawingError || versionsError || commentsError || approvalError || activityError;
+ return (
+ <div className="container mx-auto p-6 space-y-6">
+ <div className="flex flex-col items-center justify-center min-h-[400px]">
+ <AlertTriangle className="w-16 h-16 text-destructive mb-4" aria-hidden="true" />
+ <h2 className="text-2xl font-bold mb-2">Failed to load shop drawing</h2>
+ <p className="text-muted-foreground mb-4">{error?.message || "An unexpected error occurred. Please try again."}</p>
+ <div className="flex gap-2">
+ <Button onClick={handleBack} variant="outline">
+ <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
+ Back to Shop Drawings
+ </Button>
+ <Button onClick={() => {
+ utils.shopDrawings.getById.invalidate();
+ utils.shopDrawings.getVersionHistory.invalidate();
+ utils.shopDrawings.getComments.invalidate();
+ utils.shopDrawings.getApprovalStatus.invalidate();
+ utils.shopDrawings.getActivityLog.invalidate();
+ }}>
+ <RefreshCw className="w-4 h-4 mr-2" aria-hidden="true" />
+ Try Again
+ </Button>
+ </div>
+ </div>
+ </div>
+ );
+ }
 
  if (drawingLoading) {
  return (

@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
-import { DollarSign, Plus } from "lucide-react";
+import { DollarSign, Plus, AlertTriangle, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 
 export const dynamic = 'force-dynamic';
@@ -12,7 +12,7 @@ export default function ExpensesPage() {
   const router = useRouter();
   const { user: _user } = useAuth();
 
-  const { data, isLoading } = api.expenses.getAll.useQuery(
+  const { data, isLoading, error } = api.expenses.getAll.useQuery(
     {
       limit: 100,
       offset: 0,
@@ -22,6 +22,7 @@ export default function ExpensesPage() {
     }
   );
 
+  const utils = api.useUtils();
   const expenses = data?.items || [];
 
   if (isLoading) {
@@ -31,6 +32,31 @@ export default function ExpensesPage() {
           <h1>Expenses</h1>
         </div>
         <p>Loading expenses...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="page-container">
+        <div className="page-header">
+          <div>
+            <h1>Expenses</h1>
+            <p className="text-tertiary">Company expense tracking and approval</p>
+          </div>
+        </div>
+        <div className="error-state">
+          <AlertTriangle className="w-12 h-12 text-destructive mb-4" aria-hidden="true" />
+          <h3>Failed to Load Expenses</h3>
+          <p className="text-tertiary">{error.message}</p>
+          <button
+            onClick={() => void utils.expenses.getAll.invalidate()}
+            className="btn btn-primary mt-4"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" aria-hidden="true" />
+            Retry
+          </button>
+        </div>
       </div>
     );
   }

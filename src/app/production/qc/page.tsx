@@ -13,6 +13,8 @@ import {
   Camera,
   Plus,
   XCircle,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -63,8 +65,11 @@ export default function QCInspectionsPage() {
   const [statusFilter, _setStatusFilter] = useState<string>("all");
   const [searchQuery, _setSearchQuery] = useState("");
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   // Fetch QC inspections
-  const { data, isLoading } = api.qc.getAllInspections.useQuery({
+  const { data, isLoading, error } = api.qc.getAllInspections.useQuery({
     status: statusFilter === "all" ? undefined : statusFilter as any,
     limit: 50,
     offset: 0,
@@ -232,6 +237,28 @@ export default function QCInspectionsPage() {
         value ? format(new Date(value as string), "MMM d, yyyy") : "—",
     },
   ];
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Quality Control"
+          description="Mobile QC inspections and defect tracking"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load QC inspections"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.qc.getAllInspections.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

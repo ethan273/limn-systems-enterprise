@@ -18,12 +18,15 @@ import {
 import {
   ArrowLeft,
   Loader2,
-  
+
   Plus,
-  AlertCircle
+  AlertCircle,
+  AlertTriangle,
+  RefreshCw
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { EmptyState } from "@/components/common";
 
 export default function NewQCInspectionPage() {
   const router = useRouter();
@@ -37,12 +40,12 @@ export default function NewQCInspectionPage() {
   const [notes, setNotes] = useState("");
 
   // Fetch production items (catalog products)
-  const { data: productionItemsData, isLoading: productionItemsLoading } = api.items.getAll.useQuery({
+  const { data: productionItemsData, isLoading: productionItemsLoading, error: productionItemsError } = api.items.getAll.useQuery({
     limit: 100,
   });
 
   // Fetch prototypes
-  const { data: prototypesData, isLoading: prototypesLoading } = api.prototypes.getAll.useQuery({
+  const { data: prototypesData, isLoading: prototypesLoading, error: prototypesError } = api.prototypes.getAll.useQuery({
     limit: 100,
   });
 
@@ -115,6 +118,47 @@ export default function NewQCInspectionPage() {
     qcStage &&
     ((itemType === "production" && productionItemId !== "none") ||
      (itemType === "prototype" && prototypeId !== "none"));
+
+  // Handle query errors
+  if (productionItemsError || prototypesError) {
+    return (
+      <div className="container mx-auto p-6 max-w-3xl">
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleBack}
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
+                Back
+              </Button>
+              <div>
+                <h1 className="text-3xl font-bold">Create New QC Inspection</h1>
+                <p className="text-muted-foreground">Schedule a quality control inspection</p>
+              </div>
+            </div>
+          </div>
+
+          <EmptyState
+            icon={AlertTriangle}
+            title="Failed to load inspection data"
+            description={(productionItemsError || prototypesError)?.message || "An unexpected error occurred. Please try again."}
+            action={{
+              label: 'Try Again',
+              onClick: () => {
+                if (productionItemsError) utils.items.getAll.invalidate();
+                if (prototypesError) utils.prototypes.getAll.invalidate();
+              },
+              icon: RefreshCw,
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 max-w-3xl">

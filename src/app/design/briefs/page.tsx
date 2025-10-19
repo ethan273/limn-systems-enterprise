@@ -16,7 +16,7 @@ import {
   type DataTableRowAction,
   type StatItem,
 } from "@/components/common";
-import { Plus, FileText, Calendar, Pencil, Trash2 } from "lucide-react";
+import { Plus, FileText, Calendar, Pencil, Trash2, AlertTriangle, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import {
   AlertDialog,
@@ -41,7 +41,7 @@ export default function DesignBriefsPage() {
 
   // Auth is handled by middleware - no client-side redirect needed
 
-  const { data, isLoading } = api.designBriefs.getAll.useQuery(
+  const { data, isLoading, error } = api.designBriefs.getAll.useQuery(
     {
       limit: 50,
     },
@@ -230,6 +230,28 @@ export default function DesignBriefsPage() {
     return (
       <div className="page-container">
         <LoadingState message="Loading..." size="lg" />
+      </div>
+    );
+  }
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Design Briefs"
+          subtitle="Manage design briefs and requirements for new product development"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load design briefs"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.designBriefs.getAll.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
       </div>
     );
   }

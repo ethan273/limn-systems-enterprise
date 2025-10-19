@@ -5,6 +5,8 @@ import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/common/EmptyState';
+import { PageHeader } from '@/components/common/PageHeader';
 import {
   ClipboardCheck,
   Clock,
@@ -13,6 +15,7 @@ import {
   Upload,
   FileText,
   Calendar,
+  RefreshCw,
 } from 'lucide-react';
 
 /**
@@ -22,10 +25,11 @@ import {
  */
 export default function QCPortalPage() {
   const router = useRouter();
+  const utils = api.useUtils();
 
   // Use portal router procedures (enforces QC portal access)
-  const { data: stats } = api.portal.getQCDashboardStats.useQuery();
-  const { data: inspectionsData, isLoading: inspectionsLoading } = api.portal.getQCInspections.useQuery({
+  const { data: stats, error: statsError } = api.portal.getQCDashboardStats.useQuery();
+  const { data: inspectionsData, isLoading: inspectionsLoading, error: inspectionsError } = api.portal.getQCInspections.useQuery({
     limit: 50,
     offset: 0,
   });
@@ -55,6 +59,32 @@ export default function QCPortalPage() {
       day: 'numeric',
     });
   };
+
+  // Handle query errors
+  if (statsError || inspectionsError) {
+    const error = statsError || inspectionsError;
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Quality Inspections"
+          subtitle="View and manage quality control inspections"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load inspection data"
+          description={error?.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => {
+              utils.portal.getQCDashboardStats.invalidate();
+              utils.portal.getQCInspections.invalidate();
+            },
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

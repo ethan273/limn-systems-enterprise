@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
-import { Package, Plus } from "lucide-react";
+import { Package, Plus, AlertTriangle, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
 
@@ -14,7 +14,7 @@ export default function PackingListsPage() {
   const { user: _user } = useAuth();
   const [statusFilter, setStatusFilter] = useState<string | undefined>(undefined);
 
-  const { data, isLoading } = api.packing.getAllJobs.useQuery(
+  const { data, isLoading, error } = api.packing.getAllJobs.useQuery(
     {
       status: statusFilter as any,
       limit: 100,
@@ -26,6 +26,34 @@ export default function PackingListsPage() {
   );
 
   const jobs = data?.jobs || [];
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <div className="page-header">
+          <h1>Packing Lists</h1>
+        </div>
+        <div className="card p-8">
+          <div className="flex flex-col items-center justify-center">
+            <AlertTriangle className="w-16 h-16 text-destructive mb-4" aria-hidden="true" />
+            <h2 className="text-2xl font-bold mb-2">Failed to load packing jobs</h2>
+            <p className="text-muted-foreground mb-4">{error.message || "An unexpected error occurred. Please try again."}</p>
+            <button
+              onClick={() => utils.packing.getAllJobs.invalidate()}
+              className="btn btn-primary"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" aria-hidden="true" />
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

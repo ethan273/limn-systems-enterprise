@@ -22,6 +22,8 @@ import {
   Calendar,
   DollarSign,
   Eye,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
 
 /**
@@ -31,15 +33,38 @@ import {
  */
 export default function CustomerOrdersPage() {
   const router = useRouter();
+  const utils = api.useUtils();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
   // Fetch orders with filters
-  const { data: ordersData, isLoading } = api.portal.getCustomerOrders.useQuery({
+  const { data: ordersData, isLoading, error } = api.portal.getCustomerOrders.useQuery({
     status: statusFilter as any,
     limit: 100,
     offset: 0,
   });
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="page-header">
+          <h1 className="page-title">Orders</h1>
+          <p className="page-subtitle">View and track all your orders</p>
+        </div>
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load orders"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.portal.getCustomerOrders.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   const orders = ordersData?.orders || [];
 

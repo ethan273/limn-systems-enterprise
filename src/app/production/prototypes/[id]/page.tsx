@@ -40,13 +40,15 @@ import {
  Upload,
  Target,
  GitCommit,
- Activity
+ Activity,
+ RefreshCw
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
 import { PhotoGallery } from "@/components/prototypes/PhotoGallery";
 import { ProgressTracker } from "@/components/prototypes/ProgressTracker";
+import { EmptyState } from "@/components/common";
 
 // Dynamic route configuration
 export const dynamic = 'force-dynamic';
@@ -150,52 +152,52 @@ export default function PrototypeDetailPage({ params }: PageProps) {
  const [feedbackText, setFeedbackText] = useState("");
  const [feedbackSource, setFeedbackSource] = useState<"client" | "designer" | "factory" | "quality" | "stakeholder">("client");
 
- // Fetch prototype details
- const { data: prototype, isLoading: prototypeLoading } = api.prototypes.getById.useQuery({
- id: id,
- });
-
  // Get tRPC utils for cache invalidation
  const utils = api.useUtils();
 
+ // Fetch prototype details
+ const { data: prototype, isLoading: prototypeLoading, error: prototypeError } = api.prototypes.getById.useQuery({
+ id: id,
+ });
+
  // Fetch production details
- const { data: production } = api.prototypes.getProduction.useQuery(
+ const { data: production, error: productionError } = api.prototypes.getProduction.useQuery(
  { prototypeId: id },
  { enabled: !!prototype }
  );
 
  // Fetch milestones
- const { data: milestones } = api.prototypes.getMilestones.useQuery(
+ const { data: milestones, error: milestonesError } = api.prototypes.getMilestones.useQuery(
  { prototypeId: id },
  { enabled: !!prototype }
  );
 
  // Fetch photos
- const { data: photos } = api.prototypes.getPhotos.useQuery(
+ const { data: photos, error: photosError } = api.prototypes.getPhotos.useQuery(
  { prototypeId: id },
  { enabled: !!prototype }
  );
 
  // Fetch documents
- const { data: documents } = api.prototypes.getDocuments.useQuery(
+ const { data: documents, error: documentsError } = api.prototypes.getDocuments.useQuery(
  { prototypeId: id },
  { enabled: !!prototype }
  );
 
  // Fetch reviews
- const { data: reviews } = api.prototypes.getReviews.useQuery(
+ const { data: reviews, error: reviewsError } = api.prototypes.getReviews.useQuery(
  { prototypeId: id },
  { enabled: !!prototype }
  );
 
  // Fetch feedback
- const { data: feedback } = api.prototypes.getFeedback.useQuery(
+ const { data: feedback, error: feedbackError } = api.prototypes.getFeedback.useQuery(
  { prototypeId: id },
  { enabled: !!prototype }
  );
 
  // Fetch revisions
- const { data: revisions } = api.prototypes.getRevisions.useQuery(
+ const { data: revisions, error: revisionsError } = api.prototypes.getRevisions.useQuery(
  { prototypeId: id },
  { enabled: !!prototype }
  );
@@ -234,6 +236,34 @@ export default function PrototypeDetailPage({ params }: PageProps) {
  feedbackSource,
  });
  };
+
+ // Handle query error
+ if (prototypeError) {
+ return (
+ <div className="container mx-auto p-6">
+ <div className="flex items-center gap-4 mb-6">
+ <Button variant="ghost" size="sm" onClick={handleBack}>
+ <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
+ Back
+ </Button>
+ <div>
+ <h1 className="text-3xl font-bold">Prototype Details</h1>
+ <p className="text-muted-foreground">View prototype information</p>
+ </div>
+ </div>
+ <EmptyState
+ icon={AlertTriangle}
+ title="Failed to load prototype"
+ description={prototypeError.message || "An unexpected error occurred. Please try again."}
+ action={{
+ label: 'Try Again',
+ onClick: () => utils.prototypes.getById.invalidate(),
+ icon: RefreshCw,
+ }}
+ />
+ </div>
+ );
+ }
 
  if (prototypeLoading) {
  return (

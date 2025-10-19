@@ -22,6 +22,8 @@ import {
   Clock,
   AlertCircle,
   Download,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
 
 /**
@@ -31,7 +33,7 @@ import {
 export default function CustomerFinancialsPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  const { data: invoicesData, isLoading } = api.portal.getCustomerInvoices.useQuery({
+  const { data: invoicesData, isLoading, error } = api.portal.getCustomerInvoices.useQuery({
     status: statusFilter === 'all' ? undefined : statusFilter,
     limit: 100,
     offset: 0,
@@ -88,6 +90,28 @@ export default function CustomerFinancialsPage() {
       </Badge>
     );
   };
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="page-header">
+          <h1 className="page-title">Financials</h1>
+          <p className="page-subtitle">View invoices and manage payments</p>
+        </div>
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load invoices"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.portal.getCustomerInvoices.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

@@ -19,6 +19,8 @@ import {
   Package,
   CheckCircle2,
   Factory,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -33,7 +35,7 @@ export default function OrderedItemsProductionPage() {
   const [_searchQuery, _setSearchQuery] = useState("");
 
   // Fetch ordered items production
-  const { data, isLoading } = api.orderedItemsProduction.getAll.useQuery(
+  const { data, isLoading, error } = api.orderedItemsProduction.getAll.useQuery(
     {
       status: _statusFilter === "all" ? undefined : _statusFilter,
       qcStatus: _qcStatusFilter === "all" ? undefined : _qcStatusFilter,
@@ -45,6 +47,8 @@ export default function OrderedItemsProductionPage() {
       enabled: true,
     }
   );
+
+  const utils = api.useUtils();
 
   const items = data?.items || [];
 
@@ -211,6 +215,28 @@ export default function OrderedItemsProductionPage() {
       ],
     },
   ];
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Ordered Items - Individual Units"
+          subtitle="Track individual units with QC status and production progress"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load ordered items"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.orderedItemsProduction.getAll.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

@@ -25,6 +25,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { ExportPDFButton } from '@/components/ExportPDFButton';
+import { EmptyState } from '@/components/common/EmptyState';
 import {
   LineChart,
   Line,
@@ -69,7 +70,7 @@ const CHART_COLORS = [
 export default function PartnerDashboardPage() {
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d');
 
-  const { data: partners, isLoading } = api.dashboards.getPartners.useQuery(
+  const { data: partners, isLoading, error } = api.dashboards.getPartners.useQuery(
     { dateRange },
     { refetchInterval: 60000 } // Auto-refresh every 60 seconds
   );
@@ -77,7 +78,31 @@ export default function PartnerDashboardPage() {
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
 
-  const { data: insights } = api.dashboards.getPartnerInsights.useQuery();
+  const { data: insights, error: insightsError } = api.dashboards.getPartnerInsights.useQuery();
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <div className="dashboard-header">
+          <div>
+            <h1 className="page-title">Partner Relationship Dashboard</h1>
+            <p className="page-subtitle">Partner management, performance tracking, and relationship metrics</p>
+          </div>
+        </div>
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load partner data"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.dashboards.getPartners.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -92,11 +117,23 @@ export default function PartnerDashboardPage() {
 
   if (!partners) {
     return (
-      <div className="dashboard-page">
-        <div className="dashboard-error">
-          <AlertTriangle className="error-icon" />
-          <p>Failed to load partner data</p>
+      <div className="page-container">
+        <div className="dashboard-header">
+          <div>
+            <h1 className="page-title">Partner Relationship Dashboard</h1>
+            <p className="page-subtitle">Partner management, performance tracking, and relationship metrics</p>
+          </div>
         </div>
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load partner data"
+          description="Unable to retrieve partner dashboard data. Please try again."
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.dashboards.getPartners.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
       </div>
     );
   }

@@ -13,6 +13,8 @@ import {
   AlertCircle,
   Truck,
   MapPin,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -26,10 +28,37 @@ interface PageProps {
 export default function TrackingDetailPage({ params }: PageProps) {
   const { trackingNumber } = use(params);
   // Fetch tracking info (public endpoint - no auth required)
-  const { data: shipment, isLoading } = api.shipping.getTrackingInfo.useQuery(
+  const { data: shipment, isLoading, error } = api.shipping.getTrackingInfo.useQuery(
     { trackingNumber },
     { enabled: !!trackingNumber }
   );
+
+  const utils = api.useUtils();
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <EntityDetailHeader
+          icon={Package}
+          title="Track Your Shipment"
+          subtitle={`Tracking: ${trackingNumber}`}
+          metadata={[]}
+          status="unknown"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load tracking information"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.shipping.getTrackingInfo.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

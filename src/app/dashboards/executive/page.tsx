@@ -22,6 +22,7 @@ import {
   ArrowRight,
   BarChart3,
   RefreshCw,
+  AlertCircle,
 } from 'lucide-react';
 import { ExportPDFButton } from '@/components/ExportPDFButton';
 import {
@@ -57,7 +58,7 @@ const INSIGHT_CLASSES = {
 export default function ExecutiveDashboardPage() {
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | '1y' | 'all'>('30d');
 
-  const { data: executive, isLoading } = api.dashboards.getExecutive.useQuery(
+  const { data: executive, isLoading, error } = api.dashboards.getExecutive.useQuery(
     { dateRange },
     { refetchInterval: 60000 } // Auto-refresh every 60 seconds
   );
@@ -73,6 +74,29 @@ export default function ExecutiveDashboardPage() {
         <div className="dashboard-loading">
           <div className="loading-spinner"></div>
           <p>Loading executive dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="dashboard-page">
+        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+          <AlertCircle className="h-12 w-12 text-destructive" />
+          <h2 className="text-2xl font-semibold">Error Loading Executive Dashboard</h2>
+          <p className="text-muted-foreground text-center max-w-md">
+            {error.message || "Failed to load executive data. Please try again."}
+          </p>
+          <Button
+            onClick={() => {
+              utils.dashboards.getExecutive.invalidate();
+            }}
+            variant="outline"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Retry
+          </Button>
         </div>
       </div>
     );

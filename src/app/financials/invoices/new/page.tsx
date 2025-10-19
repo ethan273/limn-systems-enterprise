@@ -20,7 +20,9 @@ import {
   Loader2,
   FileText,
   AlertCircle,
-  Save
+  Save,
+  AlertTriangle,
+  RefreshCw
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -44,7 +46,7 @@ export default function NewInvoicePage() {
   ]);
 
   // Fetch orders with production details
-  const { data: ordersData, isLoading: ordersLoading } = api.orders.getWithProductionDetails.useQuery({});
+  const { data: ordersData, isLoading: ordersLoading, error } = api.orders.getWithProductionDetails.useQuery({});
 
   const utils = api.useUtils();
 
@@ -165,6 +167,28 @@ export default function NewInvoicePage() {
       item.quantity > 0 &&
       item.unitPrice > 0
     );
+
+  // Handle errors
+  if (error) {
+    return (
+      <div className="container mx-auto p-6 max-w-5xl">
+        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+          <AlertTriangle className="w-12 h-12 text-destructive" aria-hidden="true" />
+          <h2 className="text-2xl font-semibold">Failed to Load Orders</h2>
+          <p className="text-muted-foreground text-center max-w-md">
+            {error.message || "An unexpected error occurred while loading orders data."}
+          </p>
+          <button
+            onClick={() => utils.orders.getWithProductionDetails.invalidate()}
+            className="btn-primary flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" aria-hidden="true" />
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 max-w-5xl">

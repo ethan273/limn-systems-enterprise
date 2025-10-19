@@ -19,9 +19,21 @@ import {
 } from 'lucide-react';
 
 export default function ApiManagementDashboard() {
+  // Get current user from tRPC (standardized auth pattern)
+  const { data: _currentUser, isLoading: authLoading } = api.userProfile.getCurrentUser.useQuery();
+
   // Fetch credentials for stats
   const { data: credentials, isLoading: isLoadingCredentials } = api.apiCredentials.getAll.useQuery();
   const { data: expiringCredentials, isLoading: isLoadingExpiring } = api.apiCredentials.getExpiring.useQuery();
+
+  // Handle auth loading
+  if (authLoading) {
+    return (
+      <div className="page-container">
+        <LoadingState message="Loading..." size="lg" />
+      </div>
+    );
+  }
 
   if (isLoadingCredentials || isLoadingExpiring) {
     return (

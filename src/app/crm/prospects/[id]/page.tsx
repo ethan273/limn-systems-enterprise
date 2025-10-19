@@ -36,6 +36,8 @@ import {
   Building2,
   TrendingUp,
   Target,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -233,7 +235,33 @@ export default function ProspectDetailPage({ params }: PageProps) {
     );
   }
 
-  if (error || !data || !data.lead) {
+  if (error) {
+    return (
+      <div className="page-container">
+        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+          <AlertTriangle className="h-12 w-12 text-destructive" />
+          <h2 className="text-2xl font-semibold">Error Loading Prospect</h2>
+          <p className="text-muted-foreground text-center max-w-md">
+            {error.message || "Failed to load prospect data. Please try again."}
+          </p>
+          <Button
+            onClick={() => {
+              utils.crm.leads.getById.invalidate();
+              utils.crm.leads.getProspects.invalidate();
+              utils.crm.leads.getAll.invalidate();
+              utils.crm.leads.getPipelineStats.invalidate();
+            }}
+            variant="outline"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!data || !data.lead) {
     return (
       <div className="page-container">
         <EmptyState

@@ -13,6 +13,8 @@ export default function Home() {
     setMounted(true);
   }, []);
 
+  // CORRECT: Use Light_Mode.png for light theme, Dark_Mode.png for dark theme
+  // See LOGO-USAGE-PERMANENT-REFERENCE.md for full explanation
   const logoPath = resolvedTheme === 'dark' ? '/images/Limn_Logo_Dark_Mode.png' : '/images/Limn_Logo_Light_Mode.png';
 
   return (

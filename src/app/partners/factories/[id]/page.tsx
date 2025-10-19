@@ -33,6 +33,8 @@ import {
   Edit,
   Calendar,
   AlertCircle,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
 
 interface FactoryDetailPageProps {
@@ -45,9 +47,28 @@ export default function FactoryDetailPage({ params }: FactoryDetailPageProps) {
   const { id } = use(params);
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('overview');
+  const utils = api.useUtils();
 
   // Fetch factory details
   const { data: factory, isLoading, error } = api.partners.getById.useQuery({ id: id });
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load factory details"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.partners.getById.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -57,7 +78,7 @@ export default function FactoryDetailPage({ params }: FactoryDetailPageProps) {
     );
   }
 
-  if (error || !factory) {
+  if (!factory) {
     return (
       <div className="page-container">
         <EmptyState

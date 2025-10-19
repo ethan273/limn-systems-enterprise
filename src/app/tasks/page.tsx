@@ -19,6 +19,8 @@ import {
   ListTodo,
   CircleDot,
   XCircle,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -88,7 +90,7 @@ export default function TasksPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<any>(null);
 
-  const { data: tasksData, isLoading } = api.tasks.getAllTasks.useQuery({
+  const { data: tasksData, isLoading, error } = api.tasks.getAllTasks.useQuery({
     limit: 100,
     offset: 0,
   });
@@ -121,7 +123,7 @@ export default function TasksPage() {
   const uniqueUserIds = Array.from(new Set(allUserIds));
 
   // Fetch user details for assigned users
-  const { data: usersData } = api.users.getByIds.useQuery({
+  const { data: usersData, error: usersError } = api.users.getByIds.useQuery({
     ids: uniqueUserIds,
   }, { enabled: uniqueUserIds.length > 0 });
 
@@ -301,6 +303,50 @@ export default function TasksPage() {
       },
     },
   ];
+
+  // Handle query error for tasks
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="All Tasks"
+          subtitle="Manage and track all tasks across your organization"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load tasks"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.tasks.getAllTasks.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
+
+  // Handle query error for users
+  if (usersError) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="All Tasks"
+          subtitle="Manage and track all tasks across your organization"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load user details"
+          description={usersError.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.users.getByIds.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

@@ -9,6 +9,7 @@ import {
   InfoCard,
   LoadingState,
   EmptyState,
+  PageHeader,
   type EntityMetadata,
 } from "@/components/common";
 import {
@@ -26,6 +27,8 @@ import {
  AlertCircle,
  CheckCircle2,
  Calendar,
+ AlertTriangle,
+ RefreshCw,
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { toast } from "@/hooks/use-toast";
@@ -43,7 +46,7 @@ export default function PackingJobDetailPage({ params }: PageProps) {
  const router = useRouter();
 
  // Fetch packing job details
- const { data: job, isLoading } = api.packing.getJobById.useQuery(
+ const { data: job, isLoading, error } = api.packing.getJobById.useQuery(
  { id: id },
  { enabled: !!id }
  );
@@ -77,6 +80,28 @@ export default function PackingJobDetailPage({ params }: PageProps) {
  status: newStatus as any,
  });
  };
+
+ // Handle query error
+ if (error) {
+   return (
+     <div className="page-container">
+       <PageHeader
+         title="Packing Job"
+         subtitle="Packing Details"
+       />
+       <EmptyState
+         icon={AlertTriangle}
+         title="Failed to load packing job"
+         description={error.message || "An unexpected error occurred. Please try again."}
+         action={{
+           label: 'Try Again',
+           onClick: () => utils.packing.getJobById.invalidate(),
+           icon: RefreshCw,
+         }}
+       />
+     </div>
+   );
+ }
 
  if (isLoading) {
     return (

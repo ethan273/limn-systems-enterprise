@@ -24,6 +24,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { EmptyState } from '@/components/common/EmptyState';
 
 /**
  * Quality Analytics Dashboard
@@ -53,15 +55,42 @@ export default function QualityAnalyticsPage() {
   const [groupBy, setGroupBy] = useState<'day' | 'week' | 'month'>('month');
 
   // Fetch analytics data
-  const { data: overview, isLoading: overviewLoading} = api.analytics.getQualityOverview.useQuery(dateRange);
-  const { data: defectTrends, isLoading: trendsLoading } = api.analytics.getDefectTrends.useQuery({
+  const { data: overview, isLoading: overviewLoading, error: overviewError } = api.analytics.getQualityOverview.useQuery(dateRange);
+  const { data: defectTrends, isLoading: trendsLoading, error: trendsError } = api.analytics.getDefectTrends.useQuery({
     ...dateRange,
     groupBy,
   });
-  const { data: defectCategories, isLoading: categoriesLoading } = api.analytics.getDefectsByCategory.useQuery({
+  const { data: defectCategories, isLoading: categoriesLoading, error: categoriesError } = api.analytics.getDefectsByCategory.useQuery({
     ...dateRange,
     limit: 10,
   });
+
+  const utils = api.useUtils();
+
+  // Handle query errors
+  const error = overviewError || trendsError || categoriesError;
+  if (error) {
+    return (
+      <div className="analytics-page">
+        <div className="page-container">
+          <EmptyState
+            icon={AlertTriangle}
+            title="Failed to load quality analytics"
+            description={error.message || "An unexpected error occurred. Please try again."}
+            action={{
+              label: 'Try Again',
+              onClick: () => {
+                utils.analytics.getQualityOverview.invalidate();
+                utils.analytics.getDefectTrends.invalidate();
+                utils.analytics.getDefectsByCategory.invalidate();
+              },
+              icon: RefreshCw,
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {

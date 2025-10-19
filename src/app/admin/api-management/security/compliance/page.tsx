@@ -5,6 +5,7 @@ import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { EmptyState } from '@/components/common';
 import Link from 'next/link';
 import {
   FileText,
@@ -13,6 +14,7 @@ import {
   Shield,
   ArrowLeft,
   FileDown,
+  RefreshCw,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import jsPDF from 'jspdf';
@@ -32,8 +34,11 @@ export default function CompliancePage() {
     end: new Date().toISOString(),
   });
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   // Fetch compliance report
-  const { data: report, isLoading, refetch } = api.apiAudit.generateComplianceReport.useQuery({
+  const { data: report, error, isLoading, refetch } = api.apiAudit.generateComplianceReport.useQuery({
     startDate: dateRange.start,
     endDate: dateRange.end,
     type: reportType,
@@ -139,6 +144,46 @@ export default function CompliancePage() {
 
     doc.save(`compliance-report-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
   };
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <Link
+          href="/admin/api-management"
+          className="inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-4 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to API Management
+        </Link>
+        <div className="page-header">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+                <FileText className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="page-title">Compliance Reports</h1>
+                <p className="page-description">
+                  SOC2 and PCI DSS compliance documentation
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load compliance report"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.apiAudit.generateComplianceReport.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

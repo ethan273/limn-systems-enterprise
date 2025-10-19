@@ -4,10 +4,13 @@ import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { EmptyState } from '@/components/common/EmptyState';
 import {
   Truck,
   Package,
   Calendar,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
 
 /**
@@ -17,13 +20,57 @@ import {
  */
 export default function FactoryShippingPage() {
   const router = useRouter();
+  const utils = api.useUtils();
 
   // Use portal router procedures
-  const { data: _userInfo } = api.portal.getCurrentUser.useQuery();
-  const { data: ordersData, isLoading } = api.portal.getFactoryOrders.useQuery({
+  const { data: _userInfo, error: userError } = api.portal.getCurrentUser.useQuery();
+  const { data: ordersData, isLoading, error: ordersError } = api.portal.getFactoryOrders.useQuery({
     limit: 100,
     offset: 0,
   });
+
+  // Handle query errors
+  if (userError) {
+    return (
+      <div className="space-y-6">
+        <div className="page-header">
+          <h1 className="page-title">Shipping Management</h1>
+          <p className="page-subtitle">Track and manage shipments for completed orders</p>
+        </div>
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load user information"
+          description={userError.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.portal.getCurrentUser.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
+
+  if (ordersError) {
+    return (
+      <div className="space-y-6">
+        <div className="page-header">
+          <h1 className="page-title">Shipping Management</h1>
+          <p className="page-subtitle">Track and manage shipments for completed orders</p>
+        </div>
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load orders"
+          description={ordersError.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.portal.getFactoryOrders.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   const orders = ordersData?.orders || [];
 

@@ -16,6 +16,8 @@ import {
   TrendingUp,
   Pencil,
   Trash2,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import {
@@ -54,7 +56,7 @@ export default function ClientsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [clientToDelete, setClientToDelete] = useState<any>(null);
 
-  const { data: customersData, isLoading } = api.crm.customers.getAll.useQuery({
+  const { data: customersData, isLoading, error } = api.crm.customers.getAll.useQuery({
     limit: 100,
     offset: 0,
   });
@@ -335,6 +337,40 @@ export default function ClientsPage() {
       },
     },
   ];
+
+  // Query error handling
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Clients"
+          subtitle="Manage your customer relationships and accounts"
+        />
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center space-y-4 max-w-md">
+            <div className="flex justify-center">
+              <div className="rounded-full bg-destructive/10 p-3">
+                <AlertTriangle className="h-8 w-8 text-destructive" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-foreground">Failed to Load Clients</h3>
+              <p className="text-sm text-muted-foreground">
+                {error.message || "An error occurred while fetching clients data"}
+              </p>
+            </div>
+            <button
+              onClick={() => utils.crm.customers.getAll.invalidate()}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

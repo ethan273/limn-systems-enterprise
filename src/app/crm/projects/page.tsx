@@ -43,7 +43,9 @@ import {
  Target,
  CheckCircle2,
  Clock,
- AlertCircle
+ AlertCircle,
+ AlertTriangle,
+ RefreshCw
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
@@ -343,7 +345,7 @@ export default function ProjectsPage() {
  }>>([]);
 
  // Get projects from API
- const { data: projectsData, isLoading: isLoadingProjects } = api.projects.getAll.useQuery({
+ const { data: projectsData, isLoading: isLoadingProjects, error: projectsError } = api.projects.getAll.useQuery({
  limit: 100,
  offset: 0,
  });
@@ -351,8 +353,8 @@ export default function ProjectsPage() {
  const projects = projectsData?.items || [];
 
  // Get collections and customers for SKU generation
- const { data: collections, isLoading: isLoadingCollections } = api.products.getAllCollections.useQuery();
- const { data: customersData, isLoading: isLoadingCustomers } = api.crm.customers.getAll.useQuery({
+ const { data: collections, isLoading: isLoadingCollections, error: collectionsError } = api.products.getAllCollections.useQuery();
+ const { data: customersData, isLoading: isLoadingCustomers, error: customersError } = api.crm.customers.getAll.useQuery({
  limit: 100,
  offset: 0,
  });
@@ -363,6 +365,37 @@ export default function ProjectsPage() {
    return (
      <div className="page-container">
        <LoadingState message="Loading projects..." size="lg" />
+     </div>
+   );
+ }
+
+ // Error state check
+ if (projectsError || collectionsError || customersError) {
+   return (
+     <div className="page-container">
+       <div className="flex flex-col items-center justify-center py-12 space-y-4">
+         <div className="flex items-center justify-center w-16 h-16 rounded-full bg-destructive/10">
+           <AlertTriangle className="w-8 h-8 text-destructive" />
+         </div>
+         <div className="text-center space-y-2">
+           <h3 className="text-lg font-semibold">Failed to load projects</h3>
+           <p className="text-sm text-muted-foreground max-w-md">
+             {projectsError?.message || collectionsError?.message || customersError?.message || 'An error occurred while loading the projects.'}
+           </p>
+         </div>
+         <Button
+           onClick={() => {
+             utils.projects.getAll.invalidate();
+             utils.products.getAllCollections.invalidate();
+             utils.crm.customers.getAll.invalidate();
+           }}
+           variant="outline"
+           className="gap-2"
+         >
+           <RefreshCw className="w-4 h-4" />
+           Try Again
+         </Button>
+       </div>
      </div>
    );
  }

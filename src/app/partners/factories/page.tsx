@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
-import { Building2, Plus, MapPin, Phone, Mail, Star } from 'lucide-react';
+import { Building2, Plus, MapPin, Phone, Mail, Star, AlertTriangle, RefreshCw } from 'lucide-react';
 import {
   PageHeader,
   EmptyState,
@@ -24,9 +24,10 @@ export default function FactoriesPage() {
   const router = useRouter();
   const [search, _setSearch] = useState('');
   const [statusFilter, _setStatusFilter] = useState<'all' | 'active' | 'inactive' | 'pending_approval' | 'suspended'>('active');
+  const utils = api.useUtils();
 
   // Fetch factories
-  const { data, isLoading } = api.partners.getAll.useQuery({
+  const { data, isLoading, error } = api.partners.getAll.useQuery({
     type: 'factory',
     status: statusFilter === 'all' ? undefined : statusFilter,
     search: search.trim(),
@@ -126,7 +127,10 @@ export default function FactoriesPage() {
       key: 'specializations',
       label: 'Specializations',
       render: (value) => {
-        const specs = value as string[];
+        const specs = value as string[] | null;
+        if (!specs || !Array.isArray(specs) || specs.length === 0) {
+          return <span className="text-muted text-sm">—</span>;
+        }
         return (
           <div className="flex flex-wrap gap-1">
             {specs.slice(0, 2).map((spec: string, idx: number) => (
@@ -203,6 +207,28 @@ export default function FactoriesPage() {
       ],
     },
   ];
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Factory Partners"
+          subtitle="Manage your manufacturing partners and production facilities"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load factories"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.partners.getAll.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

@@ -23,6 +23,8 @@ import {
   MessageSquare,
   FileText,
   Plus,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -34,8 +36,11 @@ export default function FactoryReviewsPage() {
   const [_statusFilter, _setStatusFilter] = useState<string>("all");
   const [_searchQuery, _setSearchQuery] = useState("");
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   // Fetch factory review sessions
-  const { data, isLoading } = api.factoryReviews.getAllSessions.useQuery({
+  const { data, isLoading, error } = api.factoryReviews.getAllSessions.useQuery({
     status: _statusFilter === "all" ? undefined : _statusFilter,
     limit: 50,
     offset: 0,
@@ -173,6 +178,28 @@ export default function FactoryReviewsPage() {
       ],
     },
   ];
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Factory Reviews"
+          subtitle="On-site prototype inspection sessions"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load factory review sessions"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.factoryReviews.getAllSessions.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

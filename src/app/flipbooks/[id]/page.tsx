@@ -4,10 +4,10 @@ import { features } from "@/lib/features";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
-import { ArrowLeft, Edit, Eye, BookOpen, Maximize2 } from "lucide-react";
+import { ArrowLeft, Edit, Eye, BookOpen, Maximize2, AlertTriangle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { LoadingState, PageHeader } from "@/components/common";
+import { LoadingState, PageHeader, EmptyState } from "@/components/common";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
@@ -46,10 +46,13 @@ export default function FlipbookViewerPage({
   }, [params]);
 
   // Query flipbook data - must be called unconditionally
-  const { data: flipbook, isLoading } = api.flipbooks.get.useQuery(
+  const { data: flipbook, isLoading, error } = api.flipbooks.get.useQuery(
     { id: flipbookId! },
     { enabled: !!flipbookId } // Only run query when ID is available
   );
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   // Redirect if feature is disabled
   useEffect(() => {
@@ -61,6 +64,28 @@ export default function FlipbookViewerPage({
   // Don't render if feature is disabled or ID not loaded
   if (!features.flipbooks || !flipbookId) {
     return null;
+  }
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Flipbook Viewer"
+          subtitle="Interactive flipbook"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load flipbook"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.flipbooks.get.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
   }
 
   if (isLoading) {

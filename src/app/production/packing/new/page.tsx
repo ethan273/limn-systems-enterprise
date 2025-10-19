@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { PageHeader, EmptyState } from "@/components/common";
 import {
   Select,
   SelectContent,
@@ -20,7 +21,9 @@ import {
   Loader2,
   Package,
   Plus,
-  AlertCircle
+  AlertCircle,
+  AlertTriangle,
+  RefreshCw
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -34,7 +37,7 @@ export default function NewPackingJobPage() {
   const [priority, setPriority] = useState("normal");
 
   // Fetch production orders
-  const { data: ordersData, isLoading: ordersLoading } = api.productionOrders.getAll.useQuery({
+  const { data: ordersData, isLoading: ordersLoading, error: ordersError } = api.productionOrders.getAll.useQuery({
     limit: 100,
   });
 
@@ -94,6 +97,28 @@ export default function NewPackingJobPage() {
   };
 
   const isFormValid = productionOrderId !== "none" && quantity && parseFloat(quantity) > 0;
+
+  // Handle query error
+  if (ordersError) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Create New Packing Job"
+          subtitle="Prepare items for shipment"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load production orders"
+          description={ordersError.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.productionOrders.getAll.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 max-w-3xl">

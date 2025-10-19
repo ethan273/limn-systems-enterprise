@@ -12,6 +12,7 @@ import { EntityDetailHeader } from "@/components/common/EntityDetailHeader";
 // Unused: import { InfoCard } from "@/components/common/InfoCard";
 import { EmptyState } from "@/components/common/EmptyState";
 import { LoadingState } from "@/components/common/LoadingState";
+import { PageHeader } from "@/components/common";
 import { EditableField, EditableFieldGroup } from "@/components/common/EditableField";
 import TaskAttachments from "@/components/TaskAttachments";
 import TaskActivities from "@/components/TaskActivities";
@@ -39,6 +40,7 @@ import {
   X,
   Check,
   Target,
+  RefreshCw,
 } from "lucide-react";
 import { format, formatDistanceToNow, isAfter, parseISO } from "date-fns";
 import { toast } from "sonner";
@@ -215,6 +217,28 @@ export default function TaskDetailPage({ params }: PageProps) {
     utils.tasks.getById.invalidate();
   };
 
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Task Details"
+          subtitle="View and manage task information"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load task"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.tasks.getFullDetails.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="page-container">
@@ -223,7 +247,7 @@ export default function TaskDetailPage({ params }: PageProps) {
     );
   }
 
-  if (error || !task) {
+  if (!task) {
     return (
       <div className="page-container">
         <EmptyState

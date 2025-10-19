@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Textarea } from "@/components/ui/textarea";
-import { DollarSign, Package, Truck, AlertCircle, CheckCircle, ArrowLeft, Settings, Trash2, Ship, Clock, PackageCheck } from "lucide-react";
+import { DollarSign, Package, Truck, AlertCircle, CheckCircle, ArrowLeft, Settings, Trash2, Ship, Clock, PackageCheck, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useProductionOrdersRealtime, useShipmentsRealtime } from "@/hooks/useRealtimeSubscription";
@@ -72,7 +72,7 @@ export default function ProductionOrderDetailPage({ params }: PageProps) {
  special_instructions: "",
  });
 
- const { data: order } = api.productionOrders.getById.useQuery(
+ const { data: order, error: orderError } = api.productionOrders.getById.useQuery(
  {
  id: id as string,
  },
@@ -145,7 +145,7 @@ export default function ProductionOrderDetailPage({ params }: PageProps) {
  },
  });
 
- const { data: shipments } = api.shipping.getShipmentsByOrder.useQuery({
+ const { data: shipments, error: shipmentsError } = api.shipping.getShipmentsByOrder.useQuery({
  production_order_id: id as string,
  });
 
@@ -164,7 +164,7 @@ export default function ProductionOrderDetailPage({ params }: PageProps) {
  });
 
  // Packing jobs query
- const { data: packingJobsData } = api.packing.getAllJobs.useQuery({
+ const { data: packingJobsData, error: packingJobsError } = api.packing.getAllJobs.useQuery({
  orderId: order?.order_id,
  limit: 50,
  offset: 0,
@@ -243,6 +243,34 @@ export default function ProductionOrderDetailPage({ params }: PageProps) {
  // Don't render if not authenticated (will redirect)
  if (!user) {
  return null;
+ }
+
+ // Handle query error
+ if (orderError || shipmentsError || packingJobsError) {
+ const error = orderError || shipmentsError || packingJobsError;
+ return (
+ <div className="container mx-auto py-6">
+ <Link href="/production/orders">
+ <Button variant="ghost" className="mb-4">
+ <ArrowLeft className="h-4 w-4 mr-2" />
+ Back to Production Orders
+ </Button>
+ </Link>
+ <div className="flex flex-col items-center justify-center min-h-[400px]">
+ <AlertCircle className="w-16 h-16 text-destructive mb-4" aria-hidden="true" />
+ <h2 className="text-2xl font-bold mb-2">Failed to load production order</h2>
+ <p className="text-muted-foreground mb-4">{error?.message || "An unexpected error occurred. Please try again."}</p>
+ <Button onClick={() => {
+ utils.productionOrders.getById.invalidate();
+ utils.shipping.getShipmentsByOrder.invalidate();
+ utils.packing.getAllJobs.invalidate();
+ }}>
+ <RefreshCw className="w-4 h-4 mr-2" aria-hidden="true" />
+ Try Again
+ </Button>
+ </div>
+ </div>
+ );
  }
 
  // Show loading state while fetching order

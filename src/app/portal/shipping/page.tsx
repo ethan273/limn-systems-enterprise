@@ -9,6 +9,8 @@ import {
   CheckCircle2,
   Calendar,
   Box,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
@@ -61,8 +63,9 @@ const shipmentStatusConfig: Record<string, { label: string; className: string; i
 
 export default function ShippingTrackingPage() {
   const router = useRouter();
+  const utils = api.useUtils();
 
-  const { data: shipmentsData, isLoading } = api.portal.getCustomerShipments.useQuery({
+  const { data: shipmentsData, isLoading, error } = api.portal.getCustomerShipments.useQuery({
     limit: 50,
     offset: 0,
   });
@@ -197,6 +200,28 @@ export default function ShippingTrackingPage() {
       ],
     },
   ];
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Shipment Tracking"
+          subtitle="Track your orders in real-time"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load shipments"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.portal.getCustomerShipments.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

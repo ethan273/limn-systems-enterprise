@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { EmptyState } from '@/components/common/EmptyState';
+import { PageHeader } from '@/components/common/PageHeader';
 import {
   History,
   Search,
@@ -15,7 +16,7 @@ import {
   Calendar,
   AlertTriangle,
   CheckCircle,
-  
+  RefreshCw,
   TrendingUp,
   TrendingDown,
 } from 'lucide-react';
@@ -26,11 +27,12 @@ import {
  */
 export default function QCHistoryPage() {
   const router = useRouter();
+  const utils = api.useUtils();
   const [search, setSearch] = useState('');
   const [timeFilter, setTimeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  const { data: inspectionsData, isLoading } = api.portal.getQCInspections.useQuery({
+  const { data: inspectionsData, isLoading, error } = api.portal.getQCInspections.useQuery({
     limit: 100,
     offset: 0,
   });
@@ -93,6 +95,28 @@ export default function QCHistoryPage() {
       day: 'numeric',
     });
   };
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Inspection History"
+          subtitle="Complete record of all quality inspections"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load inspection history"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.portal.getQCInspections.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

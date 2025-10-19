@@ -2,7 +2,7 @@
 
 import React from "react";
 import { api } from "@/lib/api/client";
-import { Package, DollarSign, AlertCircle, TrendingUp, Plus } from "lucide-react";
+import { Package, DollarSign, AlertCircle, TrendingUp, Plus, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useProductionOrdersRealtime } from "@/hooks/useRealtimeSubscription";
@@ -27,12 +27,15 @@ function ProductionOrdersPageContent() {
   // Allow query to run immediately since middleware validates auth
 
   // Query PRODUCTION ORDERS (Phase 1 system with invoices/payments)
-  const { data, isLoading } = api.productionOrders.getAll.useQuery(
+  const { data, isLoading, error } = api.productionOrders.getAll.useQuery(
     {},
     { enabled: true } // Middleware ensures auth, so no need to wait for client auth
   );
 
   const orders = data?.items || [];
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   // Subscribe to realtime updates for production orders
   useProductionOrdersRealtime({
@@ -155,6 +158,28 @@ function ProductionOrdersPageContent() {
 
   // Middleware handles authentication - no need for client-side auth checks
   // Page will be protected by middleware before reaching here
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Production Orders"
+          subtitle="View production orders with auto-generated invoices and payment tracking"
+        />
+        <EmptyState
+          icon={AlertCircle}
+          title="Failed to load production orders"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.productionOrders.getAll.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

@@ -3,8 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
-import { LoadingState } from "@/components/common";
-import { FileText, DollarSign, TrendingUp, Download } from "lucide-react";
+import { LoadingState, PageHeader, EmptyState } from "@/components/common";
+import { FileText, DollarSign, TrendingUp, Download, AlertTriangle, RefreshCw } from "lucide-react";
 import { useState } from "react";
 
 export const dynamic = 'force-dynamic';
@@ -16,7 +16,7 @@ export default function FinancialReportsPage() {
   const [dateTo, setDateTo] = useState("");
 
   // Fetch invoices for reporting
-  const { data: invoicesData, isLoading: isLoadingInvoices } = api.invoices.getAll.useQuery(
+  const { data: invoicesData, isLoading: isLoadingInvoices, error: invoicesError } = api.invoices.getAll.useQuery(
     {
       limit: 1000,
       offset: 0,
@@ -27,7 +27,7 @@ export default function FinancialReportsPage() {
   );
 
   // Fetch payments for reporting
-  const { data: paymentsData, isLoading: isLoadingPayments } = api.payments.getAll.useQuery(
+  const { data: paymentsData, isLoading: isLoadingPayments, error: paymentsError } = api.payments.getAll.useQuery(
     {
       limit: 1000,
       offset: 0,
@@ -38,7 +38,7 @@ export default function FinancialReportsPage() {
   );
 
   // Fetch expenses stats
-  const { data: expensesStats, isLoading: isLoadingExpenses } = api.expenses.getStats.useQuery(
+  const { data: expensesStats, isLoading: isLoadingExpenses, error: expensesError } = api.expenses.getStats.useQuery(
     {
       dateFrom,
       dateTo,
@@ -47,6 +47,35 @@ export default function FinancialReportsPage() {
       enabled: true,
     }
   );
+
+  const utils = api.useUtils();
+
+  // Handle query errors
+  const error = invoicesError || paymentsError || expensesError;
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Financial Reports"
+          subtitle="Revenue, expenses, and financial summaries"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load financial reports"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => {
+              utils.invoices.getAll.invalidate();
+              utils.payments.getAll.invalidate();
+              utils.expenses.getStats.invalidate();
+            },
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   if (isLoadingInvoices || isLoadingPayments || isLoadingExpenses) {
     return (

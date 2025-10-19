@@ -16,11 +16,13 @@ import {
   Search,
   Shield,
   AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
 import { FormDialog } from '@/components/common/FormDialog';
 import type { FormField } from '@/components/common/FormDialog';
 import { DataTable } from '@/components/common/DataTable';
 import type { DataTableColumn } from '@/components/common/DataTable';
+import { EmptyState, PageHeader } from '@/components/common';
 
 interface ApiCredential {
   id: string;
@@ -96,15 +98,18 @@ export default function ApiKeysPage() {
   const [showExpiringOnly, setShowExpiringOnly] = useState(false);
 
   // Fetch credentials
-  const { data: credentialsRaw, isLoading } = api.apiCredentials.getAll.useQuery();
-  const { data: expiringCredentials } = api.apiCredentials.getExpiring.useQuery();
-  const { data: envScan } = api.apiCredentials.scanEnvironment.useQuery();
+  const { data: credentialsRaw, isLoading, error: credentialsError } = api.apiCredentials.getAll.useQuery();
+  const { data: expiringCredentials, error: expiringError } = api.apiCredentials.getExpiring.useQuery();
+  const { data: envScan, error: envScanError } = api.apiCredentials.scanEnvironment.useQuery();
 
   // Cast to proper type
   const credentials = credentialsRaw as ApiCredential[] | undefined;
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
+
+  // Check for errors
+  const error = credentialsError || expiringError || envScanError;
 
   // Mutations
   const createMutation = api.apiCredentials.create.useMutation({
@@ -418,6 +423,32 @@ export default function ApiKeysPage() {
 
     return matchesSearch;
   });
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="API Credentials"
+          subtitle="Securely manage API keys and credentials for all integrations"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load API credentials"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => {
+              utils.apiCredentials.getAll.invalidate();
+              utils.apiCredentials.getExpiring.invalidate();
+              utils.apiCredentials.scanEnvironment.invalidate();
+            },
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

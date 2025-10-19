@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
-import { Folder, Calendar, AlertCircle, Plus, Pencil, Trash2 } from "lucide-react";
+import { Folder, Calendar, AlertCircle, Plus, Pencil, Trash2, AlertTriangle, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import {
   PageHeader,
@@ -39,10 +39,10 @@ export default function DesignProjectsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<any>(null);
 
-  // Auth is handled by middleware - no client-side redirect needed
-  // Allow query to run immediately since middleware validates auth
+  // Get current user from tRPC (standardized auth pattern)
+  const { data: _currentUser, isLoading: authLoading } = api.userProfile.getCurrentUser.useQuery();
 
-  const { data, isLoading } = api.designProjects.getAll.useQuery(
+  const { data, isLoading, error } = api.designProjects.getAll.useQuery(
     {
       designStage: stageFilter === "all" ? undefined : stageFilter,
       search: undefined,
@@ -99,9 +99,6 @@ export default function DesignProjectsPage() {
   const getPriorityBadge = (priority: string) => {
     return <PriorityBadge priority={priority} />;
   };
-
-  // Middleware handles authentication - no need for client-side auth checks
-  // Page will be protected by middleware before reaching here
 
   const stats: StatItem[] = [
     {
@@ -244,6 +241,37 @@ export default function DesignProjectsPage() {
       },
     },
   ];
+
+  // Handle auth loading
+  if (authLoading) {
+    return (
+      <div className="page-container">
+        <LoadingState message="Loading..." size="lg" />
+      </div>
+    );
+  }
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Design Projects"
+          subtitle="Manage design projects from concept to final approval"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load design projects"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.designProjects.getAll.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

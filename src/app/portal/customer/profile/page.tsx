@@ -18,8 +18,10 @@ import {
   Save,
   Edit,
   CheckCircle,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
-import { LoadingState } from '@/components/common';
+import { LoadingState, EmptyState } from '@/components/common';
 
 /**
  * Customer Portal Profile Page
@@ -34,8 +36,8 @@ export default function CustomerProfilePage() {
   const [smsNotifications, setSmsNotifications] = useState(false);
   const [inAppNotifications, setInAppNotifications] = useState(true);
 
-  const { data: userInfo, isLoading: isLoadingUser } = api.portal.getCurrentUser.useQuery();
-  const { data: portalSettings, isLoading: isLoadingSettings } = api.portal.getPortalSettings.useQuery();
+  const { data: userInfo, isLoading: isLoadingUser, error: userError } = api.portal.getCurrentUser.useQuery();
+  const { data: portalSettings, isLoading: isLoadingSettings, error: settingsError } = api.portal.getPortalSettings.useQuery();
   const updatePreferencesMutation = api.portal.updateNotificationPreferences.useMutation();
 
   // Get tRPC utils for cache invalidation
@@ -59,6 +61,32 @@ export default function CustomerProfilePage() {
       }
     }
   }, [portalSettings]);
+
+  // Handle query errors
+  if (userError || settingsError) {
+    const error = userError || settingsError;
+    return (
+      <div className="space-y-6">
+        <div className="page-header">
+          <h1 className="page-title">Profile Settings</h1>
+          <p className="page-subtitle">Manage your account information and preferences</p>
+        </div>
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load profile"
+          description={error?.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => {
+              if (userError) utils.portal.getCurrentUser.invalidate();
+              if (settingsError) utils.portal.getPortalSettings.invalidate();
+            },
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   if (isLoadingUser || isLoadingSettings) {
     return (

@@ -16,6 +16,8 @@ import {
   X,
   AlertCircle,
   Briefcase,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
 import { PageHeader, LoadingState } from '@/components/common';
 import { toast } from 'sonner';
@@ -27,9 +29,12 @@ export default function EditContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { data: contactData, isLoading } = api.crm.contacts.getById.useQuery({
+  const { data: contactData, isLoading, error: queryError } = api.crm.contacts.getById.useQuery({
     id: contactId,
   });
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -100,6 +105,39 @@ export default function EditContactPage() {
     return (
       <div className="page-container">
         <LoadingState message="Loading contact..." size="lg" />
+      </div>
+    );
+  }
+
+  if (queryError) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Edit Contact"
+          subtitle="Update contact information"
+        />
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center space-y-4 max-w-md">
+            <div className="flex justify-center">
+              <div className="rounded-full bg-destructive/10 p-3">
+                <AlertTriangle className="h-8 w-8 text-destructive" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-foreground">Failed to Load Contact</h3>
+              <p className="text-sm text-muted-foreground">
+                {queryError.message || "An error occurred while fetching contact data"}
+              </p>
+            </div>
+            <button
+              onClick={() => utils.crm.contacts.getById.invalidate()}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Retry
+            </button>
+          </div>
+        </div>
       </div>
     );
   }

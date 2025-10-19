@@ -21,7 +21,9 @@ import {
   Briefcase,
   Plus,
   AlertCircle,
-  DollarSign
+  DollarSign,
+  AlertTriangle,
+  RefreshCw
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -39,7 +41,7 @@ export default function NewDesignProjectPage() {
   const [notes, setNotes] = useState("");
 
   // Fetch CRM projects
-  const { data: crmProjectsData, isLoading: crmProjectsLoading } = api.projects.getAll.useQuery({
+  const { data: crmProjectsData, isLoading: crmProjectsLoading, error: crmProjectsError } = api.projects.getAll.useQuery({
     limit: 100,
   });
 
@@ -103,6 +105,49 @@ export default function NewDesignProjectPage() {
   };
 
   const isFormValid = projectName.trim() && projectType;
+
+  // Error state for CRM projects
+  if (crmProjectsError) {
+    return (
+      <div className="container mx-auto p-6 max-w-3xl">
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleBack}
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
+                Back
+              </Button>
+              <div>
+                <h1 className="text-3xl font-bold">Create New Design Project</h1>
+                <p className="text-muted-foreground">Start a new design project</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Error Message */}
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" aria-hidden="true" />
+            <AlertDescription className="flex items-center justify-between">
+              <span>Failed to load CRM projects: {crmProjectsError.message}</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => utils.projects.getAll.invalidate()}
+              >
+                <RefreshCw className="w-4 h-4 mr-2" aria-hidden="true" />
+                Retry
+              </Button>
+            </AlertDescription>
+          </Alert>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 max-w-3xl">

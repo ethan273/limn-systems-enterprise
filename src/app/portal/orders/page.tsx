@@ -9,6 +9,8 @@ import {
   CheckCircle2,
   DollarSign,
   Calendar,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
@@ -71,8 +73,9 @@ const statusConfig: Record<string, { label: string; className: string; icon: Rea
 
 export default function CustomerOrdersPage() {
   const router = useRouter();
+  const utils = api.useUtils();
 
-  const { data, isLoading } = api.portal.getCustomerOrders.useQuery({
+  const { data, isLoading, error } = api.portal.getCustomerOrders.useQuery({
     status: undefined,
     limit: 50,
     offset: 0,
@@ -242,6 +245,28 @@ export default function CustomerOrdersPage() {
       ],
     },
   ];
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="My Orders"
+          subtitle="Track your production orders and shipments"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load orders"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.portal.getCustomerOrders.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

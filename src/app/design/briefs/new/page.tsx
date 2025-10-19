@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, AlertTriangle, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { PageHeader, LoadingState } from "@/components/common";
 
@@ -36,7 +36,10 @@ export default function NewDesignBriefPage() {
 
   // Auth is handled by middleware - no client-side redirect needed
 
-  const { data: projectsData } = api.designProjects.getAll.useQuery(
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
+  const { data: projectsData, error: projectsError } = api.designProjects.getAll.useQuery(
     { limit: 100 },
     { enabled: true } // Middleware ensures auth
   );
@@ -98,6 +101,31 @@ export default function NewDesignBriefPage() {
     return (
       <div className="page-container">
         <LoadingState message="Loading..." size="lg" />
+      </div>
+    );
+  }
+
+  // Error handling for projects query - show error state with retry
+  if (projectsError) {
+    return (
+      <div className="page-container">
+        <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+          <AlertTriangle className="h-12 w-12 text-destructive" />
+          <h2 className="text-2xl font-bold">Failed to Load Projects</h2>
+          <p className="text-muted-foreground text-center max-w-md">
+            {projectsError.message || "An error occurred while loading projects."}
+          </p>
+          <div className="flex gap-3">
+            <Button onClick={() => utils.designProjects.getAll.invalidate()}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Try Again
+            </Button>
+            <Button variant="outline" onClick={() => router.push("/design/briefs")}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Briefs
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }

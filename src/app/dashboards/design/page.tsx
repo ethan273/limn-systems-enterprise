@@ -19,6 +19,7 @@ import {
   Lightbulb,
   ArrowRight,
   RefreshCw,
+  AlertCircle,
 } from 'lucide-react';
 import { ExportPDFButton } from '@/components/ExportPDFButton';
 import {
@@ -59,7 +60,7 @@ const CHART_COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(-
 export default function DesignDashboardPage() {
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d');
 
-  const { data: design, isLoading } = api.dashboards.getDesign.useQuery(
+  const { data: design, isLoading, error } = api.dashboards.getDesign.useQuery(
     { dateRange },
     { refetchInterval: 60000 } // Auto-refresh every 60 seconds
   );
@@ -75,6 +76,29 @@ export default function DesignDashboardPage() {
         <div className="dashboard-loading">
           <div className="loading-spinner"></div>
           <p>Loading design dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="dashboard-page">
+        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+          <AlertCircle className="h-12 w-12 text-destructive" />
+          <h2 className="text-2xl font-semibold">Error Loading Design Dashboard</h2>
+          <p className="text-muted-foreground text-center max-w-md">
+            {error.message || "Failed to load design data. Please try again."}
+          </p>
+          <Button
+            onClick={() => {
+              utils.dashboards.getDesign.invalidate();
+            }}
+            variant="outline"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Retry
+          </Button>
         </div>
       </div>
     );

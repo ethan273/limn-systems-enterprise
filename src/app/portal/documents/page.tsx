@@ -9,6 +9,8 @@ import {
   FileArchive,
   Calendar,
   Folder,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
@@ -66,7 +68,9 @@ const documentTypeConfig: Record<string, { label: string; icon: React.ReactNode;
 };
 
 export default function DocumentsPage() {
-  const { data, isLoading } = api.portal.getCustomerDocuments.useQuery({
+  const utils = api.useUtils();
+
+  const { data, isLoading, error } = api.portal.getCustomerDocuments.useQuery({
     documentType: undefined,
     limit: 100,
     offset: 0,
@@ -226,6 +230,28 @@ export default function DocumentsPage() {
       ],
     },
   ];
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Documents"
+          subtitle="Access your project documents and files"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load documents"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.portal.getCustomerDocuments.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

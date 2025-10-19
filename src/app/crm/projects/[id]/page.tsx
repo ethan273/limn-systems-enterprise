@@ -43,6 +43,8 @@ import {
   MessageSquare,
   Plus,
   MapPin,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -288,7 +290,31 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
     );
   }
 
-  if (error || !data) {
+  if (error) {
+    return (
+      <div className="page-container">
+        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+          <AlertTriangle className="h-12 w-12 text-destructive" />
+          <h2 className="text-2xl font-semibold">Error Loading Project</h2>
+          <p className="text-muted-foreground text-center max-w-md">
+            {error.message || "Failed to load project data. Please try again."}
+          </p>
+          <Button
+            onClick={() => {
+              utils.projects.getById.invalidate();
+              utils.projects.getAll.invalidate();
+            }}
+            variant="outline"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!data) {
     return (
       <div className="page-container">
         <EmptyState

@@ -24,10 +24,13 @@ import {
   Calendar,
   MapPin,
   Users,
-  Target
+  Target,
+  AlertTriangle,
+  RefreshCw
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { EmptyState } from "@/components/common";
 
 export default function NewFactoryReviewSessionPage() {
   const router = useRouter();
@@ -40,7 +43,7 @@ export default function NewFactoryReviewSessionPage() {
   const [objectives, setObjectives] = useState("");
 
   // Fetch prototype production
-  const { data: prototypeProductionData, isLoading: prototypeProductionLoading } = api.prototypes.getAll.useQuery({
+  const { data: prototypeProductionData, isLoading: prototypeProductionLoading, error: prototypeProductionError } = api.prototypes.getAll.useQuery({
     limit: 100,
   });
 
@@ -110,6 +113,44 @@ export default function NewFactoryReviewSessionPage() {
   };
 
   const isFormValid = sessionName.trim() && prototypeProductionId !== "none" && reviewDate;
+
+  // Handle query error
+  if (prototypeProductionError) {
+    return (
+      <div className="container mx-auto p-6 max-w-3xl">
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleBack}
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
+                Back
+              </Button>
+              <div>
+                <h1 className="text-3xl font-bold">Create New Factory Review Session</h1>
+                <p className="text-muted-foreground">Schedule an on-site prototype inspection</p>
+              </div>
+            </div>
+          </div>
+
+          <EmptyState
+            icon={AlertTriangle}
+            title="Failed to load prototypes"
+            description={prototypeProductionError.message || "An unexpected error occurred. Please try again."}
+            action={{
+              label: 'Try Again',
+              onClick: () => utils.prototypes.getAll.invalidate(),
+              icon: RefreshCw,
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 max-w-3xl">

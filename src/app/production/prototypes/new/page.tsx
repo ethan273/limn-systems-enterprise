@@ -25,10 +25,13 @@ import {
  DollarSign,
  AlertCircle,
  X,
- Plus
+ Plus,
+ AlertTriangle,
+ RefreshCw
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { EmptyState } from "@/components/common/EmptyState";
 
 export default function NewPrototypePage() {
  const router = useRouter();
@@ -47,18 +50,21 @@ export default function NewPrototypePage() {
  const [tags, setTags] = useState<string[]>([]);
  const [tagInput, setTagInput] = useState("");
 
+ // Get tRPC utils for cache invalidation
+ const utils = api.useUtils();
+
  // Fetch design projects
- const { data: designProjectsData, isLoading: designProjectsLoading } = api.designProjects.getAll.useQuery({
+ const { data: designProjectsData, isLoading: designProjectsLoading, error: designProjectsError } = api.designProjects.getAll.useQuery({
  limit: 100,
  });
 
  // Fetch CRM projects
- const { data: crmProjectsData, isLoading: crmProjectsLoading } = api.projects.getAll.useQuery({
+ const { data: crmProjectsData, isLoading: crmProjectsLoading, error: crmProjectsError } = api.projects.getAll.useQuery({
  limit: 100,
  });
 
  // Fetch catalog items (base items)
- const { data: itemsData, isLoading: itemsLoading } = api.items.getAll.useQuery({
+ const { data: itemsData, isLoading: itemsLoading, error: itemsError } = api.items.getAll.useQuery({
  limit: 100,
  });
 
@@ -137,6 +143,45 @@ export default function NewPrototypePage() {
  tags: tags.length > 0 ? tags : undefined,
  });
  };
+
+ // Handle query errors
+ if (designProjectsError || crmProjectsError || itemsError) {
+ const error = designProjectsError || crmProjectsError || itemsError;
+ return (
+ <div className="container mx-auto p-6 max-w-3xl">
+ <div className="space-y-6">
+ <div className="flex items-center gap-4">
+ <Button
+ variant="ghost"
+ size="sm"
+ onClick={handleBack}
+ >
+ <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
+ Back
+ </Button>
+ <div>
+ <h1 className="text-3xl font-bold">Create New Prototype</h1>
+ <p className="text-muted-foreground">Define a new prototype for development</p>
+ </div>
+ </div>
+ <EmptyState
+ icon={AlertTriangle}
+ title="Failed to load form data"
+ description={error?.message || "An unexpected error occurred. Please try again."}
+ action={{
+ label: 'Try Again',
+ onClick: () => {
+ if (designProjectsError) utils.designProjects.getAll.invalidate();
+ if (crmProjectsError) utils.projects.getAll.invalidate();
+ if (itemsError) utils.items.getAll.invalidate();
+ },
+ icon: RefreshCw,
+ }}
+ />
+ </div>
+ </div>
+ );
+ }
 
  const isFormValid = name.trim() && prototypeType;
 

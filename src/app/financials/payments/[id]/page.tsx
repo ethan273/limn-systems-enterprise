@@ -30,6 +30,8 @@ import {
   DollarSign,
   Calendar,
   CreditCard,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
@@ -69,7 +71,7 @@ export default function PaymentDetailPage({ params }: PageProps) {
   const router = useRouter();
 
   // Fetch payment details
-  const { data: payment, isLoading } = api.payments.getById.useQuery(
+  const { data: payment, isLoading, error } = api.payments.getById.useQuery(
     { id: id },
     { enabled: !!id }
   );
@@ -108,6 +110,27 @@ export default function PaymentDetailPage({ params }: PageProps) {
     return (
       <div className="page-container">
         <LoadingState message="Loading payment details..." size="lg" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="page-container">
+        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+          <AlertTriangle className="w-12 h-12 text-destructive" aria-hidden="true" />
+          <h2 className="text-2xl font-semibold">Failed to Load Payment</h2>
+          <p className="text-muted-foreground text-center max-w-md">
+            {error.message || "An unexpected error occurred while loading the payment."}
+          </p>
+          <button
+            onClick={() => utils.payments.getById.invalidate({ id })}
+            className="btn-primary flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" aria-hidden="true" />
+            Retry
+          </button>
+        </div>
       </div>
     );
   }

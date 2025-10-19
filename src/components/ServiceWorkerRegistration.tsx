@@ -17,6 +17,16 @@ export function ServiceWorkerRegistration() {
       return;
     }
 
+    // Skip service worker registration in development unless explicitly enabled
+    // This matches the next.config.js PWA disable logic
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const pwaEnabled = process.env.NEXT_PUBLIC_ENABLE_PWA === 'true';
+
+    if (isDevelopment && !pwaEnabled) {
+      console.log('[SW] Service worker disabled in development mode');
+      return;
+    }
+
     let isSubscribed = true;
 
     // Register service worker

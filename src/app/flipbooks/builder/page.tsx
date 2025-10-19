@@ -7,9 +7,9 @@ import { features } from "@/lib/features";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 import { api } from "@/lib/api/client";
-import { ArrowLeft, Save, Eye, FileText, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Save, Eye, FileText, Image as ImageIcon, AlertTriangle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PageHeader, LoadingState } from "@/components/common";
+import { PageHeader, LoadingState, EmptyState } from "@/components/common";
 import { FileUploader } from "@/components/flipbooks/FileUploader";
 import { PageCanvas } from "@/components/flipbooks/PageCanvas";
 import { SortablePageList } from "@/components/flipbooks/SortablePageList";
@@ -55,7 +55,7 @@ function FlipbookBuilderContent() {
   const [status, setStatus] = useState<"DRAFT" | "PUBLISHED" | "ARCHIVED">("DRAFT");
 
   // Query flipbook if editing
-  const { data: flipbook, isLoading } = api.flipbooks.get.useQuery(
+  const { data: flipbook, isLoading, error } = api.flipbooks.get.useQuery(
     { id: flipbookId! },
     { enabled: !!flipbookId && features.flipbooks }
   );
@@ -225,6 +225,28 @@ function FlipbookBuilderContent() {
   const handleHotspotDelete = (hotspotId: string) => {
     deleteHotspot.mutate({ hotspotId });
   };
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Edit Flipbook"
+          subtitle="Upload pages, add hotspots, and configure settings"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load flipbook"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.flipbooks.get.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   if (isLoading && flipbookId) {
     return <LoadingState message="Loading flipbook..." size="lg" />;

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { EmptyState } from '@/components/common/EmptyState';
+import { PageHeader } from '@/components/common/PageHeader';
 import {
   FileText,
   Search,
@@ -14,6 +15,8 @@ import {
   Download,
   Eye,
   Calendar,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
 
 /**
@@ -21,10 +24,11 @@ import {
  * View and download inspection reports and documentation
  */
 export default function QCDocumentsPage() {
+  const utils = api.useUtils();
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
 
-  const { data: documentsData, isLoading } = api.portal.getQCDocuments.useQuery({
+  const { data: documentsData, isLoading, error } = api.portal.getQCDocuments.useQuery({
     documentType: typeFilter === 'all' ? undefined : typeFilter as any,
     limit: 100,
     offset: 0,
@@ -61,6 +65,28 @@ export default function QCDocumentsPage() {
   const getDocumentIcon = (_type: string) => {
     return <FileText className="h-5 w-5 text-primary" />;
   };
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Documents"
+          subtitle="View and download inspection reports and documentation"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load documents"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.portal.getQCDocuments.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

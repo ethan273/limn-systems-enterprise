@@ -17,6 +17,8 @@ import {
   BarChart3,
   Clock,
   XCircle,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -25,15 +27,49 @@ export const dynamic = 'force-dynamic';
 
 export default function AdminDashboardPage() {
   // Fetch overview data
-  const { data: usersData, isLoading: isLoadingUsers } = api.admin.users.list.useQuery({ limit: 100, offset: 0 });
-  const { data: activityStats, isLoading: isLoadingActivity } = api.audit.getActivityStats.useQuery({ days: 30 });
-  const { data: roleStats, isLoading: isLoadingRoles } = api.admin.roles.getRoleStats.useQuery();
-  const { data: exportStats, isLoading: isLoadingExport } = api.export.getExportStats.useQuery();
+  const { data: usersData, isLoading: isLoadingUsers, error: usersError } = api.admin.users.list.useQuery({ limit: 100, offset: 0 });
+  const { data: activityStats, isLoading: isLoadingActivity, error: activityError } = api.audit.getActivityStats.useQuery({ days: 30 });
+  const { data: roleStats, isLoading: isLoadingRoles, error: rolesError } = api.admin.roles.getRoleStats.useQuery();
+  const { data: exportStats, isLoading: isLoadingExport, error: exportError } = api.export.getExportStats.useQuery();
+
+  const utils = api.useUtils();
 
   if (isLoadingUsers || isLoadingActivity || isLoadingRoles || isLoadingExport) {
     return (
       <div className="page-container">
         <LoadingState message="Loading admin dashboard..." size="lg" />
+      </div>
+    );
+  }
+
+  // Handle query errors
+  const error = usersError || activityError || rolesError || exportError;
+  if (error) {
+    return (
+      <div className="page-container">
+        <Card className="border-destructive">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-4">
+              <AlertTriangle className="h-8 w-8 text-destructive flex-shrink-0" />
+              <div className="flex-1">
+                <h3 className="font-semibold text-lg mb-2">Failed to Load Dashboard Data</h3>
+                <p className="text-muted-foreground mb-4">{error.message}</p>
+                <Button
+                  onClick={() => {
+                    utils.admin.users.list.invalidate();
+                    utils.audit.getActivityStats.invalidate();
+                    utils.admin.roles.getRoleStats.invalidate();
+                    utils.export.getExportStats.invalidate();
+                  }}
+                  variant="outline"
+                >
+                  <RefreshCw className="icon-sm" />
+                  Retry
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }

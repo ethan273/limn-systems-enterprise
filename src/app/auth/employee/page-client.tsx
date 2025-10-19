@@ -6,7 +6,7 @@ import { createBrowserClient } from '@supabase/ssr'
 import { ArrowLeft, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { useTheme } from 'next-themes'
+import { useTheme } from '@/components/providers/ThemeProvider'
 import Image from 'next/image'
 
 export default function EmployeeLoginPage() {

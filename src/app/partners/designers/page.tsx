@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
-import { Palette, Plus, MapPin, Phone, Mail, Star } from 'lucide-react';
+import { Palette, Plus, MapPin, Phone, Mail, Star, AlertTriangle, RefreshCw } from 'lucide-react';
 import {
   PageHeader,
   EmptyState,
@@ -24,9 +24,10 @@ export default function DesignersPage() {
   const router = useRouter();
   const [search, _setSearch] = useState('');
   const [statusFilter, _setStatusFilter] = useState<'all' | 'active' | 'inactive' | 'pending_approval' | 'suspended'>('active');
+  const utils = api.useUtils();
 
   // Fetch designers
-  const { data, isLoading } = api.partners.getAll.useQuery({
+  const { data, isLoading, error } = api.partners.getAll.useQuery({
     type: 'designer',
     status: statusFilter === 'all' ? undefined : statusFilter,
     search: search.trim(),
@@ -206,6 +207,28 @@ export default function DesignersPage() {
       ],
     },
   ];
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Designer Partners"
+          subtitle="Manage your design partners and creative professionals"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load designers"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.partners.getAll.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

@@ -32,6 +32,8 @@ import {
   Calendar,
   Weight,
   DollarSign,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
@@ -92,13 +94,38 @@ export default function ShipmentDetailPage({ params }: PageProps) {
   const [activeTab, setActiveTab] = useState("overview");
 
   // Fetch shipment details
-  const { data: shipment, isLoading } = api.shipping.getShipmentById.useQuery(
+  const { data: shipment, isLoading, error } = api.shipping.getShipmentById.useQuery(
     { id: id },
     { enabled: !!id }
   );
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="page-container">
+        <EntityDetailHeader
+          icon={Package}
+          title="Shipment Details"
+          subtitle="Loading shipment information..."
+          metadata={[]}
+          status="unknown"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load shipment details"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.shipping.getShipmentById.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   // Update shipment status mutation
   const updateStatusMutation = api.shipping.updateShipmentStatus.useMutation({

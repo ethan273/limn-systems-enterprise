@@ -13,6 +13,8 @@ import {
   ExternalLink,
   CheckCircle,
   Clock,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
 
 /**
@@ -20,10 +22,13 @@ import {
  * Track shipments and view shipping status
  */
 export default function CustomerShippingPage() {
-  const { data: shipmentsData, isLoading } = api.portal.getCustomerShipments.useQuery({
+  const { data: shipmentsData, isLoading, error } = api.portal.getCustomerShipments.useQuery({
     limit: 100,
     offset: 0,
   });
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   const shipments = shipmentsData?.shipments || [];
 
@@ -59,6 +64,28 @@ export default function CustomerShippingPage() {
         return <Package className="h-5 w-5 text-muted-foreground" />;
     }
   };
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="page-header">
+          <h1 className="page-title">Shipping & Tracking</h1>
+          <p className="page-subtitle">Track your shipments and view delivery status</p>
+        </div>
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load shipments"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.portal.getCustomerShipments.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

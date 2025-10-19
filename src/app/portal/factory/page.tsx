@@ -5,6 +5,7 @@ import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/common/EmptyState';
 import {
   Package,
   Clock,
@@ -13,6 +14,8 @@ import {
   Calendar,
   Truck,
   AlertCircle,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
 
 /**
@@ -22,14 +25,79 @@ import {
  */
 export default function FactoryPortalPage() {
   const router = useRouter();
+  const utils = api.useUtils();
 
   // Use portal router procedures (enforces factory portal access)
-  const { data: _userInfo } = api.portal.getCurrentUser.useQuery();
-  const { data: stats, isLoading: _statsLoading } = api.portal.getFactoryDashboardStats.useQuery();
-  const { data: ordersData, isLoading: ordersLoading } = api.portal.getFactoryOrders.useQuery({
+  const { data: _userInfo, error: userError } = api.portal.getCurrentUser.useQuery();
+  const { data: stats, isLoading: _statsLoading, error: statsError } = api.portal.getFactoryDashboardStats.useQuery();
+  const { data: ordersData, isLoading: ordersLoading, error: ordersError } = api.portal.getFactoryOrders.useQuery({
     limit: 50,
     offset: 0,
   });
+
+  // Handle query errors
+  if (userError) {
+    return (
+      <div className="space-y-6">
+        <div className="page-header">
+          <h1 className="page-title">Factory Dashboard</h1>
+          <p className="page-subtitle">Monitor production orders and manage your factory operations</p>
+        </div>
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load user information"
+          description={userError.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.portal.getCurrentUser.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
+
+  if (statsError) {
+    return (
+      <div className="space-y-6">
+        <div className="page-header">
+          <h1 className="page-title">Factory Dashboard</h1>
+          <p className="page-subtitle">Monitor production orders and manage your factory operations</p>
+        </div>
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load dashboard statistics"
+          description={statsError.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.portal.getFactoryDashboardStats.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
+
+  if (ordersError) {
+    return (
+      <div className="space-y-6">
+        <div className="page-header">
+          <h1 className="page-title">Factory Dashboard</h1>
+          <p className="page-subtitle">Monitor production orders and manage your factory operations</p>
+        </div>
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load production orders"
+          description={ordersError.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.portal.getFactoryOrders.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   const orders = ordersData?.orders || [];
 

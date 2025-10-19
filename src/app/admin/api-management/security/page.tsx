@@ -4,7 +4,7 @@ import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { LoadingState } from '@/components/common';
+import { LoadingState, EmptyState } from '@/components/common';
 import Link from 'next/link';
 import {
   Shield,
@@ -13,6 +13,7 @@ import {
   Clock,
   Download,
   ArrowLeft,
+  RefreshCw,
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -22,11 +23,14 @@ export default function SecurityDashboard() {
     end: new Date().toISOString(),
   };
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   // Fetch security metrics
-  const { data: metrics, isLoading: isLoadingMetrics } = api.apiSecurity.getSecurityMetrics.useQuery();
+  const { data: metrics, error: metricsError, isLoading: isLoadingMetrics } = api.apiSecurity.getSecurityMetrics.useQuery();
 
   // Fetch recent audit logs
-  const { data: auditData, isLoading: isLoadingAudit } = api.apiAudit.getAuditLogs.useQuery({
+  const { data: auditData, error: auditError, isLoading: isLoadingAudit } = api.apiAudit.getAuditLogs.useQuery({
     limit: 50,
     offset: 0,
     startDate: dateRange.start,
@@ -34,18 +38,64 @@ export default function SecurityDashboard() {
   });
 
   // Fetch audit statistics
-  const { data: stats, isLoading: isLoadingStats } = api.apiAudit.getAuditStatistics.useQuery({
+  const { data: stats, error: statsError, isLoading: isLoadingStats } = api.apiAudit.getAuditStatistics.useQuery({
     startDate: dateRange.start,
     endDate: dateRange.end,
   });
 
   // Fetch active emergency access
-  const { data: emergencyAccess, isLoading: isLoadingEmergency } = api.apiSecurity.getActiveEmergencyAccess.useQuery();
+  const { data: emergencyAccess, error: emergencyError, isLoading: isLoadingEmergency } = api.apiSecurity.getActiveEmergencyAccess.useQuery();
 
   if (isLoadingMetrics || isLoadingAudit || isLoadingStats || isLoadingEmergency) {
     return (
       <div className="page-container">
         <LoadingState message="Loading security dashboard..." size="lg" />
+      </div>
+    );
+  }
+
+  // Handle query errors
+  const error = metricsError || auditError || statsError || emergencyError;
+  if (error) {
+    return (
+      <div className="page-container">
+        <Link
+          href="/admin/api-management"
+          className="inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-4 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to API Management
+        </Link>
+        <div className="page-header">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+                <Shield className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="page-title">Security Dashboard</h1>
+                <p className="page-description">
+                  Real-time security monitoring and audit trail
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load security dashboard"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => {
+              if (metricsError) utils.apiSecurity.getSecurityMetrics.invalidate();
+              if (auditError) utils.apiAudit.getAuditLogs.invalidate();
+              if (statsError) utils.apiAudit.getAuditStatistics.invalidate();
+              if (emergencyError) utils.apiSecurity.getActiveEmergencyAccess.invalidate();
+            },
+            icon: RefreshCw,
+          }}
+        />
       </div>
     );
   }

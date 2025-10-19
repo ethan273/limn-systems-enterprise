@@ -25,6 +25,9 @@ type LogType = 'admin' | 'security' | 'login';
 export default function ActivityLogsPage() {
   const [activeTab, setActiveTab] = useState<LogType>('admin');
 
+  // Get current user from tRPC (standardized auth pattern)
+  const { data: _currentUser, isLoading: authLoading } = api.userProfile.getCurrentUser.useQuery();
+
   const { data: adminLogs, isLoading: isLoadingAdmin } =
     api.audit.getAdminLogs.useQuery(
       { limit: 50, offset: 0 },
@@ -111,14 +114,30 @@ export default function ActivityLogsPage() {
     {
       key: 'resourceType',
       label: 'Resource',
-      render: (value, row) => (
-        <div className="table-cell-stacked">
-          <span className="table-cell-main">{value as string || '—'}</span>
-          {row.resourceId && (
-            <span className="table-cell-sub">{row.resourceId}</span>
-          )}
-        </div>
-      ),
+      render: (value, row) => {
+        // Map technical resource types to user-friendly names
+        const resourceTypeMap: Record<string, string> = {
+          'user_role': 'User Role',
+          'user_profile': 'User Profile',
+          'user_permission': 'User Permission',
+          'sign_up': 'Sign-up Request',
+        };
+
+        const friendlyType = resourceTypeMap[value as string] || (value as string);
+
+        // Get target user email from metadata if available
+        const metadata = row.metadata as any;
+        const targetEmail = metadata?.target_user_email;
+
+        return (
+          <div className="table-cell-stacked">
+            <span className="table-cell-main">{friendlyType || '—'}</span>
+            {targetEmail && (
+              <span className="table-cell-sub">{targetEmail}</span>
+            )}
+          </div>
+        );
+      },
     },
     {
       key: 'ipAddress',
@@ -224,6 +243,15 @@ export default function ActivityLogsPage() {
       ],
     },
   ];
+
+  // Handle auth loading
+  if (authLoading) {
+    return (
+      <div className="page-container">
+        <LoadingState message="Loading..." size="lg" />
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">
