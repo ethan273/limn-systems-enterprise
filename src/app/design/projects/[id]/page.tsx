@@ -3,7 +3,6 @@
 import { use,  useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
-import { useAuthContext } from "@/lib/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,7 +36,10 @@ const PROJECT_PRIORITIES = [
 export default function DesignProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
  const router = useRouter();
- const { user, loading: authLoading } = useAuthContext();
+
+ // Get current user from tRPC (standardized auth pattern)
+ const { data: currentUser, isLoading: authLoading } = api.userProfile.getCurrentUser.useQuery();
+
  const [isEditing, setIsEditing] = useState(false);
  const [formData, setFormData] = useState({
    project_name: '',
@@ -164,7 +166,7 @@ export default function DesignProjectDetailPage({ params }: { params: Promise<{ 
  );
  }
 
- if (!user || !project) {
+ if (!currentUser || !project) {
  return (
  <div className="page-container">
  <EmptyState

@@ -8,7 +8,6 @@
  */
 
 import { useState, Suspense } from "react";
-import { useAuthContext } from "@/lib/auth/AuthProvider";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
@@ -61,7 +60,8 @@ function DesignDocumentsContent() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [fileToDelete, setFileToDelete] = useState<any>(null);
 
-  const { loading: authLoading } = useAuthContext();
+  // Get current user from tRPC (standardized auth pattern)
+  const { data: _currentUser, isLoading: authLoading } = api.userProfile.getCurrentUser.useQuery();
 
   // Get Google Drive service account status
   const { data: driveStatus } = api.storage.getDriveStatus.useQuery();

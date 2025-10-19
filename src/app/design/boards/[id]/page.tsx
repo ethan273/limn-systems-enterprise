@@ -6,7 +6,6 @@ import { ArrowLeft, Save, Users, Download, Settings, FileUp } from "lucide-react
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api/client";
-import { useAuthContext } from "@/lib/auth/AuthProvider";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import { Loader2 } from "lucide-react";
@@ -42,7 +41,11 @@ import {
 export default function DesignBoardEditorPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { user } = useAuthContext();
+
+  // Get current user from tRPC (standardized auth pattern)
+  const { data: currentUser } = api.userProfile.getCurrentUser.useQuery();
+  const userId = currentUser?.id || "";
+
   const [boardName, setBoardName] = useState("Untitled Board");
   const [isEditingName, setIsEditingName] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -266,7 +269,7 @@ export default function DesignBoardEditorPage({ params }: { params: Promise<{ id
         <div className="flex-1 relative overflow-hidden">
           <DesignBoardCanvas
             boardId={id}
-            userId={user?.id || ""}
+            userId={userId}
             board={board}
             onCanvasReady={setCanvas}
           />

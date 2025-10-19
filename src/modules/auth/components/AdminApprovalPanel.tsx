@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { api } from '@/lib/api/client'
-import { useAuthContext } from '@/lib/auth/AuthProvider'
 import { Button } from '@/components/ui/button'
 // Input component not used in this file
 import { Badge } from '@/components/ui/badge'
@@ -14,7 +13,10 @@ import { formatDistanceToNow } from 'date-fns'
 import { CheckIcon, XIcon, UserIcon, BuildingIcon, PhoneIcon, MailIcon } from 'lucide-react'
 
 export function AdminApprovalPanel() {
- const { isAdmin } = useAuthContext()
+ // Get current user from tRPC (standardized auth pattern)
+ const { data: currentUser } = api.userProfile.getCurrentUser.useQuery();
+ const isAdmin = currentUser?.user_type === 'super_admin';
+
  const [adminNotes, setAdminNotes] = useState<Record<string, string>>({})
  const [selectedStatus, setSelectedStatus] = useState<'pending' | 'approved' | 'denied' | 'all'>('pending')
 

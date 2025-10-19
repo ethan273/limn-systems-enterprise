@@ -16,13 +16,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { api } from "@/lib/api/client";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/common/EmptyState";
-import { useAuthContext } from "@/lib/auth/AuthProvider";
 import { CreateFromTemplateDialog } from "@/components/design-boards/CreateFromTemplateDialog";
 
 // Design Boards list page with grid/list views
 export default function DesignBoardsPage() {
   const router = useRouter();
-  const { user } = useAuthContext();
+
+  // Get current user from tRPC (standardized auth pattern)
+  const { data: currentUser } = api.userProfile.getCurrentUser.useQuery();
+  const userId = currentUser?.id || "";
+
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -288,7 +291,7 @@ export default function DesignBoardsPage() {
       <CreateFromTemplateDialog
         _open={isTemplateDialogOpen}
         onOpenChange={setIsTemplateDialogOpen}
-        userId={user?.id || ""}
+        userId={userId}
       />
     </div>
   );

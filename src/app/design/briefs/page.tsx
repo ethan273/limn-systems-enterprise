@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
-import { useAuthContext } from "@/lib/auth/AuthProvider";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
@@ -33,7 +32,9 @@ import {
 export const dynamic = 'force-dynamic';
 
 export default function DesignBriefsPage() {
-  const { loading: authLoading } = useAuthContext();
+  // Get current user from tRPC (standardized auth pattern)
+  const { data: _currentUser, isLoading: authLoading } = api.userProfile.getCurrentUser.useQuery();
+
   const router = useRouter();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [briefToDelete, setBriefToDelete] = useState<any>(null);

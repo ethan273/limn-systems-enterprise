@@ -50,43 +50,43 @@ import { formatDistanceToNow, isAfter, parseISO } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { useAuthContext } from "@/lib/auth/AuthProvider";
-
 type TaskStatus = 'todo' | 'in_progress' | 'completed' | 'cancelled';
 
 export default function MyTasksPage() {
   const router = useRouter();
-  const { user } = useAuthContext();
   const [activeTab, setActiveTab] = useState("assigned");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
-  // Use the actual logged-in user's ID
-  const currentUserId = user?.id || "";
+  // Get current user from tRPC (consistent with other pages)
+  const { data: currentUser } = api.userProfile.getCurrentUser.useQuery();
 
-  // Get my assigned tasks
+  // Use the actual logged-in user's ID
+  const currentUserId = currentUser?.id || "";
+
+  // Get my assigned tasks (only fetch when we have a valid user ID)
   const { data: assignedTasksData, isLoading: isLoadingAssigned } = api.tasks.getMyTasks.useQuery({
     user_id: currentUserId,
     limit: 100,
     offset: 0,
     includeWatching: false,
-  }, { enabled: activeTab === "assigned" });
+  }, { enabled: activeTab === "assigned" && !!currentUserId });
 
-  // Get tasks I'm watching
+  // Get tasks I'm watching (only fetch when we have a valid user ID)
   const { data: watchingTasksData, isLoading: isLoadingWatching } = api.tasks.getMyTasks.useQuery({
     user_id: currentUserId,
     limit: 100,
     offset: 0,
     includeWatching: true,
-  }, { enabled: activeTab === "watching" });
+  }, { enabled: activeTab === "watching" && !!currentUserId });
 
-  // Get tasks I created
+  // Get tasks I created (only fetch when we have a valid user ID)
   const { data: createdTasksData, isLoading: isLoadingCreated } = api.tasks.getAllTasks.useQuery({
     limit: 100,
     offset: 0,
     sortBy: 'created_at',
     sortOrder: 'desc',
     created_by: currentUserId,
-  }, { enabled: activeTab === "created" });
+  }, { enabled: activeTab === "created" && !!currentUserId });
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();

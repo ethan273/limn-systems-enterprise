@@ -4,7 +4,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "@/components/providers/ThemeProvider";
-import { useAuthContext } from "@/lib/auth/AuthProvider";
 import { useEffect, useState } from "react";
 import {
  BarChart3,
@@ -47,22 +46,19 @@ export default function Sidebar() {
  const pathname = usePathname();
  const router = useRouter();
  const { resolvedTheme } = useTheme();
- const { user, loading: authLoading } = useAuthContext();
  const [isOpen, setIsOpen] = useState(false);
  const [mounted, setMounted] = useState(false);
  const isOnTasksPage = pathname.startsWith('/tasks');
 
- // Use tRPC to get user profile (more reliable than Supabase direct query)
- const { data: profile } = api.userProfile.getCurrentUser.useQuery(undefined, {
-   enabled: !!user?.id,
- }) as { data: { id: string; email: string; name?: string; first_name?: string; last_name?: string; avatar_url?: string; user_type?: string; department?: string; created_at?: Date } | undefined };
+ // Get current user from tRPC (standardized auth pattern)
+ const { data: currentUser, isLoading: authLoading } = api.userProfile.getCurrentUser.useQuery();
 
  // Get user type for permission checking
- const userType = profile?.user_type;
+ const userType = currentUser?.user_type;
 
  // Get display name and initials using utility functions
- const displayName = authLoading ? null : getUserFullName({ ...(profile || {}), email: profile?.email || user?.email });
- const initials = authLoading ? '...' : getUserInitials({ ...(profile || {}), email: profile?.email || user?.email });
+ const displayName = authLoading ? null : getUserFullName({ ...(currentUser || {}), email: currentUser?.email });
+ const initials = authLoading ? '...' : getUserInitials({ ...(currentUser || {}), email: currentUser?.email });
 
  useEffect(() => {
  setMounted(true);
@@ -103,13 +99,14 @@ export default function Sidebar() {
  offset: 0,
  });
 
+ const userId = currentUser?.id || "";
  const { data: myTasksData } = api.tasks.getMyTasks.useQuery({
- user_id: user?.id || "",
+ user_id: userId,
  limit: 1,
  offset: 0,
  includeWatching: false,
  }, {
- enabled: !!user?.id,
+ enabled: !!userId,
  });
 
  const allTasksCount = allTasksData?.total || 0;
@@ -430,7 +427,7 @@ export default function Sidebar() {
              {authLoading ? (
                <span className="animate-pulse">Loading...</span>
              ) : (
-               (profile?.email || user?.email) || 'No email'
+               currentUser?.email || 'No email'
              )}
            </p>
  </div>

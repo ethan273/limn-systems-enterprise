@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { api } from "@/lib/api/client";
-import { useAuthContext } from "@/lib/auth/AuthProvider";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -22,7 +21,10 @@ interface BoardShareDialogProps {
 type CollaboratorRole = 'owner' | 'editor' | 'commenter' | 'viewer';
 
 export function BoardShareDialog({ _open: open, onOpenChange, boardId, boardName }: BoardShareDialogProps) {
-  const { user } = useAuthContext();
+  // Get current user from tRPC (standardized auth pattern)
+  const { data: currentUser } = api.userProfile.getCurrentUser.useQuery();
+  const userId = currentUser?.id;
+
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<CollaboratorRole>("editor");
   const [linkCopied, setLinkCopied] = useState(false);
@@ -107,7 +109,7 @@ export function BoardShareDialog({ _open: open, onOpenChange, boardId, boardName
       board_id: boardId,
       user_id: targetUser.id,
       role: role,
-      invited_by: user?.id,
+      invited_by: userId,
     });
 
     // Mark board as shared

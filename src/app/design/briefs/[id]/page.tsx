@@ -3,7 +3,6 @@
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
-import { useAuthContext } from "@/lib/auth/AuthProvider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -21,7 +20,10 @@ export const dynamic = 'force-dynamic';
 export default function DesignBriefDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { user, loading: authLoading } = useAuthContext();
+
+  // Get current user from tRPC (standardized auth pattern)
+  const { data: currentUser, isLoading: authLoading } = api.userProfile.getCurrentUser.useQuery();
+
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -133,7 +135,7 @@ export default function DesignBriefDetailPage({ params }: { params: Promise<{ id
     );
   }
 
-  if (!user || !brief) {
+  if (!currentUser || !brief) {
     return (
       <div className="page-container">
         <EmptyState

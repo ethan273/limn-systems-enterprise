@@ -3,7 +3,6 @@
 import React from 'react'
 import Link from 'next/link'
 import { api } from '@/lib/api/client'
-import { useAuthContext } from '@/lib/auth/AuthProvider'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -22,7 +21,9 @@ import {
 } from 'lucide-react'
 
 export default function DashboardPage() {
- const { isAdmin } = useAuthContext()
+ // Get current user from tRPC (standardized auth pattern)
+ const { data: currentUser } = api.userProfile.getCurrentUser.useQuery();
+ const isAdmin = currentUser?.user_type === 'super_admin';
 
  // Fetch admin stats for pending requests - only if user is admin
  const { data: adminStats } = api.auth.getRequestStats.useQuery(undefined, {

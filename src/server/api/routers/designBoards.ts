@@ -196,37 +196,52 @@ export const boardsRouter = createTRPCRouter({
       id: z.string().uuid(),
     }))
     .query(async ({ ctx, input }) => {
+      // Database wrapper doesn't support include, so fetch everything separately
       const board = await ctx.db.design_boards.findUnique({
         where: { id: input.id },
-        include: {
-          board_objects: {
-            orderBy: { z_index: 'asc' },
-          },
-          board_collaborators: {
-            include: {
-              user_profiles_board_collaborators_user_idTouser_profiles: true,
-            },
-          },
-          board_comments: {
-            where: { resolved: false },
-            orderBy: { created_at: 'desc' },
-            take: 50,
-          },
-          design_projects: true,
-          board_templates: true,
-        },
       });
 
       if (!board) {
         throw new Error('Board not found');
       }
 
-      // Get vote counts per object
-      const allVotes = await ctx.db.board_votes.findMany({
-        where: { board_id: input.id },
-      });
+      // Fetch all related data separately
+      const [boardObjects, boardCollaborators, boardComments, allVotes, activities] = await Promise.all([
+        // Board objects
+        ctx.db.board_objects.findMany({
+          where: { board_id: input.id },
+          orderBy: { z_index: 'asc' },
+        }),
 
-      // Manual grouping (since groupBy not supported by wrapper)
+        // Board collaborators
+        ctx.db.board_collaborators.findMany({
+          where: { board_id: input.id },
+        }),
+
+        // Board comments (unresolved only)
+        ctx.db.board_comments.findMany({
+          where: {
+            board_id: input.id,
+            resolved: false,
+          },
+          orderBy: { created_at: 'desc' },
+          take: 50,
+        }),
+
+        // Votes
+        ctx.db.board_votes.findMany({
+          where: { board_id: input.id },
+        }),
+
+        // Activity log
+        ctx.db.board_activity_log.findMany({
+          where: { board_id: input.id },
+          orderBy: { created_at: 'desc' },
+          take: 20,
+        }),
+      ]);
+
+      // Manual grouping for votes (since groupBy not supported by wrapper)
       const votes = allVotes.reduce((acc: any[], vote) => {
         const existing = acc.find(v => v.object_id === vote.object_id && v.vote_type === vote.vote_type);
 
@@ -243,24 +258,22 @@ export const boardsRouter = createTRPCRouter({
         return acc;
       }, []);
 
-      // Get activity log
-      const activities = await ctx.db.board_activity_log.findMany({
-        where: { board_id: input.id },
-        orderBy: { created_at: 'desc' },
-        take: 20,
-        include: {
-          user_profiles: true,
-        },
-      });
+      // Attach related data to board
+      const boardWithRelations = {
+        ...board,
+        board_objects: boardObjects,
+        board_collaborators: boardCollaborators,
+        board_comments: boardComments,
+      };
 
       return {
-        board,
+        board: boardWithRelations,
         votes,
         activities,
         analytics: {
-          totalObjects: board.board_objects.length,
-          totalCollaborators: board.board_collaborators.length,
-          totalComments: board.board_comments.length,
+          totalObjects: boardObjects.length,
+          totalCollaborators: boardCollaborators.length,
+          totalComments: boardComments.length,
           lastActivity: board.last_activity_at,
         },
       };
@@ -281,42 +294,54 @@ export const boardsRouter = createTRPCRouter({
         throw new Error('Unauthorized - user not authenticated');
       }
 
-      const whereClause: any = {
-        OR: [
-          { created_by: user_id },
-          {
-            board_collaborators: {
-              some: {
-                user_id,
-              },
-            },
-          },
-        ],
-      };
+      // Database wrapper doesn't support OR, so fetch separately and merge
+      // 1. Get boards created by user
+      const whereOwned: any = { created_by: user_id };
+      if (status) whereOwned.status = status;
 
-      if (status) {
-        whereClause.status = status;
+      // 2. Get board IDs where user is a collaborator
+      const collaborations = await ctx.db.board_collaborators.findMany({
+        where: { user_id },
+      });
+      const collaboratorBoardIds = collaborations.map((c: any) => c.board_id);
+
+      // 3. Get boards where user is a collaborator
+      const whereCollab: any = {};
+      if (collaboratorBoardIds.length > 0) {
+        whereCollab.id = { in: collaboratorBoardIds };
       }
+      if (status) whereCollab.status = status;
 
-      const [items, total] = await Promise.all([
+      // Fetch both sets of boards
+      const [ownedBoards, collabBoards] = await Promise.all([
         ctx.db.design_boards.findMany({
-          where: whereClause,
-          skip: offset,
-          take: limit,
+          where: whereOwned,
           orderBy: { last_activity_at: 'desc' },
-          include: {
-            board_objects: {
-              take: 1, // Just get count
-            },
-            board_collaborators: {
-              take: 1,
-            },
-          },
         }),
-        ctx.db.design_boards.count({
-          where: whereClause,
-        }),
+        collaboratorBoardIds.length > 0
+          ? ctx.db.design_boards.findMany({
+              where: whereCollab,
+              orderBy: { last_activity_at: 'desc' },
+            })
+          : Promise.resolve([]),
       ]);
+
+      // Merge and deduplicate
+      const boardMap = new Map();
+      [...ownedBoards, ...collabBoards].forEach((board: any) => {
+        boardMap.set(board.id, board);
+      });
+      const allBoards = Array.from(boardMap.values());
+
+      // Sort by last_activity_at desc
+      allBoards.sort((a: any, b: any) => {
+        const dateA = a.last_activity_at ? new Date(a.last_activity_at).getTime() : 0;
+        const dateB = b.last_activity_at ? new Date(b.last_activity_at).getTime() : 0;
+        return dateB - dateA;
+      });
+
+      const total = allBoards.length;
+      const items = allBoards.slice(offset, offset + limit);
 
       return {
         items,
