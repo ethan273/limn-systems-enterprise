@@ -1557,6 +1557,18 @@ export class DatabaseClient {
 
     if (error) {
       console.error(`[DB ERROR] Failed to fetch from ${tableName}:`, error);
+
+      // DIAGNOSTIC: Show what credentials we're using when permission errors occur
+      if (error.code === '42501') {
+        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        console.error(`[DB ERROR] 🚨 PERMISSION DENIED (42501) - Diagnostic Info:`);
+        console.error(`  Table: ${tableName}`);
+        console.error(`  Service Key Present: ${!!serviceKey}`);
+        console.error(`  Service Key Prefix: ${serviceKey ? serviceKey.substring(0, 30) + '...' : 'MISSING'}`);
+        console.error(`  Expected pattern: eyJhbGciOiJIUzI1NiIsInR5cCI6...`);
+        console.error(`  If the prefix doesn't match, you may be using the ANON key instead of SERVICE_ROLE key`);
+      }
+
       throw new Error(`Failed to fetch from ${tableName}: ${error.message}`);
     }
 

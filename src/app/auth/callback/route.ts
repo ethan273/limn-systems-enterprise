@@ -120,6 +120,19 @@ async function provisionUserProfile(
     return newProfile;
   } catch (error) {
     console.error('[Auth Callback] Error provisioning user profile:', error);
+
+    // DIAGNOSTIC: Show credentials info when permission errors occur
+    if (error && typeof error === 'object' && 'code' in error && error.code === '42501') {
+      const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      console.error('[Auth Callback] 🚨 PERMISSION DENIED (42501) - Diagnostic Info:');
+      console.error(`  Operation: Create/update user_profiles record`);
+      console.error(`  Service Key Present: ${!!serviceKey}`);
+      console.error(`  Service Key Prefix: ${serviceKey ? serviceKey.substring(0, 30) + '...' : 'MISSING'}`);
+      console.error(`  Expected JWT pattern: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`);
+      console.error(`  HINT: Decode your key at https://jwt.io to verify it has "role":"service_role"`);
+      console.error(`        If it shows "role":"anon", you're using the wrong key!`);
+    }
+
     // Don't throw - authentication should still succeed even if profile creation fails
   }
 }
