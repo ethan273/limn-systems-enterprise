@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { LoadingState } from '@/components/ui/loading-state';
+import { LoadingState } from '@/components/common';
 import { Package } from 'lucide-react';
 
 /**

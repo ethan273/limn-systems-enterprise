@@ -36,7 +36,7 @@ import {
 } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoadingState } from '@/components/ui/loading-state';
+import { LoadingState } from '@/components/common';
 
 export default function AnalyticsPage() {
   const [dateRange, setDateRange] = useState<7 | 30 | 90>(30);

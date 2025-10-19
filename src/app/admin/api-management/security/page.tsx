@@ -4,7 +4,7 @@ import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { LoadingState } from '@/components/ui/loading-state';
+import { LoadingState } from '@/components/common';
 import Link from 'next/link';
 import {
   Shield,

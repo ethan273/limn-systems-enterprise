@@ -24,8 +24,7 @@ import {
 } from "@/components/ui/select";
 import { UserCog, Plus, Trash2, Search } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { DataTable, type DataTableColumn } from "@/components/common";
-import { LoadingState } from "@/components/ui/loading-state";
+import { DataTable, type DataTableColumn, LoadingState } from "@/components/common";
 
 // Dynamic route configuration
 export const dynamic = 'force-dynamic';

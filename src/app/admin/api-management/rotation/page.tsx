@@ -8,7 +8,7 @@
 
 import { useState } from 'react';
 import { api } from '@/lib/api/client';
-import { LoadingState } from '@/components/ui/loading-state';
+import { LoadingState } from '@/components/common';
 import Link from 'next/link';
 import {
   RefreshCw,

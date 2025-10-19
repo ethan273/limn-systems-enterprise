@@ -2,7 +2,7 @@
 
 import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoadingState } from '@/components/ui/loading-state';
+import { LoadingState } from '@/components/common';
 import { CheckCircle } from 'lucide-react';
 
 /**

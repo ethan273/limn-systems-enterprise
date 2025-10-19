@@ -19,7 +19,7 @@ import {
   Edit,
   CheckCircle,
 } from 'lucide-react';
-import { LoadingState } from '@/components/ui/loading-state';
+import { LoadingState } from '@/components/common';
 
 /**
  * Customer Portal Profile Page

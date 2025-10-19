@@ -14,7 +14,7 @@ import {
   Save,
   Building2,
 } from 'lucide-react';
-import { LoadingState } from '@/components/ui/loading-state';
+import { LoadingState } from '@/components/common';
 
 /**
  * QC Portal Settings

@@ -57,7 +57,7 @@ import {
 import { OrderCreationDialog, type OrderCreationFormData } from "@/components/crm/OrderCreationDialog";
 import { generateProductSku } from "@/lib/utils/product-sku-generator";
 import { getFullName } from "@/lib/utils/name-utils";
-import { LoadingState } from "@/components/ui/loading-state";
+import { LoadingState } from "@/components/common";
 
 interface Project {
  id: string;

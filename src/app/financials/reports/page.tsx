@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
-import { LoadingState } from "@/components/ui/loading-state";
+import { LoadingState } from "@/components/common";
 import { FileText, DollarSign, TrendingUp, Download } from "lucide-react";
 import { useState } from "react";
 

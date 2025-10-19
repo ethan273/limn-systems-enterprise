@@ -11,8 +11,8 @@ import {
   StatusBadge,
   type StatItem,
   type DataTableColumn,
+  LoadingState,
 } from "@/components/common";
-import { LoadingState } from "@/components/ui/loading-state";
 import { DollarSign, Package, TrendingUp, AlertCircle, Clock, CheckCircle } from "lucide-react";
 import Link from "next/link";
 

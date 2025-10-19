@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DashboardStatCard } from "@/components/dashboard/DashboardStatCard";
-import { LoadingState } from "@/components/ui/loading-state";
+import { LoadingState } from "@/components/common";
 import {
   Users,
   Activity,
