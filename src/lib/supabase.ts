@@ -10,8 +10,32 @@ export function getSupabaseAdmin() {
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
     if (!supabaseUrl || !supabaseServiceKey) {
+      const missingVars: string[] = [];
+      if (!supabaseUrl) missingVars.push('NEXT_PUBLIC_SUPABASE_URL');
+      if (!supabaseServiceKey) missingVars.push('SUPABASE_SERVICE_ROLE_KEY');
+
+      const errorMessage = [
+        '🚨 SUPABASE CONFIGURATION ERROR 🚨',
+        '',
+        `Missing required environment variables: ${missingVars.join(', ')}`,
+        '',
+        'If deploying to Vercel:',
+        '1. Go to Vercel Dashboard → Your Project → Settings → Environment Variables',
+        '2. Add the missing variables for Production, Preview, and Development',
+        '3. Redeploy your application',
+        '',
+        'If running locally:',
+        '1. Copy .env.example to .env.local',
+        '2. Fill in your Supabase credentials',
+        '3. Restart your dev server',
+        '',
+        'See VERCEL_DEPLOYMENT.md for detailed instructions',
+      ].join('\n');
+
+      console.error(errorMessage);
       throw new Error(
-        'Supabase configuration missing: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required for admin operations'
+        `Supabase configuration missing: ${missingVars.join(', ')} are required for database operations. ` +
+        `See VERCEL_DEPLOYMENT.md for setup instructions.`
       )
     }
 

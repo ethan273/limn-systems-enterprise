@@ -74,6 +74,7 @@
     "schema:sync": "npm run schema:check",
     "schema:validate": "npx tsx scripts/validate-schema-references.ts",
     "schema:drift": "npx prisma db pull --force --dry-run",
+    "verify-env": "npx tsx scripts/verify-env.ts",
     "pre-commit": "npm run lint && NODE_OPTIONS='--max-old-space-size=8192' npm run type-check && npm run test:ci && npm run security:audit",
     "validate-ci": "npm ci --dry-run && echo '✅ CI dependencies valid'",
     "db:studio": "prisma studio",

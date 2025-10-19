@@ -64,6 +64,9 @@ npm run dev
 Before any deployment:
 
 ```bash
+# Verify environment variables are configured
+npm run verify-env  # Must pass
+
 # Run complete verification
 ./scripts/pre-deploy-check.sh
 
@@ -73,6 +76,59 @@ npm run lint        # Must pass
 npm run build       # Must succeed
 npm run test        # Should pass
 ```
+
+---
+
+## 🚀 Deployment
+
+### Deploying to Vercel
+
+**IMPORTANT**: Before deploying to Vercel, you MUST configure environment variables.
+
+#### Required Environment Variables
+
+The following environment variables are **critical** for the application to function:
+
+- `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous/public key
+- `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key (⚠️ SECRET!)
+
+#### Deployment Steps
+
+1. **Verify local environment**:
+   ```bash
+   npm run verify-env
+   ```
+
+2. **Configure Vercel environment variables**:
+   - Go to Vercel Dashboard → Your Project → Settings → Environment Variables
+   - Add all three required variables for **Production**, **Preview**, and **Development**
+   - See [`VERCEL_DEPLOYMENT.md`](./VERCEL_DEPLOYMENT.md) for detailed instructions
+
+3. **Deploy**:
+   ```bash
+   # Deploy to Vercel
+   vercel --prod
+
+   # Or push to main branch for automatic deployment
+   git push origin main
+   ```
+
+4. **Verify deployment**:
+   - Visit your deployment URL
+   - Test login functionality
+   - Verify dashboard loads without errors
+
+#### Troubleshooting Deployment
+
+If you see errors like:
+- ❌ "permission denied for schema public"
+- ❌ "Failed to fetch from tasks"
+- ❌ Double authentication required
+
+**Solution**: Missing environment variables in Vercel.
+
+**See [`VERCEL_DEPLOYMENT.md`](./VERCEL_DEPLOYMENT.md)** for complete troubleshooting guide.
 
 ---
 
