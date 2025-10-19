@@ -75,7 +75,7 @@ interface PageProps {
 export default function CRMProjectDetailPage({ params }: PageProps) {
   const { id } = use(params);
   const router = useRouter();
-  const { user } = useAuth();
+  const { user: _user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditing, setIsEditing] = useState(false);
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);

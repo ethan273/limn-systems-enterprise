@@ -32,7 +32,7 @@ export const dynamic = 'force-dynamic';
 
 export default function ShippingDashboardPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user: _user } = useAuth();
 
   // Fetch all shipments
   const { data: shipmentsData, isLoading: shipmentsLoading } = api.shipping.getAllShipments.useQuery(

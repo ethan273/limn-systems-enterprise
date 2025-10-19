@@ -24,7 +24,7 @@ export const dynamic = 'force-dynamic';
 
 export default function PaymentsPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user: _user } = useAuth();
   const [searchQuery, _setSearchQuery] = useState("");
   const [statusFilter, _setStatusFilter] = useState<string>("all");
   const [methodFilter, _setMethodFilter] = useState<string>("all");

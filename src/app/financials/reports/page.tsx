@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 
 export default function FinancialReportsPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user: _user } = useAuth();
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 

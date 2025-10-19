@@ -25,7 +25,7 @@ export const dynamic = 'force-dynamic';
 
 function InvoicesPageContent() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user: _user } = useAuth();
   const [searchQuery, _setSearchQuery] = useState("");
   const [statusFilter, _setStatusFilter] = useState<string>("all");
 

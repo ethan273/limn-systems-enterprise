@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,20 +29,17 @@ export default function CustomerProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success'>('idle');
 
+  // Initialize notification states with defaults
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [smsNotifications, setSmsNotifications] = useState(false);
+  const [inAppNotifications, setInAppNotifications] = useState(true);
+
   const { data: userInfo, isLoading: isLoadingUser } = api.portal.getCurrentUser.useQuery();
   const { data: portalSettings, isLoading: isLoadingSettings } = api.portal.getPortalSettings.useQuery();
   const updatePreferencesMutation = api.portal.updateNotificationPreferences.useMutation();
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
-
-  if (isLoadingUser || isLoadingSettings) {
-    return (
-      <div className="page-container">
-        <LoadingState message="Loading profile..." size="lg" />
-      </div>
-    );
-  }
 
   // Extract notification preferences
   const notificationPrefs = (portalSettings?.notification_preferences as any) || {
@@ -51,21 +48,25 @@ export default function CustomerProfilePage() {
     in_app: true,
   };
 
-  const [emailNotifications, setEmailNotifications] = useState(
-    typeof notificationPrefs === 'object' && 'email' in notificationPrefs
-      ? notificationPrefs.email
-      : true
-  );
-  const [smsNotifications, setSmsNotifications] = useState(
-    typeof notificationPrefs === 'object' && 'sms' in notificationPrefs
-      ? notificationPrefs.sms
-      : false
-  );
-  const [inAppNotifications, setInAppNotifications] = useState(
-    typeof notificationPrefs === 'object' && 'in_app' in notificationPrefs
-      ? notificationPrefs.in_app
-      : true
-  );
+  // Update notification states when data loads
+  useEffect(() => {
+    if (portalSettings?.notification_preferences) {
+      const prefs = portalSettings.notification_preferences as any;
+      if (typeof prefs === 'object') {
+        if ('email' in prefs) setEmailNotifications(prefs.email);
+        if ('sms' in prefs) setSmsNotifications(prefs.sms);
+        if ('in_app' in prefs) setInAppNotifications(prefs.in_app);
+      }
+    }
+  }, [portalSettings]);
+
+  if (isLoadingUser || isLoadingSettings) {
+    return (
+      <div className="page-container">
+        <LoadingState message="Loading profile..." size="lg" />
+      </div>
+    );
+  }
 
   const handleSave = async () => {
     try {

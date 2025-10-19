@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 
 export default function ExpensesPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user: _user } = useAuth();
 
   const { data, isLoading } = api.expenses.getAll.useQuery(
     {

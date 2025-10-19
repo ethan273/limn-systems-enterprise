@@ -28,7 +28,7 @@ export const dynamic = 'force-dynamic';
 
 export default function ShipmentsPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user: _user } = useAuth();
   const [statusFilter, _setStatusFilter] = useState<string>("all");
   const [searchQuery, _setSearchQuery] = useState("");
 

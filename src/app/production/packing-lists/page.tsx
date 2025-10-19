@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 
 export default function PackingListsPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user: _user } = useAuth();
   const [statusFilter, setStatusFilter] = useState<string | undefined>(undefined);
 
   const { data, isLoading } = api.packing.getAllJobs.useQuery(

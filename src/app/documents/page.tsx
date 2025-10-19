@@ -39,7 +39,7 @@ export const dynamic = 'force-dynamic';
 
 export default function DocumentsPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user: _user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [storageFilter, setStorageFilter] = useState<"all" | "google_drive" | "supabase">("all");
 
