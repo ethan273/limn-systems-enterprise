@@ -296,82 +296,88 @@ export const productsRouter = createTRPCRouter({
     const activeCount = await (ctx.db as any).materials.count({ where: { active: true } });
     console.log(`[getAllMaterials] Total materials in DB: ${totalCount}, Active: ${activeCount}`);
 
+    // Fetch all materials
     const materials = await (ctx.db as any).materials.findMany({
       where: { active: true },
-      include: {
-        material_categories: true,
-        materials: {
-          select: {
-            id: true,
-            name: true,
-            hierarchy_path: true,
-            type: true,
-            hierarchy_level: true,
-            materials: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-        other_materials: {
-          select: {
-            id: true,
-            name: true,
-            type: true,
-          },
-        },
-        material_collections: {
-          include: {
-            collections: {
-              select: {
-                id: true,
-                name: true,
-                prefix: true,
-              },
-            },
-          },
-        },
-      },
       orderBy: [
         { hierarchy_path: 'asc' },
         { name: 'asc' },
       ],
-      // Add explicit limit to fetch all materials (database wrapper defaults to 20)
       take: 1000,
     });
 
-    console.log(`[getAllMaterials] Found ${materials.length} materials`);
-    if (materials.length > 0) {
-      console.log('[getAllMaterials] Sample material:', {
-        id: materials[0].id,
-        name: materials[0].name,
-        type: materials[0].type,
-        hierarchy_level: materials[0].hierarchy_level,
-        parent_material_id: materials[0].parent_material_id,
-        category: materials[0].material_categories?.name,
+    // Fetch categories
+    const categories = await (ctx.db as any).material_categories.findMany({
+      where: { active: true },
+    });
+    const categoryMap = new Map(categories.map((c: any) => [c.id, c]));
+
+    // Fetch material collections
+    const materialCollections = await (ctx.db as any).material_collections.findMany({});
+    const collections = await (ctx.db as any).collections.findMany({});
+    const collectionMap = new Map(collections.map((c: any) => [c.id, c]));
+
+    // Build a map of materials by ID for parent lookups
+    const materialMap = new Map(materials.map((m: any) => [m.id, m]));
+
+    // Enhance each material with its relations
+    const enhancedMaterials = materials.map((material: any) => {
+      // Add category
+      const category = material.category_id ? categoryMap.get(material.category_id) : null;
+
+      // Add parent material (and grandparent if exists)
+      let parentMaterial = null;
+      if (material.parent_material_id) {
+        const parent = materialMap.get(material.parent_material_id);
+        if (parent) {
+          parentMaterial = {
+            id: parent.id,
+            name: parent.name,
+            hierarchy_path: parent.hierarchy_path,
+            type: parent.type,
+            hierarchy_level: parent.hierarchy_level,
+            materials: null, // Will be set if parent has a parent
+          };
+
+          // Add grandparent if parent has a parent
+          if (parent.parent_material_id) {
+            const grandparent = materialMap.get(parent.parent_material_id);
+            if (grandparent) {
+              parentMaterial.materials = {
+                id: grandparent.id,
+                name: grandparent.name,
+              };
+            }
+          }
+        }
+      }
+
+      // Add collections
+      const materialCollectionLinks = materialCollections.filter((mc: any) => mc.material_id === material.id);
+      const materialCollectionsData = materialCollectionLinks.map((mc: any) => {
+        const collection = collectionMap.get(mc.collection_id);
+        return {
+          id: mc.id,
+          collections: collection ? {
+            id: collection.id,
+            name: collection.name,
+            prefix: collection.prefix,
+          } : null,
+        };
       });
 
-      // Log materials with parents
-      const materialsWithParents = materials.filter((m: any) => m.parent_material_id);
-      console.log(`[getAllMaterials] Materials with parents: ${materialsWithParents.length}`);
-      if (materialsWithParents.length > 0) {
-        console.log('[getAllMaterials] Sample child material:', {
-          id: materialsWithParents[0].id,
-          name: materialsWithParents[0].name,
-          parent_material_id: materialsWithParents[0].parent_material_id,
-          category: materialsWithParents[0].material_categories?.name,
-        });
-      }
-    }
+      return {
+        ...material,
+        material_categories: category,
+        materials: parentMaterial,
+        material_collections: materialCollectionsData,
+        collections: materialCollectionsData
+          .map((mc: any) => mc.collections)
+          .filter((c: any) => c !== null),
+      };
+    });
 
-    return materials.map((material: { material_collections?: { collections: unknown }[] }) => ({
-      ...material,
-      collections: material.material_collections?.map(
-        (mc: { collections: unknown }) => mc.collections
-      ) || [],
-    }));
+    return enhancedMaterials;
   }),
 
   createMaterial: publicProcedure
