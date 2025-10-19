@@ -218,18 +218,20 @@ export async function GET(request: NextRequest) {
         const response = NextResponse.redirect(redirectUrl);
 
         // Apply all cookies that Supabase tried to set
-        // CRITICAL: Ensure cookies work in production (Vercel)
+        // CRITICAL: Ensure cookies work in production (Vercel) AND incognito mode
         console.log(`[Auth Callback] Setting ${cookiesToSetMagic.length} cookies for user ${userEmail}`);
         cookiesToSetMagic.forEach(({ name, value, options }) => {
           const cookieOptions = {
             ...options,
             path: '/',
-            sameSite: 'lax' as const,
+            // CRITICAL FIX: Use 'none' in production to allow cookies in incognito/private mode
+            // OAuth redirect chains require sameSite='none' to persist cookies across redirects
+            sameSite: (process.env.NODE_ENV === 'production' ? 'none' : 'lax') as const,
             secure: process.env.NODE_ENV === 'production',
             httpOnly: true,
           };
           response.cookies.set(name, value, cookieOptions);
-          console.log(`[Auth Callback] Cookie set: ${name}, secure=${cookieOptions.secure}, httpOnly=${cookieOptions.httpOnly}`);
+          console.log(`[Auth Callback] Cookie set: ${name}, sameSite=${cookieOptions.sameSite}, secure=${cookieOptions.secure}, httpOnly=${cookieOptions.httpOnly}`);
         });
 
         return response;
@@ -318,18 +320,20 @@ export async function GET(request: NextRequest) {
         const response = NextResponse.redirect(redirectUrl);
 
         // Apply all cookies that Supabase tried to set
-        // CRITICAL: Ensure cookies work in production (Vercel)
+        // CRITICAL: Ensure cookies work in production (Vercel) AND incognito mode
         console.log(`[Auth Callback OAuth] Setting ${cookiesToSet.length} cookies for user ${userEmail}`);
         cookiesToSet.forEach(({ name, value, options }) => {
           const cookieOptions = {
             ...options,
             path: '/',
-            sameSite: 'lax' as const,
+            // CRITICAL FIX: Use 'none' in production to allow cookies in incognito/private mode
+            // OAuth redirect chains require sameSite='none' to persist cookies across redirects
+            sameSite: (process.env.NODE_ENV === 'production' ? 'none' : 'lax') as const,
             secure: process.env.NODE_ENV === 'production',
             httpOnly: true,
           };
           response.cookies.set(name, value, cookieOptions);
-          console.log(`[Auth Callback OAuth] Cookie set: ${name}, secure=${cookieOptions.secure}, httpOnly=${cookieOptions.httpOnly}`);
+          console.log(`[Auth Callback OAuth] Cookie set: ${name}, sameSite=${cookieOptions.sameSite}, secure=${cookieOptions.secure}, httpOnly=${cookieOptions.httpOnly}`);
         });
 
         return response;

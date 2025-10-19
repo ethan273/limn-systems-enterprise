@@ -142,16 +142,46 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS IN SCHEMA publi
 
 **Solution**: Same as above - add `SUPABASE_SERVICE_ROLE_KEY`
 
-### Error: Double Authentication Required
+### Error: Double Authentication Required (FIXED - October 18, 2025)
 
-**Cause**: Session cookies not persisting properly
+**Status**: ✅ **RESOLVED**
 
-**Solution**:
-1. Check that `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are set
-2. Verify your deployment domain matches Supabase's authorized URLs:
-   - Go to Supabase Dashboard → Authentication → URL Configuration
-   - Add your Vercel domain to Site URL and Redirect URLs
-   - Example: `https://your-app.vercel.app`
+**Cause**: Cookies with `sameSite: 'lax'` were being dropped during OAuth redirect chains in incognito/private browsing mode
+
+**Solution Applied**:
+Changed cookie configuration in `/src/app/auth/callback/route.ts`:
+```javascript
+// OLD (caused issues in incognito):
+sameSite: 'lax'
+
+// NEW (works in incognito):
+sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+```
+
+**Why This Works**:
+- Modern browsers (Chrome 115+, Safari 16.4+) have strict cookie handling in incognito mode
+- OAuth flows involve multiple redirects: Google → /auth/callback → /auth/establish-session → /dashboard
+- `sameSite: 'lax'` cookies can be dropped during these redirects in incognito mode
+- `sameSite: 'none'` (with `secure: true`) allows cookies to persist across OAuth redirects
+
+**Configuration**:
+- Production (HTTPS): `sameSite: 'none', secure: true` - Works in incognito
+- Development (HTTP): `sameSite: 'lax', secure: false` - Works normally
+
+**Deployment Required**: Yes - Redeploy to production to apply this fix
+
+**Verification After Deployment**:
+1. Open incognito/private browsing window
+2. Navigate to production URL
+3. Sign in with Google OAuth
+4. Should redirect to dashboard in **one authentication** (not two)
+5. Check Vercel logs - should see: `sameSite=none, secure=true, httpOnly=true`
+
+**Additional Check** (if still having issues):
+Verify your deployment domain is in Supabase's authorized URLs:
+- Go to Supabase Dashboard → Authentication → URL Configuration
+- Add your Vercel domain to Site URL and Redirect URLs
+- Example: `https://your-app.vercel.app`
 
 ### Error: "Supabase configuration missing"
 

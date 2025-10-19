@@ -303,3 +303,30 @@ Even if table-level policies exist and allow access, without schema-level permis
 **Status**: ✅ **RESOLVED** (October 18, 2025)
 
 The production database is now fully configured and working. All permission errors have been resolved.
+
+---
+
+## 🍪 Cookie Persistence Fix (October 18, 2025)
+
+**Issue**: Double authentication required in incognito/private browsing mode
+
+**Root Cause**: Cookies with `sameSite: 'lax'` were being dropped during OAuth redirect chains in incognito mode.
+
+**Solution**: Changed cookie configuration to use `sameSite: 'none'` in production.
+
+**Code Changes** (`/src/app/auth/callback/route.ts`):
+```javascript
+// Lines 229 and 331
+sameSite: (process.env.NODE_ENV === 'production' ? 'none' : 'lax') as const,
+secure: process.env.NODE_ENV === 'production',
+```
+
+**Why This is Needed**:
+- Modern browsers enforce strict cookie policies in incognito mode
+- OAuth flows involve multiple redirects (Google → callback → establish-session → dashboard)
+- `sameSite: 'lax'` cookies can be dropped during cross-site redirects
+- `sameSite: 'none'` with `secure: true` allows cookies to persist
+
+**Deployment**: Redeploy to production to apply this fix.
+
+**Verification**: After redeployment, test OAuth login in incognito mode - should only require one authentication.
