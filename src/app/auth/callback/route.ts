@@ -1,9 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { getSupabaseAdmin } from '@/lib/supabase';
 
 /**
  * Provision user_profiles record for OAuth users
@@ -20,45 +18,56 @@ async function provisionUserProfile(
   }
 
   try {
-    // Check if user profile already exists
-    const existingProfile = await prisma.user_profiles.findUnique({
-      where: { id: userId }
-    });
+    const supabase = getSupabaseAdmin();
 
-    if (existingProfile) {
+    // Check if user profile already exists
+    const { data: existingProfile, error: fetchError } = await (supabase as any)
+      .from('user_profiles')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (existingProfile && !fetchError) {
       // Profile exists - update name and avatar from OAuth if available, preserve permissions
-      const updateData: any = {};
+      const updateData: Record<string, any> = {};
 
       if (userMetadata?.full_name || userMetadata?.name) {
         const oauthName = userMetadata.full_name || userMetadata.name;
-        if (oauthName !== existingProfile.name) {
+        if (oauthName !== (existingProfile as any).name) {
           updateData.name = oauthName;
         }
       }
 
-      if (userMetadata?.avatar_url && userMetadata.avatar_url !== existingProfile.avatar_url) {
+      if (userMetadata?.avatar_url && userMetadata.avatar_url !== (existingProfile as any).avatar_url) {
         updateData.avatar_url = userMetadata.avatar_url;
       }
 
       // Update profile if we have OAuth data to sync
       if (Object.keys(updateData).length > 0) {
-        const updatedProfile = await prisma.user_profiles.update({
-          where: { id: userId },
-          data: updateData
-        });
+        const { data: updatedProfile, error: updateError } = await (supabase as any)
+          .from('user_profiles')
+          .update(updateData)
+          .eq('id', userId)
+          .select()
+          .single();
+
+        if (updateError) {
+          console.error('[Auth Callback] Error updating user profile:', updateError);
+          return existingProfile;
+        }
 
         console.log(`[Auth Callback] ✅ Updated user profile from OAuth`);
         console.log(`[Auth Callback]    Email: ${email}`);
-        console.log(`[Auth Callback]    Name: ${updatedProfile.name} ${updateData.name ? '(updated from OAuth)' : ''}`);
-        console.log(`[Auth Callback]    Role: ${updatedProfile.user_type} (preserved)`);
-        console.log(`[Auth Callback]    Department: ${updatedProfile.department} (preserved)`);
+        console.log(`[Auth Callback]    Name: ${(updatedProfile as any).name} ${updateData.name ? '(updated from OAuth)' : ''}`);
+        console.log(`[Auth Callback]    Role: ${(updatedProfile as any).user_type} (preserved)`);
+        console.log(`[Auth Callback]    Department: ${(updatedProfile as any).department} (preserved)`);
         return updatedProfile;
       }
 
       console.log(`[Auth Callback] ✅ User profile exists - no updates needed`);
       console.log(`[Auth Callback]    Email: ${email}`);
-      console.log(`[Auth Callback]    Name: ${existingProfile.name}`);
-      console.log(`[Auth Callback]    Role: ${existingProfile.user_type}`);
+      console.log(`[Auth Callback]    Name: ${(existingProfile as any).name}`);
+      console.log(`[Auth Callback]    Role: ${(existingProfile as any).user_type}`);
       return existingProfile;
     }
 
@@ -87,17 +96,24 @@ async function provisionUserProfile(
     const avatarUrl = userMetadata?.avatar_url || null;
 
     // Create new user profile
-    const newProfile = await prisma.user_profiles.create({
-      data: {
+    const { data: newProfile, error: createError } = await (supabase as any)
+      .from('user_profiles')
+      .insert({
         id: userId,
         email,
         name: userName,
         user_type: userType,
         department,
         avatar_url: avatarUrl,
-        created_at: new Date(),
-      }
-    });
+        created_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (createError) {
+      console.error('[Auth Callback] Error creating user profile:', createError);
+      throw createError;
+    }
 
     console.log(`[Auth Callback] ✅ Created user profile: ${email} as ${userType}`);
     console.log(`[Auth Callback]    Name: ${userName} (from ${userMetadata?.full_name ? 'OAuth provider' : 'email'})`);
