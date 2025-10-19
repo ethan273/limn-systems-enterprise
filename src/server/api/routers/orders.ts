@@ -65,6 +65,111 @@ const baseOrdersRouter = createCrudRouter({
 export const ordersRouter = createTRPCRouter({
   ...baseOrdersRouter._def.procedures,
 
+  /**
+   * Get all orders with filters and CURSOR-BASED pagination
+   * ✅ PHASE 5: Optimized cursor pagination for scalability
+   * Consistent O(1) performance regardless of page number
+   */
+  getAllCursor: publicProcedure
+    .input(
+      z.object({
+        search: z.string().optional(),
+        customerId: z.string().uuid().optional(),
+        projectId: z.string().uuid().optional(),
+        status: z.string().optional(),
+        priority: z.enum(['low', 'normal', 'high', 'urgent']).optional(),
+        cursor: z.string().uuid().optional(), // Last order ID from previous page
+        limit: z.number().min(1).max(100).default(20),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { cursor, limit, ...filters } = input;
+
+      const where: any = {};
+
+      // Apply filters
+      if (filters.search) {
+        where.OR = [
+          { order_number: { contains: filters.search, mode: 'insensitive' } },
+          { notes: { contains: filters.search, mode: 'insensitive' } },
+        ];
+      }
+
+      if (filters.customerId) {
+        where.customer_id = filters.customerId;
+      }
+
+      if (filters.projectId) {
+        where.project_id = filters.projectId;
+      }
+
+      if (filters.status) {
+        where.status = filters.status;
+      }
+
+      if (filters.priority) {
+        where.priority = filters.priority;
+      }
+
+      // Fetch limit + 1 to check if there's a next page
+      const items = await ctx.db.orders.findMany({
+        where,
+        take: limit + 1,
+
+        // Use cursor for pagination (O(1) performance)
+        ...(cursor && {
+          cursor: { id: cursor },
+          skip: 1, // Skip the cursor itself
+        }),
+
+        // IMPORTANT: Order by indexed column for performance
+        orderBy: {
+          created_at: 'desc',
+        },
+
+        include: {
+          customers: {
+            select: {
+              id: true,
+              name: true,
+              company_name: true,
+              email: true,
+            },
+          },
+          projects: {
+            select: {
+              id: true,
+              name: true,
+              status: true,
+              budget: true,
+            },
+          },
+          order_items: {
+            select: {
+              id: true,
+              quantity: true,
+              unit_price: true,
+              client_sku: true,
+              description: true,
+            },
+          },
+        },
+      });
+
+      // Check if there are more items
+      let nextCursor: string | undefined = undefined;
+
+      if (items.length > limit) {
+        const nextItem = items.pop(); // Remove the extra item
+        nextCursor = nextItem!.id;
+      }
+
+      return {
+        items,
+        nextCursor, // Frontend uses this to fetch next page
+      };
+    }),
+
   // Get orders by project
   getByProject: publicProcedure
     .input(z.object({

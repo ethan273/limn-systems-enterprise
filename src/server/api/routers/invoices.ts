@@ -15,7 +15,92 @@ export const invoicesRouter = createTRPCRouter({
   // ============================================================================
 
   /**
-   * Get all invoices with filters and pagination
+   * Get all invoices with filters and CURSOR-BASED pagination
+   * ✅ PHASE 5: Optimized cursor pagination for scalability
+   * Consistent O(1) performance regardless of page number
+   */
+  getAllCursor: protectedProcedure
+    .input(
+      z.object({
+        search: z.string().optional(),
+        customerId: z.string().uuid().optional(),
+        status: z.string().optional(),
+        cursor: z.string().uuid().optional(), // Last invoice ID from previous page
+        limit: z.number().min(1).max(100).default(20),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { cursor, limit, ...filters } = input;
+
+      const where: any = {};
+
+      // Apply filters
+      if (filters.search) {
+        where.OR = [
+          { invoice_number: { contains: filters.search, mode: 'insensitive' } },
+          { invoice_notes: { contains: filters.search, mode: 'insensitive' } },
+        ];
+      }
+
+      if (filters.customerId) {
+        where.customer_id = filters.customerId;
+      }
+
+      if (filters.status) {
+        where.status = filters.status;
+      }
+
+      // Fetch limit + 1 to check if there's a next page
+      const items = await ctx.db.invoices.findMany({
+        where,
+        take: limit + 1,
+
+        // Use cursor for pagination (O(1) performance)
+        ...(cursor && {
+          cursor: { id: cursor },
+          skip: 1, // Skip the cursor itself
+        }),
+
+        // IMPORTANT: Order by indexed column for performance
+        orderBy: {
+          created_at: 'desc',
+        },
+
+        include: {
+          customers: {
+            select: {
+              name: true,
+              company_name: true,
+              email: true,
+            },
+          },
+          invoice_items: {
+            select: {
+              description: true,
+              line_total: true,
+              quantity: true,
+            },
+          },
+        },
+      });
+
+      // Check if there are more items
+      let nextCursor: string | undefined = undefined;
+
+      if (items.length > limit) {
+        const nextItem = items.pop(); // Remove the extra item
+        nextCursor = nextItem!.id;
+      }
+
+      return {
+        items,
+        nextCursor, // Frontend uses this to fetch next page
+      };
+    }),
+
+  /**
+   * Get all invoices with filters and pagination (LEGACY - OFFSET-BASED)
+   * Note: Cursor-based pagination (getAllCursor) is preferred for better performance
    */
   getAll: protectedProcedure
     .input(
