@@ -221,12 +221,13 @@ export async function GET(request: NextRequest) {
         // CRITICAL: Ensure cookies work in production (Vercel) AND incognito mode
         console.log(`[Auth Callback] Setting ${cookiesToSetMagic.length} cookies for user ${userEmail}`);
         cookiesToSetMagic.forEach(({ name, value, options }) => {
+          // CRITICAL FIX: Use 'none' in production to allow cookies in incognito/private mode
+          // OAuth redirect chains require sameSite='none' to persist cookies across redirects
+          const sameSiteValue = process.env.NODE_ENV === 'production' ? 'none' : 'lax';
           const cookieOptions = {
             ...options,
             path: '/',
-            // CRITICAL FIX: Use 'none' in production to allow cookies in incognito/private mode
-            // OAuth redirect chains require sameSite='none' to persist cookies across redirects
-            sameSite: (process.env.NODE_ENV === 'production' ? 'none' : 'lax') as const,
+            sameSite: sameSiteValue as 'none' | 'lax',
             secure: process.env.NODE_ENV === 'production',
             httpOnly: true,
           };
@@ -323,12 +324,13 @@ export async function GET(request: NextRequest) {
         // CRITICAL: Ensure cookies work in production (Vercel) AND incognito mode
         console.log(`[Auth Callback OAuth] Setting ${cookiesToSet.length} cookies for user ${userEmail}`);
         cookiesToSet.forEach(({ name, value, options }) => {
+          // CRITICAL FIX: Use 'none' in production to allow cookies in incognito/private mode
+          // OAuth redirect chains require sameSite='none' to persist cookies across redirects
+          const sameSiteValue = process.env.NODE_ENV === 'production' ? 'none' : 'lax';
           const cookieOptions = {
             ...options,
             path: '/',
-            // CRITICAL FIX: Use 'none' in production to allow cookies in incognito/private mode
-            // OAuth redirect chains require sameSite='none' to persist cookies across redirects
-            sameSite: (process.env.NODE_ENV === 'production' ? 'none' : 'lax') as const,
+            sameSite: sameSiteValue as 'none' | 'lax',
             secure: process.env.NODE_ENV === 'production',
             httpOnly: true,
           };
