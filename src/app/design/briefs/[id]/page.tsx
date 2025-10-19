@@ -13,7 +13,8 @@ import {
 } from "@/components/common";
 import { EditableFieldGroup, EditableField } from "@/components/common/EditableField";
 import { toast } from "@/hooks/use-toast";
-import { ArrowLeft, CheckCircle, Calendar, DollarSign, FileText, User, Edit, Check, X, MessageSquare } from "lucide-react";
+import { ArrowLeft, CheckCircle, Calendar, DollarSign, FileText, User, Edit, Check, X, MessageSquare, AlertTriangle, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export const dynamic = 'force-dynamic';
 
@@ -35,13 +36,13 @@ export default function DesignBriefDetailPage({ params }: { params: Promise<{ id
 
   // Auth is handled by middleware - no client-side redirect needed
 
-  const { data: brief, isLoading } = api.designBriefs.getById.useQuery(
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
+  const { data: brief, isLoading, error } = api.designBriefs.getById.useQuery(
     { id: id },
     { enabled: !!id }
   );
-
-  // Get tRPC utils for cache invalidation
-  const utils = api.useUtils();
 
   // Sync formData with fetched brief data
   useEffect(() => {
@@ -131,6 +132,31 @@ export default function DesignBriefDetailPage({ params }: { params: Promise<{ id
     return (
       <div className="page-container">
         <LoadingState message="Loading design brief..." size="lg" />
+      </div>
+    );
+  }
+
+  // Error handling - show error state with retry
+  if (error) {
+    return (
+      <div className="page-container">
+        <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+          <AlertTriangle className="h-12 w-12 text-destructive" />
+          <h2 className="text-2xl font-bold">Failed to Load Design Brief</h2>
+          <p className="text-muted-foreground text-center max-w-md">
+            {error.message || "An error occurred while loading the design brief."}
+          </p>
+          <div className="flex gap-3">
+            <Button onClick={() => utils.designBriefs.getById.invalidate({ id })}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Try Again
+            </Button>
+            <Button variant="outline" onClick={() => router.push("/design/briefs")}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Briefs
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }

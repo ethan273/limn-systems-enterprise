@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Search, Grid, List, Calendar, Users, Sparkles } from "lucide-react";
+import { Plus, Search, Grid, List, Calendar, Users, Sparkles, AlertTriangle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -24,22 +24,22 @@ export default function DesignBoardsPage() {
 
   // Get current user from tRPC (standardized auth pattern)
   const { data: currentUser } = api.userProfile.getCurrentUser.useQuery();
-  const userId = currentUser?.id || "";
+  const userId = (currentUser as any)?.id || "";
 
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   // Fetch boards - user authentication handled by middleware, user_id extracted from session in tRPC
-  const { data, isLoading } = api.designBoards.boards.getMyBoards.useQuery({
+  const { data, isLoading, error } = api.designBoards.boards.getMyBoards.useQuery({
     limit: 50,
     offset: 0,
     status: statusFilter === "all" ? undefined : statusFilter,
   });
-
-  // Get tRPC utils for cache invalidation
-  const _utils = api.useUtils();
 
   // Create board mutation
   const createBoardMutation = api.designBoards.boards.create.useMutation({
@@ -84,6 +84,28 @@ export default function DesignBoardsPage() {
         </div>
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error handling - show error state with retry
+  if (error) {
+    return (
+      <div className="page-container">
+        <div className="page-header">
+          <h1 className="page-title">Design Boards</h1>
+        </div>
+        <div className="flex flex-col items-center justify-center h-64 gap-4">
+          <AlertTriangle className="h-12 w-12 text-destructive" />
+          <h2 className="text-xl font-semibold">Failed to Load Boards</h2>
+          <p className="text-muted-foreground text-center max-w-md">
+            {error.message || "An error occurred while loading boards."}
+          </p>
+          <Button onClick={() => utils.designBoards.boards.getMyBoards.invalidate()}>
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Try Again
+          </Button>
         </div>
       </div>
     );

@@ -23,6 +23,8 @@ import {
   Star,
   Pencil,
   Trash2,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getFullName } from "@/lib/utils/name-utils";
@@ -36,6 +38,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 
 type ProspectStatus = 'cold' | 'warm' | 'hot';
 type LeadStatus = 'new' | 'contacted' | 'qualified' | 'proposal' | 'negotiation' | 'won' | 'lost';
@@ -73,7 +76,7 @@ export default function ProspectsPage() {
   const [convertDialogOpen, setConvertDialogOpen] = useState(false);
   const [prospectToConvert, setProspectToConvert] = useState<any>(null);
 
-  const { data: prospectsData, isLoading } = api.crm.leads.getProspects.useQuery({
+  const { data: prospectsData, isLoading, error } = api.crm.leads.getProspects.useQuery({
     limit,
     offset: _page * limit,
     prospect_status: _prospectFilter === 'all' ? undefined : _prospectFilter,
@@ -298,6 +301,39 @@ export default function ProspectsPage() {
     },
   ];
 
+  if (isLoading) {
+    return (
+      <div className="page-container">
+        <LoadingState message="Loading prospects..." size="lg" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="page-container">
+        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+          <AlertTriangle className="h-12 w-12 text-destructive" />
+          <h2 className="text-2xl font-semibold">Error Loading Prospects</h2>
+          <p className="text-muted-foreground text-center max-w-md">
+            {error.message || "Failed to load prospects data. Please try again."}
+          </p>
+          <Button
+            onClick={() => {
+              utils.crm.leads.getProspects.invalidate();
+              utils.crm.leads.getAll.invalidate();
+              utils.crm.leads.getPipelineStats.invalidate();
+            }}
+            variant="outline"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="page-container">
       {/* Page Header */}
@@ -310,9 +346,7 @@ export default function ProspectsPage() {
       <StatsGrid stats={stats} columns={3} />
 
       {/* Prospects DataTable */}
-      {isLoading ? (
-        <LoadingState message="Loading prospects..." size="lg" />
-      ) : sortedProspects.length === 0 ? (
+      {sortedProspects.length === 0 ? (
         <EmptyState
           icon={Thermometer}
           title="No prospects found"

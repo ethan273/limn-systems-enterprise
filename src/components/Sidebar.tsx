@@ -54,11 +54,11 @@ export default function Sidebar() {
  const { data: currentUser, isLoading: authLoading } = api.userProfile.getCurrentUser.useQuery();
 
  // Get user type for permission checking
- const userType = currentUser?.user_type;
+ const userType = (currentUser as any)?.user_type;
 
  // Get display name and initials using utility functions
- const displayName = authLoading ? null : getUserFullName({ ...(currentUser || {}), email: currentUser?.email });
- const initials = authLoading ? '...' : getUserInitials({ ...(currentUser || {}), email: currentUser?.email });
+ const displayName = authLoading ? null : getUserFullName({ ...(currentUser || {}), email: (currentUser as any)?.email });
+ const initials = authLoading ? '...' : getUserInitials({ ...(currentUser || {}), email: (currentUser as any)?.email });
 
  useEffect(() => {
  setMounted(true);
@@ -99,7 +99,7 @@ export default function Sidebar() {
  offset: 0,
  });
 
- const userId = currentUser?.id || "";
+ const userId = (currentUser as any)?.id || "";
  const { data: myTasksData } = api.tasks.getMyTasks.useQuery({
  user_id: userId,
  limit: 1,
@@ -316,6 +316,8 @@ export default function Sidebar() {
  <div className="sidebar-logo-container">
  {!mounted && <div className="sidebar-logo-image" style={{ width: 180, height: 50 }} />}
  {mounted && (
+ // CORRECT: Use Light_Mode.png for light theme, Dark_Mode.png for dark theme
+ // See LOGO-USAGE-PERMANENT-REFERENCE.md for full explanation
  <Image
  key={`sidebar-logo-${resolvedTheme}`}
  src={resolvedTheme === 'dark' ? '/images/Limn_Logo_Dark_Mode.png' : '/images/Limn_Logo_Light_Mode.png'}
@@ -427,7 +429,7 @@ export default function Sidebar() {
              {authLoading ? (
                <span className="animate-pulse">Loading...</span>
              ) : (
-               currentUser?.email || 'No email'
+               (currentUser as any)?.email || 'No email'
              )}
            </p>
  </div>

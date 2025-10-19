@@ -4,6 +4,39 @@ import { cookies } from 'next/headers';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
 /**
+ * Log login attempt to audit trail
+ */
+async function logLoginAttempt(params: {
+  userId: string | null;
+  email: string | null;
+  loginType: string;
+  success: boolean;
+  errorMessage?: string;
+  ipAddress?: string;
+  userAgent?: string;
+}) {
+  try {
+    const supabase = getSupabaseAdmin();
+
+    await (supabase as any).from('sso_login_audit').insert({
+      user_id: params.userId,
+      google_email: params.email,
+      login_type: params.loginType,
+      success: params.success,
+      error_message: params.errorMessage || null,
+      ip_address: params.ipAddress || null,
+      user_agent: params.userAgent || null,
+      login_time: new Date().toISOString(),
+    });
+
+    console.log(`[Auth Callback] ✅ Logged login attempt: ${params.email} - ${params.success ? 'SUCCESS' : 'FAILED'}`);
+  } catch (error) {
+    // Don't fail auth if logging fails
+    console.error('[Auth Callback] Failed to log login attempt:', error);
+  }
+}
+
+/**
  * Provision user_profiles record for OAuth users
  * Ensures every authenticated user has a profile with correct permissions
  */
@@ -186,6 +219,18 @@ export async function GET(request: NextRequest) {
 
       if (error) {
         console.error('Magic link verification error:', error);
+
+        // Log failed login attempt
+        await logLoginAttempt({
+          userId: null,
+          email: null, // Can't get email from failed verification
+          loginType: 'magic_link',
+          success: false,
+          errorMessage: error.message,
+          ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
+          userAgent: request.headers.get('user-agent') || undefined,
+        });
+
         return NextResponse.redirect(`${origin}/login?error=auth_failed&details=${encodeURIComponent(error.message)}`)
       }
 
@@ -196,6 +241,16 @@ export async function GET(request: NextRequest) {
 
         // Provision user profile (creates/updates user_profiles record)
         await provisionUserProfile(userId, userEmail, userMetadata);
+
+        // Log successful login
+        await logLoginAttempt({
+          userId,
+          email: userEmail || null,
+          loginType: 'magic_link',
+          success: true,
+          ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
+          userAgent: request.headers.get('user-agent') || undefined,
+        });
 
         // Determine final destination URL
         let destination = '/dashboard';
@@ -272,6 +327,17 @@ export async function GET(request: NextRequest) {
       const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
       if (error) {
+        // Log failed OAuth login attempt
+        await logLoginAttempt({
+          userId: null,
+          email: null, // Can't get email from failed OAuth
+          loginType: userType === 'employee' ? 'google_oauth_employee' : 'google_oauth_customer',
+          success: false,
+          errorMessage: error.message,
+          ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
+          userAgent: request.headers.get('user-agent') || undefined,
+        });
+
         return NextResponse.redirect(`${origin}/login?error=auth_failed&details=${encodeURIComponent(error.message)}`)
       }
 
@@ -283,6 +349,16 @@ export async function GET(request: NextRequest) {
 
         // Provision user profile (creates/updates user_profiles record)
         await provisionUserProfile(userId, userEmail, userMetadata);
+
+        // Log successful login
+        await logLoginAttempt({
+          userId,
+          email: userEmail || null,
+          loginType: userType === 'employee' ? 'google_oauth_employee' : 'google_oauth_customer',
+          success: true,
+          ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
+          userAgent: request.headers.get('user-agent') || undefined,
+        });
 
         // Determine final destination
         let destination = '/dashboard';

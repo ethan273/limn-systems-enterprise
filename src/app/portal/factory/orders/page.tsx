@@ -5,6 +5,7 @@ import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { EmptyState } from '@/components/common/EmptyState';
 import {
   Select,
   SelectContent,
@@ -18,6 +19,8 @@ import {
   Calendar,
   Search,
   AlertCircle,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -32,11 +35,14 @@ export default function FactoryOrdersPage() {
   const [statusFilter, setStatusFilter] = useState('all');
 
   // Use portal router procedures
-  const { data: _userInfo } = api.portal.getCurrentUser.useQuery();
-  const { data: ordersData, isLoading } = api.portal.getFactoryOrders.useQuery({
+  const { data: _userInfo, error: userError } = api.portal.getCurrentUser.useQuery();
+  const { data: ordersData, isLoading, error: ordersError } = api.portal.getFactoryOrders.useQuery({
     limit: 100,
     offset: 0,
   });
+
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
 
   const orders = ordersData?.orders || [];
 
@@ -81,6 +87,32 @@ export default function FactoryOrdersPage() {
       day: 'numeric',
     });
   };
+
+  // Handle query errors
+  if (userError || ordersError) {
+    const error = userError || ordersError;
+    return (
+      <div className="space-y-6">
+        <div className="page-header">
+          <h1 className="page-title">Production Orders</h1>
+          <p className="page-subtitle">View and manage all your assigned production orders</p>
+        </div>
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load orders"
+          description={error?.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => {
+              if (userError) utils.portal.getCurrentUser.invalidate();
+              if (ordersError) utils.portal.getFactoryOrders.invalidate();
+            },
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

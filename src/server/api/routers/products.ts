@@ -326,9 +326,9 @@ export const productsRouter = createTRPCRouter({
       const category = material.category_id ? categoryMap.get(material.category_id) : null;
 
       // Add parent material (and grandparent if exists)
-      let parentMaterial = null;
+      let parentMaterial: any = null;
       if (material.parent_material_id) {
-        const parent = materialMap.get(material.parent_material_id);
+        const parent = materialMap.get(material.parent_material_id) as any;
         if (parent) {
           parentMaterial = {
             id: parent.id,
@@ -341,7 +341,7 @@ export const productsRouter = createTRPCRouter({
 
           // Add grandparent if parent has a parent
           if (parent.parent_material_id) {
-            const grandparent = materialMap.get(parent.parent_material_id);
+            const grandparent = materialMap.get(parent.parent_material_id) as any;
             if (grandparent) {
               parentMaterial.materials = {
                 id: grandparent.id,
@@ -355,7 +355,7 @@ export const productsRouter = createTRPCRouter({
       // Add collections
       const materialCollectionLinks = materialCollections.filter((mc: any) => mc.material_id === material.id);
       const materialCollectionsData = materialCollectionLinks.map((mc: any) => {
-        const collection = collectionMap.get(mc.collection_id);
+        const collection = collectionMap.get(mc.collection_id) as any;
         return {
           id: mc.id,
           collections: collection ? {

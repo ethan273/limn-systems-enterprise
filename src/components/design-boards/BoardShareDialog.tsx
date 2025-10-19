@@ -23,7 +23,7 @@ type CollaboratorRole = 'owner' | 'editor' | 'commenter' | 'viewer';
 export function BoardShareDialog({ _open: open, onOpenChange, boardId, boardName }: BoardShareDialogProps) {
   // Get current user from tRPC (standardized auth pattern)
   const { data: currentUser } = api.userProfile.getCurrentUser.useQuery();
-  const userId = currentUser?.id;
+  const userId = (currentUser as any)?.id;
 
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<CollaboratorRole>("editor");

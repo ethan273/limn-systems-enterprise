@@ -13,32 +13,62 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { PageHeader } from "@/components/common";
+import { PageHeader, EmptyState } from "@/components/common";
 import { getUserFirstName, getUserLastName } from "@/lib/utils/user-utils";
+import { AlertTriangle, RefreshCw } from "lucide-react";
 
 export default function SettingsPage() {
   const { toast } = useToast();
-  const { data: user } = api.userProfile.getCurrentUser.useQuery();
-  const { data: preferences, isLoading: prefsLoading } = api.userProfile.getPreferences.useQuery();
+  const { data: user, error: userError } = api.userProfile.getCurrentUser.useQuery();
+  const { data: preferences, isLoading: prefsLoading, error: prefsError } = api.userProfile.getPreferences.useQuery();
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
 
-  const userData = user as any;
-  const userPrefs = preferences as any;
-
+  // All hooks must be called before any conditional returns
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
 
   // Update local state when user data loads
   useEffect(() => {
-    if (userData) {
-      setFirstName(getUserFirstName(userData));
-      setLastName(getUserLastName(userData));
-      setEmail(userData.email || "");
+    if (user) {
+      setFirstName(getUserFirstName(user as any));
+      setLastName(getUserLastName(user as any));
+      setEmail((user as any).email || "");
     }
-  }, [userData]);
+  }, [user]);
+
+  // Handle query errors
+  const error = userError || prefsError;
+  if (error) {
+    return (
+      <div className="app-layout">
+        <div className="app-content">
+          <PageHeader
+            title="Settings"
+            description="Manage your account settings and preferences"
+          />
+          <EmptyState
+            icon={AlertTriangle}
+            title="Failed to load settings"
+            description={error.message || "An unexpected error occurred. Please try again."}
+            action={{
+              label: 'Try Again',
+              onClick: () => {
+                utils.userProfile.getCurrentUser.invalidate();
+                utils.userProfile.getPreferences.invalidate();
+              },
+              icon: RefreshCw,
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  const userData = user as any;
+  const userPrefs = preferences as any;
 
   const updateProfile = api.userProfile.updateProfile.useMutation({
     onSuccess: () => {

@@ -15,7 +15,7 @@ import { CheckIcon, XIcon, UserIcon, BuildingIcon, PhoneIcon, MailIcon } from 'l
 export function AdminApprovalPanel() {
  // Get current user from tRPC (standardized auth pattern)
  const { data: currentUser } = api.userProfile.getCurrentUser.useQuery();
- const isAdmin = currentUser?.user_type === 'super_admin';
+ const isAdmin = (currentUser as any)?.user_type === 'super_admin';
 
  const [adminNotes, setAdminNotes] = useState<Record<string, string>>({})
  const [selectedStatus, setSelectedStatus] = useState<'pending' | 'approved' | 'denied' | 'all'>('pending')

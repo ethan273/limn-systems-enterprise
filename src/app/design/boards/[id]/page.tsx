@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Save, Users, Download, Settings, FileUp } from "lucide-react";
+import { ArrowLeft, Save, Users, Download, Settings, FileUp, AlertTriangle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api/client";
@@ -44,7 +44,7 @@ export default function DesignBoardEditorPage({ params }: { params: Promise<{ id
 
   // Get current user from tRPC (standardized auth pattern)
   const { data: currentUser } = api.userProfile.getCurrentUser.useQuery();
-  const userId = currentUser?.id || "";
+  const userId = (currentUser as any)?.id || "";
 
   const [boardName, setBoardName] = useState("Untitled Board");
   const [isEditingName, setIsEditingName] = useState(false);
@@ -67,13 +67,16 @@ export default function DesignBoardEditorPage({ params }: { params: Promise<{ id
     }
   }, [theme]);
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   // Fetch board data
-  const { data: boardData, isLoading } = api.designBoards.boards.getById.useQuery(
+  const { data: boardData, isLoading, error } = api.designBoards.boards.getById.useQuery(
     { id },
     { enabled: !!id }
   );
 
-  const board = boardData?.board;
+  const board = boardData?.board as any;
 
   // Update board name when data loads
   useEffect(() => {
@@ -154,6 +157,29 @@ export default function DesignBoardEditorPage({ params }: { params: Promise<{ id
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // Error handling - show error state with retry
+  if (error) {
+    return (
+      <div className="fixed inset-0 flex flex-col items-center justify-center bg-background p-8">
+        <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
+        <h1 className="text-2xl font-bold mb-2">Failed to Load Board</h1>
+        <p className="text-muted-foreground mb-6 text-center max-w-md">
+          {error.message || "An error occurred while loading the board."}
+        </p>
+        <div className="flex gap-3">
+          <Button onClick={() => utils.designBoards.boards.getById.invalidate({ id })} variant="default">
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Try Again
+          </Button>
+          <Button onClick={handleBack} variant="outline">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Boards
+          </Button>
+        </div>
       </div>
     );
   }

@@ -18,6 +18,7 @@ import {
   CheckCircle,
   Clock,
   FileText,
+  RefreshCw,
 } from 'lucide-react';
 
 /**
@@ -26,20 +27,44 @@ import {
  */
 export default function QCInspectionsPage() {
   const router = useRouter();
+  const utils = api.useUtils();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  const { data: inspectionsData, isLoading } = api.portal.getQCInspections.useQuery({
+  const { data: inspectionsData, isLoading, error } = api.portal.getQCInspections.useQuery({
     limit: 100,
     offset: 0,
   });
 
-  const inspections = inspectionsData?.inspections || [];
-
   // Subscribe to realtime updates for quality inspections
+  // MUST be called before any conditional returns (React Hook rule)
   useQualityInspectionsRealtime({
     queryKey: ['portal', 'getQCInspections'],
   });
+
+  // Handle query error
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="page-header">
+          <h1 className="page-title">Quality Inspections</h1>
+          <p className="page-subtitle">View and manage all quality control inspections</p>
+        </div>
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load inspections"
+          description={error.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.portal.getQCInspections.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
+
+  const inspections = inspectionsData?.inspections || [];
 
   // Client-side filtering
   const filteredInspections = inspections.filter((inspection: any) => {

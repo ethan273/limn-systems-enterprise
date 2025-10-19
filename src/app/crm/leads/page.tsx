@@ -17,6 +17,8 @@ import {
   ArrowRight,
   Pencil,
   Trash2,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import {
   Select,
@@ -25,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import {
@@ -81,13 +84,13 @@ export default function LeadsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [leadToDelete, setLeadToDelete] = useState<any>(null);
 
-  const { data: leadsData, isLoading } = api.crm.leads.getLeadsOnly.useQuery({
+  const { data: leadsData, isLoading, error } = api.crm.leads.getLeadsOnly.useQuery({
     limit: 100,
     offset: 0,
     orderBy: { created_at: 'desc' },
   });
 
-  const { data: pipelineStats } = api.crm.leads.getPipelineStats.useQuery();
+  const { data: pipelineStats, error: statsError } = api.crm.leads.getPipelineStats.useQuery();
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
@@ -429,6 +432,35 @@ export default function LeadsPage() {
       },
     },
   ];
+
+  if (error || statsError) {
+    return (
+      <div className="page-container">
+        <div className="flex flex-col items-center justify-center py-12 space-y-4">
+          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-destructive/10">
+            <AlertTriangle className="w-8 h-8 text-destructive" />
+          </div>
+          <div className="text-center space-y-2">
+            <h3 className="text-lg font-semibold">Failed to load leads</h3>
+            <p className="text-sm text-muted-foreground max-w-md">
+              {error?.message || statsError?.message || 'An error occurred while loading the leads.'}
+            </p>
+          </div>
+          <Button
+            onClick={() => {
+              utils.crm.leads.getLeadsOnly.invalidate();
+              utils.crm.leads.getPipelineStats.invalidate();
+            }}
+            variant="outline"
+            className="gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

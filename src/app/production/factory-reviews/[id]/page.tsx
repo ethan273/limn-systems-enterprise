@@ -38,8 +38,10 @@ import {
  FileText,
  ArrowLeft,
  AlertCircle,
+ AlertTriangle,
  CheckCircle,
  Edit,
+ RefreshCw,
  Trash2,
  Upload,
  Loader2,
@@ -69,7 +71,7 @@ export default function FactoryReviewDetailPage({ params }: PageProps) {
  const [newStatus, setNewStatus] = useState("");
 
  // Fetch session details
- const { data: session, isLoading } = api.factoryReviews.getSessionById.useQuery({
+ const { data: session, isLoading, error: sessionError } = api.factoryReviews.getSessionById.useQuery({
  id: id,
  });
 
@@ -77,7 +79,7 @@ export default function FactoryReviewDetailPage({ params }: PageProps) {
  const utils = api.useUtils();
 
  // Fetch action items
- const { data: actionItems } = api.factoryReviews.getActionItems.useQuery({
+ const { data: actionItems, error: actionItemsError } = api.factoryReviews.getActionItems.useQuery({
  sessionId: id,
  resolved: false,
  });
@@ -210,6 +212,38 @@ export default function FactoryReviewDetailPage({ params }: PageProps) {
  const handleResolveAction = (commentId: string) => {
  resolveActionMutation.mutate({ commentId });
  };
+
+ // Handle query errors
+ if (sessionError || actionItemsError) {
+ const error = sessionError || actionItemsError;
+ return (
+ <div className="page-container">
+ <div className="page-header">
+ <Button
+ onClick={() => router.push("/production/factory-reviews")}
+ variant="ghost"
+ className="btn-secondary"
+ >
+ <ArrowLeft className="icon-sm" aria-hidden="true" />
+ Back
+ </Button>
+ </div>
+ <EmptyState
+ icon={AlertTriangle}
+ title="Failed to load session details"
+ description={error?.message || "An unexpected error occurred. Please try again."}
+ action={{
+ label: 'Try Again',
+ onClick: () => {
+ if (sessionError) utils.factoryReviews.getSessionById.invalidate();
+ if (actionItemsError) utils.factoryReviews.getActionItems.invalidate();
+ },
+ icon: RefreshCw,
+ }}
+ />
+ </div>
+ );
+ }
 
  if (isLoading) {
  return (

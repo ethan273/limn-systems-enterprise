@@ -23,7 +23,7 @@ import {
 export default function DashboardPage() {
  // Get current user from tRPC (standardized auth pattern)
  const { data: currentUser } = api.userProfile.getCurrentUser.useQuery();
- const isAdmin = currentUser?.user_type === 'super_admin';
+ const isAdmin = (currentUser as any)?.user_type === 'super_admin';
 
  // Fetch admin stats for pending requests - only if user is admin
  const { data: adminStats } = api.auth.getRequestStats.useQuery(undefined, {

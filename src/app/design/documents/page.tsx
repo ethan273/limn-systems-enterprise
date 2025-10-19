@@ -28,6 +28,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import {
   PageHeader,
   DataTable,
@@ -48,6 +49,8 @@ import {
   Trash2,
   AlertCircle,
   CheckCircle,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import { api } from "@/lib/api/client";
 import { FileUploader } from "@/components/design/FileUploader";
@@ -63,13 +66,17 @@ function DesignDocumentsContent() {
   // Get current user from tRPC (standardized auth pattern)
   const { data: _currentUser, isLoading: authLoading } = api.userProfile.getCurrentUser.useQuery();
 
+  // Get tRPC utils for cache invalidation
+  const utils = api.useUtils();
+
   // Get Google Drive service account status
-  const { data: driveStatus } = api.storage.getDriveStatus.useQuery();
+  const { data: driveStatus, error: driveStatusError } = api.storage.getDriveStatus.useQuery();
 
   // Get files list
   const {
     data: filesData,
     isLoading: filesLoading,
+    error: filesError,
     refetch: refetchFiles,
   } = api.storage.listFiles.useQuery({
     limit: 100,
@@ -77,7 +84,7 @@ function DesignDocumentsContent() {
   });
 
   // Get storage stats
-  const { data: stats } = api.storage.getStorageStats.useQuery();
+  const { data: stats, error: statsError } = api.storage.getStorageStats.useQuery();
 
   // Delete file mutation
   const deleteFile = api.storage.deleteFile.useMutation({
@@ -127,6 +134,34 @@ function DesignDocumentsContent() {
     return (
       <div className="page-container">
         <LoadingState message="Loading..." size="lg" />
+      </div>
+    );
+  }
+
+  // Error handling - show error state with retry
+  if (filesError || statsError || driveStatusError) {
+    const error = filesError || statsError || driveStatusError;
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="Documents Library"
+          subtitle="Manage design documents across Supabase and Google Drive"
+        />
+        <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+          <AlertTriangle className="h-12 w-12 text-destructive" />
+          <h2 className="text-2xl font-bold">Failed to Load Documents</h2>
+          <p className="text-muted-foreground text-center max-w-md">
+            {error?.message || "An error occurred while loading documents."}
+          </p>
+          <Button onClick={() => {
+            utils.storage.listFiles.invalidate();
+            utils.storage.getStorageStats.invalidate();
+            utils.storage.getDriveStatus.invalidate();
+          }}>
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Try Again
+          </Button>
+        </div>
       </div>
     );
   }

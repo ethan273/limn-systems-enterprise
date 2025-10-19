@@ -45,6 +45,7 @@ import {
   Clock,
   AlertTriangle,
   AlertCircle,
+  RefreshCw,
 } from "lucide-react";
 import { formatDistanceToNow, isAfter, parseISO } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -58,13 +59,13 @@ export default function MyTasksPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   // Get current user from tRPC (consistent with other pages)
-  const { data: currentUser } = api.userProfile.getCurrentUser.useQuery();
+  const { data: currentUser, error: currentUserError } = api.userProfile.getCurrentUser.useQuery();
 
   // Use the actual logged-in user's ID
-  const currentUserId = currentUser?.id || "";
+  const currentUserId = (currentUser as any)?.id || "";
 
   // Get my assigned tasks (only fetch when we have a valid user ID)
-  const { data: assignedTasksData, isLoading: isLoadingAssigned } = api.tasks.getMyTasks.useQuery({
+  const { data: assignedTasksData, isLoading: isLoadingAssigned, error: assignedTasksError } = api.tasks.getMyTasks.useQuery({
     user_id: currentUserId,
     limit: 100,
     offset: 0,
@@ -72,7 +73,7 @@ export default function MyTasksPage() {
   }, { enabled: activeTab === "assigned" && !!currentUserId });
 
   // Get tasks I'm watching (only fetch when we have a valid user ID)
-  const { data: watchingTasksData, isLoading: isLoadingWatching } = api.tasks.getMyTasks.useQuery({
+  const { data: watchingTasksData, isLoading: isLoadingWatching, error: watchingTasksError } = api.tasks.getMyTasks.useQuery({
     user_id: currentUserId,
     limit: 100,
     offset: 0,
@@ -80,7 +81,7 @@ export default function MyTasksPage() {
   }, { enabled: activeTab === "watching" && !!currentUserId });
 
   // Get tasks I created (only fetch when we have a valid user ID)
-  const { data: createdTasksData, isLoading: isLoadingCreated } = api.tasks.getAllTasks.useQuery({
+  const { data: createdTasksData, isLoading: isLoadingCreated, error: createdTasksError } = api.tasks.getAllTasks.useQuery({
     limit: 100,
     offset: 0,
     sortBy: 'created_at',
@@ -150,7 +151,7 @@ export default function MyTasksPage() {
   const uniqueUserIds = Array.from(new Set(allUserIds));
 
   // Fetch user details for assigned users
-  const { data: usersData } = api.users.getByIds.useQuery({
+  const { data: usersData, error: usersError } = api.users.getByIds.useQuery({
     ids: uniqueUserIds,
   }, { enabled: uniqueUserIds.length > 0 });
 
@@ -384,6 +385,84 @@ export default function MyTasksPage() {
       ],
     },
   ];
+
+  // Handle query error for current user
+  if (currentUserError) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="My Tasks"
+          subtitle="Personal task dashboard and assignment overview"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load user information"
+          description={currentUserError.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.userProfile.getCurrentUser.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
+
+  // Handle query error for tasks based on active tab
+  const currentError = activeTab === "assigned" ? assignedTasksError :
+                       activeTab === "watching" ? watchingTasksError :
+                       createdTasksError;
+
+  if (currentError) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="My Tasks"
+          subtitle="Personal task dashboard and assignment overview"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load tasks"
+          description={currentError.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => {
+              if (activeTab === "assigned") {
+                utils.tasks.getMyTasks.invalidate();
+              } else if (activeTab === "watching") {
+                utils.tasks.getMyTasks.invalidate();
+              } else {
+                utils.tasks.getAllTasks.invalidate();
+              }
+            },
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
+
+  // Handle query error for users
+  if (usersError) {
+    return (
+      <div className="page-container">
+        <PageHeader
+          title="My Tasks"
+          subtitle="Personal task dashboard and assignment overview"
+        />
+        <EmptyState
+          icon={AlertTriangle}
+          title="Failed to load user details"
+          description={usersError.message || "An unexpected error occurred. Please try again."}
+          action={{
+            label: 'Try Again',
+            onClick: () => utils.users.getByIds.invalidate(),
+            icon: RefreshCw,
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">
