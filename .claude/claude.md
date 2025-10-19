@@ -159,6 +159,87 @@ Check ALL files including:
 
 ---
 
+## Authentication Pattern Standard
+
+**MANDATORY REQUIREMENT - Prime Directive Compliance**
+
+### ✅ THE ONE TRUE PATTERN (ALWAYS USE)
+
+```typescript
+// Get current user from tRPC (standardized auth pattern)
+const { data: currentUser, isLoading: authLoading } = api.userProfile.getCurrentUser.useQuery();
+```
+
+**Why This Works:**
+- ✅ Reliable - Always returns user data correctly
+- ✅ Type-safe - Full TypeScript inference via tRPC
+- ✅ Cached - Automatic query caching and refetching
+- ✅ Consistent - Same pattern across entire codebase
+- ✅ Maintainable - Single source of truth
+
+### ❌ BROKEN PATTERN (NEVER USE)
+
+```typescript
+// ❌ DO NOT USE - Returns undefined, causes bugs
+import { useAuthContext } from "@/lib/auth/AuthProvider";
+const { user } = useAuthContext();
+```
+
+**Why This Fails:**
+- ❌ Returns undefined user data
+- ❌ Causes recurring validation errors
+- ❌ Inconsistent behavior
+- ❌ No type safety
+
+### Enforcement Rules
+
+1. **ALWAYS** use `api.userProfile.getCurrentUser.useQuery()` for authentication
+2. **NEVER** import or use `useAuthContext` in new code
+3. **ALWAYS** add `enabled: !!userId` guards when using userId in dependent queries
+4. **ALWAYS** extract userId into a const if used multiple times
+5. **ALWAYS** check for `isLoading` state when appropriate
+
+### Common Patterns
+
+```typescript
+// Pattern 1: Basic User Info
+const { data: currentUser } = api.userProfile.getCurrentUser.useQuery();
+
+// Pattern 2: With Loading State
+const { data: currentUser, isLoading: authLoading } = api.userProfile.getCurrentUser.useQuery();
+
+// Pattern 3: User ID Extraction
+const { data: currentUser } = api.userProfile.getCurrentUser.useQuery();
+const userId = currentUser?.id || "";
+
+// Pattern 4: Query Guard (CRITICAL for dependent queries)
+const { data: currentUser } = api.userProfile.getCurrentUser.useQuery();
+const userId = currentUser?.id || "";
+
+const { data: myData } = api.something.query({
+  user_id: userId,
+}, {
+  enabled: !!userId  // Only run when userId exists
+});
+```
+
+### Code Review Checklist
+
+When reviewing PRs or writing code, verify:
+- [ ] No `import { useAuthContext }` statements
+- [ ] Uses `api.userProfile.getCurrentUser.useQuery()`
+- [ ] Has `enabled` guards on dependent queries
+- [ ] Handles loading and undefined states
+- [ ] Uses consistent variable naming (`currentUser`)
+
+**Reference**: See `/limn-systems-enterprise-docs/07-DEVELOPMENT-GUIDES/AUTH-PATTERN-STANDARD.md` for complete documentation, usage examples, migration guide, and FAQ.
+
+**Status**: ✅ MANDATORY as of October 19, 2025
+**Compliance**: All new code MUST use this pattern
+**Violations**: Will be rejected in code review
+
+---
+
 ## Communication Standards
 
 ### Be Honest
