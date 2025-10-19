@@ -11,10 +11,11 @@
  */
 
 // Environment variables for SEKO API
+// CRITICAL: Do NOT use hardcoded fallbacks - forces proper environment configuration
 const SEKO_API_KEY = process.env.SEKO_API_KEY || "";
 const SEKO_API_SECRET = process.env.SEKO_API_SECRET || "";
 const SEKO_PROFILE_ID = process.env.NEXT_PUBLIC_SEKO_PROFILE_ID || "";
-const SEKO_BASE_URL = process.env.NEXT_PUBLIC_SEKO_BASE_URL || "https://qawebapi.myseko.comm";
+const SEKO_BASE_URL = process.env.NEXT_PUBLIC_SEKO_BASE_URL || "";
 
 // ============================================================================
 // TYPES

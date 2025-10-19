@@ -21,8 +21,7 @@ import { prisma } from '@/lib/db';
 
 const QB_CLIENT_ID = process.env.QUICKBOOKS_CLIENT_ID || '';
 const QB_CLIENT_SECRET = process.env.QUICKBOOKS_CLIENT_SECRET || '';
-const QB_REDIRECT_URI =
-  process.env.QUICKBOOKS_REDIRECT_URI || 'http://localhost:3000/api/quickbooks/callback';
+const QB_REDIRECT_URI = process.env.QUICKBOOKS_REDIRECT_URI!;
 const QB_TOKEN_URL = 'https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer';
 
 export async function GET(request: NextRequest) {

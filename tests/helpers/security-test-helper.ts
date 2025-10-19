@@ -107,7 +107,11 @@ export async function switchUserContext(page: Page, userId: string): Promise<voi
   const tokens = await getAccessToken(userId);
 
   // Extract Supabase project ID from URL for dynamic cookie name
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://gwqkbjymbarkufwvdmar.supabase.co';
+  // CRITICAL: Require env var to be set - no hardcoded fallback
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    throw new Error('NEXT_PUBLIC_SUPABASE_URL is required for test helper');
+  }
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const projectId = new URL(supabaseUrl).hostname.split('.')[0];
   const cookieName = `sb-${projectId}-auth-token`;
 

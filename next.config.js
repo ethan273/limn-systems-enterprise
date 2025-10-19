@@ -1,7 +1,11 @@
 const { withSentryConfig } = require('@sentry/nextjs');
 
 // Extract Supabase hostname from environment variable for dynamic configuration
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://gwqkbjymbarkufwvdmar.supabase.co';
+// CRITICAL: Do NOT use hardcoded fallback - forces proper environment configuration
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  throw new Error('NEXT_PUBLIC_SUPABASE_URL environment variable is required but not set');
+}
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseHostname = new URL(supabaseUrl).hostname;
 const supabaseUrlPattern = new RegExp(`^https:\\/\\/${supabaseHostname.replace('.', '\\.')}\\/.*`, 'i');
 

@@ -12,10 +12,11 @@
  */
 
 // Environment variables for QuickBooks API
+// CRITICAL: Removed hardcoded fallback - requires proper environment configuration
 const QB_CLIENT_ID = process.env.QUICKBOOKS_CLIENT_ID || "";
 const QB_CLIENT_SECRET = process.env.QUICKBOOKS_CLIENT_SECRET || "";
 const QB_ENVIRONMENT = process.env.QUICKBOOKS_ENVIRONMENT || "sandbox";
-const QB_REDIRECT_URI = process.env.QUICKBOOKS_REDIRECT_URI || "http://localhost:3000/api/quickbooks/callback";
+const QB_REDIRECT_URI = process.env.QUICKBOOKS_REDIRECT_URI || "";
 const QB_BASE_URL = QB_ENVIRONMENT === "production"
   ? "https://quickbooks.api.intuit.com"
   : "https://sandbox-quickbooks.api.intuit.com";
