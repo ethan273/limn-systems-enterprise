@@ -106,12 +106,35 @@ vercel env add NEXT_PUBLIC_SUPABASE_URL preview
 
 ### Error: "permission denied for schema public"
 
-**Cause**: Missing `SUPABASE_SERVICE_ROLE_KEY` environment variable
+**Cause 1**: Missing `SUPABASE_SERVICE_ROLE_KEY` environment variable
 
 **Solution**:
 1. Add `SUPABASE_SERVICE_ROLE_KEY` to Vercel environment variables
 2. Ensure the key is the **service_role** key (NOT the anon key)
 3. Redeploy the application
+
+**Cause 2**: Database schema permissions not configured (even with correct service_role key)
+
+**Solution - Run this SQL in Supabase SQL Editor:**
+
+```sql
+-- Grant schema-level permissions to service_role
+GRANT USAGE ON SCHEMA public TO service_role;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO service_role;
+GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO service_role;
+
+-- Make it permanent for future tables
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS IN SCHEMA public TO service_role;
+```
+
+**Why this is needed:**
+- Supabase RLS requires BOTH table-level policies AND schema-level permissions
+- Even if your service_role key is correct, without schema permissions it cannot access tables
+- This is a **one-time setup** per Supabase project
+- No redeploy needed after running this SQL
 
 ### Error: "Failed to fetch from tasks"
 

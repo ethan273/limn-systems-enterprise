@@ -134,6 +134,79 @@ After deploying, check the Vercel runtime logs. You should see:
 - [ ] Checked Vercel runtime logs for diagnostic messages
 - [ ] Verified using the correct Supabase project (dev vs prod database)
 
+## 🚨 CRITICAL: Database Schema Permissions (Production Database)
+
+**If you see "permission denied for schema public" even with correct service_role key:**
+
+This is a **database configuration issue** - the service_role doesn't have schema-level permissions on your production Supabase database.
+
+### Diagnostic Steps
+
+1. Go to Supabase Dashboard → Your **PRODUCTION** Project
+2. Go to **SQL Editor** (left sidebar)
+3. Run this query to check if RLS policies exist:
+
+```sql
+-- Check if service_role policies exist
+SELECT tablename, policyname, roles
+FROM pg_policies
+WHERE schemaname = 'public'
+AND policyname = 'service_role_all_access'
+ORDER BY tablename;
+```
+
+If you see policies listed but STILL get permission errors, continue to the fix below.
+
+### The Fix: Grant Schema-Level Permissions
+
+**Run this SQL in Supabase SQL Editor on your PRODUCTION database:**
+
+```sql
+-- Grant all permissions to service_role on public schema
+GRANT USAGE ON SCHEMA public TO service_role;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO service_role;
+GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO service_role;
+
+-- Make it permanent for future tables
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS IN SCHEMA public TO service_role;
+```
+
+### Verify the Fix
+
+Run this to verify grants were applied:
+
+```sql
+SELECT
+  grantee,
+  privilege_type
+FROM information_schema.role_table_grants
+WHERE table_schema = 'public'
+AND grantee = 'service_role'
+LIMIT 10;
+```
+
+You should see multiple rows showing service_role with various privileges (SELECT, INSERT, UPDATE, DELETE, etc.)
+
+### After Running the Fix
+
+1. **No need to redeploy** - this is a database-side fix
+2. Immediately test your production site
+3. The "permission denied for schema public" errors should be **completely resolved**
+4. All database queries should now work properly
+
+### Why This Happens
+
+Supabase's Row Level Security (RLS) requires both:
+1. ✅ Table-level RLS policies (created with the script above)
+2. ✅ Schema-level permissions (this GRANT statement)
+
+Even if RLS policies exist, without schema-level permissions, service_role cannot access tables.
+
+---
+
 ## Need Help?
 
 Run this command locally to verify your .env.local is correct:
