@@ -64,6 +64,72 @@ const baseContactsRouter = createCrudRouter({
 export const contactsRouter = createTRPCRouter({
   ...baseContactsRouter._def.procedures,
 
+  // Get all contacts with filters and pagination (override base CRUD)
+  getAll: publicProcedure
+    .input(
+      z.object({
+        search: z.string().optional(),
+        company: z.string().optional(), // 'with_company' | 'no_company' | undefined
+        dateFrom: z.string().optional(),
+        dateTo: z.string().optional(),
+        limit: z.number().default(100),
+        offset: z.number().default(0),
+        orderBy: z.record(z.enum(['asc', 'desc'])).optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const where: any = {};
+
+      // Search across name fields, email, and company
+      if (input.search) {
+        where.OR = [
+          { first_name: { contains: input.search, mode: 'insensitive' } },
+          { last_name: { contains: input.search, mode: 'insensitive' } },
+          { name: { contains: input.search, mode: 'insensitive' } },
+          { email: { contains: input.search, mode: 'insensitive' } },
+          { company: { contains: input.search, mode: 'insensitive' } },
+        ];
+      }
+
+      // Filter by company presence
+      if (input.company === 'with_company') {
+        where.company = { not: null };
+      } else if (input.company === 'no_company') {
+        where.company = null;
+      }
+
+      // Filter by date range
+      if (input.dateFrom) {
+        where.created_at = {
+          ...where.created_at,
+          gte: new Date(input.dateFrom),
+        };
+      }
+      if (input.dateTo) {
+        where.created_at = {
+          ...where.created_at,
+          lte: new Date(input.dateTo),
+        };
+      }
+
+      const [items, total] = await Promise.all([
+        ctx.db.contacts.findMany({
+          where,
+          orderBy: input.orderBy || { name: 'asc' },
+          take: input.limit,
+          skip: input.offset,
+        }),
+        ctx.db.contacts.count({ where }),
+      ]);
+
+      return {
+        items,
+        total,
+        hasMore: input.offset + input.limit < total,
+        nextOffset: input.offset + input.limit < total ? input.offset + input.limit : null,
+      };
+    }),
+
   // Get contact by ID with all related data for detail page
   getById: publicProcedure
     .input(z.object({
@@ -425,13 +491,44 @@ export const leadsRouter = createTRPCRouter({
       limit: z.number().min(1).max(100).default(20),
       offset: z.number().min(0).default(0),
       orderBy: z.record(z.enum(['asc', 'desc'])).optional(),
+      // Filter parameters
+      search: z.string().optional(),
+      status: z.string().optional(),
+      prospect_status: z.string().optional(),
+      source: z.string().optional(),
     }))
     .query(async ({ ctx, input }) => {
-      const { limit, offset, orderBy } = input;
+      const { limit, offset, orderBy, search, status, prospect_status, source } = input;
 
       const whereClause: any = {
         prospect_status: null,
       };
+
+      // Add search filter for name, company, email
+      if (search && search.trim()) {
+        whereClause.OR = [
+          { name: { contains: search.trim(), mode: 'insensitive' } },
+          { first_name: { contains: search.trim(), mode: 'insensitive' } },
+          { last_name: { contains: search.trim(), mode: 'insensitive' } },
+          { company: { contains: search.trim(), mode: 'insensitive' } },
+          { email: { contains: search.trim(), mode: 'insensitive' } },
+        ];
+      }
+
+      // Apply status filter
+      if (status && status !== '' && status !== 'all') {
+        whereClause.status = status;
+      }
+
+      // Apply prospect_status filter (overrides the null check if specified)
+      if (prospect_status && prospect_status !== '' && prospect_status !== 'all') {
+        whereClause.prospect_status = prospect_status;
+      }
+
+      // Apply source filter
+      if (source && source !== '' && source !== 'all') {
+        whereClause.lead_source = source;
+      }
 
       // Query leads with NO prospect_status (Not yet)
       const [items, total] = await Promise.all([
@@ -461,9 +558,10 @@ export const leadsRouter = createTRPCRouter({
       offset: z.number().min(0).default(0),
       prospect_status: z.enum(['cold', 'warm', 'hot']).optional(),
       status: z.string().optional(),
+      search: z.string().optional(),
     }))
     .query(async ({ ctx, input }) => {
-      const { limit, offset, prospect_status, status } = input;
+      const { limit, offset, prospect_status, status, search } = input;
 
       const whereClause: any = {
         prospect_status: { not: null },
@@ -475,6 +573,17 @@ export const leadsRouter = createTRPCRouter({
 
       if (status) {
         whereClause.status = status;
+      }
+
+      // Add search filter for name, company, email
+      if (search && search.trim()) {
+        whereClause.OR = [
+          { name: { contains: search.trim(), mode: 'insensitive' } },
+          { first_name: { contains: search.trim(), mode: 'insensitive' } },
+          { last_name: { contains: search.trim(), mode: 'insensitive' } },
+          { company: { contains: search.trim(), mode: 'insensitive' } },
+          { email: { contains: search.trim(), mode: 'insensitive' } },
+        ];
       }
 
       // Query prospects (leads with prospect_status set)

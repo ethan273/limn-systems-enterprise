@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
+import { useTableState } from "@/hooks/useTableFilters";
 import {
   PageHeader,
   StatsGrid,
@@ -10,9 +11,9 @@ import {
   EmptyState,
   LoadingState,
   StatusBadge,
+  TableFilters,
   type StatItem,
   type DataTableColumn,
-  type DataTableFilter,
   type DataTableRowAction,
 } from "@/components/common";
 import {
@@ -67,21 +68,30 @@ const PROSPECT_STATUSES: {
 
 export default function ProspectsPage() {
   const router = useRouter();
-  const [_prospectFilter, _setProspectFilter] = useState<ProspectStatus | 'all'>('all');
-  const [_statusFilter, _setStatusFilter] = useState<LeadStatus | 'all'>('all');
-  const [_page, _setPage] = useState(0);
-  const [limit] = useState(20);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [prospectToDelete, setProspectToDelete] = useState<any>(null);
   const [convertDialogOpen, setConvertDialogOpen] = useState(false);
   const [prospectToConvert, setProspectToConvert] = useState<any>(null);
 
-  const { data: prospectsData, isLoading, error } = api.crm.leads.getProspects.useQuery({
-    limit,
-    offset: _page * limit,
-    prospect_status: _prospectFilter === 'all' ? undefined : _prospectFilter,
-    status: _statusFilter === 'all' ? undefined : _statusFilter,
+  // Unified filter management with new hook
+  const {
+    rawFilters,
+    setFilter,
+    clearFilters,
+    hasActiveFilters,
+    queryParams,
+  } = useTableState({
+    initialFilters: {
+      search: '',
+      prospect_status: '',
+      status: '',
+    },
+    debounceMs: 300,
+    pageSize: 100,
   });
+
+  // Backend query with unified params
+  const { data: prospectsData, isLoading, error } = api.crm.leads.getProspects.useQuery(queryParams);
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
@@ -241,36 +251,19 @@ export default function ProspectsPage() {
     },
   ];
 
-  // Filters configuration
-  const filters: DataTableFilter[] = [
-    {
-      key: 'search',
-      label: 'Search prospects',
-      type: 'search',
-      placeholder: 'Search by name, email, or company...',
-    },
-    {
-      key: 'prospect_status',
-      label: 'Prospect Status',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Prospects' },
-        ...PROSPECT_STATUSES.map(s => ({ value: s.value, label: `${s.label} Prospects` })),
-      ],
-    },
-    {
-      key: 'status',
-      label: 'Lead Status',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Statuses' },
-        { value: 'new', label: 'New' },
-        { value: 'contacted', label: 'Contacted' },
-        { value: 'qualified', label: 'Qualified' },
-        { value: 'proposal', label: 'Proposal' },
-        { value: 'negotiation', label: 'Negotiation' },
-      ],
-    },
+  // Filter options for TableFilters components
+  const prospectStatusOptions = [
+    { value: '', label: 'All Prospects' },
+    ...PROSPECT_STATUSES.map(s => ({ value: s.value, label: `${s.label} Prospects` })),
+  ];
+
+  const leadStatusOptions = [
+    { value: '', label: 'All Statuses' },
+    { value: 'new', label: 'New' },
+    { value: 'contacted', label: 'Contacted' },
+    { value: 'qualified', label: 'Qualified' },
+    { value: 'proposal', label: 'Proposal' },
+    { value: 'negotiation', label: 'Negotiation' },
   ];
 
   // Row actions configuration
@@ -345,7 +338,36 @@ export default function ProspectsPage() {
       {/* Pipeline Stats */}
       <StatsGrid stats={stats} columns={3} />
 
-      {/* Prospects DataTable */}
+      {/* Filters - New Unified System */}
+      <TableFilters.Bar
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+      >
+        {/* Search Filter */}
+        <TableFilters.Search
+          value={rawFilters.search}
+          onChange={(value) => setFilter('search', value)}
+          placeholder="Search by name, email, or company..."
+        />
+
+        {/* Prospect Status Filter */}
+        <TableFilters.Select
+          value={rawFilters.prospect_status}
+          onChange={(value) => setFilter('prospect_status', value)}
+          options={prospectStatusOptions}
+          placeholder="All Prospects"
+        />
+
+        {/* Lead Status Filter */}
+        <TableFilters.Select
+          value={rawFilters.status}
+          onChange={(value) => setFilter('status', value)}
+          options={leadStatusOptions}
+          placeholder="All Statuses"
+        />
+      </TableFilters.Bar>
+
+      {/* Prospects DataTable - No filters prop (server-side only) */}
       {sortedProspects.length === 0 ? (
         <EmptyState
           icon={Thermometer}
@@ -356,7 +378,6 @@ export default function ProspectsPage() {
         <DataTable
           data={sortedProspects}
           columns={columns}
-          filters={filters}
           rowActions={rowActions}
           onRowClick={(row) => router.push(`/crm/prospects/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}

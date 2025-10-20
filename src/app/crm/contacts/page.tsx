@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
+import { useTableState } from "@/hooks/useTableFilters";
 import {
   Plus,
   Building,
@@ -25,9 +26,9 @@ import {
   EmptyState,
   LoadingState,
   DataTable,
+  TableFilters,
   type FormField,
   type DataTableColumn,
-  type DataTableFilter,
   type DataTableRowAction,
 } from "@/components/common";
 import { Badge } from "@/components/ui/badge";
@@ -50,11 +51,24 @@ export default function ContactsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [contactToDelete, setContactToDelete] = useState<any>(null);
 
-  const { data: contactsData, isLoading, error } = api.crm.contacts.getAll.useQuery({
-    limit: 100,
-    offset: 0,
-    orderBy: { name: 'asc' },
+  // Unified filter management with new hook
+  const {
+    rawFilters,
+    setFilter,
+    clearFilters,
+    hasActiveFilters,
+    queryParams,
+  } = useTableState({
+    initialFilters: {
+      search: '',
+      company: '',
+    },
+    debounceMs: 300,
+    pageSize: 100,
   });
+
+  // Backend query with unified params
+  const { data: contactsData, isLoading, error } = api.crm.contacts.getAll.useQuery(queryParams);
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
@@ -217,24 +231,11 @@ export default function ContactsPage() {
     },
   ];
 
-  // DataTable filters configuration
-  const filters: DataTableFilter[] = [
-    {
-      key: 'search',
-      label: 'Search contacts',
-      type: 'search',
-      placeholder: 'Search by name, email, or company...',
-    },
-    {
-      key: 'company',
-      label: 'Company',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Contacts' },
-        { value: 'with_company', label: 'With Company' },
-        { value: 'no_company', label: 'No Company' },
-      ],
-    },
+  // Company filter options
+  const companyOptions = [
+    { value: '', label: 'All Contacts' },
+    { value: 'with_company', label: 'With Company' },
+    { value: 'no_company', label: 'No Company' },
   ];
 
   // Row actions configuration
@@ -373,7 +374,28 @@ export default function ContactsPage() {
         isLoading={updateContactMutation.isPending}
       />
 
-      {/* Contacts DataTable with new components */}
+      {/* Filters - New Unified System */}
+      <TableFilters.Bar
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+      >
+        {/* Search Filter */}
+        <TableFilters.Search
+          value={rawFilters.search}
+          onChange={(value) => setFilter('search', value)}
+          placeholder="Search by name, email, or company..."
+        />
+
+        {/* Company Filter */}
+        <TableFilters.Select
+          value={rawFilters.company}
+          onChange={(value) => setFilter('company', value)}
+          options={companyOptions}
+          placeholder="All Contacts"
+        />
+      </TableFilters.Bar>
+
+      {/* Contacts DataTable - No filters prop (server-side only) */}
       {isLoading ? (
         <LoadingState message="Loading contacts..." size="lg" />
       ) : !contactsData?.items || contactsData.items.length === 0 ? (
@@ -391,7 +413,6 @@ export default function ContactsPage() {
         <DataTable
           data={contactsData.items}
           columns={columns}
-          filters={filters}
           rowActions={rowActions}
           onRowClick={(row) => router.push(`/crm/contacts/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}

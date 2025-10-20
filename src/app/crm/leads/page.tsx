@@ -4,6 +4,7 @@ import { getFullName, createFullName } from "@/lib/utils/name-utils";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
+import { useTableState } from "@/hooks/useTableFilters";
 import {
   Plus,
   Building,
@@ -38,9 +39,9 @@ import {
   DataTable,
   StatsGrid,
   StatusBadge,
+  TableFilters,
   type FormField,
   type DataTableColumn,
-  type DataTableFilter,
   type DataTableRowAction,
   type StatItem,
 } from "@/components/common";
@@ -84,11 +85,26 @@ export default function LeadsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [leadToDelete, setLeadToDelete] = useState<any>(null);
 
-  const { data: leadsData, isLoading, error } = api.crm.leads.getLeadsOnly.useQuery({
-    limit: 100,
-    offset: 0,
-    orderBy: { created_at: 'desc' },
+  // Unified filter management with new hook
+  const {
+    rawFilters,
+    setFilter,
+    clearFilters,
+    hasActiveFilters,
+    queryParams,
+  } = useTableState({
+    initialFilters: {
+      search: '',
+      status: '',
+      prospect_status: '',
+      source: '',
+    },
+    debounceMs: 300,
+    pageSize: 100,
   });
+
+  // Backend query with unified params
+  const { data: leadsData, isLoading, error } = api.crm.leads.getLeadsOnly.useQuery(queryParams);
 
   const { data: pipelineStats, error: statsError } = api.crm.leads.getPipelineStats.useQuery();
 
@@ -362,47 +378,6 @@ export default function LeadsPage() {
     },
   ];
 
-  // DataTable filters configuration
-  const filters: DataTableFilter[] = [
-    {
-      key: 'search',
-      label: 'Search leads',
-      type: 'search',
-      placeholder: 'Search by name, email, or company...',
-    },
-    {
-      key: 'status',
-      label: 'Status',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Statuses' },
-        ...LEAD_STATUSES.map(s => ({ value: s.value, label: s.label })),
-      ],
-    },
-    {
-      key: 'prospect_status',
-      label: 'Prospect',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Prospects' },
-        ...PROSPECT_STATUSES.map(s => ({ value: s.value, label: s.label })),
-      ],
-    },
-    {
-      key: 'source',
-      label: 'Source',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Sources' },
-        { value: 'manual', label: 'Manual' },
-        { value: 'website', label: 'Website' },
-        { value: 'referral', label: 'Referral' },
-        { value: 'social', label: 'Social Media' },
-        { value: 'ads', label: 'Advertising' },
-      ],
-    },
-  ];
-
   // Row actions configuration
   const rowActions: DataTableRowAction<any>[] = [
     {
@@ -564,6 +539,56 @@ export default function LeadsPage() {
       {/* Pipeline Stats */}
       {pipelineStats && <StatsGrid stats={stats} columns={4} />}
 
+      {/* Filters - New Unified System */}
+      <TableFilters.Bar
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+      >
+        {/* Search Filter */}
+        <TableFilters.Search
+          value={rawFilters.search}
+          onChange={(value) => setFilter('search', value)}
+          placeholder="Search by name, email, or company..."
+        />
+
+        {/* Status Filter */}
+        <TableFilters.Select
+          value={rawFilters.status}
+          onChange={(value) => setFilter('status', value)}
+          options={[
+            { value: '', label: 'All Statuses' },
+            ...LEAD_STATUSES.map(s => ({ value: s.value, label: s.label })),
+          ]}
+          placeholder="All Statuses"
+        />
+
+        {/* Prospect Status Filter */}
+        <TableFilters.Select
+          value={rawFilters.prospect_status}
+          onChange={(value) => setFilter('prospect_status', value)}
+          options={[
+            { value: '', label: 'All Prospects' },
+            ...PROSPECT_STATUSES.map(s => ({ value: s.value, label: s.label })),
+          ]}
+          placeholder="All Prospects"
+        />
+
+        {/* Source Filter */}
+        <TableFilters.Select
+          value={rawFilters.source}
+          onChange={(value) => setFilter('source', value)}
+          options={[
+            { value: '', label: 'All Sources' },
+            { value: 'manual', label: 'Manual' },
+            { value: 'website', label: 'Website' },
+            { value: 'referral', label: 'Referral' },
+            { value: 'social', label: 'Social Media' },
+            { value: 'ads', label: 'Advertising' },
+          ]}
+          placeholder="All Sources"
+        />
+      </TableFilters.Bar>
+
       {/* Leads DataTable */}
       {isLoading ? (
         <LoadingState message="Loading leads..." size="lg" />
@@ -582,7 +607,6 @@ export default function LeadsPage() {
         <DataTable
           data={leadsData.items}
           columns={columns}
-          filters={filters}
           rowActions={rowActions}
           onRowClick={(row) => router.push(`/crm/leads/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}

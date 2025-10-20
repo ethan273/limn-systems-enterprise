@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useTableState } from "@/hooks/useTableFilters";
 import {
   Plus,
   Users,
@@ -26,8 +27,8 @@ import {
   DataTable,
   StatsGrid,
   StatusBadge,
+  TableFilters,
   type DataTableColumn,
-  type DataTableFilter,
   type DataTableRowAction,
   type StatItem,
 } from "@/components/common";
@@ -49,10 +50,24 @@ export default function CustomersPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [customerToDelete, setCustomerToDelete] = useState<any>(null);
 
-  const { data: customersData, isLoading, error } = api.customers.getAll.useQuery({
-    limit: 100,
-    offset: 0,
+  // Unified filter management with new hook
+  const {
+    rawFilters,
+    setFilter,
+    clearFilters,
+    hasActiveFilters,
+    queryParams,
+  } = useTableState({
+    initialFilters: {
+      search: '',
+      status: '',
+    },
+    debounceMs: 300,
+    pageSize: 100,
   });
+
+  // Backend query with unified params
+  const { data: customersData, isLoading, error } = api.customers.getAll.useQuery(queryParams);
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
@@ -157,24 +172,11 @@ export default function CustomersPage() {
     },
   ];
 
-  // DataTable filters configuration
-  const filters: DataTableFilter[] = [
-    {
-      key: 'search',
-      label: 'Search clients',
-      type: 'search',
-      placeholder: 'Search by name, email, or phone...',
-    },
-    {
-      key: 'status',
-      label: 'Status',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Statuses' },
-        { value: 'active', label: 'Active' },
-        { value: 'inactive', label: 'Inactive' },
-      ],
-    },
+  // Status filter options
+  const statusOptions = [
+    { value: '', label: 'All Statuses' },
+    { value: 'active', label: 'Active' },
+    { value: 'inactive', label: 'Inactive' },
   ];
 
   // Row actions configuration
@@ -256,7 +258,28 @@ export default function CustomersPage() {
       {/* Customer Stats */}
       <StatsGrid stats={stats} columns={3} />
 
-      {/* Clients DataTable */}
+      {/* Filters - New Unified System */}
+      <TableFilters.Bar
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+      >
+        {/* Search Filter */}
+        <TableFilters.Search
+          value={rawFilters.search}
+          onChange={(value) => setFilter('search', value)}
+          placeholder="Search by name, email, or phone..."
+        />
+
+        {/* Status Filter */}
+        <TableFilters.Select
+          value={rawFilters.status}
+          onChange={(value) => setFilter('status', value)}
+          options={statusOptions}
+          placeholder="All Statuses"
+        />
+      </TableFilters.Bar>
+
+      {/* Clients DataTable - No filters prop (server-side only) */}
       {isLoading ? (
         <LoadingState message="Loading clients..." size="lg" />
       ) : !customers || customers.length === 0 ? (
@@ -274,7 +297,6 @@ export default function CustomersPage() {
         <DataTable
           data={customers}
           columns={columns}
-          filters={filters}
           rowActions={rowActions}
           onRowClick={(row) => router.push(`/crm/customers/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}

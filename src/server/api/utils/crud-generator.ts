@@ -31,31 +31,53 @@ export function createCrudRouter<_T>(options: CrudOptions<_T>) {
 
   const procedure = protect ? protectedProcedure : publicProcedure;
   
-  // Pagination schema - all fields optional with defaults
+  // Pagination and filter schema - all fields optional with defaults
   const paginationSchema = z.object({
     limit: z.number().min(1).max(100).default(20),
     offset: z.number().min(0).default(0),
     orderBy: z.record(z.enum(['asc', 'desc'])).optional(),
     include: z.record(z.boolean()).optional(),
+    search: z.string().optional(),
+    status: z.string().optional(),
   }).partial().default({ limit: 20, offset: 0 });
 
   return createTRPCRouter({
-    // Get all with pagination
+    // Get all with pagination and filtering
     getAll: procedure
       .input(paginationSchema)
       .query(async ({ ctx, input }) => {
-        const { limit = 20, offset = 0, orderBy, include } = input;
+        const { limit = 20, offset = 0, orderBy, include, search, status } = input;
+
+        // Build where clause
+        const where: any = {};
+
+        // Add search filter
+        if (search) {
+          const searchConditions = searchFields.map(field => ({
+            [field]: {
+              contains: search,
+              mode: 'insensitive' as const,
+            },
+          }));
+          where.OR = searchConditions;
+        }
+
+        // Add status filter
+        if (status) {
+          where.status = status;
+        }
 
         // Type-safe model access with explicit any for dynamic access
         const modelAccess = (ctx.db as any)[model as string];
         const [items, total] = await ctx.db.$transaction([
           modelAccess.findMany({
+            where,
             take: limit,
             skip: offset,
             orderBy: orderBy || defaultOrderBy,
             include: include || defaultInclude,
           }),
-          modelAccess.count(),
+          modelAccess.count({ where }),
         ]) as [any[], number];
 
         return {
