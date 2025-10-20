@@ -42,3 +42,6 @@ export type { BreadcrumbsProps, BreadcrumbItem } from './Breadcrumbs';
 
 export { ErrorBoundary } from './ErrorBoundary';
 export { ErrorState } from './ErrorState';
+
+export { TableFilters, SearchFilter, SelectFilter, DateRangeFilter, FilterBar } from './TableFilters';
+export type { SearchFilterProps, SelectFilterProps, SelectOption as TableSelectOption, DateRangeFilterProps, FilterBarProps } from './TableFilters';

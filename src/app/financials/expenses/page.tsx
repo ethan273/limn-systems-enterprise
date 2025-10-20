@@ -1,13 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
+import { useTableState } from "@/hooks/useTableFilters";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DollarSign, Plus, AlertTriangle, RefreshCw, Search, X } from "lucide-react";
+import { TableFilters } from "@/components/common";
+import { DollarSign, Plus, AlertTriangle, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 
 export const dynamic = 'force-dynamic';
@@ -16,27 +15,29 @@ export default function ExpensesPage() {
   const router = useRouter();
   const { user: _user } = useAuth();
 
-  // Filter state
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState<string>("");
-  const [approvalStatus, setApprovalStatus] = useState<string>("");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
-
-  const { data, isLoading, error } = api.expenses.getAll.useQuery(
-    {
-      search: search || undefined,
-      category: category || undefined,
-      approval_status: approvalStatus || undefined,
-      dateFrom: dateFrom || undefined,
-      dateTo: dateTo || undefined,
-      limit: 100,
-      offset: 0,
+  // Unified filter management with new hook
+  const {
+    rawFilters,
+    setFilter,
+    clearFilters,
+    hasActiveFilters,
+    queryParams,
+  } = useTableState({
+    initialFilters: {
+      search: '',
+      category: '',
+      approval_status: '',
+      dateFrom: '',
+      dateTo: '',
     },
-    {
-      enabled: true,
-    }
-  );
+    debounceMs: 300,
+    pageSize: 100,
+  });
+
+  // Backend query with unified params
+  const { data, isLoading, error } = api.expenses.getAll.useQuery(queryParams, {
+    enabled: true,
+  });
 
   const utils = api.useUtils();
   const expenses = data?.items || [];
@@ -47,15 +48,18 @@ export default function ExpensesPage() {
   });
   const categories = categoriesData || [];
 
-  const handleClearFilters = () => {
-    setSearch("");
-    setCategory("");
-    setApprovalStatus("");
-    setDateFrom("");
-    setDateTo("");
-  };
+  // Transform categories to SelectOption format
+  const categoryOptions = [
+    { value: '', label: 'All Categories' },
+    ...categories.map((cat: string) => ({ value: cat, label: cat })),
+  ];
 
-  const hasActiveFilters = search || category || approvalStatus || dateFrom || dateTo;
+  const statusOptions = [
+    { value: '', label: 'All Statuses' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'approved', label: 'Approved' },
+    { value: 'rejected', label: 'Rejected' },
+  ];
 
   if (isLoading) {
     return (
@@ -101,89 +105,50 @@ export default function ExpensesPage() {
           <h1>Expenses</h1>
           <p className="text-tertiary">Company expense tracking and approval</p>
         </div>
-        <Button
-          onClick={() => router.push('/financials/expenses/new')}
-        >
+        <Button onClick={() => router.push('/financials/expenses/new')}>
           <Plus className="w-4 h-4 mr-2" />
           Add Expense
         </Button>
       </div>
 
-      {/* Filters */}
-      <div className="card mb-6">
-        <div className="p-4 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search expenses..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+      {/* Filters - New Unified System */}
+      <TableFilters.Bar
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+      >
+        {/* Search Filter */}
+        <TableFilters.Search
+          value={rawFilters.search}
+          onChange={(value) => setFilter('search', value)}
+          placeholder="Search expenses..."
+        />
 
-            {/* Category Filter */}
-            <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger>
-                <SelectValue placeholder="All Categories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">All Categories</SelectItem>
-                {categories.map((cat: string) => (
-                  <SelectItem key={cat} value={cat}>
-                    {cat}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        {/* Category Filter */}
+        <TableFilters.Select
+          value={rawFilters.category}
+          onChange={(value) => setFilter('category', value)}
+          options={categoryOptions}
+          placeholder="All Categories"
+        />
 
-            {/* Status Filter */}
-            <Select value={approvalStatus} onValueChange={setApprovalStatus}>
-              <SelectTrigger>
-                <SelectValue placeholder="All Statuses" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-              </SelectContent>
-            </Select>
+        {/* Status Filter */}
+        <TableFilters.Select
+          value={rawFilters.approval_status}
+          onChange={(value) => setFilter('approval_status', value)}
+          options={statusOptions}
+          placeholder="All Statuses"
+        />
 
-            {/* Date From */}
-            <Input
-              type="date"
-              placeholder="From Date"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-            />
-
-            {/* Date To */}
-            <Input
-              type="date"
-              placeholder="To Date"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-            />
-          </div>
-
-          {/* Clear Filters */}
-          {hasActiveFilters && (
-            <div className="flex justify-end">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleClearFilters}
-              >
-                <X className="w-4 h-4 mr-2" />
-                Clear Filters
-              </Button>
-            </div>
-          )}
+        {/* Date Range - Spans 2 columns */}
+        <div className="col-span-2">
+          <TableFilters.DateRange
+            fromValue={rawFilters.dateFrom}
+            toValue={rawFilters.dateTo}
+            onFromChange={(value) => setFilter('dateFrom', value)}
+            onToChange={(value) => setFilter('dateTo', value)}
+          />
         </div>
-      </div>
+      </TableFilters.Bar>
 
       {/* Results Count */}
       <div className="mb-4 text-sm text-muted-foreground">
