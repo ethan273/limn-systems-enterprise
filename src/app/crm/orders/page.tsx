@@ -23,18 +23,16 @@ export default function CRMOrdersPage() {
  const _router = useRouter();
  const { toast } = useToast();
 
- // Auth is handled by middleware - no client-side redirect needed
-
  // Query CRM ORDERS with production details, invoices, and payments
  const { data, isLoading, error } = api.orders.getWithProductionDetails.useQuery(
  {},
  { enabled: true } // Middleware ensures auth
  );
 
- // Get tRPC utils for cache invalidation
+ // Get tRPC utils for cache invalidation (must be before early returns)
  const utils = api.useUtils();
 
- // Mutation for creating invoice
+ // Mutation for creating invoice (must be before early returns)
  const createInvoiceMutation = api.productionInvoices.createForOrder.useMutation();
 
  // Filter by status and search query (client-side)
