@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ExpandableTableRowWithTrigger } from "@/components/ui/expandable-table-row";
-import { Search, Package, DollarSign, FileText, AlertCircle, AlertTriangle, RefreshCw } from "lucide-react";
+import { Search, Package, DollarSign, FileText, AlertCircle, AlertTriangle, RefreshCw, Edit } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
@@ -477,6 +477,16 @@ export default function CRMOrdersPage() {
  <p className="text-sm text-muted-foreground">No invoices generated yet</p>
  )}
  </div>
+
+          {/* Order Actions */}
+          <div className="flex justify-end pt-4 border-t">
+            <Link href={`/crm/orders/${order.id}/edit`}>
+              <Button variant="outline" size="sm">
+                <Edit className="h-4 w-4 mr-2" />
+                Edit Order
+              </Button>
+            </Link>
+          </div>
 
  </div>
  }
