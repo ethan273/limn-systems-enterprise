@@ -195,41 +195,9 @@ export const partnersRouter = createTRPCRouter({
   getById: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      const partner = await ctx.db.partners.findUnique({
+      const partner = await prisma.partners.findUnique({
         where: { id: input.id },
         include: {
-          contacts: {
-            where: { active: true },
-            orderBy: [{ is_primary: "desc" }, { created_at: "asc" }],
-          },
-          documents: {
-            orderBy: { created_at: "desc" },
-          },
-          production_orders: {
-            orderBy: { created_at: "desc" },
-            take: 10, // Latest 10 orders
-            select: {
-              id: true,
-              order_number: true,
-              item_name: true,
-              quantity: true,
-              total_cost: true,
-              status: true,
-              order_date: true,
-              estimated_ship_date: true,
-            },
-          },
-          partner_performance: {
-            orderBy: { period_start: "desc" },
-            take: 12, // Last 12 months
-          },
-          portal_user: {
-            select: {
-              id: true,
-              email: true,
-              last_sign_in_at: true,
-            },
-          },
           _count: {
             select: {
               production_orders: true,
