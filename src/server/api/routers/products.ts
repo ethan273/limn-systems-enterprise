@@ -171,6 +171,21 @@ export const productsRouter = createTRPCRouter({
     return collectionsWithCounts;
   }),
 
+  // Get single collection by ID
+  getCollectionById: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const collection = await (ctx.db as any).collections.findUnique({
+        where: { id: input.id },
+      });
+
+      if (!collection) {
+        throw new Error('Collection not found');
+      }
+
+      return collection;
+    }),
+
   // Add Collection
   createCollection: publicProcedure
     .input(

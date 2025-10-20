@@ -649,4 +649,117 @@ export const crmRouter = createTRPCRouter({
   leads: leadsRouter,
   customers: customersRouter,
   addresses: addressesRouter,
+
+  // Dashboard metrics endpoint
+  getDashboardMetrics: publicProcedure
+    .query(async ({ ctx }) => {
+      try {
+        // Get counts
+        const [totalContacts, totalLeads, totalCustomers, totalActivities] = await Promise.all([
+          ctx.db.contacts.count(),
+          ctx.db.leads.count(),
+          ctx.db.customers.count(),
+          ctx.db.activities.count(),
+        ]);
+
+        // Get recent activities (last 10)
+        const recentActivities = await ctx.db.activities.findMany({
+          orderBy: { created_at: 'desc' },
+          take: 10,
+          include: {
+            contacts: true,
+            leads: true,
+            customers: true,
+          },
+        });
+
+        // Get leads by status for pipeline visualization
+        const allLeads = await ctx.db.leads.findMany();
+        const leadsByStatus = allLeads.reduce((acc: Record<string, number>, lead) => {
+          const status = lead.status || 'unknown';
+          acc[status] = (acc[status] || 0) + 1;
+          return acc;
+        }, {});
+
+        // Calculate total pipeline value
+        const totalPipelineValue = allLeads.reduce((sum, lead) => {
+          return sum + (lead.lead_value ? Number(lead.lead_value) : 0);
+        }, 0);
+
+        // Get recent contacts (last 5)
+        const recentContacts = await ctx.db.contacts.findMany({
+          orderBy: { created_at: 'desc' },
+          take: 5,
+        });
+
+        // Get won/lost leads for conversion rate
+        const wonLeads = allLeads.filter(l => l.status === 'won').length;
+        const lostLeads = allLeads.filter(l => l.status === 'lost').length;
+        const closedLeads = wonLeads + lostLeads;
+        const conversionRate = closedLeads > 0 ? (wonLeads / closedLeads) * 100 : 0;
+
+        // Get activities by type
+        const allActivities = await ctx.db.activities.findMany();
+        const activitiesByType = allActivities.reduce((acc: Record<string, number>, activity) => {
+          const type = activity.type || 'other';
+          acc[type] = (acc[type] || 0) + 1;
+          return acc;
+        }, {});
+
+        return {
+          metrics: {
+            totalContacts,
+            totalLeads,
+            totalCustomers,
+            totalActivities,
+            totalPipelineValue,
+            conversionRate: Math.round(conversionRate * 10) / 10, // Round to 1 decimal
+          },
+          leadsByStatus: Object.entries(leadsByStatus).map(([status, count]) => ({
+            status,
+            count,
+          })),
+          activitiesByType: Object.entries(activitiesByType).map(([type, count]) => ({
+            type,
+            count,
+          })),
+          recentActivities: recentActivities.map(activity => ({
+            id: activity.id,
+            type: activity.type,
+            description: activity.description,
+            status: activity.status,
+            created_at: activity.created_at,
+            contact: activity.contacts,
+            lead: activity.leads,
+            customer: activity.customers,
+          })),
+          recentContacts: recentContacts.map(contact => ({
+            id: contact.id,
+            name: contact.name,
+            first_name: contact.first_name,
+            last_name: contact.last_name,
+            email: contact.email,
+            company: contact.company,
+            created_at: contact.created_at,
+          })),
+        };
+      } catch (error) {
+        console.error('[getDashboardMetrics] Error:', error);
+        // Return safe defaults on error
+        return {
+          metrics: {
+            totalContacts: 0,
+            totalLeads: 0,
+            totalCustomers: 0,
+            totalActivities: 0,
+            totalPipelineValue: 0,
+            conversionRate: 0,
+          },
+          leadsByStatus: [],
+          activitiesByType: [],
+          recentActivities: [],
+          recentContacts: [],
+        };
+      }
+    }),
 });
