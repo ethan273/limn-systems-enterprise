@@ -79,28 +79,25 @@ export default function CRMPage() {
           title="Total Contacts"
           value={metrics.totalContacts.toString()}
           icon={Users}
-          trend={metrics.totalContacts > 0 ? 'up' : undefined}
-          href="/crm/contacts"
+          iconColor="info"
         />
         <DashboardStatCard
           title="Active Leads"
           value={metrics.totalLeads.toString()}
           icon={TrendingUp}
-          trend={metrics.totalLeads > 0 ? 'up' : undefined}
-          href="/crm/leads"
+          iconColor="primary"
         />
         <DashboardStatCard
           title="Customers"
           value={metrics.totalCustomers.toString()}
           icon={Building2}
-          trend={metrics.totalCustomers > 0 ? 'up' : undefined}
-          href="/crm/customers"
+          iconColor="success"
         />
         <DashboardStatCard
           title="Conversion Rate"
           value={`${metrics.conversionRate}%`}
           icon={Activity}
-          trend={metrics.conversionRate > 50 ? 'up' : metrics.conversionRate > 0 ? 'down' : undefined}
+          iconColor={metrics.conversionRate > 50 ? 'success' : 'warning'}
         />
       </div>
 
@@ -205,12 +202,12 @@ export default function CRMPage() {
                       </p>
                     </div>
                     <span
-                      className={`text-xs px-2 py-1 rounded-full ${
+                      className={`status-badge text-xs px-2 py-1 rounded-full ${
                         activity.status === 'completed'
-                          ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                          ? 'status-completed'
                           : activity.status === 'pending'
-                          ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-                          : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'
+                          ? 'status-pending'
+                          : ''
                       }`}
                     >
                       {activity.status}
