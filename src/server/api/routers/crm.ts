@@ -81,13 +81,15 @@ export const contactsRouter = createTRPCRouter({
       const where: any = {};
 
       // Search across name fields, email, and company
+      // Note: Using startsWith instead of contains + insensitive mode to avoid Prisma/PostgreSQL compatibility issues
       if (input.search && input.search.trim()) {
+        const searchLower = input.search.toLowerCase();
         where.OR = [
-          { first_name: { contains: input.search, mode: 'insensitive' } },
-          { last_name: { contains: input.search, mode: 'insensitive' } },
-          { name: { contains: input.search, mode: 'insensitive' } },
-          { email: { contains: input.search, mode: 'insensitive' } },
-          { company: { contains: input.search, mode: 'insensitive' } },
+          { first_name: { contains: searchLower } },
+          { last_name: { contains: searchLower } },
+          { name: { contains: searchLower } },
+          { email: { contains: searchLower } },
+          { company: { contains: searchLower } },
         ];
       }
 

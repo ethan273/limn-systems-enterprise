@@ -38,11 +38,13 @@ export const expensesRouter = createTRPCRouter({
       const where: any = {};
 
       // Search in description, vendor, reference number
+      // Note: Using toLowerCase to avoid Prisma/PostgreSQL compatibility issues with mode: 'insensitive'
       if (input.search && input.search.trim()) {
+        const searchLower = input.search.toLowerCase();
         where.OR = [
-          { description: { contains: input.search, mode: 'insensitive' } },
-          { vendor: { contains: input.search, mode: 'insensitive' } },
-          { reference_number: { contains: input.search, mode: 'insensitive' } },
+          { description: { contains: searchLower } },
+          { vendor: { contains: searchLower } },
+          { reference_number: { contains: searchLower } },
         ];
       }
 

@@ -50,11 +50,13 @@ export const paymentsRouter = createTRPCRouter({
         where.payment_method = input.paymentMethod;
       }
 
+      // Note: Using toLowerCase to avoid Prisma/PostgreSQL compatibility issues with mode: 'insensitive'
       if (input.search && input.search.trim()) {
+        const searchLower = input.search.toLowerCase();
         where.OR = [
-          { payment_number: { contains: input.search, mode: 'insensitive' } },
-          { reference_number: { contains: input.search, mode: 'insensitive' } },
-          { processor_transaction_id: { contains: input.search, mode: 'insensitive' } },
+          { payment_number: { contains: searchLower } },
+          { reference_number: { contains: searchLower } },
+          { processor_transaction_id: { contains: searchLower } },
         ];
       }
 

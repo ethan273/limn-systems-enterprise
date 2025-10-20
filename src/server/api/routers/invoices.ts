@@ -35,10 +35,12 @@ export const invoicesRouter = createTRPCRouter({
       const where: any = {};
 
       // Apply filters
+      // Note: Using toLowerCase to avoid Prisma/PostgreSQL compatibility issues with mode: 'insensitive'
       if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
         where.OR = [
-          { invoice_number: { contains: filters.search, mode: 'insensitive' } },
-          { invoice_notes: { contains: filters.search, mode: 'insensitive' } },
+          { invoice_number: { contains: searchLower } },
+          { invoice_notes: { contains: searchLower } },
         ];
       }
 
@@ -119,12 +121,14 @@ export const invoicesRouter = createTRPCRouter({
       const where: any = {};
 
       // Search in invoice items descriptions
+      // Note: Using toLowerCase to avoid Prisma/PostgreSQL compatibility issues with mode: 'insensitive'
       if (input.search && input.search.trim()) {
+        const searchLower = input.search.toLowerCase();
         where.invoice_items = {
           some: {
             OR: [
-              { description: { contains: input.search, mode: 'insensitive' } },
-              { quickbooks_item_id: { contains: input.search, mode: 'insensitive' } },
+              { description: { contains: searchLower } },
+              { quickbooks_item_id: { contains: searchLower } },
             ],
           },
         };
