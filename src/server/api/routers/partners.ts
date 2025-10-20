@@ -16,7 +16,7 @@ import { TRPCError } from "@trpc/server";
 
 // Zod Schemas for validation
 const createPartnerSchema = z.object({
-  type: z.enum(["factory", "designer"]),
+  type: z.enum(["factory", "designer", "sourcing"]),
 
   // Company Information
   company_name: z.string().min(1, "Company name is required"),
@@ -90,6 +90,19 @@ const partnerContactSchema = z.object({
   languages: z.array(z.string()).default([]),
   active: z.boolean().default(true),
   notes: z.string().optional(),
+
+  // Employee Management Fields
+  user_id: z.string().uuid().optional().nullable(),
+  portal_role: z.string().default("viewer"),
+  portal_access_enabled: z.boolean().default(false),
+  portal_modules_allowed: z.array(z.string()).default([]),
+  employee_id: z.string().optional().nullable(),
+  department: z.string().optional().nullable(),
+  employment_status: z.enum(["active", "inactive", "terminated", "suspended"]).default("active"),
+  employment_start_date: z.date().optional().nullable(),
+  employment_end_date: z.date().optional().nullable(),
+  qc_specializations: z.array(z.string()).default([]),
+  certifications: z.array(z.string()).default([]),
 });
 
 const partnerDocumentSchema = z.object({
@@ -111,7 +124,7 @@ export const partnersRouter = createTRPCRouter({
   getAll: protectedProcedure
     .input(
       z.object({
-        type: z.enum(["factory", "designer", "all"]).optional().default("all"),
+        type: z.enum(["factory", "designer", "sourcing", "all"]).optional().default("all"),
         status: z.enum(["active", "inactive", "pending_approval", "suspended", "all"]).optional().default("all"),
         search: z.string().optional(),
         limit: z.number().min(1).max(100).optional().default(50),
@@ -282,6 +295,23 @@ export const partnersRouter = createTRPCRouter({
       return partner;
     }),
 
+  // Convenience method for creating a sourcing partner
+  createSourcing: protectedProcedure
+    .input(createPartnerSchema.omit({ type: true }))
+    .mutation(async ({ ctx, input }) => {
+      const partner = await ctx.db.partners.create({
+        data: {
+          ...input,
+          type: 'sourcing',
+        },
+        include: {
+          contacts: true,
+        },
+      });
+
+      return partner;
+    }),
+
   // Alias methods for getAll filtered by type
   getDesigners: protectedProcedure
     .input(z.object({
@@ -375,6 +405,52 @@ export const partnersRouter = createTRPCRouter({
       };
     }),
 
+  getSourcing: protectedProcedure
+    .input(z.object({
+      status: z.enum(["active", "inactive", "pending_approval", "suspended", "all"]).optional().default("all"),
+      search: z.string().optional(),
+      limit: z.number().min(1).max(100).optional().default(50),
+      offset: z.number().min(0).optional().default(0),
+    }))
+    .query(async ({ ctx, input }) => {
+      const where: Record<string, unknown> = { type: 'sourcing' };
+
+      if (input.status !== "all") {
+        where.status = input.status;
+      }
+
+      if (input.search && input.search.trim() !== "") {
+        where.OR = [
+          { company_name: { contains: input.search, mode: "insensitive" } },
+          { business_name: { contains: input.search, mode: "insensitive" } },
+          { primary_contact: { contains: input.search, mode: "insensitive" } },
+          { primary_email: { contains: input.search, mode: "insensitive" } },
+        ];
+      }
+
+      const [partners, total] = await Promise.all([
+        ctx.db.partners.findMany({
+          where,
+          take: input.limit,
+          skip: input.offset,
+          orderBy: { created_at: "desc" },
+          include: {
+            contacts: {
+              where: { active: true },
+              orderBy: { is_primary: "desc" },
+            },
+          },
+        }),
+        ctx.db.partners.count({ where }),
+      ]);
+
+      return {
+        partners,
+        total,
+        hasMore: input.offset + input.limit < total,
+      };
+    }),
+
   // Update partner
   update: protectedProcedure
     .input(updatePartnerSchema)
@@ -426,6 +502,78 @@ export const partnersRouter = createTRPCRouter({
 
   // Partner Contacts Management
   contacts: createTRPCRouter({
+    // List all contacts for a partner
+    list: protectedProcedure
+      .input(
+        z.object({
+          partner_id: z.string().uuid(),
+          include_inactive: z.boolean().optional().default(false),
+        })
+      )
+      .query(async ({ ctx, input }) => {
+        const where: Record<string, unknown> = {
+          partner_id: input.partner_id,
+        };
+
+        if (!input.include_inactive) {
+          where.active = true;
+        }
+
+        const contacts = await ctx.db.partner_contacts.findMany({
+          where,
+          orderBy: [
+            { is_primary: "desc" },
+            { employment_status: "asc" },
+            { created_at: "asc" },
+          ],
+          include: {
+            portal_user: {
+              select: {
+                id: true,
+                email: true,
+                last_sign_in_at: true,
+              },
+            },
+          },
+        });
+
+        return contacts;
+      }),
+
+    // Get single contact by ID
+    getById: protectedProcedure
+      .input(z.object({ id: z.string().uuid() }))
+      .query(async ({ ctx, input }) => {
+        const contact = await ctx.db.partner_contacts.findUnique({
+          where: { id: input.id },
+          include: {
+            partner: {
+              select: {
+                id: true,
+                company_name: true,
+                type: true,
+              },
+            },
+            portal_user: {
+              select: {
+                id: true,
+                email: true,
+                last_sign_in_at: true,
+              },
+            },
+          },
+        });
+
+        if (!contact) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Contact not found",
+          });
+        }
+
+        return contact;
+      }),
+
     // Add contact to partner
     create: protectedProcedure
       .input(partnerContactSchema)
@@ -452,14 +600,102 @@ export const partnersRouter = createTRPCRouter({
         return contact;
       }),
 
-    // Delete contact
+    // Delete contact (soft delete by setting active to false)
     delete: protectedProcedure
       .input(z.object({ id: z.string().uuid() }))
       .mutation(async ({ ctx, input }) => {
-        await ctx.db.partner_contacts.delete({
+        const contact = await ctx.db.partner_contacts.update({
           where: { id: input.id },
+          data: {
+            active: false,
+            portal_access_enabled: false,
+            employment_status: "terminated",
+            employment_end_date: new Date(),
+          },
         });
-        return { success: true };
+        return contact;
+      }),
+
+    // Assign portal access to an employee
+    assignPortalAccess: protectedProcedure
+      .input(
+        z.object({
+          contact_id: z.string().uuid(),
+          portal_role: z.string(),
+          portal_modules: z.array(z.string()),
+          send_magic_link: z.boolean().default(false),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const { contact_id, portal_role, portal_modules, send_magic_link } = input;
+
+        // Get the contact to validate it exists and get email
+        const contact = await ctx.db.partner_contacts.findUnique({
+          where: { id: contact_id },
+          include: {
+            partner: {
+              select: {
+                type: true,
+                company_name: true,
+              },
+            },
+          },
+        });
+
+        if (!contact) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Contact not found",
+          });
+        }
+
+        // Check if user already exists with this email
+        let userId = contact.user_id;
+
+        if (!userId) {
+          // TODO: Create user in Supabase Auth
+          // For now, we'll just update the portal settings
+          // In a real implementation, you would call Supabase Admin API here
+          // to create the user and get their ID
+          throw new TRPCError({
+            code: "NOT_IMPLEMENTED",
+            message: "User creation not yet implemented. Please create user manually first.",
+          });
+        }
+
+        // Update contact with portal access
+        const updatedContact = await ctx.db.partner_contacts.update({
+          where: { id: contact_id },
+          data: {
+            user_id: userId,
+            portal_role,
+            portal_access_enabled: true,
+            portal_modules_allowed: portal_modules,
+            last_login_at: null, // Reset login tracking
+          },
+        });
+
+        // TODO: Send magic link if requested
+        if (send_magic_link) {
+          // Implementation would go here
+          // This would call Supabase Auth API to send magic link
+        }
+
+        return updatedContact;
+      }),
+
+    // Revoke portal access
+    revokePortalAccess: protectedProcedure
+      .input(z.object({ contact_id: z.string().uuid() }))
+      .mutation(async ({ ctx, input }) => {
+        const contact = await ctx.db.partner_contacts.update({
+          where: { id: input.contact_id },
+          data: {
+            portal_access_enabled: false,
+            portal_modules_allowed: [],
+          },
+        });
+        return contact;
       }),
   }),
 
@@ -565,7 +801,7 @@ export const partnersRouter = createTRPCRouter({
   getForSelection: protectedProcedure
     .input(
       z.object({
-        type: z.enum(["factory", "designer", "all"]).optional().default("all"),
+        type: z.enum(["factory", "designer", "sourcing", "all"]).optional().default("all"),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -591,6 +827,76 @@ export const partnersRouter = createTRPCRouter({
 
       return partners;
     }),
+
+  // Portal Roles Management
+  portalRoles: createTRPCRouter({
+    // Get roles for a specific partner type
+    getByPartnerType: protectedProcedure
+      .input(
+        z.object({
+          partner_type: z.enum(["factory", "designer", "sourcing", "all"]),
+        })
+      )
+      .query(async ({ ctx, input }) => {
+        const where: Record<string, unknown> = {};
+
+        if (input.partner_type !== "all") {
+          where.OR = [
+            { partner_type: input.partner_type },
+            { partner_type: "all" }, // Include universal roles
+          ];
+        }
+
+        const roles = await ctx.db.partner_portal_roles.findMany({
+          where,
+          orderBy: [
+            { is_system_role: "desc" },
+            { role_label: "asc" },
+          ],
+        });
+
+        return roles;
+      }),
+
+    // Get available portal modules
+    getAvailableModules: protectedProcedure
+      .input(
+        z.object({
+          partner_type: z.enum(["factory", "designer", "sourcing"]),
+        })
+      )
+      .query(async ({ input }) => {
+        // Define available modules per partner type
+        const modulesByType: Record<string, Array<{ key: string; label: string; description: string }>> = {
+          factory: [
+            { key: "dashboard", label: "Dashboard", description: "Overview and metrics" },
+            { key: "orders", label: "Orders", description: "Production orders management" },
+            { key: "production", label: "Production", description: "Production tracking" },
+            { key: "qc", label: "Quality Control", description: "QC inspections" },
+            { key: "shipping", label: "Shipping", description: "Shipment tracking" },
+            { key: "documents", label: "Documents", description: "Documents and files" },
+            { key: "settings", label: "Settings", description: "Account settings" },
+          ],
+          sourcing: [
+            { key: "dashboard", label: "Dashboard", description: "Overview and metrics" },
+            { key: "qc", label: "Quality Control", description: "QC inspections" },
+            { key: "inspections", label: "Inspections", description: "Inspection management" },
+            { key: "history", label: "History", description: "Activity history" },
+            { key: "documents", label: "Documents", description: "Documents and files" },
+            { key: "settings", label: "Settings", description: "Account settings" },
+          ],
+          designer: [
+            { key: "dashboard", label: "Dashboard", description: "Overview and metrics" },
+            { key: "projects", label: "Projects", description: "Design projects" },
+            { key: "briefs", label: "Briefs", description: "Design briefs" },
+            { key: "documents", label: "Documents", description: "Documents and files" },
+            { key: "settings", label: "Settings", description: "Account settings" },
+          ],
+        };
+
+        return modulesByType[input.partner_type] || [];
+      }),
+  }),
 
   // Get partner by portal user (for factory portal)
   getByPortalUser: protectedProcedure.query(async ({ ctx }) => {
