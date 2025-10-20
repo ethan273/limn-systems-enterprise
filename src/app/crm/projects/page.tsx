@@ -360,6 +360,9 @@ export default function ProjectsPage() {
  });
  const _customers = customersData?.items || [];
 
+ // Get tRPC utils for cache invalidation (must be before early returns)
+ const utils = api.useUtils();
+
  // Loading state check
  if (isLoadingProjects || isLoadingMaterials || isLoadingCollections || isLoadingCustomers) {
    return (
@@ -444,9 +447,6 @@ export default function ProjectsPage() {
  setSelectedProject(project);
  setIsProjectDialogOpen(true);
  };
-
- // Get tRPC utils for cache invalidation
- const utils = api.useUtils();
 
  const createProjectMutation = api.projects.create.useMutation();
  const updateProjectMutation = api.projects.update.useMutation();
