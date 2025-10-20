@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
+import { useTableState } from "@/hooks/useTableFilters";
+import { TableFilters } from "@/components/common";
 import { Badge } from "@/components/ui/badge";
 import {
   FileText,
@@ -21,7 +23,6 @@ import {
   DataTable,
   StatsGrid,
   type DataTableColumn,
-  type DataTableFilter,
   type StatItem,
 } from "@/components/common";
 
@@ -54,38 +55,42 @@ const statusConfig: Record<string, {
 
 export default function ShopDrawingsPage() {
   const router = useRouter();
-  const [searchQuery, _setSearchQuery] = useState("");
-  const [orderFilter, _setOrderFilter] = useState<string>("all");
-  const [factoryFilter, _setFactoryFilter] = useState<string>("all");
-  const [statusFilter, _setStatusFilter] = useState<string>("all");
-  const [page, _setPage] = useState(0);
-  const limit = 20;
+
+  // Unified filter management with new hook
+  const {
+    rawFilters,
+    setFilter,
+    clearFilters,
+    hasActiveFilters,
+    queryParams,
+  } = useTableState({
+    initialFilters: {
+      search: '',
+      status: '',
+    },
+    debounceMs: 300,
+    pageSize: 20,
+  });
+
   const utils = api.useUtils();
 
-  // Fetch shop drawings with filters
-  const { data, isLoading, error } = api.shopDrawings.getAll.useQuery({
-    productionOrderId: orderFilter === "all" ? undefined : orderFilter,
-    factoryId: factoryFilter === "all" ? undefined : factoryFilter,
-    status: statusFilter === "all" ? undefined : statusFilter,
-    search: searchQuery || undefined,
-    limit,
-    offset: page * limit,
-  });
-
-  // Fetch production orders for filter
-  const { data: ordersData, error: ordersError } = api.productionOrders.getAll.useQuery({
-    limit: 100,
-  });
-
-  // Fetch factories for filter
-  const { data: factoriesData, error: factoriesError } = api.partners.getAll.useQuery({
-    type: "factory",
-    limit: 100,
+  // Backend query with unified params
+  const { data, isLoading, error } = api.shopDrawings.getAll.useQuery(queryParams, {
+    enabled: true,
   });
 
   const drawings = data?.drawings ?? [];
   const total = data?.total ?? 0;
-  const _hasMore = data?.hasMore ?? false;
+
+  // Status options for filter
+  const statusOptions = [
+    { value: '', label: 'All Statuses' },
+    { value: 'in_review', label: 'In Review' },
+    { value: 'designer_approved', label: 'Designer Approved' },
+    { value: 'approved', label: 'Approved' },
+    { value: 'rejected', label: 'Rejected' },
+    { value: 'revision_requested', label: 'Revision Requested' },
+  ];
 
   const stats: StatItem[] = [
     {
@@ -118,45 +123,6 @@ export default function ShopDrawingsPage() {
     },
   ];
 
-  const filters: DataTableFilter[] = [
-    {
-      key: "order",
-      label: "Production Order",
-      type: "select",
-      options: [
-        { label: "All Orders", value: "all" },
-        ...(ordersData?.items?.map((order: any) => ({
-          label: `${order.order_number} - ${order.item_name}`,
-          value: order.id,
-        })) || []),
-      ],
-    },
-    {
-      key: "factory",
-      label: "Factory",
-      type: "select",
-      options: [
-        { label: "All Factories", value: "all" },
-        ...(factoriesData?.partners?.map((factory: any) => ({
-          label: factory.company_name,
-          value: factory.id,
-        })) || []),
-      ],
-    },
-    {
-      key: "status",
-      label: "Status",
-      type: "select",
-      options: [
-        { label: "All Statuses", value: "all" },
-        { label: "In Review", value: "in_review" },
-        { label: "Designer Approved", value: "designer_approved" },
-        { label: "Approved", value: "approved" },
-        { label: "Rejected", value: "rejected" },
-        { label: "Revision Requested", value: "revision_requested" },
-      ],
-    },
-  ];
 
   const columns: DataTableColumn<typeof drawings[0]>[] = [
     {
@@ -283,24 +249,44 @@ export default function ShopDrawingsPage() {
 
       <StatsGrid stats={stats} />
 
+      {/* Filters - New Unified System */}
+      <TableFilters.Bar
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+      >
+        {/* Search Filter */}
+        <TableFilters.Search
+          value={rawFilters.search}
+          onChange={(value) => setFilter('search', value)}
+          placeholder="Search shop drawings..."
+        />
+
+        {/* Status Filter */}
+        <TableFilters.Select
+          value={rawFilters.status}
+          onChange={(value) => setFilter('status', value)}
+          options={statusOptions}
+          placeholder="All Statuses"
+        />
+      </TableFilters.Bar>
+
       {isLoading ? (
         <LoadingState message="Loading shop drawings..." />
-      ) : drawings.length === 0 && !searchQuery && orderFilter === "all" && factoryFilter === "all" && statusFilter === "all" ? (
+      ) : drawings.length === 0 ? (
         <EmptyState
           icon={FileText}
           title="No Shop Drawings Found"
-          description="Get started by uploading your first shop drawing."
-          action={{
+          description={hasActiveFilters ? "Try adjusting your filters to see more results." : "Get started by uploading your first shop drawing."}
+          action={!hasActiveFilters ? {
             label: "Upload First Drawing",
             icon: Plus,
             onClick: () => router.push("/production/shop-drawings/new"),
-          }}
+          } : undefined}
         />
       ) : (
         <DataTable
           data={drawings as any[]}
           columns={columns}
-          filters={filters}
           onRowClick={(row) => router.push(`/production/shop-drawings/${row.id}`)}
           emptyState={{
             icon: FileText,
@@ -308,9 +294,9 @@ export default function ShopDrawingsPage() {
             description: "Try adjusting your filters to see more results.",
           }}
           pagination={
-            total > limit
+            total > 20
               ? {
-                  pageSize: limit,
+                  pageSize: 20,
                   showSizeSelector: false,
                 }
               : undefined

@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { toast } from "sonner";
 import { getFullName } from "@/lib/utils/name-utils";
+import { useTableState } from '@/hooks/useTableFilters';
+import { TableFilters } from "@/components/common";
 import {
   Plus,
   Building,
@@ -30,7 +32,6 @@ import {
   StatusBadge,
   type FormField,
   type DataTableColumn,
-  type DataTableFilter,
   type DataTableRowAction,
   type StatItem,
 } from "@/components/common";
@@ -56,10 +57,24 @@ export default function ClientsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [clientToDelete, setClientToDelete] = useState<any>(null);
 
-  const { data: customersData, isLoading, error } = api.crm.customers.getAll.useQuery({
-    limit: 100,
-    offset: 0,
+  // Unified filter management with new hook
+  const {
+    rawFilters,
+    setFilter,
+    clearFilters,
+    hasActiveFilters,
+    queryParams,
+  } = useTableState({
+    initialFilters: {
+      search: '',
+      status: '',
+      type: '',
+    },
+    debounceMs: 300,
+    pageSize: 100,
   });
+
+  const { data: customersData, isLoading, error } = api.crm.customers.getAll.useQuery(queryParams);
 
   const customers = useMemo(() => customersData?.items || [], [customersData?.items]);
 
@@ -286,37 +301,20 @@ export default function ClientsPage() {
     },
   ];
 
-  // DataTable filters configuration
-  const filters: DataTableFilter[] = [
-    {
-      key: 'search',
-      label: 'Search clients',
-      type: 'search',
-      placeholder: 'Search by name, email, or company...',
-    },
-    {
-      key: 'status',
-      label: 'Status',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Status' },
-        { value: 'active', label: 'Active' },
-        { value: 'inactive', label: 'Inactive' },
-        { value: 'pending', label: 'Pending' },
-        { value: 'suspended', label: 'Suspended' },
-      ],
-    },
-    {
-      key: 'type',
-      label: 'Type',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Types' },
-        { value: 'individual', label: 'Individual' },
-        { value: 'business', label: 'Business' },
-        { value: 'enterprise', label: 'Enterprise' },
-      ],
-    },
+  // Transform filter options
+  const statusOptions = [
+    { value: '', label: 'All Status' },
+    { value: 'active', label: 'Active' },
+    { value: 'inactive', label: 'Inactive' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'suspended', label: 'Suspended' },
+  ];
+
+  const typeOptions = [
+    { value: '', label: 'All Types' },
+    { value: 'individual', label: 'Individual' },
+    { value: 'business', label: 'Business' },
+    { value: 'enterprise', label: 'Enterprise' },
   ];
 
   // Row actions configuration
@@ -437,6 +435,32 @@ export default function ClientsPage() {
       {/* Stats Grid */}
       <StatsGrid stats={stats} columns={4} />
 
+      {/* Filters - New Unified System */}
+      <TableFilters.Bar
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+      >
+        <TableFilters.Search
+          value={rawFilters.search}
+          onChange={(value) => setFilter('search', value)}
+          placeholder="Search by name, email, or company..."
+        />
+
+        <TableFilters.Select
+          value={rawFilters.status}
+          onChange={(value) => setFilter('status', value)}
+          options={statusOptions}
+          placeholder="All Status"
+        />
+
+        <TableFilters.Select
+          value={rawFilters.type}
+          onChange={(value) => setFilter('type', value)}
+          options={typeOptions}
+          placeholder="All Types"
+        />
+      </TableFilters.Bar>
+
       {/* Clients DataTable */}
       {isLoading ? (
         <LoadingState message="Loading clients..." size="lg" />
@@ -444,7 +468,9 @@ export default function ClientsPage() {
         <EmptyState
           icon={Building}
           title="No clients found"
-          description="Get started by creating your first client."
+          description={hasActiveFilters
+            ? "Try adjusting your filters to see more results."
+            : "Get started by creating your first client."}
           action={{
             label: 'Add Client',
             onClick: () => setIsCreateDialogOpen(true),
@@ -455,7 +481,6 @@ export default function ClientsPage() {
         <DataTable
           data={customers}
           columns={columns}
-          filters={filters}
           rowActions={rowActions}
           onRowClick={(row) => router.push(`/crm/customers/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}

@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { api } from "@/lib/api/client";
+import { useTableState } from "@/hooks/useTableFilters";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -14,9 +15,9 @@ import {
   LoadingState,
   DataTable,
   StatusBadge,
+  TableFilters,
   type FormField,
   type DataTableColumn,
-  type DataTableFilter,
   type DataTableRowAction,
 } from "@/components/common";
 import {
@@ -103,6 +104,20 @@ export default function MaterialsPage() {
   const [editingItem, setEditingItem] = useState<MaterialItem | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<MaterialItem | null>(null);
+
+  // Unified filter management with new hook
+  const {
+    rawFilters,
+    setFilter,
+    clearFilters,
+    hasActiveFilters,
+  } = useTableState({
+    initialFilters: {
+      search: '',
+    },
+    debounceMs: 300,
+    pageSize: 100,
+  });
 
   const activeCategory = materialCategories.find((cat) => cat.key === activeTab);
   const activeHierarchy = activeCategory?.hierarchy.find((h) => h.key === activeHierarchyLevel);
@@ -428,15 +443,6 @@ export default function MaterialsPage() {
     return cols;
   }, [activeHierarchyLevel, activeHierarchy, activeCategory, getParentName]);
 
-  // DataTable filters
-  const filters: DataTableFilter[] = [
-    {
-      key: "search",
-      label: `Search ${activeHierarchy?.label.toLowerCase() || "items"}`,
-      type: "search",
-      placeholder: "Search by name or description...",
-    },
-  ];
 
   // Row actions configuration
   const rowActions: DataTableRowAction<MaterialItem>[] = [
@@ -531,6 +537,19 @@ export default function MaterialsPage() {
                 </Button>
               </div>
 
+              {/* Filters - New Unified System */}
+              <TableFilters.Bar
+                hasActiveFilters={hasActiveFilters}
+                onClearFilters={clearFilters}
+              >
+                {/* Search Filter */}
+                <TableFilters.Search
+                  value={rawFilters.search}
+                  onChange={(value) => setFilter('search', value)}
+                  placeholder="Search by name or description..."
+                />
+              </TableFilters.Bar>
+
               {/* DataTable */}
               {isLoading ? (
                 <LoadingState message={`Loading ${activeHierarchy?.label.toLowerCase()}...`} size="lg" />
@@ -538,7 +557,9 @@ export default function MaterialsPage() {
                 <EmptyState
                   icon={category.icon}
                   title={`No ${activeHierarchy?.label.toLowerCase()} found`}
-                  description={`Start by adding your first ${activeHierarchy?.label.toLowerCase().slice(0, -1)}.`}
+                  description={hasActiveFilters
+                    ? "Try adjusting your filters to see more results."
+                    : `Start by adding your first ${activeHierarchy?.label.toLowerCase().slice(0, -1)}.`}
                   action={{
                     label: `Add First ${activeHierarchy?.label.slice(0, -1)}`,
                     onClick: () => {
@@ -552,7 +573,6 @@ export default function MaterialsPage() {
                 <DataTable
                   data={currentData as any[]}
                   columns={columns as any}
-                  filters={filters}
                   rowActions={rowActions as any}
                   pagination={{ pageSize: 20, showSizeSelector: true }}
                   emptyState={{

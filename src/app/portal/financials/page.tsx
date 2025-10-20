@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
+import { useTableState } from "@/hooks/useTableFilters";
 import {
   DollarSign,
   FileText,
@@ -17,12 +18,11 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import {
   PageHeader,
-  DataTable,
+  TableFilters,
   StatsGrid,
   EmptyState,
   LoadingState,
   type DataTableColumn,
-  type DataTableFilter,
   type StatItem,
 } from "@/components/common";
 import { QuickBooksPaymentButton } from "@/components/portal";
@@ -90,10 +90,25 @@ export default function FinancialsPage() {
   const router = useRouter();
   const utils = api.useUtils();
 
-  const { data, isLoading, error } = api.portal.getCustomerInvoices.useQuery({
-    status: undefined,
-    limit: 100,
-    offset: 0,
+  // Unified filter management with new hook
+  const {
+    rawFilters,
+    setFilter,
+    clearFilters,
+    hasActiveFilters,
+    queryParams,
+  } = useTableState({
+    initialFilters: {
+      search: '',
+      status: '',
+    },
+    debounceMs: 300,
+    pageSize: 100,
+  });
+
+  // Backend query with unified params
+  const { data, isLoading, error } = api.portal.getCustomerInvoices.useQuery(queryParams, {
+    enabled: true,
   });
 
   // Handle query error
@@ -156,6 +171,18 @@ export default function FinancialsPage() {
       icon: AlertCircle,
       iconColor: 'destructive',
     },
+  ];
+
+  // Transform status options to SelectOption format
+  const statusOptions = [
+    { value: '', label: 'All Statuses' },
+    { value: 'draft', label: 'Draft' },
+    { value: 'sent', label: 'Sent' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'partial', label: 'Partially Paid' },
+    { value: 'paid', label: 'Paid' },
+    { value: 'overdue', label: 'Overdue' },
+    { value: 'cancelled', label: 'Cancelled' },
   ];
 
   const columns: DataTableColumn<any>[] = [
@@ -252,30 +279,6 @@ export default function FinancialsPage() {
     },
   ];
 
-  const filters: DataTableFilter[] = [
-    {
-      key: 'search',
-      label: 'Search invoices',
-      type: 'search',
-      placeholder: 'Search invoice number or project...',
-    },
-    {
-      key: 'status',
-      label: 'Status',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Statuses' },
-        { value: 'draft', label: 'Draft' },
-        { value: 'sent', label: 'Sent' },
-        { value: 'pending', label: 'Pending' },
-        { value: 'partial', label: 'Partially Paid' },
-        { value: 'paid', label: 'Paid' },
-        { value: 'overdue', label: 'Overdue' },
-        { value: 'cancelled', label: 'Cancelled' },
-      ],
-    },
-  ];
-
   return (
     <div className="page-container">
       <PageHeader
@@ -285,27 +288,119 @@ export default function FinancialsPage() {
 
       <StatsGrid stats={stats} columns={4} />
 
+      {/* Filters - New Unified System */}
+      <TableFilters.Bar
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+      >
+        {/* Search Filter */}
+        <TableFilters.Search
+          value={rawFilters.search}
+          onChange={(value) => setFilter('search', value)}
+          placeholder="Search invoice number or project..."
+        />
+
+        {/* Status Filter */}
+        <TableFilters.Select
+          value={rawFilters.status}
+          onChange={(value) => setFilter('status', value)}
+          options={statusOptions}
+          placeholder="All Statuses"
+        />
+      </TableFilters.Bar>
+
+      {/* Results Count */}
+      <div className="mb-4 text-sm text-muted-foreground">
+        {data?.total ? `${data.total} invoice${data.total === 1 ? '' : 's'} found` : 'No invoices found'}
+      </div>
+
       {isLoading ? (
         <LoadingState message="Loading invoices..." size="lg" />
       ) : !invoices || invoices.length === 0 ? (
         <EmptyState
           icon={FileText}
           title="No invoices found"
-          description="You don't have any invoices yet."
+          description={hasActiveFilters
+            ? "Try adjusting your filters to see more results."
+            : "You don't have any invoices yet."}
         />
       ) : (
-        <DataTable
-          data={invoices}
-          columns={columns}
-          filters={filters}
-          onRowClick={(row) => router.push(`/portal/orders/${row.production_order_id || row.order_id}`)}
-          pagination={{ pageSize: 20, showSizeSelector: true }}
-          emptyState={{
-            icon: FileText,
-            title: 'No invoices match your filters',
-            description: 'Try adjusting your search or filter criteria',
-          }}
-        />
+        <div className="card">
+          <table className="data-table" data-testid="data-table">
+            <thead>
+              <tr>
+                <th>Invoice Number</th>
+                <th>Type</th>
+                <th>Project</th>
+                <th>Status</th>
+                <th>Total</th>
+                <th>Paid</th>
+                <th>Due</th>
+                <th>Due Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {invoices.map((invoice: any) => {
+                const typeConf = invoiceTypeConfig[invoice.invoice_type] || invoiceTypeConfig.custom;
+                const statusConf = invoiceStatusConfig[invoice.status] || invoiceStatusConfig.pending;
+                return (
+                  <tr
+                    key={invoice.id}
+                    onClick={() => router.push(`/portal/orders/${invoice.production_order_id || invoice.order_id}`)}
+                    className="cursor-pointer hover:bg-muted/50"
+                  >
+                    <td><span className="font-mono font-medium">{invoice.invoice_number}</span></td>
+                    <td>
+                      <Badge variant="outline" className={cn(typeConf.className, "text-xs")}>
+                        {typeConf.label}
+                      </Badge>
+                    </td>
+                    <td><span className="text-sm">{invoice.projects?.name || "—"}</span></td>
+                    <td>
+                      <Badge variant="outline" className={cn(statusConf.className, "flex items-center gap-1 w-fit")}>
+                        {statusConf.icon}
+                        {statusConf.label}
+                      </Badge>
+                    </td>
+                    <td><span className="font-semibold">${Number(invoice.total).toLocaleString()}</span></td>
+                    <td>
+                      <span className="text-success font-medium">
+                        ${Number(invoice.amount_paid).toLocaleString()}
+                      </span>
+                    </td>
+                    <td>
+                      <span className={cn(
+                        "font-medium",
+                        Number(invoice.amount_due) > 0 ? "text-destructive" : "text-success"
+                      )}>
+                        ${Number(invoice.amount_due).toLocaleString()}
+                      </span>
+                    </td>
+                    <td>
+                      {invoice.due_date ? (
+                        <div className="flex items-center gap-1 text-sm">
+                          <Calendar className="w-3 h-3 text-muted-foreground" aria-hidden="true" />
+                          {format(new Date(invoice.due_date), "MMM d, yyyy")}
+                        </div>
+                      ) : <span className="text-sm text-muted-foreground">—</span>}
+                    </td>
+                    <td onClick={(e) => e.stopPropagation()}>
+                      <QuickBooksPaymentButton
+                        invoiceId={invoice.id}
+                        invoiceNumber={invoice.invoice_number}
+                        amountDue={Number(invoice.amount_due)}
+                        onPaymentSuccess={() => {
+                          window.location.reload();
+                        }}
+                      />
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

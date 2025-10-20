@@ -1,6 +1,7 @@
 "use client";
 
 import { api } from "@/lib/api/client";
+import { useTableState } from "@/hooks/useTableFilters";
 import {
   FileText,
   Download,
@@ -18,12 +19,11 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   PageHeader,
-  DataTable,
+  TableFilters,
   StatsGrid,
   EmptyState,
   LoadingState,
   type DataTableColumn,
-  type DataTableFilter,
   type StatItem,
 } from "@/components/common";
 
@@ -70,10 +70,25 @@ const documentTypeConfig: Record<string, { label: string; icon: React.ReactNode;
 export default function DocumentsPage() {
   const utils = api.useUtils();
 
-  const { data, isLoading, error } = api.portal.getCustomerDocuments.useQuery({
-    documentType: undefined,
-    limit: 100,
-    offset: 0,
+  // Unified filter management with new hook
+  const {
+    rawFilters,
+    setFilter,
+    clearFilters,
+    hasActiveFilters,
+    queryParams,
+  } = useTableState({
+    initialFilters: {
+      search: '',
+      type: '',
+    },
+    debounceMs: 300,
+    pageSize: 100,
+  });
+
+  // Backend query with unified params
+  const { data, isLoading, error } = api.portal.getCustomerDocuments.useQuery(queryParams, {
+    enabled: true,
   });
 
   const documents = data?.documents || [];
@@ -121,6 +136,18 @@ export default function DocumentsPage() {
       window.open(url, '_blank');
     }
   };
+
+  // Transform type options to SelectOption format
+  const typeOptions = [
+    { value: '', label: 'All Types' },
+    { value: 'invoice', label: 'Invoices' },
+    { value: 'quote', label: 'Quotes' },
+    { value: 'contract', label: 'Contracts' },
+    { value: 'shop_drawing', label: 'Shop Drawings' },
+    { value: 'photo', label: 'Photos' },
+    { value: 'shipping', label: 'Shipping Documents' },
+    { value: 'other', label: 'Other' },
+  ];
 
   const columns: DataTableColumn<any>[] = [
     {
@@ -207,30 +234,6 @@ export default function DocumentsPage() {
     },
   ];
 
-  const filters: DataTableFilter[] = [
-    {
-      key: 'search',
-      label: 'Search documents',
-      type: 'search',
-      placeholder: 'Search documents, descriptions, or projects...',
-    },
-    {
-      key: 'type',
-      label: 'Type',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Types' },
-        { value: 'invoice', label: 'Invoices' },
-        { value: 'quote', label: 'Quotes' },
-        { value: 'contract', label: 'Contracts' },
-        { value: 'shop_drawing', label: 'Shop Drawings' },
-        { value: 'photo', label: 'Photos' },
-        { value: 'shipping', label: 'Shipping Documents' },
-        { value: 'other', label: 'Other' },
-      ],
-    },
-  ];
-
   // Handle query error
   if (error) {
     return (
@@ -262,26 +265,112 @@ export default function DocumentsPage() {
 
       <StatsGrid stats={stats} columns={4} />
 
+      {/* Filters - New Unified System */}
+      <TableFilters.Bar
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+      >
+        {/* Search Filter */}
+        <TableFilters.Search
+          value={rawFilters.search}
+          onChange={(value) => setFilter('search', value)}
+          placeholder="Search documents, descriptions, or projects..."
+        />
+
+        {/* Type Filter */}
+        <TableFilters.Select
+          value={rawFilters.type}
+          onChange={(value) => setFilter('type', value)}
+          options={typeOptions}
+          placeholder="All Types"
+        />
+      </TableFilters.Bar>
+
+      {/* Results Count */}
+      <div className="mb-4 text-sm text-muted-foreground">
+        {data?.total ? `${data.total} document${data.total === 1 ? '' : 's'} found` : 'No documents found'}
+      </div>
+
       {isLoading ? (
         <LoadingState message="Loading documents..." size="lg" />
       ) : !documents || documents.length === 0 ? (
         <EmptyState
           icon={FileText}
           title="No documents found"
-          description="You don't have any documents yet."
+          description={hasActiveFilters
+            ? "Try adjusting your filters to see more results."
+            : "You don't have any documents yet."}
         />
       ) : (
-        <DataTable
-          data={documents}
-          columns={columns}
-          filters={filters}
-          pagination={{ pageSize: 20, showSizeSelector: true }}
-          emptyState={{
-            icon: FileText,
-            title: 'No documents match your filters',
-            description: 'Try adjusting your search or filter criteria',
-          }}
-        />
+        <div className="card">
+          <table className="data-table" data-testid="data-table">
+            <thead>
+              <tr>
+                <th>Document Name</th>
+                <th>Type</th>
+                <th>Project</th>
+                <th>Description</th>
+                <th>Upload Date</th>
+                <th>Size</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {documents.map((doc: any) => {
+                const typeConfig = documentTypeConfig[doc.type || 'other'] || documentTypeConfig.other;
+                const downloadUrl = doc.download_url || doc.url || doc.google_drive_url;
+                return (
+                  <tr key={doc.id}>
+                    <td>
+                      <div className="flex items-center gap-2">
+                        {typeConfig.icon}
+                        <span className="font-medium">{doc.name || "Untitled"}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <Badge variant="outline" className={cn(typeConfig.className)}>
+                        {typeConfig.label}
+                      </Badge>
+                    </td>
+                    <td><span className="text-sm">{doc.project_name || "—"}</span></td>
+                    <td>
+                      <span className="text-sm text-muted-foreground">
+                        {doc.category || "—"}
+                      </span>
+                    </td>
+                    <td>
+                      {doc.created_at ? (
+                        <div className="flex items-center gap-1 text-sm">
+                          <Calendar className="w-3 h-3 text-muted-foreground" aria-hidden="true" />
+                          {format(new Date(doc.created_at), "MMM d, yyyy")}
+                        </div>
+                      ) : <span className="text-sm">—</span>}
+                    </td>
+                    <td>
+                      <span className="text-sm text-muted-foreground">
+                        {doc.size ? `${(Number(doc.size) / 1024 / 1024).toFixed(2)} MB` : "—"}
+                      </span>
+                    </td>
+                    <td>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDownload(doc);
+                        }}
+                        disabled={!downloadUrl}
+                      >
+                        <Download className="w-4 h-4 mr-2" aria-hidden="true" />
+                        Download
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

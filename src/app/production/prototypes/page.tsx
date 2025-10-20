@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
+import { useTableState } from "@/hooks/useTableFilters";
+import { TableFilters } from "@/components/common";
 import {
   PageHeader,
   StatsGrid,
@@ -12,7 +14,6 @@ import {
   StatusBadge,
   type StatItem,
   type DataTableColumn,
-  type DataTableFilter,
 } from "@/components/common";
 import {
   Plus,
@@ -45,39 +46,66 @@ const _statusConfig: Record<string, {
 
 export default function PrototypesPage() {
   const router = useRouter();
-  const [statusFilter, _setStatusFilter] = useState<string>("all");
-  const [priorityFilter, _setPriorityFilter] = useState<string>("all");
-  const [typeFilter, _setTypeFilter] = useState<string>("all");
-  const [designProjectFilter, _setDesignProjectFilter] = useState<string>("all");
-  const [crmProjectFilter, _setCrmProjectFilter] = useState<string>("all");
-  const [page, _setPage] = useState(0);
-  const limit = 20;
+
+  // Unified filter management with new hook
+  const {
+    rawFilters,
+    setFilter,
+    clearFilters,
+    hasActiveFilters,
+    queryParams,
+  } = useTableState({
+    initialFilters: {
+      search: '',
+      status: '',
+      priority: '',
+      prototypeType: '',
+    },
+    debounceMs: 300,
+    pageSize: 20,
+  });
+
   const utils = api.useUtils();
 
-  // Fetch prototypes with filters
-  const { data, isLoading, error } = api.prototypes.getAll.useQuery({
-    status: statusFilter === "all" ? undefined : statusFilter,
-    priority: priorityFilter === "all" ? undefined : priorityFilter,
-    prototypeType: typeFilter === "all" ? undefined : typeFilter,
-    designProjectId: designProjectFilter === "all" ? undefined : designProjectFilter,
-    crmProjectId: crmProjectFilter === "all" ? undefined : crmProjectFilter,
-    limit,
-    offset: page * limit,
-  });
-
-  // Fetch design projects for filter
-  const { data: _designProjectsData, error: _designProjectsError } = api.designProjects.getAll.useQuery({
-    limit: 100,
-  });
-
-  // Fetch CRM projects for filter
-  const { data: _crmProjectsData, error: _crmProjectsError } = api.projects.getAll.useQuery({
-    limit: 100,
+  // Backend query with unified params
+  const { data, isLoading, error } = api.prototypes.getAll.useQuery(queryParams, {
+    enabled: true,
   });
 
   const prototypes = data?.prototypes ?? [];
-  const _total = data?.total ?? 0;
-  const _hasMore = data?.hasMore ?? false;
+
+  // Filter options
+  const statusOptions = [
+    { value: '', label: 'All Statuses' },
+    { value: 'concept', label: 'Concept' },
+    { value: 'design_review', label: 'Design Review' },
+    { value: 'design_approved', label: 'Design Approved' },
+    { value: 'production_pending', label: 'Production Pending' },
+    { value: 'in_production', label: 'In Production' },
+    { value: 'assembly_complete', label: 'Assembly Complete' },
+    { value: 'quality_review', label: 'Quality Review' },
+    { value: 'client_review', label: 'Client Review' },
+    { value: 'approved', label: 'Approved' },
+    { value: 'rejected', label: 'Rejected' },
+    { value: 'ready_for_catalog', label: 'Ready for Catalog' },
+    { value: 'archived', label: 'Archived' },
+  ];
+
+  const priorityOptions = [
+    { value: '', label: 'All Priorities' },
+    { value: 'low', label: 'Low' },
+    { value: 'medium', label: 'Medium' },
+    { value: 'high', label: 'High' },
+  ];
+
+  const typeOptions = [
+    { value: '', label: 'All Types' },
+    { value: 'furniture', label: 'Furniture' },
+    { value: 'accessory', label: 'Accessory' },
+    { value: 'lighting', label: 'Lighting' },
+    { value: 'textile', label: 'Textile' },
+    { value: 'hardware', label: 'Hardware' },
+  ];
 
   // Calculate statistics
   const stats: StatItem[] = React.useMemo(() => {
@@ -195,59 +223,6 @@ export default function PrototypesPage() {
     },
   ];
 
-  // Filters configuration
-  const filters: DataTableFilter[] = [
-    {
-      key: 'search',
-      label: 'Search prototypes',
-      type: 'search',
-      placeholder: 'Search by number or name...',
-    },
-    {
-      key: 'status',
-      label: 'Status',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Statuses' },
-        { value: 'concept', label: 'Concept' },
-        { value: 'design_review', label: 'Design Review' },
-        { value: 'design_approved', label: 'Design Approved' },
-        { value: 'production_pending', label: 'Production Pending' },
-        { value: 'in_production', label: 'In Production' },
-        { value: 'assembly_complete', label: 'Assembly Complete' },
-        { value: 'quality_review', label: 'Quality Review' },
-        { value: 'client_review', label: 'Client Review' },
-        { value: 'approved', label: 'Approved' },
-        { value: 'rejected', label: 'Rejected' },
-        { value: 'ready_for_catalog', label: 'Ready for Catalog' },
-        { value: 'archived', label: 'Archived' },
-      ],
-    },
-    {
-      key: 'priority',
-      label: 'Priority',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Priorities' },
-        { value: 'low', label: 'Low' },
-        { value: 'medium', label: 'Medium' },
-        { value: 'high', label: 'High' },
-      ],
-    },
-    {
-      key: 'type',
-      label: 'Type',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Types' },
-        { value: 'furniture', label: 'Furniture' },
-        { value: 'accessory', label: 'Accessory' },
-        { value: 'lighting', label: 'Lighting' },
-        { value: 'textile', label: 'Textile' },
-        { value: 'hardware', label: 'Hardware' },
-      ],
-    },
-  ];
 
   // Handle query error
   if (error) {
@@ -287,26 +262,62 @@ export default function PrototypesPage() {
 
       <StatsGrid stats={stats} columns={4} />
 
+      {/* Filters - New Unified System */}
+      <TableFilters.Bar
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+      >
+        {/* Search Filter */}
+        <TableFilters.Search
+          value={rawFilters.search}
+          onChange={(value) => setFilter('search', value)}
+          placeholder="Search by number or name..."
+        />
+
+        {/* Status Filter */}
+        <TableFilters.Select
+          value={rawFilters.status}
+          onChange={(value) => setFilter('status', value)}
+          options={statusOptions}
+          placeholder="All Statuses"
+        />
+
+        {/* Priority Filter */}
+        <TableFilters.Select
+          value={rawFilters.priority}
+          onChange={(value) => setFilter('priority', value)}
+          options={priorityOptions}
+          placeholder="All Priorities"
+        />
+
+        {/* Type Filter */}
+        <TableFilters.Select
+          value={rawFilters.prototypeType}
+          onChange={(value) => setFilter('prototypeType', value)}
+          options={typeOptions}
+          placeholder="All Types"
+        />
+      </TableFilters.Bar>
+
       {isLoading ? (
         <LoadingState message="Loading prototypes..." size="lg" />
       ) : prototypes.length === 0 ? (
         <EmptyState
           icon={Lightbulb}
           title="No Prototypes Found"
-          description="Get started by creating your first prototype."
-          action={{
+          description={hasActiveFilters ? "Try adjusting your filters to see more results." : "Get started by creating your first prototype."}
+          action={!hasActiveFilters ? {
             label: 'Create First Prototype',
             icon: Plus,
             onClick: () => router.push("/production/prototypes/new"),
-          }}
+          } : undefined}
         />
       ) : (
         <DataTable
           data={prototypes}
           columns={columns}
-          filters={filters}
           onRowClick={(row) => router.push(`/production/prototypes/${row.id}`)}
-          pagination={{ pageSize: limit, showSizeSelector: true }}
+          pagination={{ pageSize: 20, showSizeSelector: true }}
           emptyState={{
             icon: Lightbulb,
             title: 'No prototypes match your filters',

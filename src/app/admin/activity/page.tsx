@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Activity, Shield, LogIn, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
+import { useTableState } from '@/hooks/useTableFilters';
+import { TableFilters } from "@/components/common";
 import {
   PageHeader,
   DataTable,
@@ -14,7 +16,6 @@ import {
   EmptyState,
   LoadingState,
   type DataTableColumn,
-  type DataTableFilter,
   type StatItem,
 } from "@/components/common";
 
@@ -28,21 +29,37 @@ export default function ActivityLogsPage() {
   // Get current user from tRPC (standardized auth pattern)
   const { data: _currentUser, isLoading: authLoading } = api.userProfile.getCurrentUser.useQuery();
 
+  // Unified filter management with new hook
+  const {
+    rawFilters,
+    setFilter,
+    clearFilters,
+    hasActiveFilters,
+    queryParams,
+  } = useTableState({
+    initialFilters: {
+      search: '',
+      action: '',
+    },
+    debounceMs: 300,
+    pageSize: 50,
+  });
+
   const { data: adminLogs, isLoading: isLoadingAdmin } =
     api.audit.getAdminLogs.useQuery(
-      { limit: 50, offset: 0 },
+      queryParams,
       { enabled: activeTab === 'admin' }
     );
 
   const { data: securityLogs, isLoading: isLoadingSecurity } =
     api.audit.getSecurityLogs.useQuery(
-      { limit: 50, offset: 0 },
+      queryParams,
       { enabled: activeTab === 'security' }
     );
 
   const { data: loginLogs, isLoading: isLoadingLogin } =
     api.audit.getLoginLogs.useQuery(
-      { limit: 50, offset: 0 },
+      queryParams,
       { enabled: activeTab === 'login' }
     );
 
@@ -222,26 +239,14 @@ export default function ActivityLogsPage() {
     },
   ];
 
-  const filters: DataTableFilter[] = [
-    {
-      key: 'search',
-      label: 'Search logs',
-      type: 'search',
-      placeholder: 'Search logs...',
-    },
-    {
-      key: 'action',
-      label: 'Action',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Actions' },
-        { value: 'create', label: 'Create' },
-        { value: 'update', label: 'Update' },
-        { value: 'delete', label: 'Delete' },
-        { value: 'login', label: 'Login' },
-        { value: 'logout', label: 'Logout' },
-      ],
-    },
+  // Transform filter options
+  const actionOptions = [
+    { value: '', label: 'All Actions' },
+    { value: 'create', label: 'Create' },
+    { value: 'update', label: 'Update' },
+    { value: 'delete', label: 'Delete' },
+    { value: 'login', label: 'Login' },
+    { value: 'logout', label: 'Logout' },
   ];
 
   // Handle auth loading
@@ -270,6 +275,25 @@ export default function ActivityLogsPage() {
 
       <StatsGrid stats={statsData} columns={4} />
 
+      {/* Filters - New Unified System */}
+      <TableFilters.Bar
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+      >
+        <TableFilters.Search
+          value={rawFilters.search}
+          onChange={(value) => setFilter('search', value)}
+          placeholder="Search logs..."
+        />
+
+        <TableFilters.Select
+          value={rawFilters.action}
+          onChange={(value) => setFilter('action', value)}
+          options={actionOptions}
+          placeholder="All Actions"
+        />
+      </TableFilters.Bar>
+
       <Card>
         <CardHeader>
           <CardTitle>Activity Logs</CardTitle>
@@ -289,13 +313,14 @@ export default function ActivityLogsPage() {
                 <EmptyState
                   icon={Activity}
                   title="No admin logs found"
-                  description="No admin activity has been recorded."
+                  description={hasActiveFilters
+                    ? "Try adjusting your filters to see more results."
+                    : "No admin activity has been recorded."}
                 />
               ) : (
                 <DataTable
                   data={adminLogs.logs}
                   columns={adminColumns}
-                  filters={filters}
                   pagination={{ pageSize: 20, showSizeSelector: true }}
                   emptyState={{
                     icon: Activity,
@@ -313,13 +338,14 @@ export default function ActivityLogsPage() {
                 <EmptyState
                   icon={Shield}
                   title="No security logs found"
-                  description="No security events have been recorded."
+                  description={hasActiveFilters
+                    ? "Try adjusting your filters to see more results."
+                    : "No security events have been recorded."}
                 />
               ) : (
                 <DataTable
                   data={securityLogs.logs}
                   columns={securityColumns}
-                  filters={filters}
                   pagination={{ pageSize: 20, showSizeSelector: true }}
                   emptyState={{
                     icon: Shield,
@@ -337,13 +363,14 @@ export default function ActivityLogsPage() {
                 <EmptyState
                   icon={LogIn}
                   title="No login logs found"
-                  description="No login attempts have been recorded."
+                  description={hasActiveFilters
+                    ? "Try adjusting your filters to see more results."
+                    : "No login attempts have been recorded."}
                 />
               ) : (
                 <DataTable
                   data={loginLogs.logs}
                   columns={loginColumns}
-                  filters={filters}
                   pagination={{ pageSize: 20, showSizeSelector: true }}
                   emptyState={{
                     icon: LogIn,

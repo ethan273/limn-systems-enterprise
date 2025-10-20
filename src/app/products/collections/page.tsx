@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
+import { useTableState } from "@/hooks/useTableFilters";
 import { Package, Plus, Pencil, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
@@ -14,9 +15,9 @@ import {
   DataTable,
   StatsGrid,
   StatusBadge,
+  TableFilters,
   type FormField,
   type DataTableColumn,
-  type DataTableFilter,
   type DataTableRowAction,
   type StatItem,
 } from "@/components/common";
@@ -50,6 +51,20 @@ export default function CollectionsPage() {
   const [editCollectionId, setEditCollectionId] = useState<string>("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [collectionToDelete, setCollectionToDelete] = useState<Collection | null>(null);
+
+  // Unified filter management with new hook
+  const {
+    rawFilters,
+    setFilter,
+    clearFilters,
+    hasActiveFilters,
+  } = useTableState({
+    initialFilters: {
+      search: '',
+    },
+    debounceMs: 300,
+    pageSize: 100,
+  });
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
@@ -205,15 +220,6 @@ export default function CollectionsPage() {
     },
   ];
 
-  // DataTable filters configuration
-  const filters: DataTableFilter[] = [
-    {
-      key: 'search',
-      label: 'Search collections',
-      type: 'search',
-      placeholder: 'Search by name, prefix, or description...',
-    },
-  ];
 
   // Row actions configuration
   const rowActions: DataTableRowAction<Collection>[] = [
@@ -293,6 +299,19 @@ export default function CollectionsPage() {
       {/* Stats */}
       <StatsGrid stats={stats} columns={3} />
 
+      {/* Filters - New Unified System */}
+      <TableFilters.Bar
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+      >
+        {/* Search Filter */}
+        <TableFilters.Search
+          value={rawFilters.search}
+          onChange={(value) => setFilter('search', value)}
+          placeholder="Search by name, prefix, or description..."
+        />
+      </TableFilters.Bar>
+
       {/* Collections DataTable */}
       {isLoading ? (
         <LoadingState message="Loading collections..." size="lg" />
@@ -300,7 +319,9 @@ export default function CollectionsPage() {
         <EmptyState
           icon={Package}
           title="No collections found"
-          description="Get started by creating your first collection."
+          description={hasActiveFilters
+            ? "Try adjusting your filters to see more results."
+            : "Get started by creating your first collection."}
           action={{
             label: 'Create First Collection',
             onClick: () => setIsCreateDialogOpen(true),
@@ -311,7 +332,6 @@ export default function CollectionsPage() {
         <DataTable
           data={collections as any[]}
           columns={columns as any}
-          filters={filters}
           rowActions={rowActions as any}
           onRowClick={(row) => router.push(`/products/collections/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}

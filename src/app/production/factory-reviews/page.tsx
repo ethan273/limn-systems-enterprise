@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
+import { useTableState } from "@/hooks/useTableFilters";
+import { TableFilters } from "@/components/common";
 import {
   PageHeader,
   StatsGrid,
@@ -12,7 +14,6 @@ import {
   StatusBadge,
   type StatItem,
   type DataTableColumn,
-  type DataTableFilter,
 } from "@/components/common";
 import {
   Factory,
@@ -33,30 +34,40 @@ export const dynamic = 'force-dynamic';
 
 export default function FactoryReviewsPage() {
   const router = useRouter();
-  const [_statusFilter, _setStatusFilter] = useState<string>("all");
-  const [_searchQuery, _setSearchQuery] = useState("");
+
+  // Unified filter management with new hook
+  const {
+    rawFilters,
+    setFilter,
+    clearFilters,
+    hasActiveFilters,
+    queryParams,
+  } = useTableState({
+    initialFilters: {
+      search: '',
+      status: '',
+    },
+    debounceMs: 300,
+    pageSize: 50,
+  });
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
 
-  // Fetch factory review sessions
-  const { data, isLoading, error } = api.factoryReviews.getAllSessions.useQuery({
-    status: _statusFilter === "all" ? undefined : _statusFilter,
-    limit: 50,
-    offset: 0,
+  // Backend query with unified params
+  const { data, isLoading, error } = api.factoryReviews.getAllSessions.useQuery(queryParams, {
+    enabled: true,
   });
 
   const sessions = data?.sessions || [];
 
-  const filteredSessions = sessions.filter((session) => {
-    if (!_searchQuery) return true;
-    const searchLower = _searchQuery.toLowerCase();
-    return (
-      session.session_name.toLowerCase().includes(searchLower) ||
-      session.prototype_production?.prototypes?.name.toLowerCase().includes(searchLower) ||
-      session.location?.toLowerCase().includes(searchLower)
-    );
-  });
+  // Status options for filter
+  const statusOptions = [
+    { value: '', label: 'All Statuses' },
+    { value: 'scheduled', label: 'Scheduled' },
+    { value: 'in_progress', label: 'In Progress' },
+    { value: 'completed', label: 'Completed' },
+  ];
 
   // Statistics
   const stats: StatItem[] = [
@@ -158,26 +169,6 @@ export default function FactoryReviewsPage() {
     },
   ];
 
-  // Filters
-  const filters: DataTableFilter[] = [
-    {
-      key: 'search',
-      label: 'Search',
-      type: 'search',
-      placeholder: 'Search sessions, prototypes, or locations...',
-    },
-    {
-      key: 'status',
-      label: 'Status',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Statuses' },
-        { value: 'scheduled', label: 'Scheduled' },
-        { value: 'in_progress', label: 'In Progress' },
-        { value: 'completed', label: 'Completed' },
-      ],
-    },
-  ];
 
   // Handle query error
   if (error) {
@@ -217,14 +208,35 @@ export default function FactoryReviewsPage() {
 
       <StatsGrid stats={stats} columns={4} />
 
+      {/* Filters - New Unified System */}
+      <TableFilters.Bar
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+      >
+        {/* Search Filter */}
+        <TableFilters.Search
+          value={rawFilters.search}
+          onChange={(value) => setFilter('search', value)}
+          placeholder="Search sessions, prototypes, or locations..."
+        />
+
+        {/* Status Filter */}
+        <TableFilters.Select
+          value={rawFilters.status}
+          onChange={(value) => setFilter('status', value)}
+          options={statusOptions}
+          placeholder="All Statuses"
+        />
+      </TableFilters.Bar>
+
       {isLoading ? (
         <LoadingState message="Loading sessions..." size="lg" />
-      ) : filteredSessions.length === 0 ? (
+      ) : sessions.length === 0 ? (
         <EmptyState
           icon={Factory}
           title="No factory review sessions found"
-          description={_searchQuery ? "Try adjusting your search" : "Get started by creating your first review session."}
-          action={!_searchQuery ? {
+          description={hasActiveFilters ? "Try adjusting your filters to see more results." : "Get started by creating your first review session."}
+          action={!hasActiveFilters ? {
             label: 'New Review Session',
             icon: Plus,
             onClick: () => router.push("/production/factory-reviews/new"),
@@ -232,9 +244,8 @@ export default function FactoryReviewsPage() {
         />
       ) : (
         <DataTable
-          data={filteredSessions}
+          data={sessions}
           columns={columns}
-          filters={filters}
           onRowClick={(row) => router.push(`/production/factory-reviews/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}
           emptyState={{

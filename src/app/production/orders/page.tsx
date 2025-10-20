@@ -2,6 +2,8 @@
 
 import React from "react";
 import { api } from "@/lib/api/client";
+import { useTableState } from "@/hooks/useTableFilters";
+import { TableFilters } from "@/components/common";
 import { Package, DollarSign, AlertCircle, TrendingUp, Plus, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -15,7 +17,6 @@ import {
   StatsGrid,
   StatusBadge,
   type DataTableColumn,
-  type DataTableFilter,
   type StatItem,
 } from "@/components/common";
 import { DataErrorBoundary } from "@/components/error-handling";
@@ -23,14 +24,26 @@ import { DataErrorBoundary } from "@/components/error-handling";
 function ProductionOrdersPageContent() {
   const router = useRouter();
 
-  // Auth is handled by middleware - no client-side redirect needed
-  // Allow query to run immediately since middleware validates auth
+  // Unified filter management with new hook
+  const {
+    rawFilters,
+    setFilter,
+    clearFilters,
+    hasActiveFilters,
+    queryParams,
+  } = useTableState({
+    initialFilters: {
+      search: '',
+      status: '',
+    },
+    debounceMs: 300,
+    pageSize: 100,
+  });
 
-  // Query PRODUCTION ORDERS (Phase 1 system with invoices/payments)
-  const { data, isLoading, error } = api.productionOrders.getAll.useQuery(
-    {},
-    { enabled: true } // Middleware ensures auth, so no need to wait for client auth
-  );
+  // Backend query with unified params
+  const { data, isLoading, error } = api.productionOrders.getAll.useQuery(queryParams, {
+    enabled: true,
+  });
 
   const orders = data?.items || [];
 
@@ -40,9 +53,20 @@ function ProductionOrdersPageContent() {
   // Subscribe to realtime updates for production orders
   useProductionOrdersRealtime({
     queryKey: ['productionOrders', 'getAll'],
-    enabled: true, // Middleware ensures auth
+    enabled: true,
   });
 
+  // Status options for filter
+  const statusOptions = [
+    { value: '', label: 'All Statuses' },
+    { value: 'awaiting_deposit', label: 'Awaiting Deposit' },
+    { value: 'in_progress', label: 'In Progress' },
+    { value: 'completed', label: 'Completed' },
+    { value: 'awaiting_final_payment', label: 'Awaiting Final Payment' },
+    { value: 'final_paid', label: 'Ready to Ship' },
+    { value: 'shipped', label: 'Shipped' },
+    { value: 'delivered', label: 'Delivered' },
+  ];
 
   // Stats configuration
   const stats: StatItem[] = [
@@ -131,30 +155,6 @@ function ProductionOrdersPageContent() {
     },
   ];
 
-  // DataTable filters configuration
-  const filters: DataTableFilter[] = [
-    {
-      key: 'search',
-      label: 'Search orders',
-      type: 'search',
-      placeholder: 'Search by order number, item name, or project...',
-    },
-    {
-      key: 'status',
-      label: 'Status',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Statuses' },
-        { value: 'awaiting_deposit', label: 'Awaiting Deposit' },
-        { value: 'in_progress', label: 'In Progress' },
-        { value: 'completed', label: 'Completed' },
-        { value: 'awaiting_final_payment', label: 'Awaiting Final Payment' },
-        { value: 'final_paid', label: 'Ready to Ship' },
-        { value: 'shipped', label: 'Shipped' },
-        { value: 'delivered', label: 'Delivered' },
-      ],
-    },
-  ];
 
   // Middleware handles authentication - no need for client-side auth checks
   // Page will be protected by middleware before reaching here
@@ -207,6 +207,27 @@ function ProductionOrdersPageContent() {
       {/* Stats Grid */}
       <StatsGrid stats={stats} columns={4} />
 
+      {/* Filters - New Unified System */}
+      <TableFilters.Bar
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+      >
+        {/* Search Filter */}
+        <TableFilters.Search
+          value={rawFilters.search}
+          onChange={(value) => setFilter('search', value)}
+          placeholder="Search by order number, item name, or project..."
+        />
+
+        {/* Status Filter */}
+        <TableFilters.Select
+          value={rawFilters.status}
+          onChange={(value) => setFilter('status', value)}
+          options={statusOptions}
+          placeholder="All Statuses"
+        />
+      </TableFilters.Bar>
+
       {/* Orders DataTable */}
       {isLoading ? (
         <LoadingState message="Loading production orders..." size="lg" />
@@ -215,19 +236,22 @@ function ProductionOrdersPageContent() {
           icon={Package}
           title="No production orders found"
           description={
-            <>
-              Create orders from{" "}
-              <Link href="/crm/projects" className="text-info hover:underline">
-                Projects
-              </Link>
-            </>
+            hasActiveFilters ? (
+              "Try adjusting your filters to see more results."
+            ) : (
+              <>
+                Create orders from{" "}
+                <Link href="/crm/projects" className="text-info hover:underline">
+                  Projects
+                </Link>
+              </>
+            )
           }
         />
       ) : (
         <DataTable
           data={orders}
           columns={columns}
-          filters={filters}
           onRowClick={(row) => router.push(`/production/orders/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}
           emptyState={{

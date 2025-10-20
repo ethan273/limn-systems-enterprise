@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
+import { useTableState } from "@/hooks/useTableFilters";
+import { TableFilters } from "@/components/common";
 import {
   PageHeader,
   StatsGrid,
@@ -13,7 +15,6 @@ import {
   StatusBadge,
   type StatItem,
   type DataTableColumn,
-  type DataTableFilter,
 } from "@/components/common";
 import {
   Package,
@@ -31,25 +32,43 @@ export const dynamic = 'force-dynamic';
 export default function ProductionShipmentsPage() {
   const router = useRouter();
   const { user: _user } = useAuth();
-  const [_statusFilter, _setStatusFilter] = useState<string>("all");
-  const [_searchQuery, _setSearchQuery] = useState("");
 
-  // Fetch shipments from production orders
-  const { data, isLoading, error } = api.shipping.getAllShipments.useQuery(
-    {
-      status: _statusFilter === "all" ? undefined : _statusFilter,
-      limit: 100,
-      offset: 0,
+  // Unified filter management with new hook
+  const {
+    rawFilters,
+    setFilter,
+    clearFilters,
+    hasActiveFilters,
+    queryParams,
+  } = useTableState({
+    initialFilters: {
+      search: '',
+      status: '',
     },
-    {
-      enabled: true,
-    }
-  );
+    debounceMs: 300,
+    pageSize: 100,
+  });
+
+  // Backend query with unified params
+  const { data, isLoading, error } = api.shipping.getAllShipments.useQuery(queryParams, {
+    enabled: true,
+  });
 
   const shipments = data?.items || [];
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
+
+  // Status options for filter
+  const statusOptions = [
+    { value: '', label: 'All Statuses' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'preparing', label: 'Preparing' },
+    { value: 'ready', label: 'Ready' },
+    { value: 'shipped', label: 'Shipped' },
+    { value: 'delivered', label: 'Delivered' },
+    { value: 'delayed', label: 'Delayed' },
+  ];
 
   // Statistics
   const stats: StatItem[] = [
@@ -155,29 +174,6 @@ export default function ProductionShipmentsPage() {
     },
   ];
 
-  // Filters
-  const filters: DataTableFilter[] = [
-    {
-      key: 'search',
-      label: 'Search',
-      type: 'search',
-      placeholder: 'Search by shipment #, tracking #...',
-    },
-    {
-      key: 'status',
-      label: 'Status',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Statuses' },
-        { value: 'pending', label: 'Pending' },
-        { value: 'preparing', label: 'Preparing' },
-        { value: 'ready', label: 'Ready' },
-        { value: 'shipped', label: 'Shipped' },
-        { value: 'delivered', label: 'Delivered' },
-        { value: 'delayed', label: 'Delayed' },
-      ],
-    },
-  ];
 
   // Handle query error
   if (error) {
@@ -217,19 +213,39 @@ export default function ProductionShipmentsPage() {
 
       <StatsGrid stats={stats} columns={4} />
 
+      {/* Filters - New Unified System */}
+      <TableFilters.Bar
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+      >
+        {/* Search Filter */}
+        <TableFilters.Search
+          value={rawFilters.search}
+          onChange={(value) => setFilter('search', value)}
+          placeholder="Search by shipment #, tracking #..."
+        />
+
+        {/* Status Filter */}
+        <TableFilters.Select
+          value={rawFilters.status}
+          onChange={(value) => setFilter('status', value)}
+          options={statusOptions}
+          placeholder="All Statuses"
+        />
+      </TableFilters.Bar>
+
       {isLoading ? (
         <LoadingState message="Loading shipments..." size="lg" />
       ) : shipments.length === 0 ? (
         <EmptyState
           icon={TruckIcon}
           title="No Shipments Found"
-          description="No shipments match your current filters. Production shipments will appear here."
+          description={hasActiveFilters ? "Try adjusting your filters to see more results." : "No shipments match your current filters. Production shipments will appear here."}
         />
       ) : (
         <DataTable
           data={shipments}
           columns={columns}
-          filters={filters}
           onRowClick={(row) => router.push(`/shipping/shipments/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}
           emptyState={{
