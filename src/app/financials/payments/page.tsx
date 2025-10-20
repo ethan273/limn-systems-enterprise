@@ -1,14 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
-import { DollarSign, CreditCard, CheckCircle2, Clock, Download, Plus, AlertTriangle, RefreshCw, X } from "lucide-react";
+import { useTableState } from "@/hooks/useTableFilters";
+import { DollarSign, CreditCard, CheckCircle2, Clock, Download, Plus, AlertTriangle, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import {
   PageHeader,
   EmptyState,
@@ -16,8 +14,8 @@ import {
   DataTable,
   StatsGrid,
   StatusBadge,
+  TableFilters,
   type DataTableColumn,
-  type DataTableFilter,
   type StatItem,
 } from "@/components/common";
 
@@ -27,37 +25,30 @@ export const dynamic = 'force-dynamic';
 export default function PaymentsPage() {
   const router = useRouter();
   const { user: _user } = useAuth();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [methodFilter, setMethodFilter] = useState<string>("all");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
 
-  const { data, isLoading, error} = api.payments.getAll.useQuery(
-    {
-      search: searchQuery || undefined,
-      status: statusFilter === "all" ? undefined : statusFilter,
-      paymentMethod: methodFilter === "all" ? undefined : methodFilter,
-      dateFrom: dateFrom || undefined,
-      dateTo: dateTo || undefined,
-      limit: 100,
-      offset: 0,
+  // Unified filter management with new hook
+  const {
+    rawFilters,
+    setFilter,
+    clearFilters,
+    hasActiveFilters,
+    queryParams,
+  } = useTableState({
+    initialFilters: {
+      search: '',
+      status: '',
+      paymentMethod: '',
+      dateFrom: '',
+      dateTo: '',
     },
-    {
-      enabled: true,
-    }
-  );
+    debounceMs: 300,
+    pageSize: 100,
+  });
 
-  // Clear filters handler
-  const handleClearFilters = () => {
-    setSearchQuery("");
-    setStatusFilter("all");
-    setMethodFilter("all");
-    setDateFrom("");
-    setDateTo("");
-  };
-
-  const hasActiveFilters = searchQuery || statusFilter !== "all" || methodFilter !== "all" || dateFrom || dateTo;
+  // Backend query with unified params
+  const { data, isLoading, error} = api.payments.getAll.useQuery(queryParams, {
+    enabled: true,
+  });
 
   const { data: statsData, error: statsError } = api.payments.getStats.useQuery(
     {},
@@ -279,39 +270,21 @@ export default function PaymentsPage() {
     },
   ];
 
-  // DataTable filters configuration
-  const filters: DataTableFilter[] = [
-    {
-      key: 'search',
-      label: 'Search payments',
-      type: 'search',
-      placeholder: 'Search by payment #, reference #, transaction ID...',
-    },
-    {
-      key: 'status',
-      label: 'Status',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Statuses' },
-        { value: 'completed', label: 'Completed' },
-        { value: 'pending', label: 'Pending' },
-        { value: 'failed', label: 'Failed' },
-        { value: 'refunded', label: 'Refunded' },
-      ],
-    },
-    {
-      key: 'paymentMethod',
-      label: 'Payment Method',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Methods' },
-        { value: 'credit_card', label: 'Credit Card' },
-        { value: 'bank_transfer', label: 'Bank Transfer' },
-        { value: 'check', label: 'Check' },
-        { value: 'cash', label: 'Cash' },
-        { value: 'wire', label: 'Wire Transfer' },
-      ],
-    },
+  const statusOptions = [
+    { value: '', label: 'All Statuses' },
+    { value: 'completed', label: 'Completed' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'failed', label: 'Failed' },
+    { value: 'refunded', label: 'Refunded' },
+  ];
+
+  const methodOptions = [
+    { value: '', label: 'All Methods' },
+    { value: 'credit_card', label: 'Credit Card' },
+    { value: 'bank_transfer', label: 'Bank Transfer' },
+    { value: 'check', label: 'Check' },
+    { value: 'cash', label: 'Cash' },
+    { value: 'wire', label: 'Wire Transfer' },
   ];
 
   return (
@@ -339,53 +312,44 @@ export default function PaymentsPage() {
       {/* Stats */}
       <StatsGrid stats={statItems} columns={4} />
 
-      {/* Additional Date Filters */}
-      <div className="card mb-6">
-        <div className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Date From */}
-            <div className="space-y-2">
-              <label htmlFor="date-from" className="text-sm font-medium">
-                From Date
-              </label>
-              <Input
-                id="date-from"
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-              />
-            </div>
+      {/* Filters - New Unified System */}
+      <TableFilters.Bar
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+      >
+        {/* Search Filter */}
+        <TableFilters.Search
+          value={rawFilters.search}
+          onChange={(value) => setFilter('search', value)}
+          placeholder="Search by payment #, reference #, transaction ID..."
+        />
 
-            {/* Date To */}
-            <div className="space-y-2">
-              <label htmlFor="date-to" className="text-sm font-medium">
-                To Date
-              </label>
-              <Input
-                id="date-to"
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-              />
-            </div>
+        {/* Status Filter */}
+        <TableFilters.Select
+          value={rawFilters.status}
+          onChange={(value) => setFilter('status', value)}
+          options={statusOptions}
+          placeholder="All Statuses"
+        />
 
-            {/* Clear Filters */}
-            {hasActiveFilters && (
-              <div className="flex items-end">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleClearFilters}
-                  className="w-full"
-                >
-                  <X className="w-4 h-4 mr-2" />
-                  Clear All Filters
-                </Button>
-              </div>
-            )}
-          </div>
+        {/* Payment Method Filter */}
+        <TableFilters.Select
+          value={rawFilters.paymentMethod}
+          onChange={(value) => setFilter('paymentMethod', value)}
+          options={methodOptions}
+          placeholder="All Methods"
+        />
+
+        {/* Date Range - Spans 2 columns */}
+        <div className="col-span-2">
+          <TableFilters.DateRange
+            fromValue={rawFilters.dateFrom}
+            toValue={rawFilters.dateTo}
+            onFromChange={(value) => setFilter('dateFrom', value)}
+            onToChange={(value) => setFilter('dateTo', value)}
+          />
         </div>
-      </div>
+      </TableFilters.Bar>
 
       {/* Payments DataTable */}
       {isLoading ? (
@@ -400,7 +364,6 @@ export default function PaymentsPage() {
         <DataTable
           data={payments}
           columns={columns}
-          filters={filters}
           onRowClick={(row) => router.push(`/financials/payments/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}
           emptyState={{

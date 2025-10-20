@@ -1,14 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
+import { useTableState } from "@/hooks/useTableFilters";
 import { useInvoicesRealtime } from "@/hooks/useRealtimeSubscription";
-import { FileText, DollarSign, Clock, CheckCircle2, Download, Plus, AlertTriangle, RefreshCw, X } from "lucide-react";
+import { FileText, DollarSign, Clock, CheckCircle2, Download, Plus, AlertTriangle, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import {
   PageHeader,
   EmptyState,
@@ -16,8 +14,8 @@ import {
   DataTable,
   StatsGrid,
   StatusBadge,
+  TableFilters,
   type DataTableColumn,
-  type DataTableFilter,
   type StatItem,
 } from "@/components/common";
 import { DataErrorBoundary } from "@/components/error-handling";
@@ -28,24 +26,29 @@ export const dynamic = 'force-dynamic';
 function InvoicesPageContent() {
   const router = useRouter();
   const { user: _user } = useAuth();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
 
-  const { data, isLoading, error } = api.invoices.getAll.useQuery(
-    {
-      search: searchQuery || undefined,
-      status: statusFilter === "all" ? undefined : statusFilter,
-      dateFrom: dateFrom || undefined,
-      dateTo: dateTo || undefined,
-      limit: 100,
-      offset: 0,
+  // Unified filter management with new hook
+  const {
+    rawFilters,
+    setFilter,
+    clearFilters,
+    hasActiveFilters,
+    queryParams,
+  } = useTableState({
+    initialFilters: {
+      search: '',
+      status: '',
+      dateFrom: '',
+      dateTo: '',
     },
-    {
-      enabled: true,
-    }
-  );
+    debounceMs: 300,
+    pageSize: 100,
+  });
+
+  // Backend query with unified params
+  const { data, isLoading, error } = api.invoices.getAll.useQuery(queryParams, {
+    enabled: true,
+  });
 
   const { data: statsData, error: statsError } = api.invoices.getStats.useQuery(
     {},
@@ -227,36 +230,12 @@ function InvoicesPageContent() {
     },
   ];
 
-  // Clear filters handler
-  const handleClearFilters = () => {
-    setSearchQuery("");
-    setStatusFilter("all");
-    setDateFrom("");
-    setDateTo("");
-  };
-
-  const hasActiveFilters = searchQuery || statusFilter !== "all" || dateFrom || dateTo;
-
-  // DataTable filters configuration
-  const filters: DataTableFilter[] = [
-    {
-      key: 'search',
-      label: 'Search invoices',
-      type: 'search',
-      placeholder: 'Search invoices...',
-    },
-    {
-      key: 'status',
-      label: 'Status',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Statuses' },
-        { value: 'pending', label: 'Pending' },
-        { value: 'partial', label: 'Partial' },
-        { value: 'paid', label: 'Paid' },
-        { value: 'overdue', label: 'Overdue' },
-      ],
-    },
+  const statusOptions = [
+    { value: '', label: 'All Statuses' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'partial', label: 'Partial' },
+    { value: 'paid', label: 'Paid' },
+    { value: 'overdue', label: 'Overdue' },
   ];
 
   // Handle errors
@@ -309,55 +288,38 @@ function InvoicesPageContent() {
       {/* Stats */}
       <StatsGrid stats={statItems} columns={4} />
 
-      {/* Additional Date Filters */}
-      <div className="card mb-6">
-        <div className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Date From */}
-            <div className="space-y-2">
-              <label htmlFor="date-from" className="text-sm font-medium">
-                From Date
-              </label>
-              <Input
-                id="date-from"
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-              />
-            </div>
+      {/* Filters - New Unified System */}
+      <TableFilters.Bar
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+      >
+        {/* Search Filter */}
+        <TableFilters.Search
+          value={rawFilters.search}
+          onChange={(value) => setFilter('search', value)}
+          placeholder="Search invoices..."
+        />
 
-            {/* Date To */}
-            <div className="space-y-2">
-              <label htmlFor="date-to" className="text-sm font-medium">
-                To Date
-              </label>
-              <Input
-                id="date-to"
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-              />
-            </div>
+        {/* Status Filter */}
+        <TableFilters.Select
+          value={rawFilters.status}
+          onChange={(value) => setFilter('status', value)}
+          options={statusOptions}
+          placeholder="All Statuses"
+        />
 
-            {/* Clear Filters */}
-            {hasActiveFilters && (
-              <div className="flex items-end">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleClearFilters}
-                  className="w-full"
-                >
-                  <X className="w-4 h-4 mr-2" />
-                  Clear All Filters
-                </Button>
-              </div>
-            )}
-          </div>
+        {/* Date Range - Spans 2 columns */}
+        <div className="col-span-2">
+          <TableFilters.DateRange
+            fromValue={rawFilters.dateFrom}
+            toValue={rawFilters.dateTo}
+            onFromChange={(value) => setFilter('dateFrom', value)}
+            onToChange={(value) => setFilter('dateTo', value)}
+          />
         </div>
-      </div>
+      </TableFilters.Bar>
 
-      {/* Invoices DataTable */}
+      {/* Invoices DataTable - No filters prop (server-side only) */}
       {isLoading ? (
         <LoadingState message="Loading invoices..." size="lg" />
       ) : !invoices || invoices.length === 0 ? (
@@ -370,7 +332,6 @@ function InvoicesPageContent() {
         <DataTable
           data={invoices}
           columns={columns}
-          filters={filters}
           onRowClick={(row) => router.push(`/financials/invoices/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}
           emptyState={{
