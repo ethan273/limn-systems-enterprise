@@ -1,0 +1,720 @@
+-- =====================================================
+-- Seed Script: Factory Workers & QC Testers (v3 - Fixed Constraints)
+-- Purpose: Add realistic test data for factory and QC workflows
+-- Run on: Both DEV and PROD databases
+-- =====================================================
+
+-- =====================================================
+-- FACTORY WORKERS (5 users)
+-- =====================================================
+
+-- Factory Worker 1: Production Manager
+DO $$
+DECLARE
+  v_user_id uuid;
+  v_user_exists boolean;
+BEGIN
+  -- Check if user already exists
+  SELECT EXISTS (SELECT 1 FROM auth.users WHERE email = 'michael.chen@limn-factory.test') INTO v_user_exists;
+
+  IF NOT v_user_exists THEN
+    INSERT INTO auth.users (
+      instance_id,
+      id,
+      aud,
+      role,
+      email,
+      encrypted_password,
+      email_confirmed_at,
+      raw_app_meta_data,
+      raw_user_meta_data,
+      created_at,
+      updated_at,
+      confirmation_token,
+      recovery_token
+    ) VALUES (
+      '00000000-0000-0000-0000-000000000000',
+      gen_random_uuid(),
+      'authenticated',
+      'authenticated',
+      'michael.chen@limn-factory.test',
+      crypt('Factory123!', gen_salt('bf')),
+      NOW(),
+      '{"provider": "email", "providers": ["email"]}',
+      '{"first_name": "Michael", "last_name": "Chen"}',
+      NOW(),
+      NOW(),
+      '',
+      ''
+    )
+    RETURNING id INTO v_user_id;
+
+    INSERT INTO user_profiles (
+      id,
+      user_id,
+      email,
+      first_name,
+      last_name,
+      user_type,
+      title,
+      department,
+      is_active,
+      created_at,
+      updated_at
+    ) VALUES (
+      v_user_id,
+      v_user_id,
+      'michael.chen@limn-factory.test',
+      'Michael',
+      'Chen',
+      'factory',
+      'Production Manager',
+      'Manufacturing',
+      true,
+      NOW(),
+      NOW()
+    );
+  END IF;
+END $$;
+
+-- Factory Worker 2: Assembly Team Lead
+DO $$
+DECLARE
+  v_user_id uuid;
+  v_user_exists boolean;
+BEGIN
+  SELECT EXISTS (SELECT 1 FROM auth.users WHERE email = 'sarah.martinez@limn-factory.test') INTO v_user_exists;
+
+  IF NOT v_user_exists THEN
+    INSERT INTO auth.users (
+      instance_id,
+      id,
+      aud,
+      role,
+      email,
+      encrypted_password,
+      email_confirmed_at,
+      raw_app_meta_data,
+      raw_user_meta_data,
+      created_at,
+      updated_at,
+      confirmation_token,
+      recovery_token
+    ) VALUES (
+      '00000000-0000-0000-0000-000000000000',
+      gen_random_uuid(),
+      'authenticated',
+      'authenticated',
+      'sarah.martinez@limn-factory.test',
+      crypt('Factory123!', gen_salt('bf')),
+      NOW(),
+      '{"provider": "email", "providers": ["email"]}',
+      '{"first_name": "Sarah", "last_name": "Martinez"}',
+      NOW(),
+      NOW(),
+      '',
+      ''
+    )
+    RETURNING id INTO v_user_id;
+
+    INSERT INTO user_profiles (
+      id,
+      user_id,
+      email,
+      first_name,
+      last_name,
+      user_type,
+      title,
+      department,
+      is_active,
+      created_at,
+      updated_at
+    ) VALUES (
+      v_user_id,
+      v_user_id,
+      'sarah.martinez@limn-factory.test',
+      'Sarah',
+      'Martinez',
+      'factory',
+      'Assembly Team Lead',
+      'Manufacturing',
+      true,
+      NOW(),
+      NOW()
+    );
+  END IF;
+END $$;
+
+-- Factory Worker 3: Finishing Specialist
+DO $$
+DECLARE
+  v_user_id uuid;
+  v_user_exists boolean;
+BEGIN
+  SELECT EXISTS (SELECT 1 FROM auth.users WHERE email = 'james.thompson@limn-factory.test') INTO v_user_exists;
+
+  IF NOT v_user_exists THEN
+    INSERT INTO auth.users (
+      instance_id,
+      id,
+      aud,
+      role,
+      email,
+      encrypted_password,
+      email_confirmed_at,
+      raw_app_meta_data,
+      raw_user_meta_data,
+      created_at,
+      updated_at,
+      confirmation_token,
+      recovery_token
+    ) VALUES (
+      '00000000-0000-0000-0000-000000000000',
+      gen_random_uuid(),
+      'authenticated',
+      'authenticated',
+      'james.thompson@limn-factory.test',
+      crypt('Factory123!', gen_salt('bf')),
+      NOW(),
+      '{"provider": "email", "providers": ["email"]}',
+      '{"first_name": "James", "last_name": "Thompson"}',
+      NOW(),
+      NOW(),
+      '',
+      ''
+    )
+    RETURNING id INTO v_user_id;
+
+    INSERT INTO user_profiles (
+      id,
+      user_id,
+      email,
+      first_name,
+      last_name,
+      user_type,
+      title,
+      department,
+      is_active,
+      created_at,
+      updated_at
+    ) VALUES (
+      v_user_id,
+      v_user_id,
+      'james.thompson@limn-factory.test',
+      'James',
+      'Thompson',
+      'factory',
+      'Finishing Specialist',
+      'Manufacturing',
+      true,
+      NOW(),
+      NOW()
+    );
+  END IF;
+END $$;
+
+-- Factory Worker 4: Upholstery Technician
+DO $$
+DECLARE
+  v_user_id uuid;
+  v_user_exists boolean;
+BEGIN
+  SELECT EXISTS (SELECT 1 FROM auth.users WHERE email = 'maria.rodriguez@limn-factory.test') INTO v_user_exists;
+
+  IF NOT v_user_exists THEN
+    INSERT INTO auth.users (
+      instance_id,
+      id,
+      aud,
+      role,
+      email,
+      encrypted_password,
+      email_confirmed_at,
+      raw_app_meta_data,
+      raw_user_meta_data,
+      created_at,
+      updated_at,
+      confirmation_token,
+      recovery_token
+    ) VALUES (
+      '00000000-0000-0000-0000-000000000000',
+      gen_random_uuid(),
+      'authenticated',
+      'authenticated',
+      'maria.rodriguez@limn-factory.test',
+      crypt('Factory123!', gen_salt('bf')),
+      NOW(),
+      '{"provider": "email", "providers": ["email"]}',
+      '{"first_name": "Maria", "last_name": "Rodriguez"}',
+      NOW(),
+      NOW(),
+      '',
+      ''
+    )
+    RETURNING id INTO v_user_id;
+
+    INSERT INTO user_profiles (
+      id,
+      user_id,
+      email,
+      first_name,
+      last_name,
+      user_type,
+      title,
+      department,
+      is_active,
+      created_at,
+      updated_at
+    ) VALUES (
+      v_user_id,
+      v_user_id,
+      'maria.rodriguez@limn-factory.test',
+      'Maria',
+      'Rodriguez',
+      'factory',
+      'Upholstery Technician',
+      'Manufacturing',
+      true,
+      NOW(),
+      NOW()
+    );
+  END IF;
+END $$;
+
+-- Factory Worker 5: Warehouse Coordinator
+DO $$
+DECLARE
+  v_user_id uuid;
+  v_user_exists boolean;
+BEGIN
+  SELECT EXISTS (SELECT 1 FROM auth.users WHERE email = 'david.kim@limn-factory.test') INTO v_user_exists;
+
+  IF NOT v_user_exists THEN
+    INSERT INTO auth.users (
+      instance_id,
+      id,
+      aud,
+      role,
+      email,
+      encrypted_password,
+      email_confirmed_at,
+      raw_app_meta_data,
+      raw_user_meta_data,
+      created_at,
+      updated_at,
+      confirmation_token,
+      recovery_token
+    ) VALUES (
+      '00000000-0000-0000-0000-000000000000',
+      gen_random_uuid(),
+      'authenticated',
+      'authenticated',
+      'david.kim@limn-factory.test',
+      crypt('Factory123!', gen_salt('bf')),
+      NOW(),
+      '{"provider": "email", "providers": ["email"]}',
+      '{"first_name": "David", "last_name": "Kim"}',
+      NOW(),
+      NOW(),
+      '',
+      ''
+    )
+    RETURNING id INTO v_user_id;
+
+    INSERT INTO user_profiles (
+      id,
+      user_id,
+      email,
+      first_name,
+      last_name,
+      user_type,
+      title,
+      department,
+      is_active,
+      created_at,
+      updated_at
+    ) VALUES (
+      v_user_id,
+      v_user_id,
+      'david.kim@limn-factory.test',
+      'David',
+      'Kim',
+      'factory',
+      'Warehouse Coordinator',
+      'Manufacturing',
+      true,
+      NOW(),
+      NOW()
+    );
+  END IF;
+END $$;
+
+-- =====================================================
+-- QC TESTERS (5 users)
+-- =====================================================
+
+-- QC Tester 1: Senior QC Inspector
+DO $$
+DECLARE
+  v_user_id uuid;
+  v_user_exists boolean;
+BEGIN
+  SELECT EXISTS (SELECT 1 FROM auth.users WHERE email = 'jennifer.lee@limn-qc.test') INTO v_user_exists;
+
+  IF NOT v_user_exists THEN
+    INSERT INTO auth.users (
+      instance_id,
+      id,
+      aud,
+      role,
+      email,
+      encrypted_password,
+      email_confirmed_at,
+      raw_app_meta_data,
+      raw_user_meta_data,
+      created_at,
+      updated_at,
+      confirmation_token,
+      recovery_token
+    ) VALUES (
+      '00000000-0000-0000-0000-000000000000',
+      gen_random_uuid(),
+      'authenticated',
+      'authenticated',
+      'jennifer.lee@limn-qc.test',
+      crypt('QCTest123!', gen_salt('bf')),
+      NOW(),
+      '{"provider": "email", "providers": ["email"]}',
+      '{"first_name": "Jennifer", "last_name": "Lee"}',
+      NOW(),
+      NOW(),
+      '',
+      ''
+    )
+    RETURNING id INTO v_user_id;
+
+    INSERT INTO user_profiles (
+      id,
+      user_id,
+      email,
+      first_name,
+      last_name,
+      user_type,
+      title,
+      department,
+      is_active,
+      created_at,
+      updated_at
+    ) VALUES (
+      v_user_id,
+      v_user_id,
+      'jennifer.lee@limn-qc.test',
+      'Jennifer',
+      'Lee',
+      'qc_tester',
+      'Senior QC Inspector',
+      'Quality Control',
+      true,
+      NOW(),
+      NOW()
+    );
+  END IF;
+END $$;
+
+-- QC Tester 2: Final Inspection Specialist
+DO $$
+DECLARE
+  v_user_id uuid;
+  v_user_exists boolean;
+BEGIN
+  SELECT EXISTS (SELECT 1 FROM auth.users WHERE email = 'robert.anderson@limn-qc.test') INTO v_user_exists;
+
+  IF NOT v_user_exists THEN
+    INSERT INTO auth.users (
+      instance_id,
+      id,
+      aud,
+      role,
+      email,
+      encrypted_password,
+      email_confirmed_at,
+      raw_app_meta_data,
+      raw_user_meta_data,
+      created_at,
+      updated_at,
+      confirmation_token,
+      recovery_token
+    ) VALUES (
+      '00000000-0000-0000-0000-000000000000',
+      gen_random_uuid(),
+      'authenticated',
+      'authenticated',
+      'robert.anderson@limn-qc.test',
+      crypt('QCTest123!', gen_salt('bf')),
+      NOW(),
+      '{"provider": "email", "providers": ["email"]}',
+      '{"first_name": "Robert", "last_name": "Anderson"}',
+      NOW(),
+      NOW(),
+      '',
+      ''
+    )
+    RETURNING id INTO v_user_id;
+
+    INSERT INTO user_profiles (
+      id,
+      user_id,
+      email,
+      first_name,
+      last_name,
+      user_type,
+      title,
+      department,
+      is_active,
+      created_at,
+      updated_at
+    ) VALUES (
+      v_user_id,
+      v_user_id,
+      'robert.anderson@limn-qc.test',
+      'Robert',
+      'Anderson',
+      'qc_tester',
+      'Final Inspection Specialist',
+      'Quality Control',
+      true,
+      NOW(),
+      NOW()
+    );
+  END IF;
+END $$;
+
+-- QC Tester 3: Materials QC Inspector
+DO $$
+DECLARE
+  v_user_id uuid;
+  v_user_exists boolean;
+BEGIN
+  SELECT EXISTS (SELECT 1 FROM auth.users WHERE email = 'lisa.patel@limn-qc.test') INTO v_user_exists;
+
+  IF NOT v_user_exists THEN
+    INSERT INTO auth.users (
+      instance_id,
+      id,
+      aud,
+      role,
+      email,
+      encrypted_password,
+      email_confirmed_at,
+      raw_app_meta_data,
+      raw_user_meta_data,
+      created_at,
+      updated_at,
+      confirmation_token,
+      recovery_token
+    ) VALUES (
+      '00000000-0000-0000-0000-000000000000',
+      gen_random_uuid(),
+      'authenticated',
+      'authenticated',
+      'lisa.patel@limn-qc.test',
+      crypt('QCTest123!', gen_salt('bf')),
+      NOW(),
+      '{"provider": "email", "providers": ["email"]}',
+      '{"first_name": "Lisa", "last_name": "Patel"}',
+      NOW(),
+      NOW(),
+      '',
+      ''
+    )
+    RETURNING id INTO v_user_id;
+
+    INSERT INTO user_profiles (
+      id,
+      user_id,
+      email,
+      first_name,
+      last_name,
+      user_type,
+      title,
+      department,
+      is_active,
+      created_at,
+      updated_at
+    ) VALUES (
+      v_user_id,
+      v_user_id,
+      'lisa.patel@limn-qc.test',
+      'Lisa',
+      'Patel',
+      'qc_tester',
+      'Materials QC Inspector',
+      'Quality Control',
+      true,
+      NOW(),
+      NOW()
+    );
+  END IF;
+END $$;
+
+-- QC Tester 4: Dimensional QC Technician
+DO $$
+DECLARE
+  v_user_id uuid;
+  v_user_exists boolean;
+BEGIN
+  SELECT EXISTS (SELECT 1 FROM auth.users WHERE email = 'carlos.garcia@limn-qc.test') INTO v_user_exists;
+
+  IF NOT v_user_exists THEN
+    INSERT INTO auth.users (
+      instance_id,
+      id,
+      aud,
+      role,
+      email,
+      encrypted_password,
+      email_confirmed_at,
+      raw_app_meta_data,
+      raw_user_meta_data,
+      created_at,
+      updated_at,
+      confirmation_token,
+      recovery_token
+    ) VALUES (
+      '00000000-0000-0000-0000-000000000000',
+      gen_random_uuid(),
+      'authenticated',
+      'authenticated',
+      'carlos.garcia@limn-qc.test',
+      crypt('QCTest123!', gen_salt('bf')),
+      NOW(),
+      '{"provider": "email", "providers": ["email"]}',
+      '{"first_name": "Carlos", "last_name": "Garcia"}',
+      NOW(),
+      NOW(),
+      '',
+      ''
+    )
+    RETURNING id INTO v_user_id;
+
+    INSERT INTO user_profiles (
+      id,
+      user_id,
+      email,
+      first_name,
+      last_name,
+      user_type,
+      title,
+      department,
+      is_active,
+      created_at,
+      updated_at
+    ) VALUES (
+      v_user_id,
+      v_user_id,
+      'carlos.garcia@limn-qc.test',
+      'Carlos',
+      'Garcia',
+      'qc_tester',
+      'Dimensional QC Technician',
+      'Quality Control',
+      true,
+      NOW(),
+      NOW()
+    );
+  END IF;
+END $$;
+
+-- QC Tester 5: Packaging & Shipping QC
+DO $$
+DECLARE
+  v_user_id uuid;
+  v_user_exists boolean;
+BEGIN
+  SELECT EXISTS (SELECT 1 FROM auth.users WHERE email = 'amanda.wilson@limn-qc.test') INTO v_user_exists;
+
+  IF NOT v_user_exists THEN
+    INSERT INTO auth.users (
+      instance_id,
+      id,
+      aud,
+      role,
+      email,
+      encrypted_password,
+      email_confirmed_at,
+      raw_app_meta_data,
+      raw_user_meta_data,
+      created_at,
+      updated_at,
+      confirmation_token,
+      recovery_token
+    ) VALUES (
+      '00000000-0000-0000-0000-000000000000',
+      gen_random_uuid(),
+      'authenticated',
+      'authenticated',
+      'amanda.wilson@limn-qc.test',
+      crypt('QCTest123!', gen_salt('bf')),
+      NOW(),
+      '{"provider": "email", "providers": ["email"]}',
+      '{"first_name": "Amanda", "last_name": "Wilson"}',
+      NOW(),
+      NOW(),
+      '',
+      ''
+    )
+    RETURNING id INTO v_user_id;
+
+    INSERT INTO user_profiles (
+      id,
+      user_id,
+      email,
+      first_name,
+      last_name,
+      user_type,
+      title,
+      department,
+      is_active,
+      created_at,
+      updated_at
+    ) VALUES (
+      v_user_id,
+      v_user_id,
+      'amanda.wilson@limn-qc.test',
+      'Amanda',
+      'Wilson',
+      'qc_tester',
+      'Packaging & Shipping QC',
+      'Quality Control',
+      true,
+      NOW(),
+      NOW()
+    );
+  END IF;
+END $$;
+
+-- =====================================================
+-- COMPLETION MESSAGE
+-- =====================================================
+DO $$
+BEGIN
+  RAISE NOTICE '✅ Successfully seeded 5 factory workers and 5 QC testers';
+  RAISE NOTICE '';
+  RAISE NOTICE 'Factory Workers (@limn-factory.test):';
+  RAISE NOTICE '   - Michael Chen (Production Manager)';
+  RAISE NOTICE '   - Sarah Martinez (Assembly Team Lead)';
+  RAISE NOTICE '   - James Thompson (Finishing Specialist)';
+  RAISE NOTICE '   - Maria Rodriguez (Upholstery Technician)';
+  RAISE NOTICE '   - David Kim (Warehouse Coordinator)';
+  RAISE NOTICE '';
+  RAISE NOTICE 'QC Testers (@limn-qc.test):';
+  RAISE NOTICE '   - Jennifer Lee (Senior QC Inspector)';
+  RAISE NOTICE '   - Robert Anderson (Final Inspection Specialist)';
+  RAISE NOTICE '   - Lisa Patel (Materials QC Inspector)';
+  RAISE NOTICE '   - Carlos Garcia (Dimensional QC Technician)';
+  RAISE NOTICE '   - Amanda Wilson (Packaging & Shipping QC)';
+  RAISE NOTICE '';
+  RAISE NOTICE 'Login credentials:';
+  RAISE NOTICE '   Factory users password: Factory123!';
+  RAISE NOTICE '   QC users password: QCTest123!';
+END $$;
