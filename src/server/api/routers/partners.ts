@@ -1,6 +1,9 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc/init";
 import { TRPCError } from "@trpc/server";
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 /**
  * Partners Module tRPC Router
@@ -343,7 +346,7 @@ export const partnersRouter = createTRPCRouter({
       }
 
       const [partners, total] = await Promise.all([
-        ctx.db.partners.findMany({
+        prisma.partners.findMany({
           where,
           take: input.limit,
           skip: input.offset,
@@ -355,7 +358,7 @@ export const partnersRouter = createTRPCRouter({
             },
           },
         }),
-        ctx.db.partners.count({ where }),
+        prisma.partners.count({ where }),
       ]);
 
       return {
@@ -389,7 +392,7 @@ export const partnersRouter = createTRPCRouter({
       }
 
       const [partners, total] = await Promise.all([
-        ctx.db.partners.findMany({
+        prisma.partners.findMany({
           where,
           take: input.limit,
           skip: input.offset,
@@ -401,7 +404,7 @@ export const partnersRouter = createTRPCRouter({
             },
           },
         }),
-        ctx.db.partners.count({ where }),
+        prisma.partners.count({ where }),
       ]);
 
       return {
@@ -435,7 +438,7 @@ export const partnersRouter = createTRPCRouter({
       }
 
       const [partners, total] = await Promise.all([
-        ctx.db.partners.findMany({
+        prisma.partners.findMany({
           where,
           take: input.limit,
           skip: input.offset,
@@ -447,7 +450,7 @@ export const partnersRouter = createTRPCRouter({
             },
           },
         }),
-        ctx.db.partners.count({ where }),
+        prisma.partners.count({ where }),
       ]);
 
       return {
