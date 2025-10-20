@@ -1,9 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
-import { DollarSign, Plus, AlertTriangle, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DollarSign, Plus, AlertTriangle, RefreshCw, Search, X } from "lucide-react";
 import { format } from "date-fns";
 
 export const dynamic = 'force-dynamic';
@@ -12,8 +16,20 @@ export default function ExpensesPage() {
   const router = useRouter();
   const { user: _user } = useAuth();
 
+  // Filter state
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState<string>("");
+  const [approvalStatus, setApprovalStatus] = useState<string>("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+
   const { data, isLoading, error } = api.expenses.getAll.useQuery(
     {
+      search: search || undefined,
+      category: category || undefined,
+      approval_status: approvalStatus || undefined,
+      dateFrom: dateFrom || undefined,
+      dateTo: dateTo || undefined,
       limit: 100,
       offset: 0,
     },
@@ -24,6 +40,22 @@ export default function ExpensesPage() {
 
   const utils = api.useUtils();
   const expenses = data?.items || [];
+
+  // Get unique categories for filter dropdown
+  const { data: categoriesData } = api.expenses.getCategories.useQuery(undefined, {
+    enabled: true,
+  });
+  const categories = categoriesData || [];
+
+  const handleClearFilters = () => {
+    setSearch("");
+    setCategory("");
+    setApprovalStatus("");
+    setDateFrom("");
+    setDateTo("");
+  };
+
+  const hasActiveFilters = search || category || approvalStatus || dateFrom || dateTo;
 
   if (isLoading) {
     return (
@@ -69,13 +101,93 @@ export default function ExpensesPage() {
           <h1>Expenses</h1>
           <p className="text-tertiary">Company expense tracking and approval</p>
         </div>
-        <button
+        <Button
           onClick={() => router.push('/financials/expenses/new')}
-          className="btn btn-primary"
         >
           <Plus className="w-4 h-4 mr-2" />
           Add Expense
-        </button>
+        </Button>
+      </div>
+
+      {/* Filters */}
+      <div className="card mb-6">
+        <div className="p-4 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search expenses..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+
+            {/* Category Filter */}
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Categories" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Categories</SelectItem>
+                {categories.map((cat: string) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Status Filter */}
+            <Select value={approvalStatus} onValueChange={setApprovalStatus}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="approved">Approved</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Date From */}
+            <Input
+              type="date"
+              placeholder="From Date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+            />
+
+            {/* Date To */}
+            <Input
+              type="date"
+              placeholder="To Date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+            />
+          </div>
+
+          {/* Clear Filters */}
+          {hasActiveFilters && (
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleClearFilters}
+              >
+                <X className="w-4 h-4 mr-2" />
+                Clear Filters
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Results Count */}
+      <div className="mb-4 text-sm text-muted-foreground">
+        {data?.total ? `${data.total} expense${data.total === 1 ? '' : 's'} found` : 'No expenses found'}
       </div>
 
       {/* Expenses Table */}
@@ -84,7 +196,11 @@ export default function ExpensesPage() {
           <div className="empty-state">
             <DollarSign className="w-12 h-12 text-tertiary mb-4" />
             <h3>No Expenses Found</h3>
-            <p className="text-tertiary">Get started by adding your first expense.</p>
+            <p className="text-tertiary">
+              {hasActiveFilters
+                ? "Try adjusting your filters to see more results."
+                : "Get started by adding your first expense."}
+            </p>
           </div>
         ) : (
           <table className="data-table" data-testid="data-table">
