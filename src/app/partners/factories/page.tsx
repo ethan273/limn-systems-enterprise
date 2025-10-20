@@ -203,7 +203,7 @@ export default function FactoriesPage() {
 
   // Status filter options
   const statusOptions = [
-    { value: '', label: 'All Statuses' },
+    { value: 'all', label: 'All Statuses' },
     { value: 'active', label: 'Active' },
     { value: 'inactive', label: 'Inactive' },
     { value: 'pending_approval', label: 'Pending Approval' },

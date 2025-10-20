@@ -75,7 +75,7 @@ export default function ShippingTrackingPage() {
   } = useTableState({
     initialFilters: {
       search: '',
-      status: '',
+      status: 'all',
     },
     debounceMs: 300,
     pageSize: 50,
@@ -122,7 +122,7 @@ export default function ShippingTrackingPage() {
 
   // Transform status options to SelectOption format
   const statusOptions = [
-    { value: '', label: 'All Statuses' },
+    { value: 'all', label: 'All Statuses' },
     { value: 'pending', label: 'Pending' },
     { value: 'picked_up', label: 'Picked Up' },
     { value: 'in_transit', label: 'In Transit' },

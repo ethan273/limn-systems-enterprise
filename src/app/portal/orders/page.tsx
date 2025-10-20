@@ -85,7 +85,7 @@ export default function CustomerOrdersPage() {
   } = useTableState({
     initialFilters: {
       search: '',
-      status: '',
+      status: 'all',
     },
     debounceMs: 300,
     pageSize: 50,
@@ -95,7 +95,7 @@ export default function CustomerOrdersPage() {
   const { data, isLoading, error } = api.portal.getCustomerOrders.useQuery({
     limit: queryParams.limit,
     offset: queryParams.offset,
-    status: (rawFilters.status || undefined) as 'all' | 'shipped' | 'delivered' | 'pending' | 'in_production' | 'ready_to_ship' | 'pending_deposit' | undefined,
+    status: rawFilters.status === 'all' ? undefined : rawFilters.status as 'all' | 'shipped' | 'delivered' | 'pending' | 'in_production' | 'ready_to_ship' | 'pending_deposit' | undefined,
   }, {
     enabled: true,
   });
@@ -141,7 +141,7 @@ export default function CustomerOrdersPage() {
 
   // Transform status options to SelectOption format
   const statusOptions = [
-    { value: '', label: 'All Statuses' },
+    { value: 'all', label: 'All Statuses' },
     { value: 'awaiting_deposit', label: 'Awaiting Deposit' },
     { value: 'deposit_paid', label: 'Deposit Paid' },
     { value: 'in_progress', label: 'In Production' },

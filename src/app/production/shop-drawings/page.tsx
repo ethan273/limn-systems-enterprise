@@ -66,7 +66,7 @@ export default function ShopDrawingsPage() {
   } = useTableState({
     initialFilters: {
       search: '',
-      status: '',
+      status: 'all',
     },
     debounceMs: 300,
     pageSize: 20,
@@ -77,7 +77,7 @@ export default function ShopDrawingsPage() {
   // Backend query with unified params
   const { data, isLoading, error } = api.shopDrawings.getAll.useQuery({
     ...queryParams,
-    status: rawFilters.status || undefined,
+    status: rawFilters.status === 'all' ? undefined : rawFilters.status,
   }, {
     enabled: true,
   });
@@ -87,7 +87,7 @@ export default function ShopDrawingsPage() {
 
   // Status options for filter
   const statusOptions = [
-    { value: '', label: 'All Statuses' },
+    { value: 'all', label: 'All Statuses' },
     { value: 'in_review', label: 'In Review' },
     { value: 'designer_approved', label: 'Designer Approved' },
     { value: 'approved', label: 'Approved' },

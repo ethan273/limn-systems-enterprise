@@ -57,8 +57,8 @@ export default function PrototypesPage() {
   } = useTableState({
     initialFilters: {
       search: '',
-      status: '',
-      priority: '',
+      status: 'all',
+      priority: 'all',
       prototypeType: '',
     },
     debounceMs: 300,
@@ -70,7 +70,7 @@ export default function PrototypesPage() {
   // Backend query with unified params
   const { data, isLoading, error } = api.prototypes.getAll.useQuery({
     ...queryParams,
-    status: rawFilters.status || undefined,
+    status: rawFilters.status === 'all' ? undefined : rawFilters.status,
   }, {
     enabled: true,
   });
@@ -79,7 +79,7 @@ export default function PrototypesPage() {
 
   // Filter options
   const statusOptions = [
-    { value: '', label: 'All Statuses' },
+    { value: 'all', label: 'All Statuses' },
     { value: 'concept', label: 'Concept' },
     { value: 'design_review', label: 'Design Review' },
     { value: 'design_approved', label: 'Design Approved' },
@@ -95,14 +95,14 @@ export default function PrototypesPage() {
   ];
 
   const priorityOptions = [
-    { value: '', label: 'All Priorities' },
+    { value: 'all', label: 'All Priorities' },
     { value: 'low', label: 'Low' },
     { value: 'medium', label: 'Medium' },
     { value: 'high', label: 'High' },
   ];
 
   const typeOptions = [
-    { value: '', label: 'All Types' },
+    { value: 'all', label: 'All Types' },
     { value: 'furniture', label: 'Furniture' },
     { value: 'accessory', label: 'Accessory' },
     { value: 'lighting', label: 'Lighting' },

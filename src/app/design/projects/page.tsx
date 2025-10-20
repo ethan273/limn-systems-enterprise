@@ -51,7 +51,7 @@ export default function DesignProjectsPage() {
     initialFilters: {
       search: '',
       designStage: '',
-      priority: '',
+      priority: 'all',
     },
     debounceMs: 300,
     pageSize: 50,
@@ -61,7 +61,7 @@ export default function DesignProjectsPage() {
   const { data, isLoading, error } = api.designProjects.getAll.useQuery(
     {
       ...queryParams,
-      status: rawFilters.designStage || undefined,
+      status: rawFilters.designStage === 'all' ? undefined : rawFilters.designStage,
     },
     { enabled: true } // Middleware ensures auth, so no need to wait for client auth
   );
@@ -199,7 +199,7 @@ export default function DesignProjectsPage() {
 
   // Filter options for TableFilters components
   const stageOptions = [
-    { value: '', label: 'All Stages' },
+    { value: 'all', label: 'All Stages' },
     { value: 'brief_creation', label: 'Brief Creation' },
     { value: 'concept', label: 'Concept' },
     { value: 'draft', label: 'Draft' },
@@ -209,7 +209,7 @@ export default function DesignProjectsPage() {
   ];
 
   const priorityOptions = [
-    { value: '', label: 'All Priorities' },
+    { value: 'all', label: 'All Priorities' },
     { value: 'low', label: 'Low' },
     { value: 'normal', label: 'Normal' },
     { value: 'high', label: 'High' },

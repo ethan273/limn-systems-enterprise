@@ -43,7 +43,7 @@ export default function PackingJobsPage() {
     queryParams,
   } = useTableState({
     initialFilters: {
-      status: '',
+      status: 'all',
     },
     debounceMs: 300,
     pageSize: 50,
@@ -54,7 +54,7 @@ export default function PackingJobsPage() {
   // Fetch packing jobs - backend filtering only
   const { data, isLoading, error } = api.packing.getAllJobs.useQuery({
     ...queryParams,
-    status: (rawFilters.status || undefined) as 'pending' | 'in_progress' | 'packed' | 'shipped' | undefined,
+    status: rawFilters.status === 'all' ? undefined : rawFilters.status as 'pending' | 'in_progress' | 'packed' | 'shipped' | undefined,
   });
 
   const jobs = data?.jobs || [];
@@ -171,7 +171,7 @@ export default function PackingJobsPage() {
 
   // Filter options
   const statusOptions = [
-    { value: '', label: 'All Statuses' },
+    { value: 'all', label: 'All Statuses' },
     { value: 'pending', label: 'Pending' },
     { value: 'in_progress', label: 'In Progress' },
     { value: 'packed', label: 'Packed' },

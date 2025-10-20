@@ -25,8 +25,8 @@ export default function ExpensesPage() {
   } = useTableState({
     initialFilters: {
       search: '',
-      category: '',
-      approval_status: '',
+      category: 'all',
+      approval_status: 'all',
       dateFrom: '',
       dateTo: '',
     },
@@ -37,7 +37,7 @@ export default function ExpensesPage() {
   // Backend query with unified params
   const { data, isLoading, error } = api.expenses.getAll.useQuery({
     ...queryParams,
-    approval_status: rawFilters.approval_status || undefined,
+    approval_status: rawFilters.approval_status === 'all' ? undefined : rawFilters.approval_status,
   }, {
     enabled: true,
   });
@@ -53,12 +53,12 @@ export default function ExpensesPage() {
 
   // Transform categories to SelectOption format
   const categoryOptions = [
-    { value: '', label: 'All Categories' },
+    { value: 'all', label: 'All Categories' },
     ...categories.map((cat: string) => ({ value: cat, label: cat })),
   ];
 
   const statusOptions = [
-    { value: '', label: 'All Statuses' },
+    { value: 'all', label: 'All Statuses' },
     { value: 'pending', label: 'Pending' },
     { value: 'approved', label: 'Approved' },
     { value: 'rejected', label: 'Rejected' },

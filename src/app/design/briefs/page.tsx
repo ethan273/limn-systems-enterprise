@@ -50,7 +50,7 @@ export default function DesignBriefsPage() {
   } = useTableState({
     initialFilters: {
       search: '',
-      status: '',
+      status: 'all',
     },
     debounceMs: 300,
     pageSize: 50,
@@ -60,7 +60,7 @@ export default function DesignBriefsPage() {
   const { data, isLoading, error } = api.designBriefs.getAll.useQuery(
     {
       ...queryParams,
-      status: rawFilters.status || undefined,
+      status: rawFilters.status === 'all' ? undefined : rawFilters.status,
     },
     { enabled: true } // Middleware ensures auth
   );
@@ -201,7 +201,7 @@ export default function DesignBriefsPage() {
 
   // Status options for TableFilters.Select
   const statusOptions = [
-    { value: '', label: 'All Statuses' },
+    { value: 'all', label: 'All Statuses' },
     { value: 'draft', label: 'Draft' },
     { value: 'submitted', label: 'Submitted' },
     { value: 'approved', label: 'Approved' },

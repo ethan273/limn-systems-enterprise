@@ -78,7 +78,7 @@ function DesignDocumentsContent() {
     initialFilters: {
       search: '',
       storageType: '',
-      category: '',
+      category: 'all',
     },
     debounceMs: 300,
     pageSize: 100,
@@ -98,7 +98,7 @@ function DesignDocumentsContent() {
     refetch: refetchFiles,
   } = api.storage.listFiles.useQuery({
     ...queryParams,
-    storageType: rawFilters.storageType || undefined,
+    storageType: rawFilters.storageType === 'all' ? undefined : rawFilters.storageType,
   });
 
   // Get storage stats
@@ -275,13 +275,13 @@ function DesignDocumentsContent() {
 
   // Filter options for TableFilters components
   const storageTypeOptions = [
-    { value: '', label: 'All Storage' },
+    { value: 'all', label: 'All Storage' },
     { value: 'supabase', label: 'Supabase' },
     { value: 'google_drive', label: 'Google Drive' },
   ];
 
   const categoryOptions = [
-    { value: '', label: 'All Categories' },
+    { value: 'all', label: 'All Categories' },
     { value: 'image', label: 'Images' },
     { value: 'document', label: 'Documents' },
     { value: 'pdf', label: 'PDFs' },

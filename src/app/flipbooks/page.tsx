@@ -218,7 +218,7 @@ export default function FlipbooksPage() {
 
   // Status filter options
   const statusOptions = [
-    { value: '', label: 'All Statuses' },
+    { value: 'all', label: 'All Statuses' },
     { value: 'DRAFT', label: 'Draft' },
     { value: 'PUBLISHED', label: 'Published' },
     { value: 'ARCHIVED', label: 'Archived' },

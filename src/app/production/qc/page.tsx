@@ -73,7 +73,7 @@ export default function QCInspectionsPage() {
     queryParams,
   } = useTableState({
     initialFilters: {
-      status: '',
+      status: 'all',
     },
     debounceMs: 300,
     pageSize: 50,
@@ -85,7 +85,7 @@ export default function QCInspectionsPage() {
   // Fetch QC inspections - backend filtering only
   const { data, isLoading, error } = api.qc.getAllInspections.useQuery({
     ...queryParams,
-    status: (rawFilters.status || undefined) as 'pending' | 'in_progress' | 'passed' | 'failed' | 'on_hold' | undefined,
+    status: rawFilters.status === 'all' ? undefined : rawFilters.status as 'pending' | 'in_progress' | 'passed' | 'failed' | 'on_hold' | undefined,
   });
 
   const inspections = data?.inspections || [];
@@ -134,7 +134,7 @@ export default function QCInspectionsPage() {
   ];
 
   const statusOptions = [
-    { value: '', label: 'All Statuses' },
+    { value: 'all', label: 'All Statuses' },
     { value: 'pending', label: 'Pending' },
     { value: 'in_progress', label: 'In Progress' },
     { value: 'passed', label: 'Passed' },

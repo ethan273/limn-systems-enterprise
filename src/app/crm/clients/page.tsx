@@ -67,8 +67,8 @@ export default function ClientsPage() {
   } = useTableState({
     initialFilters: {
       search: '',
-      status: '',
-      type: '',
+      status: 'all',
+      type: 'all',
     },
     debounceMs: 300,
     pageSize: 100,
@@ -76,7 +76,7 @@ export default function ClientsPage() {
 
   const { data: customersData, isLoading, error } = api.crm.customers.getAll.useQuery({
     ...queryParams,
-    status: rawFilters.status || undefined,
+    status: rawFilters.status === 'all' ? undefined : rawFilters.status,
   });
 
   const customers = useMemo(() => customersData?.items || [], [customersData?.items]);
@@ -306,7 +306,7 @@ export default function ClientsPage() {
 
   // Transform filter options
   const statusOptions = [
-    { value: '', label: 'All Status' },
+    { value: 'all', label: 'All Status' },
     { value: 'active', label: 'Active' },
     { value: 'inactive', label: 'Inactive' },
     { value: 'pending', label: 'Pending' },
@@ -314,7 +314,7 @@ export default function ClientsPage() {
   ];
 
   const typeOptions = [
-    { value: '', label: 'All Types' },
+    { value: 'all', label: 'All Types' },
     { value: 'individual', label: 'Individual' },
     { value: 'business', label: 'Business' },
     { value: 'enterprise', label: 'Enterprise' },

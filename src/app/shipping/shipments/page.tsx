@@ -43,8 +43,8 @@ export default function ShipmentsPage() {
   } = useTableState({
     initialFilters: {
       search: '',
-      status: '',
-      carrier: '',
+      status: 'all',
+      carrier: 'all',
     },
     debounceMs: 300,
     pageSize: 100,
@@ -53,8 +53,8 @@ export default function ShipmentsPage() {
   const { data, isLoading, error } = api.shipping.getAllShipments.useQuery(
     {
       ...queryParams,
-      status: rawFilters.status || undefined,
-      carrier: rawFilters.carrier || undefined,
+      status: rawFilters.status === 'all' ? undefined : rawFilters.status,
+      carrier: rawFilters.carrier === 'all' ? undefined : rawFilters.carrier,
     },
     {
       enabled: true,
@@ -105,7 +105,7 @@ export default function ShipmentsPage() {
 
   // Status options for filter
   const statusOptions = [
-    { value: '', label: 'All Statuses' },
+    { value: 'all', label: 'All Statuses' },
     { value: 'pending', label: 'Pending' },
     { value: 'preparing', label: 'Preparing' },
     { value: 'ready', label: 'Ready' },
@@ -117,7 +117,7 @@ export default function ShipmentsPage() {
 
   // Carrier options for filter
   const carrierOptions = [
-    { value: '', label: 'All Carriers' },
+    { value: 'all', label: 'All Carriers' },
     { value: 'SEKO', label: 'SEKO' },
     { value: 'FedEx', label: 'FedEx' },
     { value: 'UPS', label: 'UPS' },

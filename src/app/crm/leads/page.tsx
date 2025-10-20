@@ -95,9 +95,9 @@ export default function LeadsPage() {
   } = useTableState({
     initialFilters: {
       search: '',
-      status: '',
-      prospect_status: '',
-      source: '',
+      status: 'all',
+      prospect_status: 'all',
+      source: 'all',
     },
     debounceMs: 300,
     pageSize: 100,
@@ -106,7 +106,7 @@ export default function LeadsPage() {
   // Backend query with unified params
   const { data: leadsData, isLoading, error } = api.crm.leads.getLeadsOnly.useQuery({
     ...queryParams,
-    status: rawFilters.status || undefined,
+    status: rawFilters.status === 'all' ? undefined : rawFilters.status,
   });
 
   const { data: pipelineStats, error: statsError } = api.crm.leads.getPipelineStats.useQuery();
@@ -559,7 +559,7 @@ export default function LeadsPage() {
           value={rawFilters.status}
           onChange={(value) => setFilter('status', value)}
           options={[
-            { value: '', label: 'All Statuses' },
+            { value: 'all', label: 'All Statuses' },
             ...LEAD_STATUSES.map(s => ({ value: s.value, label: s.label })),
           ]}
           placeholder="All Statuses"
@@ -570,7 +570,7 @@ export default function LeadsPage() {
           value={rawFilters.prospect_status}
           onChange={(value) => setFilter('prospect_status', value)}
           options={[
-            { value: '', label: 'All Prospects' },
+            { value: 'all', label: 'All Prospects' },
             ...PROSPECT_STATUSES.map(s => ({ value: s.value, label: s.label })),
           ]}
           placeholder="All Prospects"
@@ -581,7 +581,7 @@ export default function LeadsPage() {
           value={rawFilters.source}
           onChange={(value) => setFilter('source', value)}
           options={[
-            { value: '', label: 'All Sources' },
+            { value: 'all', label: 'All Sources' },
             { value: 'manual', label: 'Manual' },
             { value: 'website', label: 'Website' },
             { value: 'referral', label: 'Referral' },

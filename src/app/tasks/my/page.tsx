@@ -69,8 +69,8 @@ export default function MyTasksPage() {
   const assignedFilters = useTableState({
     initialFilters: {
       search: '',
-      status: '',
-      priority: '',
+      status: 'all',
+      priority: 'all',
     },
     debounceMs: 300,
     pageSize: 100,
@@ -80,8 +80,8 @@ export default function MyTasksPage() {
   const watchingFilters = useTableState({
     initialFilters: {
       search: '',
-      status: '',
-      priority: '',
+      status: 'all',
+      priority: 'all',
     },
     debounceMs: 300,
     pageSize: 100,
@@ -91,8 +91,8 @@ export default function MyTasksPage() {
   const createdFilters = useTableState({
     initialFilters: {
       search: '',
-      status: '',
-      priority: '',
+      status: 'all',
+      priority: 'all',
     },
     debounceMs: 300,
     pageSize: 100,
@@ -210,7 +210,7 @@ export default function MyTasksPage() {
 
   // Filter options
   const statusOptions = [
-    { value: '', label: 'All Statuses' },
+    { value: 'all', label: 'All Statuses' },
     { value: 'todo', label: 'To Do' },
     { value: 'in_progress', label: 'In Progress' },
     { value: 'completed', label: 'Completed' },
@@ -218,7 +218,7 @@ export default function MyTasksPage() {
   ];
 
   const priorityOptions = [
-    { value: '', label: 'All Priorities' },
+    { value: 'all', label: 'All Priorities' },
     { value: 'high', label: 'High' },
     { value: 'medium', label: 'Medium' },
     { value: 'low', label: 'Low' },

@@ -45,7 +45,7 @@ export default function FactoryReviewsPage() {
   } = useTableState({
     initialFilters: {
       search: '',
-      status: '',
+      status: 'all',
     },
     debounceMs: 300,
     pageSize: 50,
@@ -57,7 +57,7 @@ export default function FactoryReviewsPage() {
   // Backend query with unified params
   const { data, isLoading, error } = api.factoryReviews.getAllSessions.useQuery({
     ...queryParams,
-    status: rawFilters.status || undefined,
+    status: rawFilters.status === 'all' ? undefined : rawFilters.status,
   }, {
     enabled: true,
   });
@@ -66,7 +66,7 @@ export default function FactoryReviewsPage() {
 
   // Status options for filter
   const statusOptions = [
-    { value: '', label: 'All Statuses' },
+    { value: 'all', label: 'All Statuses' },
     { value: 'scheduled', label: 'Scheduled' },
     { value: 'in_progress', label: 'In Progress' },
     { value: 'completed', label: 'Completed' },

@@ -101,9 +101,9 @@ export default function TasksPage() {
   } = useTableState({
     initialFilters: {
       search: '',
-      status: '',
-      priority: '',
-      department: '',
+      status: 'all',
+      priority: 'all',
+      department: 'all',
     },
     debounceMs: 300,
     pageSize: 100,
@@ -111,9 +111,9 @@ export default function TasksPage() {
 
   const { data: tasksData, isLoading, error } = api.tasks.getAllTasks.useQuery({
     ...queryParams,
-    status: (rawFilters.status || undefined) as 'todo' | 'in_progress' | 'completed' | 'cancelled' | undefined,
-    priority: (rawFilters.priority || undefined) as 'high' | 'medium' | 'low' | undefined,
-    department: (rawFilters.department || undefined) as 'admin' | 'production' | 'design' | 'sales' | undefined,
+    status: rawFilters.status === 'all' ? undefined : rawFilters.status as 'todo' | 'in_progress' | 'completed' | 'cancelled' | undefined,
+    priority: rawFilters.priority === 'all' ? undefined : rawFilters.priority as 'high' | 'medium' | 'low' | undefined,
+    department: rawFilters.department === 'all' ? undefined : rawFilters.department as 'admin' | 'production' | 'design' | 'sales' | undefined,
   });
 
   // Get tRPC utils for cache invalidation
@@ -174,19 +174,19 @@ export default function TasksPage() {
 
   // Filter options
   const statusOptions = [
-    { value: '', label: 'All Statuses' },
+    { value: 'all', label: 'All Statuses' },
     ...TASK_STATUSES.map(s => ({ value: s.value, label: s.label })),
   ];
 
   const priorityOptions = [
-    { value: '', label: 'All Priorities' },
+    { value: 'all', label: 'All Priorities' },
     { value: 'high', label: 'High Priority' },
     { value: 'medium', label: 'Medium Priority' },
     { value: 'low', label: 'Low Priority' },
   ];
 
   const departmentOptions = [
-    { value: '', label: 'All Departments' },
+    { value: 'all', label: 'All Departments' },
     { value: 'admin', label: 'Admin' },
     { value: 'production', label: 'Production' },
     { value: 'design', label: 'Design' },

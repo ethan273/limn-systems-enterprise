@@ -93,7 +93,7 @@ export default function PackingListsPage() {
               onChange={(e) => setStatusFilter(e.target.value || undefined)}
               className="w-full border rounded px-3 py-2"
             >
-              <option value="">All Statuses</option>
+              <option value="all">All Statuses</option>
               <option value="pending">Pending</option>
               <option value="in_progress">In Progress</option>
               <option value="packed">Packed</option>

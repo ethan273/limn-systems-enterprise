@@ -83,8 +83,8 @@ export default function ProspectsPage() {
   } = useTableState({
     initialFilters: {
       search: '',
-      prospect_status: '',
-      status: '',
+      prospect_status: 'all',
+      status: 'all',
     },
     debounceMs: 300,
     pageSize: 100,
@@ -93,7 +93,7 @@ export default function ProspectsPage() {
   // Backend query with unified params
   const { data: prospectsData, isLoading, error } = api.crm.leads.getProspects.useQuery({
     ...queryParams,
-    status: rawFilters.status || undefined,
+    status: rawFilters.status === 'all' ? undefined : rawFilters.status,
     prospect_status: queryParams.prospect_status as 'cold' | 'warm' | 'hot' | undefined,
   });
 
@@ -257,12 +257,12 @@ export default function ProspectsPage() {
 
   // Filter options for TableFilters components
   const prospectStatusOptions = [
-    { value: '', label: 'All Prospects' },
+    { value: 'all', label: 'All Prospects' },
     ...PROSPECT_STATUSES.map(s => ({ value: s.value, label: `${s.label} Prospects` })),
   ];
 
   const leadStatusOptions = [
-    { value: '', label: 'All Statuses' },
+    { value: 'all', label: 'All Statuses' },
     { value: 'new', label: 'New' },
     { value: 'contacted', label: 'Contacted' },
     { value: 'qualified', label: 'Qualified' },

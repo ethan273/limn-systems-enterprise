@@ -80,7 +80,7 @@ export default function DocumentsPage() {
   } = useTableState({
     initialFilters: {
       search: '',
-      type: '',
+      type: 'all',
     },
     debounceMs: 300,
     pageSize: 100,
@@ -89,7 +89,7 @@ export default function DocumentsPage() {
   // Backend query with unified params
   const { data, isLoading, error } = api.portal.getCustomerDocuments.useQuery({
     ...queryParams,
-    documentType: rawFilters.type || undefined,
+    documentType: rawFilters.type === 'all' ? undefined : rawFilters.type,
   }, {
     enabled: true,
   });
@@ -142,7 +142,7 @@ export default function DocumentsPage() {
 
   // Transform type options to SelectOption format
   const typeOptions = [
-    { value: '', label: 'All Types' },
+    { value: 'all', label: 'All Types' },
     { value: 'invoice', label: 'Invoices' },
     { value: 'quote', label: 'Quotes' },
     { value: 'contract', label: 'Contracts' },

@@ -36,7 +36,7 @@ export default function PaymentsPage() {
   } = useTableState({
     initialFilters: {
       search: '',
-      status: '',
+      status: 'all',
       paymentMethod: '',
       dateFrom: '',
       dateTo: '',
@@ -48,7 +48,7 @@ export default function PaymentsPage() {
   // Backend query with unified params
   const { data, isLoading, error} = api.payments.getAll.useQuery({
     ...queryParams,
-    status: rawFilters.status || undefined,
+    status: rawFilters.status === 'all' ? undefined : rawFilters.status,
   }, {
     enabled: true,
   });
@@ -274,7 +274,7 @@ export default function PaymentsPage() {
   ];
 
   const statusOptions = [
-    { value: '', label: 'All Statuses' },
+    { value: 'all', label: 'All Statuses' },
     { value: 'completed', label: 'Completed' },
     { value: 'pending', label: 'Pending' },
     { value: 'failed', label: 'Failed' },
@@ -282,7 +282,7 @@ export default function PaymentsPage() {
   ];
 
   const methodOptions = [
-    { value: '', label: 'All Methods' },
+    { value: 'all', label: 'All Methods' },
     { value: 'credit_card', label: 'Credit Card' },
     { value: 'bank_transfer', label: 'Bank Transfer' },
     { value: 'check', label: 'Check' },

@@ -39,7 +39,7 @@ export default function ActivityLogsPage() {
   } = useTableState({
     initialFilters: {
       search: '',
-      action: '',
+      action: 'all',
     },
     debounceMs: 300,
     pageSize: 50,
@@ -49,7 +49,7 @@ export default function ActivityLogsPage() {
     api.audit.getAdminLogs.useQuery(
       {
         ...queryParams,
-        action: rawFilters.action || undefined,
+        action: rawFilters.action === 'all' ? undefined : rawFilters.action,
       },
       { enabled: activeTab === 'admin' }
     );
@@ -58,7 +58,7 @@ export default function ActivityLogsPage() {
     api.audit.getSecurityLogs.useQuery(
       {
         ...queryParams,
-        action: rawFilters.action || undefined,
+        action: rawFilters.action === 'all' ? undefined : rawFilters.action,
       },
       { enabled: activeTab === 'security' }
     );
@@ -249,7 +249,7 @@ export default function ActivityLogsPage() {
 
   // Transform filter options
   const actionOptions = [
-    { value: '', label: 'All Actions' },
+    { value: 'all', label: 'All Actions' },
     { value: 'create', label: 'Create' },
     { value: 'update', label: 'Update' },
     { value: 'delete', label: 'Delete' },

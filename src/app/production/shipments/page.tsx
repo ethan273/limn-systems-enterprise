@@ -43,7 +43,7 @@ export default function ProductionShipmentsPage() {
   } = useTableState({
     initialFilters: {
       search: '',
-      status: '',
+      status: 'all',
     },
     debounceMs: 300,
     pageSize: 100,
@@ -52,7 +52,7 @@ export default function ProductionShipmentsPage() {
   // Backend query with unified params
   const { data, isLoading, error } = api.shipping.getAllShipments.useQuery({
     ...queryParams,
-    status: rawFilters.status || undefined,
+    status: rawFilters.status === 'all' ? undefined : rawFilters.status,
   }, {
     enabled: true,
   });
@@ -64,7 +64,7 @@ export default function ProductionShipmentsPage() {
 
   // Status options for filter
   const statusOptions = [
-    { value: '', label: 'All Statuses' },
+    { value: 'all', label: 'All Statuses' },
     { value: 'pending', label: 'Pending' },
     { value: 'preparing', label: 'Preparing' },
     { value: 'ready', label: 'Ready' },

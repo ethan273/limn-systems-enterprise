@@ -235,7 +235,7 @@ export default function ContactsPage() {
 
   // Company filter options
   const companyOptions = [
-    { value: '', label: 'All Contacts' },
+    { value: 'all', label: 'All Contacts' },
     { value: 'with_company', label: 'With Company' },
     { value: 'no_company', label: 'No Company' },
   ];

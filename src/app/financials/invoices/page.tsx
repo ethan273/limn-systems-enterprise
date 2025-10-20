@@ -37,7 +37,7 @@ function InvoicesPageContent() {
   } = useTableState({
     initialFilters: {
       search: '',
-      status: '',
+      status: 'all',
       dateFrom: '',
       dateTo: '',
     },
@@ -48,7 +48,7 @@ function InvoicesPageContent() {
   // Backend query with unified params
   const { data, isLoading, error } = api.invoices.getAll.useQuery({
     ...queryParams,
-    status: rawFilters.status || undefined,
+    status: rawFilters.status === 'all' ? undefined : rawFilters.status,
   }, {
     enabled: true,
   });
@@ -234,7 +234,7 @@ function InvoicesPageContent() {
   ];
 
   const statusOptions = [
-    { value: '', label: 'All Statuses' },
+    { value: 'all', label: 'All Statuses' },
     { value: 'pending', label: 'Pending' },
     { value: 'partial', label: 'Partial' },
     { value: 'paid', label: 'Paid' },

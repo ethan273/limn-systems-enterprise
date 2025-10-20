@@ -100,7 +100,7 @@ export default function FinancialsPage() {
   } = useTableState({
     initialFilters: {
       search: '',
-      status: '',
+      status: 'all',
     },
     debounceMs: 300,
     pageSize: 100,
@@ -109,7 +109,7 @@ export default function FinancialsPage() {
   // Backend query with unified params
   const { data, isLoading, error } = api.portal.getCustomerInvoices.useQuery({
     ...queryParams,
-    status: rawFilters.status || undefined,
+    status: rawFilters.status === 'all' ? undefined : rawFilters.status,
   }, {
     enabled: true,
   });
@@ -178,7 +178,7 @@ export default function FinancialsPage() {
 
   // Transform status options to SelectOption format
   const statusOptions = [
-    { value: '', label: 'All Statuses' },
+    { value: 'all', label: 'All Statuses' },
     { value: 'draft', label: 'Draft' },
     { value: 'sent', label: 'Sent' },
     { value: 'pending', label: 'Pending' },

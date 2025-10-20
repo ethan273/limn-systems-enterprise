@@ -34,7 +34,7 @@ function ProductionOrdersPageContent() {
   } = useTableState({
     initialFilters: {
       search: '',
-      status: '',
+      status: 'all',
     },
     debounceMs: 300,
     pageSize: 100,
@@ -43,7 +43,7 @@ function ProductionOrdersPageContent() {
   // Backend query with unified params
   const { data, isLoading, error } = api.productionOrders.getAll.useQuery({
     ...queryParams,
-    status: rawFilters.status || undefined,
+    status: rawFilters.status === 'all' ? undefined : rawFilters.status,
   }, {
     enabled: true,
   });
@@ -61,7 +61,7 @@ function ProductionOrdersPageContent() {
 
   // Status options for filter
   const statusOptions = [
-    { value: '', label: 'All Statuses' },
+    { value: 'all', label: 'All Statuses' },
     { value: 'awaiting_deposit', label: 'Awaiting Deposit' },
     { value: 'in_progress', label: 'In Progress' },
     { value: 'completed', label: 'Completed' },

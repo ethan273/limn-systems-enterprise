@@ -60,7 +60,7 @@ export default function CustomersPage() {
   } = useTableState({
     initialFilters: {
       search: '',
-      status: '',
+      status: 'all',
     },
     debounceMs: 300,
     pageSize: 100,
@@ -69,7 +69,7 @@ export default function CustomersPage() {
   // Backend query with unified params
   const { data: customersData, isLoading, error } = api.customers.getAll.useQuery({
     ...queryParams,
-    status: rawFilters.status || undefined,
+    status: rawFilters.status === 'all' ? undefined : rawFilters.status,
   });
 
   // Get tRPC utils for cache invalidation
@@ -177,7 +177,7 @@ export default function CustomersPage() {
 
   // Status filter options
   const statusOptions = [
-    { value: '', label: 'All Statuses' },
+    { value: 'all', label: 'All Statuses' },
     { value: 'active', label: 'Active' },
     { value: 'inactive', label: 'Inactive' },
   ];

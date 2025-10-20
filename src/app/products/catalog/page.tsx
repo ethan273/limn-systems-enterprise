@@ -61,7 +61,7 @@ export default function CatalogItemsPage() {
   // Backend query with unified params
   const { data, isLoading } = api.items.getAll.useQuery({
     ...queryParams,
-    is_active: rawFilters.is_active || undefined,
+    is_active: rawFilters.is_active === 'all' ? undefined : rawFilters.is_active,
   });
 
   // Query collections for the create form
@@ -231,7 +231,7 @@ export default function CatalogItemsPage() {
 
   // Status options for filter
   const statusOptions = [
-    { value: '', label: 'All Items' },
+    { value: 'all', label: 'All Items' },
     { value: 'true', label: 'Active' },
     { value: 'false', label: 'Inactive' },
   ];

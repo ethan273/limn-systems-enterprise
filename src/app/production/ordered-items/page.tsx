@@ -42,8 +42,8 @@ export default function OrderedItemsProductionPage() {
   } = useTableState({
     initialFilters: {
       search: '',
-      status: '',
-      qcStatus: '',
+      status: 'all',
+      qcStatus: 'all',
     },
     debounceMs: 300,
     pageSize: 100,
@@ -53,7 +53,7 @@ export default function OrderedItemsProductionPage() {
   const { data, isLoading, error } = api.orderedItemsProduction.getAll.useQuery(
     {
       ...queryParams,
-      status: rawFilters.status || undefined,
+      status: rawFilters.status === 'all' ? undefined : rawFilters.status,
     },
     {
       enabled: true,
@@ -193,7 +193,7 @@ export default function OrderedItemsProductionPage() {
 
   // Filter options
   const statusOptions = [
-    { value: '', label: 'All Statuses' },
+    { value: 'all', label: 'All Statuses' },
     { value: 'pending', label: 'Pending' },
     { value: 'in_production', label: 'In Production' },
     { value: 'quality_check', label: 'Quality Check' },
@@ -204,7 +204,7 @@ export default function OrderedItemsProductionPage() {
   ];
 
   const qcStatusOptions = [
-    { value: '', label: 'All QC Status' },
+    { value: 'all', label: 'All QC Status' },
     { value: 'pending', label: 'Pending' },
     { value: 'pass', label: 'Pass' },
     { value: 'fail', label: 'Fail' },
