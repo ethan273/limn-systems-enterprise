@@ -158,6 +158,7 @@ export default function Sidebar() {
  items: [
  { label: "Designers", href: "/partners/designers" },
  { label: "Factories", href: "/partners/factories" },
+        { label: "Sourcing", href: "/partners/sourcing" },
  ]
  },
  {
