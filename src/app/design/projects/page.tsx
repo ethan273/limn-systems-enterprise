@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
+import { useTableState } from "@/hooks/useTableFilters";
 import { Folder, Calendar, AlertCircle, Plus, Pencil, Trash2, AlertTriangle, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -13,8 +14,8 @@ import {
   DataTable,
   StatusBadge,
   PriorityBadge,
+  TableFilters,
   type DataTableColumn,
-  type DataTableFilter,
   type DataTableRowAction,
   type StatItem,
 } from "@/components/common";
@@ -32,9 +33,6 @@ import {
 export const dynamic = 'force-dynamic';
 
 export default function DesignProjectsPage() {
-  const [stageFilter, _setStageFilter] = useState<string>("all");
-  const [priorityFilter, _setPriorityFilter] = useState<string>("all");
-  const [_searchQuery, _setSearchQuery] = useState("");
   const router = useRouter();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<any>(null);
@@ -42,12 +40,26 @@ export default function DesignProjectsPage() {
   // Get current user from tRPC (standardized auth pattern)
   const { data: _currentUser, isLoading: authLoading } = api.userProfile.getCurrentUser.useQuery();
 
-  const { data, isLoading, error } = api.designProjects.getAll.useQuery(
-    {
-      designStage: stageFilter === "all" ? undefined : stageFilter,
-      search: undefined,
-      limit: 50,
+  // Unified filter management with new hook
+  const {
+    rawFilters,
+    setFilter,
+    clearFilters,
+    hasActiveFilters,
+    queryParams,
+  } = useTableState({
+    initialFilters: {
+      search: '',
+      designStage: '',
+      priority: '',
     },
+    debounceMs: 300,
+    pageSize: 50,
+  });
+
+  // Backend query with unified params
+  const { data, isLoading, error } = api.designProjects.getAll.useQuery(
+    queryParams,
     { enabled: true } // Middleware ensures auth, so no need to wait for client auth
   );
 
@@ -73,12 +85,7 @@ export default function DesignProjectsPage() {
     }
   };
 
-  const filteredProjects = (data?.projects || []).filter((project: any) => {
-    if (priorityFilter !== "all" && project.priority !== priorityFilter) {
-      return false;
-    }
-    return true;
-  });
+  const projects = data?.projects || [];
 
   const getStageBadge = (stage: string) => {
     const stageMap: Record<string, { label: string; status: string }> = {
@@ -103,14 +110,14 @@ export default function DesignProjectsPage() {
   const stats: StatItem[] = [
     {
       title: "Total Projects",
-      value: filteredProjects.length,
+      value: projects.length,
       description: "All design projects",
       icon: Folder,
       iconColor: "info",
     },
     {
       title: "In Progress",
-      value: filteredProjects.filter((p: any) =>
+      value: projects.filter((p: any) =>
         ['concept', 'draft', 'revision'].includes(p.current_stage)
       ).length,
       description: "Active projects",
@@ -119,7 +126,7 @@ export default function DesignProjectsPage() {
     },
     {
       title: "High Priority",
-      value: filteredProjects.filter((p: any) =>
+      value: projects.filter((p: any) =>
         p.priority === 'high' || p.priority === 'urgent'
       ).length,
       description: "Urgent projects",
@@ -128,7 +135,7 @@ export default function DesignProjectsPage() {
     },
     {
       title: "Approved",
-      value: filteredProjects.filter((p: any) => p.current_stage === 'approved').length,
+      value: projects.filter((p: any) => p.current_stage === 'approved').length,
       description: "Completed projects",
       icon: Folder,
       iconColor: "success",
@@ -187,40 +194,23 @@ export default function DesignProjectsPage() {
     },
   ];
 
-  // DataTable filters configuration
-  const filters: DataTableFilter[] = [
-    {
-      key: 'search',
-      label: 'Search',
-      type: 'search',
-      placeholder: 'Search by project name or code...',
-    },
-    {
-      key: 'stage',
-      label: 'Stage',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Stages' },
-        { value: 'brief_creation', label: 'Brief Creation' },
-        { value: 'concept', label: 'Concept' },
-        { value: 'draft', label: 'Draft' },
-        { value: 'revision', label: 'Revision' },
-        { value: 'final', label: 'Final' },
-        { value: 'approved', label: 'Approved' },
-      ],
-    },
-    {
-      key: 'priority',
-      label: 'Priority',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Priorities' },
-        { value: 'low', label: 'Low' },
-        { value: 'normal', label: 'Normal' },
-        { value: 'high', label: 'High' },
-        { value: 'urgent', label: 'Urgent' },
-      ],
-    },
+  // Filter options for TableFilters components
+  const stageOptions = [
+    { value: '', label: 'All Stages' },
+    { value: 'brief_creation', label: 'Brief Creation' },
+    { value: 'concept', label: 'Concept' },
+    { value: 'draft', label: 'Draft' },
+    { value: 'revision', label: 'Revision' },
+    { value: 'final', label: 'Final' },
+    { value: 'approved', label: 'Approved' },
+  ];
+
+  const priorityOptions = [
+    { value: '', label: 'All Priorities' },
+    { value: 'low', label: 'Low' },
+    { value: 'normal', label: 'Normal' },
+    { value: 'high', label: 'High' },
+    { value: 'urgent', label: 'Urgent' },
   ];
 
   // Row actions configuration
@@ -289,10 +279,39 @@ export default function DesignProjectsPage() {
 
       <StatsGrid stats={stats} columns={4} />
 
-      {/* Projects DataTable */}
+      {/* Filters - New Unified System */}
+      <TableFilters.Bar
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+      >
+        {/* Search Filter */}
+        <TableFilters.Search
+          value={rawFilters.search}
+          onChange={(value) => setFilter('search', value)}
+          placeholder="Search by project name or code..."
+        />
+
+        {/* Stage Filter */}
+        <TableFilters.Select
+          value={rawFilters.designStage}
+          onChange={(value) => setFilter('designStage', value)}
+          options={stageOptions}
+          placeholder="All Stages"
+        />
+
+        {/* Priority Filter */}
+        <TableFilters.Select
+          value={rawFilters.priority}
+          onChange={(value) => setFilter('priority', value)}
+          options={priorityOptions}
+          placeholder="All Priorities"
+        />
+      </TableFilters.Bar>
+
+      {/* Projects DataTable - No filters prop (server-side only) */}
       {isLoading ? (
         <LoadingState message="Loading design projects..." size="lg" />
-      ) : !filteredProjects || filteredProjects.length === 0 ? (
+      ) : !projects || projects.length === 0 ? (
         <EmptyState
           icon={Folder}
           title="No design projects found"
@@ -306,9 +325,8 @@ export default function DesignProjectsPage() {
         />
       ) : (
         <DataTable
-          data={filteredProjects}
+          data={projects}
           columns={columns}
-          filters={filters}
           rowActions={rowActions}
           onRowClick={(row) => router.push(`/design/projects/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}

@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { Badge } from "@/components/ui/badge";
 import { useQualityInspectionsRealtime } from "@/hooks/useRealtimeSubscription";
+import { useTableState } from "@/hooks/useTableFilters";
 import {
   ClipboardCheck,
   AlertCircle,
@@ -24,8 +25,8 @@ import {
   LoadingState,
   DataTable,
   StatsGrid,
+  TableFilters,
   type DataTableColumn,
-  type DataTableFilter,
   type StatItem,
 } from "@/components/common";
 
@@ -62,34 +63,33 @@ const statusConfig: Record<string, { label: string; className: string; icon: Rea
 
 export default function QCInspectionsPage() {
   const router = useRouter();
-  const [statusFilter, _setStatusFilter] = useState<string>("all");
-  const [searchQuery, _setSearchQuery] = useState("");
+
+  // Unified filter management with new hook
+  const {
+    rawFilters,
+    setFilter,
+    clearFilters,
+    hasActiveFilters,
+    queryParams,
+  } = useTableState({
+    initialFilters: {
+      status: '',
+    },
+    debounceMs: 300,
+    pageSize: 50,
+  });
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
 
-  // Fetch QC inspections
-  const { data, isLoading, error } = api.qc.getAllInspections.useQuery({
-    status: statusFilter === "all" ? undefined : statusFilter as any,
-    limit: 50,
-    offset: 0,
-  });
+  // Fetch QC inspections - backend filtering only
+  const { data, isLoading, error } = api.qc.getAllInspections.useQuery(queryParams);
 
   const inspections = data?.inspections || [];
 
   // Subscribe to realtime updates for quality inspections
   useQualityInspectionsRealtime({
     queryKey: ['qc', 'getAllInspections'],
-  });
-
-  const filteredInspections = inspections.filter((inspection) => {
-    if (!searchQuery) return true;
-    const searchLower = searchQuery.toLowerCase();
-    return (
-      inspection.prototype_production?.prototypes?.name.toLowerCase().includes(searchLower) ||
-      inspection.production_items?.item_name.toLowerCase().includes(searchLower) ||
-      inspection.batch_id?.toLowerCase().includes(searchLower)
-    );
   });
 
   const stats: StatItem[] = [
@@ -130,20 +130,13 @@ export default function QCInspectionsPage() {
     },
   ];
 
-  const filters: DataTableFilter[] = [
-    {
-      key: "status",
-      label: "Status",
-      type: "select",
-      options: [
-        { label: "All Statuses", value: "all" },
-        { label: "Pending", value: "pending" },
-        { label: "In Progress", value: "in_progress" },
-        { label: "Passed", value: "passed" },
-        { label: "Failed", value: "failed" },
-        { label: "On Hold", value: "on_hold" },
-      ],
-    },
+  const statusOptions = [
+    { value: '', label: 'All Statuses' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'in_progress', label: 'In Progress' },
+    { value: 'passed', label: 'Passed' },
+    { value: 'failed', label: 'Failed' },
+    { value: 'on_hold', label: 'On Hold' },
   ];
 
   const columns: DataTableColumn<typeof inspections[0]>[] = [
@@ -276,9 +269,24 @@ export default function QCInspectionsPage() {
 
       <StatsGrid stats={stats} columns={4} />
 
+      {/* Filters - New Unified System */}
+      <TableFilters.Bar
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+      >
+        {/* Status Filter */}
+        <TableFilters.Select
+          value={rawFilters.status}
+          onChange={(value) => setFilter('status', value)}
+          options={statusOptions}
+          placeholder="All Statuses"
+        />
+      </TableFilters.Bar>
+
+      {/* QC Inspections DataTable - No filters prop (server-side only) */}
       {isLoading ? (
         <LoadingState message="Loading inspections..." />
-      ) : filteredInspections.length === 0 && !searchQuery ? (
+      ) : inspections.length === 0 && !hasActiveFilters ? (
         <EmptyState
           icon={ClipboardCheck}
           title="No QC inspections found"
@@ -291,10 +299,10 @@ export default function QCInspectionsPage() {
         />
       ) : (
         <DataTable
-          data={filteredInspections}
+          data={inspections}
           columns={columns}
-          filters={filters}
           onRowClick={(row) => router.push(`/production/qc/${row.id}`)}
+          pagination={{ pageSize: 20, showSizeSelector: true }}
           emptyState={{
             icon: ClipboardCheck,
             title: "No inspections found",

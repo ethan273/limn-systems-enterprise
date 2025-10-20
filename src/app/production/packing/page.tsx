@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
+import { useTableState } from "@/hooks/useTableFilters";
 import {
   PageHeader,
   StatsGrid,
@@ -10,9 +11,9 @@ import {
   EmptyState,
   LoadingState,
   StatusBadge,
+  TableFilters,
   type StatItem,
   type DataTableColumn,
-  type DataTableFilter,
 } from "@/components/common";
 import {
   Package,
@@ -32,27 +33,28 @@ export const dynamic = 'force-dynamic';
 
 export default function PackingJobsPage() {
   const router = useRouter();
-  const [_statusFilter, _setStatusFilter] = useState<string>("all");
-  const [_searchQuery, _setSearchQuery] = useState("");
+
+  // Unified filter management with new hook
+  const {
+    rawFilters,
+    setFilter,
+    clearFilters,
+    hasActiveFilters,
+    queryParams,
+  } = useTableState({
+    initialFilters: {
+      status: '',
+    },
+    debounceMs: 300,
+    pageSize: 50,
+  });
+
   const utils = api.useUtils();
 
-  // Fetch packing jobs
-  const { data, isLoading, error } = api.packing.getAllJobs.useQuery({
-    status: _statusFilter === "all" ? undefined : _statusFilter as any,
-    limit: 50,
-    offset: 0,
-  });
+  // Fetch packing jobs - backend filtering only
+  const { data, isLoading, error } = api.packing.getAllJobs.useQuery(queryParams);
 
   const jobs = data?.jobs || [];
-
-  const filteredJobs = jobs.filter((job) => {
-    if (!_searchQuery) return true;
-    const searchLower = _searchQuery.toLowerCase();
-    return (
-      job.order_items?.description?.toLowerCase().includes(searchLower) ||
-      job.tracking_number?.toLowerCase().includes(searchLower)
-    );
-  });
 
   // Statistics
   const stats: StatItem[] = [
@@ -164,26 +166,13 @@ export default function PackingJobsPage() {
     },
   ];
 
-  // Filters
-  const filters: DataTableFilter[] = [
-    {
-      key: 'search',
-      label: 'Search',
-      type: 'search',
-      placeholder: 'Search items or tracking number...',
-    },
-    {
-      key: 'status',
-      label: 'Status',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Statuses' },
-        { value: 'pending', label: 'Pending' },
-        { value: 'in_progress', label: 'In Progress' },
-        { value: 'packed', label: 'Packed' },
-        { value: 'shipped', label: 'Shipped' },
-      ],
-    },
+  // Filter options
+  const statusOptions = [
+    { value: '', label: 'All Statuses' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'in_progress', label: 'In Progress' },
+    { value: 'packed', label: 'Packed' },
+    { value: 'shipped', label: 'Shipped' },
   ];
 
   // Handle query error
@@ -224,24 +213,38 @@ export default function PackingJobsPage() {
 
       <StatsGrid stats={stats} columns={4} />
 
+      {/* Filters - New Unified System */}
+      <TableFilters.Bar
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+      >
+        {/* Status Filter */}
+        <TableFilters.Select
+          value={rawFilters.status}
+          onChange={(value) => setFilter('status', value)}
+          options={statusOptions}
+          placeholder="All Statuses"
+        />
+      </TableFilters.Bar>
+
+      {/* Packing Jobs DataTable - No filters prop (server-side only) */}
       {isLoading ? (
         <LoadingState message="Loading packing jobs..." size="lg" />
-      ) : filteredJobs.length === 0 ? (
+      ) : jobs.length === 0 && !hasActiveFilters ? (
         <EmptyState
           icon={Package}
           title="No packing jobs found"
-          description={_searchQuery ? "Try adjusting your search" : "Get started by creating your first packing job."}
-          action={!_searchQuery ? {
+          description="Get started by creating your first packing job."
+          action={{
             label: 'New Packing Job',
             icon: Plus,
             onClick: () => router.push("/production/packing/new"),
-          } : undefined}
+          }}
         />
       ) : (
         <DataTable
-          data={filteredJobs}
+          data={jobs}
           columns={columns}
-          filters={filters}
           onRowClick={(row) => router.push(`/production/packing/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}
           emptyState={{

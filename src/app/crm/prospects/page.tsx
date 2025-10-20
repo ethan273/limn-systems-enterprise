@@ -91,7 +91,10 @@ export default function ProspectsPage() {
   });
 
   // Backend query with unified params
-  const { data: prospectsData, isLoading, error } = api.crm.leads.getProspects.useQuery(queryParams);
+  const { data: prospectsData, isLoading, error } = api.crm.leads.getProspects.useQuery({
+    ...queryParams,
+    prospect_status: queryParams.prospect_status as 'cold' | 'warm' | 'hot' | undefined,
+  });
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();

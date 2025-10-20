@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
+import { useTableState } from "@/hooks/useTableFilters";
 import { useShipmentsRealtime } from "@/hooks/useRealtimeSubscription";
 import { Badge } from "@/components/ui/badge";
 import { ShippingStatusBadge } from "@/components/ui/status-badge";
@@ -20,8 +21,8 @@ import {
   LoadingState,
   DataTable,
   StatsGrid,
+  TableFilters,
   type DataTableColumn,
-  type DataTableFilter,
   type StatItem,
 } from "@/components/common";
 
@@ -31,15 +32,26 @@ export const dynamic = 'force-dynamic';
 export default function ShipmentsPage() {
   const router = useRouter();
   const { user: _user } = useAuth();
-  const [statusFilter, _setStatusFilter] = useState<string>("all");
-  const [searchQuery, _setSearchQuery] = useState("");
+
+  // Unified filter management with new hook
+  const {
+    rawFilters,
+    setFilter,
+    clearFilters,
+    hasActiveFilters,
+    queryParams,
+  } = useTableState({
+    initialFilters: {
+      search: '',
+      status: '',
+      carrier: '',
+    },
+    debounceMs: 300,
+    pageSize: 100,
+  });
 
   const { data, isLoading, error } = api.shipping.getAllShipments.useQuery(
-    {
-      status: statusFilter === "all" ? undefined : statusFilter,
-      limit: 100,
-      offset: 0,
-    },
+    queryParams,
     {
       enabled: true,
     }
@@ -87,22 +99,26 @@ export default function ShipmentsPage() {
     },
   ];
 
-  const filters: DataTableFilter[] = [
-    {
-      key: "status",
-      label: "Status",
-      type: "select",
-      options: [
-        { label: "All Statuses", value: "all" },
-        { label: "Pending", value: "pending" },
-        { label: "Preparing", value: "preparing" },
-        { label: "Ready", value: "ready" },
-        { label: "Shipped", value: "shipped" },
-        { label: "In Transit", value: "in_transit" },
-        { label: "Delivered", value: "delivered" },
-        { label: "Delayed", value: "delayed" },
-      ],
-    },
+  // Status options for filter
+  const statusOptions = [
+    { value: '', label: 'All Statuses' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'preparing', label: 'Preparing' },
+    { value: 'ready', label: 'Ready' },
+    { value: 'shipped', label: 'Shipped' },
+    { value: 'in_transit', label: 'In Transit' },
+    { value: 'delivered', label: 'Delivered' },
+    { value: 'delayed', label: 'Delayed' },
+  ];
+
+  // Carrier options for filter
+  const carrierOptions = [
+    { value: '', label: 'All Carriers' },
+    { value: 'SEKO', label: 'SEKO' },
+    { value: 'FedEx', label: 'FedEx' },
+    { value: 'UPS', label: 'UPS' },
+    { value: 'DHL', label: 'DHL' },
+    { value: 'USPS', label: 'USPS' },
   ];
 
   const columns: DataTableColumn<typeof shipments[0]>[] = [
@@ -204,16 +220,6 @@ export default function ShipmentsPage() {
     },
   ];
 
-  const filteredShipments = shipments.filter((shipment) => {
-    if (!searchQuery) return true;
-    const searchLower = searchQuery.toLowerCase();
-    return (
-      shipment.shipment_number?.toLowerCase().includes(searchLower) ||
-      shipment.tracking_number?.toLowerCase().includes(searchLower) ||
-      shipment.orders?.order_number?.toLowerCase().includes(searchLower)
-    );
-  });
-
   // Handle query error
   if (error) {
     return (
@@ -245,9 +251,38 @@ export default function ShipmentsPage() {
 
       <StatsGrid stats={stats} />
 
+      {/* Filters - New Unified System */}
+      <TableFilters.Bar
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+      >
+        {/* Search Filter */}
+        <TableFilters.Search
+          value={rawFilters.search}
+          onChange={(value) => setFilter('search', value)}
+          placeholder="Search shipments, tracking..."
+        />
+
+        {/* Status Filter */}
+        <TableFilters.Select
+          value={rawFilters.status}
+          onChange={(value) => setFilter('status', value)}
+          options={statusOptions}
+          placeholder="All Statuses"
+        />
+
+        {/* Carrier Filter */}
+        <TableFilters.Select
+          value={rawFilters.carrier}
+          onChange={(value) => setFilter('carrier', value)}
+          options={carrierOptions}
+          placeholder="All Carriers"
+        />
+      </TableFilters.Bar>
+
       {isLoading ? (
         <LoadingState message="Loading shipments..." />
-      ) : filteredShipments.length === 0 && !searchQuery ? (
+      ) : shipments.length === 0 ? (
         <EmptyState
           icon={TruckIcon}
           title="No Shipments Found"
@@ -255,9 +290,8 @@ export default function ShipmentsPage() {
         />
       ) : (
         <DataTable
-          data={filteredShipments}
+          data={shipments}
           columns={columns}
-          filters={filters}
           onRowClick={(row) => router.push(`/shipping/shipments/${row.id}`)}
           emptyState={{
             icon: TruckIcon,

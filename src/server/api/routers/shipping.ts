@@ -332,6 +332,7 @@ export const shippingRouter = createTRPCRouter({
   // Get all shipments with filtering
   getAllShipments: protectedProcedure
     .input(z.object({
+      search: z.string().optional(),
       status: z.string().optional(),
       carrier: z.string().optional(),
       project_id: z.string().uuid().optional(),
@@ -339,12 +340,23 @@ export const shippingRouter = createTRPCRouter({
       offset: z.number().min(0).default(0),
     }))
     .query(async ({ ctx, input }) => {
+      // Build where clause with search support
+      const where: any = {
+        ...(input.status && { status: input.status }),
+        ...(input.carrier && { carrier: input.carrier }),
+        ...(input.project_id && { project_id: input.project_id }),
+      };
+
+      // Add search filter for shipment_number, tracking_number
+      if (input.search) {
+        where.OR = [
+          { shipment_number: { contains: input.search, mode: 'insensitive' } },
+          { tracking_number: { contains: input.search, mode: 'insensitive' } },
+        ];
+      }
+
       const shipments = await ctx.db.shipments.findMany({
-        where: {
-          ...(input.status && { status: input.status }),
-          ...(input.carrier && { carrier: input.carrier }),
-          ...(input.project_id && { project_id: input.project_id }),
-        },
+        where,
         include: {
           projects: {
             select: {
@@ -366,11 +378,7 @@ export const shippingRouter = createTRPCRouter({
       });
 
       const total = await ctx.db.shipments.count({
-        where: {
-          ...(input.status && { status: input.status }),
-          ...(input.carrier && { carrier: input.carrier }),
-          ...(input.project_id && { project_id: input.project_id }),
-        },
+        where,
       });
 
       return {

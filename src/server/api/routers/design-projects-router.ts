@@ -14,17 +14,19 @@ export const designProjectsRouter = createTRPCRouter({
       z.object({
         status: z.string().optional(),
         designStage: z.string().optional(),
+        priority: z.string().optional(),
         designerId: z.string().optional(),
         search: z.string().optional(),
         limit: z.number().min(1).max(100).default(50),
       })
     )
     .query(async ({ ctx, input }) => {
-      const { designStage, designerId, search, limit } = input;
+      const { designStage, priority, designerId, search, limit } = input;
 
       const projects = await ctx.db.design_projects.findMany({
         where: {
           ...(designStage && { current_stage: designStage }),
+          ...(priority && { priority }),
           ...(designerId && { designer_id: designerId }),
           ...(search && {
             OR: [

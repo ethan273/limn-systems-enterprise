@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
+import { useTableState } from "@/hooks/useTableFilters";
 import {
   PageHeader,
   StatsGrid,
@@ -11,9 +12,9 @@ import {
   EmptyState,
   LoadingState,
   StatusBadge,
+  TableFilters,
   type StatItem,
   type DataTableColumn,
-  type DataTableFilter,
 } from "@/components/common";
 import {
   Package,
@@ -30,19 +31,27 @@ export const dynamic = 'force-dynamic';
 export default function OrderedItemsProductionPage() {
   const router = useRouter();
   const { user: _user } = useAuth();
-  const [_statusFilter, _setStatusFilter] = useState<string>("all");
-  const [_qcStatusFilter, _setQcStatusFilter] = useState<string>("all");
-  const [_searchQuery, _setSearchQuery] = useState("");
 
-  // Fetch ordered items production
-  const { data, isLoading, error } = api.orderedItemsProduction.getAll.useQuery(
-    {
-      status: _statusFilter === "all" ? undefined : _statusFilter,
-      qcStatus: _qcStatusFilter === "all" ? undefined : _qcStatusFilter,
-      search: _searchQuery || undefined,
-      limit: 100,
-      offset: 0,
+  // Unified filter management with new hook
+  const {
+    rawFilters,
+    setFilter,
+    clearFilters,
+    hasActiveFilters,
+    queryParams,
+  } = useTableState({
+    initialFilters: {
+      search: '',
+      status: '',
+      qcStatus: '',
     },
+    debounceMs: 300,
+    pageSize: 100,
+  });
+
+  // Fetch ordered items production - backend filtering only
+  const { data, isLoading, error } = api.orderedItemsProduction.getAll.useQuery(
+    queryParams,
     {
       enabled: true,
     }
@@ -179,41 +188,24 @@ export default function OrderedItemsProductionPage() {
     },
   ];
 
-  // Filters
-  const filters: DataTableFilter[] = [
-    {
-      key: 'search',
-      label: 'Search',
-      type: 'search',
-      placeholder: 'Search by SKU, serial number...',
-    },
-    {
-      key: 'status',
-      label: 'Status',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Statuses' },
-        { value: 'pending', label: 'Pending' },
-        { value: 'in_production', label: 'In Production' },
-        { value: 'quality_check', label: 'Quality Check' },
-        { value: 'approved', label: 'Approved' },
-        { value: 'packed', label: 'Packed' },
-        { value: 'shipped', label: 'Shipped' },
-        { value: 'delivered', label: 'Delivered' },
-      ],
-    },
-    {
-      key: 'qc_status',
-      label: 'QC Status',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All QC Status' },
-        { value: 'pending', label: 'Pending' },
-        { value: 'pass', label: 'Pass' },
-        { value: 'fail', label: 'Fail' },
-        { value: 'repaired', label: 'Repaired' },
-      ],
-    },
+  // Filter options
+  const statusOptions = [
+    { value: '', label: 'All Statuses' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'in_production', label: 'In Production' },
+    { value: 'quality_check', label: 'Quality Check' },
+    { value: 'approved', label: 'Approved' },
+    { value: 'packed', label: 'Packed' },
+    { value: 'shipped', label: 'Shipped' },
+    { value: 'delivered', label: 'Delivered' },
+  ];
+
+  const qcStatusOptions = [
+    { value: '', label: 'All QC Status' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'pass', label: 'Pass' },
+    { value: 'fail', label: 'Fail' },
+    { value: 'repaired', label: 'Repaired' },
   ];
 
   // Handle query error
@@ -247,9 +239,39 @@ export default function OrderedItemsProductionPage() {
 
       <StatsGrid stats={stats} columns={4} />
 
+      {/* Filters - New Unified System */}
+      <TableFilters.Bar
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+      >
+        {/* Search Filter */}
+        <TableFilters.Search
+          value={rawFilters.search}
+          onChange={(value) => setFilter('search', value)}
+          placeholder="Search by SKU, serial number..."
+        />
+
+        {/* Status Filter */}
+        <TableFilters.Select
+          value={rawFilters.status}
+          onChange={(value) => setFilter('status', value)}
+          options={statusOptions}
+          placeholder="All Statuses"
+        />
+
+        {/* QC Status Filter */}
+        <TableFilters.Select
+          value={rawFilters.qcStatus}
+          onChange={(value) => setFilter('qcStatus', value)}
+          options={qcStatusOptions}
+          placeholder="All QC Status"
+        />
+      </TableFilters.Bar>
+
+      {/* Ordered Items DataTable - No filters prop (server-side only) */}
       {isLoading ? (
         <LoadingState message="Loading ordered items..." size="lg" />
-      ) : items.length === 0 ? (
+      ) : items.length === 0 && !hasActiveFilters ? (
         <EmptyState
           icon={Package}
           title="No Units Found"
@@ -259,7 +281,6 @@ export default function OrderedItemsProductionPage() {
         <DataTable
           data={items}
           columns={columns}
-          filters={filters}
           onRowClick={(row) => router.push(`/production/ordered-items/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}
           emptyState={{
