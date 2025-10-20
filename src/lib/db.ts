@@ -1582,6 +1582,39 @@ export class DatabaseClient {
   // =====================================================
 
   /**
+   * Helper method to apply OR clause to Supabase query
+   * Converts Prisma-style OR clauses to Supabase .or() format
+   */
+  private applyOrClause(query: any, where: Record<string, any>): any {
+    if (where.OR && Array.isArray(where.OR)) {
+      // Build OR conditions as separate filter strings
+      const orConditions = where.OR
+        .map((condition: Record<string, any>) => {
+          const [field, value] = Object.entries(condition)[0];
+          if (value && typeof value === 'object' && 'contains' in value) {
+            // For contains, use ilike with wildcards
+            return `${field}.ilike.%${value.contains}%`;
+          } else if (value && typeof value === 'object' && 'equals' in value) {
+            return `${field}.eq.${value.equals}`;
+          } else if (value && typeof value === 'object' && 'in' in value) {
+            return `${field}.in.(${value.in.join(',')})`;
+          } else {
+            return `${field}.eq.${value}`;
+          }
+        })
+        .join(',');
+
+      // Apply OR filter using Supabase's .or() method
+      query = query.or(orConditions);
+
+      // Remove OR from where to avoid processing it again
+      const { OR: _removed, ...restWhere } = where;
+      Object.assign(where, restWhere);
+    }
+    return query;
+  }
+
+  /**
    * Generic findMany operation for any table
    */
   private async findManyGeneric<T>(
@@ -1612,8 +1645,13 @@ export class DatabaseClient {
       query = query.select('*');
     }
 
+    // Handle OR clause using helper method
+    query = this.applyOrClause(query, where);
+
     // Apply where conditions
     Object.entries(where).forEach(([key, value]) => {
+      if (key === 'OR') return; // Skip OR as it's handled by applyOrClause
+
       if (value !== undefined && value !== null) {
         if (typeof value === 'object' && !Array.isArray(value)) {
           // Handle complex where conditions
@@ -1706,8 +1744,13 @@ export class DatabaseClient {
       query = query.select('*');
     }
 
+    // Handle OR clause using helper method
+    const where = options.where;
+    query = this.applyOrClause(query, where);
+
     // Apply where conditions
-    Object.entries(options.where).forEach(([key, value]) => {
+    Object.entries(where).forEach(([key, value]) => {
+      if (key === 'OR') return; // Skip OR as it's handled by applyOrClause
       query = query.eq(key, value);
     });
 
@@ -1738,8 +1781,13 @@ export class DatabaseClient {
       query = query.select('*');
     }
 
+    // Handle OR clause using helper method
+    const where = options.where;
+    query = this.applyOrClause(query, where);
+
     // Apply where conditions
-    Object.entries(options.where).forEach(([key, value]) => {
+    Object.entries(where).forEach(([key, value]) => {
+      if (key === 'OR') return; // Skip OR as it's handled by applyOrClause
       query = query.eq(key, value);
     });
 
@@ -1811,8 +1859,12 @@ export class DatabaseClient {
       updated_at: new Date().toISOString(),
     });
 
+    // Handle OR clause using helper method
+    query = this.applyOrClause(query, where);
+
     // Apply where conditions
     Object.entries(where).forEach(([key, value]) => {
+      if (key === 'OR') return; // Skip OR as it's handled by applyOrClause
       query = query.eq(key, value);
     });
 
@@ -1842,8 +1894,13 @@ export class DatabaseClient {
   ): Promise<void> {
     let query = getSupabaseAdmin().from(tableName).delete();
 
+    // Handle OR clause using helper method
+    const where = options.where;
+    query = this.applyOrClause(query, where);
+
     // Apply where conditions
-    Object.entries(options.where).forEach(([key, value]) => {
+    Object.entries(where).forEach(([key, value]) => {
+      if (key === 'OR') return; // Skip OR as it's handled by applyOrClause
       query = query.eq(key, value);
     });
 
@@ -1887,8 +1944,13 @@ export class DatabaseClient {
   ): Promise<{ count: number }> {
     let query = getSupabaseAdmin().from(tableName).delete();
 
+    // Handle OR clause using helper method
+    const where = options.where;
+    query = this.applyOrClause(query, where);
+
     // Apply where conditions
-    Object.entries(options.where).forEach(([key, value]) => {
+    Object.entries(where).forEach(([key, value]) => {
+      if (key === 'OR') return; // Skip OR as it's handled by applyOrClause
       if (typeof value === 'object' && 'in' in value) {
         query = query.in(key, value.in);
       } else {
@@ -1912,8 +1974,13 @@ export class DatabaseClient {
     // @ts-ignore - Supabase type system doesn't allow generic updates
     let query: any = getSupabaseAdmin().from(tableName).update(options.data);
 
+    // Handle OR clause using helper method
+    const where = options.where;
+    query = this.applyOrClause(query, where);
+
     // Apply where conditions
-    Object.entries(options.where).forEach(([key, value]) => {
+    Object.entries(where).forEach(([key, value]) => {
+      if (key === 'OR') return; // Skip OR as it's handled by applyOrClause
       if (typeof value === 'object' && 'in' in value) {
         query = query.in(key, value.in);
       } else {
@@ -1943,7 +2010,14 @@ export class DatabaseClient {
 
     // Apply where conditions if provided
     if (options.where) {
-      Object.entries(options.where).forEach(([key, value]) => {
+      const where = options.where;
+
+      // Handle OR clause using helper method
+      query = this.applyOrClause(query, where);
+
+      // Apply regular where conditions
+      Object.entries(where).forEach(([key, value]) => {
+        if (key === 'OR') return; // Skip OR as it's handled by applyOrClause
         if (value !== undefined && value !== null) {
           query = query.eq(key, value);
         }
@@ -1985,8 +2059,12 @@ export class DatabaseClient {
 
     query = (query as any).select(selectFields.join(', '));
 
+    // Handle OR clause using helper method
+    query = this.applyOrClause(query, where);
+
     // Apply where conditions
     Object.entries(where).forEach(([key, value]) => {
+      if (key === 'OR') return; // Skip OR as it's handled by applyOrClause
       if (value !== undefined && value !== null) {
         query = (query as any).eq(key, value);
       }
@@ -2018,8 +2096,12 @@ export class DatabaseClient {
     // For now, implement a simplified version
     let query = (getSupabaseAdmin() as any).from(tableName);
 
+    // Handle OR clause using helper method
+    query = this.applyOrClause(query, where);
+
     // Apply where conditions
     Object.entries(where).forEach(([key, value]) => {
+      if (key === 'OR') return; // Skip OR as it's handled by applyOrClause
       if (value !== undefined && value !== null) {
         query = (query as any).eq(key, value);
       }
