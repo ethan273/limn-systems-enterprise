@@ -74,8 +74,13 @@ export const productionTrackingRouter = createTRPCRouter({
         const days = parseInt(input.date_range.replace('d', ''));
         const now = new Date();
         now.setDate(now.getDate() - days);
-        // Convert to ISO string to avoid timezone format issues
-        dateFilter = new Date(now.toISOString());
+        // Use UTC to avoid timezone format issues with PostgreSQL
+        dateFilter = new Date(Date.UTC(
+          now.getUTCFullYear(),
+          now.getUTCMonth(),
+          now.getUTCDate(),
+          0, 0, 0, 0
+        ));
       }
 
       // Get all production orders with filters
