@@ -49,12 +49,16 @@ import { healthRouter as apiHealthRouter } from './routers/apiManagement/health'
 import { rotationRouter as apiRotationRouter } from './routers/apiManagement/rotation';
 import { jobsRouter as apiJobsRouter } from './routers/apiManagement/jobs';
 import { flipbooksRouter } from './routers/flipbooks';
+import { globalSearchRouter } from './routers/global-search';
 
 /**
  * Main API router
  * All routers are combined here and exposed through tRPC
  */
 export const appRouter = createTRPCRouter({
+  // Global Search
+  globalSearch: globalSearchRouter,
+
   // Dashboards & Analytics
   dashboards: dashboardsRouter,
   analytics: analyticsRouter,
