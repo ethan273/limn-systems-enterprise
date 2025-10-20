@@ -2571,7 +2571,7 @@ model documents {
   user_profiles_documents_uploaded_by_userTouser_profiles user_profiles?          @relation("documents_uploaded_by_userTouser_profiles", fields: [uploaded_by_user], references: [id], onDelete: NoAction, onUpdate: NoAction)
   concepts                                                concepts?               @relation(fields: [concept_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_documents_concepts")
   prototypes                                              prototypes?             @relation(fields: [prototype_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_documents_prototypes")
-  production_orders                                       production_orders[]
+  production_orders                                       production_orders[]     @relation("documentsToproduction_orders")
 
   @@index([approved_by], map: "idx_documents_approved_by")
   @@index([catalog_item_id], map: "idx_documents_catalog_item_id")
@@ -3588,7 +3588,6 @@ model manufacturers {
   manufacturer_performance    manufacturer_performance[]
   manufacturer_pricing        manufacturer_pricing[]
   manufacturer_projects       manufacturer_projects[]
-  production_orders           production_orders[]
   prototypes                  prototypes[]
 
   @@schema("public")
@@ -4842,15 +4841,14 @@ model production_orders {
   items_production_orders_catalog_item_idToitems items?                     @relation("production_orders_catalog_item_idToitems", fields: [catalog_item_id], references: [id], onUpdate: NoAction)
   items_production_orders_concept_idToitems      items?                     @relation("production_orders_concept_idToitems", fields: [concept_id], references: [id], onUpdate: NoAction)
   users                                          users?                     @relation(fields: [created_by], references: [id], onUpdate: NoAction)
-  manufacturers                                  manufacturers?             @relation(fields: [factory_id], references: [id], onUpdate: NoAction)
-  orders                                         orders?                    @relation(fields: [order_id], references: [id], onUpdate: NoAction)
   partners                                       partners?                  @relation(fields: [factory_id], references: [id], onUpdate: NoAction, map: "production_orders_partner_factory_id_fkey")
+  orders                                         orders?                    @relation(fields: [order_id], references: [id], onUpdate: NoAction)
   projects                                       projects?                  @relation(fields: [project_id], references: [id], onUpdate: NoAction)
   items_production_orders_prototype_idToitems    items?                     @relation("production_orders_prototype_idToitems", fields: [prototype_id], references: [id], onUpdate: NoAction)
   production_payments                            production_payments[]
   shipping_quotes                                shipping_quotes[]
   shop_drawings                                  shop_drawings[]
-  documents                                      documents[]
+  documents                                      documents[]                @relation("documentsToproduction_orders")
 
   @@index([catalog_item_id], map: "idx_production_orders_catalog_item_id")
   @@index([concept_id], map: "idx_production_orders_concept_id")
