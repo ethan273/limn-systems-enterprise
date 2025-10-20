@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
+import { useTableState } from '@/hooks/useTableFilters';
 import { Palette, Plus, MapPin, Phone, Mail, Star, AlertTriangle, RefreshCw } from 'lucide-react';
 import {
   PageHeader,
@@ -10,8 +10,8 @@ import {
   LoadingState,
   DataTable,
   StatsGrid,
+  TableFilters,
   type DataTableColumn,
-  type DataTableFilter,
   type StatItem,
 } from "@/components/common";
 import { Badge } from '@/components/ui/badge';
@@ -22,16 +22,28 @@ import { Badge } from '@/components/ui/badge';
  */
 export default function DesignersPage() {
   const router = useRouter();
-  const [search, _setSearch] = useState('');
-  const [statusFilter, _setStatusFilter] = useState<'all' | 'active' | 'inactive' | 'pending_approval' | 'suspended'>('active');
   const utils = api.useUtils();
 
-  // Fetch designers
+  // Unified filter management with new hook
+  const {
+    rawFilters,
+    setFilter,
+    clearFilters,
+    hasActiveFilters,
+    queryParams,
+  } = useTableState({
+    initialFilters: {
+      search: '',
+      status: 'active',
+    },
+    debounceMs: 300,
+    pageSize: 50,
+  });
+
+  // Fetch designers - backend handles all filtering
   const { data, isLoading, error } = api.partners.getAll.useQuery({
     type: 'designer',
-    status: statusFilter === 'all' ? undefined : statusFilter,
-    search: search.trim(),
-    limit: 50,
+    ...queryParams,
   });
 
   const designers = data?.partners || [];
@@ -186,26 +198,13 @@ export default function DesignersPage() {
     },
   ];
 
-  // DataTable filters configuration
-  const filters: DataTableFilter[] = [
-    {
-      key: 'search',
-      label: 'Search designers',
-      type: 'search',
-      placeholder: 'Search by name, city, country...',
-    },
-    {
-      key: 'status',
-      label: 'Status',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Statuses' },
-        { value: 'active', label: 'Active' },
-        { value: 'inactive', label: 'Inactive' },
-        { value: 'pending_approval', label: 'Pending Approval' },
-        { value: 'suspended', label: 'Suspended' },
-      ],
-    },
+  // Status filter options
+  const statusOptions = [
+    { value: '', label: 'All Statuses' },
+    { value: 'active', label: 'Active' },
+    { value: 'inactive', label: 'Inactive' },
+    { value: 'pending_approval', label: 'Pending Approval' },
+    { value: 'suspended', label: 'Suspended' },
   ];
 
   // Handle query error
@@ -248,15 +247,36 @@ export default function DesignersPage() {
       {/* Stats Grid */}
       <StatsGrid stats={stats} columns={4} />
 
-      {/* Designers DataTable */}
+      {/* Filters - New Unified System */}
+      <TableFilters.Bar
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+      >
+        {/* Search Filter */}
+        <TableFilters.Search
+          value={rawFilters.search}
+          onChange={(value) => setFilter('search', value)}
+          placeholder="Search by name, city, country..."
+        />
+
+        {/* Status Filter */}
+        <TableFilters.Select
+          value={rawFilters.status}
+          onChange={(value) => setFilter('status', value)}
+          options={statusOptions}
+          placeholder="All Statuses"
+        />
+      </TableFilters.Bar>
+
+      {/* Designers DataTable - No filters prop (server-side only) */}
       {isLoading ? (
         <LoadingState message="Loading designers..." size="lg" />
       ) : !designers || designers.length === 0 ? (
         <EmptyState
           icon={Palette}
           title="No designers found"
-          description={search ? 'Try adjusting your search or filters' : 'Get started by adding your first designer partner'}
-          action={!search ? {
+          description={hasActiveFilters ? 'Try adjusting your search or filters' : 'Get started by adding your first designer partner'}
+          action={!hasActiveFilters ? {
             label: 'Add Designer',
             onClick: handleCreateDesigner,
             icon: Plus,
@@ -266,7 +286,6 @@ export default function DesignersPage() {
         <DataTable
           data={designers}
           columns={columns}
-          filters={filters}
           onRowClick={(row) => router.push(`/partners/designers/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}
           emptyState={{

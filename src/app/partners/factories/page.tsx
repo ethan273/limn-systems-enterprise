@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
+import { useTableState } from '@/hooks/useTableFilters';
 import { Building2, Plus, MapPin, Phone, Mail, Star, AlertTriangle, RefreshCw } from 'lucide-react';
 import {
   PageHeader,
@@ -10,8 +10,8 @@ import {
   LoadingState,
   DataTable,
   StatsGrid,
+  TableFilters,
   type DataTableColumn,
-  type DataTableFilter,
   type StatItem,
 } from "@/components/common";
 import { Badge } from '@/components/ui/badge';
@@ -22,16 +22,28 @@ import { Badge } from '@/components/ui/badge';
  */
 export default function FactoriesPage() {
   const router = useRouter();
-  const [search, _setSearch] = useState('');
-  const [statusFilter, _setStatusFilter] = useState<'all' | 'active' | 'inactive' | 'pending_approval' | 'suspended'>('active');
   const utils = api.useUtils();
 
-  // Fetch factories
+  // Unified filter management with new hook
+  const {
+    rawFilters,
+    setFilter,
+    clearFilters,
+    hasActiveFilters,
+    queryParams,
+  } = useTableState({
+    initialFilters: {
+      search: '',
+      status: 'active',
+    },
+    debounceMs: 300,
+    pageSize: 50,
+  });
+
+  // Fetch factories - backend handles all filtering
   const { data, isLoading, error } = api.partners.getAll.useQuery({
     type: 'factory',
-    status: statusFilter === 'all' ? undefined : statusFilter,
-    search: search.trim(),
-    limit: 50,
+    ...queryParams,
   });
 
   const factories = data?.partners || [];
@@ -186,26 +198,13 @@ export default function FactoriesPage() {
     },
   ];
 
-  // DataTable filters configuration
-  const filters: DataTableFilter[] = [
-    {
-      key: 'search',
-      label: 'Search factories',
-      type: 'search',
-      placeholder: 'Search by name, city, country...',
-    },
-    {
-      key: 'status',
-      label: 'Status',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Statuses' },
-        { value: 'active', label: 'Active' },
-        { value: 'inactive', label: 'Inactive' },
-        { value: 'pending_approval', label: 'Pending Approval' },
-        { value: 'suspended', label: 'Suspended' },
-      ],
-    },
+  // Status filter options
+  const statusOptions = [
+    { value: '', label: 'All Statuses' },
+    { value: 'active', label: 'Active' },
+    { value: 'inactive', label: 'Inactive' },
+    { value: 'pending_approval', label: 'Pending Approval' },
+    { value: 'suspended', label: 'Suspended' },
   ];
 
   // Handle query error
@@ -248,15 +247,36 @@ export default function FactoriesPage() {
       {/* Stats Grid */}
       <StatsGrid stats={stats} columns={4} />
 
-      {/* Factories DataTable */}
+      {/* Filters - New Unified System */}
+      <TableFilters.Bar
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+      >
+        {/* Search Filter */}
+        <TableFilters.Search
+          value={rawFilters.search}
+          onChange={(value) => setFilter('search', value)}
+          placeholder="Search by name, city, country..."
+        />
+
+        {/* Status Filter */}
+        <TableFilters.Select
+          value={rawFilters.status}
+          onChange={(value) => setFilter('status', value)}
+          options={statusOptions}
+          placeholder="All Statuses"
+        />
+      </TableFilters.Bar>
+
+      {/* Factories DataTable - No filters prop (server-side only) */}
       {isLoading ? (
         <LoadingState message="Loading factories..." size="lg" />
       ) : !factories || factories.length === 0 ? (
         <EmptyState
           icon={Building2}
           title="No factories found"
-          description={search ? 'Try adjusting your search or filters' : 'Get started by adding your first factory partner'}
-          action={!search ? {
+          description={hasActiveFilters ? 'Try adjusting your search or filters' : 'Get started by adding your first factory partner'}
+          action={!hasActiveFilters ? {
             label: 'Add Factory',
             onClick: handleCreateFactory,
             icon: Plus,
@@ -266,7 +286,6 @@ export default function FactoriesPage() {
         <DataTable
           data={factories}
           columns={columns}
-          filters={filters}
           onRowClick={(row) => router.push(`/partners/factories/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}
           emptyState={{
