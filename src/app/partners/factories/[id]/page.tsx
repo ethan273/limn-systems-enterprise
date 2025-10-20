@@ -11,6 +11,7 @@ import { EntityDetailHeader } from '@/components/common/EntityDetailHeader';
 import { InfoCard } from '@/components/common/InfoCard';
 import { EmptyState } from '@/components/common/EmptyState';
 import { LoadingState } from '@/components/common/LoadingState';
+import { EmployeeManagement } from '@/components/partners/EmployeeManagement';
 import {
   Table,
   TableBody,
@@ -320,70 +321,9 @@ export default function FactoryDetailPage({ params }: FactoryDetailPageProps) {
           )}
         </TabsContent>
 
-        {/* Contacts Tab */}
+        {/* Contacts Tab - Now with Employee Management */}
         <TabsContent value="contacts">
-          <Card>
-            <CardHeader>
-              <CardTitle>Factory Contacts</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {factory.contacts && factory.contacts.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Type</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {factory.contacts.map((contact: {
-                      id: string;
-                      name: string;
-                      role: string;
-                      email: string;
-                      phone: string | null;
-                      is_primary: boolean;
-                      is_qc: boolean;
-                      is_production: boolean;
-                      is_finance: boolean;
-                    }) => (
-                      <TableRow key={contact.id}>
-                        <TableCell className="font-medium">
-                          {contact.name}
-                          {contact.is_primary && (
-                            <Badge variant="default" className="ml-2">Primary</Badge>
-                          )}
-                        </TableCell>
-                        <TableCell>{contact.role}</TableCell>
-                        <TableCell>
-                          <a href={`mailto:${contact.email}`} className="text-info hover:underline">
-                            {contact.email}
-                          </a>
-                        </TableCell>
-                        <TableCell>{contact.phone || '—'}</TableCell>
-                        <TableCell>
-                          <div className="flex flex-wrap gap-1">
-                            {contact.is_qc && <Badge variant="secondary" className="text-xs">QC</Badge>}
-                            {contact.is_production && <Badge variant="secondary" className="text-xs">Production</Badge>}
-                            {contact.is_finance && <Badge variant="secondary" className="text-xs">Finance</Badge>}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              ) : (
-                <EmptyState
-                  icon={Users}
-                  title="No Additional Contacts"
-                  description="No additional contacts have been added for this factory."
-                />
-              )}
-            </CardContent>
-          </Card>
+          <EmployeeManagement partnerId={id} partnerType="factory" />
         </TabsContent>
 
         {/* Documents Tab */}
