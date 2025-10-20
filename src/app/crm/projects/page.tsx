@@ -843,7 +843,7 @@ export default function ProjectsPage() {
  <TableHeader>
  <TableRow>
  <TableHead>Project</TableHead>
- <TableHead>Client</TableHead>
+ <TableHead>Company</TableHead>
  <TableHead>Status</TableHead>
  <TableHead>Priority</TableHead>
  <TableHead>Progress</TableHead>
@@ -875,12 +875,7 @@ export default function ProjectsPage() {
  </TableCell>
  <TableCell>
  <div className="space-y-1">
- <div className="font-medium text-sm">{project.client_name}</div>
- {project.client_company && (
- <Badge variant="outline" className="text-xs">
- {project.client_company}
- </Badge>
- )}
+						<div className="font-medium text-sm">{project.client_company || project.client_name || '—'}</div>
  </div>
  </TableCell>
  <TableCell>
