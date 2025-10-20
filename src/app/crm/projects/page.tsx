@@ -363,6 +363,13 @@ export default function ProjectsPage() {
  // Get tRPC utils for cache invalidation (must be before early returns)
  const utils = api.useUtils();
 
+ // All mutations must be before early returns (Rules of Hooks)
+ const createProjectMutation = api.projects.create.useMutation();
+ const updateProjectMutation = api.projects.update.useMutation();
+ const createCRMOrderMutation = api.orders.createWithItems.useMutation();
+ const createProductionOrderMutation = api.productionOrders.create.useMutation();
+ const createInvoiceForOrderMutation = api.productionInvoices.createForOrder.useMutation();
+
  // Loading state check
  if (isLoadingProjects || isLoadingMaterials || isLoadingCollections || isLoadingCustomers) {
    return (
@@ -447,12 +454,6 @@ export default function ProjectsPage() {
  setSelectedProject(project);
  setIsProjectDialogOpen(true);
  };
-
- const createProjectMutation = api.projects.create.useMutation();
- const updateProjectMutation = api.projects.update.useMutation();
- const createCRMOrderMutation = api.orders.createWithItems.useMutation();
- const createProductionOrderMutation = api.productionOrders.create.useMutation();
- const createInvoiceForOrderMutation = api.productionInvoices.createForOrder.useMutation();
 
  const handleSaveProject = async (data: ProjectFormData) => {
  try {
