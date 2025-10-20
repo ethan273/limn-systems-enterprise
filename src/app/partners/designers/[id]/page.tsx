@@ -178,7 +178,7 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
             <CardTitle className="card-title-sm">Contacts</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value">{designer._count?.contacts || 0}</div>
+            <div className="stat-value">{designer._count?.partner_contacts || 0}</div>
             <p className="stat-label">team members</p>
           </CardContent>
         </Card>
@@ -192,11 +192,11 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
           </TabsTrigger>
           <TabsTrigger value="contacts" className="tabs-trigger">
             <Users className="icon-sm" aria-hidden="true" />
-            Contacts ({designer._count?.contacts || 0})
+            Contacts ({designer._count?.partner_contacts || 0})
           </TabsTrigger>
           <TabsTrigger value="documents" className="tabs-trigger">
             <FileText className="icon-sm" aria-hidden="true" />
-            Documents ({designer._count?.documents || 0})
+            Documents ({designer._count?.partner_documents || 0})
           </TabsTrigger>
           <TabsTrigger value="performance" className="tabs-trigger">
             <TrendingUp className="icon-sm" aria-hidden="true" />

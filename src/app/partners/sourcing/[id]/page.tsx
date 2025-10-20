@@ -179,7 +179,7 @@ export default function SourcingDetailPage({ params }: SourcingDetailPageProps) 
             <CardTitle className="card-title-sm">Contacts</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="stat-value">{sourcing._count?.contacts || 0}</div>
+            <div className="stat-value">{sourcing._count?.partner_contacts || 0}</div>
             <p className="stat-label">team members</p>
           </CardContent>
         </Card>
@@ -193,11 +193,11 @@ export default function SourcingDetailPage({ params }: SourcingDetailPageProps) 
           </TabsTrigger>
           <TabsTrigger value="contacts" className="tabs-trigger">
             <Users className="icon-sm" aria-hidden="true" />
-            Contacts ({sourcing._count?.contacts || 0})
+            Contacts ({sourcing._count?.partner_contacts || 0})
           </TabsTrigger>
           <TabsTrigger value="documents" className="tabs-trigger">
             <FileText className="icon-sm" aria-hidden="true" />
-            Documents ({sourcing._count?.documents || 0})
+            Documents ({sourcing._count?.partner_documents || 0})
           </TabsTrigger>
           <TabsTrigger value="performance" className="tabs-trigger">
             <TrendingUp className="icon-sm" aria-hidden="true" />
