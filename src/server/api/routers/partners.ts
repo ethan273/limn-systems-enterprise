@@ -26,16 +26,16 @@ const createPartnerSchema = z.object({
   // Contact Information
   primary_contact: z.string().min(1, "Primary contact is required"),
   primary_email: z.string().email("Invalid email address"),
-  primary_phone: z.string().min(1, "Phone number is required"),
+  primary_phone: z.string().optional(),
   website: z.string().url().optional().or(z.literal("")),
 
   // Address
-  address_line1: z.string().min(1, "Address is required"),
+  address_line1: z.string().optional(),
   address_line2: z.string().optional(),
-  city: z.string().min(1, "City is required"),
+  city: z.string().optional(),
   state: z.string().optional(),
-  postal_code: z.string().min(1, "Postal code is required"),
-  country: z.string().min(1, "Country is required"),
+  postal_code: z.string().optional(),
+  country: z.string().optional(),
 
   // Business Details
   specializations: z.array(z.string()).default([]),
@@ -292,7 +292,10 @@ export const partnersRouter = createTRPCRouter({
         },
       });
 
-      return partner;
+      return {
+        message: "Factory partner created successfully",
+        factory: partner,
+      };
     }),
 
   // Convenience method for creating a sourcing partner
@@ -309,7 +312,10 @@ export const partnersRouter = createTRPCRouter({
         },
       });
 
-      return partner;
+      return {
+        message: "Sourcing partner created successfully",
+        sourcing: partner,
+      };
     }),
 
   // Alias methods for getAll filtered by type
@@ -523,7 +529,6 @@ export const partnersRouter = createTRPCRouter({
           where,
           orderBy: [
             { is_primary: "desc" },
-            { employment_status: "asc" },
             { created_at: "asc" },
           ],
           include: {
