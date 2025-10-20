@@ -11,8 +11,31 @@ import { z } from 'zod';
 import { createTRPCRouter, adminProcedure } from '../trpc/init';
 import { PrismaClient, user_type_enum } from '@prisma/client';
 import { getUserFullName } from '@/lib/utils/user-utils';
+import { createClient } from '@supabase/supabase-js';
+import { sendUserInvitationEmail } from '@/lib/email/templates/user-invitation';
+import { notifyUserInvited } from '@/lib/notifications/google-chat';
 
 const prisma = new PrismaClient();
+
+// Lazy-initialized Supabase client with service role for admin operations
+let supabaseAdmin: ReturnType<typeof createClient> | null = null;
+
+function getSupabaseAdmin() {
+  if (!supabaseAdmin) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error(
+        'Supabase configuration missing: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required'
+      );
+    }
+
+    supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+  }
+
+  return supabaseAdmin;
+}
 
 // ============================================
 // INPUT SCHEMAS
@@ -301,34 +324,130 @@ export const adminRouter = createTRPCRouter({
           department: z.string().optional(),
         })
       )
-      .mutation(async ({ input: _input }) => {
-        // Note: This is a placeholder implementation
-        // In production, you would:
-        // 1. Use Supabase Admin API to create auth user
-        // 2. Send invitation email
-        // 3. Create user_profiles entry with provided data
+      .mutation(async ({ input, ctx }) => {
+        // Check if user already exists
+        const existingUserArray = await prisma.users.findMany({
+          where: { email: input.email },
+          take: 1,
+        });
 
-        // For now, just throw an error with instructions
-        throw new Error('User creation requires Supabase Admin API integration. Please create users through Supabase Dashboard for now.');
+        if (existingUserArray.length > 0) {
+          throw new Error(`User with email ${input.email} already exists`);
+        }
 
-        // Future implementation:
-        // const { data: authUser, error } = await supabase.auth.admin.createUser({
-        //   email: input.email,
-        //   email_confirm: true,
-        // });
-        //
-        // if (error) throw new Error(error.message);
-        //
-        // await prisma.user_profiles.create({
-        //   data: {
-        //     id: authUser.user.id,
-        //     user_type: input.userType as user_type_enum,
-        //     title: input.title,
-        //     department: input.department,
-        //   },
-        // });
-        //
-        // return { success: true, userId: authUser.user.id };
+        // Parse email to get first/last name
+        const emailLocalPart = input.email.split('@')[0];
+        const nameParts = emailLocalPart.split(/[._-]/);
+        const firstName = nameParts[0] ? nameParts[0].charAt(0).toUpperCase() + nameParts[0].slice(1) : 'User';
+        const lastName = nameParts[1] ? nameParts[1].charAt(0).toUpperCase() + nameParts[1].slice(1) : undefined;
+
+        // Create user in Supabase auth
+        const { data: authData, error: authError } = await getSupabaseAdmin().auth.admin.createUser({
+          email: input.email,
+          email_confirm: true,
+        });
+
+        if (authError || !authData.user) {
+          throw new Error(`Failed to create auth user: ${authError?.message || 'Unknown error'}`);
+        }
+
+        const userId = authData.user.id;
+
+        // Create user in auth.users (if not automatically created)
+        const usersArray = await prisma.users.findMany({
+          where: { id: userId },
+          take: 1,
+        });
+
+        if (usersArray.length === 0) {
+          await prisma.users.create({
+            data: {
+              id: userId,
+              email: input.email,
+              email_confirmed_at: new Date(),
+              created_at: new Date(),
+              updated_at: new Date(),
+            },
+          });
+        }
+
+        // Create user profile
+        await prisma.user_profiles.create({
+          data: {
+            id: userId,
+            email: input.email,
+            first_name: firstName,
+            last_name: lastName,
+            name: lastName ? `${firstName} ${lastName}` : firstName,
+            user_type: input.userType as user_type_enum,
+            title: input.title || undefined,
+            department: input.department || undefined,
+            is_active: true,
+            created_at: new Date(),
+            updated_at: new Date(),
+          },
+        });
+
+        // Generate magic link for first sign-in
+        const { data: magicLinkData, error: magicLinkError } = await getSupabaseAdmin().auth.signInWithOtp({
+          email: input.email,
+          options: {
+            emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
+          },
+        });
+
+        if (magicLinkError) {
+          console.error('[admin.users.create] Failed to generate magic link:', magicLinkError);
+        }
+
+        // Get admin email from session
+        const invitedBy = ctx.session?.user?.email || 'Admin';
+
+        // Send invitation email (non-blocking)
+        sendUserInvitationEmail({
+          to: input.email,
+          firstName,
+          lastName,
+          magicLink: (magicLinkData as any)?.properties?.action_link || '#',
+          userType: input.userType,
+          invitedBy,
+        }).catch(err => {
+          console.error('[admin.users.create] Failed to send invitation email:', err);
+        });
+
+        // Send Google Chat notification (non-blocking)
+        notifyUserInvited({
+          email: input.email,
+          name: lastName ? `${firstName} ${lastName}` : firstName,
+          invitedBy,
+          userType: input.userType,
+        }).catch(err => {
+          console.error('[admin.users.create] Failed to send Google Chat notification:', err);
+        });
+
+        // Log the action
+        await prisma.admin_audit_log.create({
+          data: {
+            action: 'CREATE_USER',
+            user_id: ctx.session?.user?.id || null,
+            user_email: ctx.session?.user?.email || null,
+            resource_type: 'user',
+            resource_id: userId,
+            metadata: {
+              target_email: input.email,
+              user_type: input.userType,
+              title: input.title,
+              department: input.department,
+            },
+            created_at: new Date(),
+          },
+        });
+
+        return {
+          success: true,
+          userId,
+          message: 'User created successfully! An invitation email has been sent.',
+        };
       }),
   }),
 

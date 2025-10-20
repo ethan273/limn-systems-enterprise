@@ -1,7 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { createClient } from '@supabase/supabase-js';
+import { sendAccessApprovedEmail } from '@/lib/email/templates/access-approved';
+import { sendAccessDeniedEmail } from '@/lib/email/templates/access-denied';
+import { notifyAccessApproved, notifyAccessDenied } from '@/lib/notifications/google-chat';
+import { getServerSession } from 'next-auth';
 
 const prisma = new PrismaClient();
+
+// Lazy-initialized Supabase client with service role for admin operations
+let supabaseAdmin: ReturnType<typeof createClient> | null = null;
+
+function getSupabaseAdmin() {
+  if (!supabaseAdmin) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error(
+        'Supabase configuration missing: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required'
+      );
+    }
+
+    supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+  }
+
+  return supabaseAdmin;
+}
 
 // GET - Fetch all pending sign-ups
 export async function GET(_request: NextRequest) {
@@ -11,7 +36,7 @@ export async function GET(_request: NextRequest) {
         status: 'pending',
       },
       orderBy: {
-        created_at: 'desc',
+        requested_at: 'desc',
       },
       select: {
         id: true,
@@ -19,8 +44,12 @@ export async function GET(_request: NextRequest) {
         first_name: true,
         last_name: true,
         company: true,
+        phone: true,
+        user_type: true,
+        reason_for_access: true,
         message: true,
         status: true,
+        requested_at: true,
         created_at: true,
       },
     });
@@ -31,8 +60,12 @@ export async function GET(_request: NextRequest) {
       first_name: string | null;
       last_name: string | null;
       company: string | null;
+      phone: string | null;
+      user_type: string | null;
+      reason_for_access: string | null;
       message: string | null;
       status: string | null;
+      requested_at: Date | null;
       created_at: Date | null;
     }) => ({
       id: signup.id,
@@ -40,8 +73,11 @@ export async function GET(_request: NextRequest) {
       firstName: signup.first_name || undefined,
       lastName: signup.last_name || undefined,
       companyName: signup.company || undefined,
+      phone: signup.phone || undefined,
+      userType: signup.user_type || undefined,
+      reasonForAccess: signup.reason_for_access || undefined,
       businessJustification: signup.message || undefined,
-      requestedAt: signup.created_at?.toISOString() || new Date().toISOString(),
+      requestedAt: signup.requested_at?.toISOString() || signup.created_at?.toISOString() || new Date().toISOString(),
       status: (signup.status || 'pending').toUpperCase() as 'PENDING' | 'APPROVED' | 'REJECTED',
     }));
 
@@ -84,19 +120,78 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get the session to identify the reviewer
+    const session = await getServerSession();
+    const reviewerEmail = session?.user?.email || 'system';
+    const reviewerId = (session?.user as any)?.id || null;
+
+    // Fetch the request first
+    const signUpRequest = await prisma.pending_user_requests.findUnique({
+      where: { id },
+    });
+
+    if (!signUpRequest) {
+      return NextResponse.json(
+        { success: false, error: 'Sign-up request not found' },
+        { status: 404 }
+      );
+    }
+
     // Update the sign-up status
     const updatedSignUp = await prisma.pending_user_requests.update({
       where: { id },
       data: {
-        status: action === 'approve' ? 'approved' : 'rejected',
+        status: action === 'approve' ? 'approved' : 'denied',
+        reviewed_at: new Date(),
+        reviewed_by: reviewerId,
+        admin_notes: reviewerNotes || undefined,
         updated_at: new Date(),
       },
     });
 
-    // If approved, create the user account
+    const userName = updatedSignUp.last_name
+      ? `${updatedSignUp.first_name} ${updatedSignUp.last_name}`
+      : updatedSignUp.first_name || 'User';
+
+    // If approved, send magic link and notifications
     if (action === 'approve') {
+      try {
+        // Send magic link via Supabase
+        const { data: magicLinkData, error: magicLinkError } = await getSupabaseAdmin().auth.signInWithOtp({
+          email: updatedSignUp.email,
+          options: {
+            emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
+          },
+        });
+
+        if (magicLinkError) {
+          console.error('[POST /api/admin/sign-ups] Failed to generate magic link:', magicLinkError);
+          // Don't fail the approval, but log the error
+        }
+
+        // Send approval email (non-blocking)
+        sendAccessApprovedEmail({
+          to: updatedSignUp.email,
+          firstName: updatedSignUp.first_name || 'User',
+          magicLink: (magicLinkData as any)?.properties?.action_link || '#',
+          userType: updatedSignUp.user_type || 'customer',
+        }).catch(err => {
+          console.error('[POST /api/admin/sign-ups] Failed to send approval email:', err);
+        });
+
+        // Send Google Chat notification (non-blocking)
+        notifyAccessApproved({
+          email: updatedSignUp.email,
+          name: userName,
+          approvedBy: reviewerEmail,
+        }).catch(err => {
+          console.error('[POST /api/admin/sign-ups] Failed to send Google Chat notification:', err);
+        });
+      } catch (error) {
+        console.error('[POST /api/admin/sign-ups] Error in approval notifications:', error);
+      }
+
       // Check if user already exists by email
-      // Note: findFirst not supported by wrapper, using findMany
       const existingUserArray = await prisma.users.findMany({
         where: { email: updatedSignUp.email },
         take: 1,
@@ -107,8 +202,8 @@ export async function POST(request: NextRequest) {
         // Generate UUID for new user
         const userId = crypto.randomUUID();
 
-        // Create new user
-        const newUser = await prisma.users.create({
+        // Create new user in auth.users
+        await prisma.users.create({
           data: {
             id: userId,
             email: updatedSignUp.email,
@@ -118,34 +213,53 @@ export async function POST(request: NextRequest) {
           },
         });
 
-        // Create user profile with same ID
+        // Create user profile with user_type from request
         await prisma.user_profiles.create({
           data: {
-            id: newUser.id,
-            email: newUser.email,
+            id: userId,
+            email: updatedSignUp.email,
             first_name: updatedSignUp.first_name,
             last_name: updatedSignUp.last_name,
-            name: `${updatedSignUp.first_name || ''} ${updatedSignUp.last_name || ''}`.trim() || null,
-            user_type: 'employee',
+            name: userName,
+            user_type: (updatedSignUp.user_type as any) || 'customer',
             is_active: true,
             created_at: new Date(),
             updated_at: new Date(),
           },
         });
-
-        // Log the approval action
-        await prisma.admin_audit_log.create({
-          data: {
-            action: 'APPROVE_SIGNUP',
-            user_email: updatedSignUp.email,
-            resource_type: 'sign_up',
-            resource_id: id,
-            metadata: { reviewerNotes },
-            created_at: new Date(),
-          },
-        });
       }
+
+      // Log the approval action
+      await prisma.admin_audit_log.create({
+        data: {
+          action: 'APPROVE_SIGNUP',
+          user_email: updatedSignUp.email,
+          resource_type: 'sign_up',
+          resource_id: id,
+          metadata: { reviewerNotes, reviewerEmail },
+          created_at: new Date(),
+        },
+      });
     } else {
+      // Send denial email (non-blocking)
+      sendAccessDeniedEmail({
+        to: updatedSignUp.email,
+        firstName: updatedSignUp.first_name || 'User',
+        reason: reviewerNotes,
+      }).catch(err => {
+        console.error('[POST /api/admin/sign-ups] Failed to send denial email:', err);
+      });
+
+      // Send Google Chat notification (non-blocking)
+      notifyAccessDenied({
+        email: updatedSignUp.email,
+        name: userName,
+        deniedBy: reviewerEmail,
+        reason: reviewerNotes,
+      }).catch(err => {
+        console.error('[POST /api/admin/sign-ups] Failed to send Google Chat notification:', err);
+      });
+
       // Log the rejection action
       await prisma.admin_audit_log.create({
         data: {
@@ -153,7 +267,7 @@ export async function POST(request: NextRequest) {
           user_email: updatedSignUp.email,
           resource_type: 'sign_up',
           resource_id: id,
-          metadata: { reviewerNotes },
+          metadata: { reviewerNotes, reviewerEmail },
           created_at: new Date(),
         },
       });

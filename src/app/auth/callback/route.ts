@@ -104,13 +104,27 @@ async function provisionUserProfile(
       return existingProfile;
     }
 
-    // Determine user_type based on email domain
-    // Default: external users are customers
-    // Company emails: employees (super_admin must be manually assigned in database)
-    let userType: 'super_admin' | 'employee' | 'customer' = 'customer';
+    // Determine user_type - check pending_user_requests first for approved users
+    let userType: 'super_admin' | 'employee' | 'customer' | 'contractor' | 'designer' | 'manufacturer' | 'finance' = 'customer';
     let department = 'General';
+    let firstName: string | undefined;
+    let lastName: string | undefined;
 
-    if (email.endsWith('@limn.us.com') || email.endsWith('@limnsystems.com')) {
+    // Check if this user came from the access request flow
+    const { data: pendingRequest } = await (supabase as any)
+      .from('pending_user_requests')
+      .select('user_type, first_name, last_name, company, phone')
+      .eq('email', email)
+      .eq('status', 'approved')
+      .maybeSingle();
+
+    if (pendingRequest) {
+      // Use user_type from the access request
+      userType = (pendingRequest as any).user_type || 'customer';
+      firstName = (pendingRequest as any).first_name;
+      lastName = (pendingRequest as any).last_name;
+      console.log(`[Auth Callback] Found approved access request - user_type: ${userType}`);
+    } else if (email.endsWith('@limn.us.com') || email.endsWith('@limnsystems.com')) {
       // Company emails get employee status by default
       // Super admin, specific departments, and roles should be assigned manually:
       // 1. Via database: UPDATE user_profiles SET user_type = 'super_admin', role = 'admin' WHERE email = 'user@limn.us.com'
@@ -120,8 +134,12 @@ async function provisionUserProfile(
       department = 'General'; // Can be updated later via admin panel
     }
 
-    // Get name from OAuth provider metadata (Google, etc.) or derive from email
-    const userName = userMetadata?.full_name
+    // Get name from pending request, OAuth provider metadata (Google, etc.), or derive from email
+    const userName = pendingRequest && firstName && lastName
+      ? `${firstName} ${lastName}`
+      : pendingRequest && firstName
+      ? firstName
+      : userMetadata?.full_name
       || userMetadata?.name
       || email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
@@ -134,6 +152,8 @@ async function provisionUserProfile(
       .insert({
         id: userId,
         email,
+        first_name: firstName || userName.split(' ')[0],
+        last_name: lastName || (userName.split(' ').length > 1 ? userName.split(' ').slice(1).join(' ') : undefined),
         name: userName,
         user_type: userType,
         department,

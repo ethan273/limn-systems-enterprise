@@ -4319,16 +4319,26 @@ model payments {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model pending_user_requests {
-  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  email      String    @db.VarChar
-  first_name String?   @db.VarChar
-  last_name  String?   @db.VarChar
-  company    String?   @db.VarChar
-  message    String?
-  status     String?   @default("pending") @db.VarChar
-  created_at DateTime? @default(now()) @db.Timestamptz(6)
-  updated_at DateTime? @default(now()) @db.Timestamptz(6)
+  id                String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email             String    @unique @db.VarChar(255)
+  first_name        String?   @db.VarChar(255)
+  last_name         String?   @db.VarChar(255)
+  company           String?   @db.VarChar(255)
+  phone             String?   @db.VarChar(20)
+  user_type         String?   @db.VarChar(50)
+  reason_for_access String?
+  message           String?
+  status            String?   @default("pending") @db.VarChar(20)
+  requested_at      DateTime? @default(now()) @db.Timestamptz(6)
+  reviewed_at       DateTime? @db.Timestamptz(6)
+  reviewed_by       String?   @db.Uuid
+  admin_notes       String?
+  metadata          Json?     @default("{}")
+  created_at        DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime? @default(now()) @db.Timestamptz(6)
 
+  @@index([status], map: "idx_pending_requests_status")
+  @@index([email], map: "idx_pending_requests_email")
   @@schema("public")
 }
 

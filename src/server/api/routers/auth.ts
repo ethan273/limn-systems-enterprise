@@ -2,6 +2,8 @@ import { z } from 'zod'
 import { createTRPCRouter, publicProcedure, protectedProcedure as _protectedProcedure, adminProcedure } from '../trpc/init'
 import { TRPCError } from '@trpc/server'
 import { createClient } from '@supabase/supabase-js'
+import { sendAccessRequestAdminEmail } from '@/lib/email/templates/access-request-admin'
+import { notifyAccessRequest, notifyMagicLinkSent } from '@/lib/notifications/google-chat'
 
 // Lazy-initialized Supabase client with service role for admin operations
 let supabaseAdmin: ReturnType<typeof createClient> | null = null
@@ -28,10 +30,12 @@ export const authRouter = createTRPCRouter({
   requestAccess: publicProcedure
     .input(z.object({
       email: z.string().email(),
-      company_name: z.string().min(2),
+      first_name: z.string().min(1),
+      last_name: z.string().optional(),
+      company: z.string().optional(),
       phone: z.string().optional(),
       user_type: z.enum(['customer', 'contractor', 'manufacturer', 'designer']),
-      reason_for_access: z.string().min(10)
+      reason_for_access: z.string().optional()
     }))
     .mutation(async ({ ctx, input }) => {
       try {
@@ -39,7 +43,7 @@ export const authRouter = createTRPCRouter({
         const existing = await ctx.db.pending_user_requests.findUnique({
           where: { email: input.email.toLowerCase() }
         })
-        
+
         if (existing) {
           if (existing.status === 'pending') {
             throw new TRPCError({
@@ -53,15 +57,17 @@ export const authRouter = createTRPCRouter({
             })
           }
         }
-        
+
         // Create new request
         const request = await ctx.db.pending_user_requests.create({
           data: {
             email: input.email.toLowerCase(),
-            company_name: input.company_name,
+            first_name: input.first_name,
+            last_name: input.last_name || undefined,
+            company: input.company || undefined,
             phone: input.phone || undefined,
             user_type: input.user_type,
-            reason_for_access: input.reason_for_access,
+            reason_for_access: input.reason_for_access || undefined,
             metadata: {
               ip: (ctx.req?.headers?.['x-forwarded-for'] as string) || 'unknown',
               userAgent: (ctx.req?.headers?.['user-agent'] as string) || 'unknown',
@@ -69,7 +75,35 @@ export const authRouter = createTRPCRouter({
             }
           }
         })
-        
+
+        // Send email notification to admins (non-blocking)
+        const requestorName = input.last_name
+          ? `${input.first_name} ${input.last_name}`
+          : input.first_name
+
+        sendAccessRequestAdminEmail({
+          adminEmail: process.env.ADMIN_EMAIL || 'admin@limn.us.com',
+          requestorName,
+          requestorEmail: input.email,
+          company: input.company,
+          userType: input.user_type,
+          phone: input.phone,
+          reason: input.reason_for_access
+        }).catch(err => {
+          console.error('[requestAccess] Failed to send admin email:', err)
+        })
+
+        // Send Google Chat notification (non-blocking)
+        notifyAccessRequest({
+          email: input.email,
+          name: requestorName,
+          company: input.company,
+          userType: input.user_type,
+          phone: input.phone
+        }).catch(err => {
+          console.error('[requestAccess] Failed to send Google Chat notification:', err)
+        })
+
         return {
           success: true,
           message: 'Your request has been submitted and will be reviewed shortly.',
@@ -77,7 +111,7 @@ export const authRouter = createTRPCRouter({
         }
       } catch (error) {
         if (error instanceof TRPCError) throw error
-        
+
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to submit access request'
@@ -271,6 +305,42 @@ export const authRouter = createTRPCRouter({
       }
     }),
 
+  // Public procedure to check access status
+  checkAccessStatus: publicProcedure
+    .input(z.object({
+      email: z.string().email()
+    }))
+    .query(async ({ ctx, input }) => {
+      try {
+        const request = await ctx.db.pending_user_requests.findUnique({
+          where: { email: input.email.toLowerCase() }
+        })
+
+        if (!request) {
+          return {
+            status: null,
+            message: 'No access request found for this email.'
+          }
+        }
+
+        return {
+          status: request.status,
+          requestedAt: request.requested_at,
+          reviewedAt: request.reviewed_at,
+          message:
+            request.status === 'pending' ? 'Your access request is pending review.' :
+            request.status === 'approved' ? 'Your access has been approved! You can sign in with a magic link.' :
+            request.status === 'denied' ? 'Your access request was denied.' :
+            'Unknown status'
+        }
+      } catch (error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to check access status'
+        })
+      }
+    }),
+
   // Public procedure to send magic link (for already approved users)
   sendMagicLink: publicProcedure
     .input(z.object({
@@ -305,13 +375,21 @@ export const authRouter = createTRPCRouter({
           })
         }
 
+        // Send Google Chat notification (non-blocking)
+        notifyMagicLinkSent({
+          email: input.email,
+          userType: request.user_type || undefined
+        }).catch(err => {
+          console.error('[sendMagicLink] Failed to send Google Chat notification:', err)
+        })
+
         return {
           success: true,
           message: 'Magic link sent! Please check your email.'
         }
       } catch (error) {
         if (error instanceof TRPCError) throw error
-        
+
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to send magic link'
