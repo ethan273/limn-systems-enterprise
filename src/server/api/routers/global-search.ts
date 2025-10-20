@@ -49,17 +49,6 @@ export const globalSearchRouter = createTRPCRouter({
             ],
           },
           take: limit,
-          select: {
-            id: true,
-            order_number: true,
-            status: true,
-            total_amount: true,
-            customers: {
-              select: {
-                name: true,
-              },
-            },
-          },
         }),
 
         // Search products/items
@@ -135,7 +124,7 @@ export const globalSearchRouter = createTRPCRouter({
           ...o,
           type: 'order' as const,
           title: o.order_number || 'Unnamed Order',
-          subtitle: `${o.customers?.name || 'Unknown Customer'} - ${o.status}`,
+          subtitle: o.status || '',
         })),
         products: products.map(p => ({
           ...p,
