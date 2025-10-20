@@ -697,4 +697,38 @@ export const invoicesRouter = createTRPCRouter({
         message: `Invoice status updated to ${input.status}`,
       };
     }),
+
+  /**
+   * Update invoice basic fields
+   */
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().uuid(),
+        due_date: z.string().optional(),
+        invoice_notes: z.string().optional(),
+        payment_terms: z.string().optional(),
+        internal_notes: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { id, ...updates } = input;
+
+      const updateData: any = { ...updates };
+      if (updates.due_date) {
+        updateData.due_date = new Date(updates.due_date);
+      }
+      updateData.updated_at = new Date();
+
+      const invoice = await ctx.db.invoices.update({
+        where: { id },
+        data: updateData,
+      });
+
+      return {
+        success: true,
+        invoice,
+        message: 'Invoice updated successfully',
+      };
+    }),
 });

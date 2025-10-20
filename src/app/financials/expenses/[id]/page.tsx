@@ -71,6 +71,12 @@ export default function ExpenseDetailPage() {
           <p className="text-tertiary">{expense.category}</p>
         </div>
         <div className="flex gap-2">
+          <button
+            onClick={() => router.push(`/financials/expenses/${expenseId}/edit`)}
+            className="btn btn-primary"
+          >
+            Edit
+          </button>
           {expense.approval_status === 'pending' && (
             <>
               <button

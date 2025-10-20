@@ -32,6 +32,7 @@ import {
   CreditCard,
   AlertTriangle,
   RefreshCw,
+  Edit,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
@@ -178,6 +179,13 @@ export default function PaymentDetailPage({ params }: PageProps) {
         subtitle={customer?.company_name || customer?.name || "Payment Details"}
         metadata={metadata}
         status={payment.status}
+        actions={[
+          {
+            label: 'Edit Payment',
+            icon: Edit,
+            onClick: () => router.push(`/financials/payments/${payment.id}/edit`),
+          },
+        ]}
       />
 
       {/* Status Update Control */}
