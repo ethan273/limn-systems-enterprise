@@ -2747,6 +2747,24 @@ export class DatabaseClient {
       this.countGeneric('partner_performance', options),
   };
 
+  partner_portal_roles = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<any>('partner_portal_roles', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<any>('partner_portal_roles', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<any>('partner_portal_roles', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<any>('partner_portal_roles', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('partner_portal_roles', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('partner_portal_roles', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('partner_portal_roles', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('partner_portal_roles', options),
+  };
+
   // Design Module Tables (Phase 2 - Week 13-15)
   design_briefs = {
     findMany: (options?: QueryOptions) => this.findManyGeneric<any>('design_briefs', options),

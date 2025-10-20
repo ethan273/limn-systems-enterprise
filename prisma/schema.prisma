@@ -2571,7 +2571,7 @@ model documents {
   user_profiles_documents_uploaded_by_userTouser_profiles user_profiles?          @relation("documents_uploaded_by_userTouser_profiles", fields: [uploaded_by_user], references: [id], onDelete: NoAction, onUpdate: NoAction)
   concepts                                                concepts?               @relation(fields: [concept_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_documents_concepts")
   prototypes                                              prototypes?             @relation(fields: [prototype_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_documents_prototypes")
-  production_orders                                       production_orders[]     @relation("documentsToproduction_orders")
+  production_orders                                       production_orders[]
 
   @@index([approved_by], map: "idx_documents_approved_by")
   @@index([catalog_item_id], map: "idx_documents_catalog_item_id")
@@ -3588,6 +3588,7 @@ model manufacturers {
   manufacturer_performance    manufacturer_performance[]
   manufacturer_pricing        manufacturer_pricing[]
   manufacturer_projects       manufacturer_projects[]
+  production_orders           production_orders[]
   prototypes                  prototypes[]
 
   @@schema("public")
@@ -4193,6 +4194,24 @@ model partner_performance {
 
   @@unique([partner_id, period_start, period_end], map: "unique_partner_performance_period")
   @@index([partner_id], map: "idx_partner_performance_partner_id")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model partner_portal_roles {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  partner_type    String    @db.VarChar(50)
+  role_key        String    @db.VarChar(50)
+  role_label      String    @db.VarChar(100)
+  description     String?
+  default_modules String[]  @default([])
+  is_system_role  Boolean?  @default(false)
+  created_at      DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@unique([partner_type, role_key], map: "unique_role_per_type")
+  @@index([role_key], map: "idx_portal_roles_key")
+  @@index([partner_type], map: "idx_portal_roles_partner_type")
   @@schema("public")
 }
 
@@ -4841,14 +4860,15 @@ model production_orders {
   items_production_orders_catalog_item_idToitems items?                     @relation("production_orders_catalog_item_idToitems", fields: [catalog_item_id], references: [id], onUpdate: NoAction)
   items_production_orders_concept_idToitems      items?                     @relation("production_orders_concept_idToitems", fields: [concept_id], references: [id], onUpdate: NoAction)
   users                                          users?                     @relation(fields: [created_by], references: [id], onUpdate: NoAction)
-  partners                                       partners?                  @relation(fields: [factory_id], references: [id], onUpdate: NoAction, map: "production_orders_partner_factory_id_fkey")
+  manufacturers                                  manufacturers?             @relation(fields: [factory_id], references: [id], onUpdate: NoAction)
   orders                                         orders?                    @relation(fields: [order_id], references: [id], onUpdate: NoAction)
+  partners                                       partners?                  @relation(fields: [factory_id], references: [id], onUpdate: NoAction, map: "production_orders_partner_factory_id_fkey")
   projects                                       projects?                  @relation(fields: [project_id], references: [id], onUpdate: NoAction)
   items_production_orders_prototype_idToitems    items?                     @relation("production_orders_prototype_idToitems", fields: [prototype_id], references: [id], onUpdate: NoAction)
   production_payments                            production_payments[]
   shipping_quotes                                shipping_quotes[]
   shop_drawings                                  shop_drawings[]
-  documents                                      documents[]                @relation("documentsToproduction_orders")
+  documents                                      documents[]
 
   @@index([catalog_item_id], map: "idx_production_orders_catalog_item_id")
   @@index([concept_id], map: "idx_production_orders_concept_id")
