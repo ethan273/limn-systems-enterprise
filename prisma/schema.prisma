@@ -7744,6 +7744,8 @@ enum user_type_enum {
   super_admin
   customer
   admin
+  factory
+  qc_tester
 
   @@schema("public")
 }

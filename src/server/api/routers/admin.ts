@@ -49,6 +49,8 @@ const userTypeSchema = z.enum([
   'finance',
   'super_admin',
   'customer',
+  'factory',
+  'qc_tester',
 ]);
 
 const moduleSchema = z.enum([
