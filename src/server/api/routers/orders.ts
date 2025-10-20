@@ -88,10 +88,12 @@ export const ordersRouter = createTRPCRouter({
       const where: any = {};
 
       // Apply filters
+      // Note: Using toLowerCase to avoid Prisma/PostgreSQL compatibility issues with mode: 'insensitive'
       if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
         where.OR = [
-          { order_number: { contains: filters.search, mode: 'insensitive' } },
-          { notes: { contains: filters.search, mode: 'insensitive' } },
+          { order_number: { contains: searchLower } },
+          { notes: { contains: searchLower } },
         ];
       }
 

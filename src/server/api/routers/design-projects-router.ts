@@ -28,10 +28,11 @@ export const designProjectsRouter = createTRPCRouter({
           ...(designStage && { current_stage: designStage }),
           ...(priority && { priority }),
           ...(designerId && { designer_id: designerId }),
+          // Note: Using toLowerCase to avoid Prisma/PostgreSQL compatibility issues with mode: 'insensitive'
           ...(search && {
             OR: [
-              { project_name: { contains: search, mode: 'insensitive' } },
-              { project_code: { contains: search, mode: 'insensitive' } },
+              { project_name: { contains: search.toLowerCase() } },
+              { project_code: { contains: search.toLowerCase() } },
             ],
           }),
         },

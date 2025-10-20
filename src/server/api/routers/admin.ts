@@ -102,15 +102,17 @@ export const adminRouter = createTRPCRouter({
         // Build where clause
         const where: any = {};
 
+        // Note: Using toLowerCase to avoid Prisma/PostgreSQL compatibility issues with mode: 'insensitive'
         if (search) {
+          const searchLower = search.toLowerCase();
           where.OR = [
-            { email: { contains: search, mode: 'insensitive' } },
+            { email: { contains: searchLower } },
             { user_profiles: {
               OR: [
-                { first_name: { contains: search, mode: 'insensitive' } },
-                { last_name: { contains: search, mode: 'insensitive' } },
-                { full_name: { contains: search, mode: 'insensitive' } },
-                { name: { contains: search, mode: 'insensitive' } },
+                { first_name: { contains: searchLower } },
+                { last_name: { contains: searchLower } },
+                { full_name: { contains: searchLower } },
+                { name: { contains: searchLower } },
               ]
             } },
           ];

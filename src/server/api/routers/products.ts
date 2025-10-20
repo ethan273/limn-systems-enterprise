@@ -79,11 +79,13 @@ export const productsRouter = createTRPCRouter({
         where.category = category;
       }
 
+      // Note: Using toLowerCase to avoid Prisma/PostgreSQL compatibility issues with mode: 'insensitive'
       if (search) {
+        const searchLower = search.toLowerCase();
         where.OR = [
-          { name: { contains: search, mode: 'insensitive' } },
-          { sku: { contains: search, mode: 'insensitive' } },
-          { description: { contains: search, mode: 'insensitive' } },
+          { name: { contains: searchLower } },
+          { sku: { contains: searchLower } },
+          { description: { contains: searchLower } },
         ];
       }
 
@@ -884,11 +886,13 @@ export const productsRouter = createTRPCRouter({
 
       const where: any = {};
 
+      // Note: Using toLowerCase to avoid Prisma/PostgreSQL compatibility issues with mode: 'insensitive'
       if (search) {
+        const searchLower = search.toLowerCase();
         where.OR = [
-          { name: { contains: search, mode: 'insensitive' } },
-          { concept_number: { contains: search, mode: 'insensitive' } },
-          { description: { contains: search, mode: 'insensitive' } },
+          { name: { contains: searchLower } },
+          { concept_number: { contains: searchLower } },
+          { description: { contains: searchLower } },
         ];
       }
 
@@ -1041,11 +1045,13 @@ export const productsRouter = createTRPCRouter({
 
       const where: any = {};
 
+      // Note: Using toLowerCase to avoid Prisma/PostgreSQL compatibility issues with mode: 'insensitive'
       if (search) {
+        const searchLower = search.toLowerCase();
         where.OR = [
-          { name: { contains: search, mode: 'insensitive' } },
-          { prototype_number: { contains: search, mode: 'insensitive' } },
-          { description: { contains: search, mode: 'insensitive' } },
+          { name: { contains: searchLower } },
+          { prototype_number: { contains: searchLower } },
+          { description: { contains: searchLower } },
         ];
       }
 

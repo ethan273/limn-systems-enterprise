@@ -507,13 +507,15 @@ export const leadsRouter = createTRPCRouter({
       };
 
       // Add search filter for name, company, email
+      // Note: Using toLowerCase to avoid Prisma/PostgreSQL compatibility issues with mode: 'insensitive'
       if (search && search.trim()) {
+        const searchLower = search.trim().toLowerCase();
         whereClause.OR = [
-          { name: { contains: search.trim(), mode: 'insensitive' } },
-          { first_name: { contains: search.trim(), mode: 'insensitive' } },
-          { last_name: { contains: search.trim(), mode: 'insensitive' } },
-          { company: { contains: search.trim(), mode: 'insensitive' } },
-          { email: { contains: search.trim(), mode: 'insensitive' } },
+          { name: { contains: searchLower } },
+          { first_name: { contains: searchLower } },
+          { last_name: { contains: searchLower } },
+          { company: { contains: searchLower } },
+          { email: { contains: searchLower } },
         ];
       }
 
@@ -578,13 +580,15 @@ export const leadsRouter = createTRPCRouter({
       }
 
       // Add search filter for name, company, email
+      // Note: Using toLowerCase to avoid Prisma/PostgreSQL compatibility issues with mode: 'insensitive'
       if (search && search.trim()) {
+        const searchLower = search.trim().toLowerCase();
         whereClause.OR = [
-          { name: { contains: search.trim(), mode: 'insensitive' } },
-          { first_name: { contains: search.trim(), mode: 'insensitive' } },
-          { last_name: { contains: search.trim(), mode: 'insensitive' } },
-          { company: { contains: search.trim(), mode: 'insensitive' } },
-          { email: { contains: search.trim(), mode: 'insensitive' } },
+          { name: { contains: searchLower } },
+          { first_name: { contains: searchLower } },
+          { last_name: { contains: searchLower } },
+          { company: { contains: searchLower } },
+          { email: { contains: searchLower } },
         ];
       }
 

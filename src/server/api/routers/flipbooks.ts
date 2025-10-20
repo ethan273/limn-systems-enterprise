@@ -137,10 +137,12 @@ export const flipbooksRouter = createTRPCRouter({
         where.status = status;
       }
 
+      // Note: Using toLowerCase to avoid Prisma/PostgreSQL compatibility issues with mode: 'insensitive'
       if (search) {
+        const searchLower = search.toLowerCase();
         where.OR = [
-          { title: { contains: search, mode: 'insensitive' } },
-          { description: { contains: search, mode: 'insensitive' } },
+          { title: { contains: searchLower } },
+          { description: { contains: searchLower } },
         ];
       }
 

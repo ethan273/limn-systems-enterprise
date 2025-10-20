@@ -58,11 +58,13 @@ export const auditRouter = createTRPCRouter({
       // Build where clause
       const where: any = {};
 
+      // Note: Using toLowerCase to avoid Prisma/PostgreSQL compatibility issues with mode: 'insensitive'
       if (search) {
+        const searchLower = search.toLowerCase();
         where.OR = [
-          { action: { contains: search, mode: 'insensitive' } },
-          { user_email: { contains: search, mode: 'insensitive' } },
-          { resource_type: { contains: search, mode: 'insensitive' } },
+          { action: { contains: searchLower } },
+          { user_email: { contains: searchLower } },
+          { resource_type: { contains: searchLower } },
         ];
       }
 
@@ -135,11 +137,13 @@ export const auditRouter = createTRPCRouter({
 
       const where: any = {};
 
+      // Note: Using toLowerCase to avoid Prisma/PostgreSQL compatibility issues with mode: 'insensitive'
       if (search) {
+        const searchLower = search.toLowerCase();
         where.OR = [
-          { action: { contains: search, mode: 'insensitive' } },
-          { user_email: { contains: search, mode: 'insensitive' } },
-          { table_name: { contains: search, mode: 'insensitive' } },
+          { action: { contains: searchLower } },
+          { user_email: { contains: searchLower } },
+          { table_name: { contains: searchLower } },
         ];
       }
 
@@ -214,10 +218,12 @@ export const auditRouter = createTRPCRouter({
 
       const where: any = {};
 
+      // Note: Using toLowerCase to avoid Prisma/PostgreSQL compatibility issues with mode: 'insensitive'
       if (search) {
+        const searchLower = search.toLowerCase();
         where.OR = [
-          { google_email: { contains: search, mode: 'insensitive' } },
-          { ip_address: { contains: search } },
+          { google_email: { contains: searchLower } },
+          { ip_address: { contains: searchLower } },
         ];
       }
 
