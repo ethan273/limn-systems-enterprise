@@ -2,6 +2,9 @@ import { z } from 'zod';
 import { createCrudRouter } from '../utils/crud-generator';
 import { createTRPCRouter, publicProcedure } from '../trpc/init';
 import type { orders } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 // Contacts Schema (updated to match database schema)
 const createContactSchema = z.object({
@@ -115,13 +118,13 @@ export const contactsRouter = createTRPCRouter({
       }
 
       const [items, total] = await Promise.all([
-        ctx.db.contacts.findMany({
+        prisma.contacts.findMany({
           where,
-          orderBy: input.orderBy || { name: 'asc' },
+          orderBy: input.orderBy || { created_at: 'desc' },
           take: input.limit,
           skip: input.offset,
         }),
-        ctx.db.contacts.count({ where }),
+        prisma.contacts.count({ where }),
       ]);
 
       return {
