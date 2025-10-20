@@ -407,4 +407,82 @@ export const storageRouter = createTRPCRouter({
       },
     };
   }),
+
+  /**
+   * Upload QC Photo to Supabase Storage
+   * QC PWA Enhancement - Phase 3
+   */
+  uploadQcPhoto: publicProcedure
+    .input(
+      z.object({
+        inspection_id: z.string().uuid(),
+        checkpoint_id: z.string().uuid(),
+        filename: z.string(),
+        file_data: z.string(), // Base64 encoded image data
+        file_size: z.number(),
+        content_type: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.session?.user?.id) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'User must be logged in',
+        });
+      }
+
+      try {
+        // Convert base64 to buffer
+        const base64Data = input.file_data.split(',')[1] || input.file_data;
+        const buffer = Buffer.from(base64Data, 'base64');
+
+        // Generate storage path: qc-photos/inspection_id/checkpoint_id/filename
+        const storagePath = `qc-photos/${input.inspection_id}/${input.checkpoint_id}/${input.filename}`;
+
+        // Upload to Supabase Storage using service role client
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+        if (!supabaseUrl || !supabaseServiceKey) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Supabase configuration missing',
+          });
+        }
+
+        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+        const { data, error } = await supabase.storage
+          .from('qc-photos')
+          .upload(storagePath, buffer, {
+            contentType: input.content_type,
+            upsert: false,
+          });
+
+        if (error) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: `Storage upload failed: ${error.message}`,
+          });
+        }
+
+        // Get public URL
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from('qc-photos').getPublicUrl(storagePath);
+
+        return {
+          success: true,
+          url: publicUrl,
+          path: data.path,
+        };
+      } catch (error) {
+        console.error('QC Photo upload error:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error instanceof Error ? error.message : 'Upload failed',
+        });
+      }
+    }),
 });

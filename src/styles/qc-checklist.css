@@ -1,0 +1,652 @@
+/**
+ * QC Checklist Styles
+ * Comprehensive styles for guided checklist UI
+ */
+
+/* Page Containers */
+.qc-new-inspection-page,
+.qc-inspection-page {
+  min-height: 100vh;
+  background-color: var(--background);
+}
+
+.page-header-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: var(--surface-background);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1rem;
+}
+
+.page-footer-sticky {
+  position: sticky;
+  bottom: 0;
+  z-index: 100;
+  background-color: var(--surface-background);
+  border-top: 1px solid var(--border-color);
+  padding-top: 1rem;
+}
+
+/* Inspection Type Selector */
+.inspection-type-selector {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.btn-inspection-type {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem;
+  border: 2px solid var(--border-color);
+  border-radius: 0.5rem;
+  background-color: var(--surface-background);
+  transition: all 0.2s;
+}
+
+.btn-inspection-type:hover {
+  border-color: var(--primary-color);
+}
+
+.btn-inspection-type.active {
+  border-color: var(--primary-color);
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.btn-inspection-type .icon {
+  width: 2rem;
+  height: 2rem;
+}
+
+/* Item List */
+.item-list-container {
+  flex: 1;
+  margin-bottom: 2rem;
+}
+
+.item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.item-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 2px solid var(--border-color);
+  border-radius: 0.5rem;
+  background-color: var(--surface-background);
+  text-align: left;
+  transition: all 0.2s;
+}
+
+.item-card:hover {
+  border-color: var(--primary-color);
+}
+
+.item-card.selected {
+  border-color: var(--primary-color);
+  background-color: var(--primary-background);
+}
+
+.item-card-header {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.checkbox {
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 2px solid var(--border-color);
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkbox.checked {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.checkbox.checked svg {
+  color: white;
+}
+
+.item-card-title h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.item-card-meta {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin: 0.25rem 0 0 0;
+}
+
+.item-card-detail {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.icon-small {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Section Navigation */
+.section-navigation {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding: 1rem 0;
+  margin-bottom: 1rem;
+}
+
+.section-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem;
+  min-width: 5rem;
+  border: 2px solid var(--border-color);
+  border-radius: 0.5rem;
+  background-color: var(--surface-background);
+  font-size: 0.75rem;
+  transition: all 0.2s;
+}
+
+.section-nav-item:hover {
+  border-color: var(--primary-color);
+}
+
+.section-nav-item.active {
+  border-color: var(--primary-color);
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.section-nav-item.complete {
+  border-color: var(--success-color);
+}
+
+.section-nav-item.failed {
+  border-color: var(--danger-color);
+}
+
+.section-nav-number {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background-color: var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+.section-nav-item.active .section-nav-number {
+  background-color: white;
+  color: var(--primary-color);
+}
+
+.section-nav-label {
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 6rem;
+}
+
+/* Progress Bar */
+.progress-bar-container {
+  padding: 1rem 0;
+}
+
+.progress-bar-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.progress-bar-track {
+  height: 0.5rem;
+  background-color: var(--border-color);
+  border-radius: 0.25rem;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background-color: var(--primary-color);
+  transition: width 0.3s ease;
+}
+
+/* Checklist Section */
+.checklist-section {
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  background-color: var(--surface-background);
+}
+
+.checklist-section-header {
+  padding: 1rem;
+}
+
+.checklist-section-header-button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+}
+
+.checklist-section-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.checklist-section-expand-icon .icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  transition: transform 0.2s;
+}
+
+.checklist-section-expand-icon .icon.expanded {
+  transform: rotate(180deg);
+}
+
+.checklist-section-title h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.checklist-section-description {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin: 0.25rem 0 0 0;
+}
+
+.checklist-section-header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.checklist-section-stats {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.stat {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-weight: 600;
+}
+
+.stat-complete {
+  background-color: var(--primary-background);
+  color: var(--primary-color);
+}
+
+.stat-failed {
+  background-color: var(--danger-background);
+  color: var(--danger-color);
+}
+
+.checklist-section-status {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checklist-section-status.pass {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.checklist-section-status.fail {
+  background-color: var(--danger-color);
+  color: white;
+}
+
+.checklist-section-status .icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.btn-pass-all {
+  margin-top: 0.5rem;
+}
+
+.checklist-section-content {
+  padding: 0 1rem 1rem 1rem;
+}
+
+.checkpoint-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Checkpoint Result */
+.checkpoint-result {
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  background-color: var(--background);
+}
+
+.checkpoint-result.pass {
+  border-color: var(--success-color);
+}
+
+.checkpoint-result.fail {
+  border-color: var(--danger-color);
+}
+
+.checkpoint-result.na {
+  border-color: var(--text-secondary);
+}
+
+.checkpoint-result-header {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.checkpoint-result-number {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.checkpoint-result-title h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.checkpoint-result-guidance {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin: 0.5rem 0 0 0;
+}
+
+.checkpoint-result-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.btn-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 2px solid var(--border-color);
+  border-radius: 0.5rem;
+  background-color: var(--surface-background);
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-result:hover {
+  transform: translateY(-2px);
+}
+
+.btn-result .icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.btn-result-pass.active {
+  border-color: var(--success-color);
+  background-color: var(--success-color);
+  color: white;
+}
+
+.btn-result-fail.active {
+  border-color: var(--danger-color);
+  background-color: var(--danger-color);
+  color: white;
+}
+
+.btn-result-na.active {
+  border-color: var(--text-secondary);
+  background-color: var(--text-secondary);
+  color: white;
+}
+
+.checkpoint-result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.checkpoint-result-notes {
+  flex: 1 1 100%;
+}
+
+.checkpoint-notes-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.checkpoint-notes-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.recording-indicator {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  background-color: red;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.checkpoint-camera {
+  flex: 1 1 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.checkpoint-result-severity {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+.severity-minor {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.severity-major {
+  background-color: #fed7aa;
+  color: #9a3412;
+}
+
+.severity-critical {
+  background-color: #fecaca;
+  color: #991b1b;
+}
+
+/* Historical Issues Panel */
+.historical-issues-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.historical-issues-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.historical-issues-content {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  background-color: var(--surface-background);
+  display: flex;
+  flex-direction: column;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.historical-issues-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.historical-issues-header h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.historical-issues-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.historical-issues-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.historical-issue-item {
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  background-color: var(--background);
+}
+
+.historical-issue-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.severity-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.historical-issue-date {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.historical-issue-text {
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+}
+
+.historical-issue-notes {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .inspection-type-selector {
+    grid-template-columns: 1fr;
+  }
+
+  .section-navigation {
+    justify-content: flex-start;
+  }
+
+  .checkpoint-result-buttons {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  .severity-minor {
+    background-color: #78350f;
+    color: #fef3c7;
+  }
+
+  .severity-major {
+    background-color: #7c2d12;
+    color: #fed7aa;
+  }
+
+  .severity-critical {
+    background-color: #7f1d1d;
+    color: #fecaca;
+  }
+}

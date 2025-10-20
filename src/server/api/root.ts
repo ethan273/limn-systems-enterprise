@@ -28,6 +28,7 @@ import { shopDrawingsRouter } from './routers/shop-drawings';
 import { prototypesRouter } from './routers/prototypes';
 import { factoryReviewsRouter } from './routers/factoryReviews';
 import { qcRouter } from './routers/qc';
+import { qcPwaRouter } from './routers/qcPwa';
 import { packingRouter } from './routers/packing';
 import { orderedItemsProductionRouter } from './routers/ordered-items-production';
 import { invoicesRouter } from './routers/invoices';
@@ -132,6 +133,7 @@ export const appRouter = createTRPCRouter({
 
   // QC Mobile (Phase 2 - Week 19)
   qc: qcRouter,
+  qcPwa: qcPwaRouter, // QC PWA Enhancement - Mobile-optimized endpoints
 
   // Packing Lists (Phase 2 - Week 20)
   packing: packingRouter,

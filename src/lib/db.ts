@@ -1077,6 +1077,8 @@ export class DatabaseClient {
     findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('qc_inspections', options),
     findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
       this.findUniqueGeneric<Record<string, any>>('qc_inspections', options),
+    findFirst: (options: { where: Record<string, any>; orderBy?: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findFirstGeneric<Record<string, any>>('qc_inspections', options),
     create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
       this.createGeneric<Record<string, any>>('qc_inspections', options),
     update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
@@ -1157,6 +1159,118 @@ export class DatabaseClient {
       this.deleteManyGeneric('qc_issue_comments', options),
     count: (options?: { where?: Record<string, any> }) =>
       this.countGeneric('qc_issue_comments', options),
+  };
+
+  // QC PWA Enhancement - Template Management
+  qc_capture_templates = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('qc_capture_templates', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('qc_capture_templates', options),
+    findFirst: (options: { where: Record<string, any>; orderBy?: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findFirstGeneric<Record<string, any>>('qc_capture_templates', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('qc_capture_templates', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('qc_capture_templates', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('qc_capture_templates', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('qc_capture_templates', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('qc_capture_templates', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('qc_capture_templates', options),
+  };
+  qc_template_sections = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('qc_template_sections', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('qc_template_sections', options),
+    findFirst: (options: { where: Record<string, any>; orderBy?: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findFirstGeneric<Record<string, any>>('qc_template_sections', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('qc_template_sections', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('qc_template_sections', options),
+    updateMany: (options: { where: Record<string, any>; data: Record<string, any> }) =>
+      this.updateManyGeneric('qc_template_sections', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('qc_template_sections', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('qc_template_sections', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('qc_template_sections', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('qc_template_sections', options),
+  };
+  qc_template_checkpoints = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('qc_template_checkpoints', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('qc_template_checkpoints', options),
+    findFirst: (options: { where: Record<string, any>; orderBy?: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findFirstGeneric<Record<string, any>>('qc_template_checkpoints', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('qc_template_checkpoints', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('qc_template_checkpoints', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('qc_template_checkpoints', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('qc_template_checkpoints', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('qc_template_checkpoints', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('qc_template_checkpoints', options),
+  };
+  qc_checkpoint_results = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('qc_checkpoint_results', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('qc_checkpoint_results', options),
+    findFirst: (options: { where: Record<string, any>; orderBy?: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findFirstGeneric<Record<string, any>>('qc_checkpoint_results', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('qc_checkpoint_results', options),
+    upsert: async (options: { where: Record<string, any>; create: Record<string, any>; update: Record<string, any> }) => {
+      // Try to find existing record
+      const existing = await this.findUniqueGeneric<any>('qc_checkpoint_results', { where: options.where });
+      if (existing) {
+        return this.updateGeneric<any>('qc_checkpoint_results', { where: options.where, data: options.update });
+      } else {
+        return this.createGeneric<any>('qc_checkpoint_results', { data: { ...options.where, ...options.create } });
+      }
+    },
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('qc_checkpoint_results', options),
+    updateMany: (options: { where: Record<string, any>; data: Record<string, any> }) =>
+      this.updateManyGeneric('qc_checkpoint_results', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('qc_checkpoint_results', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('qc_checkpoint_results', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('qc_checkpoint_results', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('qc_checkpoint_results', options),
+  };
+  qc_section_results = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('qc_section_results', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('qc_section_results', options),
+    findFirst: (options: { where: Record<string, any>; orderBy?: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findFirstGeneric<Record<string, any>>('qc_section_results', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('qc_section_results', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('qc_section_results', options),
+    updateMany: (options: { where: Record<string, any>; data: Record<string, any> }) =>
+      this.updateManyGeneric('qc_section_results', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('qc_section_results', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('qc_section_results', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('qc_section_results', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('qc_section_results', options),
   };
 
   // Packing Lists (Week 20)
