@@ -534,15 +534,6 @@ export const partnersRouter = createTRPCRouter({
             { is_primary: "desc" },
             { created_at: "asc" },
           ],
-          include: {
-            portal_user: {
-              select: {
-                id: true,
-                email: true,
-                last_sign_in_at: true,
-              },
-            },
-          },
         });
 
         return contacts;
@@ -555,18 +546,11 @@ export const partnersRouter = createTRPCRouter({
         const contact = await prisma.partner_contacts.findUnique({
           where: { id: input.id },
           include: {
-            partner: {
+            partners: {
               select: {
                 id: true,
                 company_name: true,
                 type: true,
-              },
-            },
-            portal_user: {
-              select: {
-                id: true,
-                email: true,
-                last_sign_in_at: true,
               },
             },
           },
