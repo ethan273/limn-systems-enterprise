@@ -20,6 +20,8 @@ const USER_TYPES = [
   { value: 'contractor', label: 'Contractors' },
   { value: 'designer', label: 'Designers' },
   { value: 'manufacturer', label: 'Manufacturers' },
+  { value: 'factory', label: 'Factory Users' },
+  { value: 'qc_tester', label: 'QC Testers' },
   { value: 'finance', label: 'Finance' },
   { value: 'super_admin', label: 'Super Admins' },
 ] as const;
@@ -29,6 +31,8 @@ const EDITABLE_USER_TYPES = [
   { value: 'contractor', label: 'Contractor' },
   { value: 'designer', label: 'Designer' },
   { value: 'manufacturer', label: 'Manufacturer' },
+  { value: 'factory', label: 'Factory User' },
+  { value: 'qc_tester', label: 'QC Tester' },
   { value: 'finance', label: 'Finance' },
   { value: 'super_admin', label: 'Super Admin' },
 ] as const;
