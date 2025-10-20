@@ -221,11 +221,18 @@ export default function NewFactoryReviewSessionPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Select a prototype</SelectItem>
-                    {prototypeProductionData?.prototypes?.map((proto: Record<string, any>) => (
-                      <SelectItem key={proto.id} value={proto.id}>
-                        {proto.name || 'Unnamed'} {proto.prototype_number ? `(${proto.prototype_number})` : ''}
-                      </SelectItem>
-                    ))}
+                    {prototypeProductionData?.prototypes
+                      ?.filter((proto: Record<string, any>) => proto.prototype_production && proto.prototype_production.length > 0)
+                      .map((proto: Record<string, any>) => {
+                        const productionId = proto.prototype_production[0]?.id;
+                        if (!productionId) return null;
+                        return (
+                          <SelectItem key={productionId} value={productionId}>
+                            {proto.name || 'Unnamed'} {proto.prototype_number ? `(${proto.prototype_number})` : ''}
+                          </SelectItem>
+                        );
+                      })
+                      .filter(Boolean)}
                   </SelectContent>
                 </Select>
               </div>
