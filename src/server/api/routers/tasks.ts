@@ -125,6 +125,8 @@ export const tasksRouter = createTRPCRouter({
       limit: z.number().min(1).max(100).default(20),
       offset: z.number().min(0).default(0),
       status: z.enum(['todo', 'in_progress', 'completed', 'cancelled']).optional(),
+      priority: z.enum(['low', 'medium', 'high']).optional(),
+      search: z.string().optional(),
       includeWatching: z.boolean().default(false),
     }))
     .query(async ({ ctx: _ctx, input }) => {
@@ -132,6 +134,8 @@ export const tasksRouter = createTRPCRouter({
         limit: input.limit,
         offset: input.offset,
         status: input.status,
+        priority: input.priority,
+        search: input.search,
         includeWatching: input.includeWatching,
       });
     }),

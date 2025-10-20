@@ -869,27 +869,52 @@ export const productsRouter = createTRPCRouter({
     }),
 
   // Concepts Management
-  getAllConcepts: publicProcedure.query(async ({ ctx }) => {
-    const concepts = await (ctx.db as any).concepts.findMany({
-      orderBy: { created_at: "desc" },
-      include: {
-        designers: {
-          select: {
-            id: true,
-            name: true,
+  getAllConcepts: publicProcedure
+    .input(
+      z.object({
+        search: z.string().optional(),
+        limit: z.number().min(1).max(1000).default(100),
+        offset: z.number().min(0).default(0),
+      }).optional()
+    )
+    .query(async ({ ctx, input }) => {
+      const limit = input?.limit ?? 100;
+      const offset = input?.offset ?? 0;
+      const search = input?.search;
+
+      const where: any = {};
+
+      if (search) {
+        where.OR = [
+          { name: { contains: search, mode: 'insensitive' } },
+          { concept_number: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } },
+        ];
+      }
+
+      const concepts = await (ctx.db as any).concepts.findMany({
+        where,
+        take: limit,
+        skip: offset,
+        orderBy: { created_at: "desc" },
+        include: {
+          designers: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          collections: {
+            select: {
+              id: true,
+              name: true,
+              prefix: true,
+            },
           },
         },
-        collections: {
-          select: {
-            id: true,
-            name: true,
-            prefix: true,
-          },
-        },
-      },
-    });
-    return concepts;
-  }),
+      });
+      return concepts;
+    }),
 
   getConceptById: publicProcedure
     .input(z.object({ id: z.string().uuid() }))
@@ -1001,40 +1026,65 @@ export const productsRouter = createTRPCRouter({
     }),
 
   // Prototypes Management
-  getAllPrototypes: publicProcedure.query(async ({ ctx }) => {
-    const prototypes = await (ctx.db as any).prototypes.findMany({
-      orderBy: { created_at: "desc" },
-      include: {
-        designers: {
-          select: {
-            id: true,
-            name: true,
+  getAllPrototypes: publicProcedure
+    .input(
+      z.object({
+        search: z.string().optional(),
+        limit: z.number().min(1).max(1000).default(100),
+        offset: z.number().min(0).default(0),
+      }).optional()
+    )
+    .query(async ({ ctx, input }) => {
+      const limit = input?.limit ?? 100;
+      const offset = input?.offset ?? 0;
+      const search = input?.search;
+
+      const where: any = {};
+
+      if (search) {
+        where.OR = [
+          { name: { contains: search, mode: 'insensitive' } },
+          { prototype_number: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } },
+        ];
+      }
+
+      const prototypes = await (ctx.db as any).prototypes.findMany({
+        where,
+        take: limit,
+        skip: offset,
+        orderBy: { created_at: "desc" },
+        include: {
+          designers: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          manufacturers: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          collections: {
+            select: {
+              id: true,
+              name: true,
+              prefix: true,
+            },
+          },
+          concepts: {
+            select: {
+              id: true,
+              name: true,
+              concept_number: true,
+            },
           },
         },
-        manufacturers: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        collections: {
-          select: {
-            id: true,
-            name: true,
-            prefix: true,
-          },
-        },
-        concepts: {
-          select: {
-            id: true,
-            name: true,
-            concept_number: true,
-          },
-        },
-      },
-    });
-    return prototypes;
-  }),
+      });
+      return prototypes;
+    }),
 
   getPrototypeById: publicProcedure
     .input(z.object({ id: z.string().uuid() }))

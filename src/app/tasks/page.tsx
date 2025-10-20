@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 export const dynamic = 'force-dynamic';
 import { api } from "@/lib/api/client";
+import { useTableState } from "@/hooks/useTableFilters";
 // Unused: import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -34,8 +35,8 @@ import {
   StatusBadge,
   PriorityBadge,
   DepartmentBadge,
+  TableFilters,
   type DataTableColumn,
-  type DataTableFilter,
   type DataTableRowAction,
   type StatItem,
 } from "@/components/common";
@@ -90,10 +91,25 @@ export default function TasksPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<any>(null);
 
-  const { data: tasksData, isLoading, error } = api.tasks.getAllTasks.useQuery({
-    limit: 100,
-    offset: 0,
+  // Unified filter management with new hook
+  const {
+    rawFilters,
+    setFilter,
+    clearFilters,
+    hasActiveFilters,
+    queryParams,
+  } = useTableState({
+    initialFilters: {
+      search: '',
+      status: '',
+      priority: '',
+      department: '',
+    },
+    debounceMs: 300,
+    pageSize: 100,
   });
+
+  const { data: tasksData, isLoading, error } = api.tasks.getAllTasks.useQuery(queryParams);
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
@@ -150,6 +166,27 @@ export default function TasksPage() {
                status.value === 'in_progress' ? 'info' :
                status.value === 'completed' ? 'success' : 'destructive',
   }));
+
+  // Filter options
+  const statusOptions = [
+    { value: '', label: 'All Statuses' },
+    ...TASK_STATUSES.map(s => ({ value: s.value, label: s.label })),
+  ];
+
+  const priorityOptions = [
+    { value: '', label: 'All Priorities' },
+    { value: 'high', label: 'High Priority' },
+    { value: 'medium', label: 'Medium Priority' },
+    { value: 'low', label: 'Low Priority' },
+  ];
+
+  const departmentOptions = [
+    { value: '', label: 'All Departments' },
+    { value: 'admin', label: 'Admin' },
+    { value: 'production', label: 'Production' },
+    { value: 'design', label: 'Design' },
+    { value: 'sales', label: 'Sales' },
+  ];
 
   // DataTable columns configuration
   const columns: DataTableColumn<any>[] = [
@@ -240,48 +277,6 @@ export default function TasksPage() {
           </span>
         </div>
       ) : <span className="text-muted">—</span>,
-    },
-  ];
-
-  // DataTable filters configuration
-  const filters: DataTableFilter[] = [
-    {
-      key: 'search',
-      label: 'Search tasks',
-      type: 'search',
-      placeholder: 'Search by title or description...',
-    },
-    {
-      key: 'status',
-      label: 'Status',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Statuses' },
-        ...TASK_STATUSES.map(s => ({ value: s.value, label: s.label })),
-      ],
-    },
-    {
-      key: 'priority',
-      label: 'Priority',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Priorities' },
-        { value: 'high', label: 'High Priority' },
-        { value: 'medium', label: 'Medium Priority' },
-        { value: 'low', label: 'Low Priority' },
-      ],
-    },
-    {
-      key: 'department',
-      label: 'Department',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Departments' },
-        { value: 'admin', label: 'Admin' },
-        { value: 'production', label: 'Production' },
-        { value: 'design', label: 'Design' },
-        { value: 'sales', label: 'Sales' },
-      ],
     },
   ];
 
@@ -389,7 +384,44 @@ export default function TasksPage() {
       {/* Stats Grid */}
       <StatsGrid stats={stats} columns={4} />
 
-      {/* Tasks DataTable */}
+      {/* Filters - New Unified System */}
+      <TableFilters.Bar
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+      >
+        {/* Search Filter */}
+        <TableFilters.Search
+          value={rawFilters.search}
+          onChange={(value) => setFilter('search', value)}
+          placeholder="Search by title or description..."
+        />
+
+        {/* Status Filter */}
+        <TableFilters.Select
+          value={rawFilters.status}
+          onChange={(value) => setFilter('status', value)}
+          options={statusOptions}
+          placeholder="All Statuses"
+        />
+
+        {/* Priority Filter */}
+        <TableFilters.Select
+          value={rawFilters.priority}
+          onChange={(value) => setFilter('priority', value)}
+          options={priorityOptions}
+          placeholder="All Priorities"
+        />
+
+        {/* Department Filter */}
+        <TableFilters.Select
+          value={rawFilters.department}
+          onChange={(value) => setFilter('department', value)}
+          options={departmentOptions}
+          placeholder="All Departments"
+        />
+      </TableFilters.Bar>
+
+      {/* Tasks DataTable - No filters prop (server-side only) */}
       {isLoading ? (
         <LoadingState message="Loading tasks..." size="lg" />
       ) : !tasks || tasks.length === 0 ? (
@@ -407,7 +439,6 @@ export default function TasksPage() {
         <DataTable
           data={tasks}
           columns={columns}
-          filters={filters}
           rowActions={rowActions}
           onRowClick={(row) => router.push(`/tasks/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}

@@ -2783,11 +2783,13 @@ export class DatabaseClient {
     options: {
       includeWatching?: boolean;
       status?: 'todo' | 'in_progress' | 'completed' | 'cancelled';
+      priority?: 'low' | 'medium' | 'high';
+      search?: string;
       limit?: number;
       offset?: number;
     } = {}
   ): Promise<{ tasks: Task[]; total: number; hasMore: boolean; }> {
-    const { includeWatching = false, status, limit = 20, offset = 0 } = options;
+    const { includeWatching = false, status, priority, search, limit = 20, offset = 0 } = options;
 
     let query = getSupabaseAdmin()
       .from('tasks')
@@ -2810,6 +2812,14 @@ export class DatabaseClient {
 
     if (status) {
       query = query.eq('status', status);
+    }
+
+    if (priority) {
+      query = query.eq('priority', priority);
+    }
+
+    if (search) {
+      query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
     }
 
     // Sort by priority then created_at

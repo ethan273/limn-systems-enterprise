@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 export const dynamic = 'force-dynamic';
 import { api } from "@/lib/api/client";
+import { useTableState } from "@/hooks/useTableFilters";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -29,8 +30,8 @@ import {
   EmptyState,
   LoadingState,
   StatusBadge,
+  TableFilters,
   type DataTableColumn,
-  type DataTableFilter,
   type StatItem,
 } from "@/components/common";
 import {
@@ -64,29 +65,59 @@ export default function MyTasksPage() {
   // Use the actual logged-in user's ID
   const currentUserId = (currentUser as any)?.id || "";
 
+  // Unified filter management for assigned tasks
+  const assignedFilters = useTableState({
+    initialFilters: {
+      search: '',
+      status: '',
+      priority: '',
+    },
+    debounceMs: 300,
+    pageSize: 100,
+  });
+
+  // Unified filter management for watching tasks
+  const watchingFilters = useTableState({
+    initialFilters: {
+      search: '',
+      status: '',
+      priority: '',
+    },
+    debounceMs: 300,
+    pageSize: 100,
+  });
+
+  // Unified filter management for created tasks
+  const createdFilters = useTableState({
+    initialFilters: {
+      search: '',
+      status: '',
+      priority: '',
+    },
+    debounceMs: 300,
+    pageSize: 100,
+  });
+
   // Get my assigned tasks (only fetch when we have a valid user ID)
   const { data: assignedTasksData, isLoading: isLoadingAssigned, error: assignedTasksError } = api.tasks.getMyTasks.useQuery({
     user_id: currentUserId,
-    limit: 100,
-    offset: 0,
     includeWatching: false,
+    ...assignedFilters.queryParams,
   }, { enabled: activeTab === "assigned" && !!currentUserId });
 
   // Get tasks I'm watching (only fetch when we have a valid user ID)
   const { data: watchingTasksData, isLoading: isLoadingWatching, error: watchingTasksError } = api.tasks.getMyTasks.useQuery({
     user_id: currentUserId,
-    limit: 100,
-    offset: 0,
     includeWatching: true,
+    ...watchingFilters.queryParams,
   }, { enabled: activeTab === "watching" && !!currentUserId });
 
   // Get tasks I created (only fetch when we have a valid user ID)
   const { data: createdTasksData, isLoading: isLoadingCreated, error: createdTasksError } = api.tasks.getAllTasks.useQuery({
-    limit: 100,
-    offset: 0,
     sortBy: 'created_at',
     sortOrder: 'desc',
     created_by: currentUserId,
+    ...createdFilters.queryParams,
   }, { enabled: activeTab === "created" && !!currentUserId });
 
   // Get tRPC utils for cache invalidation
@@ -170,6 +201,22 @@ export default function MyTasksPage() {
   };
 
   const { assignedTodo, watchingActive, createdActive } = getTabCounts();
+
+  // Filter options
+  const statusOptions = [
+    { value: '', label: 'All Statuses' },
+    { value: 'todo', label: 'To Do' },
+    { value: 'in_progress', label: 'In Progress' },
+    { value: 'completed', label: 'Completed' },
+    { value: 'cancelled', label: 'Cancelled' },
+  ];
+
+  const priorityOptions = [
+    { value: '', label: 'All Priorities' },
+    { value: 'high', label: 'High' },
+    { value: 'medium', label: 'Medium' },
+    { value: 'low', label: 'Low' },
+  ];
 
   // Stats configuration
   const stats: StatItem[] = [
@@ -353,39 +400,6 @@ export default function MyTasksPage() {
     },
   ];
 
-  // DataTable filters configuration
-  const filters: DataTableFilter[] = [
-    {
-      key: 'search',
-      label: 'Search tasks',
-      type: 'search',
-      placeholder: 'Search by title or description...',
-    },
-    {
-      key: 'status',
-      label: 'Status',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Statuses' },
-        { value: 'todo', label: 'To Do' },
-        { value: 'in_progress', label: 'In Progress' },
-        { value: 'completed', label: 'Completed' },
-        { value: 'cancelled', label: 'Cancelled' },
-      ],
-    },
-    {
-      key: 'priority',
-      label: 'Priority',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Priorities' },
-        { value: 'high', label: 'High' },
-        { value: 'medium', label: 'Medium' },
-        { value: 'low', label: 'Low' },
-      ],
-    },
-  ];
-
   // Handle query error for current user
   if (currentUserError) {
     return (
@@ -516,6 +530,30 @@ export default function MyTasksPage() {
         </TabsList>
 
         <TabsContent value="assigned" className="mt-6">
+          {/* Filters - New Unified System */}
+          <TableFilters.Bar
+            hasActiveFilters={assignedFilters.hasActiveFilters}
+            onClearFilters={assignedFilters.clearFilters}
+          >
+            <TableFilters.Search
+              value={assignedFilters.rawFilters.search}
+              onChange={(value) => assignedFilters.setFilter('search', value)}
+              placeholder="Search by title or description..."
+            />
+            <TableFilters.Select
+              value={assignedFilters.rawFilters.status}
+              onChange={(value) => assignedFilters.setFilter('status', value)}
+              options={statusOptions}
+              placeholder="All Statuses"
+            />
+            <TableFilters.Select
+              value={assignedFilters.rawFilters.priority}
+              onChange={(value) => assignedFilters.setFilter('priority', value)}
+              options={priorityOptions}
+              placeholder="All Priorities"
+            />
+          </TableFilters.Bar>
+
           {isLoading ? (
             <LoadingState message="Loading your tasks..." size="lg" />
           ) : !tasksData?.tasks || tasksData.tasks.length === 0 ? (
@@ -533,7 +571,6 @@ export default function MyTasksPage() {
             <DataTable
               data={tasksData.tasks}
               columns={columns}
-              filters={filters}
               onRowClick={(row) => router.push(`/tasks/${row.id}`)}
               pagination={{ pageSize: 20, showSizeSelector: true }}
               emptyState={{
@@ -546,6 +583,30 @@ export default function MyTasksPage() {
         </TabsContent>
 
         <TabsContent value="watching" className="mt-6">
+          {/* Filters - New Unified System */}
+          <TableFilters.Bar
+            hasActiveFilters={watchingFilters.hasActiveFilters}
+            onClearFilters={watchingFilters.clearFilters}
+          >
+            <TableFilters.Search
+              value={watchingFilters.rawFilters.search}
+              onChange={(value) => watchingFilters.setFilter('search', value)}
+              placeholder="Search by title or description..."
+            />
+            <TableFilters.Select
+              value={watchingFilters.rawFilters.status}
+              onChange={(value) => watchingFilters.setFilter('status', value)}
+              options={statusOptions}
+              placeholder="All Statuses"
+            />
+            <TableFilters.Select
+              value={watchingFilters.rawFilters.priority}
+              onChange={(value) => watchingFilters.setFilter('priority', value)}
+              options={priorityOptions}
+              placeholder="All Priorities"
+            />
+          </TableFilters.Bar>
+
           {isLoading ? (
             <LoadingState message="Loading watched tasks..." size="lg" />
           ) : !tasksData?.tasks || tasksData.tasks.length === 0 ? (
@@ -558,7 +619,6 @@ export default function MyTasksPage() {
             <DataTable
               data={tasksData.tasks}
               columns={columns}
-              filters={filters}
               onRowClick={(row) => router.push(`/tasks/${row.id}`)}
               pagination={{ pageSize: 20, showSizeSelector: true }}
               emptyState={{
@@ -571,6 +631,30 @@ export default function MyTasksPage() {
         </TabsContent>
 
         <TabsContent value="created" className="mt-6">
+          {/* Filters - New Unified System */}
+          <TableFilters.Bar
+            hasActiveFilters={createdFilters.hasActiveFilters}
+            onClearFilters={createdFilters.clearFilters}
+          >
+            <TableFilters.Search
+              value={createdFilters.rawFilters.search}
+              onChange={(value) => createdFilters.setFilter('search', value)}
+              placeholder="Search by title or description..."
+            />
+            <TableFilters.Select
+              value={createdFilters.rawFilters.status}
+              onChange={(value) => createdFilters.setFilter('status', value)}
+              options={statusOptions}
+              placeholder="All Statuses"
+            />
+            <TableFilters.Select
+              value={createdFilters.rawFilters.priority}
+              onChange={(value) => createdFilters.setFilter('priority', value)}
+              options={priorityOptions}
+              placeholder="All Priorities"
+            />
+          </TableFilters.Bar>
+
           {isLoading ? (
             <LoadingState message="Loading created tasks..." size="lg" />
           ) : !tasksData?.tasks || tasksData.tasks.length === 0 ? (
@@ -588,7 +672,6 @@ export default function MyTasksPage() {
             <DataTable
               data={tasksData.tasks}
               columns={columns}
-              filters={filters}
               onRowClick={(row) => router.push(`/tasks/${row.id}`)}
               pagination={{ pageSize: 20, showSizeSelector: true }}
               emptyState={{

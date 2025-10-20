@@ -11,11 +11,12 @@ import {
   StatsGrid,
   EmptyState,
   LoadingState,
+  TableFilters,
   type DataTableColumn,
-  type DataTableFilter,
   type DataTableRowAction,
   type StatItem,
 } from "@/components/common";
+import { useTableState } from "@/hooks/useTableFilters";
 import { Plus, FileText, Calendar, Pencil, Trash2, AlertTriangle, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import {
@@ -39,12 +40,25 @@ export default function DesignBriefsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [briefToDelete, setBriefToDelete] = useState<any>(null);
 
-  // Auth is handled by middleware - no client-side redirect needed
-
-  const { data, isLoading, error } = api.designBriefs.getAll.useQuery(
-    {
-      limit: 50,
+  // Unified filter management with new hook
+  const {
+    rawFilters,
+    setFilter,
+    clearFilters,
+    hasActiveFilters,
+    queryParams,
+  } = useTableState({
+    initialFilters: {
+      search: '',
+      status: '',
     },
+    debounceMs: 300,
+    pageSize: 50,
+  });
+
+  // Backend query with unified params
+  const { data, isLoading, error } = api.designBriefs.getAll.useQuery(
+    queryParams,
     { enabled: true } // Middleware ensures auth
   );
 
@@ -182,27 +196,15 @@ export default function DesignBriefsPage() {
     },
   ];
 
-  // DataTable filters configuration
-  const filters: DataTableFilter[] = [
-    {
-      key: 'search',
-      label: 'Search briefs',
-      type: 'search',
-      placeholder: 'Search by title or description...',
-    },
-    {
-      key: 'status',
-      label: 'Status',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Statuses' },
-        { value: 'draft', label: 'Draft' },
-        { value: 'submitted', label: 'Submitted' },
-        { value: 'approved', label: 'Approved' },
-        { value: 'in_progress', label: 'In Progress' },
-        { value: 'completed', label: 'Completed' },
-      ],
-    },
+  // Status options for TableFilters.Select
+  const statusOptions = [
+    { value: '', label: 'All Statuses' },
+    { value: 'draft', label: 'Draft' },
+    { value: 'submitted', label: 'Submitted' },
+    { value: 'approved', label: 'Approved' },
+    { value: 'concept', label: 'Concept' },
+    { value: 'revision', label: 'Revision' },
+    { value: 'final', label: 'Final' },
   ];
 
   // Row actions configuration
@@ -274,7 +276,28 @@ export default function DesignBriefsPage() {
       {/* Summary Stats */}
       <StatsGrid stats={stats} columns={4} />
 
-      {/* Briefs DataTable */}
+      {/* Filters - New Unified System */}
+      <TableFilters.Bar
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+      >
+        {/* Search Filter */}
+        <TableFilters.Search
+          value={rawFilters.search}
+          onChange={(value) => setFilter('search', value)}
+          placeholder="Search by title or description..."
+        />
+
+        {/* Status Filter */}
+        <TableFilters.Select
+          value={rawFilters.status}
+          onChange={(value) => setFilter('status', value)}
+          options={statusOptions}
+          placeholder="All Statuses"
+        />
+      </TableFilters.Bar>
+
+      {/* Briefs DataTable - No filters prop (server-side only) */}
       {isLoading ? (
         <LoadingState message="Loading design briefs..." size="lg" />
       ) : filteredBriefs.length === 0 ? (
@@ -292,7 +315,6 @@ export default function DesignBriefsPage() {
         <DataTable
           data={filteredBriefs}
           columns={columns}
-          filters={filters}
           rowActions={rowActions}
           onRowClick={(row) => router.push(`/design/briefs/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}

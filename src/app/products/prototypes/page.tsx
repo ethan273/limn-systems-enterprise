@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
+import { useTableState } from "@/hooks/useTableFilters";
 import { Plus, Package, Pencil, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
@@ -15,8 +16,8 @@ import {
   StatsGrid,
   StatusBadge,
   FormDialog,
+  TableFilters,
   type DataTableColumn,
-  type DataTableFilter,
   type DataTableRowAction,
   type StatItem,
 } from "@/components/common";
@@ -41,8 +42,23 @@ export default function PrototypesPage() {
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
 
-  // Query prototypes
-  const { data, isLoading } = api.products.getAllPrototypes.useQuery();
+  // Unified filter management with new hook
+  const {
+    rawFilters,
+    setFilter,
+    clearFilters,
+    hasActiveFilters,
+    queryParams,
+  } = useTableState({
+    initialFilters: {
+      search: '',
+    },
+    debounceMs: 300,
+    pageSize: 100,
+  });
+
+  // Backend query with unified params
+  const { data, isLoading } = api.products.getAllPrototypes.useQuery(queryParams);
 
   const prototypeItems = data || [];
 
@@ -180,16 +196,6 @@ export default function PrototypesPage() {
     },
   ];
 
-  // DataTable filters configuration
-  const filters: DataTableFilter[] = [
-    {
-      key: 'search',
-      label: 'Search prototypes',
-      type: 'search',
-      placeholder: 'Search by name, SKU, or collection...',
-    },
-  ];
-
   // Row actions configuration
   const rowActions: DataTableRowAction<any>[] = [
     {
@@ -227,7 +233,20 @@ export default function PrototypesPage() {
       {/* Stats */}
       <StatsGrid stats={stats} columns={3} />
 
-      {/* Prototypes DataTable */}
+      {/* Filters - New Unified System */}
+      <TableFilters.Bar
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+      >
+        {/* Search Filter */}
+        <TableFilters.Search
+          value={rawFilters.search}
+          onChange={(value) => setFilter('search', value)}
+          placeholder="Search by name, SKU, or collection..."
+        />
+      </TableFilters.Bar>
+
+      {/* Prototypes DataTable - No filters prop (server-side only) */}
       {isLoading ? (
         <LoadingState message="Loading prototypes..." size="lg" />
       ) : !prototypeItems || prototypeItems.length === 0 ? (
@@ -245,7 +264,6 @@ export default function PrototypesPage() {
         <DataTable
           data={prototypeItems}
           columns={columns}
-          filters={filters}
           rowActions={rowActions}
           onRowClick={(row) => router.push(`/products/prototypes/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}

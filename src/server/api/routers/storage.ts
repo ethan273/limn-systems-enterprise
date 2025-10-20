@@ -109,7 +109,8 @@ export const storageRouter = createTRPCRouter({
         projectId: z.string().optional(),
         briefId: z.string().optional(),
         category: z.string().optional(),
-        storageType: z.enum(['supabase', 'google_drive']).optional(),
+        storageType: z.string().optional(),
+        search: z.string().optional(),
         limit: z.number().min(1).max(100).default(50),
         offset: z.number().min(0).default(0),
       })
@@ -131,6 +132,13 @@ export const storageRouter = createTRPCRouter({
 
       if (input.storageType) {
         where.storage_type = input.storageType;
+      }
+
+      if (input.search) {
+        where.file_name = {
+          contains: input.search,
+          mode: 'insensitive',
+        };
       }
 
       const [files, total] = await Promise.all([

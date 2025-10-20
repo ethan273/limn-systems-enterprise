@@ -216,15 +216,37 @@ export const itemsRouter = createTRPCRouter({
   // Custom getAll to ensure base_sku is included
   getAll: publicProcedure
     .input(z.object({
+      search: z.string().optional(),
+      is_active: z.string().optional(),
       limit: z.number().min(1).max(100).default(50),
       offset: z.number().min(0).default(0),
       orderBy: z.record(z.enum(['asc', 'desc'])).optional(),
     }).partial().default({ limit: 50, offset: 0 }))
     .query(async ({ ctx, input }) => {
-      const { limit = 50, offset = 0, orderBy } = input;
+      const { search, is_active, limit = 50, offset = 0, orderBy } = input;
+
+      const where: any = {};
+
+      // Search filter
+      if (search) {
+        where.OR = [
+          { name: { contains: search, mode: 'insensitive' } },
+          { sku: { contains: search, mode: 'insensitive' } },
+          { base_sku: { contains: search, mode: 'insensitive' } },
+          { category: { contains: search, mode: 'insensitive' } },
+        ];
+      }
+
+      // Active/Inactive filter
+      if (is_active === 'true') {
+        where.active = true;
+      } else if (is_active === 'false') {
+        where.active = false;
+      }
 
       const [items, total] = await ctx.db.$transaction([
         (ctx.db as any).items.findMany({
+          where,
           take: limit,
           skip: offset,
           orderBy: orderBy || { created_at: 'desc' },
@@ -238,7 +260,7 @@ export const itemsRouter = createTRPCRouter({
             },
           },
         }),
-        (ctx.db as any).items.count(),
+        (ctx.db as any).items.count({ where }),
       ]) as [any[], number];
 
       return {

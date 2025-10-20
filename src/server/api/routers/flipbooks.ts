@@ -49,6 +49,7 @@ const listFlipbooksInput = z.object({
   limit: z.number().min(1).max(100).default(20),
   cursor: z.string().uuid().optional(),
   status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]).optional(),
+  search: z.string().optional(),
 });
 
 /**
@@ -125,7 +126,7 @@ export const flipbooksRouter = createTRPCRouter({
         });
       }
 
-      const { limit, cursor, status } = input;
+      const { limit, cursor, status, search } = input;
 
       // Build where clause
       const where: any = {
@@ -134,6 +135,13 @@ export const flipbooksRouter = createTRPCRouter({
 
       if (status) {
         where.status = status;
+      }
+
+      if (search) {
+        where.OR = [
+          { title: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } },
+        ];
       }
 
       if (cursor) {

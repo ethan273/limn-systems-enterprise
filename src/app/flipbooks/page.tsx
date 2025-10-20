@@ -9,14 +9,15 @@ import { formatDistanceToNow } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTableState } from "@/hooks/useTableFilters";
 import {
   PageHeader,
   EmptyState,
   LoadingState,
   DataTable,
   StatsGrid,
+  TableFilters,
   type DataTableColumn,
-  type DataTableFilter,
   type DataTableRowAction,
   type StatItem,
 } from "@/components/common";
@@ -45,6 +46,27 @@ export default function FlipbooksPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [flipbookToDelete, setFlipbookToDelete] = useState<any>(null);
 
+  // Unified filter management with new hook (must be before conditional returns)
+  const {
+    rawFilters,
+    setFilter,
+    clearFilters,
+    hasActiveFilters,
+    queryParams,
+  } = useTableState({
+    initialFilters: {
+      search: '',
+      status: '',
+    },
+    debounceMs: 300,
+    pageSize: 50,
+  });
+
+  // Query flipbooks with unified params
+  const { data, isLoading, error } = api.flipbooks.list.useQuery(queryParams, {
+    enabled: features.flipbooks, // Only query if feature is enabled
+  });
+
   // Redirect if feature is disabled
   useEffect(() => {
     if (!features.flipbooks) {
@@ -56,11 +78,6 @@ export default function FlipbooksPage() {
   if (!features.flipbooks) {
     return null;
   }
-
-  // Query flipbooks
-  const { data, isLoading, error } = api.flipbooks.list.useQuery({
-    limit: 50,
-  });
 
   const flipbooks = data?.flipbooks || [];
 
@@ -189,25 +206,12 @@ export default function FlipbooksPage() {
     },
   ];
 
-  // DataTable filters configuration
-  const filters: DataTableFilter[] = [
-    {
-      key: 'search',
-      label: 'Search flipbooks',
-      type: 'search',
-      placeholder: 'Search by title or description...',
-    },
-    {
-      key: 'status',
-      label: 'Status',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Statuses' },
-        { value: 'DRAFT', label: 'Draft' },
-        { value: 'PUBLISHED', label: 'Published' },
-        { value: 'ARCHIVED', label: 'Archived' },
-      ],
-    },
+  // Status filter options
+  const statusOptions = [
+    { value: '', label: 'All Statuses' },
+    { value: 'DRAFT', label: 'Draft' },
+    { value: 'PUBLISHED', label: 'Published' },
+    { value: 'ARCHIVED', label: 'Archived' },
   ];
 
   // Row actions configuration
@@ -275,7 +279,28 @@ export default function FlipbooksPage() {
       {/* Stats Grid */}
       <StatsGrid stats={stats} columns={4} />
 
-      {/* Flipbooks DataTable */}
+      {/* Filters - New Unified System */}
+      <TableFilters.Bar
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+      >
+        {/* Search Filter */}
+        <TableFilters.Search
+          value={rawFilters.search}
+          onChange={(value) => setFilter('search', value)}
+          placeholder="Search by title or description..."
+        />
+
+        {/* Status Filter */}
+        <TableFilters.Select
+          value={rawFilters.status}
+          onChange={(value) => setFilter('status', value)}
+          options={statusOptions}
+          placeholder="All Statuses"
+        />
+      </TableFilters.Bar>
+
+      {/* Flipbooks DataTable - No filters prop (server-side only) */}
       {isLoading ? (
         <LoadingState message="Loading flipbooks..." size="lg" />
       ) : !flipbooks || flipbooks.length === 0 ? (
@@ -293,7 +318,6 @@ export default function FlipbooksPage() {
         <DataTable
           data={flipbooks}
           columns={columns}
-          filters={filters}
           rowActions={rowActions}
           onRowClick={(row) => router.push(`/flipbooks/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}

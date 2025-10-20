@@ -35,11 +35,12 @@ import {
   StatsGrid,
   EmptyState,
   LoadingState,
+  TableFilters,
   type DataTableColumn,
-  type DataTableFilter,
   type DataTableRowAction,
   type StatItem,
 } from "@/components/common";
+import { useTableState } from "@/hooks/useTableFilters";
 import {
   Upload,
   FileText,
@@ -66,22 +67,36 @@ function DesignDocumentsContent() {
   // Get current user from tRPC (standardized auth pattern)
   const { data: _currentUser, isLoading: authLoading } = api.userProfile.getCurrentUser.useQuery();
 
+  // Unified filter management with new hook
+  const {
+    rawFilters,
+    setFilter,
+    clearFilters,
+    hasActiveFilters,
+    queryParams,
+  } = useTableState({
+    initialFilters: {
+      search: '',
+      storageType: '',
+      category: '',
+    },
+    debounceMs: 300,
+    pageSize: 100,
+  });
+
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
 
   // Get Google Drive service account status
   const { data: driveStatus, error: driveStatusError } = api.storage.getDriveStatus.useQuery();
 
-  // Get files list
+  // Get files list with unified params
   const {
     data: filesData,
     isLoading: filesLoading,
     error: filesError,
     refetch: refetchFiles,
-  } = api.storage.listFiles.useQuery({
-    limit: 100,
-    offset: 0,
-  });
+  } = api.storage.listFiles.useQuery(queryParams);
 
   // Get storage stats
   const { data: stats, error: statsError } = api.storage.getStorageStats.useQuery();
@@ -255,37 +270,20 @@ function DesignDocumentsContent() {
     },
   ];
 
-  // DataTable filters configuration
-  const filters: DataTableFilter[] = [
-    {
-      key: 'search',
-      label: 'Search files',
-      type: 'search',
-      placeholder: 'Search by file name...',
-    },
-    {
-      key: 'storage',
-      label: 'Storage',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Storage' },
-        { value: 'supabase', label: 'Supabase' },
-        { value: 'google_drive', label: 'Google Drive' },
-      ],
-    },
-    {
-      key: 'category',
-      label: 'Category',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Categories' },
-        { value: 'image', label: 'Images' },
-        { value: 'document', label: 'Documents' },
-        { value: 'pdf', label: 'PDFs' },
-        { value: 'video', label: 'Videos' },
-        { value: 'file', label: 'Other Files' },
-      ],
-    },
+  // Filter options for TableFilters components
+  const storageTypeOptions = [
+    { value: '', label: 'All Storage' },
+    { value: 'supabase', label: 'Supabase' },
+    { value: 'google_drive', label: 'Google Drive' },
+  ];
+
+  const categoryOptions = [
+    { value: '', label: 'All Categories' },
+    { value: 'image', label: 'Images' },
+    { value: 'document', label: 'Documents' },
+    { value: 'pdf', label: 'PDFs' },
+    { value: 'video', label: 'Videos' },
+    { value: 'file', label: 'Other Files' },
   ];
 
   // Row actions configuration
@@ -357,7 +355,36 @@ function DesignDocumentsContent() {
       {/* Summary Stats */}
       <StatsGrid stats={statsItems} columns={4} />
 
-      {/* Documents DataTable */}
+      {/* Filters - New Unified System */}
+      <TableFilters.Bar
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+      >
+        {/* Search Filter */}
+        <TableFilters.Search
+          value={rawFilters.search}
+          onChange={(value) => setFilter('search', value)}
+          placeholder="Search by file name..."
+        />
+
+        {/* Storage Type Filter */}
+        <TableFilters.Select
+          value={rawFilters.storageType}
+          onChange={(value) => setFilter('storageType', value)}
+          options={storageTypeOptions}
+          placeholder="All Storage"
+        />
+
+        {/* Category Filter */}
+        <TableFilters.Select
+          value={rawFilters.category}
+          onChange={(value) => setFilter('category', value)}
+          options={categoryOptions}
+          placeholder="All Categories"
+        />
+      </TableFilters.Bar>
+
+      {/* Documents DataTable - No filters prop (server-side only) */}
       {filesLoading ? (
         <LoadingState message="Loading documents..." size="lg" />
       ) : files.length === 0 ? (
@@ -375,7 +402,6 @@ function DesignDocumentsContent() {
         <DataTable
           data={files}
           columns={columns}
-          filters={filters}
           rowActions={rowActions}
           pagination={{ pageSize: 20, showSizeSelector: true }}
           emptyState={{

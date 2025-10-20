@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
+import { useTableState } from "@/hooks/useTableFilters";
 import { Plus, Package, DollarSign, Pencil, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Badge } from "@/components/ui/badge";
@@ -15,8 +16,8 @@ import {
   DataTable,
   StatsGrid,
   FormDialog,
+  TableFilters,
   type DataTableColumn,
-  type DataTableFilter,
   type DataTableRowAction,
   type StatItem,
 } from "@/components/common";
@@ -41,11 +42,24 @@ export default function CatalogItemsPage() {
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
 
-  // Query items filtered by production_ready status
-  const { data, isLoading } = api.items.getAll.useQuery({
-    limit: 100,
-    offset: 0,
+  // Unified filter management with new hook
+  const {
+    rawFilters,
+    setFilter,
+    clearFilters,
+    hasActiveFilters,
+    queryParams,
+  } = useTableState({
+    initialFilters: {
+      search: '',
+      is_active: '',
+    },
+    debounceMs: 300,
+    pageSize: 100,
   });
+
+  // Backend query with unified params
+  const { data, isLoading } = api.items.getAll.useQuery(queryParams);
 
   // Query collections for the create form
   const { data: collectionsData } = api.collections.getAll.useQuery({});
@@ -212,24 +226,11 @@ export default function CatalogItemsPage() {
     },
   ];
 
-  // DataTable filters configuration
-  const filters: DataTableFilter[] = [
-    {
-      key: 'search',
-      label: 'Search items',
-      type: 'search',
-      placeholder: 'Search by name, SKU, or collection...',
-    },
-    {
-      key: 'is_active',
-      label: 'Status',
-      type: 'select',
-      options: [
-        { value: 'all', label: 'All Items' },
-        { value: 'true', label: 'Active' },
-        { value: 'false', label: 'Inactive' },
-      ],
-    },
+  // Status options for filter
+  const statusOptions = [
+    { value: '', label: 'All Items' },
+    { value: 'true', label: 'Active' },
+    { value: 'false', label: 'Inactive' },
   ];
 
   // Row actions configuration
@@ -269,7 +270,28 @@ export default function CatalogItemsPage() {
       {/* Stats Grid */}
       <StatsGrid stats={stats} columns={4} />
 
-      {/* Catalog Items DataTable */}
+      {/* Filters - New Unified System */}
+      <TableFilters.Bar
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+      >
+        {/* Search Filter */}
+        <TableFilters.Search
+          value={rawFilters.search}
+          onChange={(value) => setFilter('search', value)}
+          placeholder="Search by name, SKU, or collection..."
+        />
+
+        {/* Status Filter */}
+        <TableFilters.Select
+          value={rawFilters.is_active}
+          onChange={(value) => setFilter('is_active', value)}
+          options={statusOptions}
+          placeholder="All Items"
+        />
+      </TableFilters.Bar>
+
+      {/* Catalog Items DataTable - No filters prop (server-side only) */}
       {isLoading ? (
         <LoadingState message="Loading catalog items..." size="lg" />
       ) : !productionReadyItems || productionReadyItems.length === 0 ? (
@@ -287,7 +309,6 @@ export default function CatalogItemsPage() {
         <DataTable
           data={productionReadyItems}
           columns={columns}
-          filters={filters}
           rowActions={rowActions}
           onRowClick={(row) => router.push(`/products/catalog/${row.id}`)}
           pagination={{ pageSize: 20, showSizeSelector: true }}
