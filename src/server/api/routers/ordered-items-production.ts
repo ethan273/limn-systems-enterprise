@@ -48,7 +48,7 @@ export const orderedItemsProductionRouter = createTRPCRouter({
         where.shipment_id = input.shipmentId;
       }
 
-      if (input.search) {
+      if (input.search && input.search.trim()) {
         where.OR = [
           { sku: { contains: input.search, mode: 'insensitive' } },
           { serial_number: { contains: input.search, mode: 'insensitive' } },

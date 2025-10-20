@@ -53,7 +53,7 @@ export const prototypesRouter = createTRPCRouter({
         where.crm_project_id = input.crmProjectId;
       }
 
-      if (input.search) {
+      if (input.search && input.search.trim()) {
         where.OR = [
           { name: { contains: input.search, mode: 'insensitive' } },
           { prototype_number: { contains: input.search, mode: 'insensitive' } },

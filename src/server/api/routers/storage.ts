@@ -134,7 +134,7 @@ export const storageRouter = createTRPCRouter({
         where.storage_type = input.storageType;
       }
 
-      if (input.search) {
+      if (input.search && input.search.trim()) {
         where.file_name = {
           contains: input.search,
           mode: 'insensitive',

@@ -38,7 +38,7 @@ export const expensesRouter = createTRPCRouter({
       const where: any = {};
 
       // Search in description, vendor, reference number
-      if (input.search) {
+      if (input.search && input.search.trim()) {
         where.OR = [
           { description: { contains: input.search, mode: 'insensitive' } },
           { vendor: { contains: input.search, mode: 'insensitive' } },

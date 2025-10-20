@@ -40,7 +40,7 @@ export const shopDrawingsRouter = createTRPCRouter({
         where.status = input.status;
       }
 
-      if (input.search) {
+      if (input.search && input.search.trim()) {
         where.OR = [
           { drawing_number: { contains: input.search, mode: 'insensitive' } },
           { drawing_name: { contains: input.search, mode: 'insensitive' } },

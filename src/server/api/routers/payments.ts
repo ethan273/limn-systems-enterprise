@@ -50,7 +50,7 @@ export const paymentsRouter = createTRPCRouter({
         where.payment_method = input.paymentMethod;
       }
 
-      if (input.search) {
+      if (input.search && input.search.trim()) {
         where.OR = [
           { payment_number: { contains: input.search, mode: 'insensitive' } },
           { reference_number: { contains: input.search, mode: 'insensitive' } },

@@ -119,7 +119,7 @@ export const invoicesRouter = createTRPCRouter({
       const where: any = {};
 
       // Search in invoice items descriptions
-      if (input.search) {
+      if (input.search && input.search.trim()) {
         where.invoice_items = {
           some: {
             OR: [

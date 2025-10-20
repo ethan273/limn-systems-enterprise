@@ -348,7 +348,7 @@ export const shippingRouter = createTRPCRouter({
       };
 
       // Add search filter for shipment_number, tracking_number
-      if (input.search) {
+      if (input.search && input.search.trim()) {
         where.OR = [
           { shipment_number: { contains: input.search, mode: 'insensitive' } },
           { tracking_number: { contains: input.search, mode: 'insensitive' } },
