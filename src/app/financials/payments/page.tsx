@@ -4,9 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
-import { DollarSign, CreditCard, CheckCircle2, Clock, Download, Plus, AlertTriangle, RefreshCw } from "lucide-react";
+import { DollarSign, CreditCard, CheckCircle2, Clock, Download, Plus, AlertTriangle, RefreshCw, X } from "lucide-react";
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   PageHeader,
   EmptyState,
@@ -25,15 +27,19 @@ export const dynamic = 'force-dynamic';
 export default function PaymentsPage() {
   const router = useRouter();
   const { user: _user } = useAuth();
-  const [searchQuery, _setSearchQuery] = useState("");
-  const [statusFilter, _setStatusFilter] = useState<string>("all");
-  const [methodFilter, _setMethodFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [methodFilter, setMethodFilter] = useState<string>("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
-  const { data, isLoading, error } = api.payments.getAll.useQuery(
+  const { data, isLoading, error} = api.payments.getAll.useQuery(
     {
       search: searchQuery || undefined,
       status: statusFilter === "all" ? undefined : statusFilter,
       paymentMethod: methodFilter === "all" ? undefined : methodFilter,
+      dateFrom: dateFrom || undefined,
+      dateTo: dateTo || undefined,
       limit: 100,
       offset: 0,
     },
@@ -41,6 +47,17 @@ export default function PaymentsPage() {
       enabled: true,
     }
   );
+
+  // Clear filters handler
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setStatusFilter("all");
+    setMethodFilter("all");
+    setDateFrom("");
+    setDateTo("");
+  };
+
+  const hasActiveFilters = searchQuery || statusFilter !== "all" || methodFilter !== "all" || dateFrom || dateTo;
 
   const { data: statsData, error: statsError } = api.payments.getStats.useQuery(
     {},
@@ -321,6 +338,54 @@ export default function PaymentsPage() {
 
       {/* Stats */}
       <StatsGrid stats={statItems} columns={4} />
+
+      {/* Additional Date Filters */}
+      <div className="card mb-6">
+        <div className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Date From */}
+            <div className="space-y-2">
+              <label htmlFor="date-from" className="text-sm font-medium">
+                From Date
+              </label>
+              <Input
+                id="date-from"
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+              />
+            </div>
+
+            {/* Date To */}
+            <div className="space-y-2">
+              <label htmlFor="date-to" className="text-sm font-medium">
+                To Date
+              </label>
+              <Input
+                id="date-to"
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+              />
+            </div>
+
+            {/* Clear Filters */}
+            {hasActiveFilters && (
+              <div className="flex items-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleClearFilters}
+                  className="w-full"
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  Clear All Filters
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* Payments DataTable */}
       {isLoading ? (
