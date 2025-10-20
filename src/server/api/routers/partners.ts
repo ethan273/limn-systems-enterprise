@@ -201,8 +201,8 @@ export const partnersRouter = createTRPCRouter({
           _count: {
             select: {
               production_orders: true,
-              documents: true,
-              contacts: true,
+              partner_documents: true,
+              partner_contacts: true,
             },
           },
         },
