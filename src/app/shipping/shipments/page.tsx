@@ -51,7 +51,11 @@ export default function ShipmentsPage() {
   });
 
   const { data, isLoading, error } = api.shipping.getAllShipments.useQuery(
-    queryParams,
+    {
+      ...queryParams,
+      status: rawFilters.status || undefined,
+      carrier: rawFilters.carrier || undefined,
+    },
     {
       enabled: true,
     }

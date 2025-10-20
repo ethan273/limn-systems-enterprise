@@ -58,7 +58,10 @@ export default function DesignBriefsPage() {
 
   // Backend query with unified params
   const { data, isLoading, error } = api.designBriefs.getAll.useQuery(
-    queryParams,
+    {
+      ...queryParams,
+      status: rawFilters.status || undefined,
+    },
     { enabled: true } // Middleware ensures auth
   );
 

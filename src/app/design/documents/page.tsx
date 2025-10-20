@@ -96,7 +96,10 @@ function DesignDocumentsContent() {
     isLoading: filesLoading,
     error: filesError,
     refetch: refetchFiles,
-  } = api.storage.listFiles.useQuery(queryParams);
+  } = api.storage.listFiles.useQuery({
+    ...queryParams,
+    storageType: rawFilters.storageType || undefined,
+  });
 
   // Get storage stats
   const { data: stats, error: statsError } = api.storage.getStorageStats.useQuery();

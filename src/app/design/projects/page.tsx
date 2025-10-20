@@ -59,7 +59,10 @@ export default function DesignProjectsPage() {
 
   // Backend query with unified params
   const { data, isLoading, error } = api.designProjects.getAll.useQuery(
-    queryParams,
+    {
+      ...queryParams,
+      status: rawFilters.designStage || undefined,
+    },
     { enabled: true } // Middleware ensures auth, so no need to wait for client auth
   );
 

@@ -68,7 +68,9 @@ export default function ContactsPage() {
   });
 
   // Backend query with unified params
-  const { data: contactsData, isLoading, error } = api.crm.contacts.getAll.useQuery(queryParams);
+  const { data: contactsData, isLoading, error } = api.crm.contacts.getAll.useQuery({
+    ...queryParams,
+  });
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();

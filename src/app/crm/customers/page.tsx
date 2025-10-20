@@ -67,7 +67,10 @@ export default function CustomersPage() {
   });
 
   // Backend query with unified params
-  const { data: customersData, isLoading, error } = api.customers.getAll.useQuery(queryParams);
+  const { data: customersData, isLoading, error } = api.customers.getAll.useQuery({
+    ...queryParams,
+    status: rawFilters.status || undefined,
+  });
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();

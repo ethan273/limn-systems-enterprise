@@ -52,7 +52,10 @@ export default function PackingJobsPage() {
   const utils = api.useUtils();
 
   // Fetch packing jobs - backend filtering only
-  const { data, isLoading, error } = api.packing.getAllJobs.useQuery(queryParams);
+  const { data, isLoading, error } = api.packing.getAllJobs.useQuery({
+    ...queryParams,
+    status: (rawFilters.status || undefined) as 'pending' | 'in_progress' | 'packed' | 'shipped' | undefined,
+  });
 
   const jobs = data?.jobs || [];
 

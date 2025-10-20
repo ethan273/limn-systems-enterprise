@@ -9,7 +9,7 @@ import { formatDistanceToNow } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTableState } from "@/hooks/useTableFilters";
+import { useTableFilters } from "@/hooks/useTableFilters";
 import {
   PageHeader,
   EmptyState,
@@ -52,15 +52,25 @@ export default function FlipbooksPage() {
     setFilter,
     clearFilters,
     hasActiveFilters,
-    queryParams,
-  } = useTableState({
+    filters,
+  } = useTableFilters({
     initialFilters: {
       search: '',
-      status: '',
+      status: '' as '' | 'DRAFT' | 'PUBLISHED' | 'ARCHIVED',
     },
     debounceMs: 300,
-    pageSize: 50,
   });
+
+  // Build query params for flipbooks API (uses cursor, not offset)
+  const queryParams: {
+    search?: string;
+    status?: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+    limit: number;
+  } = {
+    search: filters.search || undefined,
+    status: (filters.status === '' ? undefined : filters.status) as 'DRAFT' | 'PUBLISHED' | 'ARCHIVED' | undefined,
+    limit: 50,
+  };
 
   // Query flipbooks with unified params
   const { data, isLoading, error } = api.flipbooks.list.useQuery(queryParams, {
@@ -294,7 +304,7 @@ export default function FlipbooksPage() {
         {/* Status Filter */}
         <TableFilters.Select
           value={rawFilters.status}
-          onChange={(value) => setFilter('status', value)}
+          onChange={(value) => setFilter('status', value as '' | 'DRAFT' | 'PUBLISHED' | 'ARCHIVED')}
           options={statusOptions}
           placeholder="All Statuses"
         />

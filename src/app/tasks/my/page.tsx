@@ -103,6 +103,8 @@ export default function MyTasksPage() {
     user_id: currentUserId,
     includeWatching: false,
     ...assignedFilters.queryParams,
+    status: (assignedFilters.rawFilters.status || undefined) as 'todo' | 'in_progress' | 'completed' | 'cancelled' | undefined,
+    priority: (assignedFilters.rawFilters.priority || undefined) as 'high' | 'medium' | 'low' | undefined,
   }, { enabled: activeTab === "assigned" && !!currentUserId });
 
   // Get tasks I'm watching (only fetch when we have a valid user ID)
@@ -110,6 +112,8 @@ export default function MyTasksPage() {
     user_id: currentUserId,
     includeWatching: true,
     ...watchingFilters.queryParams,
+    status: (watchingFilters.rawFilters.status || undefined) as 'todo' | 'in_progress' | 'completed' | 'cancelled' | undefined,
+    priority: (watchingFilters.rawFilters.priority || undefined) as 'high' | 'medium' | 'low' | undefined,
   }, { enabled: activeTab === "watching" && !!currentUserId });
 
   // Get tasks I created (only fetch when we have a valid user ID)
@@ -118,6 +122,8 @@ export default function MyTasksPage() {
     sortOrder: 'desc',
     created_by: currentUserId,
     ...createdFilters.queryParams,
+    status: (createdFilters.rawFilters.status || undefined) as 'todo' | 'in_progress' | 'completed' | 'cancelled' | undefined,
+    priority: (createdFilters.rawFilters.priority || undefined) as 'high' | 'medium' | 'low' | undefined,
   }, { enabled: activeTab === "created" && !!currentUserId });
 
   // Get tRPC utils for cache invalidation

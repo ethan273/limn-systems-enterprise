@@ -41,7 +41,10 @@ function ProductionOrdersPageContent() {
   });
 
   // Backend query with unified params
-  const { data, isLoading, error } = api.productionOrders.getAll.useQuery(queryParams, {
+  const { data, isLoading, error } = api.productionOrders.getAll.useQuery({
+    ...queryParams,
+    status: rawFilters.status || undefined,
+  }, {
     enabled: true,
   });
 

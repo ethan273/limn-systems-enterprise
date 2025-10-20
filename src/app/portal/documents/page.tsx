@@ -87,7 +87,10 @@ export default function DocumentsPage() {
   });
 
   // Backend query with unified params
-  const { data, isLoading, error } = api.portal.getCustomerDocuments.useQuery(queryParams, {
+  const { data, isLoading, error } = api.portal.getCustomerDocuments.useQuery({
+    ...queryParams,
+    documentType: rawFilters.type || undefined,
+  }, {
     enabled: true,
   });
 

@@ -68,7 +68,10 @@ export default function PrototypesPage() {
   const utils = api.useUtils();
 
   // Backend query with unified params
-  const { data, isLoading, error } = api.prototypes.getAll.useQuery(queryParams, {
+  const { data, isLoading, error } = api.prototypes.getAll.useQuery({
+    ...queryParams,
+    status: rawFilters.status || undefined,
+  }, {
     enabled: true,
   });
 

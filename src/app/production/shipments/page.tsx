@@ -50,7 +50,10 @@ export default function ProductionShipmentsPage() {
   });
 
   // Backend query with unified params
-  const { data, isLoading, error } = api.shipping.getAllShipments.useQuery(queryParams, {
+  const { data, isLoading, error } = api.shipping.getAllShipments.useQuery({
+    ...queryParams,
+    status: rawFilters.status || undefined,
+  }, {
     enabled: true,
   });
 

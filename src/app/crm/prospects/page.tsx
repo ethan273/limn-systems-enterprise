@@ -93,6 +93,7 @@ export default function ProspectsPage() {
   // Backend query with unified params
   const { data: prospectsData, isLoading, error } = api.crm.leads.getProspects.useQuery({
     ...queryParams,
+    status: rawFilters.status || undefined,
     prospect_status: queryParams.prospect_status as 'cold' | 'warm' | 'hot' | undefined,
   });
 

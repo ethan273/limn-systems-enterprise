@@ -58,7 +58,9 @@ export default function PrototypesPage() {
   });
 
   // Backend query with unified params
-  const { data, isLoading } = api.products.getAllPrototypes.useQuery(queryParams);
+  const { data, isLoading } = api.products.getAllPrototypes.useQuery({
+    ...queryParams,
+  });
 
   const prototypeItems = data || [];
 

@@ -55,7 +55,10 @@ export default function FactoryReviewsPage() {
   const utils = api.useUtils();
 
   // Backend query with unified params
-  const { data, isLoading, error } = api.factoryReviews.getAllSessions.useQuery(queryParams, {
+  const { data, isLoading, error } = api.factoryReviews.getAllSessions.useQuery({
+    ...queryParams,
+    status: rawFilters.status || undefined,
+  }, {
     enabled: true,
   });
 

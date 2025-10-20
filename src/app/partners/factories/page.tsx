@@ -43,7 +43,10 @@ export default function FactoriesPage() {
   // Fetch factories - backend handles all filtering
   const { data, isLoading, error } = api.partners.getAll.useQuery({
     type: 'factory',
-    ...queryParams,
+    search: queryParams.search,
+    status: (rawFilters.status === '' ? undefined : rawFilters.status) as 'active' | 'all' | 'pending_approval' | 'suspended' | 'inactive' | undefined,
+    limit: queryParams.limit,
+    offset: queryParams.offset,
   });
 
   const factories = data?.partners || [];

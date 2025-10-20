@@ -43,7 +43,10 @@ export default function DesignersPage() {
   // Fetch designers - backend handles all filtering
   const { data, isLoading, error } = api.partners.getAll.useQuery({
     type: 'designer',
-    ...queryParams,
+    search: queryParams.search,
+    status: (rawFilters.status === '' ? undefined : rawFilters.status) as 'active' | 'all' | 'pending_approval' | 'suspended' | 'inactive' | undefined,
+    limit: queryParams.limit,
+    offset: queryParams.offset,
   });
 
   const designers = data?.partners || [];

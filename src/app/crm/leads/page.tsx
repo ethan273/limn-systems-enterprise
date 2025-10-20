@@ -104,7 +104,10 @@ export default function LeadsPage() {
   });
 
   // Backend query with unified params
-  const { data: leadsData, isLoading, error } = api.crm.leads.getLeadsOnly.useQuery(queryParams);
+  const { data: leadsData, isLoading, error } = api.crm.leads.getLeadsOnly.useQuery({
+    ...queryParams,
+    status: rawFilters.status || undefined,
+  });
 
   const { data: pipelineStats, error: statsError } = api.crm.leads.getPipelineStats.useQuery();
 

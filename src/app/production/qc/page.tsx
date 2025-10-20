@@ -83,7 +83,10 @@ export default function QCInspectionsPage() {
   const utils = api.useUtils();
 
   // Fetch QC inspections - backend filtering only
-  const { data, isLoading, error } = api.qc.getAllInspections.useQuery(queryParams);
+  const { data, isLoading, error } = api.qc.getAllInspections.useQuery({
+    ...queryParams,
+    status: (rawFilters.status || undefined) as 'pending' | 'in_progress' | 'passed' | 'failed' | 'on_hold' | undefined,
+  });
 
   const inspections = data?.inspections || [];
 

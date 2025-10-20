@@ -92,7 +92,11 @@ export default function CustomerOrdersPage() {
   });
 
   // Backend query with unified params
-  const { data, isLoading, error } = api.portal.getCustomerOrders.useQuery(queryParams, {
+  const { data, isLoading, error } = api.portal.getCustomerOrders.useQuery({
+    limit: queryParams.limit,
+    offset: queryParams.offset,
+    status: (rawFilters.status || undefined) as 'all' | 'shipped' | 'delivered' | 'pending' | 'in_production' | 'ready_to_ship' | 'pending_deposit' | undefined,
+  }, {
     enabled: true,
   });
 

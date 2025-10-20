@@ -82,7 +82,9 @@ export default function ShippingTrackingPage() {
   });
 
   // Backend query with unified params
-  const { data: shipmentsData, isLoading, error } = api.portal.getCustomerShipments.useQuery(queryParams, {
+  const { data: shipmentsData, isLoading, error } = api.portal.getCustomerShipments.useQuery({
+    ...queryParams,
+  }, {
     enabled: true,
   });
 

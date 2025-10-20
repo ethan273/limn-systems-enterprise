@@ -109,7 +109,12 @@ export default function TasksPage() {
     pageSize: 100,
   });
 
-  const { data: tasksData, isLoading, error } = api.tasks.getAllTasks.useQuery(queryParams);
+  const { data: tasksData, isLoading, error } = api.tasks.getAllTasks.useQuery({
+    ...queryParams,
+    status: (rawFilters.status || undefined) as 'todo' | 'in_progress' | 'completed' | 'cancelled' | undefined,
+    priority: (rawFilters.priority || undefined) as 'high' | 'medium' | 'low' | undefined,
+    department: (rawFilters.department || undefined) as 'admin' | 'production' | 'design' | 'sales' | undefined,
+  });
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();

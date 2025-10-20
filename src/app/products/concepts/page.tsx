@@ -58,7 +58,9 @@ export default function ConceptsPage() {
   });
 
   // Backend query with unified params
-  const { data, isLoading } = api.products.getAllConcepts.useQuery(queryParams);
+  const { data, isLoading } = api.products.getAllConcepts.useQuery({
+    ...queryParams,
+  });
 
   const conceptItems = data || [];
 

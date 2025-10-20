@@ -98,11 +98,17 @@ export function useTableFilters<T extends FilterConfig>({
   }, [rawFilters, initialFilters]);
 
   // Generate query parameters for backend API
+  // Note: Excludes 'status' field to allow pages to handle type-specific status enums
   const queryParams = useMemo(() => {
-    const params: Partial<T> = {};
+    const params: any = {};
 
     Object.keys(debouncedFilters).forEach((key) => {
       const value = debouncedFilters[key];
+
+      // Skip 'status' - pages should handle this with their specific enum types
+      if (key === 'status') {
+        return;
+      }
 
       // Skip 'all' values (indicates no filter)
       if (value === 'all') {

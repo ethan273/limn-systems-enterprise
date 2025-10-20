@@ -107,7 +107,10 @@ export default function FinancialsPage() {
   });
 
   // Backend query with unified params
-  const { data, isLoading, error } = api.portal.getCustomerInvoices.useQuery(queryParams, {
+  const { data, isLoading, error } = api.portal.getCustomerInvoices.useQuery({
+    ...queryParams,
+    status: rawFilters.status || undefined,
+  }, {
     enabled: true,
   });
 

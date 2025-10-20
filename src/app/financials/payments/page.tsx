@@ -46,7 +46,10 @@ export default function PaymentsPage() {
   });
 
   // Backend query with unified params
-  const { data, isLoading, error} = api.payments.getAll.useQuery(queryParams, {
+  const { data, isLoading, error} = api.payments.getAll.useQuery({
+    ...queryParams,
+    status: rawFilters.status || undefined,
+  }, {
     enabled: true,
   });
 

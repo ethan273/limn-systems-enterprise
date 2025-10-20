@@ -47,19 +47,27 @@ export default function ActivityLogsPage() {
 
   const { data: adminLogs, isLoading: isLoadingAdmin } =
     api.audit.getAdminLogs.useQuery(
-      queryParams,
+      {
+        ...queryParams,
+        action: rawFilters.action || undefined,
+      },
       { enabled: activeTab === 'admin' }
     );
 
   const { data: securityLogs, isLoading: isLoadingSecurity } =
     api.audit.getSecurityLogs.useQuery(
-      queryParams,
+      {
+        ...queryParams,
+        action: rawFilters.action || undefined,
+      },
       { enabled: activeTab === 'security' }
     );
 
   const { data: loginLogs, isLoading: isLoadingLogin } =
     api.audit.getLoginLogs.useQuery(
-      queryParams,
+      {
+        ...queryParams,
+      },
       { enabled: activeTab === 'login' }
     );
 

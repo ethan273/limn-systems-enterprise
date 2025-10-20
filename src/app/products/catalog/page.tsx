@@ -59,7 +59,10 @@ export default function CatalogItemsPage() {
   });
 
   // Backend query with unified params
-  const { data, isLoading } = api.items.getAll.useQuery(queryParams);
+  const { data, isLoading } = api.items.getAll.useQuery({
+    ...queryParams,
+    is_active: rawFilters.is_active || undefined,
+  });
 
   // Query collections for the create form
   const { data: collectionsData } = api.collections.getAll.useQuery({});

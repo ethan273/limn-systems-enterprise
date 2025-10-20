@@ -51,7 +51,10 @@ export default function OrderedItemsProductionPage() {
 
   // Fetch ordered items production - backend filtering only
   const { data, isLoading, error } = api.orderedItemsProduction.getAll.useQuery(
-    queryParams,
+    {
+      ...queryParams,
+      status: rawFilters.status || undefined,
+    },
     {
       enabled: true,
     }

@@ -74,7 +74,10 @@ export default function ClientsPage() {
     pageSize: 100,
   });
 
-  const { data: customersData, isLoading, error } = api.crm.customers.getAll.useQuery(queryParams);
+  const { data: customersData, isLoading, error } = api.crm.customers.getAll.useQuery({
+    ...queryParams,
+    status: rawFilters.status || undefined,
+  });
 
   const customers = useMemo(() => customersData?.items || [], [customersData?.items]);
 

@@ -35,7 +35,10 @@ export default function ExpensesPage() {
   });
 
   // Backend query with unified params
-  const { data, isLoading, error } = api.expenses.getAll.useQuery(queryParams, {
+  const { data, isLoading, error } = api.expenses.getAll.useQuery({
+    ...queryParams,
+    approval_status: rawFilters.approval_status || undefined,
+  }, {
     enabled: true,
   });
 
