@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
 import { useInvoicesRealtime } from "@/hooks/useRealtimeSubscription";
-import { FileText, DollarSign, Clock, CheckCircle2, Download, Plus, AlertTriangle, RefreshCw } from "lucide-react";
+import { FileText, DollarSign, Clock, CheckCircle2, Download, Plus, AlertTriangle, RefreshCw, X } from "lucide-react";
 import { format } from "date-fns";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   PageHeader,
   EmptyState,
@@ -26,13 +28,17 @@ export const dynamic = 'force-dynamic';
 function InvoicesPageContent() {
   const router = useRouter();
   const { user: _user } = useAuth();
-  const [searchQuery, _setSearchQuery] = useState("");
-  const [statusFilter, _setStatusFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   const { data, isLoading, error } = api.invoices.getAll.useQuery(
     {
       search: searchQuery || undefined,
       status: statusFilter === "all" ? undefined : statusFilter,
+      dateFrom: dateFrom || undefined,
+      dateTo: dateTo || undefined,
       limit: 100,
       offset: 0,
     },
@@ -221,6 +227,16 @@ function InvoicesPageContent() {
     },
   ];
 
+  // Clear filters handler
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setStatusFilter("all");
+    setDateFrom("");
+    setDateTo("");
+  };
+
+  const hasActiveFilters = searchQuery || statusFilter !== "all" || dateFrom || dateTo;
+
   // DataTable filters configuration
   const filters: DataTableFilter[] = [
     {
@@ -292,6 +308,54 @@ function InvoicesPageContent() {
 
       {/* Stats */}
       <StatsGrid stats={statItems} columns={4} />
+
+      {/* Additional Date Filters */}
+      <div className="card mb-6">
+        <div className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Date From */}
+            <div className="space-y-2">
+              <label htmlFor="date-from" className="text-sm font-medium">
+                From Date
+              </label>
+              <Input
+                id="date-from"
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+              />
+            </div>
+
+            {/* Date To */}
+            <div className="space-y-2">
+              <label htmlFor="date-to" className="text-sm font-medium">
+                To Date
+              </label>
+              <Input
+                id="date-to"
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+              />
+            </div>
+
+            {/* Clear Filters */}
+            {hasActiveFilters && (
+              <div className="flex items-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleClearFilters}
+                  className="w-full"
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  Clear All Filters
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* Invoices DataTable */}
       {isLoading ? (
