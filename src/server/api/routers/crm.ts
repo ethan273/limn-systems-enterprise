@@ -81,7 +81,7 @@ export const contactsRouter = createTRPCRouter({
       const where: any = {};
 
       // Search across name fields, email, and company
-      if (input.search) {
+      if (input.search && input.search.trim()) {
         where.OR = [
           { first_name: { contains: input.search, mode: 'insensitive' } },
           { last_name: { contains: input.search, mode: 'insensitive' } },
