@@ -147,7 +147,7 @@ export default function Sidebar() {
  { label: "Contacts", href: "/crm/contacts" },
  { label: "Leads", href: "/crm/leads" },
  { label: "Prospects", href: "/crm/prospects" },
- { label: "Clients", href: "/crm/clients" },
+ { label: "Clients", href: "/crm/customers" },
  { label: "Projects", href: "/crm/projects" },
  { label: "Orders", href: "/crm/orders" },
  ]

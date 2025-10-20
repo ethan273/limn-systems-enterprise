@@ -132,7 +132,7 @@ export function CommandPalette() {
  type: 'client',
  title: client.name || 'Untitled Client',
  subtitle: client.company || undefined,
- href: `/crm/clients/${client.id}`,
+ href: `/crm/customers/${client.id}`,
  });
  }
  });

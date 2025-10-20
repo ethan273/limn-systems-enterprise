@@ -48,7 +48,7 @@ export function useKeyboardShortcuts() {
       key: 'c',
       metaKey: true,
       shiftKey: true,
-      handler: () => router.push('/crm/clients'),
+      handler: () => router.push('/crm/customers'),
       description: 'Go to Clients',
     },
     // Action shortcuts
