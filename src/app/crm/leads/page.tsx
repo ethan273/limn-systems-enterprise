@@ -285,16 +285,22 @@ export default function LeadsPage() {
   const columns: DataTableColumn<any>[] = [
     {
       key: 'first_name',
-      label: 'Name',
+      label: 'First Name',
       sortable: true,
-      render: (_, row) => (
+      render: (value, row) => (
         <div className="flex items-center gap-3">
           <div className="data-table-avatar">
             <Users className="icon-sm" aria-hidden="true" />
           </div>
-          <span className="font-medium">{getFullName(row)}</span>
+          <span className="font-medium">{value as string || '—'}</span>
         </div>
       ),
+    },
+    {
+      key: 'last_name',
+      label: 'Last Name',
+      sortable: true,
+      render: (value) => value ? <span className="font-medium">{value as string}</span> : <span className="text-muted">—</span>,
     },
     {
       key: 'company',

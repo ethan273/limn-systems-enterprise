@@ -148,19 +148,25 @@ export default function ContactsPage() {
   const columns: DataTableColumn<any>[] = [
     {
       key: 'first_name',
-      label: 'Name',
+      label: 'First Name',
       sortable: true,
-      render: (_, row) => {
-        const fullName = [row.first_name, row.last_name].filter(Boolean).join(' ') || row.name || '—';
+      render: (value, row) => {
+        const displayValue = value || row.name || '—';
         return (
           <div className="flex items-center gap-3">
             <div className="data-table-avatar">
               <User className="icon-sm" aria-hidden="true" />
             </div>
-            <span className="font-medium">{fullName}</span>
+            <span className="font-medium">{displayValue as string}</span>
           </div>
         );
       },
+    },
+    {
+      key: 'last_name',
+      label: 'Last Name',
+      sortable: true,
+      render: (value) => value ? <span className="font-medium">{value as string}</span> : <span className="text-muted">—</span>,
     },
     {
       key: 'company',

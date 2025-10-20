@@ -213,9 +213,15 @@ export default function ProspectsPage() {
     },
     {
       key: 'first_name',
-      label: 'Name',
+      label: 'First Name',
       sortable: true,
-      render: (_, row) => <span className="font-medium">{getFullName(row)}</span>,
+      render: (value) => value ? <span className="font-medium">{value as string}</span> : <span className="text-muted">—</span>,
+    },
+    {
+      key: 'last_name',
+      label: 'Last Name',
+      sortable: true,
+      render: (value) => value ? <span className="font-medium">{value as string}</span> : <span className="text-muted">—</span>,
     },
     {
       key: 'company',
