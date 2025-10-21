@@ -88,7 +88,7 @@ export const productionTrackingRouter = createTRPCRouter({
         where: {
           ...(dateFilter && {
             order_date: {
-              gte: dateFilter,
+              gte: dateFilter.toISOString(),
             },
           }),
         },
