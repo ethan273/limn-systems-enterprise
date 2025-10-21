@@ -2,16 +2,13 @@
  * Flipbooks tRPC Router
  *
  * Provides type-safe API endpoints for flipbook operations.
- * All endpoints are only available when the flipbooks feature flag is enabled.
  *
- * FEATURE FLAG: Protected by features.flipbooks check
  * SCHEMA: Uses flipbook.* tables (isolated from public schema)
  */
 
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc/init";
 import { TRPCError } from "@trpc/server";
-import { features } from "@/lib/features";
 import {
   validateTOCStructure,
   createEmptyTOC,
@@ -115,14 +112,6 @@ export const flipbooksRouter = createTRPCRouter({
   list: protectedProcedure
     .input(listFlipbooksInput)
     .query(async ({ ctx, input }) => {
-      // Feature flag check
-      if (!features.flipbooks) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Flipbooks feature is not enabled",
-        });
-      }
-
       const { limit, cursor, status, search } = input;
 
       // Get user profile to check if super_admin
@@ -190,14 +179,6 @@ export const flipbooksRouter = createTRPCRouter({
   get: protectedProcedure
     .input(getFlipbookInput)
     .query(async ({ ctx, input }) => {
-      // Feature flag check
-      if (!features.flipbooks) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Flipbooks feature is not enabled",
-        });
-      }
-
       const flipbook = await ctx.db.flipbooks.findUnique({
         where: { id: input.id },
         include: {
@@ -262,14 +243,6 @@ export const flipbooksRouter = createTRPCRouter({
   create: protectedProcedure
     .input(createFlipbookInput)
     .mutation(async ({ ctx, input }) => {
-      // Feature flag check
-      if (!features.flipbooks) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Flipbooks feature is not enabled",
-        });
-      }
-
       try {
         console.log("Creating flipbook with data:", {
           title: input.title,
@@ -319,14 +292,6 @@ export const flipbooksRouter = createTRPCRouter({
   update: protectedProcedure
     .input(updateFlipbookInput)
     .mutation(async ({ ctx, input }) => {
-      // Feature flag check
-      if (!features.flipbooks) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Flipbooks feature is not enabled",
-        });
-      }
-
       const { id, ...data } = input;
 
       // Check if flipbook exists and user has permission
@@ -378,14 +343,6 @@ export const flipbooksRouter = createTRPCRouter({
   delete: protectedProcedure
     .input(getFlipbookInput)
     .mutation(async ({ ctx, input }) => {
-      // Feature flag check
-      if (!features.flipbooks) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Flipbooks feature is not enabled",
-        });
-      }
-
       // Check if flipbook exists and user has permission
       const existing = await ctx.db.flipbooks.findUnique({
         where: { id: input.id },
@@ -420,14 +377,6 @@ export const flipbooksRouter = createTRPCRouter({
   getAnalytics: protectedProcedure
     .input(getFlipbookInput)
     .query(async ({ ctx, input }) => {
-      // Feature flag check
-      if (!features.flipbooks) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Flipbooks feature is not enabled",
-        });
-      }
-
       // Check if flipbook exists and user has permission
       const flipbook = await ctx.db.flipbooks.findUnique({
         where: { id: input.id },
@@ -484,13 +433,6 @@ export const flipbooksRouter = createTRPCRouter({
   deletePage: protectedProcedure
     .input(z.object({ pageId: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      if (!features.flipbooks) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Flipbooks feature is not enabled",
-        });
-      }
-
       // Get page with flipbook info for permission check
       const page = await ctx.db.flipbook_pages.findUnique({
         where: { id: input.pageId },
@@ -527,13 +469,6 @@ export const flipbooksRouter = createTRPCRouter({
       pageIds: z.array(z.string().uuid()),
     }))
     .mutation(async ({ ctx, input }) => {
-      if (!features.flipbooks) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Flipbooks feature is not enabled",
-        });
-      }
-
       // Check permissions
       const flipbook = await ctx.db.flipbooks.findUnique({
         where: { id: input.flipbookId },
@@ -578,13 +513,6 @@ export const flipbooksRouter = createTRPCRouter({
       label: z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
-      if (!features.flipbooks) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Flipbooks feature is not enabled",
-        });
-      }
-
       // Check permissions via page
       const page = await ctx.db.flipbook_pages.findUnique({
         where: { id: input.pageId },
@@ -636,13 +564,6 @@ export const flipbooksRouter = createTRPCRouter({
       height: z.number().min(1).max(100).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
-      if (!features.flipbooks) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Flipbooks feature is not enabled",
-        });
-      }
-
       const { hotspotId, xPercent, yPercent, width, height } = input;
 
       // Check permissions
@@ -696,13 +617,6 @@ export const flipbooksRouter = createTRPCRouter({
   deleteHotspot: protectedProcedure
     .input(z.object({ hotspotId: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      if (!features.flipbooks) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Flipbooks feature is not enabled",
-        });
-      }
-
       // Check permissions
       const hotspot = await ctx.db.hotspots.findUnique({
         where: { id: input.hotspotId },
@@ -741,13 +655,6 @@ export const flipbooksRouter = createTRPCRouter({
   generateTOC: protectedProcedure
     .input(generateTOCInput)
     .mutation(async ({ ctx, input }) => {
-      if (!features.flipbooks) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Flipbooks feature is not enabled",
-        });
-      }
-
       // Check if flipbook exists and user has permission
       const flipbook = await ctx.db.flipbooks.findUnique({
         where: { id: input.flipbookId },
@@ -810,13 +717,6 @@ export const flipbooksRouter = createTRPCRouter({
   getTOC: protectedProcedure
     .input(getTOCInput)
     .query(async ({ ctx, input }) => {
-      if (!features.flipbooks) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Flipbooks feature is not enabled",
-        });
-      }
-
       // Check if flipbook exists and user has permission
       const flipbook = await ctx.db.flipbooks.findUnique({
         where: { id: input.flipbookId },
@@ -858,13 +758,6 @@ export const flipbooksRouter = createTRPCRouter({
   updateTOC: protectedProcedure
     .input(updateTOCInput)
     .mutation(async ({ ctx, input }) => {
-      if (!features.flipbooks) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Flipbooks feature is not enabled",
-        });
-      }
-
       // Check if flipbook exists and user has permission
       const flipbook = await ctx.db.flipbooks.findUnique({
         where: { id: input.flipbookId },
@@ -932,13 +825,6 @@ export const flipbooksRouter = createTRPCRouter({
   deleteTOC: protectedProcedure
     .input(deleteTOCInput)
     .mutation(async ({ ctx, input }) => {
-      if (!features.flipbooks) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Flipbooks feature is not enabled",
-        });
-      }
-
       // Check if flipbook exists and user has permission
       const flipbook = await ctx.db.flipbooks.findUnique({
         where: { id: input.flipbookId },
@@ -981,13 +867,6 @@ export const flipbooksRouter = createTRPCRouter({
   importTOCFromCSV: protectedProcedure
     .input(importTOCInput)
     .mutation(async ({ ctx, input }) => {
-      if (!features.flipbooks) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Flipbooks feature is not enabled",
-        });
-      }
-
       // Check if flipbook exists and user has permission
       const flipbook = await ctx.db.flipbooks.findUnique({
         where: { id: input.flipbookId },
@@ -1059,13 +938,6 @@ export const flipbooksRouter = createTRPCRouter({
   exportTOCToCSV: protectedProcedure
     .input(exportTOCInput)
     .query(async ({ ctx, input }) => {
-      if (!features.flipbooks) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Flipbooks feature is not enabled",
-        });
-      }
-
       // Check if flipbook exists and user has permission
       const flipbook = await ctx.db.flipbooks.findUnique({
         where: { id: input.flipbookId },
@@ -1129,13 +1001,6 @@ export const flipbooksRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      if (!features.flipbooks) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Flipbooks feature is not enabled",
-        });
-      }
-
       // Check if flipbook exists and user has permission
       const flipbook = await ctx.db.flipbooks.findUnique({
         where: { id: input.flipbookId },
@@ -1205,13 +1070,6 @@ export const flipbooksRouter = createTRPCRouter({
   getShareLinks: protectedProcedure
     .input(z.object({ flipbookId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      if (!features.flipbooks) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Flipbooks feature is not enabled",
-        });
-      }
-
       // Check permission
       const flipbook = await ctx.db.flipbooks.findUnique({
         where: { id: input.flipbookId },
@@ -1311,13 +1169,6 @@ export const flipbooksRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      if (!features.flipbooks) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Flipbooks feature is not enabled",
-        });
-      }
-
       // Check permission
       const shareLink = await ctx.db.flipbook_share_links.findUnique({
         where: { id: input.id },
@@ -1357,13 +1208,6 @@ export const flipbooksRouter = createTRPCRouter({
   deleteShareLink: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      if (!features.flipbooks) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Flipbooks feature is not enabled",
-        });
-      }
-
       // Check permission
       const shareLink = await ctx.db.flipbook_share_links.findUnique({
         where: { id: input.id },
@@ -1447,13 +1291,6 @@ export const flipbooksRouter = createTRPCRouter({
       days: z.number().int().min(1).max(365).default(30),
     }))
     .query(async ({ ctx, input }) => {
-      if (!features.flipbooks) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Flipbooks feature is not enabled",
-        });
-      }
-
       // Permission check
       const flipbook = await ctx.db.flipbooks.findUnique({
         where: { id: input.flipbookId },
@@ -1563,13 +1400,6 @@ export const flipbooksRouter = createTRPCRouter({
       days: z.number().int().min(1).max(365).default(30),
     }))
     .query(async ({ ctx, input }) => {
-      if (!features.flipbooks) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Flipbooks feature is not enabled",
-        });
-      }
-
       // Permission check
       const shareLink = await ctx.db.flipbook_share_links.findUnique({
         where: { id: input.shareLinkId },
