@@ -125,8 +125,17 @@ export const flipbooksRouter = createTRPCRouter({
 
       const { limit, cursor, status, search } = input;
 
+      // Get user profile to check if super_admin
+      const userProfile = await ctx.db.user_profiles.findUnique({
+        where: { id: ctx.session.user.id },
+        select: { user_type: true },
+      });
+
+      const isSuperAdmin = userProfile?.user_type === 'super_admin';
+
       // Build where clause
-      const where: any = {
+      // Super admins can see all flipbooks, regular users only see their own
+      const where: any = isSuperAdmin ? {} : {
         created_by_id: ctx.session.user.id,
       };
 
