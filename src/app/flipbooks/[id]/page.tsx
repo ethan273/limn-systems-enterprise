@@ -1,6 +1,5 @@
 "use client";
 
-import { features } from "@/lib/features";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
@@ -29,9 +28,7 @@ const FlipbookViewer3DWrapper = dynamic(
  * Flipbook Viewer Page
  *
  * Displays an individual flipbook with 3D page-turning effects.
- * Will include WebGL rendering, hotspots, and interactive elements.
- *
- * FEATURE FLAG: Only accessible when features.flipbooks is enabled
+ * Includes WebGL rendering, hotspots, and interactive elements.
  */
 export default function FlipbookViewerPage({
   params,
@@ -58,15 +55,8 @@ export default function FlipbookViewerPage({
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
 
-  // Redirect if feature is disabled
-  useEffect(() => {
-    if (!features.flipbooks) {
-      router.push("/");
-    }
-  }, [router]);
-
-  // Don't render if feature is disabled or ID not loaded
-  if (!features.flipbooks || !flipbookId) {
+  // Don't render if ID not loaded
+  if (!flipbookId) {
     return null;
   }
 

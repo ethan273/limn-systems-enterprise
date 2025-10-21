@@ -3,7 +3,6 @@
 // Force dynamic rendering for this page (uses searchParams)
 export const dynamic = 'force-dynamic';
 
-import { features } from "@/lib/features";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 import { api } from "@/lib/api/client";
@@ -37,8 +36,6 @@ import { toast } from "sonner";
  *
  * Edit flipbook content, add pages, create hotspots, and configure settings.
  * Supports both creating new flipbooks and editing existing ones.
- *
- * FEATURE FLAG: Only accessible when features.flipbooks is enabled
  */
 function FlipbookBuilderContent() {
   const router = useRouter();
@@ -57,7 +54,7 @@ function FlipbookBuilderContent() {
   // Query flipbook if editing
   const { data: flipbook, isLoading, error } = api.flipbooks.get.useQuery(
     { id: flipbookId! },
-    { enabled: !!flipbookId && features.flipbooks }
+    { enabled: !!flipbookId }
   );
 
   // Get tRPC utils for cache invalidation
@@ -138,18 +135,6 @@ function FlipbookBuilderContent() {
       setStatus(flipbook.status as any);
     }
   }, [flipbook]);
-
-  // Redirect if feature is disabled
-  useEffect(() => {
-    if (!features.flipbooks) {
-      router.push("/");
-    }
-  }, [router]);
-
-  // Don't render if feature is disabled
-  if (!features.flipbooks) {
-    return null;
-  }
 
   // Handle save
   const handleSave = () => {
@@ -503,11 +488,6 @@ function FlipbookBuilderContent() {
  * Wraps the content in Suspense to handle useSearchParams() correctly
  */
 export default function FlipbookBuilderPage() {
-  // Feature check before Suspense
-  if (!features.flipbooks) {
-    return null;
-  }
-
   return (
     <Suspense fallback={<LoadingState message="Loading builder..." size="lg" />}>
       <FlipbookBuilderContent />

@@ -1,6 +1,5 @@
 "use client";
 
-import { features } from "@/lib/features";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Upload, FileUp, Loader2, ArrowLeft, CheckCircle2 } from "lucide-react";
@@ -24,18 +23,6 @@ export default function FlipbookUploadPage() {
   const [description, setDescription] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
-
-  // Redirect if feature is disabled
-  useEffect(() => {
-    if (!features.flipbooks) {
-      router.push("/");
-    }
-  }, [router]);
-
-  // Don't render if feature is disabled
-  if (!features.flipbooks) {
-    return null;
-  }
 
   // Create flipbook mutation
   const createMutation = api.flipbooks.create.useMutation();

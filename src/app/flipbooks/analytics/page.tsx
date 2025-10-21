@@ -1,8 +1,6 @@
 "use client";
 
-import { features } from "@/lib/features";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import { api } from "@/lib/api/client";
 import { BarChart3, Eye, MousePointerClick, Clock, TrendingUp, AlertTriangle, RefreshCw } from "lucide-react";
 import { PageHeader, LoadingState, StatsGrid, EmptyState, type StatItem } from "@/components/common";
@@ -12,23 +10,9 @@ import { PageHeader, LoadingState, StatsGrid, EmptyState, type StatItem } from "
  *
  * View aggregated analytics across all flipbooks.
  * Shows views, engagement metrics, and performance data.
- *
- * FEATURE FLAG: Only accessible when features.flipbooks is enabled
  */
 export default function AnalyticsPage() {
   const router = useRouter();
-
-  // Redirect if feature is disabled
-  useEffect(() => {
-    if (!features.flipbooks) {
-      router.push("/");
-    }
-  }, [router]);
-
-  // Don't render if feature is disabled
-  if (!features.flipbooks) {
-    return null;
-  }
 
   // Query all flipbooks for aggregate analytics
   const { data, isLoading, error } = api.flipbooks.list.useQuery({
