@@ -27,7 +27,6 @@ import { toast } from "@/hooks/use-toast";
 import { DataTable, type DataTableColumn, LoadingState } from "@/components/common";
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic';
 
 const AVAILABLE_ROLES = [
   'admin',

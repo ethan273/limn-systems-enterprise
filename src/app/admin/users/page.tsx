@@ -1,8 +1,6 @@
-'use client';
+"use client";
 
 import { UserManagementPanel } from '@/components/admin/UserManagementPanel';
-
-export const dynamic = 'force-dynamic';
 
 export default function AdminUsersPage() {
   return (

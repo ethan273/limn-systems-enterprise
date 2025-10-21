@@ -17,7 +17,6 @@ import { FileDown, Download, Database, Users, Activity, Settings as SettingsIcon
 import { toast } from "@/hooks/use-toast";
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic';
 
 type ExportType = 'users' | 'admin-logs' | 'security-logs' | 'login-logs' | 'settings';
 type ExportFormat = 'csv' | 'json';

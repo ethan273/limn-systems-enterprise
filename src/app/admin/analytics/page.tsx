@@ -26,7 +26,6 @@ import { DataTable, type DataTableColumn, EmptyState, PageHeader } from "@/compo
 import { getUserFullName } from "@/lib/utils/user-utils";
 
 // Dynamic route configuration
-export const dynamic = 'force-dynamic';
 
 export default function AnalyticsDashboardPage() {
   const [timeRange, setTimeRange] = useState<number>(30);

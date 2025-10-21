@@ -22,9 +22,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-// Dynamic route configuration
-export const dynamic = 'force-dynamic';
-
 export default function AdminDashboardPage() {
   // Fetch overview data
   const { data: usersData, isLoading: isLoadingUsers, error: usersError } = api.admin.users.list.useQuery({ limit: 100, offset: 0 });

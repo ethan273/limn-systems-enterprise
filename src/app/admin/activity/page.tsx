@@ -19,7 +19,6 @@ import {
   type StatItem,
 } from "@/components/common";
 
-export const dynamic = 'force-dynamic';
 
 type LogType = 'admin' | 'security' | 'login';
 
