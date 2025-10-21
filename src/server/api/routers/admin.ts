@@ -143,7 +143,6 @@ export const adminRouter = createTRPCRouter({
             department: true,
             is_active: true,
             created_at: true,
-            last_sign_in_at: true,
           },
           orderBy: { created_at: 'desc' },
         });
@@ -162,7 +161,6 @@ export const adminRouter = createTRPCRouter({
             title: profile.title || null,
             department: profile.department || null,
             isActive: profile.is_active ?? true,
-            lastSignInAt: profile.last_sign_in_at,
             createdAt: profile.created_at,
           })),
           total,
@@ -176,25 +174,22 @@ export const adminRouter = createTRPCRouter({
     get: adminProcedure
       .input(z.object({ userId: z.string().uuid() }))
       .query(async ({ input, ctx }) => {
-        const [user, profile, permissions] = await Promise.all([
-          ctx.db.users.findUnique({
+        const [profile, permissions] = await Promise.all([
+          ctx.db.user_profiles.findUnique({
             where: { id: input.userId },
             select: {
               id: true,
               email: true,
-              created_at: true,
-              last_sign_in_at: true,
-            },
-          }),
-          ctx.db.user_profiles.findUnique({
-            where: { id: input.userId },
-            select: {
               name: true,
+              first_name: true,
+              last_name: true,
+              full_name: true,
               avatar_url: true,
               user_type: true,
               title: true,
               department: true,
               is_active: true,
+              created_at: true,
             },
           }),
           ctx.db.user_permissions.findMany({
@@ -211,21 +206,20 @@ export const adminRouter = createTRPCRouter({
           }),
         ]);
 
-        if (!user) {
+        if (!profile) {
           throw new Error('User not found');
         }
 
         return {
-          id: user.id,
-          email: user.email,
+          id: profile.id,
+          email: profile.email || null,
           name: getUserFullName(profile) || null,
-          avatarUrl: profile?.avatar_url || null,
-          userType: profile?.user_type || 'employee',
-          title: profile?.title || null,
-          department: profile?.department || null,
-          isActive: profile?.is_active ?? true,
-          lastSignInAt: user.last_sign_in_at,
-          createdAt: user.created_at,
+          avatarUrl: profile.avatar_url || null,
+          userType: profile.user_type || 'employee',
+          title: profile.title || null,
+          department: profile.department || null,
+          isActive: profile.is_active ?? true,
+          createdAt: profile.created_at,
           permissions: permissions,
         };
       }),
