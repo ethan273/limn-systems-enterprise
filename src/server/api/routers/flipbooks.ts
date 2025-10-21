@@ -246,10 +246,11 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Increment view count
-      await ctx.db.flipbooks.update({
-        where: { id: input.id },
-        data: { view_count: { increment: 1 } },
-      });
+      // TEMP: Disabled due to Prisma increment issue
+      // await ctx.db.flipbooks.update({
+      //   where: { id: input.id },
+      //   data: { view_count: { increment: 1 } },
+      // });
 
       return flipbook;
     }),
