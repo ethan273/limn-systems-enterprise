@@ -12,6 +12,16 @@ const PRODUCTION_STATUSES = ['queued', 'in_progress', 'completed', 'delayed', 'c
 const PRODUCTION_PRIORITIES = ['low', 'medium', 'high', 'urgent'];
 
 async function seedProductionOrders() {
+  console.log('  → Checking existing production orders...');
+
+  // Check if production orders already exist
+  const existingCount = await prisma.production_orders.count();
+
+  if (existingCount > 0) {
+    console.log(`  ℹ️  Found ${existingCount} existing production orders - skipping creation`);
+    return 0;
+  }
+
   console.log('  → Creating production orders...');
 
   // Get orders to link to
@@ -53,9 +63,13 @@ async function seedProductionOrders() {
     const unitPrice = catalogItem.price || 0;
     const totalCost = Number(unitPrice) * quantity;
 
-    const prodOrderNumber = `PRD-${new Date().getFullYear()}-${String(i + 1).padStart(3, '0')}`;
+    // Use timestamp to ensure unique order numbers
+    const timestamp = Date.now();
+    const prodOrderNumber = `PRD-${new Date().getFullYear()}-${String(timestamp).slice(-6)}-${String(i + 1).padStart(3, '0')}`;
 
     try {
+      const factory = factories.length > 0 ? faker.helpers.arrayElement(factories) : null;
+
       await prisma.production_orders.create({
         data: {
           order_number: prodOrderNumber,
@@ -71,9 +85,9 @@ async function seedProductionOrders() {
           estimated_ship_date: faker.date.soon({ days: 90 }),
           actual_ship_date: faker.datatype.boolean() ? faker.date.recent({ days: 20 }) : null,
           factory_notes: faker.datatype.boolean() ? faker.lorem.sentence() : null,
-          order_id: order.id,
-          catalog_item_id: catalogItem.id,
-          partner_id: factories.length > 0 ? faker.helpers.arrayElement(factories)?.id : null,
+          orders: { connect: { id: order.id } },
+          items_production_orders_catalog_item_idToitems: { connect: { id: catalogItem.id } },
+          ...(factory && { partners: { connect: { id: factory.id } } }),
         },
       });
       created++;
@@ -113,6 +127,8 @@ async function seedPrototypeProductions() {
     const prototypeNumber = `PROTO-${new Date().getFullYear()}-${String(i + 1).padStart(3, '0')}`;
 
     try {
+      const factory = factories.length > 0 ? faker.helpers.arrayElement(factories) : null;
+
       await prisma.prototype_production.create({
         data: {
           prototype_number: prototypeNumber,
@@ -123,8 +139,8 @@ async function seedPrototypeProductions() {
           target_completion_date: faker.date.soon({ days: 60 }),
           actual_completion_date: faker.datatype.boolean() ? faker.date.recent({ days: 30 }) : null,
           notes: faker.datatype.boolean() ? faker.lorem.paragraph() : null,
-          catalog_item_id: catalogItem.id,
-          partner_id: factories.length > 0 ? faker.helpers.arrayElement(factories)?.id : null,
+          items_prototype_production_catalog_item_idToitems: { connect: { id: catalogItem.id } },
+          ...(factory && { partners: { connect: { id: factory.id } } }),
         },
       });
       created++;
