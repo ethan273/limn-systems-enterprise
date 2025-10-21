@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
+// Auth is handled by middleware - no client-side checks needed
 import { api } from "@/lib/api/client";
 import { LoadingState, PageHeader, EmptyState } from "@/components/common";
 import { FileText, DollarSign, TrendingUp, Download, AlertTriangle, RefreshCw } from "lucide-react";
@@ -11,7 +11,6 @@ export const dynamic = 'force-dynamic';
 
 export default function FinancialReportsPage() {
   const router = useRouter();
-  const { user: _user } = useAuth();
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 

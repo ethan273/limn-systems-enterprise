@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
+// Auth is handled by middleware - no client-side checks needed
 import { api } from "@/lib/api/client";
 import { useTableState } from "@/hooks/useTableFilters";
 import { useShipmentsRealtime } from "@/hooks/useRealtimeSubscription";
@@ -31,7 +31,6 @@ export const dynamic = 'force-dynamic';
 
 export default function ShipmentsPage() {
   const router = useRouter();
-  const { user: _user } = useAuth();
 
   // Unified filter management with new hook
   const {

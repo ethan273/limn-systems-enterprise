@@ -2,7 +2,7 @@
 
 import React, { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
+// Auth is handled by middleware - no client-side checks needed
 import { api } from "@/lib/api/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -47,7 +47,6 @@ interface PageProps {
 export default function ContactDetailPage({ params }: PageProps) {
   const { id } = use(params);
   const router = useRouter();
-  const { user: _user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditing, setIsEditing] = useState(false);
 

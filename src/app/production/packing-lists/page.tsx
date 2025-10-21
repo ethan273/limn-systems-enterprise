@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
+// Auth is handled by middleware - no client-side checks needed
 import { api } from "@/lib/api/client";
 import { Package, Plus, AlertTriangle, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
@@ -11,7 +11,6 @@ export const dynamic = 'force-dynamic';
 
 export default function PackingListsPage() {
   const router = useRouter();
-  const { user: _user } = useAuth();
   const [statusFilter, setStatusFilter] = useState<string | undefined>(undefined);
 
   const { data, isLoading, error } = api.packing.getAllJobs.useQuery(

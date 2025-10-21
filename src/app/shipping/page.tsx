@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
+// Auth is handled by middleware - no client-side checks needed
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,7 +34,6 @@ export const dynamic = 'force-dynamic';
 
 export default function ShippingDashboardPage() {
   const router = useRouter();
-  const { user: _user } = useAuth();
 
   // Fetch all shipments
   const { data: shipmentsData, isLoading: shipmentsLoading, error: shipmentsError } = api.shipping.getAllShipments.useQuery(

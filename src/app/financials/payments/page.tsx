@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
+// Auth is handled by middleware - no client-side checks needed
 import { api } from "@/lib/api/client";
 import { useTableState } from "@/hooks/useTableFilters";
 import { DollarSign, CreditCard, CheckCircle2, Clock, Download, Plus, AlertTriangle, RefreshCw } from "lucide-react";
@@ -24,7 +24,6 @@ export const dynamic = 'force-dynamic';
 
 export default function PaymentsPage() {
   const router = useRouter();
-  const { user: _user } = useAuth();
 
   // Unified filter management with new hook
   const {

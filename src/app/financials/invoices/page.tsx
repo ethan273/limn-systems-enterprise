@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
+// Auth is handled by middleware - no client-side checks needed
 import { api } from "@/lib/api/client";
 import { useTableState } from "@/hooks/useTableFilters";
 import { useInvoicesRealtime } from "@/hooks/useRealtimeSubscription";
@@ -25,7 +25,6 @@ export const dynamic = 'force-dynamic';
 
 function InvoicesPageContent() {
   const router = useRouter();
-  const { user: _user } = useAuth();
 
   // Unified filter management with new hook
   const {

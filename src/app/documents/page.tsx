@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
+// Auth is handled by middleware - no client-side checks needed
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,7 +41,6 @@ export const dynamic = 'force-dynamic';
 
 export default function DocumentsPage() {
   const router = useRouter();
-  const { user: _user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [storageFilter, setStorageFilter] = useState<"all" | "google_drive" | "supabase">("all");
 

@@ -17,7 +17,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Textarea } from "@/components/ui/textarea";
 import { DollarSign, Package, Truck, AlertCircle, CheckCircle, ArrowLeft, Settings, Trash2, Ship, Clock, PackageCheck, RefreshCw } from "lucide-react";
 import Link from "next/link";
-import { useAuth } from "@/hooks/useAuth";
+// Auth is handled by middleware - no client-side checks needed
 import { useProductionOrdersRealtime, useShipmentsRealtime } from "@/hooks/useRealtimeSubscription";
 
 interface PageProps {
@@ -27,9 +27,7 @@ interface PageProps {
 export default function ProductionOrderDetailPage({ params }: PageProps) {
   const { id } = use(params);
  const router = useRouter();
- const { user, loading: authLoading } = useAuth();
 
- // Auth is handled by middleware - no client-side redirect needed
  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -160,7 +158,7 @@ export default function ProductionOrderDetailPage({ params }: PageProps) {
  useShipmentsRealtime({
  orderId: id as string,
  queryKey: ['shipping', 'getShipmentsByOrder', { production_order_id: id }],
- enabled: !authLoading && !!user,
+ enabled: true,
  });
 
  // Packing jobs query
@@ -225,25 +223,6 @@ export default function ProductionOrderDetailPage({ params }: PageProps) {
  special_instructions: shippingForm.special_instructions,
  });
  };
-
- // Show loading state while checking authentication
- if (authLoading) {
- return (
- <div className="container mx-auto py-6">
- <div className="flex items-center justify-center h-64">
- <div className="text-center">
- <div className="animate-spin rounded-full h-12 w-12 border-b-2 border mx-auto mb-4"></div>
- <p className="text-muted-foreground">Loading...</p>
- </div>
- </div>
- </div>
- );
- }
-
- // Don't render if not authenticated (will redirect)
- if (!user) {
- return null;
- }
 
  // Handle query error
  if (orderError || shipmentsError || packingJobsError) {

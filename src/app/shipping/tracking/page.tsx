@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
+// Auth is handled by middleware - no client-side checks needed
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,7 +28,6 @@ export const dynamic = 'force-dynamic';
 
 export default function TrackingPage() {
   const router = useRouter();
-  useAuth();
   const [trackingNumber, setTrackingNumber] = useState("");
   const [searchAttempted, setSearchAttempted] = useState(false);
 
