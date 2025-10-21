@@ -69,7 +69,7 @@ export default function TaskTimeTracking({ taskId, onUpdate }: TaskTimeTrackingP
   const [editDescription, setEditDescription] = useState("");
 
   // Get current user ID from auth (extract to variable for reuse)
-  const currentUserId = currentUser?.id;
+  const currentUserId = (currentUser as any)?.id || "";
 
   // Load time entries using React Query
   const { data: timeEntriesData, isLoading: loadingEntries, refetch } = api.tasks.getTimeEntries.useQuery(

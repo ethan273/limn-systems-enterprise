@@ -48,7 +48,7 @@ export default function TaskCreateForm({ onSuccess, onCancel }: TaskCreateFormPr
  const [visibility, setVisibility] = useState<"company" | "project" | "private">("company");
 
  // Get current user ID from auth (extract to variable for reuse)
- const currentUserId = currentUser?.id;
+ const currentUserId = (currentUser as any)?.id || "";
 
  // Load users data via tRPC
  const { data: usersData, isLoading: loadingUsers } = api.users.getAllUsers.useQuery({

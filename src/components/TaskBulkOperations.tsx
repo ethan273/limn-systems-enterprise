@@ -85,7 +85,7 @@ export default function TaskBulkOperations({
  const [_selectedDepartment, _setSelectedDepartment] = useState<TaskDepartment>('admin');
 
  // Get current user ID from auth (extract to variable for reuse)
- const currentUserId = currentUser?.id;
+ const currentUserId = (currentUser as any)?.id || "";
 
  const bulkUpdateStatusMutation = api.tasks.bulkUpdateStatus.useMutation({
  onSuccess: () => {

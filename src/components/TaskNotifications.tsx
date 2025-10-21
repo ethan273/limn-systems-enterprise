@@ -76,7 +76,7 @@ export default function TaskNotifications({ onNotificationClick }: TaskNotificat
  const [isOpen, setIsOpen] = useState(false);
 
  // Get current user ID from auth (extract to variable for reuse)
- const currentUserId = currentUser?.id;
+ const currentUserId = (currentUser as any)?.id || "";
 
  // Load notifications from API using React Query hook
  const { data: notificationsData, isLoading, refetch } = api.notifications.getNotifications.useQuery(

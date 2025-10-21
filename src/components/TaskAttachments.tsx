@@ -66,7 +66,7 @@ export default function TaskAttachments({ taskId, onUpdate }: TaskAttachmentsPro
  });
 
  // Get current user ID from auth (extract to variable for reuse)
- const currentUserId = currentUser?.id;
+ const currentUserId = (currentUser as any)?.id || "";
 
  const handleDeleteAttachment = (attachmentId: string) => {
  if (!currentUserId) return;

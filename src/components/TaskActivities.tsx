@@ -81,7 +81,7 @@ export default function TaskActivities({ taskId, onUpdate }: TaskActivitiesProps
  });
 
  // Get current user ID from auth (extract to variable for reuse)
- const currentUserId = currentUser?.id;
+ const currentUserId = (currentUser as any)?.id || "";
 
  const handleAddComment = async () => {
  if (!commentText.trim() || isSubmitting || !currentUserId) return;

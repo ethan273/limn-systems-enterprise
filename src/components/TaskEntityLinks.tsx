@@ -78,7 +78,7 @@ export default function TaskEntityLinks({ taskId, onUpdate }: TaskEntityLinksPro
  });
 
  // Get current user ID from auth (extract to variable for reuse)
- const currentUserId = currentUser?.id;
+ const currentUserId = (currentUser as any)?.id || "";
 
  const handleAddEntityLink = () => {
  if (!currentUserId || !selectedEntityId || !selectedEntityName) {
