@@ -112,65 +112,82 @@ export const flipbooksRouter = createTRPCRouter({
   list: protectedProcedure
     .input(listFlipbooksInput)
     .query(async ({ ctx, input }) => {
-      const { limit, cursor, status, search } = input;
+      try {
+        const { limit, cursor, status, search } = input;
 
-      // Get user profile to check if super_admin
-      const userProfile = await ctx.db.user_profiles.findUnique({
-        where: { id: ctx.session.user.id },
-        select: { user_type: true },
-      });
+        console.log('[FLIPBOOKS] Starting list query', { userId: ctx.session.user.id, limit, status, search });
 
-      const isSuperAdmin = userProfile?.user_type === 'super_admin';
+        // Get user profile to check if super_admin
+        const userProfile = await ctx.db.user_profiles.findUnique({
+          where: { id: ctx.session.user.id },
+          select: { user_type: true },
+        });
 
-      // Build where clause
-      // Super admins can see all flipbooks, regular users only see their own
-      const where: any = isSuperAdmin ? {} : {
-        created_by_id: ctx.session.user.id,
-      };
+        console.log('[FLIPBOOKS] User profile fetched', { userType: userProfile?.user_type });
 
-      if (status) {
-        where.status = status;
-      }
+        const isSuperAdmin = userProfile?.user_type === 'super_admin';
 
-      // Case-insensitive search on title and description
-      if (search) {
-        where.OR = [
-          { title: { contains: search, mode: 'insensitive' } },
-          { description: { contains: search, mode: 'insensitive' } },
-        ];
-      }
+        // Build where clause
+        // Super admins can see all flipbooks, regular users only see their own
+        const where: any = isSuperAdmin ? {} : {
+          created_by_id: ctx.session.user.id,
+        };
 
-      if (cursor) {
-        where.id = { lt: cursor };
-      }
+        if (status) {
+          where.status = status;
+        }
 
-      // Query flipbooks
-      const flipbooks = await ctx.db.flipbooks.findMany({
-        where,
-        take: limit,
-        orderBy: { created_at: "desc" },
-        include: {
-          user_profiles: {
-            select: {
-              id: true,
-              full_name: true,
-              email: true,
+        // Case-insensitive search on title and description
+        if (search) {
+          where.OR = [
+            { title: { contains: search, mode: 'insensitive' } },
+            { description: { contains: search, mode: 'insensitive' } },
+          ];
+        }
+
+        if (cursor) {
+          where.id = { lt: cursor };
+        }
+
+        console.log('[FLIPBOOKS] Where clause built', { where });
+
+        // Query flipbooks
+        const flipbooks = await ctx.db.flipbooks.findMany({
+          where,
+          take: limit,
+          orderBy: { created_at: "desc" },
+          include: {
+            user_profiles: {
+              select: {
+                id: true,
+                full_name: true,
+                email: true,
+              },
+            },
+            flipbook_pages: {
+              select: {
+                id: true,
+                page_number: true,
+              },
+              orderBy: { page_number: "asc" },
             },
           },
-          flipbook_pages: {
-            select: {
-              id: true,
-              page_number: true,
-            },
-            orderBy: { page_number: "asc" },
-          },
-        },
-      });
+        });
 
-      return {
-        flipbooks,
-        nextCursor: flipbooks.length === limit ? flipbooks[flipbooks.length - 1]?.id : undefined,
-      };
+        console.log('[FLIPBOOKS] Query completed', { count: flipbooks.length });
+
+        return {
+          flipbooks,
+          nextCursor: flipbooks.length === limit ? flipbooks[flipbooks.length - 1]?.id : undefined,
+        };
+      } catch (error) {
+        console.error('[FLIPBOOKS] Error in list query:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error instanceof Error ? error.message : 'Failed to fetch flipbooks',
+          cause: error,
+        });
+      }
     }),
 
   /**
