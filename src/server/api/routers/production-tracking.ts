@@ -291,7 +291,8 @@ export const productionTrackingRouter = createTRPCRouter({
           production_order_id: input.production_order_id,
           milestone_name: m.name,
           milestone_type: m.type,
-          planned_date: plannedDate,
+          // Convert to ISO string for proper PostgreSQL DATE handling
+          planned_date: plannedDate.toISOString().split('T')[0],
           status: 'pending',
           completion_percentage: 0,
           created_by: ctx.session?.user?.id,
