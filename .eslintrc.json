@@ -24,7 +24,7 @@
     "security/detect-possible-timing-attacks": "warn",
     "security/detect-pseudoRandomBytes": "error",
     "no-restricted-syntax": [
-      "warn",
+      "error",
       {
         "selector": "JSXAttribute[name.name='className'] Literal[value=/\\b(bg|text|border)-(red|blue|green|yellow|purple|indigo|pink|orange|teal|cyan|lime|amber|emerald|violet|fuchsia|rose|sky|slate|gray|zinc|neutral|stone)-(50|100|200|300|400|500|600|700|800|900)\\b/]",
         "message": "❌ ARCHITECTURAL VIOLATION: Hardcoded color Tailwind utilities are forbidden. Use semantic CSS classes from globals.css instead. Example: Replace 'bg-purple-50 text-purple-800' with 'badge-style' defined in globals.css"

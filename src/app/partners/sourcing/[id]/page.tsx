@@ -333,7 +333,7 @@ export default function SourcingDetailPage({ params }: SourcingDetailPageProps) 
               <CardTitle>Documents</CardTitle>
             </CardHeader>
             <CardContent>
-              {sourcing.documents && sourcing.documents.length > 0 ? (
+              {sourcing.partner_documents && sourcing.partner_documents.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -346,7 +346,7 @@ export default function SourcingDetailPage({ params }: SourcingDetailPageProps) 
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {sourcing.documents.map((doc: {
+                    {sourcing.partner_documents.map((doc: {
                       id: string;
                       title: string;
                       document_type: string;
@@ -407,16 +407,7 @@ export default function SourcingDetailPage({ params }: SourcingDetailPageProps) 
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {sourcing.partner_performance.map((perf: {
-                      id: string;
-                      period_start: Date;
-                      period_end: Date;
-                      orders_completed: number;
-                      on_time_rate: number;
-                      defect_rate: number;
-                      total_revenue: number;
-                      average_order_value: number;
-                    }) => (
+                    {sourcing.partner_performance.map((perf) => (
                       <TableRow key={perf.id}>
                         <TableCell>
                           <div className="flex items-center gap-1">
@@ -470,16 +461,7 @@ export default function SourcingDetailPage({ params }: SourcingDetailPageProps) 
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {sourcing.production_orders.map((order: {
-                      id: string;
-                      order_number: string;
-                      item_name: string;
-                      quantity: number;
-                      total_cost: number;
-                      status: string;
-                      order_date: Date;
-                      estimated_ship_date: Date | null;
-                    }) => (
+                    {sourcing.production_orders.map((order) => (
                       <TableRow key={order.id}>
                         <TableCell className="font-medium">{order.order_number}</TableCell>
                         <TableCell>{order.item_name}</TableCell>

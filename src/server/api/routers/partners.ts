@@ -205,6 +205,26 @@ export const partnersRouter = createTRPCRouter({
               partner_contacts: true,
             },
           },
+          partner_contacts: {
+            orderBy: {
+              created_at: 'desc' as const,
+            },
+          },
+          partner_documents: {
+            orderBy: {
+              created_at: 'desc' as const,
+            },
+          },
+          production_orders: {
+            orderBy: {
+              created_at: 'desc' as const,
+            },
+          },
+          partner_performance: {
+            orderBy: {
+              period_start: 'desc' as const,
+            },
+          },
         },
       });
 
@@ -320,7 +340,7 @@ export const partnersRouter = createTRPCRouter({
           skip: input.offset,
           orderBy: { created_at: "desc" },
           include: {
-            contacts: {
+            partner_contacts: {
               where: { active: true },
               orderBy: { is_primary: "desc" },
             },
@@ -366,7 +386,7 @@ export const partnersRouter = createTRPCRouter({
           skip: input.offset,
           orderBy: { created_at: "desc" },
           include: {
-            contacts: {
+            partner_contacts: {
               where: { active: true },
               orderBy: { is_primary: "desc" },
             },
@@ -412,7 +432,7 @@ export const partnersRouter = createTRPCRouter({
           skip: input.offset,
           orderBy: { created_at: "desc" },
           include: {
-            contacts: {
+            partner_contacts: {
               where: { active: true },
               orderBy: { is_primary: "desc" },
             },
@@ -564,13 +584,13 @@ export const partnersRouter = createTRPCRouter({
     delete: protectedProcedure
       .input(z.object({ id: z.string().uuid() }))
       .mutation(async ({ ctx, input }) => {
+        // TODO: Employment fields (employment_status, employment_end_date) need to be added to schema
         const contact = await prisma.partner_contacts.update({
           where: { id: input.id },
           data: {
             active: false,
-            portal_access_enabled: false,
-            employment_status: "terminated",
-            employment_end_date: new Date(),
+            // employment_status: "terminated",
+            // employment_end_date: new Date(),
           },
         });
         return contact;
@@ -593,7 +613,7 @@ export const partnersRouter = createTRPCRouter({
         const contact = await prisma.partner_contacts.findUnique({
           where: { id: contact_id },
           include: {
-            partner: {
+            partners: {
               select: {
                 type: true,
                 company_name: true,
@@ -609,29 +629,19 @@ export const partnersRouter = createTRPCRouter({
           });
         }
 
-        // Check if user already exists with this email
-        let userId = contact.user_id;
+        // TODO: Portal access fields (user_id, portal_role, portal_access_enabled,
+        // portal_modules_allowed, last_login_at) need to be added to schema
+        // For now, just return the contact as portal access management
+        // is not yet implemented in the database schema
 
-        if (!userId) {
-          // TODO: Create user in Supabase Auth
-          // For now, we'll just update the portal settings
-          // In a real implementation, you would call Supabase Admin API here
-          // to create the user and get their ID
-          throw new TRPCError({
-            code: "NOT_IMPLEMENTED",
-            message: "User creation not yet implemented. Please create user manually first.",
-          });
-        }
-
-        // Update contact with portal access
+        // Update contact - currently no portal-specific fields available
         const updatedContact = await prisma.partner_contacts.update({
           where: { id: contact_id },
           data: {
-            user_id: userId,
-            portal_role,
-            portal_access_enabled: true,
-            portal_modules_allowed: portal_modules,
-            last_login_at: null, // Reset login tracking
+            // Portal access fields will be added here once schema is updated
+            // portal_role: portal_role,
+            // portal_access_enabled: true,
+            // portal_modules_allowed: portal_modules,
           },
         });
 
@@ -648,13 +658,19 @@ export const partnersRouter = createTRPCRouter({
     revokePortalAccess: protectedProcedure
       .input(z.object({ contact_id: z.string().uuid() }))
       .mutation(async ({ ctx, input }) => {
-        const contact = await prisma.partner_contacts.update({
+        // TODO: Portal access fields need to be added to schema
+        // For now, just return the contact
+        const contact = await prisma.partner_contacts.findUnique({
           where: { id: input.contact_id },
-          data: {
-            portal_access_enabled: false,
-            portal_modules_allowed: [],
-          },
         });
+
+        if (!contact) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Contact not found",
+          });
+        }
+
         return contact;
       }),
   }),

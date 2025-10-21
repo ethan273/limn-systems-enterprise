@@ -86,7 +86,7 @@ export default function Header() {
         {searchQuery && (
           <button
             onClick={clearSearch}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-muted hover:text-foreground"
             aria-label="Clear search"
           >
             <XIcon className="w-4 h-4" />
@@ -95,15 +95,15 @@ export default function Header() {
 
         {/* Search Results Dropdown */}
         {showResults && searchQuery.length >= 2 && (
-          <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 max-h-96 overflow-y-auto z-50">
+          <div className="absolute top-full left-0 right-0 mt-2 bg-card rounded-lg shadow-lg border border-border max-h-96 overflow-y-auto z-50">
             {isLoading && (
-              <div className="p-4 text-center text-gray-500 dark:text-gray-400">
+              <div className="p-4 text-center text-muted">
                 Searching...
               </div>
             )}
 
             {!isLoading && !hasResults && (
-              <div className="p-4 text-center text-gray-500 dark:text-gray-400">
+              <div className="p-4 text-center text-muted">
                 No results found for "{searchQuery}"
               </div>
             )}
@@ -113,19 +113,19 @@ export default function Header() {
                 {/* Customers */}
                 {searchResults?.customers && searchResults.customers.length > 0 && (
                   <div className="mb-2">
-                    <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
+                    <div className="px-4 py-2 text-xs font-semibold text-muted uppercase">
                       Customers
                     </div>
                     {searchResults.customers.map((item) => (
                       <button
                         key={item.id}
                         onClick={() => handleResultClick(item.type, item.id)}
-                        className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex flex-col"
+                        className="w-full px-4 py-2 text-left hover:bg-muted flex flex-col"
                       >
-                        <span className="font-medium text-gray-900 dark:text-gray-100">
+                        <span className="font-medium text-foreground">
                           {item.title}
                         </span>
-                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                        <span className="text-sm text-muted">
                           {item.subtitle}
                         </span>
                       </button>
@@ -136,19 +136,19 @@ export default function Header() {
                 {/* Orders */}
                 {searchResults?.orders && searchResults.orders.length > 0 && (
                   <div className="mb-2">
-                    <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
+                    <div className="px-4 py-2 text-xs font-semibold text-muted uppercase">
                       Orders
                     </div>
                     {searchResults.orders.map((item) => (
                       <button
                         key={item.id}
                         onClick={() => handleResultClick(item.type, item.id)}
-                        className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex flex-col"
+                        className="w-full px-4 py-2 text-left hover:bg-muted flex flex-col"
                       >
-                        <span className="font-medium text-gray-900 dark:text-gray-100">
+                        <span className="font-medium text-foreground">
                           {item.title}
                         </span>
-                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                        <span className="text-sm text-muted">
                           {item.subtitle}
                         </span>
                       </button>
@@ -159,19 +159,19 @@ export default function Header() {
                 {/* Products */}
                 {searchResults?.products && searchResults.products.length > 0 && (
                   <div className="mb-2">
-                    <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
+                    <div className="px-4 py-2 text-xs font-semibold text-muted uppercase">
                       Products
                     </div>
                     {searchResults.products.map((item) => (
                       <button
                         key={item.id}
                         onClick={() => handleResultClick(item.type, item.id)}
-                        className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex flex-col"
+                        className="w-full px-4 py-2 text-left hover:bg-muted flex flex-col"
                       >
-                        <span className="font-medium text-gray-900 dark:text-gray-100">
+                        <span className="font-medium text-foreground">
                           {item.title}
                         </span>
-                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                        <span className="text-sm text-muted">
                           {item.subtitle}
                         </span>
                       </button>
@@ -182,19 +182,19 @@ export default function Header() {
                 {/* Contacts */}
                 {searchResults?.contacts && searchResults.contacts.length > 0 && (
                   <div className="mb-2">
-                    <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
+                    <div className="px-4 py-2 text-xs font-semibold text-muted uppercase">
                       Contacts
                     </div>
                     {searchResults.contacts.map((item) => (
                       <button
                         key={item.id}
                         onClick={() => handleResultClick(item.type, item.id)}
-                        className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex flex-col"
+                        className="w-full px-4 py-2 text-left hover:bg-muted flex flex-col"
                       >
-                        <span className="font-medium text-gray-900 dark:text-gray-100">
+                        <span className="font-medium text-foreground">
                           {item.title}
                         </span>
-                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                        <span className="text-sm text-muted">
                           {item.subtitle}
                         </span>
                       </button>
@@ -205,19 +205,19 @@ export default function Header() {
                 {/* Leads */}
                 {searchResults?.leads && searchResults.leads.length > 0 && (
                   <div className="mb-2">
-                    <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
+                    <div className="px-4 py-2 text-xs font-semibold text-muted uppercase">
                       Leads
                     </div>
                     {searchResults.leads.map((item) => (
                       <button
                         key={item.id}
                         onClick={() => handleResultClick(item.type, item.id)}
-                        className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex flex-col"
+                        className="w-full px-4 py-2 text-left hover:bg-muted flex flex-col"
                       >
-                        <span className="font-medium text-gray-900 dark:text-gray-100">
+                        <span className="font-medium text-foreground">
                           {item.title}
                         </span>
-                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                        <span className="text-sm text-muted">
                           {item.subtitle}
                         </span>
                       </button>
@@ -225,7 +225,7 @@ export default function Header() {
                   </div>
                 )}
 
-                <div className="px-4 py-2 text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700">
+                <div className="px-4 py-2 text-xs text-muted border-t border-border">
                   Showing {totalResults} result{totalResults !== 1 ? 's' : ''}
                 </div>
               </div>
