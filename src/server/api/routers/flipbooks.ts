@@ -22,7 +22,7 @@ import {
 import type { TOCData, TOCItem } from "@/types/flipbook-navigation";
 import { TOC_VALIDATION } from "@/types/flipbook-navigation";
 
-// Prisma client for flipbooks (separate from hybrid db client)
+// Create Prisma client instance (same pattern as CRM and Partners routers)
 const prisma = new PrismaClient();
 
 /**
