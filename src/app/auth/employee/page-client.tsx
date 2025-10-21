@@ -178,7 +178,8 @@ export default function EmployeeLoginPage() {
  <Button
  onClick={handleGoogleSignIn}
  disabled={loading}
- className="w-full flex items-center justify-center px-4 py-3 border rounded-lg shadow-sm card text-sm font-medium text-foreground hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+ variant="outline"
+ className="w-full px-4 py-3 text-sm font-medium"
  >
  {loading ? (
  <div className="flex items-center">
