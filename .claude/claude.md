@@ -159,6 +159,257 @@ Check ALL files including:
 
 ---
 
+## Database Access Pattern Standard
+
+**MANDATORY REQUIREMENT - Prime Directive Compliance**
+
+### ✅ THE ONE TRUE PATTERN (ALWAYS USE)
+
+```typescript
+// In tRPC routers - ALWAYS use ctx.db
+export const myRouter = createTRPCRouter({
+  myQuery: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input, ctx }) => {
+      // ✅ CORRECT: Use ctx.db for ALL database operations
+      const data = await ctx.db.my_table.findUnique({
+        where: { id: input.id },
+        include: { related_table: true },
+        select: { field1: true, field2: true }, // Select is supported
+      });
+      return data;
+    }),
+});
+```
+
+**Why This Works:**
+- ✅ Consistent - Same database access method throughout entire codebase
+- ✅ Type-safe - Full TypeScript support via DatabaseClient wrapper
+- ✅ Complete - Supports findMany, findUnique, create, update, delete, upsert, $queryRaw
+- ✅ Prisma-compatible - Supports include, select, where, orderBy, etc.
+- ✅ Production-ready - No authentication issues, reliable connection pooling
+
+### ❌ BROKEN PATTERNS (NEVER USE)
+
+```typescript
+// ❌ DO NOT USE - Direct Prisma client (causes auth failures)
+import { prisma } from '@/lib/db';
+const data = await prisma.my_table.findMany();
+
+// ❌ DO NOT USE - Missing ctx parameter
+.query(async ({ input }) => {
+  const data = await ctx.db.my_table.findMany(); // ctx is undefined!
+});
+
+// ❌ DO NOT USE - Supabase direct (inconsistent with rest of codebase)
+import { getSupabaseAdmin } from '@/lib/supabase';
+const supabase = getSupabaseAdmin();
+const { data } = await supabase.from('my_table').select();
+```
+
+**Why These Fail:**
+- ❌ Direct Prisma causes PostgreSQL authentication failures
+- ❌ Missing ctx causes runtime errors
+- ❌ Supabase direct queries bypass type safety and are inconsistent
+- ❌ Multiple database access patterns = maintenance nightmare
+
+### Enforcement Rules
+
+1. **ALWAYS** use `ctx.db` for database operations in tRPC routers
+2. **ALWAYS** include `ctx` parameter in query/mutation handlers: `async ({ input, ctx })`
+3. **NEVER** import direct Prisma client (`prisma`) in router files
+4. **NEVER** use Supabase client directly in router files
+5. **ALWAYS** verify table exists in DatabaseClient before using (check src/lib/db.ts)
+
+### Complete CRUD Operations
+
+```typescript
+// CREATE
+const newRecord = await ctx.db.my_table.create({
+  data: { field1: 'value', field2: 123 },
+  select: { id: true, field1: true }, // Optional: only return selected fields
+});
+
+// READ - Single record
+const record = await ctx.db.my_table.findUnique({
+  where: { id: 'some-id' },
+  include: { related_table: true }, // Include relations
+  select: { field1: true, field2: true }, // Or select specific fields
+});
+
+// READ - Multiple records
+const records = await ctx.db.my_table.findMany({
+  where: { status: 'active' },
+  orderBy: { created_at: 'desc' },
+  take: 10,
+  skip: 0,
+  include: { related_table: true },
+});
+
+// UPDATE
+const updated = await ctx.db.my_table.update({
+  where: { id: 'some-id' },
+  data: { field1: 'new value' },
+  select: { id: true, field1: true },
+});
+
+// UPSERT (if table supports it - check db.ts)
+const upserted = await ctx.db.my_table.upsert({
+  where: { unique_field: 'value' },
+  create: { field1: 'value', field2: 123 },
+  update: { field2: 456 },
+});
+
+// DELETE
+await ctx.db.my_table.delete({
+  where: { id: 'some-id' },
+});
+
+// DELETE MANY
+await ctx.db.my_table.deleteMany({
+  where: { status: 'archived' },
+});
+
+// CREATE MANY
+await ctx.db.my_table.createMany({
+  data: [
+    { field1: 'value1' },
+    { field1: 'value2' },
+  ],
+});
+
+// COUNT
+const count = await ctx.db.my_table.count({
+  where: { status: 'active' },
+});
+
+// RAW QUERIES (when needed)
+const result = await ctx.db.$queryRaw`
+  SELECT * FROM my_table WHERE field1 = ${value}
+`;
+```
+
+### Common Mistakes to Avoid
+
+**Mistake 1: Missing ctx parameter**
+```typescript
+// ❌ WRONG
+.query(async ({ input }) => {
+  const data = await ctx.db.users.findMany(); // ctx is undefined!
+});
+
+// ✅ CORRECT
+.query(async ({ input, ctx }) => {
+  const data = await ctx.db.users.findMany();
+});
+```
+
+**Mistake 2: Using { ctx: _ctx } rename pattern**
+```typescript
+// ❌ WRONG
+.query(async ({ ctx: _ctx, input }) => {
+  const data = await ctx.db.users.findMany(); // ctx is undefined, should be _ctx
+});
+
+// ✅ CORRECT
+.query(async ({ ctx, input }) => {
+  const data = await ctx.db.users.findMany();
+});
+```
+
+**Mistake 3: Table doesn't exist in DatabaseClient**
+```typescript
+// ❌ WRONG - Assuming table exists without checking
+const data = await ctx.db.some_new_table.findMany(); // TypeScript error!
+
+// ✅ CORRECT - Add table to DatabaseClient first in src/lib/db.ts
+// Follow the pattern of existing tables, including all CRUD methods
+```
+
+### Available Database Methods
+
+All tables in `ctx.db` support these methods:
+- `findMany(options?)` - Query multiple records
+- `findUnique({ where, include?, select? })` - Query single record
+- `create({ data, include?, select? })` - Create new record
+- `update({ where, data, include?, select? })` - Update existing record
+- `delete({ where })` - Delete record
+- `createMany({ data })` - Bulk create
+- `deleteMany({ where })` - Bulk delete
+- `count({ where? })` - Count records
+- `upsert({ where, create, update })` - Create or update (if table supports it)
+
+Global methods (on `ctx.db` itself):
+- `$queryRaw` - Execute raw SQL queries (typed)
+- `$queryRawUnsafe` - Execute raw SQL queries (untyped)
+
+### Code Review Checklist
+
+When reviewing PRs or writing database code, verify:
+- [ ] Uses `ctx.db` for all database operations
+- [ ] All query/mutation handlers include `ctx` parameter
+- [ ] No direct Prisma client imports in router files
+- [ ] No Supabase client usage in router files
+- [ ] Table exists in DatabaseClient (src/lib/db.ts)
+- [ ] Proper error handling for database operations
+- [ ] Uses appropriate method (findUnique vs findMany, etc.)
+
+### When to Add a New Table to DatabaseClient
+
+If you encounter: `Property 'my_table' does not exist on type 'DatabaseClient'`
+
+**Steps to add a new table:**
+
+1. Open `src/lib/db.ts`
+2. Find the DatabaseClient class (around line 479)
+3. Add your table following this exact pattern:
+
+```typescript
+my_table = {
+  findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('my_table', options),
+  findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+    this.findUniqueGeneric<Record<string, any>>('my_table', options),
+  create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+    this.createGeneric<Record<string, any>>('my_table', options),
+  update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+    this.updateGeneric<Record<string, any>>('my_table', options),
+  delete: (options: { where: Record<string, any> }) =>
+    this.deleteGeneric('my_table', options),
+  createMany: (options: { data: Record<string, any>[] }) =>
+    this.createManyGeneric('my_table', options),
+  deleteMany: (options: { where: Record<string, any> }) =>
+    this.deleteManyGeneric('my_table', options),
+  count: (options?: { where?: Record<string, any> }) =>
+    this.countGeneric('my_table', options),
+};
+```
+
+4. If the table needs `upsert`, add it after `update`:
+
+```typescript
+upsert: async (options: { where: Record<string, any>; create: Record<string, any>; update: Record<string, any> }) => {
+  const existing = await this.findUniqueGeneric<any>('my_table', { where: options.where });
+  if (existing) {
+    return this.updateGeneric<any>('my_table', { where: options.where, data: options.update });
+  } else {
+    return this.createGeneric<any>('my_table', { data: { ...options.where, ...options.create } });
+  }
+},
+```
+
+### Reference Documentation
+
+- **Database Client**: `/Users/eko3/limn-systems-enterprise/src/lib/db.ts`
+- **Hybrid Architecture**: See comments at top of db.ts for full explanation
+- **tRPC Routers**: All routers in `src/server/api/routers/` use this pattern
+
+**Status**: ✅ MANDATORY as of October 21, 2025
+**Compliance**: All database operations MUST use ctx.db
+**Violations**: Will cause TypeScript errors and be rejected in code review
+**Commit**: bc56e7c - Complete database client consistency (128 errors → 0)
+
+---
+
 ## Authentication Pattern Standard
 
 **MANDATORY REQUIREMENT - Prime Directive Compliance**
