@@ -9,7 +9,7 @@
 
 import { z } from 'zod';
 import { createTRPCRouter, adminProcedure } from '../trpc/init';
-import { PrismaClient, user_type_enum } from '@prisma/client';
+import { user_type_enum } from '@prisma/client';
 import { getUserFullName } from '@/lib/utils/user-utils';
 import { createClient } from '@supabase/supabase-js';
 import { sendUserInvitationEmail } from '@/lib/email/templates/user-invitation';

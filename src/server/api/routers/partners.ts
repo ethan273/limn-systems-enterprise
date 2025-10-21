@@ -839,7 +839,7 @@ export const partnersRouter = createTRPCRouter({
           partner_type: z.enum(["factory", "designer", "sourcing"]),
         })
       )
-      .query(async ({ input, ctx }) => {
+      .query(async ({ input }) => {
         // Define available modules per partner type
         const modulesByType: Record<string, Array<{ key: string; label: string; description: string }>> = {
           factory: [
