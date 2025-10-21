@@ -11,7 +11,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ExpandableTableRowWithTrigger } from "@/components/ui/expandable-table-row";
 import { Search, Package, DollarSign, FileText, AlertCircle, AlertTriangle, RefreshCw, Edit } from "lucide-react";
 import Link from "next/link";
-import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { ErrorState } from "@/components/common";
@@ -19,7 +18,6 @@ import { ErrorState } from "@/components/common";
 export default function CRMOrdersPage() {
  const [statusFilter, setStatusFilter] = useState<string>("all");
  const [searchQuery, setSearchQuery] = useState("");
- const { user, loading: authLoading } = useAuth();
  const _router = useRouter();
  const { toast } = useToast();
 
@@ -129,24 +127,7 @@ export default function CRMOrdersPage() {
  return <Badge variant="outline" className="bg-destructive-muted text-destructive border-destructive">Pending</Badge>;
  };
 
- // Show loading state while checking authentication
- if (authLoading) {
- return (
- <div className="container mx-auto py-6">
- <div className="flex items-center justify-center h-64">
- <div className="text-center">
- <div className="animate-spin rounded-full h-12 w-12 border-b-2 border mx-auto mb-4"></div>
- <p className="text-muted-foreground">Loading...</p>
- </div>
- </div>
- </div>
- );
- }
-
- // Don't render if not authenticated (will redirect)
- if (!user) {
- return null;
- }
+ // Auth is handled by middleware - no client-side checks needed
 
  // Show error state if data fetch failed
  if (error) {
