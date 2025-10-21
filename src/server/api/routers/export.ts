@@ -10,10 +10,8 @@
 
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '../trpc/init';
-import { PrismaClient } from '@prisma/client';
 import { getUserFullName } from '@/lib/utils/user-utils';
 
-const prisma = new PrismaClient();
 
 // ============================================
 // INPUT SCHEMAS
@@ -63,7 +61,7 @@ export const exportRouter = createTRPCRouter({
       }
 
       // Get users
-      const users = await prisma.users.findMany({
+      const users = await ctx.db.users.findMany({
         select: {
           id: true,
           email: true,
@@ -75,7 +73,7 @@ export const exportRouter = createTRPCRouter({
 
       // Get profiles
       const userIds = users.map((u) => u.id);
-      const profiles = await prisma.user_profiles.findMany({
+      const profiles = await ctx.db.user_profiles.findMany({
         where: {
           id: { in: userIds },
           ...where,
@@ -165,7 +163,7 @@ export const exportRouter = createTRPCRouter({
           if (dateRange.to) where.created_at.lte = dateRange.to;
         }
 
-        const adminLogs = await prisma.admin_audit_log.findMany({
+        const adminLogs = await ctx.db.admin_audit_log.findMany({
           where,
           take: limit,
           orderBy: { created_at: 'desc' },
@@ -188,7 +186,7 @@ export const exportRouter = createTRPCRouter({
           if (dateRange.to) where.event_time.lte = dateRange.to;
         }
 
-        const securityLogs = await prisma.security_audit_log.findMany({
+        const securityLogs = await ctx.db.security_audit_log.findMany({
           where,
           take: limit,
           orderBy: { event_time: 'desc' },
@@ -211,7 +209,7 @@ export const exportRouter = createTRPCRouter({
           if (dateRange.to) where.login_time.lte = dateRange.to;
         }
 
-        const loginLogs = await prisma.sso_login_audit.findMany({
+        const loginLogs = await ctx.db.sso_login_audit.findMany({
           where,
           take: limit,
           orderBy: { login_time: 'desc' },
@@ -259,7 +257,7 @@ export const exportRouter = createTRPCRouter({
       const { format, category } = input;
 
       const where = category ? { category } : {};
-      const settings = await prisma.admin_settings.findMany({
+      const settings = await ctx.db.admin_settings.findMany({
         where,
         orderBy: [{ category: 'asc' }, { key: 'asc' }],
       });
@@ -294,11 +292,11 @@ export const exportRouter = createTRPCRouter({
    */
   getExportStats: protectedProcedure.query(async () => {
     const [usersCount, adminLogsCount, securityLogsCount, loginLogsCount, settingsCount] = await Promise.all([
-      prisma.users.count(),
-      prisma.admin_audit_log.count(),
-      prisma.security_audit_log.count(),
-      prisma.sso_login_audit.count(),
-      prisma.admin_settings.count(),
+      ctx.db.users.count(),
+      ctx.db.admin_audit_log.count(),
+      ctx.db.security_audit_log.count(),
+      ctx.db.sso_login_audit.count(),
+      ctx.db.admin_settings.count(),
     ]);
 
     return {

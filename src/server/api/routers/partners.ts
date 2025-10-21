@@ -1,9 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc/init";
 import { TRPCError } from "@trpc/server";
-import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
 
 /**
  * Partners Module tRPC Router
@@ -195,7 +193,7 @@ export const partnersRouter = createTRPCRouter({
   getById: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx: _ctx, input }) => {
-      const partner = await prisma.partners.findUnique({
+      const partner = await ctx.db.partners.findUnique({
         where: { id: input.id },
         include: {
           _count: {
@@ -334,7 +332,7 @@ export const partnersRouter = createTRPCRouter({
       }
 
       const [partners, total] = await Promise.all([
-        prisma.partners.findMany({
+        ctx.db.partners.findMany({
           where,
           take: input.limit,
           skip: input.offset,
@@ -346,7 +344,7 @@ export const partnersRouter = createTRPCRouter({
             },
           },
         }),
-        prisma.partners.count({ where }),
+        ctx.db.partners.count({ where }),
       ]);
 
       return {
@@ -380,7 +378,7 @@ export const partnersRouter = createTRPCRouter({
       }
 
       const [partners, total] = await Promise.all([
-        prisma.partners.findMany({
+        ctx.db.partners.findMany({
           where,
           take: input.limit,
           skip: input.offset,
@@ -392,7 +390,7 @@ export const partnersRouter = createTRPCRouter({
             },
           },
         }),
-        prisma.partners.count({ where }),
+        ctx.db.partners.count({ where }),
       ]);
 
       return {
@@ -426,7 +424,7 @@ export const partnersRouter = createTRPCRouter({
       }
 
       const [partners, total] = await Promise.all([
-        prisma.partners.findMany({
+        ctx.db.partners.findMany({
           where,
           take: input.limit,
           skip: input.offset,
@@ -438,7 +436,7 @@ export const partnersRouter = createTRPCRouter({
             },
           },
         }),
-        prisma.partners.count({ where }),
+        ctx.db.partners.count({ where }),
       ]);
 
       return {
@@ -516,7 +514,7 @@ export const partnersRouter = createTRPCRouter({
           where.active = true;
         }
 
-        const contacts = await prisma.partner_contacts.findMany({
+        const contacts = await ctx.db.partner_contacts.findMany({
           where,
           orderBy: [
             { is_primary: "desc" },
@@ -531,7 +529,7 @@ export const partnersRouter = createTRPCRouter({
     getById: protectedProcedure
       .input(z.object({ id: z.string().uuid() }))
       .query(async ({ ctx: _ctx, input }) => {
-        const contact = await prisma.partner_contacts.findUnique({
+        const contact = await ctx.db.partner_contacts.findUnique({
           where: { id: input.id },
           include: {
             partners: {
@@ -558,7 +556,7 @@ export const partnersRouter = createTRPCRouter({
     create: protectedProcedure
       .input(partnerContactSchema)
       .mutation(async ({ ctx: _ctx, input }) => {
-        const contact = await prisma.partner_contacts.create({
+        const contact = await ctx.db.partner_contacts.create({
           data: input,
         });
         return contact;
@@ -573,7 +571,7 @@ export const partnersRouter = createTRPCRouter({
       )
       .mutation(async ({ ctx: _ctx, input }) => {
         const { id, ...data } = input;
-        const contact = await prisma.partner_contacts.update({
+        const contact = await ctx.db.partner_contacts.update({
           where: { id },
           data,
         });
@@ -585,7 +583,7 @@ export const partnersRouter = createTRPCRouter({
       .input(z.object({ id: z.string().uuid() }))
       .mutation(async ({ ctx: _ctx, input }) => {
         // TODO: Employment fields (employment_status, employment_end_date) need to be added to schema
-        const contact = await prisma.partner_contacts.update({
+        const contact = await ctx.db.partner_contacts.update({
           where: { id: input.id },
           data: {
             active: false,
@@ -610,7 +608,7 @@ export const partnersRouter = createTRPCRouter({
         const { contact_id, portal_role: _portal_role, portal_modules: _portal_modules, send_magic_link } = input;
 
         // Get the contact to validate it exists and get email
-        const contact = await prisma.partner_contacts.findUnique({
+        const contact = await ctx.db.partner_contacts.findUnique({
           where: { id: contact_id },
           include: {
             partners: {
@@ -635,7 +633,7 @@ export const partnersRouter = createTRPCRouter({
         // is not yet implemented in the database schema
 
         // Update contact - currently no portal-specific fields available
-        const updatedContact = await prisma.partner_contacts.update({
+        const updatedContact = await ctx.db.partner_contacts.update({
           where: { id: contact_id },
           data: {
             // Portal access fields will be added here once schema is updated
@@ -660,7 +658,7 @@ export const partnersRouter = createTRPCRouter({
       .mutation(async ({ ctx: _ctx, input }) => {
         // TODO: Portal access fields need to be added to schema
         // For now, just return the contact
-        const contact = await prisma.partner_contacts.findUnique({
+        const contact = await ctx.db.partner_contacts.findUnique({
           where: { id: input.contact_id },
         });
 

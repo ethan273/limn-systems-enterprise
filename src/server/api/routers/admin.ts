@@ -15,7 +15,6 @@ import { createClient } from '@supabase/supabase-js';
 import { sendUserInvitationEmail } from '@/lib/email/templates/user-invitation';
 import { notifyUserInvited } from '@/lib/notifications/google-chat';
 
-const prisma = new PrismaClient();
 
 // Lazy-initialized Supabase client with service role for admin operations
 let supabaseAdmin: ReturnType<typeof createClient> | null = null;
@@ -134,7 +133,7 @@ export const adminRouter = createTRPCRouter({
         }
 
         // Query profiles first to get filtered user IDs
-        const profiles = await prisma.user_profiles.findMany({
+        const profiles = await ctx.db.user_profiles.findMany({
           where: profileWhere,
           select: {
             id: true,
@@ -158,7 +157,7 @@ export const adminRouter = createTRPCRouter({
           userWhere.email = { contains: search, mode: 'insensitive' as any };
         }
 
-        const users = await prisma.users.findMany({
+        const users = await ctx.db.users.findMany({
           where: userWhere,
           take: limit,
           skip: offset,
@@ -171,7 +170,7 @@ export const adminRouter = createTRPCRouter({
           orderBy: { created_at: 'desc' },
         });
 
-        const total = await prisma.users.count({
+        const total = await ctx.db.users.count({
           where: userWhere,
         });
 
@@ -206,7 +205,7 @@ export const adminRouter = createTRPCRouter({
       .input(z.object({ userId: z.string().uuid() }))
       .query(async ({ input }) => {
         const [user, profile, permissions] = await Promise.all([
-          prisma.users.findUnique({
+          ctx.db.users.findUnique({
             where: { id: input.userId },
             select: {
               id: true,
@@ -215,7 +214,7 @@ export const adminRouter = createTRPCRouter({
               last_sign_in_at: true,
             },
           }),
-          prisma.user_profiles.findUnique({
+          ctx.db.user_profiles.findUnique({
             where: { id: input.userId },
             select: {
               name: true,
@@ -226,7 +225,7 @@ export const adminRouter = createTRPCRouter({
               is_active: true,
             },
           }),
-          prisma.user_permissions.findMany({
+          ctx.db.user_permissions.findMany({
             where: { user_id: input.userId },
             select: {
               id: true,
@@ -278,13 +277,13 @@ export const adminRouter = createTRPCRouter({
         const { userId, data } = input;
 
         // Get user email for audit log
-        const user = await prisma.users.findUnique({
+        const user = await ctx.db.users.findUnique({
           where: { id: userId },
           select: { email: true },
         });
 
         // Update user_profiles
-        const updated = await prisma.user_profiles.update({
+        const updated = await ctx.db.user_profiles.update({
           where: { id: userId },
           data: {
             user_type: data.userType as user_type_enum | undefined,
@@ -295,7 +294,7 @@ export const adminRouter = createTRPCRouter({
         });
 
         // Create audit log entry
-        await prisma.admin_audit_log.create({
+        await ctx.db.admin_audit_log.create({
           data: {
             action: 'UPDATE_USER_PROFILE',
             user_id: ctx.session?.user?.id || null,
@@ -330,7 +329,7 @@ export const adminRouter = createTRPCRouter({
       )
       .mutation(async ({ input, ctx }) => {
         // Check if user already exists
-        const existingUserArray = await prisma.users.findMany({
+        const existingUserArray = await ctx.db.users.findMany({
           where: { email: input.email },
           take: 1,
         });
@@ -358,13 +357,13 @@ export const adminRouter = createTRPCRouter({
         const userId = authData.user.id;
 
         // Create user in auth.users (if not automatically created)
-        const usersArray = await prisma.users.findMany({
+        const usersArray = await ctx.db.users.findMany({
           where: { id: userId },
           take: 1,
         });
 
         if (usersArray.length === 0) {
-          await prisma.users.create({
+          await ctx.db.users.create({
             data: {
               id: userId,
               email: input.email,
@@ -376,7 +375,7 @@ export const adminRouter = createTRPCRouter({
         }
 
         // Create user profile
-        await prisma.user_profiles.create({
+        await ctx.db.user_profiles.create({
           data: {
             id: userId,
             email: input.email,
@@ -430,7 +429,7 @@ export const adminRouter = createTRPCRouter({
         });
 
         // Log the action
-        await prisma.admin_audit_log.create({
+        await ctx.db.admin_audit_log.create({
           data: {
             action: 'CREATE_USER',
             user_id: ctx.session?.user?.id || null,
@@ -469,7 +468,7 @@ export const adminRouter = createTRPCRouter({
         const { userId } = input;
 
         // Get user's type
-        const user = await prisma.user_profiles.findUnique({
+        const user = await ctx.db.user_profiles.findUnique({
           where: { id: userId },
           select: { user_type: true },
         });
@@ -481,12 +480,12 @@ export const adminRouter = createTRPCRouter({
         const userType = user.user_type || 'employee';
 
         // Get user-specific permissions
-        const userPermissions = await prisma.user_permissions.findMany({
+        const userPermissions = await ctx.db.user_permissions.findMany({
           where: { user_id: userId },
         });
 
         // Get default permissions for user type
-        const defaultPermissions = await prisma.default_permissions.findMany({
+        const defaultPermissions = await ctx.db.default_permissions.findMany({
           where: { user_type: userType as user_type_enum },
         });
 
@@ -539,13 +538,13 @@ export const adminRouter = createTRPCRouter({
         const { userId, module, permission, value } = input;
 
         // Get user email for audit log
-        const user = await prisma.users.findUnique({
+        const user = await ctx.db.users.findUnique({
           where: { id: userId },
           select: { email: true },
         });
 
         // Check if user-specific permission exists
-        const existingPermission = await prisma.user_permissions.findUnique({
+        const existingPermission = await ctx.db.user_permissions.findUnique({
           where: {
             user_id_module: {
               user_id: userId,
@@ -556,7 +555,7 @@ export const adminRouter = createTRPCRouter({
 
         if (existingPermission) {
           // Update existing permission
-          await prisma.user_permissions.update({
+          await ctx.db.user_permissions.update({
             where: { id: existingPermission.id },
             data: {
               [permission]: value,
@@ -565,7 +564,7 @@ export const adminRouter = createTRPCRouter({
           });
         } else {
           // Create new user-specific permission override
-          await prisma.user_permissions.create({
+          await ctx.db.user_permissions.create({
             data: {
               user_id: userId,
               module,
@@ -580,7 +579,7 @@ export const adminRouter = createTRPCRouter({
         }
 
         // Create audit log entry
-        await prisma.admin_audit_log.create({
+        await ctx.db.admin_audit_log.create({
           data: {
             action: 'UPDATE_USER_PERMISSION',
             user_id: ctx.session?.user?.id || null,
@@ -621,7 +620,7 @@ export const adminRouter = createTRPCRouter({
         const { userId, module, permissions } = input;
 
         // Upsert permission
-        await prisma.user_permissions.upsert({
+        await ctx.db.user_permissions.upsert({
           where: {
             user_id_module: {
               user_id: userId,
@@ -656,7 +655,7 @@ export const adminRouter = createTRPCRouter({
     getDefaultPermissions: adminProcedure
       .input(z.object({ userType: userTypeSchema }))
       .query(async ({ input }) => {
-        const permissions = await prisma.default_permissions.findMany({
+        const permissions = await ctx.db.default_permissions.findMany({
           where: { user_type: input.userType as user_type_enum },
           orderBy: { module: 'asc' },
         });
@@ -677,7 +676,7 @@ export const adminRouter = createTRPCRouter({
     resetToDefaults: adminProcedure
       .input(z.object({ userId: z.string().uuid() }))
       .mutation(async ({ input }) => {
-        await prisma.user_permissions.deleteMany({
+        await ctx.db.user_permissions.deleteMany({
           where: { user_id: input.userId },
         });
 
@@ -694,7 +693,7 @@ export const adminRouter = createTRPCRouter({
      * Get all system settings grouped by category
      */
     getAll: adminProcedure.query(async () => {
-      const settings = await prisma.admin_settings.findMany({
+      const settings = await ctx.db.admin_settings.findMany({
         orderBy: [{ category: 'asc' }, { key: 'asc' }],
       });
 
@@ -721,7 +720,7 @@ export const adminRouter = createTRPCRouter({
     getByCategory: adminProcedure
       .input(z.object({ category: z.string() }))
       .query(async ({ input }) => {
-        const settings = await prisma.admin_settings.findMany({
+        const settings = await ctx.db.admin_settings.findMany({
           where: { category: input.category },
           orderBy: { key: 'asc' },
         });
@@ -748,7 +747,7 @@ export const adminRouter = createTRPCRouter({
       .mutation(async ({ input }) => {
         const { category, key, value } = input;
 
-        await prisma.admin_settings.upsert({
+        await ctx.db.admin_settings.upsert({
           where: {
             category_key: {
               category,
@@ -780,7 +779,7 @@ export const adminRouter = createTRPCRouter({
         })
       )
       .mutation(async ({ input }) => {
-        await prisma.admin_settings.delete({
+        await ctx.db.admin_settings.delete({
           where: {
             category_key: {
               category: input.category,
@@ -804,7 +803,7 @@ export const adminRouter = createTRPCRouter({
     getUserRoles: adminProcedure
       .input(z.object({ userId: z.string().uuid() }))
       .query(async ({ input }) => {
-        const roles = await prisma.user_roles.findMany({
+        const roles = await ctx.db.user_roles.findMany({
           where: { user_id: input.userId },
           orderBy: { created_at: 'desc' },
         });
@@ -831,12 +830,12 @@ export const adminRouter = createTRPCRouter({
         const { userId, role } = input;
 
         // Get user email for audit log
-        const user = await prisma.users.findUnique({
+        const user = await ctx.db.users.findUnique({
           where: { id: userId },
           select: { email: true },
         });
 
-        await prisma.user_roles.create({
+        await ctx.db.user_roles.create({
           data: {
             user_id: userId,
             role,
@@ -844,7 +843,7 @@ export const adminRouter = createTRPCRouter({
         });
 
         // Create audit log entry
-        await prisma.admin_audit_log.create({
+        await ctx.db.admin_audit_log.create({
           data: {
             action: 'ASSIGN_ROLE',
             user_id: ctx.session?.user?.id || null,
@@ -873,12 +872,12 @@ export const adminRouter = createTRPCRouter({
         const { userId, role } = input;
 
         // Get user email for audit log
-        const user = await prisma.users.findUnique({
+        const user = await ctx.db.users.findUnique({
           where: { id: userId },
           select: { email: true },
         });
 
-        await prisma.user_roles.deleteMany({
+        await ctx.db.user_roles.deleteMany({
           where: {
             user_id: userId,
             role,
@@ -886,7 +885,7 @@ export const adminRouter = createTRPCRouter({
         });
 
         // Create audit log entry
-        await prisma.admin_audit_log.create({
+        await ctx.db.admin_audit_log.create({
           data: {
             action: 'REMOVE_ROLE',
             user_id: ctx.session?.user?.id || null,
@@ -907,7 +906,7 @@ export const adminRouter = createTRPCRouter({
     getUsersByRole: adminProcedure
       .input(z.object({ role: z.string() }))
       .query(async ({ input }) => {
-        const userRoles = await prisma.user_roles.findMany({
+        const userRoles = await ctx.db.user_roles.findMany({
           where: { role: input.role },
           include: {
             users: {
@@ -921,7 +920,7 @@ export const adminRouter = createTRPCRouter({
 
         // Get profiles for these users
         const userIds = userRoles.map((ur) => ur.user_id).filter((id): id is string => id !== null);
-        const profiles = await prisma.user_profiles.findMany({
+        const profiles = await ctx.db.user_profiles.findMany({
           where: { id: { in: userIds } },
           select: {
             id: true,
@@ -957,7 +956,7 @@ export const adminRouter = createTRPCRouter({
      */
     getRoleStats: adminProcedure.query(async () => {
       // Note: groupBy not supported by wrapper, using findMany + manual grouping
-      const allRoles = await prisma.user_roles.findMany();
+      const allRoles = await ctx.db.user_roles.findMany();
 
       // Manual grouping
       const roleCountMap = new Map<string, number>();
@@ -979,7 +978,7 @@ export const adminRouter = createTRPCRouter({
      * For portal management dashboard
      */
     getAllPortalUsers: adminProcedure.query(async () => {
-      const portalUsers = await prisma.customer_portal_access.findMany({
+      const portalUsers = await ctx.db.customer_portal_access.findMany({
         include: {
           users_customer_portal_access_user_idTousers: {
             select: {
@@ -1018,7 +1017,7 @@ export const adminRouter = createTRPCRouter({
         if (portalRole !== undefined) updateData.portal_role = portalRole;
         if (isActive !== undefined) updateData.is_active = isActive;
 
-        await prisma.customer_portal_access.update({
+        await ctx.db.customer_portal_access.update({
           where: { id },
           data: updateData,
         });
@@ -1036,7 +1035,7 @@ export const adminRouter = createTRPCRouter({
         })
       )
       .mutation(async ({ input }) => {
-        await prisma.customer_portal_access.delete({
+        await ctx.db.customer_portal_access.delete({
           where: { id: input.id },
         });
 
@@ -1063,7 +1062,7 @@ export const adminRouter = createTRPCRouter({
         })
       )
       .query(async ({ input }) => {
-        const settings = await prisma.portal_module_settings.findMany({
+        const settings = await ctx.db.portal_module_settings.findMany({
           where: {
             portal_type: input.portalType,
             entity_id: input.entityId || null,
@@ -1104,7 +1103,7 @@ export const adminRouter = createTRPCRouter({
         await Promise.all(
           input.modules.map(async (mod) => {
             // Note: findFirst not supported by wrapper, using findMany
-            const existingArray = await prisma.portal_module_settings.findMany({
+            const existingArray = await ctx.db.portal_module_settings.findMany({
               where: {
                 portal_type: input.portalType,
                 entity_id: input.entityId || null,
@@ -1115,7 +1114,7 @@ export const adminRouter = createTRPCRouter({
             const existing = existingArray.length > 0 ? existingArray[0] : null;
 
             if (existing) {
-              await prisma.portal_module_settings.update({
+              await ctx.db.portal_module_settings.update({
                 where: { id: existing.id },
                 data: {
                   is_enabled: mod.isEnabled,
@@ -1124,7 +1123,7 @@ export const adminRouter = createTRPCRouter({
                 },
               });
             } else {
-              await prisma.portal_module_settings.create({
+              await ctx.db.portal_module_settings.create({
                 data: {
                   portal_type: input.portalType,
                   entity_id: input.entityId ?? null,
@@ -1183,7 +1182,7 @@ export const adminRouter = createTRPCRouter({
      * Get all customers for portal configuration dropdown
      */
     getCustomers: adminProcedure.query(async () => {
-      const customers = await prisma.customers.findMany({
+      const customers = await ctx.db.customers.findMany({
         select: {
           id: true,
           company_name: true,
@@ -1200,7 +1199,7 @@ export const adminRouter = createTRPCRouter({
      * Get all partners for portal configuration dropdown
      */
     getPartners: adminProcedure.query(async () => {
-      const partners = await prisma.partners.findMany({
+      const partners = await ctx.db.partners.findMany({
         select: {
           id: true,
           company_name: true,

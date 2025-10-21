@@ -10,9 +10,7 @@
 
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '../trpc/init';
-import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
 
 // ============================================
 // INPUT SCHEMAS
@@ -91,13 +89,13 @@ export const auditRouter = createTRPCRouter({
       }
 
       const [logs, total] = await Promise.all([
-        prisma.admin_audit_log.findMany({
+        ctx.db.admin_audit_log.findMany({
           where,
           take: limit,
           skip: offset,
           orderBy: { created_at: 'desc' },
         }),
-        prisma.admin_audit_log.count({ where }),
+        ctx.db.admin_audit_log.count({ where }),
       ]);
 
       return {
@@ -170,13 +168,13 @@ export const auditRouter = createTRPCRouter({
       }
 
       const [logs, total] = await Promise.all([
-        prisma.security_audit_log.findMany({
+        ctx.db.security_audit_log.findMany({
           where,
           take: limit,
           skip: offset,
           orderBy: { event_time: 'desc' },
         }),
-        prisma.security_audit_log.count({ where }),
+        ctx.db.security_audit_log.count({ where }),
       ]);
 
       return {
@@ -250,19 +248,19 @@ export const auditRouter = createTRPCRouter({
       }
 
       const [logs, total] = await Promise.all([
-        prisma.sso_login_audit.findMany({
+        ctx.db.sso_login_audit.findMany({
           where,
           take: limit,
           skip: offset,
           orderBy: { login_time: 'desc' },
         }),
-        prisma.sso_login_audit.count({ where }),
+        ctx.db.sso_login_audit.count({ where }),
       ]);
 
       // Get user profiles for the logs
       const userIds = logs.map((log) => log.user_id).filter((id): id is string => id !== null);
       // Note: select not supported by wrapper, fetching full records
-      const profiles = await prisma.user_profiles.findMany({
+      const profiles = await ctx.db.user_profiles.findMany({
         where: { id: { in: userIds } },
       });
       const profileMap = new Map(profiles.map((p) => [p.id, p.name]));
@@ -306,22 +304,22 @@ export const auditRouter = createTRPCRouter({
 
       // Get counts for different log types
       const [adminLogsCount, securityLogsCount, loginLogsCount, failedLoginsCount] = await Promise.all([
-        prisma.admin_audit_log.count({
+        ctx.db.admin_audit_log.count({
           where: {
             created_at: { gte: startDate },
           },
         }),
-        prisma.security_audit_log.count({
+        ctx.db.security_audit_log.count({
           where: {
             event_time: { gte: startDate },
           },
         }),
-        prisma.sso_login_audit.count({
+        ctx.db.sso_login_audit.count({
           where: {
             login_time: { gte: startDate },
           },
         }),
-        prisma.sso_login_audit.count({
+        ctx.db.sso_login_audit.count({
           where: {
             login_time: { gte: startDate },
             success: false,
@@ -331,7 +329,7 @@ export const auditRouter = createTRPCRouter({
 
       // Get recent actions breakdown
       // Note: groupBy not supported by wrapper, using findMany + manual grouping
-      const allActions = await prisma.admin_audit_log.findMany({
+      const allActions = await ctx.db.admin_audit_log.findMany({
         where: {
           created_at: { gte: startDate },
         },
@@ -359,7 +357,7 @@ export const auditRouter = createTRPCRouter({
 
       // Get top users by activity
       // Note: groupBy not supported by wrapper, using findMany + manual grouping
-      const allUserActions = await prisma.admin_audit_log.findMany({
+      const allUserActions = await ctx.db.admin_audit_log.findMany({
         where: {
           created_at: { gte: startDate },
           user_email: { not: null },
@@ -419,25 +417,25 @@ export const auditRouter = createTRPCRouter({
 
       // Note: findFirst not supported by wrapper, using findMany
       const [adminActions, securityEvents, loginAttempts, lastLoginArray] = await Promise.all([
-        prisma.admin_audit_log.count({
+        ctx.db.admin_audit_log.count({
           where: {
             user_id: userId,
             created_at: { gte: startDate },
           },
         }),
-        prisma.security_audit_log.count({
+        ctx.db.security_audit_log.count({
           where: {
             user_id: userId,
             event_time: { gte: startDate },
           },
         }),
-        prisma.sso_login_audit.count({
+        ctx.db.sso_login_audit.count({
           where: {
             user_id: userId,
             login_time: { gte: startDate },
           },
         }),
-        prisma.sso_login_audit.findMany({
+        ctx.db.sso_login_audit.findMany({
           where: {
             user_id: userId,
             success: true,

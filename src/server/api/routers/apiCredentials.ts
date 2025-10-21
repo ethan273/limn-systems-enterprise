@@ -2,10 +2,8 @@ import { z } from 'zod';
 import { createTRPCRouter, superAdminProcedure } from '../trpc/init';
 import { encryptCredentials, maskCredential } from '@/lib/encryption/credentials';
 import type { ApiCredentialWithRelations } from '@/types/api-credentials';
-import { PrismaClient } from '@prisma/client';
 
 // Direct Prisma client for accessing users table (not exposed by Supabase wrapper)
-const prisma = new PrismaClient();
 
 export const apiCredentialsRouter = createTRPCRouter({
   /**
@@ -26,7 +24,7 @@ export const apiCredentialsRouter = createTRPCRouter({
       });
 
       // Fetch user data separately
-      const users = await prisma.users.findMany({
+      const users = await ctx.db.users.findMany({
         where: { id: { in: Array.from(userIds) } },
       });
 
@@ -64,7 +62,7 @@ export const apiCredentialsRouter = createTRPCRouter({
         // Fetch related user data separately
         const userIds = [credential.created_by, credential.updated_by].filter((id): id is string => !!id);
         const users = userIds.length > 0
-          ? await prisma.users.findMany({ where: { id: { in: userIds } } })
+          ? await ctx.db.users.findMany({ where: { id: { in: userIds } } })
           : [];
 
         const userMap = new Map(users.map(u => [u.id, { email: u.email, id: u.id }]));
@@ -242,7 +240,7 @@ export const apiCredentialsRouter = createTRPCRouter({
 
       // Fetch user data separately if needed
       const users = userIds.size > 0
-        ? await prisma.users.findMany({ where: { id: { in: Array.from(userIds) } } })
+        ? await ctx.db.users.findMany({ where: { id: { in: Array.from(userIds) } } })
         : [];
 
       const userMap = new Map(users.map(u => [u.id, { email: u.email, id: u.id }]));

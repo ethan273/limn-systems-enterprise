@@ -12,7 +12,6 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc/init";
 import { TRPCError } from "@trpc/server";
 import { features } from "@/lib/features";
-import { PrismaClient } from "@prisma/client";
 import {
   validateTOCStructure,
   createEmptyTOC,
@@ -22,8 +21,6 @@ import {
 import type { TOCData, TOCItem } from "@/types/flipbook-navigation";
 import { TOC_VALIDATION } from "@/types/flipbook-navigation";
 
-// Create Prisma client instance (same pattern as CRM and Partners routers)
-const prisma = new PrismaClient();
 
 /**
  * Input validation schemas
@@ -151,7 +148,7 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Query flipbooks
-      const flipbooks = await prisma.flipbooks.findMany({
+      const flipbooks = await ctx.db.flipbooks.findMany({
         where,
         take: limit,
         orderBy: { created_at: "desc" },
@@ -193,7 +190,7 @@ export const flipbooksRouter = createTRPCRouter({
         });
       }
 
-      const flipbook = await prisma.flipbooks.findUnique({
+      const flipbook = await ctx.db.flipbooks.findUnique({
         where: { id: input.id },
         include: {
           user_profiles: {
@@ -243,7 +240,7 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Increment view count
-      await prisma.flipbooks.update({
+      await ctx.db.flipbooks.update({
         where: { id: input.id },
         data: { view_count: { increment: 1 } },
       });
@@ -274,7 +271,7 @@ export const flipbooksRouter = createTRPCRouter({
           status: "DRAFT",
         });
 
-        const flipbook = await prisma.flipbooks.create({
+        const flipbook = await ctx.db.flipbooks.create({
           data: {
             title: input.title,
             description: input.description,
@@ -325,7 +322,7 @@ export const flipbooksRouter = createTRPCRouter({
       const { id, ...data } = input;
 
       // Check if flipbook exists and user has permission
-      const existing = await prisma.flipbooks.findUnique({
+      const existing = await ctx.db.flipbooks.findUnique({
         where: { id },
         select: { created_by_id: true, status: true },
       });
@@ -350,7 +347,7 @@ export const flipbooksRouter = createTRPCRouter({
         updateData.published_at = new Date();
       }
 
-      const flipbook = await prisma.flipbooks.update({
+      const flipbook = await ctx.db.flipbooks.update({
         where: { id },
         data: updateData,
         include: {
@@ -382,7 +379,7 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Check if flipbook exists and user has permission
-      const existing = await prisma.flipbooks.findUnique({
+      const existing = await ctx.db.flipbooks.findUnique({
         where: { id: input.id },
         select: { created_by_id: true },
       });
@@ -402,7 +399,7 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Delete flipbook (cascade will delete related pages, hotspots, versions, analytics)
-      await prisma.flipbooks.delete({
+      await ctx.db.flipbooks.delete({
         where: { id: input.id },
       });
 
@@ -424,7 +421,7 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Check if flipbook exists and user has permission
-      const flipbook = await prisma.flipbooks.findUnique({
+      const flipbook = await ctx.db.flipbooks.findUnique({
         where: { id: input.id },
         select: {
           created_by_id: true,
@@ -447,7 +444,7 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Aggregate analytics events
-      const events = await prisma.analytics_events.findMany({
+      const events = await ctx.db.analytics_events.findMany({
         where: { flipbook_id: input.id },
       });
 
@@ -487,7 +484,7 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Get page with flipbook info for permission check
-      const page = await prisma.flipbook_pages.findUnique({
+      const page = await ctx.db.flipbook_pages.findUnique({
         where: { id: input.pageId },
         include: { flipbooks: { select: { created_by_id: true } } },
       });
@@ -506,7 +503,7 @@ export const flipbooksRouter = createTRPCRouter({
         });
       }
 
-      await prisma.flipbook_pages.delete({
+      await ctx.db.flipbook_pages.delete({
         where: { id: input.pageId },
       });
 
@@ -530,7 +527,7 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Check permissions
-      const flipbook = await prisma.flipbooks.findUnique({
+      const flipbook = await ctx.db.flipbooks.findUnique({
         where: { id: input.flipbookId },
         select: { created_by_id: true },
       });
@@ -546,7 +543,7 @@ export const flipbooksRouter = createTRPCRouter({
       for (let i = 0; i < input.pageIds.length; i++) {
         // eslint-disable-next-line security/detect-object-injection
         const pageId = input.pageIds[i]; // Safe: i is bounds-checked loop index
-        await prisma.flipbook_pages.update({
+        await ctx.db.flipbook_pages.update({
           where: { id: pageId },
           data: { page_number: i + 1 },
         });
@@ -581,7 +578,7 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Check permissions via page
-      const page = await prisma.flipbook_pages.findUnique({
+      const page = await ctx.db.flipbook_pages.findUnique({
         where: { id: input.pageId },
         include: { flipbooks: { select: { created_by_id: true } } },
       });
@@ -593,7 +590,7 @@ export const flipbooksRouter = createTRPCRouter({
         });
       }
 
-      const hotspot = await prisma.hotspots.create({
+      const hotspot = await ctx.db.hotspots.create({
         data: {
           page_id: input.pageId,
           hotspot_type: "PRODUCT_LINK",
@@ -641,7 +638,7 @@ export const flipbooksRouter = createTRPCRouter({
       const { hotspotId, xPercent, yPercent, width, height } = input;
 
       // Check permissions
-      const hotspot = await prisma.hotspots.findUnique({
+      const hotspot = await ctx.db.hotspots.findUnique({
         where: { id: hotspotId },
         include: {
           flipbook_pages: {
@@ -666,7 +663,7 @@ export const flipbooksRouter = createTRPCRouter({
       if (width !== undefined) updateData.width = width;
       if (height !== undefined) updateData.height = height;
 
-      const updated = await prisma.hotspots.update({
+      const updated = await ctx.db.hotspots.update({
         where: { id: hotspotId },
         data: updateData,
         include: {
@@ -699,7 +696,7 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Check permissions
-      const hotspot = await prisma.hotspots.findUnique({
+      const hotspot = await ctx.db.hotspots.findUnique({
         where: { id: input.hotspotId },
         include: {
           flipbook_pages: {
@@ -717,7 +714,7 @@ export const flipbooksRouter = createTRPCRouter({
         });
       }
 
-      await prisma.hotspots.delete({
+      await ctx.db.hotspots.delete({
         where: { id: input.hotspotId },
       });
 
@@ -744,7 +741,7 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Check if flipbook exists and user has permission
-      const flipbook = await prisma.flipbooks.findUnique({
+      const flipbook = await ctx.db.flipbooks.findUnique({
         where: { id: input.flipbookId },
         select: {
           id: true,
@@ -776,7 +773,7 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Save to database
-      const updated = await prisma.flipbooks.update({
+      const updated = await ctx.db.flipbooks.update({
         where: { id: input.flipbookId },
         data: {
           toc_data: input.tocData as any,
@@ -813,7 +810,7 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Check if flipbook exists and user has permission
-      const flipbook = await prisma.flipbooks.findUnique({
+      const flipbook = await ctx.db.flipbooks.findUnique({
         where: { id: input.flipbookId },
         select: {
           id: true,
@@ -861,7 +858,7 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Check if flipbook exists and user has permission
-      const flipbook = await prisma.flipbooks.findUnique({
+      const flipbook = await ctx.db.flipbooks.findUnique({
         where: { id: input.flipbookId },
         select: {
           id: true,
@@ -899,7 +896,7 @@ export const flipbooksRouter = createTRPCRouter({
       };
 
       // Save to database
-      const updated = await prisma.flipbooks.update({
+      const updated = await ctx.db.flipbooks.update({
         where: { id: input.flipbookId },
         data: {
           toc_data: tocData as any,
@@ -935,7 +932,7 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Check if flipbook exists and user has permission
-      const flipbook = await prisma.flipbooks.findUnique({
+      const flipbook = await ctx.db.flipbooks.findUnique({
         where: { id: input.flipbookId },
         select: {
           id: true,
@@ -958,7 +955,7 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Clear TOC data
-      await prisma.flipbooks.update({
+      await ctx.db.flipbooks.update({
         where: { id: input.flipbookId },
         data: {
           toc_data: null as any,
@@ -984,7 +981,7 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Check if flipbook exists and user has permission
-      const flipbook = await prisma.flipbooks.findUnique({
+      const flipbook = await ctx.db.flipbooks.findUnique({
         where: { id: input.flipbookId },
         select: {
           id: true,
@@ -1027,7 +1024,7 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Save to database
-      const updated = await prisma.flipbooks.update({
+      const updated = await ctx.db.flipbooks.update({
         where: { id: input.flipbookId },
         data: {
           toc_data: tocData as any,
@@ -1062,7 +1059,7 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Check if flipbook exists and user has permission
-      const flipbook = await prisma.flipbooks.findUnique({
+      const flipbook = await ctx.db.flipbooks.findUnique({
         where: { id: input.flipbookId },
         select: {
           id: true,
@@ -1132,7 +1129,7 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Check if flipbook exists and user has permission
-      const flipbook = await prisma.flipbooks.findUnique({
+      const flipbook = await ctx.db.flipbooks.findUnique({
         where: { id: input.flipbookId },
         select: { id: true, created_by_id: true },
       });
@@ -1153,7 +1150,7 @@ export const flipbooksRouter = createTRPCRouter({
 
       // Check if vanity slug is already taken
       if (input.vanitySlug) {
-        const existing = await prisma.flipbook_share_links.findUnique({
+        const existing = await ctx.db.flipbook_share_links.findUnique({
           where: { vanity_slug: input.vanitySlug },
         });
 
@@ -1171,7 +1168,7 @@ export const flipbooksRouter = createTRPCRouter({
       ).join('');
 
       // Create share link
-      const shareLink = await prisma.flipbook_share_links.create({
+      const shareLink = await ctx.db.flipbook_share_links.create({
         data: {
           flipbook_id: input.flipbookId,
           created_by_id: ctx.session.user.id,
@@ -1208,7 +1205,7 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Check permission
-      const flipbook = await prisma.flipbooks.findUnique({
+      const flipbook = await ctx.db.flipbooks.findUnique({
         where: { id: input.flipbookId },
         select: { created_by_id: true },
       });
@@ -1227,7 +1224,7 @@ export const flipbooksRouter = createTRPCRouter({
         });
       }
 
-      const shareLinks = await prisma.flipbook_share_links.findMany({
+      const shareLinks = await ctx.db.flipbook_share_links.findMany({
         where: { flipbook_id: input.flipbookId },
         orderBy: { created_at: 'desc' },
       });
@@ -1241,7 +1238,7 @@ export const flipbooksRouter = createTRPCRouter({
   getShareLinkByToken: protectedProcedure
     .input(z.object({ token: z.string() }))
     .query(async ({ input }) => {
-      const shareLink = await prisma.flipbook_share_links.findUnique({
+      const shareLink = await ctx.db.flipbook_share_links.findUnique({
         where: { token: input.token },
         include: {
           flipbooks: {
@@ -1314,7 +1311,7 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Check permission
-      const shareLink = await prisma.flipbook_share_links.findUnique({
+      const shareLink = await ctx.db.flipbook_share_links.findUnique({
         where: { id: input.id },
         select: { created_by_id: true },
       });
@@ -1333,7 +1330,7 @@ export const flipbooksRouter = createTRPCRouter({
         });
       }
 
-      const updated = await prisma.flipbook_share_links.update({
+      const updated = await ctx.db.flipbook_share_links.update({
         where: { id: input.id },
         data: {
           label: input.label,
@@ -1360,7 +1357,7 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Check permission
-      const shareLink = await prisma.flipbook_share_links.findUnique({
+      const shareLink = await ctx.db.flipbook_share_links.findUnique({
         where: { id: input.id },
         select: { created_by_id: true },
       });
@@ -1379,7 +1376,7 @@ export const flipbooksRouter = createTRPCRouter({
         });
       }
 
-      await prisma.flipbook_share_links.delete({
+      await ctx.db.flipbook_share_links.delete({
         where: { id: input.id },
       });
 
@@ -1401,7 +1398,7 @@ export const flipbooksRouter = createTRPCRouter({
     )
     .mutation(async ({ input }) => {
       // Find share link
-      const shareLink = await prisma.flipbook_share_links.findUnique({
+      const shareLink = await ctx.db.flipbook_share_links.findUnique({
         where: { token: input.token },
       });
 
@@ -1410,7 +1407,7 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Create view record
-      await prisma.share_link_views.create({
+      await ctx.db.share_link_views.create({
         data: {
           share_link_id: shareLink.id,
           viewer_ip: input.viewerIp,
@@ -1421,7 +1418,7 @@ export const flipbooksRouter = createTRPCRouter({
       });
 
       // Update view count
-      await prisma.flipbook_share_links.update({
+      await ctx.db.flipbook_share_links.update({
         where: { id: shareLink.id },
         data: {
           view_count: { increment: 1 },
@@ -1450,7 +1447,7 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Permission check
-      const flipbook = await prisma.flipbooks.findUnique({
+      const flipbook = await ctx.db.flipbooks.findUnique({
         where: { id: input.flipbookId },
         select: { created_by_id: true },
       });
@@ -1474,7 +1471,7 @@ export const flipbooksRouter = createTRPCRouter({
       startDate.setDate(startDate.getDate() - input.days);
 
       // Get share links
-      const shareLinks = await prisma.flipbook_share_links.findMany({
+      const shareLinks = await ctx.db.flipbook_share_links.findMany({
         where: { flipbook_id: input.flipbookId },
         select: {
           id: true,
@@ -1491,7 +1488,7 @@ export const flipbooksRouter = createTRPCRouter({
       const totalUniqueViews = shareLinks.reduce((sum, link) => sum + link.unique_view_count, 0);
 
       // Get views over time (last N days)
-      const viewsByDay = await prisma.$queryRaw<Array<{ date: Date; views: bigint }>>`
+      const viewsByDay = await ctx.db.$queryRaw<Array<{ date: Date; views: bigint }>>`
         SELECT
           DATE(viewed_at) as date,
           COUNT(*) as views
@@ -1518,7 +1515,7 @@ export const flipbooksRouter = createTRPCRouter({
         }));
 
       // Get referrer breakdown
-      const referrers = await prisma.$queryRaw<Array<{ referrer: string | null; count: bigint }>>`
+      const referrers = await ctx.db.$queryRaw<Array<{ referrer: string | null; count: bigint }>>`
         SELECT
           COALESCE(referrer, 'Direct') as referrer,
           COUNT(*) as count
@@ -1566,7 +1563,7 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Permission check
-      const shareLink = await prisma.flipbook_share_links.findUnique({
+      const shareLink = await ctx.db.flipbook_share_links.findUnique({
         where: { id: input.shareLinkId },
         select: {
           created_by_id: true,
@@ -1595,7 +1592,7 @@ export const flipbooksRouter = createTRPCRouter({
       startDate.setDate(startDate.getDate() - input.days);
 
       // Get views over time
-      const viewsByDay = await prisma.$queryRaw<Array<{ date: Date; views: bigint }>>`
+      const viewsByDay = await ctx.db.$queryRaw<Array<{ date: Date; views: bigint }>>`
         SELECT
           DATE(viewed_at) as date,
           COUNT(*) as views
@@ -1607,7 +1604,7 @@ export const flipbooksRouter = createTRPCRouter({
       `;
 
       // Get hourly distribution (for heat map)
-      const viewsByHour = await prisma.$queryRaw<Array<{ hour: number; views: bigint }>>`
+      const viewsByHour = await ctx.db.$queryRaw<Array<{ hour: number; views: bigint }>>`
         SELECT
           EXTRACT(HOUR FROM viewed_at) as hour,
           COUNT(*) as views
@@ -1619,7 +1616,7 @@ export const flipbooksRouter = createTRPCRouter({
       `;
 
       // Get recent views
-      const recentViews = await prisma.share_link_views.findMany({
+      const recentViews = await ctx.db.share_link_views.findMany({
         where: {
           share_link_id: input.shareLinkId,
           viewed_at: { gte: startDate },
