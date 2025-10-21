@@ -1,8 +1,7 @@
 "use client";
 
-import { features } from "@/lib/features";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { api } from "@/lib/api/client";
 import { BookOpen, Eye, Pencil, Trash2, Upload, AlertTriangle, RefreshCw } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -73,21 +72,7 @@ export default function FlipbooksPage() {
   };
 
   // Query flipbooks with unified params
-  const { data, isLoading, error } = api.flipbooks.list.useQuery(queryParams, {
-    enabled: features.flipbooks, // Only query if feature is enabled
-  });
-
-  // Redirect if feature is disabled
-  useEffect(() => {
-    if (!features.flipbooks) {
-      router.push("/");
-    }
-  }, [router]);
-
-  // Don't render if feature is disabled
-  if (!features.flipbooks) {
-    return null;
-  }
+  const { data, isLoading, error } = api.flipbooks.list.useQuery(queryParams);
 
   const flipbooks = data?.flipbooks || [];
 
