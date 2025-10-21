@@ -51,13 +51,13 @@ export default function AnalyticsDashboardPage() {
   const isLoading = isLoadingStats || isLoadingUsers;
   const error = statsError || usersError;
 
-  // Prepare recently active users data
+  // Prepare recently active users data (sorted by created date since lastSignInAt doesn't exist)
   const recentlyActiveUsers = usersData?.users
     ? usersData.users
-        .filter((u) => u.lastSignInAt)
+        .filter((u) => u.createdAt)
         .sort((a, b) => {
-          const dateA = a.lastSignInAt ? new Date(a.lastSignInAt).getTime() : 0;
-          const dateB = b.lastSignInAt ? new Date(b.lastSignInAt).getTime() : 0;
+          const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
           return dateB - dateA;
         })
         .slice(0, 10)
@@ -91,8 +91,8 @@ export default function AnalyticsDashboardPage() {
       render: (value) => (value as string) || '—',
     },
     {
-      key: 'lastSignInAt',
-      label: 'Last Sign In',
+      key: 'createdAt',
+      label: 'Account Created',
       sortable: true,
       render: (value) => {
         if (!value) return '—';
