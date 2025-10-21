@@ -3608,11 +3608,11 @@ export class DatabaseClient {
 
   admin_audit_log = {
     findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('admin_audit_log', options),
-    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.findUniqueGeneric<Record<string, any>>('admin_audit_log', options),
-    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.createGeneric<Record<string, any>>('admin_audit_log', options),
-    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.updateGeneric<Record<string, any>>('admin_audit_log', options),
     delete: (options: { where: Record<string, any> }) =>
       this.deleteGeneric('admin_audit_log', options),
@@ -3626,11 +3626,11 @@ export class DatabaseClient {
 
   admin_settings = {
     findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('admin_settings', options),
-    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.findUniqueGeneric<Record<string, any>>('admin_settings', options),
-    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.createGeneric<Record<string, any>>('admin_settings', options),
-    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.updateGeneric<Record<string, any>>('admin_settings', options),
     delete: (options: { where: Record<string, any> }) =>
       this.deleteGeneric('admin_settings', options),
@@ -3644,11 +3644,11 @@ export class DatabaseClient {
 
   analytics_events = {
     findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('analytics_events', options),
-    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.findUniqueGeneric<Record<string, any>>('analytics_events', options),
-    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.createGeneric<Record<string, any>>('analytics_events', options),
-    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.updateGeneric<Record<string, any>>('analytics_events', options),
     delete: (options: { where: Record<string, any> }) =>
       this.deleteGeneric('analytics_events', options),
@@ -3662,11 +3662,11 @@ export class DatabaseClient {
 
   default_permissions = {
     findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('default_permissions', options),
-    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.findUniqueGeneric<Record<string, any>>('default_permissions', options),
-    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.createGeneric<Record<string, any>>('default_permissions', options),
-    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.updateGeneric<Record<string, any>>('default_permissions', options),
     delete: (options: { where: Record<string, any> }) =>
       this.deleteGeneric('default_permissions', options),
@@ -3680,11 +3680,11 @@ export class DatabaseClient {
 
   flipbook_pages = {
     findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('flipbook_pages', options),
-    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.findUniqueGeneric<Record<string, any>>('flipbook_pages', options),
-    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.createGeneric<Record<string, any>>('flipbook_pages', options),
-    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.updateGeneric<Record<string, any>>('flipbook_pages', options),
     delete: (options: { where: Record<string, any> }) =>
       this.deleteGeneric('flipbook_pages', options),
@@ -3698,11 +3698,11 @@ export class DatabaseClient {
 
   flipbook_share_links = {
     findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('flipbook_share_links', options),
-    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.findUniqueGeneric<Record<string, any>>('flipbook_share_links', options),
-    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.createGeneric<Record<string, any>>('flipbook_share_links', options),
-    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.updateGeneric<Record<string, any>>('flipbook_share_links', options),
     delete: (options: { where: Record<string, any> }) =>
       this.deleteGeneric('flipbook_share_links', options),
@@ -3716,11 +3716,11 @@ export class DatabaseClient {
 
   flipbooks = {
     findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('flipbooks', options),
-    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.findUniqueGeneric<Record<string, any>>('flipbooks', options),
-    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.createGeneric<Record<string, any>>('flipbooks', options),
-    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.updateGeneric<Record<string, any>>('flipbooks', options),
     delete: (options: { where: Record<string, any> }) =>
       this.deleteGeneric('flipbooks', options),
@@ -3734,11 +3734,11 @@ export class DatabaseClient {
 
   hotspots = {
     findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('hotspots', options),
-    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.findUniqueGeneric<Record<string, any>>('hotspots', options),
-    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.createGeneric<Record<string, any>>('hotspots', options),
-    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.updateGeneric<Record<string, any>>('hotspots', options),
     delete: (options: { where: Record<string, any> }) =>
       this.deleteGeneric('hotspots', options),
@@ -3752,11 +3752,11 @@ export class DatabaseClient {
 
   security_audit_log = {
     findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('security_audit_log', options),
-    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.findUniqueGeneric<Record<string, any>>('security_audit_log', options),
-    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.createGeneric<Record<string, any>>('security_audit_log', options),
-    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.updateGeneric<Record<string, any>>('security_audit_log', options),
     delete: (options: { where: Record<string, any> }) =>
       this.deleteGeneric('security_audit_log', options),
@@ -3770,11 +3770,11 @@ export class DatabaseClient {
 
   share_link_views = {
     findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('share_link_views', options),
-    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.findUniqueGeneric<Record<string, any>>('share_link_views', options),
-    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.createGeneric<Record<string, any>>('share_link_views', options),
-    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.updateGeneric<Record<string, any>>('share_link_views', options),
     delete: (options: { where: Record<string, any> }) =>
       this.deleteGeneric('share_link_views', options),
@@ -3788,11 +3788,11 @@ export class DatabaseClient {
 
   sso_login_audit = {
     findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('sso_login_audit', options),
-    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.findUniqueGeneric<Record<string, any>>('sso_login_audit', options),
-    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.createGeneric<Record<string, any>>('sso_login_audit', options),
-    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.updateGeneric<Record<string, any>>('sso_login_audit', options),
     delete: (options: { where: Record<string, any> }) =>
       this.deleteGeneric('sso_login_audit', options),
@@ -3806,11 +3806,11 @@ export class DatabaseClient {
 
   user_permissions = {
     findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('user_permissions', options),
-    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.findUniqueGeneric<Record<string, any>>('user_permissions', options),
-    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.createGeneric<Record<string, any>>('user_permissions', options),
-    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.updateGeneric<Record<string, any>>('user_permissions', options),
     delete: (options: { where: Record<string, any> }) =>
       this.deleteGeneric('user_permissions', options),
@@ -3824,11 +3824,11 @@ export class DatabaseClient {
 
   user_roles = {
     findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('user_roles', options),
-    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.findUniqueGeneric<Record<string, any>>('user_roles', options),
-    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.createGeneric<Record<string, any>>('user_roles', options),
-    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.updateGeneric<Record<string, any>>('user_roles', options),
     delete: (options: { where: Record<string, any> }) =>
       this.deleteGeneric('user_roles', options),
@@ -3842,11 +3842,11 @@ export class DatabaseClient {
 
   users = {
     findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('users', options),
-    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.findUniqueGeneric<Record<string, any>>('users', options),
-    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.createGeneric<Record<string, any>>('users', options),
-    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.updateGeneric<Record<string, any>>('users', options),
     delete: (options: { where: Record<string, any> }) =>
       this.deleteGeneric('users', options),
@@ -3858,8 +3858,6 @@ export class DatabaseClient {
       this.countGeneric('users', options),
   };
 
-
-  // =====================================================
   // USER METHODS
   // =====================================================
 
