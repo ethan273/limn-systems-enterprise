@@ -737,8 +737,64 @@ Everything else follows from this.
 
 ---
 
+## Database Permissions Standard (CRITICAL)
+
+**MANDATORY REQUIREMENT - Prime Directive Compliance**
+
+### Production Database Configuration
+
+**Production Database**: `hwaxogapihsqleyzpqtj` (from `.env.vercel.production`)
+**Dev Database**: `gwqkbjymbarkufwvdmar` (from `.env`)
+
+**CRITICAL**: Always verify you're using the correct database for your environment!
+
+### Schema-Wide Permissions (REQUIRED)
+
+All production databases MUST have schema-wide permissions configured:
+
+```sql
+-- Grant schema-wide permissions
+GRANT USAGE ON SCHEMA public TO authenticated, service_role, anon;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO authenticated, service_role, anon;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO authenticated, service_role, anon;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO authenticated, service_role, anon;
+
+-- Set default privileges for FUTURE tables (CRITICAL!)
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO authenticated, service_role, anon;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO authenticated, service_role, anon;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT EXECUTE ON FUNCTIONS TO authenticated, service_role, anon;
+```
+
+### Special Case: user_profiles Table
+
+The `user_profiles` table MUST have RLS disabled to allow middleware authentication checks:
+
+```sql
+ALTER TABLE public.user_profiles DISABLE ROW LEVEL SECURITY;
+GRANT ALL ON public.user_profiles TO authenticated, service_role, anon;
+```
+
+**Why**: Middleware needs to check `user_type` for admin access control. RLS policies block this.
+
+### Symptoms of Missing Permissions
+
+- Admin navigation links not working
+- 500 errors on module pages
+- "permission denied for table X" errors
+- Middleware authentication failures
+
+### Solution
+
+Apply schema-wide permissions as documented above. Individual table permissions are insufficient and error-prone.
+
+**Reference**: See `/limn-systems-enterprise-docs/07-DEVELOPMENT-GUIDES/DATABASE-PERMISSIONS-GUIDE.md` for complete documentation.
+
+**Status**: ✅ APPLIED on production (Oct 21, 2025)
+
+---
+
 **Document Status**: ✅ PRIME DIRECTIVE
 **Authority Level**: MAXIMUM - Overrides all other instructions
-**Last Updated**: January 13, 2025
+**Last Updated**: October 21, 2025
 **Review Frequency**: Before every task
 **Compliance**: Mandatory, no exceptions
