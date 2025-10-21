@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { api } from "@/lib/api/client";
-import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -51,7 +50,8 @@ type EntityType = 'client' | 'project' | 'order' | 'collection' | 'item' | 'desi
 type LinkType = 'related' | 'blocks' | 'depends_on';
 
 export default function TaskEntityLinks({ taskId, onUpdate }: TaskEntityLinksProps) {
- const { user } = useAuth();
+ // Get current user from tRPC (standardized auth pattern)
+ const { data: currentUser } = api.userProfile.getCurrentUser.useQuery();
  const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
  const [selectedEntityType, setSelectedEntityType] = useState<EntityType>('client');
  const [selectedLinkType, setSelectedLinkType] = useState<LinkType>('related');
@@ -77,8 +77,8 @@ export default function TaskEntityLinks({ taskId, onUpdate }: TaskEntityLinksPro
  },
  });
 
- // Get current user ID from auth
- const currentUserId = user?.id;
+ // Get current user ID from auth (extract to variable for reuse)
+ const currentUserId = currentUser?.id;
 
  const handleAddEntityLink = () => {
  if (!currentUserId || !selectedEntityId || !selectedEntityName) {

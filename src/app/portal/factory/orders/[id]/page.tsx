@@ -2,7 +2,6 @@
 
 import { use, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
 import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -37,7 +36,8 @@ interface FactoryOrderDetailPageProps {
 export default function FactoryOrderDetailPage({ params }: FactoryOrderDetailPageProps) {
   const { id } = use(params);
   const router = useRouter();
-  const { user: currentUser, loading: userLoading } = useAuth();
+  // Get current user from tRPC (standardized auth pattern)
+  const { data: currentUser, isLoading: userLoading } = api.userProfile.getCurrentUser.useQuery();
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();

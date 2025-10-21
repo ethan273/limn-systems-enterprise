@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { api } from "@/lib/api/client";
-import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,7 +31,8 @@ interface TaskCreateFormProps {
 }
 
 export default function TaskCreateForm({ onSuccess, onCancel }: TaskCreateFormProps) {
- const { user } = useAuth();
+ // Get current user from tRPC (standardized auth pattern)
+ const { data: currentUser } = api.userProfile.getCurrentUser.useQuery();
  const [isSubmitting, setIsSubmitting] = useState(false);
  const [title, setTitle] = useState("");
  const [description, setDescription] = useState("");
@@ -47,8 +47,8 @@ export default function TaskCreateForm({ onSuccess, onCancel }: TaskCreateFormPr
  const [newTag, setNewTag] = useState("");
  const [visibility, setVisibility] = useState<"company" | "project" | "private">("company");
 
- // Get current user ID from auth
- const currentUserId = user?.id;
+ // Get current user ID from auth (extract to variable for reuse)
+ const currentUserId = currentUser?.id;
 
  // Load users data via tRPC
  const { data: usersData, isLoading: loadingUsers } = api.users.getAllUsers.useQuery({

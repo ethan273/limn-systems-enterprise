@@ -2,7 +2,6 @@
 
 import { useState, useRef, useCallback } from "react";
 import { api } from "@/lib/api/client";
-import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import {
  Dialog,
@@ -39,7 +38,8 @@ interface TaskAttachmentsProps {
 }
 
 export default function TaskAttachments({ taskId, onUpdate }: TaskAttachmentsProps) {
- const { user } = useAuth();
+ // Get current user from tRPC (standardized auth pattern)
+ const { data: currentUser } = api.userProfile.getCurrentUser.useQuery();
  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
@@ -65,8 +65,8 @@ export default function TaskAttachments({ taskId, onUpdate }: TaskAttachmentsPro
  },
  });
 
- // Get current user ID from auth
- const currentUserId = user?.id;
+ // Get current user ID from auth (extract to variable for reuse)
+ const currentUserId = currentUser?.id;
 
  const handleDeleteAttachment = (attachmentId: string) => {
  if (!currentUserId) return;

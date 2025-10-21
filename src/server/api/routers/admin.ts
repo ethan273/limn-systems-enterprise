@@ -85,6 +85,7 @@ export const adminRouter = createTRPCRouter({
 
   /**
    * List all users with optional search and filtering
+   * FIXED: Query user_profiles only (all user data is here, no need for auth.users join)
    */
   users: createTRPCRouter({
     list: adminProcedure
@@ -100,99 +101,70 @@ export const adminRouter = createTRPCRouter({
       .query(async ({ input, ctx }) => {
         const { search, userType, isActive, limit, offset } = input;
 
-        // Build where clause
+        // Build where clause - query user_profiles directly
         const where: any = {};
 
-        // Note: Using toLowerCase to avoid Prisma/PostgreSQL compatibility issues with mode: 'insensitive'
+        // Apply user type filter
+        if (userType) {
+          where.user_type = userType as user_type_enum;
+        }
+
+        // Apply active status filter
+        if (isActive !== undefined) {
+          where.is_active = isActive;
+        }
+
+        // Apply search filter across multiple fields
         if (search) {
-          const searchLower = search.toLowerCase();
           where.OR = [
-            { email: { contains: searchLower } },
-            { user_profiles: {
-              OR: [
-                { first_name: { contains: searchLower } },
-                { last_name: { contains: searchLower } },
-                { full_name: { contains: searchLower } },
-                { name: { contains: searchLower } },
-              ]
-            } },
+            { email: { contains: search, mode: 'insensitive' as any } },
+            { name: { contains: search, mode: 'insensitive' as any } },
+            { first_name: { contains: search, mode: 'insensitive' as any } },
+            { last_name: { contains: search, mode: 'insensitive' as any } },
+            { full_name: { contains: search, mode: 'insensitive' as any } },
           ];
         }
 
-        if (userType) {
-          where.user_profiles = { user_type: userType };
-        }
-
-        // Build profile where clause for filtering
-        const profileWhere: any = {};
-        if (userType) {
-          profileWhere.user_type = userType as user_type_enum;
-        }
-        if (isActive !== undefined) {
-          profileWhere.is_active = isActive;
-        }
-
-        // Query profiles first to get filtered user IDs
+        // Query user_profiles with all filters
         const profiles = await ctx.db.user_profiles.findMany({
-          where: profileWhere,
-          select: {
-            id: true,
-            name: true,
-            avatar_url: true,
-            user_type: true,
-            title: true,
-            department: true,
-            is_active: true,
-          },
-        });
-
-        const userIds = profiles.map(p => p.id);
-
-        // Now query users with these IDs and apply search filter
-        const userWhere: any = {
-          id: { in: userIds },
-        };
-
-        if (search) {
-          userWhere.email = { contains: search, mode: 'insensitive' as any };
-        }
-
-        const users = await ctx.db.users.findMany({
-          where: userWhere,
+          where,
           take: limit,
           skip: offset,
           select: {
             id: true,
             email: true,
+            name: true,
+            first_name: true,
+            last_name: true,
+            full_name: true,
+            avatar_url: true,
+            user_type: true,
+            title: true,
+            department: true,
+            is_active: true,
             created_at: true,
             last_sign_in_at: true,
           },
           orderBy: { created_at: 'desc' },
         });
 
-        const total = await ctx.db.users.count({
-          where: userWhere,
+        const total = await ctx.db.user_profiles.count({
+          where,
         });
 
-        // Create profile map for quick lookup
-        const profileMap = new Map(profiles.map(p => [p.id, p]));
-
         return {
-          users: users.map(user => {
-            const profile = profileMap.get(user.id);
-            return {
-              id: user.id,
-              email: user.email,
-              name: getUserFullName(profile) || null,
-              avatarUrl: profile?.avatar_url || null,
-              userType: profile?.user_type || 'employee',
-              title: profile?.title || null,
-              department: profile?.department || null,
-              isActive: profile?.is_active ?? true,
-              lastSignInAt: user.last_sign_in_at,
-              createdAt: user.created_at,
-            };
-          }),
+          users: profiles.map(profile => ({
+            id: profile.id,
+            email: profile.email || null,
+            name: getUserFullName(profile) || null,
+            avatarUrl: profile.avatar_url || null,
+            userType: profile.user_type || 'employee',
+            title: profile.title || null,
+            department: profile.department || null,
+            isActive: profile.is_active ?? true,
+            lastSignInAt: profile.last_sign_in_at,
+            createdAt: profile.created_at,
+          })),
           total,
           hasMore: offset + limit < total,
         };

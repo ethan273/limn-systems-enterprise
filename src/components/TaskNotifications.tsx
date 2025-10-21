@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card as _Card, CardContent as _CardContent, CardHeader as _CardHeader, CardTitle as _CardTitle } from "@/components/ui/card";
@@ -72,11 +71,12 @@ interface TaskNotificationsProps {
 }
 
 export default function TaskNotifications({ onNotificationClick }: TaskNotificationsProps) {
- const { user } = useAuth();
+ // Get current user from tRPC (standardized auth pattern)
+ const { data: currentUser } = api.userProfile.getCurrentUser.useQuery();
  const [isOpen, setIsOpen] = useState(false);
 
- // Get current user ID from auth
- const currentUserId = user?.id;
+ // Get current user ID from auth (extract to variable for reuse)
+ const currentUserId = currentUser?.id;
 
  // Load notifications from API using React Query hook
  const { data: notificationsData, isLoading, refetch } = api.notifications.getNotifications.useQuery(

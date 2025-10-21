@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader as _CardHeader, CardTitle as _CardTitle } from "@/components/ui/card";
@@ -54,7 +53,8 @@ interface TaskTimeTrackingProps {
 
 
 export default function TaskTimeTracking({ taskId, onUpdate }: TaskTimeTrackingProps) {
-  const { user } = useAuth();
+  // Get current user from tRPC (standardized auth pattern)
+  const { data: currentUser } = api.userProfile.getCurrentUser.useQuery();
   const [isTrackingTime, setIsTrackingTime] = useState(false);
   const [currentStartTime, setCurrentStartTime] = useState<Date | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -68,8 +68,8 @@ export default function TaskTimeTracking({ taskId, onUpdate }: TaskTimeTrackingP
   const [editMinutes, setEditMinutes] = useState("");
   const [editDescription, setEditDescription] = useState("");
 
-  // Get current user ID from auth
-  const currentUserId = user?.id;
+  // Get current user ID from auth (extract to variable for reuse)
+  const currentUserId = currentUser?.id;
 
   // Load time entries using React Query
   const { data: timeEntriesData, isLoading: loadingEntries, refetch } = api.tasks.getTimeEntries.useQuery(

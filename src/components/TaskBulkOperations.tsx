@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { api } from "@/lib/api/client";
-import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -76,7 +75,8 @@ export default function TaskBulkOperations({
  onSelectionChange,
  onBulkComplete,
 }: TaskBulkOperationsProps) {
- const { user } = useAuth();
+ // Get current user from tRPC (standardized auth pattern)
+ const { data: currentUser } = api.userProfile.getCurrentUser.useQuery();
  const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
  const [_isPriorityDialogOpen, _setIsPriorityDialogOpen] = useState(false);
  const [_isDepartmentDialogOpen, _setIsDepartmentDialogOpen] = useState(false);
@@ -84,8 +84,8 @@ export default function TaskBulkOperations({
  const [_selectedPriority, _setSelectedPriority] = useState<TaskPriority>('medium');
  const [_selectedDepartment, _setSelectedDepartment] = useState<TaskDepartment>('admin');
 
- // Get current user ID from auth
- const currentUserId = user?.id;
+ // Get current user ID from auth (extract to variable for reuse)
+ const currentUserId = currentUser?.id;
 
  const bulkUpdateStatusMutation = api.tasks.bulkUpdateStatus.useMutation({
  onSuccess: () => {

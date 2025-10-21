@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { api } from "@/lib/api/client";
-import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -34,7 +33,8 @@ interface TaskActivitiesProps {
 type ActivityType = 'comment' | 'status_change' | 'assignment' | 'attachment' | 'entity_linked' | 'task_created';
 
 export default function TaskActivities({ taskId, onUpdate }: TaskActivitiesProps) {
- const { user } = useAuth();
+ // Get current user from tRPC (standardized auth pattern)
+ const { data: currentUser } = api.userProfile.getCurrentUser.useQuery();
  const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
  const [commentText, setCommentText] = useState("");
  const [isSubmitting, setIsSubmitting] = useState(false);
@@ -80,8 +80,8 @@ export default function TaskActivities({ taskId, onUpdate }: TaskActivitiesProps
  },
  });
 
- // Get current user ID from auth
- const currentUserId = user?.id;
+ // Get current user ID from auth (extract to variable for reuse)
+ const currentUserId = currentUser?.id;
 
  const handleAddComment = async () => {
  if (!commentText.trim() || isSubmitting || !currentUserId) return;

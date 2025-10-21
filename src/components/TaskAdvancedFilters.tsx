@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -147,8 +146,8 @@ export default function TaskAdvancedFilters({ onFiltersChange, taskCount = 0 }: 
  }
  };
 
- // Real data from APIs
- const { user: _user } = useAuth();
+ // Get current user from tRPC (standardized auth pattern) - not currently used but available if needed
+ const { data: _currentUser } = api.userProfile.getCurrentUser.useQuery();
 
  // Load users data via tRPC
  const { data: usersData, isLoading: loadingUsers } = api.users.getAllUsers.useQuery({
