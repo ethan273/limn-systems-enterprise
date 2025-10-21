@@ -11,8 +11,6 @@ import { TRPCError } from '@trpc/server';
 import { createTRPCRouter, protectedProcedure } from '../trpc/init';
 import type { Context } from '../trpc/context';
 
-// Use Prisma directly for portal (Phase 3) since hybrid db client doesn't have portal tables yet
-
 /**
  * Portal Middleware - Enforces Customer Portal Access
  * Validates that user has active portal access and returns customerId
