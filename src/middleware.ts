@@ -182,26 +182,25 @@ export async function middleware(request: NextRequest) {
 
   // Admin access control - only admins can access /admin routes
   if (pathname.startsWith('/admin')) {
-    const { data: userData } = await supabase
+    const { data: userData, error: userError } = await supabase
       .from('user_profiles')
       .select('user_type')
       .eq('id', user.id)
       .single();
 
+    // Log query result for debugging
+    console.log(`[ADMIN ACCESS] User: ${user.id}, userData:`, userData, 'error:', userError);
+
     const isAdmin = userData?.user_type === 'super_admin';
 
     if (!isAdmin) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`🚫 Middleware: User ${user.id} denied access to admin area (user_type: ${userData?.user_type})`);
-      }
+      console.log(`🚫 Middleware: User ${user.id} denied access to admin area (user_type: ${userData?.user_type})`);
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = '/dashboard';
       return NextResponse.redirect(redirectUrl);
     }
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`✅ Middleware: User ${user.id} has admin access (user_type: ${userData?.user_type})`);
-    }
+    console.log(`✅ Middleware: User ${user.id} has admin access (user_type: ${userData?.user_type})`);
   }
 
   // Portal access control - verify user has access to specific portal type
