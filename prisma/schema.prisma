@@ -7,7 +7,7 @@ datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
-  schemas   = ["auth", "flipbook", "public"]
+  schemas   = ["auth", "public"]
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -551,7 +551,7 @@ model ai_generation_queue {
   @@index([created_at(sort: Desc)], map: "idx_ai_generation_queue_created_at")
   @@index([status], map: "idx_ai_generation_queue_status")
   @@index([user_id], map: "idx_ai_generation_queue_user")
-  @@schema("flipbook")
+  @@schema("public")
 }
 
 model analytics_events {
@@ -576,7 +576,7 @@ model analytics_events {
   @@index([flipbook_id], map: "idx_analytics_events_flipbook")
   @@index([event_type], map: "idx_analytics_events_type")
   @@index([user_id], map: "idx_analytics_events_user")
-  @@schema("flipbook")
+  @@schema("public")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -600,7 +600,7 @@ model flipbook_pages {
 
   @@unique([flipbook_id, page_number])
   @@index([flipbook_id], map: "idx_flipbook_pages_flipbook")
-  @@schema("flipbook")
+  @@schema("public")
 }
 
 model flipbook_versions {
@@ -618,7 +618,7 @@ model flipbook_versions {
   @@unique([flipbook_id, version_number])
   @@index([created_by_id], map: "idx_flipbook_versions_created_by")
   @@index([flipbook_id], map: "idx_flipbook_versions_flipbook")
-  @@schema("flipbook")
+  @@schema("public")
 }
 
 model flipbook_share_links {
@@ -645,7 +645,7 @@ model flipbook_share_links {
   @@index([token], map: "idx_share_links_token")
   @@index([vanity_slug], map: "idx_share_links_vanity")
   @@index([expires_at], map: "idx_share_links_expiry")
-  @@schema("flipbook")
+  @@schema("public")
 }
 
 model share_link_views {
@@ -663,7 +663,7 @@ model share_link_views {
   @@index([share_link_id], map: "idx_share_views_link")
   @@index([viewed_at], map: "idx_share_views_timestamp")
   @@index([session_id], map: "idx_share_views_session")
-  @@schema("flipbook")
+  @@schema("public")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -696,7 +696,7 @@ model flipbooks {
   @@index([created_at(sort: Desc)], map: "idx_flipbooks_created_at")
   @@index([created_by_id], map: "idx_flipbooks_creator")
   @@index([status], map: "idx_flipbooks_status")
-  @@schema("flipbook")
+  @@schema("public")
 }
 
 model hotspots {
@@ -722,7 +722,7 @@ model hotspots {
   @@index([page_id], map: "idx_hotspots_page")
   @@index([target_product_id], map: "idx_hotspots_target_product")
   @@index([hotspot_type], map: "idx_hotspots_type")
-  @@schema("flipbook")
+  @@schema("public")
 }
 
 model templates {
@@ -745,7 +745,7 @@ model templates {
   @@index([category], map: "idx_templates_category")
   @@index([created_by_id], map: "idx_templates_creator")
   @@index([is_public], map: "idx_templates_public")
-  @@schema("flipbook")
+  @@schema("public")
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -7532,7 +7532,7 @@ enum ai_generation_status {
   COMPLETED
   FAILED
 
-  @@schema("flipbook")
+  @@schema("public")
 }
 
 enum analytics_event_type {
@@ -7544,7 +7544,7 @@ enum analytics_event_type {
   ZOOM
   SEARCH
 
-  @@schema("flipbook")
+  @@schema("public")
 }
 
 enum flipbook_status {
@@ -7552,7 +7552,7 @@ enum flipbook_status {
   PUBLISHED
   ARCHIVED
 
-  @@schema("flipbook")
+  @@schema("public")
 }
 
 enum hotspot_type {
@@ -7565,7 +7565,7 @@ enum hotspot_type {
   FORM
   ADD_TO_CART
 
-  @@schema("flipbook")
+  @@schema("public")
 }
 
 enum page_type {
@@ -7574,7 +7574,7 @@ enum page_type {
   CONTENT
   BACK_COVER
 
-  @@schema("flipbook")
+  @@schema("public")
 }
 
 enum template_category {
@@ -7588,7 +7588,7 @@ enum template_category {
   PRESENTATION
   CUSTOM
 
-  @@schema("flipbook")
+  @@schema("public")
 }
 
 enum address_type {
