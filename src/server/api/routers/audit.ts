@@ -50,7 +50,7 @@ export const auditRouter = createTRPCRouter({
         offset: z.number().min(0).default(0),
       })
     )
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const { search, action, userId, resourceType, dateRange, limit, offset } = input;
 
       // Build where clause
@@ -130,7 +130,7 @@ export const auditRouter = createTRPCRouter({
         offset: z.number().min(0).default(0),
       })
     )
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const { search, action, userId, tableName, dateRange, limit, offset } = input;
 
       const where: any = {};
@@ -211,7 +211,7 @@ export const auditRouter = createTRPCRouter({
         offset: z.number().min(0).default(0),
       })
     )
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const { search, userId, success, loginType, dateRange, limit, offset } = input;
 
       const where: any = {};
@@ -297,7 +297,7 @@ export const auditRouter = createTRPCRouter({
         days: z.number().min(1).max(90).default(30),
       })
     )
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const { days } = input;
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
@@ -410,7 +410,7 @@ export const auditRouter = createTRPCRouter({
         days: z.number().min(1).max(90).default(30),
       })
     )
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const { userId, days } = input;
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);

@@ -198,7 +198,7 @@ export default function PortalDashboard() {
  </div>
  ) : (
  <div className="space-y-4">
- {notificationData?.notifications.map((notification: {
+ {(notificationData?.notifications as Array<{
  id: string;
  type: string;
  title: string;
@@ -206,7 +206,7 @@ export default function PortalDashboard() {
  link: string | null;
  read: boolean;
  created_at: Date | string;
- }) => (
+ }>)?.map((notification) => (
  <div
  key={notification.id}
  className={`flex items-start space-x-3 p-4 rounded-lg border ${

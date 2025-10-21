@@ -1551,11 +1551,11 @@ export class DatabaseClient {
   // User Management
   user_profiles = {
     findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('user_profiles', options),
-    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.findUniqueGeneric<Record<string, any>>('user_profiles', options),
-    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.createGeneric<Record<string, any>>('user_profiles', options),
-    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.updateGeneric<Record<string, any>>('user_profiles', options),
     delete: (options: { where: Record<string, any> }) =>
       this.deleteGeneric('user_profiles', options),
@@ -3632,6 +3632,14 @@ export class DatabaseClient {
       this.createGeneric<Record<string, any>>('admin_settings', options),
     update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.updateGeneric<Record<string, any>>('admin_settings', options),
+    upsert: async (options: { where: Record<string, any>; create: Record<string, any>; update: Record<string, any> }) => {
+      const existing = await this.findUniqueGeneric<any>('admin_settings', { where: options.where });
+      if (existing) {
+        return this.updateGeneric<any>('admin_settings', { where: options.where, data: options.update });
+      } else {
+        return this.createGeneric<any>('admin_settings', { data: { ...options.where, ...options.create } });
+      }
+    },
     delete: (options: { where: Record<string, any> }) =>
       this.deleteGeneric('admin_settings', options),
     createMany: (options: { data: Record<string, any>[] }) =>
@@ -3812,6 +3820,14 @@ export class DatabaseClient {
       this.createGeneric<Record<string, any>>('user_permissions', options),
     update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.updateGeneric<Record<string, any>>('user_permissions', options),
+    upsert: async (options: { where: Record<string, any>; create: Record<string, any>; update: Record<string, any> }) => {
+      const existing = await this.findUniqueGeneric<any>('user_permissions', { where: options.where });
+      if (existing) {
+        return this.updateGeneric<any>('user_permissions', { where: options.where, data: options.update });
+      } else {
+        return this.createGeneric<any>('user_permissions', { data: { ...options.where, ...options.create } });
+      }
+    },
     delete: (options: { where: Record<string, any> }) =>
       this.deleteGeneric('user_permissions', options),
     createMany: (options: { data: Record<string, any>[] }) =>
@@ -3830,6 +3846,14 @@ export class DatabaseClient {
       this.createGeneric<Record<string, any>>('user_roles', options),
     update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
       this.updateGeneric<Record<string, any>>('user_roles', options),
+    upsert: async (options: { where: Record<string, any>; create: Record<string, any>; update: Record<string, any> }) => {
+      const existing = await this.findUniqueGeneric<any>('user_roles', { where: options.where });
+      if (existing) {
+        return this.updateGeneric<any>('user_roles', { where: options.where, data: options.update });
+      } else {
+        return this.createGeneric<any>('user_roles', { data: { ...options.where, ...options.create } });
+      }
+    },
     delete: (options: { where: Record<string, any> }) =>
       this.deleteGeneric('user_roles', options),
     createMany: (options: { data: Record<string, any>[] }) =>
@@ -4057,6 +4081,13 @@ export class DatabaseClient {
       updated_at: raw.updated_at ? new Date(raw.updated_at) : null,
     };
   }
+
+  // =====================================================
+  // RAW QUERY SUPPORT
+  // Expose Prisma's $queryRaw for advanced queries
+  // =====================================================
+  $queryRaw = prisma.$queryRaw.bind(prisma);
+  $queryRawUnsafe = prisma.$queryRawUnsafe.bind(prisma);
 }
 
 // Singleton instance

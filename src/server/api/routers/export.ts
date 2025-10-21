@@ -48,7 +48,7 @@ export const exportRouter = createTRPCRouter({
           .optional(),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const { format, filters } = input;
 
       // Build where clause
@@ -150,7 +150,7 @@ export const exportRouter = createTRPCRouter({
         limit: z.number().min(1).max(10000).default(1000),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const { format, logType, dateRange, limit } = input;
 
       let logs: any[] = [];
@@ -253,7 +253,7 @@ export const exportRouter = createTRPCRouter({
         category: z.string().optional(),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const { format, category } = input;
 
       const where = category ? { category } : {};
@@ -290,7 +290,7 @@ export const exportRouter = createTRPCRouter({
   /**
    * Get export statistics
    */
-  getExportStats: protectedProcedure.query(async () => {
+  getExportStats: protectedProcedure.query(async ({ ctx }) => {
     const [usersCount, adminLogsCount, securityLogsCount, loginLogsCount, settingsCount] = await Promise.all([
       ctx.db.users.count(),
       ctx.db.admin_audit_log.count(),

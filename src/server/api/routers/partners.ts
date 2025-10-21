@@ -192,7 +192,7 @@ export const partnersRouter = createTRPCRouter({
   // Get single partner by ID
   getById: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
-    .query(async ({ ctx: _ctx, input }) => {
+    .query(async ({ ctx, input }) => {
       const partner = await ctx.db.partners.findUnique({
         where: { id: input.id },
         include: {
@@ -315,7 +315,7 @@ export const partnersRouter = createTRPCRouter({
       limit: z.number().min(1).max(100).optional().default(50),
       offset: z.number().min(0).optional().default(0),
     }))
-    .query(async ({ ctx: _ctx, input }) => {
+    .query(async ({ ctx, input }) => {
       const where: Record<string, unknown> = { type: 'designer' };
 
       if (input.status !== "all") {
@@ -361,7 +361,7 @@ export const partnersRouter = createTRPCRouter({
       limit: z.number().min(1).max(100).optional().default(50),
       offset: z.number().min(0).optional().default(0),
     }))
-    .query(async ({ ctx: _ctx, input }) => {
+    .query(async ({ ctx, input }) => {
       const where: Record<string, unknown> = { type: 'factory' };
 
       if (input.status !== "all") {
@@ -407,7 +407,7 @@ export const partnersRouter = createTRPCRouter({
       limit: z.number().min(1).max(100).optional().default(50),
       offset: z.number().min(0).optional().default(0),
     }))
-    .query(async ({ ctx: _ctx, input }) => {
+    .query(async ({ ctx, input }) => {
       const where: Record<string, unknown> = { type: 'sourcing' };
 
       if (input.status !== "all") {
@@ -505,7 +505,7 @@ export const partnersRouter = createTRPCRouter({
           include_inactive: z.boolean().optional().default(false),
         })
       )
-      .query(async ({ ctx: _ctx, input }) => {
+      .query(async ({ ctx, input }) => {
         const where: Record<string, unknown> = {
           partner_id: input.partner_id,
         };
@@ -528,7 +528,7 @@ export const partnersRouter = createTRPCRouter({
     // Get single contact by ID
     getById: protectedProcedure
       .input(z.object({ id: z.string().uuid() }))
-      .query(async ({ ctx: _ctx, input }) => {
+      .query(async ({ ctx, input }) => {
         const contact = await ctx.db.partner_contacts.findUnique({
           where: { id: input.id },
           include: {
@@ -555,7 +555,7 @@ export const partnersRouter = createTRPCRouter({
     // Add contact to partner
     create: protectedProcedure
       .input(partnerContactSchema)
-      .mutation(async ({ ctx: _ctx, input }) => {
+      .mutation(async ({ ctx, input }) => {
         const contact = await ctx.db.partner_contacts.create({
           data: input,
         });
@@ -569,7 +569,7 @@ export const partnersRouter = createTRPCRouter({
           id: z.string().uuid(),
         })
       )
-      .mutation(async ({ ctx: _ctx, input }) => {
+      .mutation(async ({ ctx, input }) => {
         const { id, ...data } = input;
         const contact = await ctx.db.partner_contacts.update({
           where: { id },
@@ -581,7 +581,7 @@ export const partnersRouter = createTRPCRouter({
     // Delete contact (soft delete by setting active to false)
     delete: protectedProcedure
       .input(z.object({ id: z.string().uuid() }))
-      .mutation(async ({ ctx: _ctx, input }) => {
+      .mutation(async ({ ctx, input }) => {
         // TODO: Employment fields (employment_status, employment_end_date) need to be added to schema
         const contact = await ctx.db.partner_contacts.update({
           where: { id: input.id },
@@ -604,7 +604,7 @@ export const partnersRouter = createTRPCRouter({
           send_magic_link: z.boolean().default(false),
         })
       )
-      .mutation(async ({ ctx: _ctx, input }) => {
+      .mutation(async ({ ctx, input }) => {
         const { contact_id, portal_role: _portal_role, portal_modules: _portal_modules, send_magic_link } = input;
 
         // Get the contact to validate it exists and get email
@@ -655,7 +655,7 @@ export const partnersRouter = createTRPCRouter({
     // Revoke portal access
     revokePortalAccess: protectedProcedure
       .input(z.object({ contact_id: z.string().uuid() }))
-      .mutation(async ({ ctx: _ctx, input }) => {
+      .mutation(async ({ ctx, input }) => {
         // TODO: Portal access fields need to be added to schema
         // For now, just return the contact
         const contact = await ctx.db.partner_contacts.findUnique({
@@ -811,7 +811,7 @@ export const partnersRouter = createTRPCRouter({
           partner_type: z.enum(["factory", "designer", "sourcing", "all"]),
         })
       )
-      .query(async ({ ctx: _ctx, input }) => {
+      .query(async ({ ctx, input }) => {
         const where: Record<string, unknown> = {};
 
         if (input.partner_type !== "all") {
@@ -821,7 +821,7 @@ export const partnersRouter = createTRPCRouter({
           ];
         }
 
-        const roles = await _ctx.db.partner_portal_roles.findMany({
+        const roles = await ctx.db.partner_portal_roles.findMany({
           where,
           orderBy: [
             { is_system_role: "desc" },
@@ -839,7 +839,7 @@ export const partnersRouter = createTRPCRouter({
           partner_type: z.enum(["factory", "designer", "sourcing"]),
         })
       )
-      .query(async ({ input }) => {
+      .query(async ({ input, ctx }) => {
         // Define available modules per partner type
         const modulesByType: Record<string, Array<{ key: string; label: string; description: string }>> = {
           factory: [

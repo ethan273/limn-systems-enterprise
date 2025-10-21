@@ -78,7 +78,7 @@ export const contactsRouter = createTRPCRouter({
         orderBy: z.record(z.enum(['asc', 'desc'])).optional(),
       })
     )
-    .query(async ({ ctx: _ctx, input }) => {
+    .query(async ({ ctx, input }) => {
       const where: any = {};
 
       // Search across name fields, email, and company

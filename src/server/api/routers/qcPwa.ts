@@ -816,7 +816,7 @@ export const qcPwaRouter = createTRPCRouter({
       days_back: z.number().default(30),
       limit: z.number().default(20),
     }))
-    .query(async ({ ctx: _ctx, input }) => {
+    .query(async ({ ctx, input }) => {
       const sinceDate = new Date();
       sinceDate.setDate(sinceDate.getDate() - input.days_back);
 
@@ -875,7 +875,7 @@ export const qcPwaRouter = createTRPCRouter({
       factory_id: z.string().uuid().optional(),
       days_back: z.number().default(30),
     }))
-    .query(async ({ ctx: _ctx, input }) => {
+    .query(async ({ ctx, input }) => {
       const sinceDate = new Date();
       sinceDate.setDate(sinceDate.getDate() - input.days_back);
 
@@ -928,7 +928,7 @@ export const qcPwaRouter = createTRPCRouter({
       inspector_id: z.string().uuid().optional(),
       days_back: z.number().default(30),
     }))
-    .query(async ({ ctx: _ctx, input }) => {
+    .query(async ({ ctx, input }) => {
       const sinceDate = new Date();
       sinceDate.setDate(sinceDate.getDate() - input.days_back);
 

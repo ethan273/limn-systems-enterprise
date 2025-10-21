@@ -97,7 +97,7 @@ export const adminRouter = createTRPCRouter({
           offset: z.number().min(0).default(0),
         })
       )
-      .query(async ({ input }) => {
+      .query(async ({ input, ctx }) => {
         const { search, userType, isActive, limit, offset } = input;
 
         // Build where clause
@@ -203,7 +203,7 @@ export const adminRouter = createTRPCRouter({
      */
     get: adminProcedure
       .input(z.object({ userId: z.string().uuid() }))
-      .query(async ({ input }) => {
+      .query(async ({ input, ctx }) => {
         const [user, profile, permissions] = await Promise.all([
           ctx.db.users.findUnique({
             where: { id: input.userId },
@@ -464,7 +464,7 @@ export const adminRouter = createTRPCRouter({
      */
     getUserPermissions: adminProcedure
       .input(z.object({ userId: z.string().uuid() }))
-      .query(async ({ input }) => {
+      .query(async ({ input, ctx }) => {
         const { userId } = input;
 
         // Get user's type
@@ -616,7 +616,7 @@ export const adminRouter = createTRPCRouter({
           }),
         })
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
         const { userId, module, permissions } = input;
 
         // Upsert permission
@@ -654,7 +654,7 @@ export const adminRouter = createTRPCRouter({
      */
     getDefaultPermissions: adminProcedure
       .input(z.object({ userType: userTypeSchema }))
-      .query(async ({ input }) => {
+      .query(async ({ input, ctx }) => {
         const permissions = await ctx.db.default_permissions.findMany({
           where: { user_type: input.userType as user_type_enum },
           orderBy: { module: 'asc' },
@@ -675,7 +675,7 @@ export const adminRouter = createTRPCRouter({
      */
     resetToDefaults: adminProcedure
       .input(z.object({ userId: z.string().uuid() }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
         await ctx.db.user_permissions.deleteMany({
           where: { user_id: input.userId },
         });
@@ -692,7 +692,7 @@ export const adminRouter = createTRPCRouter({
     /**
      * Get all system settings grouped by category
      */
-    getAll: adminProcedure.query(async () => {
+    getAll: adminProcedure.query(async ({ ctx }) => {
       const settings = await ctx.db.admin_settings.findMany({
         orderBy: [{ category: 'asc' }, { key: 'asc' }],
       });
@@ -719,7 +719,7 @@ export const adminRouter = createTRPCRouter({
      */
     getByCategory: adminProcedure
       .input(z.object({ category: z.string() }))
-      .query(async ({ input }) => {
+      .query(async ({ input, ctx }) => {
         const settings = await ctx.db.admin_settings.findMany({
           where: { category: input.category },
           orderBy: { key: 'asc' },
@@ -744,7 +744,7 @@ export const adminRouter = createTRPCRouter({
           value: z.any(),
         })
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
         const { category, key, value } = input;
 
         await ctx.db.admin_settings.upsert({
@@ -778,7 +778,7 @@ export const adminRouter = createTRPCRouter({
           key: z.string(),
         })
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
         await ctx.db.admin_settings.delete({
           where: {
             category_key: {
@@ -802,7 +802,7 @@ export const adminRouter = createTRPCRouter({
      */
     getUserRoles: adminProcedure
       .input(z.object({ userId: z.string().uuid() }))
-      .query(async ({ input }) => {
+      .query(async ({ input, ctx }) => {
         const roles = await ctx.db.user_roles.findMany({
           where: { user_id: input.userId },
           orderBy: { created_at: 'desc' },
@@ -905,7 +905,7 @@ export const adminRouter = createTRPCRouter({
      */
     getUsersByRole: adminProcedure
       .input(z.object({ role: z.string() }))
-      .query(async ({ input }) => {
+      .query(async ({ input, ctx }) => {
         const userRoles = await ctx.db.user_roles.findMany({
           where: { role: input.role },
           include: {
@@ -954,7 +954,7 @@ export const adminRouter = createTRPCRouter({
     /**
      * Get role statistics
      */
-    getRoleStats: adminProcedure.query(async () => {
+    getRoleStats: adminProcedure.query(async ({ ctx }) => {
       // Note: groupBy not supported by wrapper, using findMany + manual grouping
       const allRoles = await ctx.db.user_roles.findMany();
 
@@ -977,7 +977,7 @@ export const adminRouter = createTRPCRouter({
      * Get all portal users across all portal types
      * For portal management dashboard
      */
-    getAllPortalUsers: adminProcedure.query(async () => {
+    getAllPortalUsers: adminProcedure.query(async ({ ctx }) => {
       const portalUsers = await ctx.db.customer_portal_access.findMany({
         include: {
           users_customer_portal_access_user_idTousers: {
@@ -1010,7 +1010,7 @@ export const adminRouter = createTRPCRouter({
           isActive: z.boolean().optional(),
         })
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
         const { id, portalRole, isActive } = input;
 
         const updateData: any = {};
@@ -1034,7 +1034,7 @@ export const adminRouter = createTRPCRouter({
           id: z.string().uuid(),
         })
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
         await ctx.db.customer_portal_access.delete({
           where: { id: input.id },
         });
@@ -1061,7 +1061,7 @@ export const adminRouter = createTRPCRouter({
           entityId: z.string().uuid().optional(), // NULL = defaults
         })
       )
-      .query(async ({ input }) => {
+      .query(async ({ input, ctx }) => {
         const settings = await ctx.db.portal_module_settings.findMany({
           where: {
             portal_type: input.portalType,
@@ -1096,7 +1096,7 @@ export const adminRouter = createTRPCRouter({
           ),
         })
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
         // Upsert each module setting
         // Note: Prisma doesn't support null in unique constraint where clauses
         // So we need to handle this with findMany + create/update
@@ -1181,7 +1181,7 @@ export const adminRouter = createTRPCRouter({
     /**
      * Get all customers for portal configuration dropdown
      */
-    getCustomers: adminProcedure.query(async () => {
+    getCustomers: adminProcedure.query(async ({ ctx }) => {
       const customers = await ctx.db.customers.findMany({
         select: {
           id: true,
@@ -1198,7 +1198,7 @@ export const adminRouter = createTRPCRouter({
     /**
      * Get all partners for portal configuration dropdown
      */
-    getPartners: adminProcedure.query(async () => {
+    getPartners: adminProcedure.query(async ({ ctx }) => {
       const partners = await ctx.db.partners.findMany({
         select: {
           id: true,

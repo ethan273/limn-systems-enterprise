@@ -1237,7 +1237,7 @@ export const flipbooksRouter = createTRPCRouter({
    */
   getShareLinkByToken: protectedProcedure
     .input(z.object({ token: z.string() }))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const shareLink = await ctx.db.flipbook_share_links.findUnique({
         where: { token: input.token },
         include: {
@@ -1396,7 +1396,7 @@ export const flipbooksRouter = createTRPCRouter({
         sessionId: z.string().uuid().optional(),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       // Find share link
       const shareLink = await ctx.db.flipbook_share_links.findUnique({
         where: { token: input.token },
