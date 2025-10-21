@@ -823,7 +823,7 @@ export const qcPwaRouter = createTRPCRouter({
       // Get checkpoint results with counts
       // Use prisma client directly for raw queries
       const { PrismaClient } = await import('@prisma/client');
-      const prisma = new PrismaClient();
+      const _prisma = new PrismaClient();
 
       const results = await ctx.db.$queryRaw<Array<{
         checkpoint_code: string;
@@ -881,7 +881,7 @@ export const qcPwaRouter = createTRPCRouter({
 
       // Use prisma client directly for raw queries
       const { PrismaClient } = await import('@prisma/client');
-      const prisma = new PrismaClient();
+      const _prisma = new PrismaClient();
 
       const metrics = await ctx.db.$queryRaw<Array<{
         factory_id: string;
@@ -934,7 +934,7 @@ export const qcPwaRouter = createTRPCRouter({
 
       // Use prisma client directly for raw queries
       const { PrismaClient } = await import('@prisma/client');
-      const prisma = new PrismaClient();
+      const _prisma = new PrismaClient();
 
       const metrics = await ctx.db.$queryRaw<Array<{
         inspector_id: string;

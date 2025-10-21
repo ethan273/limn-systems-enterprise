@@ -260,7 +260,7 @@ export default function AnalyticsDashboardPage() {
                           <span className="list-item-title">{action.action || 'Unknown'}</span>
                         </div>
                         <Badge variant="outline" className="badge-neutral">
-                          {action.count}
+                          {String(action.count)}
                         </Badge>
                       </div>
                     ))}
