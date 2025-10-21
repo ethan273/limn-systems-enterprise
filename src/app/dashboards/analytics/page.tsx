@@ -57,7 +57,7 @@ export default function AnalyticsDashboardPage() {
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
 
-  const { data: insights, error: insightsError } = api.dashboards.getAnalyticsInsights.useQuery();
+  const { data: insights } = api.dashboards.getAnalyticsInsights.useQuery();
 
   if (isLoading) {
     return (

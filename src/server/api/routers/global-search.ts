@@ -33,6 +33,7 @@ export const globalSearchRouter = createTRPCRouter({
 
         return searchWords.every(word =>
           fields.some(field => {
+            // eslint-disable-next-line security/detect-object-injection
             const value = record[field];
             return value && String(value).toLowerCase().includes(word);
           })

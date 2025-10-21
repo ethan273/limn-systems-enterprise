@@ -72,7 +72,7 @@ export default function FinancialDashboardPage() {
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
 
-  const { data: insights, error: insightsError } = api.dashboards.getFinancialInsights.useQuery(undefined, {
+  const { data: insights } = api.dashboards.getFinancialInsights.useQuery(undefined, {
     refetchInterval: 60000, // Auto-refresh every 60 seconds
   });
 

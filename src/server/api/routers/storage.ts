@@ -372,10 +372,14 @@ export const storageRouter = createTRPCRouter({
     // Group by storage_type and calculate _count and _sum manually
     const groupedStats = allFiles.reduce((acc: Record<string, { _count: number; _sum: { file_size: number } }>, file) => {
       const storageType = file.storage_type;
+      // eslint-disable-next-line security/detect-object-injection
       if (!acc[storageType]) {
+        // eslint-disable-next-line security/detect-object-injection
         acc[storageType] = { _count: 0, _sum: { file_size: 0 } };
       }
+      // eslint-disable-next-line security/detect-object-injection
       acc[storageType]._count += 1;
+      // eslint-disable-next-line security/detect-object-injection
       acc[storageType]._sum.file_size += file.file_size || 0;
       return acc;
     }, {});

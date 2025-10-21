@@ -71,7 +71,7 @@ export default function ManufacturingDashboardPage() {
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
 
-  const { data: insights, error: insightsError } = api.dashboards.getManufacturingInsights.useQuery();
+  const { data: insights } = api.dashboards.getManufacturingInsights.useQuery();
 
   if (isLoading) {
     return (

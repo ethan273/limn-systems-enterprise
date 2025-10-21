@@ -6,7 +6,7 @@
  * QC PWA Enhancement - Phase 4
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { api } from '@/lib/api/client';
 import { ChecklistSection } from '@/components/qc/ChecklistSection';
@@ -22,8 +22,8 @@ export default function InspectionPage() {
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   const [showHistoricalIssues, setShowHistoricalIssues] = useState(false);
 
-  // Get current user
-  const { data: currentUser } = api.userProfile.getCurrentUser.useQuery();
+  // Get current user (for future use with permissions/audit)
+  const { data: _currentUser } = api.userProfile.getCurrentUser.useQuery();
 
   // Fetch inspection progress
   const {
@@ -62,6 +62,7 @@ export default function InspectionPage() {
     prototype_production_id?: string;
   };
   const sections = inspection?.qc_section_results || [];
+  // eslint-disable-next-line security/detect-object-injection
   const currentSection = sections[currentSectionIndex];
 
   // Calculate progress

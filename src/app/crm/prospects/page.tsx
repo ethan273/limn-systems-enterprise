@@ -42,7 +42,6 @@ import {
 import { Button } from "@/components/ui/button";
 
 type ProspectStatus = 'cold' | 'warm' | 'hot';
-type LeadStatus = 'new' | 'contacted' | 'qualified' | 'proposal' | 'negotiation' | 'won' | 'lost';
 
 const PROSPECT_STATUSES: {
   value: ProspectStatus;

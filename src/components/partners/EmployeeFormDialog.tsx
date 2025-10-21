@@ -57,7 +57,7 @@ export function EmployeeFormDialog({
   isOpen,
   onClose,
   partnerId,
-  partnerType,
+  partnerType: _partnerType,
   contactId,
 }: EmployeeFormDialogProps) {
   const utils = api.useUtils();

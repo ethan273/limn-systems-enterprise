@@ -136,7 +136,7 @@ export function CheckpointResult({
   /**
    * Handle photo captured
    */
-  const handlePhotoCapture = async (photoUrl: string) => {
+  const handlePhotoCapture = async (_photoUrl: string) => {
     // Photo uploaded - no need to update count, just trigger refresh
     onResultChange?.();
 

@@ -161,43 +161,43 @@ export default function PrototypeDetailPage({ params }: PageProps) {
  });
 
  // Fetch production details
- const { data: production, error: productionError } = api.prototypes.getProduction.useQuery(
+ const { data: production } = api.prototypes.getProduction.useQuery(
  { prototypeId: id },
  { enabled: !!prototype }
  );
 
  // Fetch milestones
- const { data: milestones, error: milestonesError } = api.prototypes.getMilestones.useQuery(
+ const { data: milestones } = api.prototypes.getMilestones.useQuery(
  { prototypeId: id },
  { enabled: !!prototype }
  );
 
  // Fetch photos
- const { data: photos, error: photosError } = api.prototypes.getPhotos.useQuery(
+ const { data: photos } = api.prototypes.getPhotos.useQuery(
  { prototypeId: id },
  { enabled: !!prototype }
  );
 
  // Fetch documents
- const { data: documents, error: documentsError } = api.prototypes.getDocuments.useQuery(
+ const { data: documents } = api.prototypes.getDocuments.useQuery(
  { prototypeId: id },
  { enabled: !!prototype }
  );
 
  // Fetch reviews
- const { data: reviews, error: reviewsError } = api.prototypes.getReviews.useQuery(
+ const { data: reviews } = api.prototypes.getReviews.useQuery(
  { prototypeId: id },
  { enabled: !!prototype }
  );
 
  // Fetch feedback
- const { data: feedback, error: feedbackError } = api.prototypes.getFeedback.useQuery(
+ const { data: feedback } = api.prototypes.getFeedback.useQuery(
  { prototypeId: id },
  { enabled: !!prototype }
  );
 
  // Fetch revisions
- const { data: revisions, error: revisionsError } = api.prototypes.getRevisions.useQuery(
+ const { data: revisions } = api.prototypes.getRevisions.useQuery(
  { prototypeId: id },
  { enabled: !!prototype }
  );

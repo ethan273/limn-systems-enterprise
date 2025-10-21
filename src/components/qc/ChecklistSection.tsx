@@ -38,7 +38,7 @@ export function ChecklistSection({
   const completedCount = checkpoints.filter((cp: any) => cp.status !== 'pending').length;
   const passedCount = checkpoints.filter((cp: any) => cp.status === 'pass').length;
   const failedCount = checkpoints.filter((cp: any) => cp.status === 'fail').length;
-  const naCount = checkpoints.filter((cp: any) => cp.status === 'na').length;
+  const _naCount = checkpoints.filter((cp: any) => cp.status === 'na').length;
 
   const allComplete = completedCount === checkpoints.length;
   const allPassed = passedCount === checkpoints.length;

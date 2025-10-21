@@ -619,6 +619,51 @@ model flipbook_versions {
   @@schema("flipbook")
 }
 
+model flipbook_share_links {
+  id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  flipbook_id      String        @db.Uuid
+  created_by_id    String        @db.Uuid
+  token            String        @unique @db.VarChar(64)
+  vanity_slug      String?       @unique @db.VarChar(100)
+  label            String?       @db.VarChar(255)
+  view_count       Int           @default(0)
+  unique_view_count Int          @default(0)
+  last_viewed_at   DateTime?     @db.Timestamptz(6)
+  expires_at       DateTime?     @db.Timestamptz(6)
+  is_active        Boolean       @default(true)
+  settings         Json?
+  created_at       DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime      @default(now()) @db.Timestamptz(6)
+  flipbooks        flipbooks     @relation(fields: [flipbook_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user_profiles    user_profiles @relation(fields: [created_by_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  share_link_views share_link_views[]
+
+  @@index([flipbook_id], map: "idx_share_links_flipbook")
+  @@index([created_by_id], map: "idx_share_links_creator")
+  @@index([token], map: "idx_share_links_token")
+  @@index([vanity_slug], map: "idx_share_links_vanity")
+  @@index([expires_at], map: "idx_share_links_expiry")
+  @@schema("flipbook")
+}
+
+model share_link_views {
+  id                    String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  share_link_id         String                @db.Uuid
+  viewer_ip             String?               @db.VarChar(45)
+  viewer_user_agent     String?
+  viewer_country        String?               @db.VarChar(2)
+  viewer_city           String?               @db.VarChar(100)
+  referrer              String?
+  viewed_at             DateTime              @default(now()) @db.Timestamptz(6)
+  session_id            String?               @db.Uuid
+  flipbook_share_links  flipbook_share_links  @relation(fields: [share_link_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([share_link_id], map: "idx_share_views_link")
+  @@index([viewed_at], map: "idx_share_views_timestamp")
+  @@index([session_id], map: "idx_share_views_session")
+  @@schema("flipbook")
+}
+
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model flipbooks {
   id                  String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -643,6 +688,7 @@ model flipbooks {
   analytics_events    analytics_events[]
   flipbook_pages      flipbook_pages[]
   flipbook_versions   flipbook_versions[]
+  flipbook_share_links flipbook_share_links[]
   user_profiles       user_profiles       @relation(fields: [created_by_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([created_at(sort: Desc)], map: "idx_flipbooks_created_at")
@@ -7196,6 +7242,7 @@ model user_profiles {
   analytics_events                                                  analytics_events[]
   flipbook_versions                                                 flipbook_versions[]
   flipbooks                                                         flipbooks[]
+  flipbook_share_links                                              flipbook_share_links[]
   templates                                                         templates[]
   board_activity_log                                                board_activity_log[]
   board_collaborators_board_collaborators_invited_byTouser_profiles board_collaborators[]        @relation("board_collaborators_invited_byTouser_profiles")

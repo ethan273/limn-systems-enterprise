@@ -152,7 +152,7 @@ export default function DocumentsPage() {
     { value: 'other', label: 'Other' },
   ];
 
-  const columns: DataTableColumn<any>[] = [
+  const _columns: DataTableColumn<any>[] = [
     {
       key: 'name',
       label: 'Document Name',

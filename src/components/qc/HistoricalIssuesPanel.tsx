@@ -14,8 +14,8 @@ export interface HistoricalIssuesPanelProps {
 }
 
 export function HistoricalIssuesPanel({
-  productionItemId,
-  prototypeProductionId,
+  productionItemId: _productionItemId,
+  prototypeProductionId: _prototypeProductionId,
   onClose,
 }: HistoricalIssuesPanelProps) {
   // Note: This API signature is different - using simplified version

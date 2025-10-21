@@ -1100,4 +1100,553 @@ export const flipbooksRouter = createTRPCRouter({
         filename: `flipbook-${input.flipbookId}-toc.csv`,
       };
     }),
+
+  /**
+   * SHARE LINKS
+   * Phase 9: Unique Tracking Links
+   */
+
+  /**
+   * Create a new share link for a flipbook
+   */
+  createShareLink: protectedProcedure
+    .input(
+      z.object({
+        flipbookId: z.string().uuid(),
+        label: z.string().max(255).optional(),
+        vanitySlug: z.string().max(100).regex(/^[a-z0-9-]+$/).optional(),
+        expiresAt: z.date().optional(),
+        settings: z.object({
+          theme: z.enum(["light", "dark", "auto"]).optional(),
+          startPage: z.number().int().min(1).optional(),
+          showControls: z.boolean().optional(),
+        }).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!features.flipbooks) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Flipbooks feature is not enabled",
+        });
+      }
+
+      // Check if flipbook exists and user has permission
+      const flipbook = await prisma.flipbooks.findUnique({
+        where: { id: input.flipbookId },
+        select: { id: true, created_by_id: true },
+      });
+
+      if (!flipbook) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Flipbook not found",
+        });
+      }
+
+      if (flipbook.created_by_id !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have permission to create share links for this flipbook",
+        });
+      }
+
+      // Check if vanity slug is already taken
+      if (input.vanitySlug) {
+        const existing = await prisma.flipbook_share_links.findUnique({
+          where: { vanity_slug: input.vanitySlug },
+        });
+
+        if (existing) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "This vanity slug is already taken",
+          });
+        }
+      }
+
+      // Generate random token (64 characters)
+      const token = Array.from({ length: 64 }, () =>
+        Math.random().toString(36).charAt(2)
+      ).join('');
+
+      // Create share link
+      const shareLink = await prisma.flipbook_share_links.create({
+        data: {
+          flipbook_id: input.flipbookId,
+          created_by_id: ctx.session.user.id,
+          token,
+          vanity_slug: input.vanitySlug,
+          label: input.label,
+          expires_at: input.expiresAt,
+          settings: input.settings || {},
+        },
+        include: {
+          flipbooks: {
+            select: {
+              id: true,
+              title: true,
+            },
+          },
+        },
+      });
+
+      return shareLink;
+    }),
+
+  /**
+   * Get all share links for a flipbook
+   */
+  getShareLinks: protectedProcedure
+    .input(z.object({ flipbookId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      if (!features.flipbooks) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Flipbooks feature is not enabled",
+        });
+      }
+
+      // Check permission
+      const flipbook = await prisma.flipbooks.findUnique({
+        where: { id: input.flipbookId },
+        select: { created_by_id: true },
+      });
+
+      if (!flipbook) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Flipbook not found",
+        });
+      }
+
+      if (flipbook.created_by_id !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have permission to view share links for this flipbook",
+        });
+      }
+
+      const shareLinks = await prisma.flipbook_share_links.findMany({
+        where: { flipbook_id: input.flipbookId },
+        orderBy: { created_at: 'desc' },
+      });
+
+      return shareLinks;
+    }),
+
+  /**
+   * Get a share link by token (public endpoint for viewing)
+   */
+  getShareLinkByToken: protectedProcedure
+    .input(z.object({ token: z.string() }))
+    .query(async ({ input }) => {
+      const shareLink = await prisma.flipbook_share_links.findUnique({
+        where: { token: input.token },
+        include: {
+          flipbooks: {
+            include: {
+              flipbook_pages: {
+                orderBy: { page_number: 'asc' },
+                include: {
+                  hotspots: {
+                    include: {
+                      products: {
+                        select: {
+                          id: true,
+                          name: true,
+                          sku: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!shareLink) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Share link not found",
+        });
+      }
+
+      // Check if expired
+      if (shareLink.expires_at && new Date(shareLink.expires_at) < new Date()) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "This share link has expired",
+        });
+      }
+
+      // Check if active
+      if (!shareLink.is_active) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "This share link has been deactivated",
+        });
+      }
+
+      return shareLink;
+    }),
+
+  /**
+   * Update a share link
+   */
+  updateShareLink: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().uuid(),
+        label: z.string().max(255).optional(),
+        expiresAt: z.date().nullable().optional(),
+        isActive: z.boolean().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!features.flipbooks) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Flipbooks feature is not enabled",
+        });
+      }
+
+      // Check permission
+      const shareLink = await prisma.flipbook_share_links.findUnique({
+        where: { id: input.id },
+        select: { created_by_id: true },
+      });
+
+      if (!shareLink) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Share link not found",
+        });
+      }
+
+      if (shareLink.created_by_id !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have permission to update this share link",
+        });
+      }
+
+      const updated = await prisma.flipbook_share_links.update({
+        where: { id: input.id },
+        data: {
+          label: input.label,
+          expires_at: input.expiresAt === null ? null : input.expiresAt,
+          is_active: input.isActive,
+          updated_at: new Date(),
+        },
+      });
+
+      return updated;
+    }),
+
+  /**
+   * Delete a share link
+   */
+  deleteShareLink: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      if (!features.flipbooks) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Flipbooks feature is not enabled",
+        });
+      }
+
+      // Check permission
+      const shareLink = await prisma.flipbook_share_links.findUnique({
+        where: { id: input.id },
+        select: { created_by_id: true },
+      });
+
+      if (!shareLink) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Share link not found",
+        });
+      }
+
+      if (shareLink.created_by_id !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have permission to delete this share link",
+        });
+      }
+
+      await prisma.flipbook_share_links.delete({
+        where: { id: input.id },
+      });
+
+      return { success: true };
+    }),
+
+  /**
+   * Track a share link view
+   */
+  trackShareLinkView: protectedProcedure
+    .input(
+      z.object({
+        token: z.string(),
+        viewerIp: z.string().optional(),
+        viewerUserAgent: z.string().optional(),
+        referrer: z.string().optional(),
+        sessionId: z.string().uuid().optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      // Find share link
+      const shareLink = await prisma.flipbook_share_links.findUnique({
+        where: { token: input.token },
+      });
+
+      if (!shareLink || !shareLink.is_active) {
+        return { success: false };
+      }
+
+      // Create view record
+      await prisma.share_link_views.create({
+        data: {
+          share_link_id: shareLink.id,
+          viewer_ip: input.viewerIp,
+          viewer_user_agent: input.viewerUserAgent,
+          referrer: input.referrer,
+          session_id: input.sessionId,
+        },
+      });
+
+      // Update view count
+      await prisma.flipbook_share_links.update({
+        where: { id: shareLink.id },
+        data: {
+          view_count: { increment: 1 },
+          last_viewed_at: new Date(),
+        },
+      });
+
+      return { success: true };
+    }),
+
+  /**
+   * Get analytics for a flipbook
+   * Returns comprehensive analytics including views, share link performance, and engagement metrics
+   */
+  getFlipbookAnalytics: protectedProcedure
+    .input(z.object({
+      flipbookId: z.string().uuid(),
+      days: z.number().int().min(1).max(365).default(30),
+    }))
+    .query(async ({ ctx, input }) => {
+      if (!features.flipbooks) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Flipbooks feature is not enabled",
+        });
+      }
+
+      // Permission check
+      const flipbook = await prisma.flipbooks.findUnique({
+        where: { id: input.flipbookId },
+        select: { created_by_id: true },
+      });
+
+      if (!flipbook) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Flipbook not found",
+        });
+      }
+
+      if (flipbook.created_by_id !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have permission to view analytics for this flipbook",
+        });
+      }
+
+      // Get date range
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - input.days);
+
+      // Get share links
+      const shareLinks = await prisma.flipbook_share_links.findMany({
+        where: { flipbook_id: input.flipbookId },
+        select: {
+          id: true,
+          label: true,
+          token: true,
+          view_count: true,
+          unique_view_count: true,
+          created_at: true,
+        },
+      });
+
+      // Get total views from all share links
+      const totalViews = shareLinks.reduce((sum, link) => sum + link.view_count, 0);
+      const totalUniqueViews = shareLinks.reduce((sum, link) => sum + link.unique_view_count, 0);
+
+      // Get views over time (last N days)
+      const viewsByDay = await prisma.$queryRaw<Array<{ date: Date; views: bigint }>>`
+        SELECT
+          DATE(viewed_at) as date,
+          COUNT(*) as views
+        FROM flipbook.share_link_views
+        WHERE share_link_id IN (
+          SELECT id FROM flipbook.flipbook_share_links
+          WHERE flipbook_id = ${input.flipbookId}::uuid
+        )
+        AND viewed_at >= ${startDate}
+        GROUP BY DATE(viewed_at)
+        ORDER BY date ASC
+      `;
+
+      // Get top performing share links
+      const topShareLinks = [...shareLinks]
+        .sort((a, b) => b.view_count - a.view_count)
+        .slice(0, 5)
+        .map(link => ({
+          id: link.id,
+          label: link.label || `Link ${link.token.substring(0, 8)}...`,
+          views: link.view_count,
+          uniqueViews: link.unique_view_count,
+          createdAt: link.created_at,
+        }));
+
+      // Get referrer breakdown
+      const referrers = await prisma.$queryRaw<Array<{ referrer: string | null; count: bigint }>>`
+        SELECT
+          COALESCE(referrer, 'Direct') as referrer,
+          COUNT(*) as count
+        FROM flipbook.share_link_views
+        WHERE share_link_id IN (
+          SELECT id FROM flipbook.flipbook_share_links
+          WHERE flipbook_id = ${input.flipbookId}::uuid
+        )
+        AND viewed_at >= ${startDate}
+        GROUP BY referrer
+        ORDER BY count DESC
+        LIMIT 10
+      `;
+
+      return {
+        totalViews,
+        totalUniqueViews,
+        shareLinksCount: shareLinks.length,
+        viewsByDay: viewsByDay.map(row => ({
+          date: row.date,
+          views: Number(row.views),
+        })),
+        topShareLinks,
+        topReferrers: referrers.map(row => ({
+          referrer: row.referrer || 'Direct',
+          count: Number(row.count),
+        })),
+      };
+    }),
+
+  /**
+   * Get analytics for a specific share link
+   */
+  getShareLinkAnalytics: protectedProcedure
+    .input(z.object({
+      shareLinkId: z.string().uuid(),
+      days: z.number().int().min(1).max(365).default(30),
+    }))
+    .query(async ({ ctx, input }) => {
+      if (!features.flipbooks) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Flipbooks feature is not enabled",
+        });
+      }
+
+      // Permission check
+      const shareLink = await prisma.flipbook_share_links.findUnique({
+        where: { id: input.shareLinkId },
+        select: {
+          created_by_id: true,
+          view_count: true,
+          unique_view_count: true,
+          last_viewed_at: true,
+        },
+      });
+
+      if (!shareLink) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Share link not found",
+        });
+      }
+
+      if (shareLink.created_by_id !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have permission to view analytics for this share link",
+        });
+      }
+
+      // Get date range
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - input.days);
+
+      // Get views over time
+      const viewsByDay = await prisma.$queryRaw<Array<{ date: Date; views: bigint }>>`
+        SELECT
+          DATE(viewed_at) as date,
+          COUNT(*) as views
+        FROM flipbook.share_link_views
+        WHERE share_link_id = ${input.shareLinkId}::uuid
+        AND viewed_at >= ${startDate}
+        GROUP BY DATE(viewed_at)
+        ORDER BY date ASC
+      `;
+
+      // Get hourly distribution (for heat map)
+      const viewsByHour = await prisma.$queryRaw<Array<{ hour: number; views: bigint }>>`
+        SELECT
+          EXTRACT(HOUR FROM viewed_at) as hour,
+          COUNT(*) as views
+        FROM flipbook.share_link_views
+        WHERE share_link_id = ${input.shareLinkId}::uuid
+        AND viewed_at >= ${startDate}
+        GROUP BY EXTRACT(HOUR FROM viewed_at)
+        ORDER BY hour ASC
+      `;
+
+      // Get recent views
+      const recentViews = await prisma.share_link_views.findMany({
+        where: {
+          share_link_id: input.shareLinkId,
+          viewed_at: { gte: startDate },
+        },
+        select: {
+          viewed_at: true,
+          viewer_ip: true,
+          viewer_user_agent: true,
+          referrer: true,
+        },
+        orderBy: { viewed_at: 'desc' },
+        take: 20,
+      });
+
+      return {
+        totalViews: shareLink.view_count,
+        uniqueViews: shareLink.unique_view_count,
+        lastViewedAt: shareLink.last_viewed_at,
+        viewsByDay: viewsByDay.map(row => ({
+          date: row.date,
+          views: Number(row.views),
+        })),
+        viewsByHour: viewsByHour.map(row => ({
+          hour: Number(row.hour),
+          views: Number(row.views),
+        })),
+        recentViews,
+      };
+    }),
 });

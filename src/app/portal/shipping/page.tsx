@@ -131,7 +131,7 @@ export default function ShippingTrackingPage() {
     { value: 'exception', label: 'Exception' },
   ];
 
-  const columns: DataTableColumn<any>[] = [
+  const _columns: DataTableColumn<any>[] = [
     {
       key: 'shipment_number',
       label: 'Shipment Number',

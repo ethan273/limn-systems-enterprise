@@ -177,6 +177,7 @@ function getMimeType(format: 'jpeg' | 'webp' | 'png'): string {
     webp: 'image/webp',
     png: 'image/png',
   };
+  // eslint-disable-next-line security/detect-object-injection
   return mimeTypes[format];
 }
 

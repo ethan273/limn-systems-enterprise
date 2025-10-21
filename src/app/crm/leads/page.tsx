@@ -287,7 +287,7 @@ export default function LeadsPage() {
       key: 'first_name',
       label: 'First Name',
       sortable: true,
-      render: (value, row) => (
+      render: (value) => (
         <div className="flex items-center gap-3">
           <div className="data-table-avatar">
             <Users className="icon-sm" aria-hidden="true" />

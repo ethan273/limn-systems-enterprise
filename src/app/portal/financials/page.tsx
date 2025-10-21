@@ -188,7 +188,7 @@ export default function FinancialsPage() {
     { value: 'cancelled', label: 'Cancelled' },
   ];
 
-  const columns: DataTableColumn<any>[] = [
+  const _columns: DataTableColumn<any>[] = [
     {
       key: 'invoice_number',
       label: 'Invoice Number',

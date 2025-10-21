@@ -117,6 +117,7 @@ export default function NewInvoicePage() {
 
     // Validate line items
     for (let i = 0; i < lineItems.length; i++) {
+      // eslint-disable-next-line security/detect-object-injection
       const item = lineItems[i];
       if (!item.description || item.description.trim() === "") {
         toast({

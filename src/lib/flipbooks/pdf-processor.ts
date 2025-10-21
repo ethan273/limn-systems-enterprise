@@ -27,9 +27,9 @@ async function getPdfjsLib() {
     // Dynamically import pdfjs-dist legacy build for Node.js compatibility
     try {
       pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.mjs");
-      // Disable worker for Node.js environment
+      // Disable worker for Node.js environment (CRITICAL: use workerSrc = '' not workerPort)
       if (pdfjsLib.GlobalWorkerOptions) {
-        pdfjsLib.GlobalWorkerOptions.workerPort = null;
+        pdfjsLib.GlobalWorkerOptions.workerSrc = ''; // Fully disable worker module
       }
     } catch (error) {
       console.error("Failed to load pdfjs-dist:", error);

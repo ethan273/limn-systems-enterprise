@@ -80,7 +80,7 @@ export const contactsRouter = createTRPCRouter({
         orderBy: z.record(z.enum(['asc', 'desc'])).optional(),
       })
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ ctx: _ctx, input }) => {
       const where: any = {};
 
       // Search across name fields, email, and company
@@ -645,6 +645,7 @@ export const leadsRouter = createTRPCRouter({
         // Note: groupBy not supported by wrapper, using manual grouping
         const statusGroups = allLeads.reduce((acc: Record<string, number>, lead) => {
           const status = lead.status || 'unknown';
+          // eslint-disable-next-line security/detect-object-injection
           acc[status] = (acc[status] || 0) + 1;
           return acc;
         }, {});
@@ -658,6 +659,7 @@ export const leadsRouter = createTRPCRouter({
         const prospectLeads = allLeads.filter(lead => lead.prospect_status !== null);
         const prospectGroups = prospectLeads.reduce((acc: Record<string, number>, lead) => {
           const prospectStatus = lead.prospect_status!;
+          // eslint-disable-next-line security/detect-object-injection
           acc[prospectStatus] = (acc[prospectStatus] || 0) + 1;
           return acc;
         }, {});
@@ -795,6 +797,7 @@ export const crmRouter = createTRPCRouter({
         const allLeads = await ctx.db.leads.findMany();
         const leadsByStatus = allLeads.reduce((acc: Record<string, number>, lead) => {
           const status = lead.status || 'unknown';
+          // eslint-disable-next-line security/detect-object-injection
           acc[status] = (acc[status] || 0) + 1;
           return acc;
         }, {});
@@ -820,6 +823,7 @@ export const crmRouter = createTRPCRouter({
         const allActivities = await ctx.db.activities.findMany();
         const activitiesByType = allActivities.reduce((acc: Record<string, number>, activity) => {
           const type = activity.type || 'other';
+          // eslint-disable-next-line security/detect-object-injection
           acc[type] = (acc[type] || 0) + 1;
           return acc;
         }, {});

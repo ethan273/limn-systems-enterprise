@@ -60,7 +60,7 @@ export default function ProjectDashboardPage() {
   const utils = api.useUtils();
 
   // Fetch AI insights
-  const { data: insights, error: insightsError } = api.dashboards.getProjectsInsights.useQuery();
+  const { data: insights } = api.dashboards.getProjectsInsights.useQuery();
 
   if (isLoading) {
     return (

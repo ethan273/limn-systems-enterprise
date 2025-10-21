@@ -78,7 +78,7 @@ export default function PartnerDashboardPage() {
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
 
-  const { data: insights, error: insightsError } = api.dashboards.getPartnerInsights.useQuery();
+  const { data: insights } = api.dashboards.getPartnerInsights.useQuery();
 
   // Handle query error
   if (error) {

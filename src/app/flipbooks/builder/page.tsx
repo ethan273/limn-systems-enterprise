@@ -28,7 +28,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
@@ -48,6 +47,7 @@ function FlipbookBuilderContent() {
 
   const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [uploadType, setUploadType] = useState<"pdf" | "images">("pdf");
   const [productPickerOpen, setProductPickerOpen] = useState(false);
   const [pendingHotspot, setPendingHotspot] = useState<any>(null);
   const [title, setTitle] = useState("");
@@ -313,21 +313,38 @@ function FlipbookBuilderContent() {
           {/* Upload Section */}
           <div className="bg-card rounded-lg border p-4">
             <h2 className="text-lg font-semibold mb-4">Upload</h2>
+            {/* Upload buttons - set type and open dialog */}
+            <div className="space-y-2">
+              <Button
+                className="w-full"
+                variant="outline"
+                size="sm"
+                disabled={!flipbookId}
+                onClick={() => {
+                  setUploadType("pdf");
+                  setUploadDialogOpen(true);
+                }}
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Upload PDF
+              </Button>
+              <Button
+                className="w-full"
+                variant="outline"
+                size="sm"
+                disabled={!flipbookId}
+                onClick={() => {
+                  setUploadType("images");
+                  setUploadDialogOpen(true);
+                }}
+              >
+                <ImageIcon className="h-4 w-4 mr-2" />
+                Upload Images
+              </Button>
+            </div>
+
+            {/* Upload Dialog */}
             <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
-              <div className="space-y-2">
-                <DialogTrigger asChild>
-                  <Button className="w-full" variant="outline" size="sm" disabled={!flipbookId}>
-                    <FileText className="h-4 w-4 mr-2" />
-                    Upload PDF
-                  </Button>
-                </DialogTrigger>
-                <DialogTrigger asChild>
-                  <Button className="w-full" variant="outline" size="sm" disabled={!flipbookId}>
-                    <ImageIcon className="h-4 w-4 mr-2" />
-                    Upload Images
-                  </Button>
-                </DialogTrigger>
-              </div>
 
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
@@ -337,7 +354,8 @@ function FlipbookBuilderContent() {
                   </DialogDescription>
                 </DialogHeader>
 
-                <Tabs defaultValue="pdf" className="w-full">
+                {/* Use uploadType state to control active tab */}
+                <Tabs value={uploadType} onValueChange={(value) => setUploadType(value as "pdf" | "images")} className="w-full">
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="pdf">PDF</TabsTrigger>
                     <TabsTrigger value="images">Images</TabsTrigger>

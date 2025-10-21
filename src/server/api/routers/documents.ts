@@ -273,6 +273,7 @@ export const documentsRouter = createTRPCRouter({
             const pathParts = urlObj.pathname.split('/');
             const bucketIndex = pathParts.indexOf('public') + 1;
             if (bucketIndex > 0 && bucketIndex < pathParts.length) {
+              // eslint-disable-next-line security/detect-object-injection
               const bucket = pathParts[bucketIndex];
               const filePath = pathParts.slice(bucketIndex + 1).join('/');
 

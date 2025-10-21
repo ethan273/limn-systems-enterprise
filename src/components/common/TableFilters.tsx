@@ -31,7 +31,7 @@ import {
 
 export interface SearchFilterProps {
   value: string;
-  onChange: (value: string) => void;
+  onChange: (_value: string) => void;
   placeholder?: string;
   className?: string;
 }
@@ -67,7 +67,7 @@ export interface SelectOption {
 
 export interface SelectFilterProps {
   value: string;
-  onChange: (value: string) => void;
+  onChange: (_value: string) => void;
   options: SelectOption[];
   placeholder?: string;
   label?: string;
@@ -112,8 +112,8 @@ export function SelectFilter({
 export interface DateRangeFilterProps {
   fromValue: string;
   toValue: string;
-  onFromChange: (value: string) => void;
-  onToChange: (value: string) => void;
+  onFromChange: (_value: string) => void;
+  onToChange: (_value: string) => void;
   fromLabel?: string;
   toLabel?: string;
   className?: string;

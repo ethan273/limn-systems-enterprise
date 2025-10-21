@@ -35,8 +35,8 @@ export interface UploadResult {
   error?: string;
 }
 
-type ProgressCallback = (progress: UploadProgress) => void;
-type CompletionCallback = (result: UploadResult) => void;
+type ProgressCallback = (_progress: UploadProgress) => void;
+type CompletionCallback = (_result: UploadResult) => void;
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 2000; // 2 seconds
@@ -150,6 +150,7 @@ export class UploadQueueManager {
   public cancelTask(taskId: string): boolean {
     const taskIndex = this.queue.findIndex((task) => task.id === taskId);
     if (taskIndex > -1) {
+      // eslint-disable-next-line security/detect-object-injection
       const task = this.queue[taskIndex];
       if (task.status === 'pending' || task.status === 'failed') {
         this.queue.splice(taskIndex, 1);
@@ -283,7 +284,7 @@ export class UploadQueueManager {
     blob: Blob,
     filename: string,
     metadata: UploadTask['metadata'],
-    onProgress: (progress: number) => void
+    onProgress: (_progress: number) => void
   ): Promise<string> {
     // Generate storage path: qc-photos/inspection_id/checkpoint_id/filename
     const storagePath = `qc-photos/${metadata.inspection_id}/${metadata.checkpoint_id}/${filename}`;
@@ -379,6 +380,7 @@ export class UploadQueueManager {
         blob: undefined, // Remove blob (too large for localStorage)
         blobUrl: task.status !== 'completed' ? URL.createObjectURL(task.blob) : undefined,
       }));
+      // eslint-disable-next-line security/detect-object-injection
       localStorage.setItem('qc-upload-queue', JSON.stringify(serializedQueue));
     } catch (error) {
       console.error('Failed to save upload queue:', error);

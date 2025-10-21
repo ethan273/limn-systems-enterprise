@@ -102,7 +102,7 @@ export default function EditExpensePage() {
         <div className="error-state">
           <AlertTriangle className="w-12 h-12 text-destructive mb-4" aria-hidden="true" />
           <h3>Expense Not Found</h3>
-          <p className="text-tertiary">The expense you're trying to edit doesn't exist or you don't have permission to view it.</p>
+          <p className="text-tertiary">The expense you&apos;re trying to edit doesn&apos;t exist or you don&apos;t have permission to view it.</p>
           <button
             onClick={() => router.push('/financials/expenses')}
             className="btn btn-primary mt-4"

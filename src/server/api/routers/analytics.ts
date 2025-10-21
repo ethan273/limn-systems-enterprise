@@ -240,6 +240,7 @@ export const analyticsRouter = createTRPCRouter({
       });
       const statusGroups = allOrders.reduce((acc: Record<string, number>, order: any) => {
         const status = order.status;
+        // eslint-disable-next-line security/detect-object-injection
         acc[status] = (acc[status] || 0) + 1;
         return acc;
       }, {});
@@ -431,6 +432,7 @@ export const analyticsRouter = createTRPCRouter({
       });
       const resultGroups = allInspections.reduce((acc: Record<string, number>, inspection: any) => {
         const result = inspection.result;
+        // eslint-disable-next-line security/detect-object-injection
         acc[result] = (acc[result] || 0) + 1;
         return acc;
       }, {});

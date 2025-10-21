@@ -21,7 +21,6 @@ import {
   Edit,
   Trash2,
   Shield,
-  CheckCircle2,
   XCircle,
   AlertTriangle,
   RefreshCw,
@@ -86,7 +85,7 @@ export function EmployeeManagement({ partnerId, partnerType }: EmployeeManagemen
     setSelectedContactId(null);
   };
 
-  const formatDate = (date: Date | string | null | undefined) => {
+  const _formatDate = (date: Date | string | null | undefined) => {
     if (!date) return '—';
     return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',

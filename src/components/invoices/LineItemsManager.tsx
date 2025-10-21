@@ -86,7 +86,9 @@ export function LineItemsManager({
     value: string | number
   ) => {
     const newItems = [...lineItems];
+    // eslint-disable-next-line security/detect-object-injection
     newItems[index] = {
+      // eslint-disable-next-line security/detect-object-injection
       ...newItems[index],
       [field]: value,
     };

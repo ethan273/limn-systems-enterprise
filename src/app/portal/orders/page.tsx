@@ -152,7 +152,7 @@ export default function CustomerOrdersPage() {
     { value: 'delivered', label: 'Delivered' },
   ];
 
-  const columns: DataTableColumn<any>[] = [
+  const _columns: DataTableColumn<any>[] = [
     {
       key: 'order_number',
       label: 'Order Number',

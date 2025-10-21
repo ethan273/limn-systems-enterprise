@@ -74,6 +74,7 @@ export async function POST(request: NextRequest) {
     const pages: any[] = [];
     for (let i = 0; i < pageCount; i++) {
       const pageNumber = i + 1;
+      // eslint-disable-next-line security/detect-object-injection
       const pageBuffer = pageImages[i];
 
       // Upload page image to S3

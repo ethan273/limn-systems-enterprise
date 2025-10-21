@@ -188,7 +188,7 @@ export default function EditDesignProjectPage({ params }: EditDesignProjectPageP
               </Button>
               <div>
                 <h1 className="text-3xl font-bold">Edit Design Project</h1>
-                <p className="text-muted-foreground">Update "{project.project_name}"</p>
+                <p className="text-muted-foreground">Update &quot;{project.project_name}&quot;</p>
               </div>
             </div>
           </div>
@@ -230,7 +230,7 @@ export default function EditDesignProjectPage({ params }: EditDesignProjectPageP
             </Button>
             <div>
               <h1 className="text-3xl font-bold">Edit Design Project</h1>
-              <p className="text-muted-foreground">Update "{project.project_name}"</p>
+              <p className="text-muted-foreground">Update &quot;{project.project_name}&quot;</p>
             </div>
           </div>
         </div>

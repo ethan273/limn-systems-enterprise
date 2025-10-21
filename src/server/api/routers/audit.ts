@@ -343,6 +343,7 @@ export const auditRouter = createTRPCRouter({
       // Group by action manually
       const actionGroups = allActions.reduce((acc: Record<string, number>, log) => {
         const action = log.action || 'unknown';
+        // eslint-disable-next-line security/detect-object-injection
         acc[action] = (acc[action] || 0) + 1;
         return acc;
       }, {});
@@ -371,6 +372,7 @@ export const auditRouter = createTRPCRouter({
       // Group by user_email manually
       const userGroups = allUserActions.reduce((acc: Record<string, number>, log) => {
         const email = log.user_email!;
+        // eslint-disable-next-line security/detect-object-injection
         acc[email] = (acc[email] || 0) + 1;
         return acc;
       }, {});

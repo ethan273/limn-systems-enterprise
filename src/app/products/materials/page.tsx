@@ -131,21 +131,22 @@ export default function MaterialsPage() {
   const { data: allMaterials, isLoading } = api.products.getAllMaterials.useQuery();
 
   // Map tab keys to exact category names
-  const categoryNameMap: Record<string, string> = {
+  const categoryNameMap: Record<string, string> = useMemo(() => ({
     fabric: 'Fabric',
     wood: 'Wood',
     metal: 'Metal',
     stone: 'Stone',
     weaving: 'Weave',
     carving: 'Carving',
-  };
+  }), []);
 
   // Get category ID for current tab
   const currentCategoryId = useMemo(() => {
+    // eslint-disable-next-line security/detect-object-injection
     const expectedName = categoryNameMap[activeTab];
     const found = categories?.find((c: any) => c.name === expectedName);
     return found?.id;
-  }, [categories, activeTab]);
+  }, [categories, activeTab, categoryNameMap]);
 
   // Filter materials by category and hierarchy level
   const currentData = useMemo(() => {

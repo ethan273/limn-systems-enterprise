@@ -3,10 +3,10 @@
 /**
  * 3D Flipbook Viewer Wrapper
  *
- * Uses CSS 3D transforms for page-turn effects (compatible with React 19)
+ * Uses react-pageflip for realistic CSS3D page-turning effects
  */
 
-import { FlipbookViewerCSS3D } from "./FlipbookViewerCSS3D";
+import { FlipbookViewerV2 } from "./FlipbookViewerV2";
 import { FlipbookViewer2D } from "./FlipbookViewer2D";
 
 interface FlipbookViewer3DWrapperProps {
@@ -26,10 +26,10 @@ export function FlipbookViewer3DWrapper({
   onClose,
   use3D = true,
 }: FlipbookViewer3DWrapperProps) {
-  // Use CSS 3D viewer by default (compatible with React 19)
+  // Use react-pageflip viewer by default for realistic page turning
   if (use3D) {
     return (
-      <FlipbookViewerCSS3D
+      <FlipbookViewerV2
         pages={pages}
         initialPage={initialPage}
         onPageChange={onPageChange}

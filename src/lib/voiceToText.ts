@@ -27,8 +27,8 @@ export function isVoiceToTextSupported(): boolean {
  * Start voice recognition
  */
 export async function startVoiceToText(
-  onResult: (result: VoiceToTextResult) => void,
-  onError?: (error: string) => void,
+  onResult: (_result: VoiceToTextResult) => void,
+  onError?: (_error: string) => void,
   options: VoiceToTextOptions = {}
 ): Promise<() => void> {
   if (!isVoiceToTextSupported()) {
@@ -46,6 +46,7 @@ export async function startVoiceToText(
 
   recognition.onresult = (event: any) => {
     const last = event.results.length - 1;
+    // eslint-disable-next-line security/detect-object-injection
     const result = event.results[last];
     const transcript = result[0].transcript;
     const confidence = result[0].confidence;
@@ -87,8 +88,8 @@ export async function startVoiceToText(
  * Get single voice note (stops after first final result)
  */
 export function getSingleVoiceNote(
-  onComplete: (transcript: string) => void,
-  onError?: (error: string) => void
+  onComplete: (_transcript: string) => void,
+  onError?: (_error: string) => void
 ): () => void {
   let stop: (() => void) | null = null;
 

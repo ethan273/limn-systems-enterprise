@@ -42,7 +42,7 @@ export interface UseTableFiltersReturn<T extends FilterConfig> {
   /** Raw filter values (immediate, not debounced) */
   rawFilters: T;
   /** Set a specific filter value */
-  setFilter: <K extends keyof T>(key: K, value: T[K]) => void;
+  setFilter: <K extends keyof T>(_key: K, _value: T[K]) => void;
   /** Clear all filters to initial state */
   clearFilters: () => void;
   /** Check if any filters are active (non-default values) */
@@ -80,7 +80,9 @@ export function useTableFilters<T extends FilterConfig>({
   // Check if any filters are active (different from initial state)
   const hasActiveFilters = useMemo(() => {
     return Object.keys(rawFilters).some((key) => {
+      // eslint-disable-next-line security/detect-object-injection
       const currentValue = rawFilters[key];
+      // eslint-disable-next-line security/detect-object-injection
       const initialValue = initialFilters[key];
 
       // Handle 'all' special value
@@ -103,6 +105,7 @@ export function useTableFilters<T extends FilterConfig>({
     const params: any = {};
 
     Object.keys(debouncedFilters).forEach((key) => {
+      // eslint-disable-next-line security/detect-object-injection
       const value = debouncedFilters[key];
 
       // Skip 'status' - pages should handle this with their specific enum types

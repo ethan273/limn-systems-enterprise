@@ -19,7 +19,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
 import { LoadingState } from '@/components/common/LoadingState';
 import { Shield, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 
@@ -267,7 +266,7 @@ export function PortalAccessDialog({
                 <div className="flex-1">
                   <p className="text-sm font-medium">User Account Required</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    This employee doesn't have a user account yet. Portal user creation will be implemented soon. For now, please create the user account manually in the authentication system.
+                    This employee doesn&apos;t have a user account yet. Portal user creation will be implemented soon. For now, please create the user account manually in the authentication system.
                   </p>
                 </div>
               </div>

@@ -4,13 +4,17 @@ import { features } from "@/lib/features";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
-import { ArrowLeft, Edit, Eye, BookOpen, Maximize2, AlertTriangle, RefreshCw } from "lucide-react";
+import { ArrowLeft, Edit, Eye, BookOpen, Maximize2, AlertTriangle, RefreshCw, Code } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { LoadingState, PageHeader, EmptyState } from "@/components/common";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
+import { EmbedCodeGenerator } from "@/components/flipbooks/EmbedCodeGenerator";
+import { ShareLinkManager } from "@/components/flipbooks/ShareLinkManager";
+import { FlipbookAnalytics } from "@/components/flipbooks/FlipbookAnalytics";
 
 // Dynamically import 3D flipbook viewer to reduce initial bundle size
 const FlipbookViewer3DWrapper = dynamic(
@@ -228,6 +232,52 @@ export default function FlipbookViewerPage({
               Go to Builder
             </Button>
           </div>
+        </div>
+      )}
+
+      {/* Embed Code Section */}
+      {hasPages && (
+        <div className="bg-card rounded-lg border p-6 mt-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold">Embed Code</h3>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button size="sm" variant="outline">
+                  <Code className="h-4 w-4 mr-2" />
+                  Get Embed Code
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Embed {flipbook.title}</DialogTitle>
+                </DialogHeader>
+                <EmbedCodeGenerator
+                  flipbookId={flipbookId}
+                  title={flipbook.title}
+                />
+              </DialogContent>
+            </Dialog>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Generate embed code to add this flipbook to your website, blog, or any other platform.
+          </p>
+        </div>
+      )}
+
+      {/* Share Links Section */}
+      {hasPages && (
+        <div className="bg-card rounded-lg border p-6 mt-6">
+          <ShareLinkManager
+            flipbookId={flipbookId}
+            flipbookTitle={flipbook.title}
+          />
+        </div>
+      )}
+
+      {/* Analytics Section */}
+      {hasPages && (
+        <div className="mt-6">
+          <FlipbookAnalytics flipbookId={flipbookId} />
         </div>
       )}
 

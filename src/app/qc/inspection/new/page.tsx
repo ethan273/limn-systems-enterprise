@@ -6,7 +6,7 @@
  * QC PWA Enhancement - Phase 4
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
 import { trackInspectionStart } from '@/lib/analytics/qcMetrics';
@@ -218,7 +218,6 @@ export default function NewInspectionPage() {
                   className={`item-card ${selectedItemId === itemId ? 'selected' : ''}`}
                   onClick={() => setSelectedItemId(itemId)}
                   role="listitem"
-                  aria-selected={selectedItemId === itemId}
                 >
                   <div className="item-card-header">
                     <div className="item-card-checkbox">

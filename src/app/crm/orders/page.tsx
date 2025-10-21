@@ -13,7 +13,6 @@ import { Search, Package, DollarSign, FileText, AlertCircle, AlertTriangle, Refr
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import { ErrorState } from "@/components/common";
 
 export default function CRMOrdersPage() {
  const [statusFilter, setStatusFilter] = useState<string>("all");

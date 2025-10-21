@@ -448,7 +448,7 @@ export default function DocumentDetailPage({ params }: PageProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete "{mappedDocument.name}" and remove it from storage.
+              This will permanently delete &quot;{mappedDocument.name}&quot; and remove it from storage.
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>

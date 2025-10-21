@@ -230,7 +230,6 @@ export default function Sidebar() {
  items: [
  { label: "Library", href: "/flipbooks" },
  { label: "Builder", href: "/flipbooks/builder" },
- { label: "AI Generate", href: "/flipbooks/ai" },
  { label: "Analytics", href: "/flipbooks/analytics" },
  ]
  }] : []),

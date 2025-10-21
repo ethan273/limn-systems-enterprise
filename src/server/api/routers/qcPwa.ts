@@ -122,6 +122,7 @@ export const qcPwaRouter = createTRPCRouter({
           const logic = section.conditional_logic as any;
           if (logic.show_if) {
             return Object.entries(logic.show_if).every(([key, value]) => {
+              // eslint-disable-next-line security/detect-object-injection
               return input.item_metadata?.[key] === value;
             });
           }
@@ -138,6 +139,7 @@ export const qcPwaRouter = createTRPCRouter({
             const logic = checkpoint.conditional_logic as any;
             if (logic.show_if) {
               return Object.entries(logic.show_if).every(([key, value]) => {
+                // eslint-disable-next-line security/detect-object-injection
                 return input.item_metadata?.[key] === value;
               });
             }
@@ -814,7 +816,7 @@ export const qcPwaRouter = createTRPCRouter({
       days_back: z.number().default(30),
       limit: z.number().default(20),
     }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ ctx: _ctx, input }) => {
       const sinceDate = new Date();
       sinceDate.setDate(sinceDate.getDate() - input.days_back);
 
@@ -873,7 +875,7 @@ export const qcPwaRouter = createTRPCRouter({
       factory_id: z.string().uuid().optional(),
       days_back: z.number().default(30),
     }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ ctx: _ctx, input }) => {
       const sinceDate = new Date();
       sinceDate.setDate(sinceDate.getDate() - input.days_back);
 
@@ -926,7 +928,7 @@ export const qcPwaRouter = createTRPCRouter({
       inspector_id: z.string().uuid().optional(),
       days_back: z.number().default(30),
     }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ ctx: _ctx, input }) => {
       const sinceDate = new Date();
       sinceDate.setDate(sinceDate.getDate() - input.days_back);
 

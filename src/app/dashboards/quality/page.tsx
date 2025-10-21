@@ -68,7 +68,7 @@ export default function QualityDashboardPage() {
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
 
-  const { data: insights, error: insightsError } = api.dashboards.getQualityInsights.useQuery();
+  const { data: insights } = api.dashboards.getQualityInsights.useQuery();
 
   if (isLoading) {
     return (

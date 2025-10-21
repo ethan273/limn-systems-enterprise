@@ -13,8 +13,8 @@ import { uploadQueue } from '@/lib/uploadQueue';
 export interface CameraCaptureProps {
   inspectionId: string;
   checkpointId: string;
-  onPhotoCapture?: (photoUrl: string) => void;
-  onError?: (error: string) => void;
+  onPhotoCapture?: (_photoUrl: string) => void;
+  onError?: (_error: string) => void;
   maxPhotos?: number; // Maximum number of photos (default: 10)
 }
 
@@ -302,6 +302,7 @@ export function CameraCapture({
         <div className="camera-thumbnails" role="list" aria-label="Captured photos">
           {capturedPhotos.map((url, index) => (
             <div key={index} className="camera-thumbnail" role="listitem">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={url} alt={`Captured photo ${index + 1}`} loading="lazy" />
             </div>
           ))}

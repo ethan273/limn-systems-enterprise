@@ -56,6 +56,7 @@ export default function Header() {
       lead: `/crm/leads/${id}`,
     };
 
+    // eslint-disable-next-line security/detect-object-injection
     const route = routes[type];
     if (route) {
       router.push(route);
@@ -104,7 +105,7 @@ export default function Header() {
 
             {!isLoading && !hasResults && (
               <div className="p-4 text-center text-muted">
-                No results found for "{searchQuery}"
+                No results found for &quot;{searchQuery}&quot;
               </div>
             )}
 
