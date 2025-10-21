@@ -3603,6 +3603,263 @@ export class DatabaseClient {
   };
 
   // =====================================================
+  // MISSING TABLES (14 tables added for production completeness)
+  // =====================================================
+
+  admin_audit_log = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('admin_audit_log', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('admin_audit_log', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('admin_audit_log', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('admin_audit_log', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('admin_audit_log', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('admin_audit_log', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('admin_audit_log', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('admin_audit_log', options),
+  };
+
+  admin_settings = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('admin_settings', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('admin_settings', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('admin_settings', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('admin_settings', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('admin_settings', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('admin_settings', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('admin_settings', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('admin_settings', options),
+  };
+
+  analytics_events = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('analytics_events', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('analytics_events', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('analytics_events', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('analytics_events', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('analytics_events', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('analytics_events', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('analytics_events', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('analytics_events', options),
+  };
+
+  default_permissions = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('default_permissions', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('default_permissions', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('default_permissions', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('default_permissions', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('default_permissions', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('default_permissions', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('default_permissions', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('default_permissions', options),
+  };
+
+  flipbook_pages = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('flipbook_pages', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('flipbook_pages', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('flipbook_pages', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('flipbook_pages', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('flipbook_pages', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('flipbook_pages', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('flipbook_pages', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('flipbook_pages', options),
+  };
+
+  flipbook_share_links = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('flipbook_share_links', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('flipbook_share_links', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('flipbook_share_links', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('flipbook_share_links', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('flipbook_share_links', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('flipbook_share_links', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('flipbook_share_links', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('flipbook_share_links', options),
+  };
+
+  flipbooks = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('flipbooks', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('flipbooks', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('flipbooks', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('flipbooks', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('flipbooks', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('flipbooks', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('flipbooks', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('flipbooks', options),
+  };
+
+  hotspots = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('hotspots', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('hotspots', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('hotspots', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('hotspots', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('hotspots', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('hotspots', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('hotspots', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('hotspots', options),
+  };
+
+  security_audit_log = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('security_audit_log', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('security_audit_log', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('security_audit_log', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('security_audit_log', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('security_audit_log', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('security_audit_log', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('security_audit_log', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('security_audit_log', options),
+  };
+
+  share_link_views = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('share_link_views', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('share_link_views', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('share_link_views', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('share_link_views', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('share_link_views', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('share_link_views', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('share_link_views', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('share_link_views', options),
+  };
+
+  sso_login_audit = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('sso_login_audit', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('sso_login_audit', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('sso_login_audit', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('sso_login_audit', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('sso_login_audit', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('sso_login_audit', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('sso_login_audit', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('sso_login_audit', options),
+  };
+
+  user_permissions = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('user_permissions', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('user_permissions', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('user_permissions', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('user_permissions', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('user_permissions', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('user_permissions', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('user_permissions', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('user_permissions', options),
+  };
+
+  user_roles = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('user_roles', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('user_roles', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('user_roles', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('user_roles', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('user_roles', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('user_roles', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('user_roles', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('user_roles', options),
+  };
+
+  users = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('users', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('users', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('users', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('users', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('users', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('users', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('users', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('users', options),
+  };
+
+
+  // =====================================================
   // USER METHODS
   // =====================================================
 
