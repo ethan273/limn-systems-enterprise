@@ -6,6 +6,36 @@
 
 ---
 
+## 🔴 CRITICAL: Environment and Database Configuration
+
+### Environment Files Location
+**MANDATORY - Always check these files first:**
+
+1. **Development:** `.env` - Contains dev database URL and credentials
+2. **Production:** `production-credentials.env` - Contains prod database URL and credentials
+
+**Database URL Variables:**
+- DEV: `DEV_DB_URL` in `production-credentials.env`
+- PROD: `PROD_DB_URL` in `production-credentials.env`
+- Current/Active: `DATABASE_URL` in `.env` (usually points to dev)
+
+**CRITICAL RULE:** When applying database changes, migrations, or indexes:
+1. ✅ **ALWAYS** apply to BOTH dev and prod databases
+2. ✅ **ALWAYS** check `production-credentials.env` for prod credentials
+3. ✅ **ALWAYS** verify both databases have matching changes
+4. ✅ **NEVER** assume .env contains prod credentials
+
+**Example:**
+```bash
+# Get dev URL
+grep "DEV_DB_URL" production-credentials.env
+
+# Get prod URL
+grep "PROD_DB_URL" production-credentials.env
+```
+
+---
+
 ## Core Principles
 
 ### 1. NO SHORTCUTS
