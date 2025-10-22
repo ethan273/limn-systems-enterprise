@@ -77,16 +77,16 @@ INSERT INTO partners (
 WITH partner AS (SELECT id FROM partners WHERE company_name = 'Asia Sourcing Solutions Ltd' LIMIT 1)
 INSERT INTO partner_contacts (partner_id, name, role, email, phone, mobile, is_primary, is_qc, is_production, is_finance, languages, timezone)
 VALUES
-  ((SELECT id FROM partner), 'Wei Chen', 'Managing Director', 'wei.chen@asiasourcingsolutions.com',
+  ((SELECT id FROM partners), 'Wei Chen', 'Managing Director', 'wei.chen@asiasourcingsolutions.com',
    '+86 21 6288 9900', '+86 138 1234 5678', true, false, false, false,
    ARRAY['English', 'Mandarin'], 'Asia/Shanghai'),
-  ((SELECT id FROM partner), 'Zhang Li', 'QC Manager', 'zhang.li@asiasourcingsolutions.com',
+  ((SELECT id FROM partners), 'Zhang Li', 'QC Manager', 'zhang.li@asiasourcingsolutions.com',
    '+86 21 6288 9901', NULL, false, true, true, false,
    ARRAY['English', 'Mandarin'], 'Asia/Shanghai'),
-  ((SELECT id FROM partner), 'Liu Feng', 'Production Coordinator', 'liu.feng@asiasourcingsolutions.com',
+  ((SELECT id FROM partners), 'Liu Feng', 'Production Coordinator', 'liu.feng@asiasourcingsolutions.com',
    '+86 21 6288 9902', NULL, false, false, true, false,
    ARRAY['English', 'Mandarin', 'Cantonese'], 'Asia/Shanghai'),
-  ((SELECT id FROM partner), 'Wang Mei', 'Finance Manager', 'wang.mei@asiasourcingsolutions.com',
+  ((SELECT id FROM partners), 'Wang Mei', 'Finance Manager', 'wang.mei@asiasourcingsolutions.com',
    '+86 21 6288 9903', NULL, false, false, false, true,
    ARRAY['English', 'Mandarin'], 'Asia/Shanghai');
 
@@ -94,13 +94,13 @@ VALUES
 WITH partner AS (SELECT id FROM partners WHERE company_name = 'Vietnam Sourcing Experts Co., Ltd' LIMIT 1)
 INSERT INTO partner_contacts (partner_id, name, role, email, phone, mobile, is_primary, is_qc, is_production, is_finance, languages, timezone)
 VALUES
-  ((SELECT id FROM partner), 'Nguyen Thi Lan', 'Director', 'lan.nguyen@vietnamsourcingexperts.vn',
+  ((SELECT id FROM partners), 'Nguyen Thi Lan', 'Director', 'lan.nguyen@vietnamsourcingexperts.vn',
    '+84 28 3827 5500', '+84 90 123 4567', true, true, false, false,
    ARRAY['English', 'Vietnamese'], 'Asia/Ho_Chi_Minh'),
-  ((SELECT id FROM partner), 'Tran Van Huy', 'Production Supervisor', 'huy.tran@vietnamsourcingexperts.vn',
+  ((SELECT id FROM partners), 'Tran Van Huy', 'Production Supervisor', 'huy.tran@vietnamsourcingexperts.vn',
    '+84 28 3827 5501', NULL, false, false, true, false,
    ARRAY['English', 'Vietnamese'], 'Asia/Ho_Chi_Minh'),
-  ((SELECT id FROM partner), 'Le Thi Mai', 'Quality Inspector', 'mai.le@vietnamsourcingexperts.vn',
+  ((SELECT id FROM partners), 'Le Thi Mai', 'Quality Inspector', 'mai.le@vietnamsourcingexperts.vn',
    '+84 28 3827 5502', NULL, false, true, false, false,
    ARRAY['English', 'Vietnamese'], 'Asia/Ho_Chi_Minh');
 
@@ -108,13 +108,13 @@ VALUES
 WITH partner AS (SELECT id FROM partners WHERE company_name = 'India Manufacturing Liaison Pvt Ltd' LIMIT 1)
 INSERT INTO partner_contacts (partner_id, name, role, email, phone, mobile, is_primary, is_qc, is_production, is_finance, languages, timezone)
 VALUES
-  ((SELECT id FROM partner), 'Rajesh Kumar', 'Managing Partner', 'rajesh.kumar@indiamanufacturingliaison.in',
+  ((SELECT id FROM partners), 'Rajesh Kumar', 'Managing Partner', 'rajesh.kumar@indiamanufacturingliaison.in',
    '+91 11 4567 8900', '+91 98 1234 5678', true, false, true, false,
    ARRAY['English', 'Hindi'], 'Asia/Kolkata'),
-  ((SELECT id FROM partner), 'Priya Sharma', 'Quality Assurance Lead', 'priya.sharma@indiamanufacturingliaison.in',
+  ((SELECT id FROM partners), 'Priya Sharma', 'Quality Assurance Lead', 'priya.sharma@indiamanufacturingliaison.in',
    '+91 11 4567 8901', NULL, false, true, false, false,
    ARRAY['English', 'Hindi'], 'Asia/Kolkata'),
-  ((SELECT id FROM partner), 'Amit Patel', 'Accounts Manager', 'amit.patel@indiamanufacturingliaison.in',
+  ((SELECT id FROM partners), 'Amit Patel', 'Accounts Manager', 'amit.patel@indiamanufacturingliaison.in',
    '+91 11 4567 8902', NULL, false, false, false, true,
    ARRAY['English', 'Hindi', 'Gujarati'], 'Asia/Kolkata');
 
@@ -122,10 +122,10 @@ VALUES
 WITH partner AS (SELECT id FROM partners WHERE company_name = 'Southeast Asia Procurement Partners' LIMIT 1)
 INSERT INTO partner_contacts (partner_id, name, role, email, phone, mobile, is_primary, is_qc, is_production, is_finance, languages, timezone)
 VALUES
-  ((SELECT id FROM partner), 'Somchai Rattanavong', 'Regional Director', 'somchai@seaprocurement.com',
+  ((SELECT id FROM partners), 'Somchai Rattanavong', 'Regional Director', 'somchai@seaprocurement.com',
    '+66 2 056 2300', '+66 81 234 5678', true, false, false, false,
    ARRAY['English', 'Thai'], 'Asia/Bangkok'),
-  ((SELECT id FROM partner), 'Siriwan Pongpanich', 'Operations Manager', 'siriwan@seaprocurement.com',
+  ((SELECT id FROM partners), 'Siriwan Pongpanich', 'Operations Manager', 'siriwan@seaprocurement.com',
    '+66 2 056 2301', NULL, false, true, true, false,
    ARRAY['English', 'Thai'], 'Asia/Bangkok');
 
@@ -133,10 +133,10 @@ VALUES
 WITH partner AS (SELECT id FROM partners WHERE company_name = 'European Quality Sourcing GmbH' LIMIT 1)
 INSERT INTO partner_contacts (partner_id, name, role, email, phone, mobile, is_primary, is_qc, is_production, is_finance, languages, timezone)
 VALUES
-  ((SELECT id FROM partner), 'Klaus Mueller', 'CEO', 'klaus.mueller@euqualitysourcing.de',
+  ((SELECT id FROM partners), 'Klaus Mueller', 'CEO', 'klaus.mueller@euqualitysourcing.de',
    '+49 89 5454 7890', '+49 172 345 6789', true, true, false, false,
    ARRAY['English', 'German', 'Italian'], 'Europe/Berlin'),
-  ((SELECT id FROM partner), 'Anna Schmidt', 'Production Coordinator', 'anna.schmidt@euqualitysourcing.de',
+  ((SELECT id FROM partners), 'Anna Schmidt', 'Production Coordinator', 'anna.schmidt@euqualitysourcing.de',
    '+49 89 5454 7891', NULL, false, false, true, false,
    ARRAY['English', 'German', 'French'], 'Europe/Berlin');
 
@@ -147,52 +147,52 @@ VALUES
 -- Shanghai Artisan Furniture Co.
 WITH partner AS (SELECT id FROM partners WHERE company_name = 'Shanghai Artisan Furniture Co.' LIMIT 1)
 INSERT INTO partner_contacts (partner_id, name, role, email, phone, mobile, is_primary, is_qc, is_production, is_finance, languages, timezone)
-SELECT (SELECT id FROM partner), 'Chen Wei', 'General Manager', 'chen.wei@shanghaiartisan.cn',
+SELECT (SELECT id FROM partners), 'Chen Wei', 'General Manager', 'chen.wei@shanghaiartisan.cn',
   '+86 21 5888 6600', '+86 138 0123 4567', true, false, true, false,
   ARRAY['English', 'Mandarin'], 'Asia/Shanghai'
-WHERE NOT EXISTS (SELECT 1 FROM partner_contacts WHERE partner_id = (SELECT id FROM partner));
+WHERE NOT EXISTS (SELECT 1 FROM partner_contacts WHERE partner_id = (SELECT id FROM partners));
 
 WITH partner AS (SELECT id FROM partners WHERE company_name = 'Shanghai Artisan Furniture Co.' LIMIT 1)
 INSERT INTO partner_contacts (partner_id, name, role, email, phone, is_qc, is_production, languages, timezone)
-SELECT (SELECT id FROM partner), 'Li Xiu', 'QC Manager', 'li.xiu@shanghaiartisan.cn',
+SELECT (SELECT id FROM partners), 'Li Xiu', 'QC Manager', 'li.xiu@shanghaiartisan.cn',
   '+86 21 5888 6601', true, true, ARRAY['English', 'Mandarin'], 'Asia/Shanghai'
-WHERE EXISTS (SELECT 1 FROM partner_contacts WHERE partner_id = (SELECT id FROM partner))
+WHERE EXISTS (SELECT 1 FROM partner_contacts WHERE partner_id = (SELECT id FROM partners))
   AND NOT EXISTS (SELECT 1 FROM partner_contacts WHERE email = 'li.xiu@shanghaiartisan.cn');
 
 -- Hanoi Wood Craft Manufacturing
 WITH partner AS (SELECT id FROM partners WHERE company_name = 'Hanoi Wood Craft Manufacturing' LIMIT 1)
 INSERT INTO partner_contacts (partner_id, name, role, email, phone, mobile, is_primary, is_production, languages, timezone)
-SELECT (SELECT id FROM partner), 'Nguyen Van Minh', 'Factory Director', 'minh.nguyen@hanoiwoodcraft.vn',
+SELECT (SELECT id FROM partners), 'Nguyen Van Minh', 'Factory Director', 'minh.nguyen@hanoiwoodcraft.vn',
   '+84 24 3971 5000', '+84 91 234 5678', true, true, ARRAY['English', 'Vietnamese'], 'Asia/Ho_Chi_Minh'
-WHERE NOT EXISTS (SELECT 1 FROM partner_contacts WHERE partner_id = (SELECT id FROM partner));
+WHERE NOT EXISTS (SELECT 1 FROM partner_contacts WHERE partner_id = (SELECT id FROM partners));
 
 -- Bangkok Bamboo Manufacturing
 WITH partner AS (SELECT id FROM partners WHERE company_name = 'Bangkok Bamboo Manufacturing' LIMIT 1)
 INSERT INTO partner_contacts (partner_id, name, role, email, phone, mobile, is_primary, is_production, languages, timezone)
-SELECT (SELECT id FROM partner), 'Somchai Wongsa', 'Managing Director', 'somchai@bangkokbamboo.co.th',
+SELECT (SELECT id FROM partners), 'Somchai Wongsa', 'Managing Director', 'somchai@bangkokbamboo.co.th',
   '+66 2 234 5678', '+66 81 123 4567', true, true, ARRAY['English', 'Thai'], 'Asia/Bangkok'
-WHERE NOT EXISTS (SELECT 1 FROM partner_contacts WHERE partner_id = (SELECT id FROM partner));
+WHERE NOT EXISTS (SELECT 1 FROM partner_contacts WHERE partner_id = (SELECT id FROM partners));
 
 -- Mumbai Metalworks & Furniture
 WITH partner AS (SELECT id FROM partners WHERE company_name = 'Mumbai Metalworks & Furniture' LIMIT 1)
 INSERT INTO partner_contacts (partner_id, name, role, email, phone, mobile, is_primary, is_production, languages, timezone)
-SELECT (SELECT id FROM partner), 'Ravi Kapoor', 'Director', 'ravi.kapoor@mumbaimetal.in',
+SELECT (SELECT id FROM partners), 'Ravi Kapoor', 'Director', 'ravi.kapoor@mumbaimetal.in',
   '+91 22 2567 8900', '+91 98 2345 6789', true, true, ARRAY['English', 'Hindi'], 'Asia/Kolkata'
-WHERE NOT EXISTS (SELECT 1 FROM partner_contacts WHERE partner_id = (SELECT id FROM partner));
+WHERE NOT EXISTS (SELECT 1 FROM partner_contacts WHERE partner_id = (SELECT id FROM partners));
 
 -- Bali Teak Furniture Manufacturing
 WITH partner AS (SELECT id FROM partners WHERE company_name = 'Bali Teak Furniture Manufacturing' LIMIT 1)
 INSERT INTO partner_contacts (partner_id, name, role, email, phone, mobile, is_primary, is_production, languages, timezone)
-SELECT (SELECT id FROM partner), 'Made Wirawan', 'Owner', 'made@baliteak.id',
+SELECT (SELECT id FROM partners), 'Made Wirawan', 'Owner', 'made@baliteak.id',
   '+62 361 234567', '+62 812 3456 7890', true, true, ARRAY['English', 'Indonesian'], 'Asia/Makassar'
-WHERE NOT EXISTS (SELECT 1 FROM partner_contacts WHERE partner_id = (SELECT id FROM partner));
+WHERE NOT EXISTS (SELECT 1 FROM partner_contacts WHERE partner_id = (SELECT id FROM partners));
 
 -- Milano Luxury Furnishings
 WITH partner AS (SELECT id FROM partners WHERE company_name = 'Milano Luxury Furnishings' LIMIT 1)
 INSERT INTO partner_contacts (partner_id, name, role, email, phone, mobile, is_primary, is_production, languages, timezone)
-SELECT (SELECT id FROM partner), 'Marco Rossi', 'Direttore Generale', 'marco.rossi@milanoluxury.it',
+SELECT (SELECT id FROM partners), 'Marco Rossi', 'Direttore Generale', 'marco.rossi@milanoluxury.it',
   '+39 02 8900 1234', '+39 335 123 4567', true, true, ARRAY['English', 'Italian', 'French'], 'Europe/Rome'
-WHERE NOT EXISTS (SELECT 1 FROM partner_contacts WHERE partner_id = (SELECT id FROM partner));
+WHERE NOT EXISTS (SELECT 1 FROM partner_contacts WHERE partner_id = (SELECT id FROM partners));
 
 COMMIT;
 

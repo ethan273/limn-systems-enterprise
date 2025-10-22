@@ -1357,7 +1357,7 @@ export const flipbooksRouter = createTRPCRouter({
           COUNT(*) as views
         FROM flipbook.share_link_views
         WHERE share_link_id IN (
-          SELECT id FROM flipbook.flipbook_share_links
+          SELECT id FROM flipbooks.flipbook_share_links
           WHERE flipbook_id = ${input.flipbookId}::uuid
         )
         AND viewed_at >= ${startDate}
@@ -1384,7 +1384,7 @@ export const flipbooksRouter = createTRPCRouter({
           COUNT(*) as count
         FROM flipbook.share_link_views
         WHERE share_link_id IN (
-          SELECT id FROM flipbook.flipbook_share_links
+          SELECT id FROM flipbooks.flipbook_share_links
           WHERE flipbook_id = ${input.flipbookId}::uuid
         )
         AND viewed_at >= ${startDate}
