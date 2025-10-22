@@ -1051,10 +1051,10 @@ CREATE INDEX IF NOT EXISTS idx_prototype_photo_comments_status ON prototype_phot
 CREATE INDEX IF NOT EXISTS idx_prototype_photo_comments_created_at ON prototype_photo_comments(created_at);
 CREATE INDEX IF NOT EXISTS idx_prototype_photo_comments_updated_at ON prototype_photo_comments(updated_at);
 
--- Indexes for String?
-CREATE INDEX IF NOT EXISTS idx_String?_milestone_id ON String?(milestone_id);
-CREATE INDEX IF NOT EXISTS idx_String?_prototype_id ON String?(prototype_id);
-CREATE INDEX IF NOT EXISTS idx_String?_uploaded_by ON String?(uploaded_by);
+-- Indexes for prototype_documents
+CREATE INDEX IF NOT EXISTS idx_prototype_documents_milestone_id ON prototype_documents(milestone_id);
+CREATE INDEX IF NOT EXISTS idx_prototype_documents_prototype_id ON prototype_documents(prototype_id);
+CREATE INDEX IF NOT EXISTS idx_prototype_documents_uploaded_by ON prototype_documents(uploaded_by);
 
 -- Indexes for prototype_production
 CREATE INDEX IF NOT EXISTS idx_prototype_production_factory_id ON prototype_production(factory_id);
