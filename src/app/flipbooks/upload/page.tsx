@@ -110,37 +110,18 @@ export default function FlipbookUploadPage() {
 
       toast.success(`PDF uploaded! Processing ${pageCount} pages in browser...`);
 
-      // Step 3: Process PDF pages client-side with PDF.js
-      const { getDocument, GlobalWorkerOptions } = await import("pdfjs-dist");
-      GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/5.4.296/pdf.worker.min.mjs`;
+      // Step 3: Process PDF pages client-side using shared PDF utility
+      const { renderAllPdfPages } = await import("@/lib/pdf/client-processor");
 
-      const arrayBuffer = await file.arrayBuffer();
-      const pdfDoc = await getDocument({ data: arrayBuffer }).promise;
+      const pageResults = await renderAllPdfPages(
+        file,
+        { scale: 2.0, format: 'jpeg', quality: 0.9 },
+        (current, total) => {
+          toast.info(`Rendered page ${current}/${total}`);
+        }
+      );
 
-      // Render each page to canvas and convert to blob
-      const pageBlobs: Blob[] = [];
-      for (let i = 1; i <= pageCount; i++) {
-        const page = await pdfDoc.getPage(i);
-        const viewport = page.getViewport({ scale: 2.0 }); // 2x for quality
-
-        const canvas = document.createElement("canvas");
-        const context = canvas.getContext("2d");
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-
-        await page.render({
-          canvasContext: context!,
-          viewport: viewport,
-        } as any).promise;
-
-        // Convert canvas to blob
-        const blob = await new Promise<Blob>((resolve) => {
-          canvas.toBlob((blob) => resolve(blob!), "image/jpeg", 0.9);
-        });
-
-        pageBlobs.push(blob);
-        toast.info(`Rendered page ${i}/${pageCount}`);
-      }
+      const pageBlobs = pageResults.map(result => result.blob);
 
       // Step 4: Upload rendered pages to server
       const imagesFormData = new FormData();

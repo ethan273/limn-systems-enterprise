@@ -124,40 +124,25 @@ export function DocumentUploadDialog({ _open: open, onOpenChange, canvas, onDocu
   const handlePDFUpload = async (file: File, canvas: fabric.Canvas) => {
     try {
       console.log('Starting PDF upload...');
-      const arrayBuffer = await file.arrayBuffer();
-      console.log('ArrayBuffer loaded:', arrayBuffer.byteLength, 'bytes');
 
-      // Dynamic import of pdfjs to avoid SSR issues
-      const pdfjsLib = await import('pdfjs-dist');
-      console.log('PDF.js loaded, version:', pdfjsLib.version);
+      // Use shared PDF processing utility
+      const { renderPdfFirstPage } = await import('@/lib/pdf/client-processor');
+      console.log('PDF processor loaded');
 
-      // Set worker path - use local file from public directory to avoid CSP issues
-      pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
-      console.log('Worker source set to:', pdfjsLib.GlobalWorkerOptions.workerSrc);
+      console.log('Rendering first page...');
+      const result = await renderPdfFirstPage(file, { scale: 1.5, format: 'png' });
+      console.log('Page rendered:', result.width, 'x', result.height);
 
-      console.log('Loading PDF document...');
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      console.log('PDF loaded, pages:', pdf.numPages);
-
-      const page = await pdf.getPage(1); // Get first page
-      console.log('Page 1 loaded');
-
-      const viewport = page.getViewport({ scale: 1.5 });
-      const canvasEl = document.createElement('canvas');
-      const context = canvasEl.getContext('2d')!;
-
-      canvasEl.height = viewport.height;
-      canvasEl.width = viewport.width;
-
-      console.log('Rendering page to canvas...');
-      await page.render({ canvasContext: context as any, viewport } as any).promise;
-      console.log('Page rendered');
-
-      // Convert canvas to image
-      const imgUrl = canvasEl.toDataURL();
+      // Convert to Fabric image
+      const imgUrl = result.dataUrl;
       console.log('Creating Fabric image...');
       const img = await fabric.FabricImage.fromURL(imgUrl);
       console.log('Fabric image created');
+
+      // Get page count for display
+      const { getPdfMetadata } = await import('@/lib/pdf/client-processor');
+      const metadata = await getPdfMetadata(file);
+      const numPages = metadata.numPages;
 
       const maxSize = 600;
       const scale = Math.min(
@@ -174,7 +159,7 @@ export function DocumentUploadDialog({ _open: open, onOpenChange, canvas, onDocu
       });
 
       // Add PDF info
-      const text = new fabric.IText(`PDF: ${file.name}\nPage 1 of ${pdf.numPages}`, {
+      const text = new fabric.IText(`PDF: ${file.name}\nPage 1 of ${numPages}`, {
         left: img.left,
         top: (img.top || 0) - 40,
         fontSize: 14,
