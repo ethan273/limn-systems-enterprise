@@ -13,7 +13,14 @@ let canvasLib: any = null;
 
 async function getCanvasLib() {
   if (!canvasLib && typeof window === "undefined") {
-    canvasLib = await import("canvas");
+    try {
+      canvasLib = await import("canvas");
+      console.log('[PDF Processor] canvas library loaded successfully');
+    } catch (error) {
+      console.error("[PDF Processor] Failed to load canvas:", error);
+      console.error("[PDF Processor] Canvas error details:", JSON.stringify(error, null, 2));
+      throw new Error(`Canvas library unavailable: ${error instanceof Error ? error.message : 'Unknown error'}. This may indicate missing system dependencies (Cairo, Pango).`);
+    }
   }
   return canvasLib;
 }
@@ -31,9 +38,11 @@ async function getPdfjsLib() {
       if (pdfjsLib.GlobalWorkerOptions) {
         pdfjsLib.GlobalWorkerOptions.workerSrc = ''; // Fully disable worker module
       }
+      console.log('[PDF Processor] pdfjs-dist loaded successfully');
     } catch (error) {
-      console.error("Failed to load pdfjs-dist:", error);
-      throw new Error("PDF processing not available");
+      console.error("[PDF Processor] Failed to load pdfjs-dist:", error);
+      console.error("[PDF Processor] Error details:", JSON.stringify(error, null, 2));
+      throw new Error(`PDF processing library unavailable: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
   return pdfjsLib;

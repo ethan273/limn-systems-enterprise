@@ -90,24 +90,77 @@ export default function FlipbookUploadPage() {
         description: description.trim() || undefined,
       });
 
-      // Step 2: Upload PDF
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("flipbookId", flipbook.id);
+      // Step 2: Upload PDF (server just stores it, doesn't process)
+      const pdfFormData = new FormData();
+      pdfFormData.append("file", file);
+      pdfFormData.append("flipbookId", flipbook.id);
 
-      const response = await fetch("/api/flipbooks/upload-pdf", {
+      const pdfResponse = await fetch("/api/flipbooks/upload-pdf", {
         method: "POST",
-        body: formData,
+        body: pdfFormData,
       });
 
-      if (!response.ok) {
-        const error = await response.json();
+      if (!pdfResponse.ok) {
+        const error = await pdfResponse.json();
         throw new Error(error.error || "PDF upload failed");
       }
 
-      const result = await response.json();
+      const pdfResult = await pdfResponse.json();
+      const pageCount = pdfResult.pageCount;
 
-      toast.success(`Flipbook created with ${result.pageCount} pages!`);
+      toast.success(`PDF uploaded! Processing ${pageCount} pages in browser...`);
+
+      // Step 3: Process PDF pages client-side with PDF.js
+      const { getDocument, GlobalWorkerOptions } = await import("pdfjs-dist");
+      GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/5.4.296/pdf.worker.min.mjs`;
+
+      const arrayBuffer = await file.arrayBuffer();
+      const pdfDoc = await getDocument({ data: arrayBuffer }).promise;
+
+      // Render each page to canvas and convert to blob
+      const pageBlobs: Blob[] = [];
+      for (let i = 1; i <= pageCount; i++) {
+        const page = await pdfDoc.getPage(i);
+        const viewport = page.getViewport({ scale: 2.0 }); // 2x for quality
+
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+
+        await page.render({
+          canvasContext: context!,
+          viewport: viewport,
+        } as any).promise;
+
+        // Convert canvas to blob
+        const blob = await new Promise<Blob>((resolve) => {
+          canvas.toBlob((blob) => resolve(blob!), "image/jpeg", 0.9);
+        });
+
+        pageBlobs.push(blob);
+        toast.info(`Rendered page ${i}/${pageCount}`);
+      }
+
+      // Step 4: Upload rendered pages to server
+      const imagesFormData = new FormData();
+      imagesFormData.append("flipbookId", flipbook.id);
+
+      for (let i = 0; i < pageBlobs.length; i++) {
+        imagesFormData.append("files", pageBlobs[i]!, `page-${i + 1}.jpg`);
+      }
+
+      const imagesResponse = await fetch("/api/flipbooks/upload-images", {
+        method: "POST",
+        body: imagesFormData,
+      });
+
+      if (!imagesResponse.ok) {
+        const error = await imagesResponse.json();
+        throw new Error(error.error || "Failed to upload page images");
+      }
+
+      toast.success(`Flipbook created with ${pageCount} pages!`);
       queryClient.invalidateQueries({ queryKey: ['flipbooks'] });
 
       // Redirect to builder

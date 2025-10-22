@@ -1,21 +1,21 @@
 /**
  * Flipbook PDF Upload API Route
  *
- * Handles PDF uploads for flipbooks:
+ * Simplified serverless-compatible approach:
  * 1. Validates the PDF file
- * 2. Processes PDF and extracts pages
- * 3. Uploads pages to S3
- * 4. Creates flipbook_pages records
- * 5. Updates flipbook metadata
+ * 2. Uploads PDF to storage
+ * 3. Returns PDF URL and metadata
+ *
+ * Note: PDF page extraction is done client-side using PDF.js
+ * to avoid serverless limitations with canvas/native dependencies
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { processPdf } from "@/lib/flipbooks/pdf-processor";
+import { PDFDocument } from "pdf-lib";
 import {
   uploadToS3,
   generatePdfKey,
-  generatePageImageKey,
   initializeStorage,
 } from "@/lib/flipbooks/storage";
 import { features } from "@/lib/features";
@@ -23,7 +23,7 @@ import { features } from "@/lib/features";
 const prisma = new PrismaClient();
 
 export const runtime = "nodejs";
-export const maxDuration = 300; // 5 minutes for large PDFs
+export const maxDuration = 60; // 1 minute - just for PDF upload
 
 export async function POST(request: NextRequest) {
   try {
@@ -56,6 +56,14 @@ export async function POST(request: NextRequest) {
     // Convert file to buffer
     const buffer = Buffer.from(await file.arrayBuffer());
 
+    // Get PDF metadata using pdf-lib
+    const pdfDoc = await PDFDocument.load(buffer);
+    const pageCount = pdfDoc.getPageCount();
+    const title = pdfDoc.getTitle();
+    const author = pdfDoc.getAuthor();
+
+    console.log(`[PDF Upload] Uploading PDF: ${file.name}, ${pageCount} pages`);
+
     // Initialize storage bucket (creates if doesn't exist)
     await initializeStorage();
 
@@ -63,39 +71,9 @@ export async function POST(request: NextRequest) {
     const pdfKey = generatePdfKey(flipbookId, file.name);
     const pdfUpload = await uploadToS3(buffer, pdfKey, "application/pdf");
 
-    // Process PDF and render pages to images
-    console.log(`Processing PDF: ${file.name} for flipbook ${flipbookId}`);
-    const pdfResult = await processPdf(buffer);
-    const { pageCount, pages: pageImages } = pdfResult;
+    console.log(`[PDF Upload] PDF uploaded successfully: ${pdfUpload.cdnUrl}`);
 
-    console.log(`PDF processed: ${pageCount} pages rendered`);
-
-    // Upload each page image to S3 and create page records
-    const pages: any[] = [];
-    for (let i = 0; i < pageCount; i++) {
-      const pageNumber = i + 1;
-      // eslint-disable-next-line security/detect-object-injection
-      const pageBuffer = pageImages[i];
-
-      // Upload page image to S3
-      const pageKey = generatePageImageKey(flipbookId, pageNumber);
-      const pageUpload = await uploadToS3(pageBuffer!, pageKey, "image/jpeg");
-
-      // Create page record with actual image URL
-      const page = await prisma.flipbook_pages.create({
-        data: {
-          flipbook_id: flipbookId,
-          page_number: pageNumber,
-          image_url: pageUpload.cdnUrl,
-          page_type: "CONTENT",
-        },
-      });
-
-      pages.push(page as any);
-      console.log(`Uploaded page ${pageNumber}/${pageCount}`);
-    }
-
-    // Update flipbook with metadata
+    // Update flipbook with PDF URL and page count
     await prisma.flipbooks.update({
       where: { id: flipbookId },
       data: {
@@ -109,13 +87,17 @@ export async function POST(request: NextRequest) {
       success: true,
       flipbookId,
       pageCount,
-      pages,
       pdfUrl: pdfUpload.cdnUrl,
+      metadata: {
+        title,
+        author,
+        pageCount,
+      },
     });
   } catch (error: any) {
-    console.error("PDF upload error:", error);
+    console.error("[PDF Upload] Error:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to process PDF" },
+      { error: error.message || "Failed to upload PDF" },
       { status: 500 }
     );
   }
