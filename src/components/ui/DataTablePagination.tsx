@@ -19,8 +19,8 @@ interface DataTablePaginationProps {
   currentPage: number;
   pageSize: number;
   totalCount: number;
-  onPageChange: (page: number) => void;
-  onPageSizeChange: (pageSize: number) => void;
+  onPageChange: (_page: number) => void;
+  onPageSizeChange: (_pageSize: number) => void;
   pageSizeOptions?: number[];
 }
 

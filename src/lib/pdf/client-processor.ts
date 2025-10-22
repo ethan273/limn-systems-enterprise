@@ -120,7 +120,7 @@ export async function renderPdfPage(
 export async function renderAllPdfPages(
   file: File,
   options: PdfPageRenderOptions = {},
-  onProgress?: (current: number, total: number) => void
+  onProgress?: (_current: number, _total: number) => void
 ): Promise<PdfPageResult[]> {
   // Initialize PDF.js
   const pdfjsLib = await initializePdfWorker();

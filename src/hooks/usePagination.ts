@@ -10,8 +10,8 @@ export interface UsePaginationReturn {
   pageSize: number;
   skip: number;
   take: number;
-  setPage: (page: number) => void;
-  setPageSize: (pageSize: number) => void;
+  setPage: (_page: number) => void;
+  setPageSize: (_pageSize: number) => void;
   reset: () => void;
 }
 
