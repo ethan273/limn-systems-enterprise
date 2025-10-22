@@ -60,24 +60,9 @@ export const exportRouter = createTRPCRouter({
         where.user_type = filters.userType;
       }
 
-      // Get users
-      const users = await ctx.db.users.findMany({
-        select: {
-          id: true,
-          email: true,
-          created_at: true,
-          last_sign_in_at: true,
-        },
-        orderBy: { created_at: 'desc' },
-      });
-
-      // Get profiles
-      const userIds = users.map((u) => u.id);
+      // Query user_profiles directly (no auth.users join needed)
       const profiles = await ctx.db.user_profiles.findMany({
-        where: {
-          id: { in: userIds },
-          ...where,
-        },
+        where,
         select: {
           id: true,
           first_name: true,
@@ -89,31 +74,27 @@ export const exportRouter = createTRPCRouter({
           title: true,
           department: true,
           is_active: true,
+          created_at: true,
         },
+        orderBy: { created_at: 'desc' },
       });
 
-      const profileMap = new Map(profiles.map((p) => [p.id, p]));
-
-      const exportData = users
-        .filter((user) => profileMap.has(user.id))
-        .map((user) => {
-          const profile = profileMap.get(user.id)!;
-          return {
-            id: user.id,
-            email: user.email,
-            name: getUserFullName(profile),
-            userType: profile.user_type || 'employee',
-            title: profile.title || '',
-            department: profile.department || '',
-            isActive: profile.is_active ?? true,
-            createdAt: user.created_at?.toISOString() || '',
-            lastSignInAt: user.last_sign_in_at?.toISOString() || '',
-          };
-        });
+      const exportData = profiles.map((profile) => {
+        return {
+          id: profile.id,
+          email: profile.email || '',
+          name: getUserFullName(profile),
+          userType: profile.user_type || 'employee',
+          title: profile.title || '',
+          department: profile.department || '',
+          isActive: profile.is_active ?? true,
+          createdAt: profile.created_at?.toISOString() || '',
+        };
+      });
 
       if (format === 'csv') {
         // Convert to CSV
-        const headers = ['ID', 'Email', 'Name', 'User Type', 'Title', 'Department', 'Active', 'Created At', 'Last Sign In'];
+        const headers = ['ID', 'Email', 'Name', 'User Type', 'Title', 'Department', 'Active', 'Created At'];
         const rows = exportData.map((user) => [
           user.id,
           user.email,
@@ -123,7 +104,6 @@ export const exportRouter = createTRPCRouter({
           user.department,
           user.isActive ? 'Yes' : 'No',
           user.createdAt,
-          user.lastSignInAt,
         ]);
 
         const csv = [headers, ...rows].map((row) => row.join(',')).join('\n');

@@ -125,7 +125,7 @@ export function UserManagementPanel() {
     }
 
     const csv = [
-      ['Email', 'Name', 'User Type', 'Title', 'Department', 'Status', 'Last Sign In'],
+      ['Email', 'Name', 'User Type', 'Title', 'Department', 'Status', 'Account Created'],
       ...data.users.map((user) => [
         user.email || '',
         getUserFullName(user) || '',
@@ -133,7 +133,7 @@ export function UserManagementPanel() {
         user.title || '',
         user.department || '',
         user.isActive ? 'Active' : 'Inactive',
-        user.lastSignInAt ? new Date(user.lastSignInAt).toLocaleDateString() : 'Never',
+        user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Unknown',
       ]),
     ]
       .map((row) => row.map((cell) => `"${cell}"`).join(','))
