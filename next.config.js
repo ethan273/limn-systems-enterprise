@@ -32,6 +32,11 @@ const withPWA = require('@ducanh2912/next-pwa').default({
         }
       }
     },
+    // Admin API calls - NEVER cache to prevent stale errors
+    {
+      urlPattern: /^https?:\/\/.*\/api\/admin\/.*/i,
+      handler: 'NetworkOnly', // Never cache admin API calls
+    },
     // tRPC API calls - optimized for enterprise operations
     {
       urlPattern: /^https?:\/\/.*\/api\/trpc\/.*/i,
@@ -44,7 +49,7 @@ const withPWA = require('@ducanh2912/next-pwa').default({
         },
         networkTimeoutSeconds: 5, // Faster timeout
         cacheableResponse: {
-          statuses: [0, 200]
+          statuses: [200] // Only cache successful responses
         }
       }
     },

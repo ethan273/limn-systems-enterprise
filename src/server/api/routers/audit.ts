@@ -302,8 +302,8 @@ export const auditRouter = createTRPCRouter({
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
 
-      // Get counts for different log types
-      const [adminLogsCount, securityLogsCount, loginLogsCount, failedLoginsCount] = await Promise.all([
+      // Get counts for different log types with error handling for RLS/missing tables
+      const [adminLogsCount, securityLogsCount, loginLogsCount, failedLoginsCount] = await Promise.allSettled([
         ctx.db.admin_audit_log.count({
           where: {
             created_at: { gte: startDate },
@@ -325,18 +325,23 @@ export const auditRouter = createTRPCRouter({
             success: false,
           },
         }),
-      ]);
+      ]).then(results => results.map(r => r.status === 'fulfilled' ? r.value : 0));
 
       // Get recent actions breakdown
       // Note: groupBy not supported by wrapper, using findMany + manual grouping
-      const allActions = await ctx.db.admin_audit_log.findMany({
-        where: {
-          created_at: { gte: startDate },
-        },
-        select: {
-          action: true,
-        },
-      });
+      let allActions: Array<Record<string, any>> = [];
+      try {
+        allActions = await ctx.db.admin_audit_log.findMany({
+          where: {
+            created_at: { gte: startDate },
+          },
+          select: {
+            action: true,
+          },
+        });
+      } catch (error) {
+        console.error('Error fetching admin actions:', error);
+      }
 
       // Group by action manually
       const actionGroups = allActions.reduce((acc: Record<string, number>, log) => {
@@ -357,15 +362,20 @@ export const auditRouter = createTRPCRouter({
 
       // Get top users by activity
       // Note: groupBy not supported by wrapper, using findMany + manual grouping
-      const allUserActions = await ctx.db.admin_audit_log.findMany({
-        where: {
-          created_at: { gte: startDate },
-          user_email: { not: null },
-        },
-        select: {
-          user_email: true,
-        },
-      });
+      let allUserActions: Array<Record<string, any>> = [];
+      try {
+        allUserActions = await ctx.db.admin_audit_log.findMany({
+          where: {
+            created_at: { gte: startDate },
+            user_email: { not: null },
+          },
+          select: {
+            user_email: true,
+          },
+        });
+      } catch (error) {
+        console.error('Error fetching user actions:', error);
+      }
 
       // Group by user_email manually
       const userGroups = allUserActions.reduce((acc: Record<string, number>, log) => {

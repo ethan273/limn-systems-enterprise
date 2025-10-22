@@ -229,17 +229,22 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      // Log the approval action
-      await prisma.admin_audit_log.create({
-        data: {
-          action: 'APPROVE_SIGNUP',
-          user_email: updatedSignUp.email,
-          resource_type: 'sign_up',
-          resource_id: id,
-          metadata: { reviewerNotes, reviewerEmail },
-          created_at: new Date(),
-        },
-      });
+      // Log the approval action (non-blocking, may fail due to RLS)
+      try {
+        await prisma.admin_audit_log.create({
+          data: {
+            action: 'APPROVE_SIGNUP',
+            user_email: updatedSignUp.email,
+            resource_type: 'sign_up',
+            resource_id: id,
+            metadata: { reviewerNotes, reviewerEmail },
+            created_at: new Date(),
+          },
+        });
+      } catch (auditError) {
+        console.error('[POST /api/admin/sign-ups] Failed to create audit log:', auditError);
+        // Don't fail the request if audit logging fails
+      }
     } else {
       // Send denial email (non-blocking)
       sendAccessDeniedEmail({
@@ -260,17 +265,22 @@ export async function POST(request: NextRequest) {
         console.error('[POST /api/admin/sign-ups] Failed to send Google Chat notification:', err);
       });
 
-      // Log the rejection action
-      await prisma.admin_audit_log.create({
-        data: {
-          action: 'REJECT_SIGNUP',
-          user_email: updatedSignUp.email,
-          resource_type: 'sign_up',
-          resource_id: id,
-          metadata: { reviewerNotes, reviewerEmail },
-          created_at: new Date(),
-        },
-      });
+      // Log the rejection action (non-blocking, may fail due to RLS)
+      try {
+        await prisma.admin_audit_log.create({
+          data: {
+            action: 'REJECT_SIGNUP',
+            user_email: updatedSignUp.email,
+            resource_type: 'sign_up',
+            resource_id: id,
+            metadata: { reviewerNotes, reviewerEmail },
+            created_at: new Date(),
+          },
+        });
+      } catch (auditError) {
+        console.error('[POST /api/admin/sign-ups] Failed to create audit log:', auditError);
+        // Don't fail the request if audit logging fails
+      }
     }
 
     return NextResponse.json({
