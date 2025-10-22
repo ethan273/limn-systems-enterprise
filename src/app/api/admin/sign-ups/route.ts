@@ -191,8 +191,8 @@ export async function POST(request: NextRequest) {
         console.error('[POST /api/admin/sign-ups] Error in approval notifications:', error);
       }
 
-      // Check if user already exists by email
-      const existingUserArray = await prisma.users.findMany({
+      // Check if user already exists by email (check user_profiles instead of auth.users)
+      const existingUserArray = await prisma.user_profiles.findMany({
         where: { email: updatedSignUp.email },
         take: 1,
       });

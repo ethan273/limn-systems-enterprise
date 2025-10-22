@@ -303,28 +303,29 @@ export const auditRouter = createTRPCRouter({
       startDate.setDate(startDate.getDate() - days);
 
       // Get counts for different log types
+      // Wrap in try-catch to handle missing tables or RLS issues gracefully
       const [adminLogsCount, securityLogsCount, loginLogsCount, failedLoginsCount] = await Promise.all([
         ctx.db.admin_audit_log.count({
           where: {
             created_at: { gte: startDate },
           },
-        }),
+        }).catch(() => 0),
         ctx.db.security_audit_log.count({
           where: {
             event_time: { gte: startDate },
           },
-        }),
+        }).catch(() => 0),
         ctx.db.sso_login_audit.count({
           where: {
             login_time: { gte: startDate },
           },
-        }),
+        }).catch(() => 0),
         ctx.db.sso_login_audit.count({
           where: {
             login_time: { gte: startDate },
             success: false,
           },
-        }),
+        }).catch(() => 0),
       ]);
 
       // Get recent actions breakdown
@@ -336,7 +337,7 @@ export const auditRouter = createTRPCRouter({
         select: {
           action: true,
         },
-      });
+      }).catch(() => []);
 
       // Group by action manually
       const actionGroups = allActions.reduce((acc: Record<string, number>, log) => {
@@ -365,7 +366,7 @@ export const auditRouter = createTRPCRouter({
         select: {
           user_email: true,
         },
-      });
+      }).catch(() => []);
 
       // Group by user_email manually
       const userGroups = allUserActions.reduce((acc: Record<string, number>, log) => {
