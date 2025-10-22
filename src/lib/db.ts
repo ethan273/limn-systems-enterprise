@@ -2053,7 +2053,25 @@ export class DatabaseClient {
       Object.entries(where).forEach(([key, value]) => {
         if (key === 'OR') return; // Skip OR as it's handled by applyOrClause
         if (value !== undefined && value !== null) {
-          query = query.eq(key, value);
+          // Handle Prisma-style comparison operators
+          if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+            if ('gte' in value) {
+              query = query.gte(key, value.gte);
+            } else if ('lte' in value) {
+              query = query.lte(key, value.lte);
+            } else if ('gt' in value) {
+              query = query.gt(key, value.gt);
+            } else if ('lt' in value) {
+              query = query.lt(key, value.lt);
+            } else if ('not' in value) {
+              query = query.neq(key, value.not);
+            } else {
+              // Default to equality for objects without operators
+              query = query.eq(key, value);
+            }
+          } else {
+            query = query.eq(key, value);
+          }
         }
       });
     }
