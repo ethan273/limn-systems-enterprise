@@ -407,7 +407,7 @@ test.describe('🔒 COMPREHENSIVE AUTH & SECURITY TESTS', () => {
       await page.click('button[type="submit"]');
 
       // Wait for navigation away from login page
-      await page.waitForURL(url => !url.includes('/portal/login'), { timeout: 5000 });
+      await page.waitForURL(url => !url.href.includes('/portal/login'), { timeout: 5000 });
       await page.waitForLoadState('domcontentloaded');
 
       // Should be on customer portal (not login page)
@@ -424,7 +424,7 @@ test.describe('🔒 COMPREHENSIVE AUTH & SECURITY TESTS', () => {
       await page.click('button[type="submit"]');
 
       // Wait for navigation away from login page
-      await page.waitForURL(url => !url.includes('/portal/login'), { timeout: 5000 });
+      await page.waitForURL(url => !url.href.includes('/portal/login'), { timeout: 5000 });
       await page.waitForLoadState('domcontentloaded');
 
       // Try to access customer portal
@@ -502,7 +502,7 @@ test.describe('🔒 COMPREHENSIVE AUTH & SECURITY TESTS', () => {
       await page.click('button[type="submit"]');
 
       // Wait for navigation away from login page
-      await page.waitForURL(url => !url.includes('/portal/login'), { timeout: 5000 });
+      await page.waitForURL(url => !url.href.includes('/portal/login'), { timeout: 5000 });
       await page.waitForLoadState('domcontentloaded');
 
       const url = page.url();
@@ -517,7 +517,7 @@ test.describe('🔒 COMPREHENSIVE AUTH & SECURITY TESTS', () => {
       await page.click('button[type="submit"]');
 
       // Wait for navigation away from login page
-      await page.waitForURL(url => !url.includes('/portal/login'), { timeout: 5000 });
+      await page.waitForURL(url => !url.href.includes('/portal/login'), { timeout: 5000 });
       await page.waitForLoadState('domcontentloaded');
 
       await page.goto(`${TEST_CONFIG.BASE_URL}/portal/designer`);
@@ -553,7 +553,7 @@ test.describe('🔒 COMPREHENSIVE AUTH & SECURITY TESTS', () => {
       await page.click('button[type="submit"]');
 
       // Wait for navigation away from login page
-      await page.waitForURL(url => !url.includes('/portal/login'), { timeout: 5000 });
+      await page.waitForURL(url => !url.href.includes('/portal/login'), { timeout: 5000 });
       await page.waitForLoadState('domcontentloaded');
 
       const url = page.url();
@@ -568,7 +568,7 @@ test.describe('🔒 COMPREHENSIVE AUTH & SECURITY TESTS', () => {
       await page.click('button[type="submit"]');
 
       // Wait for navigation away from login page
-      await page.waitForURL(url => !url.includes('/portal/login'), { timeout: 5000 });
+      await page.waitForURL(url => !url.href.includes('/portal/login'), { timeout: 5000 });
       await page.waitForLoadState('domcontentloaded');
 
       await page.goto(`${TEST_CONFIG.BASE_URL}/portal/factory`);
@@ -604,7 +604,7 @@ test.describe('🔒 COMPREHENSIVE AUTH & SECURITY TESTS', () => {
       await page.click('button[type="submit"]');
 
       // Wait for navigation away from login page
-      await page.waitForURL(url => !url.includes('/portal/login'), { timeout: 5000 });
+      await page.waitForURL(url => !url.href.includes('/portal/login'), { timeout: 5000 });
       await page.waitForLoadState('domcontentloaded');
 
       const url = page.url();
@@ -619,7 +619,7 @@ test.describe('🔒 COMPREHENSIVE AUTH & SECURITY TESTS', () => {
       await page.click('button[type="submit"]');
 
       // Wait for navigation away from login page
-      await page.waitForURL(url => !url.includes('/portal/login'), { timeout: 5000 });
+      await page.waitForURL(url => !url.href.includes('/portal/login'), { timeout: 5000 });
       await page.waitForLoadState('domcontentloaded');
 
       await page.goto(`${TEST_CONFIG.BASE_URL}/portal/qc`);
