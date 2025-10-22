@@ -235,7 +235,10 @@ export interface Contact {
 export interface PendingUserRequest {
   id: string;
   email: string;
-  company_name?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  company?: string | null;
+  company_name?: string | null;  // Deprecated, use 'company'
   phone?: string | null;
   user_type?: 'customer' | 'contractor' | 'manufacturer' | 'designer' | null;
   reason_for_access?: string | null;

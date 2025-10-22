@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { createClient } from '@supabase/supabase-js';
 import { sendAccessApprovedEmail } from '@/lib/email/templates/access-approved';
 import { sendAccessDeniedEmail } from '@/lib/email/templates/access-denied';
-import { notifyAccessApproved, notifyAccessDenied } from '@/lib/notifications/google-chat';
+import { notifyAccessApproved, notifyAccessDenied } from '@/lib/google-chat';
 import { getServerSession } from 'next-auth';
 
 const prisma = new PrismaClient();

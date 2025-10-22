@@ -3,7 +3,9 @@ import { createTRPCRouter, publicProcedure, protectedProcedure as _protectedProc
 import { TRPCError } from '@trpc/server'
 import { createClient } from '@supabase/supabase-js'
 import { sendAccessRequestAdminEmail } from '@/lib/email/templates/access-request-admin'
-import { notifyAccessRequest, notifyMagicLinkSent } from '@/lib/notifications/google-chat'
+import { sendAccessRequestConfirmation } from '@/lib/email/templates/access-request-confirmation'
+import { sendAccessDeniedEmail } from '@/lib/email/templates/access-denied'
+import { notifyAccessRequest, notifyMagicLinkSent, notifyAccessApproved, notifyAccessDenied } from '@/lib/google-chat'
 
 // Lazy-initialized Supabase client with service role for admin operations
 let supabaseAdmin: ReturnType<typeof createClient> | null = null
@@ -104,6 +106,16 @@ export const authRouter = createTRPCRouter({
           console.error('[requestAccess] Failed to send Google Chat notification:', err)
         })
 
+        // Send confirmation email to user (non-blocking)
+        sendAccessRequestConfirmation({
+          email: input.email,
+          name: requestorName,
+          userType: input.user_type,
+          company: input.company
+        }).catch(err => {
+          console.error('[requestAccess] Failed to send confirmation email:', err)
+        })
+
         return {
           success: true,
           message: 'Your request has been submitted and will be reviewed shortly.',
@@ -202,7 +214,13 @@ export const authRouter = createTRPCRouter({
           }
         })
 
-        // If approved, send magic link
+        // Get reviewer info for notifications
+        const reviewerName = ctx.session?.user?.email || 'Admin';
+        const requestorName = request.last_name
+          ? `${request.first_name} ${request.last_name}`
+          : (request.first_name || 'User');
+
+        // If approved, send magic link and notifications
         if (input.action === 'approve') {
           const { error: magicLinkError } = await getSupabaseAdmin().auth.signInWithOtp({
             email: request.email,
@@ -234,6 +252,39 @@ export const authRouter = createTRPCRouter({
               message: `Failed to send magic link: ${magicLinkError.message}`
             })
           }
+
+          // Send Google Chat notification (non-blocking)
+          notifyAccessApproved({
+            email: request.email,
+            name: requestorName,
+            approvedBy: reviewerName
+          }).catch(err => {
+            console.error('[reviewRequest] Failed to send approval Google Chat notification:', err)
+          })
+
+          // Note: Magic link email is sent by Supabase automatically
+          // sendAccessApprovedEmail template exists but requires manual magic link extraction
+        } else {
+          // Denied - send notifications
+
+          // Send Google Chat notification (non-blocking)
+          notifyAccessDenied({
+            email: request.email,
+            name: requestorName,
+            deniedBy: reviewerName,
+            reason: input.adminNotes || undefined
+          }).catch(err => {
+            console.error('[reviewRequest] Failed to send denial Google Chat notification:', err)
+          })
+
+          // Send denial email to user (non-blocking)
+          sendAccessDeniedEmail({
+            to: request.email,
+            firstName: request.first_name || 'User',
+            reason: input.adminNotes || undefined
+          }).catch(err => {
+            console.error('[reviewRequest] Failed to send denial email:', err)
+          })
         }
 
         return {

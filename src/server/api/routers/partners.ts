@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc/init";
 import { TRPCError } from "@trpc/server";
+import { sendPortalAccessGranted } from "@/lib/email/templates/portal-access-granted";
+import { sendPortalAccessRevoked } from "@/lib/email/templates/portal-access-revoked";
 
 
 /**
@@ -627,26 +629,39 @@ export const partnersRouter = createTRPCRouter({
           });
         }
 
-        // TODO: Portal access fields (user_id, portal_role, portal_access_enabled,
-        // portal_modules_allowed, last_login_at) need to be added to schema
-        // For now, just return the contact as portal access management
-        // is not yet implemented in the database schema
-
-        // Update contact - currently no portal-specific fields available
+        // Update contact with portal access fields
         const updatedContact = await ctx.db.partner_contacts.update({
           where: { id: contact_id },
           data: {
-            // Portal access fields will be added here once schema is updated
-            // portal_role: portal_role,
-            // portal_access_enabled: true,
-            // portal_modules_allowed: portal_modules,
+            portal_role: _portal_role,
+            portal_access_enabled: true,
+            portal_modules_allowed: _portal_modules,
           },
         });
 
+        // Send portal access granted email (non-blocking)
+        const partnerName = contact.partners?.company_name || 'Partner';
+        const contactName = `${contact.first_name || ''} ${contact.last_name || ''}`.trim() || contact.email;
+
+        sendPortalAccessGranted({
+          email: contact.email,
+          name: contactName,
+          partnerName,
+          portalRole: _portal_role,
+          portalModules: _portal_modules,
+          grantedBy: ctx.session?.user?.email
+        }).catch(err => {
+          console.error('[assignPortalAccess] Failed to send portal access email:', err);
+        });
+
         // TODO: Send magic link if requested
+        // This requires Supabase Auth API integration
         if (send_magic_link) {
-          // Implementation would go here
-          // This would call Supabase Auth API to send magic link
+          // Future implementation: Call Supabase Auth to send magic link
+          // await supabaseAdmin.auth.admin.generateLink({
+          //   type: 'magiclink',
+          //   email: contact.email,
+          // });
         }
 
         return updatedContact;
@@ -656,8 +671,65 @@ export const partnersRouter = createTRPCRouter({
     revokePortalAccess: protectedProcedure
       .input(z.object({ contact_id: z.string().uuid() }))
       .mutation(async ({ ctx, input }) => {
-        // TODO: Portal access fields need to be added to schema
-        // For now, just return the contact
+        const contact = await ctx.db.partner_contacts.findUnique({
+          where: { id: input.contact_id },
+          include: {
+            partners: {
+              select: {
+                company_name: true,
+              },
+            },
+          },
+        });
+
+        if (!contact) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Contact not found",
+          });
+        }
+
+        // Revoke portal access by setting enabled to false
+        const updatedContact = await ctx.db.partner_contacts.update({
+          where: { id: input.contact_id },
+          data: {
+            portal_access_enabled: false,
+            // Keep portal_role and portal_modules_allowed for audit trail
+          },
+        });
+
+        // Send portal access revoked email (non-blocking)
+        const partnerName = contact.partners?.company_name || 'Partner';
+        const contactName = `${contact.first_name || ''} ${contact.last_name || ''}`.trim() || contact.email;
+
+        sendPortalAccessRevoked({
+          email: contact.email,
+          name: contactName,
+          partnerName,
+          revokedBy: ctx.session?.user?.email
+        }).catch(err => {
+          console.error('[revokePortalAccess] Failed to send portal access revoked email:', err);
+        });
+
+        // TODO: Invalidate user sessions if user_id exists
+        // This would require Supabase Auth API integration
+        // if (updatedContact.user_id) {
+        //   await supabaseAdmin.auth.admin.signOut(updatedContact.user_id);
+        // }
+
+        return updatedContact;
+      }),
+
+    // Update portal role
+    updatePortalRole: protectedProcedure
+      .input(
+        z.object({
+          contact_id: z.string().uuid(),
+          portal_role: z.string(),
+          portal_modules: z.array(z.string()).optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
         const contact = await ctx.db.partner_contacts.findUnique({
           where: { id: input.contact_id },
         });
@@ -669,7 +741,45 @@ export const partnersRouter = createTRPCRouter({
           });
         }
 
-        return contact;
+        // Update portal role and optionally modules
+        const updatedContact = await ctx.db.partner_contacts.update({
+          where: { id: input.contact_id },
+          data: {
+            portal_role: input.portal_role,
+            ...(input.portal_modules && {
+              portal_modules_allowed: input.portal_modules,
+            }),
+          },
+        });
+
+        return updatedContact;
+      }),
+
+    // Get portal access status
+    getPortalAccessStatus: protectedProcedure
+      .input(z.object({ contact_id: z.string().uuid() }))
+      .query(async ({ ctx, input }) => {
+        const contact = await ctx.db.partner_contacts.findUnique({
+          where: { id: input.contact_id },
+        });
+
+        if (!contact) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Contact not found",
+          });
+        }
+
+        return {
+          contact_id: contact.id,
+          name: contact.name,
+          email: contact.email,
+          has_portal_access: contact.portal_access_enabled ?? false,
+          portal_role: contact.portal_role,
+          allowed_modules: (contact.portal_modules_allowed as string[]) || [],
+          last_login: contact.last_login_at,
+          user_id: contact.user_id,
+        };
       }),
   }),
 

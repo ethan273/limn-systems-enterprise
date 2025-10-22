@@ -36,6 +36,273 @@ grep "PROD_DB_URL" production-credentials.env
 
 ---
 
+## 🔴 CRITICAL: Database/Prisma Schema Synchronization
+
+**MANDATORY REQUIREMENT - Prime Directive Compliance**
+
+### Overview
+
+The Prisma schema **MUST** be 100% synchronized with the actual PostgreSQL database at all times. Code references to database tables that don't exist will cause **runtime crashes**.
+
+**Current State**: 289 models (verified 2025-10-22)
+
+### The Synchronization Problem
+
+**Issue**: Prisma schema can reference tables/models that don't exist in the actual database, causing:
+- Runtime crashes when code tries to access missing tables
+- TypeScript compilation success but production failures
+- Silent failures in development that only appear in production
+
+**Example from Oct 22, 2025**:
+- Prisma schema had 289 models
+- Database only had 285 tables
+- 4 models referenced non-existent tables:
+  - `analytics_events` - Used in flipbooks.ts:422
+  - `share_link_views` - Used in flipbooks.ts:1280
+  - `ai_generation_queue` - Referenced but never used
+  - `templates` - Referenced but never used
+
+### Verification Process (Run This Regularly)
+
+#### Step 1: Check Prisma Schema Model Count
+```bash
+grep "^model " prisma/schema.prisma | wc -l
+# Should return: 289 (as of 2025-10-22)
+```
+
+#### Step 2: Pull Database Schema
+```bash
+npx prisma db pull
+# This introspects the actual database and updates schema.prisma
+# Watch for lines removed - these are models that don't exist in DB
+```
+
+#### Step 3: Check for Discrepancies
+```bash
+git diff prisma/schema.prisma
+# Look for removed models (lines starting with -)
+# These models existed in code but not in database
+```
+
+#### Step 4: Find Code References
+```bash
+# Search for code using the missing tables
+rg "ctx.db.analytics_events" --type ts
+rg "ctx.db.share_link_views" --type ts
+# etc for each missing model
+```
+
+### When Schema Misalignment is Detected
+
+**STOP IMMEDIATELY** - This is a **CRITICAL BLOCKER**
+
+You have two options:
+
+#### Option A: Create Missing Tables (Complete the Feature)
+Use this when the tables are needed for features that should work.
+
+**Process**:
+1. Create SQL migration file in `prisma/migrations/`
+2. Include table definitions with:
+   - Primary keys
+   - Foreign keys
+   - Indexes
+   - Column types matching Prisma expectations
+   - Any required enums
+3. Apply migration to BOTH dev and prod databases
+4. Verify with `npx prisma db pull`
+5. Regenerate Prisma client: `npx prisma generate`
+6. Run type-check: `npx tsc --noEmit`
+
+**Example Migration** (from Oct 22, 2025):
+```sql
+-- Create enum first
+CREATE TYPE public.analytics_event_type AS ENUM (
+  'VIEW', 'PAGE_TURN', 'HOTSPOT_CLICK', 'SHARE', 'DOWNLOAD', 'ZOOM', 'SEARCH'
+);
+
+-- Create table
+CREATE TABLE IF NOT EXISTS public.analytics_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  flipbook_id UUID NOT NULL,
+  event_type public.analytics_event_type NOT NULL,
+  user_id UUID,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+  CONSTRAINT fk_analytics_events_flipbook
+    FOREIGN KEY (flipbook_id)
+    REFERENCES public.flipbooks(id)
+    ON DELETE CASCADE
+);
+
+-- Create indexes
+CREATE INDEX idx_analytics_events_flipbook ON public.analytics_events(flipbook_id);
+```
+
+#### Option B: Remove Broken Code (Disable the Feature)
+Use this when the feature is incomplete or not needed.
+
+**Process**:
+1. Identify all code references to missing tables
+2. Remove or comment out the broken code
+3. Run `npx prisma db pull` to align schema
+4. Regenerate: `npx prisma generate`
+5. Verify: `npx tsc --noEmit`
+6. Document disabled features
+
+### Migration Application Script
+
+**Always use this pattern** for applying migrations to both databases:
+
+```typescript
+// scripts/apply-migrations-sequential.ts
+import { Pool } from 'pg';
+import fs from 'fs';
+import path from 'path';
+
+// Load both dev and prod credentials
+const prodCredsPath = path.join(__dirname, '../production-credentials.env');
+// ... parse credentials ...
+
+const devUrl = process.env.DEV_DB_URL;
+const prodUrl = process.env.PROD_DB_URL;
+
+async function applyMigration(dbName: string, connectionUrl: string, migrationPath: string) {
+  const pool = new Pool({
+    connectionString: connectionUrl,
+    ssl: { rejectUnauthorized: false },
+  });
+
+  const client = await pool.connect();
+  const sql = fs.readFileSync(migrationPath, 'utf-8');
+
+  try {
+    // Parse SQL into statements (handle multi-line statements)
+    const statements = parseSQL(sql);
+
+    for (const statement of statements) {
+      await client.query(statement);
+    }
+
+    console.log(`✅ Migration applied to ${dbName}`);
+  } finally {
+    client.release();
+    await pool.end();
+  }
+}
+
+// Apply to both databases
+await applyMigration('DEV', devUrl, migrationPath);
+await applyMigration('PROD', prodUrl, migrationPath);
+```
+
+### Post-Migration Verification Checklist
+
+After applying migrations, **ALWAYS** run this checklist:
+
+- [ ] `npx prisma db pull` - Should show "0 changes" or only expected changes
+- [ ] `grep "^model " prisma/schema.prisma | wc -l` - Count matches expectations
+- [ ] `npx prisma generate` - Should succeed without errors
+- [ ] `npx tsc --noEmit` - Should show 0 TypeScript errors
+- [ ] `npm run build` - Production build should succeed
+- [ ] `git diff prisma/schema.prisma` - Review all schema changes
+- [ ] Test affected features manually in dev
+
+### Common Issues and Solutions
+
+#### Issue: CREATE TYPE fails with "already exists"
+**Solution**: Use DO blocks with IF NOT EXISTS checks:
+```sql
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'my_enum_type') THEN
+    CREATE TYPE my_enum_type AS ENUM ('VALUE1', 'VALUE2');
+  END IF;
+END$$;
+```
+
+**Better Solution**: Use simple CREATE TYPE (easier to parse):
+```sql
+CREATE TYPE public.my_enum_type AS ENUM ('VALUE1', 'VALUE2');
+```
+Then handle "already exists" errors in application code with try/catch.
+
+#### Issue: Migration script can't parse DO blocks
+**Solution**: Use single database connection (client) instead of pool for each statement.
+
+#### Issue: Tables exist in one database but not the other
+**Solution**: Always apply migrations to BOTH dev and prod in same run. Never apply to just one database.
+
+#### Issue: Prisma pull removes models that should exist
+**Solution**: The models don't exist in the database. Create migration to add them, or remove the code that references them.
+
+### Documentation Requirements
+
+When fixing schema misalignment:
+
+1. **Document what was missing**: List all models that were in code but not in database
+2. **Document the fix**: Which migrations were created and applied
+3. **Document code changes**: Any code that was modified or removed
+4. **Document verification**: Results of verification checklist
+5. **Update SESSION-START-DOCUMENT.md**: Update model count if it changed
+
+**Save documentation to**:
+- `limn-systems-enterprise-docs/01-CURRENT/`
+- Include in session completion reports
+- Update CLAUDE.md if process changes
+
+### Prevention
+
+**To prevent schema drift**:
+
+1. **Always apply migrations immediately after creation**
+2. **Never commit code that references non-existent tables**
+3. **Run `npx prisma db pull` regularly during development**
+4. **Include schema verification in pre-commit hooks**
+5. **Check model count in SESSION-START documentation**
+
+### Schema Verification Command
+
+Add this to your workflow:
+
+```bash
+# Quick schema alignment check
+echo "Schema models: $(grep '^model ' prisma/schema.prisma | wc -l)"
+npx prisma db pull --force && echo "✅ Schema aligned" || echo "❌ Schema sync failed"
+npx prisma generate && echo "✅ Client generated" || echo "❌ Generation failed"
+npx tsc --noEmit && echo "✅ TypeScript valid" || echo "❌ Type errors found"
+```
+
+### Warning Signs of Schema Drift
+
+🚨 **IMMEDIATE INVESTIGATION REQUIRED** if you see:
+
+1. Runtime errors mentioning "relation does not exist"
+2. TypeScript compiles but production crashes
+3. Prisma db pull removes models
+4. New features fail in production but work in dev
+5. Database introspection shows different model count than expected
+
+### Historical Context
+
+**October 22, 2025 - Schema Alignment Crisis**:
+- Discovered 4-model discrepancy between code and database
+- Code referenced non-existent tables causing runtime crashes
+- Fixed by creating comprehensive migrations
+- Applied migrations to both dev and prod databases
+- Verified complete alignment (289 models)
+- Created reusable migration application script
+- Documented process in CLAUDE.md (this section)
+
+**Lessons Learned**:
+1. Schema drift happens when code is written before tables are created
+2. TypeScript can't catch missing database tables
+3. Verification must check actual database, not just Prisma schema
+4. Migrations must be applied to both databases immediately
+5. Documentation prevents recurrence
+
+---
+
 ## Core Principles
 
 ### 1. NO SHORTCUTS

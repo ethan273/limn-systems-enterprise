@@ -1,13 +1,18 @@
 /**
- * Google Chat Integration
- * Sends notifications to Google Chat webhooks for QC and Factory Review events
+ * Google Chat Notifications for QC & Factory Review Events
+ *
+ * Provides notification functions for:
+ * - QC inspection completions
+ * - Factory review completions
+ * - Supervisor nudges (long-running inspections)
+ *
+ * Uses unified Google Chat client for consistent delivery and rate limiting.
  */
 
-// Rate limiting: Track last message time per webhook
-const lastMessageTimes = new Map<string, number>();
-const MIN_INTERVAL_MS = 1000; // 1 second between messages
+import { sendGoogleChatMessage } from './client';
+import { getStatusEmoji } from './formatters';
 
-interface QCNotificationData {
+export interface QCNotificationData {
   item_name: string;
   inspection_status: 'passed' | 'failed';
   inspector_name?: string;
@@ -18,13 +23,19 @@ interface QCNotificationData {
   factory_name?: string;
 }
 
-interface FactoryReviewNotificationData {
+export interface FactoryReviewNotificationData {
   prototype_name: string;
   review_status: 'approved' | 'rejected' | 'revision_required';
   reviewer_name?: string;
   issues_found: number;
   photos_captured: number;
   factory_name?: string;
+}
+
+export interface SupervisorNudgeData {
+  tech_name: string;
+  item_name: string;
+  elapsed_minutes: number;
 }
 
 /**
@@ -34,15 +45,7 @@ export async function sendQCNotification(
   webhookUrl: string,
   data: QCNotificationData
 ): Promise<boolean> {
-  // Rate limiting check
-  const lastTime = lastMessageTimes.get(webhookUrl) || 0;
-  const now = Date.now();
-  if (now - lastTime < MIN_INTERVAL_MS) {
-    console.warn('Rate limit: Message throttled, waiting...');
-    await new Promise(resolve => setTimeout(resolve, MIN_INTERVAL_MS - (now - lastTime)));
-  }
-
-  const statusEmoji = data.inspection_status === 'passed' ? '✅' : '❌';
+  const statusEmoji = getStatusEmoji(data.inspection_status);
   const statusText = data.inspection_status === 'passed' ? 'PASSED' : 'FAILED';
   const criticalBadge = data.critical_issues > 0 ? `🚨 ${data.critical_issues} CRITICAL` : '';
 
@@ -53,9 +56,10 @@ export async function sendQCNotification(
         header: {
           title: `QC Inspection ${statusText}`,
           subtitle: data.item_name,
-          imageUrl: data.inspection_status === 'passed'
-            ? 'https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/check_circle/default/24px.svg'
-            : 'https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/cancel/default/24px.svg',
+          imageUrl:
+            data.inspection_status === 'passed'
+              ? 'https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/check_circle/default/24px.svg'
+              : 'https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/cancel/default/24px.svg',
         },
         sections: [
           {
@@ -109,26 +113,13 @@ export async function sendQCNotification(
     ],
   };
 
-  try {
-    const response = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(message),
-    });
+  const result = await sendGoogleChatMessage({
+    webhookUrl,
+    message,
+    rateLimitKey: webhookUrl,
+  });
 
-    if (!response.ok) {
-      console.error('Google Chat webhook error:', response.status, await response.text());
-      return false;
-    }
-
-    lastMessageTimes.set(webhookUrl, Date.now());
-    return true;
-  } catch (error) {
-    console.error('Error sending Google Chat notification:', error);
-    return false;
-  }
+  return result.success;
 }
 
 /**
@@ -138,20 +129,7 @@ export async function sendFactoryReviewNotification(
   webhookUrl: string,
   data: FactoryReviewNotificationData
 ): Promise<boolean> {
-  // Rate limiting check
-  const lastTime = lastMessageTimes.get(webhookUrl) || 0;
-  const now = Date.now();
-  if (now - lastTime < MIN_INTERVAL_MS) {
-    console.warn('Rate limit: Message throttled, waiting...');
-    await new Promise(resolve => setTimeout(resolve, MIN_INTERVAL_MS - (now - lastTime)));
-  }
-
-  const statusEmoji =
-    data.review_status === 'approved'
-      ? '✅'
-      : data.review_status === 'rejected'
-      ? '❌'
-      : '⚠️';
+  const statusEmoji = getStatusEmoji(data.review_status);
   const statusText =
     data.review_status === 'approved'
       ? 'APPROVED'
@@ -217,26 +195,13 @@ export async function sendFactoryReviewNotification(
     ],
   };
 
-  try {
-    const response = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(message),
-    });
+  const result = await sendGoogleChatMessage({
+    webhookUrl,
+    message,
+    rateLimitKey: webhookUrl,
+  });
 
-    if (!response.ok) {
-      console.error('Google Chat webhook error:', response.status, await response.text());
-      return false;
-    }
-
-    lastMessageTimes.set(webhookUrl, Date.now());
-    return true;
-  } catch (error) {
-    console.error('Error sending Google Chat notification:', error);
-    return false;
-  }
+  return result.success;
 }
 
 /**
@@ -248,14 +213,6 @@ export async function sendSupervisorNudge(
   itemName: string,
   elapsedMinutes: number
 ): Promise<boolean> {
-  // Rate limiting check
-  const lastTime = lastMessageTimes.get(webhookUrl) || 0;
-  const now = Date.now();
-  if (now - lastTime < MIN_INTERVAL_MS) {
-    console.warn('Rate limit: Message throttled, waiting...');
-    await new Promise(resolve => setTimeout(resolve, MIN_INTERVAL_MS - (now - lastTime)));
-  }
-
   const message = {
     text: `⏰ QC Inspection Nudge: ${techName}`,
     cards: [
@@ -263,7 +220,8 @@ export async function sendSupervisorNudge(
         header: {
           title: 'QC Inspection Reminder',
           subtitle: `Inspection in progress for ${elapsedMinutes} minutes`,
-          imageUrl: 'https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/notifications_active/default/24px.svg',
+          imageUrl:
+            'https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/notifications_active/default/24px.svg',
         },
         sections: [
           {
@@ -286,24 +244,11 @@ export async function sendSupervisorNudge(
     ],
   };
 
-  try {
-    const response = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(message),
-    });
+  const result = await sendGoogleChatMessage({
+    webhookUrl,
+    message,
+    rateLimitKey: webhookUrl,
+  });
 
-    if (!response.ok) {
-      console.error('Google Chat webhook error:', response.status, await response.text());
-      return false;
-    }
-
-    lastMessageTimes.set(webhookUrl, Date.now());
-    return true;
-  } catch (error) {
-    console.error('Error sending Google Chat notification:', error);
-    return false;
-  }
+  return result.success;
 }

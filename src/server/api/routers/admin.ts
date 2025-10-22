@@ -13,7 +13,7 @@ import { user_type_enum } from '@prisma/client';
 import { getUserFullName } from '@/lib/utils/user-utils';
 import { createClient } from '@supabase/supabase-js';
 import { sendUserInvitationEmail } from '@/lib/email/templates/user-invitation';
-import { notifyUserInvited } from '@/lib/notifications/google-chat';
+import { notifyUserInvited } from '@/lib/google-chat';
 
 
 // Lazy-initialized Supabase client with service role for admin operations
