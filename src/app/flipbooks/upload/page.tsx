@@ -128,7 +128,10 @@ export default function FlipbookUploadPage() {
       imagesFormData.append("flipbookId", flipbook.id);
 
       for (let i = 0; i < pageBlobs.length; i++) {
-        imagesFormData.append("files", pageBlobs[i]!, `page-${i + 1}.jpg`);
+        const blob = pageBlobs.at(i);
+        if (blob) {
+          imagesFormData.append("files", blob, `page-${i + 1}.jpg`);
+        }
       }
 
       const imagesResponse = await fetch("/api/flipbooks/upload-images", {

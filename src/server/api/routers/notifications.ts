@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '../trpc/init';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { TRPCError } from '@trpc/server';
+import { sendPushForDatabaseNotification } from '@/lib/push/server-push';
 
 const supabase = getSupabaseAdmin();
 
@@ -304,6 +305,13 @@ export const notificationsRouter = createTRPCRouter({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to create notification',
+        });
+      }
+
+      // Send push notification (non-blocking)
+      if (notification && (notification as any).id) {
+        sendPushForDatabaseNotification((notification as any).id).catch((err) => {
+          console.error('[Notifications] Failed to send push notification:', err);
         });
       }
 
