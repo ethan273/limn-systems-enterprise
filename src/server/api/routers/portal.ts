@@ -363,18 +363,24 @@ export const portalRouter = createTRPCRouter({
   getDashboardStats: portalProcedure
     .query(async ({ ctx }) => {
 
+      // Phase 1 Fix: Use two-step query instead of nested filters
+      // Get all project IDs for this customer first
+      const customerProjects = await ctx.db.projects.findMany({
+        where: { customer_id: ctx.customerId },
+        select: { id: true },
+      });
+      const projectIds = customerProjects.map(p => p.id);
+
       const [
         activeOrders,
         pendingPayments,
         recentShipments,
         documentsCount,
       ] = await Promise.all([
-        // Active orders count - join through projects table
+        // Active orders count - use project_id IN array instead of nested filter
         ctx.db.production_orders.count({
           where: {
-            projects: {
-              customer_id: ctx.customerId,
-            },
+            project_id: { in: projectIds },
             status: {
               in: ['pending_deposit', 'in_production', 'ready_to_ship'],
             },
@@ -391,12 +397,10 @@ export const portalRouter = createTRPCRouter({
           },
         }),
 
-        // Recent shipments (last 30 days) - join through projects table
+        // Recent shipments (last 30 days) - use project_id IN array instead of nested filter
         ctx.db.shipments.count({
           where: {
-            projects: {
-              customer_id: ctx.customerId,
-            },
+            project_id: { in: projectIds },
             created_at: {
               gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
             },
