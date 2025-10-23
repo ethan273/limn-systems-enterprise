@@ -42,6 +42,14 @@ function FlipbookBuilderContent() {
   const searchParams = useSearchParams();
   const flipbookId = searchParams.get("id");
 
+  // Redirect to upload page if no flipbook ID is provided
+  useEffect(() => {
+    if (!flipbookId) {
+      toast.info("Please create a flipbook first by uploading a PDF");
+      router.replace("/flipbooks/upload");
+    }
+  }, [flipbookId, router]);
+
   const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [uploadType, setUploadType] = useState<"pdf" | "images">("pdf");
@@ -231,6 +239,11 @@ function FlipbookBuilderContent() {
         />
       </div>
     );
+  }
+
+  // Show loading while redirecting (no flipbook ID)
+  if (!flipbookId) {
+    return <LoadingState message="Redirecting to upload page..." size="lg" />;
   }
 
   if (isLoading && flipbookId) {
