@@ -26,6 +26,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 1,  // Retry failed tests: 2 for CI, 1 for local
   workers: process.env.CI ? 1 : 2,  // Memory-safe: 1 for CI, 2 for local (NOT 3+)
+  globalSetup: './tests/global-setup.ts',  // Setup portal test users before tests run
   reporter: [
     ['html', {
       outputFolder: path.join(__dirname, 'test-results', 'html-report'),
