@@ -134,43 +134,42 @@ export async function POST(request: NextRequest) {
     const testEmail = selectedUser.email;
     const testUserId = selectedUser.userId;
 
-    // Helper function to find user by email with pagination
-    async function findUserByEmail(email: string) {
-      let page = 1;
-      const perPage = 50;
-      const maxPages = 20; // Search up to 1000 users max
+    // Look up user in auth.users table directly (Supabase admin API listUsers is broken)
+    // Using direct Prisma query to auth schema - same pattern as global-setup.ts
+    const { PrismaClient } = await import('@prisma/client');
+    const prisma = new PrismaClient();
 
-      while (page <= maxPages) {
-        const { data, error } = await supabase.auth.admin.listUsers({ page, perPage });
+    const authUsers = await prisma.$queryRaw<Array<{ id: string; email: string }>>`
+      SELECT id, email
+      FROM auth.users
+      WHERE email = ${testEmail}
+      LIMIT 1
+    `;
 
-        if (error) {
-          console.warn(`Error listing users page ${page}:`, error);
-          break;
-        }
-
-        const user = data?.users?.find(u => u.email === email);
-        if (user) {
-          return user;
-        }
-
-        // If we got less than perPage users, we've reached the end
-        if (!data?.users || data.users.length < perPage) {
-          break;
-        }
-
-        page++;
-      }
-
-      return null;
-    }
-
-    // First, try to find user by email (search all pages)
-    let existingUser = await findUserByEmail(testEmail);
     let actualUserId = testUserId;
 
-    if (!existingUser) {
-      // User doesn't exist, create new one
-      const { data: _newUser, error: createUserError } = await supabase.auth.admin.createUser({
+    if (authUsers.length > 0) {
+      // User exists in Supabase auth
+      actualUserId = authUsers[0].id;
+      console.log(`Using existing user ${testEmail} with ID ${actualUserId}`);
+
+      // Update password to ensure it matches test expectations (if needed)
+      const { error: updateError } = await supabase.auth.admin.updateUserById(actualUserId, {
+        email_confirm: true,
+        user_metadata: {
+          full_name: selectedUser.profile.name,
+          name: selectedUser.profile.name
+        }
+      });
+
+      if (updateError) {
+        console.warn(`Could not update user metadata: ${updateError.message}`);
+      }
+    } else {
+      // User doesn't exist in auth - create fresh
+      console.log(`Creating new auth user: ${testEmail}...`);
+
+      const { data: newUser, error: createUserError } = await supabase.auth.admin.createUser({
         id: testUserId,
         email: testEmail,
         email_confirm: true,
@@ -181,28 +180,30 @@ export async function POST(request: NextRequest) {
       });
 
       if (createUserError) {
-        // If email_exists error, user exists but wasn't found in pagination
-        // Search again more thoroughly
-        if (createUserError.message.includes('already been registered') || (createUserError as any).code === 'email_exists') {
-          existingUser = await findUserByEmail(testEmail);
+        console.error('Error creating test user:', createUserError);
+        // Don't fail immediately - user might exist with different ID
+        // Query again to get actual ID
+        const retryUsers = await prisma.$queryRaw<Array<{ id: string; email: string }>>`
+          SELECT id, email
+          FROM auth.users
+          WHERE email = ${testEmail}
+          LIMIT 1
+        `;
 
-          if (existingUser) {
-            actualUserId = existingUser.id;
-            console.log(`User ${testEmail} already exists with ID ${actualUserId}, using existing user`);
-          } else {
-            console.error('Error: User exists but cannot find by email after pagination search');
-            return NextResponse.json({ error: 'Failed to locate existing test user' }, { status: 500 });
-          }
+        if (retryUsers.length > 0) {
+          actualUserId = retryUsers[0].id;
+          console.log(`Found existing user after create failed: ${actualUserId}`);
         } else {
-          console.error('Error creating test user:', createUserError);
+          await prisma.$disconnect();
           return NextResponse.json({ error: 'Failed to create test user', details: createUserError.message }, { status: 500 });
         }
+      } else if (newUser?.user?.id) {
+        actualUserId = newUser.user.id;
+        console.log(`Created new auth user: ${actualUserId}`);
       }
-    } else {
-      // User exists, use their actual ID
-      actualUserId = existingUser.id;
-      console.log(`Using existing user ${testEmail} with ID ${actualUserId}`);
     }
+
+    await prisma.$disconnect();
 
     // Create user profile if it doesn't exist
     const { data: _existingProfile, error: getProfileError } = await supabase

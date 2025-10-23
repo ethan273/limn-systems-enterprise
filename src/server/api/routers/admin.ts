@@ -243,7 +243,7 @@ export const adminRouter = createTRPCRouter({
         const { userId, data } = input;
 
         // Get user email for audit log
-        const user = await ctx.db.users.findUnique({
+        const user = await ctx.db.user_profiles.findUnique({
           where: { id: userId },
           select: { email: true },
         });
@@ -295,7 +295,7 @@ export const adminRouter = createTRPCRouter({
       )
       .mutation(async ({ input, ctx }) => {
         // Check if user already exists
-        const existingUserArray = await ctx.db.users.findMany({
+        const existingUserArray = await ctx.db.user_profiles.findMany({
           where: { email: input.email },
           take: 1,
         });
@@ -323,13 +323,13 @@ export const adminRouter = createTRPCRouter({
         const userId = authData.user.id;
 
         // Create user in auth.users (if not automatically created)
-        const usersArray = await ctx.db.users.findMany({
+        const usersArray = await ctx.db.user_profiles.findMany({
           where: { id: userId },
           take: 1,
         });
 
         if (usersArray.length === 0) {
-          await ctx.db.users.create({
+          await ctx.db.user_profiles.create({
             data: {
               id: userId,
               email: input.email,
@@ -504,7 +504,7 @@ export const adminRouter = createTRPCRouter({
         const { userId, module, permission, value } = input;
 
         // Get user email for audit log
-        const user = await ctx.db.users.findUnique({
+        const user = await ctx.db.user_profiles.findUnique({
           where: { id: userId },
           select: { email: true },
         });
@@ -796,7 +796,7 @@ export const adminRouter = createTRPCRouter({
         const { userId, role } = input;
 
         // Get user email for audit log
-        const user = await ctx.db.users.findUnique({
+        const user = await ctx.db.user_profiles.findUnique({
           where: { id: userId },
           select: { email: true },
         });
@@ -838,7 +838,7 @@ export const adminRouter = createTRPCRouter({
         const { userId, role } = input;
 
         // Get user email for audit log
-        const user = await ctx.db.users.findUnique({
+        const user = await ctx.db.user_profiles.findUnique({
           where: { id: userId },
           select: { email: true },
         });
