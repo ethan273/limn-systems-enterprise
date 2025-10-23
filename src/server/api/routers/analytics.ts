@@ -510,7 +510,7 @@ export const analyticsRouter = createTRPCRouter({
           COUNT(qd.id)::bigint as defect_count,
           COUNT(DISTINCT qi.id)::bigint as inspection_count
         FROM qc_inspections qi
-        LEFT JOIN qc_defects qd ON qd.inspection_id = qi.id
+        LEFT JOIN qc_defects qd ON qd.qc_inspection_id = qi.id
         ${Prisma.raw(whereSql)}
         GROUP BY period
         ORDER BY period ASC
@@ -549,7 +549,7 @@ export const analyticsRouter = createTRPCRouter({
           qd.category,
           COUNT(*)::bigint as defect_count
         FROM qc_defects qd
-        JOIN qc_inspections qi ON qi.id = qd.inspection_id
+        JOIN qc_inspections qi ON qi.id = qd.qc_inspection_id
         ${Prisma.raw(whereSql)}
         GROUP BY qd.category
         ORDER BY defect_count DESC
