@@ -54,14 +54,7 @@ export function HotspotHeatMap({ flipbookId, pageId }: HotspotHeatMapProps) {
     );
   }
 
-  // Group hotspots by page for summary
-  const hotspotsByPage = heatMap.hotspots.reduce((acc, hotspot) => {
-    if (!acc[hotspot.pageNumber]) {
-      acc[hotspot.pageNumber] = [];
-    }
-    acc[hotspot.pageNumber].push(hotspot);
-    return {};
-  }, {} as Record<number, typeof heatMap.hotspots>);
+  // Note: Grouping by page functionality reserved for future per-page heat map view
 
   return (
     <div className="space-y-6">

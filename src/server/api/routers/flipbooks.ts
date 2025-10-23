@@ -1610,15 +1610,20 @@ export const flipbooksRouter = createTRPCRouter({
         });
       }
 
-      // Bulk update status using raw SQL (updateMany not available in some Prisma setups)
-      const result = await ctx.db.$executeRaw`
-        UPDATE flipbooks.flipbooks
-        SET status = ${input.status}::flipbook_status,
-            updated_at = NOW()
-        WHERE id = ANY(${input.ids}::uuid[])
-      `;
+      // Bulk update status (updateMany not supported by wrapper, using Promise.all with individual updates)
+      await Promise.all(
+        input.ids.map((id) =>
+          ctx.db.flipbooks.update({
+            where: { id },
+            data: {
+              status: input.status,
+              updated_at: new Date(),
+            },
+          })
+        )
+      );
 
-      return { updatedCount: result };
+      return { updatedCount: input.ids.length };
     }),
 
   /**

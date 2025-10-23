@@ -147,7 +147,7 @@ export default function FlipbooksPage() {
   });
 
   // Bulk operation handlers
-  const handleSelectAll = () => {
+  const _handleSelectAll = () => {
     if (selectedIds.size === flipbooks.length) {
       setSelectedIds(new Set());
     } else {

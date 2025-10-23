@@ -8,7 +8,7 @@ import type { Session } from '@supabase/supabase-js';
  * Conditional cache wrapper
  * Uses React cache() in Next.js runtime, pass-through in test/non-React environments
  */
-let cacheWrapper: <T extends (...args: any[]) => any>(fn: T) => T;
+let cacheWrapper: <T extends (..._args: any[]) => any>(_fn: T) => T;
 if (typeof require !== 'undefined') {
   try {
     // Try to import React cache - will work in Next.js runtime
@@ -17,15 +17,15 @@ if (typeof require !== 'undefined') {
       cacheWrapper = react.cache;
     } else {
       // React exists but cache not available - use pass-through
-      cacheWrapper = <T extends (...args: any[]) => any>(fn: T): T => fn;
+      cacheWrapper = <T extends (..._args: any[]) => any>(fn: T): T => fn;
     }
   } catch {
     // React not available - use pass-through
-    cacheWrapper = <T extends (...args: any[]) => any>(fn: T): T => fn;
+    cacheWrapper = <T extends (..._args: any[]) => any>(fn: T): T => fn;
   }
 } else {
   // No require available (ES modules only) - use pass-through
-  cacheWrapper = <T extends (...args: any[]) => any>(fn: T): T => fn;
+  cacheWrapper = <T extends (..._args: any[]) => any>(fn: T): T => fn;
 }
 
 /**
