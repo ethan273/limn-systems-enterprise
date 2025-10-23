@@ -52,6 +52,14 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-  // webServer config removed - dev server should be started manually before tests
-  // This prevents Playwright from trying to start its own server for each test suite
+  // Automatic dev server management - Playwright starts/stops server automatically
+  // This ensures fresh server for each test suite run and prevents mid-test crashes
+  webServer: {
+    command: 'npm run dev',
+    url: 'http://localhost:3000',
+    timeout: 120000, // 2 minutes to start
+    reuseExistingServer: !process.env.CI, // Reuse in local dev, fresh in CI
+    stdout: 'ignore',
+    stderr: 'pipe',
+  },
 });
