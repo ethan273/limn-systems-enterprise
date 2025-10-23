@@ -301,27 +301,29 @@ export const auditRouter = createTRPCRouter({
       const { days } = input;
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
+      // Convert to ISO string to avoid timezone format issues with PostgreSQL
+      const startDateISO = startDate.toISOString();
 
       // Get counts for different log types with error handling for RLS/missing tables
       const [adminLogsCount, securityLogsCount, loginLogsCount, failedLoginsCount] = await Promise.allSettled([
         ctx.db.admin_audit_log.count({
           where: {
-            created_at: { gte: startDate },
+            created_at: { gte: startDateISO },
           },
         }),
         ctx.db.security_audit_log.count({
           where: {
-            event_time: { gte: startDate },
+            event_time: { gte: startDateISO },
           },
         }),
         ctx.db.sso_login_audit.count({
           where: {
-            login_time: { gte: startDate },
+            login_time: { gte: startDateISO },
           },
         }),
         ctx.db.sso_login_audit.count({
           where: {
-            login_time: { gte: startDate },
+            login_time: { gte: startDateISO },
             success: false,
           },
         }),
@@ -333,7 +335,7 @@ export const auditRouter = createTRPCRouter({
       try {
         allActions = await ctx.db.admin_audit_log.findMany({
           where: {
-            created_at: { gte: startDate },
+            created_at: { gte: startDateISO },
           },
           select: {
             action: true,
@@ -366,7 +368,7 @@ export const auditRouter = createTRPCRouter({
       try {
         allUserActions = await ctx.db.admin_audit_log.findMany({
           where: {
-            created_at: { gte: startDate },
+            created_at: { gte: startDateISO },
             user_email: { not: null },
           },
           select: {

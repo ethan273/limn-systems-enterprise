@@ -1864,13 +1864,27 @@ export class DatabaseClient {
       selectFields = selectedFields.length > 0 ? selectedFields.join(', ') : '*';
     }
 
+    // Tables that don't have updated_at column (immutable audit logs)
+    const tablesWithoutUpdatedAt = ['admin_audit_log', 'security_audit_log', 'sso_login_audit'];
+
+    // Build insert data object with conditional timestamps
+    const insertData: Record<string, any> = {
+      ...inputData,
+    };
+
+    // Add created_at if not already present
+    if (!('created_at' in insertData)) {
+      insertData.created_at = new Date().toISOString();
+    }
+
+    // Add updated_at only for tables that have this column
+    if (!tablesWithoutUpdatedAt.includes(tableName) && !('updated_at' in insertData)) {
+      insertData.updated_at = new Date().toISOString();
+    }
+
     const { data, error } = await (getSupabaseAdmin() as any)
       .from(tableName)
-      .insert({
-        ...inputData,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
+      .insert(insertData)
       .select(selectFields)
       .single();
 
