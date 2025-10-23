@@ -1355,9 +1355,9 @@ export const flipbooksRouter = createTRPCRouter({
         SELECT
           DATE(viewed_at) as date,
           COUNT(*) as views
-        FROM flipbook.share_link_views
+        FROM public.share_link_views
         WHERE share_link_id IN (
-          SELECT id FROM flipbooks.flipbook_share_links
+          SELECT id FROM public.flipbook_share_links
           WHERE flipbook_id = ${input.flipbookId}::uuid
         )
         AND viewed_at >= ${startDate}
@@ -1382,9 +1382,9 @@ export const flipbooksRouter = createTRPCRouter({
         SELECT
           COALESCE(referrer, 'Direct') as referrer,
           COUNT(*) as count
-        FROM flipbook.share_link_views
+        FROM public.share_link_views
         WHERE share_link_id IN (
-          SELECT id FROM flipbooks.flipbook_share_links
+          SELECT id FROM public.flipbook_share_links
           WHERE flipbook_id = ${input.flipbookId}::uuid
         )
         AND viewed_at >= ${startDate}
@@ -1399,9 +1399,9 @@ export const flipbooksRouter = createTRPCRouter({
           COALESCE(viewer_country, 'Unknown') as country,
           COALESCE(viewer_city, 'Unknown') as city,
           COUNT(*) as count
-        FROM flipbook.share_link_views
+        FROM public.share_link_views
         WHERE share_link_id IN (
-          SELECT id FROM flipbooks.flipbook_share_links
+          SELECT id FROM public.flipbook_share_links
           WHERE flipbook_id = ${input.flipbookId}::uuid
         )
         AND viewed_at >= ${startDate}
@@ -1420,9 +1420,9 @@ export const flipbooksRouter = createTRPCRouter({
             ELSE 'Desktop'
           END as device_type,
           COUNT(*) as count
-        FROM flipbook.share_link_views
+        FROM public.share_link_views
         WHERE share_link_id IN (
-          SELECT id FROM flipbooks.flipbook_share_links
+          SELECT id FROM public.flipbook_share_links
           WHERE flipbook_id = ${input.flipbookId}::uuid
         )
         AND viewed_at >= ${startDate}
@@ -1498,7 +1498,7 @@ export const flipbooksRouter = createTRPCRouter({
         SELECT
           DATE(viewed_at) as date,
           COUNT(*) as views
-        FROM flipbook.share_link_views
+        FROM public.share_link_views
         WHERE share_link_id = ${input.shareLinkId}::uuid
         AND viewed_at >= ${startDate}
         GROUP BY DATE(viewed_at)
@@ -1510,7 +1510,7 @@ export const flipbooksRouter = createTRPCRouter({
         SELECT
           EXTRACT(HOUR FROM viewed_at) as hour,
           COUNT(*) as views
-        FROM flipbook.share_link_views
+        FROM public.share_link_views
         WHERE share_link_id = ${input.shareLinkId}::uuid
         AND viewed_at >= ${startDate}
         GROUP BY EXTRACT(HOUR FROM viewed_at)
