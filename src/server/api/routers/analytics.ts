@@ -61,9 +61,10 @@ export const analyticsRouter = createTRPCRouter({
           ...(Object.keys(dateFilter).length > 0 && { payment_date: dateFilter }),
         },
       });
+      // Using 'total' column instead of 'total_amount' (column doesn't exist)
       const revenueData = {
         _sum: {
-          total_amount: paidInvoices.reduce((sum: number, inv: any) => sum + (Number(inv.total_amount) || 0), 0),
+          total_amount: paidInvoices.reduce((sum: number, inv: any) => sum + (Number(inv.total) || 0), 0),
           amount_paid: paidInvoices.reduce((sum: number, inv: any) => sum + (Number(inv.amount_paid) || 0), 0),
         },
         _count: {
@@ -82,7 +83,7 @@ export const analyticsRouter = createTRPCRouter({
       });
       const outstandingData = {
         _sum: {
-          total_amount: outstandingInvoices.reduce((sum: number, inv: any) => sum + (Number(inv.total_amount) || 0), 0),
+          total_amount: outstandingInvoices.reduce((sum: number, inv: any) => sum + (Number(inv.total) || 0), 0),
         },
         _count: {
           id: outstandingInvoices.length,
@@ -141,7 +142,7 @@ export const analyticsRouter = createTRPCRouter({
       }>>`
         SELECT
           ${Prisma.raw(dateGroupSql)} as period,
-          COALESCE(SUM(total_amount), 0)::numeric as revenue,
+          COALESCE(SUM(total), 0)::numeric as revenue,
           COUNT(*)::bigint as invoice_count
         FROM production_invoices
         ${Prisma.raw(whereSql)}
@@ -180,7 +181,7 @@ export const analyticsRouter = createTRPCRouter({
         SELECT
           c.id as customer_id,
           c.name as customer_name,
-          COALESCE(SUM(pi.total_amount), 0)::numeric as revenue,
+          COALESCE(SUM(pi.total), 0)::numeric as revenue,
           COUNT(pi.id)::bigint as invoice_count
         FROM customers c
         JOIN projects p ON p.customer_id = c.id
@@ -251,10 +252,11 @@ export const analyticsRouter = createTRPCRouter({
 
       // Average production time (completed orders only)
       // Note: select not supported by wrapper, fetching full records
+      // Using updated_at as completion time since completed_at column doesn't exist
       const completedOrders = await ctx.db.production_orders.findMany({
         where: {
           status: 'completed',
-          completed_at: { not: null },
+          updated_at: { not: null },
           ...(Object.keys(dateFilter).length > 0 && { created_at: dateFilter }),
         },
       });
@@ -263,7 +265,7 @@ export const analyticsRouter = createTRPCRouter({
       if (completedOrders.length > 0) {
         const totalDays = completedOrders.reduce((sum, order) => {
           const start = new Date(order.created_at).getTime();
-          const end = new Date(order.completed_at!).getTime();
+          const end = new Date(order.updated_at).getTime();
           const days = (end - start) / (1000 * 60 * 60 * 24);
           return sum + days;
         }, 0);
@@ -345,6 +347,7 @@ export const analyticsRouter = createTRPCRouter({
       if (endDate) whereClause.push(`created_at <= '${endDate}'`);
       const whereSql = whereClause.length > 0 ? `WHERE ${whereClause.join(' AND ')}` : '';
 
+      // Using shipped_date as completion metric since completed_at column doesn't exist
       const efficiency = await (ctx.db as any).$queryRaw<Array<{
         total_orders: bigint;
         on_time: bigint;
@@ -353,13 +356,13 @@ export const analyticsRouter = createTRPCRouter({
       }>>`
         SELECT
           COUNT(*)::bigint as total_orders,
-          COUNT(CASE WHEN completed_at <= estimated_ship_date THEN 1 END)::bigint as on_time,
-          COUNT(CASE WHEN completed_at > estimated_ship_date THEN 1 END)::bigint as delayed,
+          COUNT(CASE WHEN shipped_date <= estimated_ship_date THEN 1 END)::bigint as on_time,
+          COUNT(CASE WHEN shipped_date > estimated_ship_date THEN 1 END)::bigint as delayed,
           COALESCE(
             AVG(
               CASE
-                WHEN completed_at > estimated_ship_date
-                THEN EXTRACT(EPOCH FROM (completed_at - estimated_ship_date)) / 86400
+                WHEN shipped_date > estimated_ship_date
+                THEN EXTRACT(EPOCH FROM (shipped_date - estimated_ship_date)) / 86400
               END
             ),
             0
@@ -368,7 +371,7 @@ export const analyticsRouter = createTRPCRouter({
         ${Prisma.raw(whereSql)}
         AND status = 'completed'
         AND estimated_ship_date IS NOT NULL
-        AND completed_at IS NOT NULL
+        AND shipped_date IS NOT NULL
       `;
 
       const result = efficiency[0] || {
