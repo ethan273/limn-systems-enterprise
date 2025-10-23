@@ -63,7 +63,7 @@ export const analyticsRouter = createTRPCRouter({
       });
       const revenueData = {
         _sum: {
-          total_amount: paidInvoices.reduce((sum: number, inv: any) => sum + (Number(inv.total_amount) || 0), 0),
+          total_amount: paidInvoices.reduce((sum: number, inv: any) => sum + (Number(inv.total) || 0), 0),
           amount_paid: paidInvoices.reduce((sum: number, inv: any) => sum + (Number(inv.amount_paid) || 0), 0),
         },
         _count: {
@@ -82,7 +82,7 @@ export const analyticsRouter = createTRPCRouter({
       });
       const outstandingData = {
         _sum: {
-          total_amount: outstandingInvoices.reduce((sum: number, inv: any) => sum + (Number(inv.total_amount) || 0), 0),
+          total_amount: outstandingInvoices.reduce((sum: number, inv: any) => sum + (Number(inv.total) || 0), 0),
         },
         _count: {
           id: outstandingInvoices.length,
@@ -141,7 +141,7 @@ export const analyticsRouter = createTRPCRouter({
       }>>`
         SELECT
           ${Prisma.raw(dateGroupSql)} as period,
-          COALESCE(SUM(total_amount), 0)::numeric as revenue,
+          COALESCE(SUM(total), 0)::numeric as revenue,
           COUNT(*)::bigint as invoice_count
         FROM production_invoices
         ${Prisma.raw(whereSql)}
@@ -180,7 +180,7 @@ export const analyticsRouter = createTRPCRouter({
         SELECT
           c.id as customer_id,
           c.name as customer_name,
-          COALESCE(SUM(pi.total_amount), 0)::numeric as revenue,
+          COALESCE(SUM(pi.total), 0)::numeric as revenue,
           COUNT(pi.id)::bigint as invoice_count
         FROM customers c
         JOIN projects p ON p.customer_id = c.id

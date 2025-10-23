@@ -5160,6 +5160,7 @@ model production_orders {
   estimated_completion_date                      DateTime?                  @db.Date
   production_start_date                          DateTime?                  @db.Date
   shipped_date                                   DateTime?                  @db.Date
+  completed_at                                   DateTime?                  @db.Timestamptz(6)
   balance_amount                                 Decimal?                   @db.Decimal(10, 2)
   deposit_amount                                 Decimal?                   @db.Decimal(10, 2)
   ordered_items_production                       ordered_items_production[]
