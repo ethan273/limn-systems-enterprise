@@ -285,10 +285,11 @@ export function OrderCreationDialog({
   const isBasicOrderComplete = formData.collection_id && selectedItem;
 
   const handleSave = async () => {
+    // Validation with user-friendly error messages
     if (!formData.product_name.trim()) {
       toast({
-        title: "Validation Error",
-        description: "Product name is required.",
+        title: "Missing Required Field",
+        description: "Please enter a product name.",
         variant: "destructive",
       });
       return;
@@ -296,8 +297,8 @@ export function OrderCreationDialog({
 
     if (!formData.collection_id) {
       toast({
-        title: "Validation Error",
-        description: "Collection selection is required.",
+        title: "Missing Required Field",
+        description: "Please select a collection from the dropdown.",
         variant: "destructive",
       });
       return;
@@ -305,8 +306,8 @@ export function OrderCreationDialog({
 
     if (!formData.quantity || parseInt(formData.quantity) <= 0) {
       toast({
-        title: "Validation Error",
-        description: "Valid quantity is required.",
+        title: "Invalid Quantity",
+        description: "Quantity must be greater than 0.",
         variant: "destructive",
       });
       return;
@@ -314,8 +315,8 @@ export function OrderCreationDialog({
 
     if (!formData.unit_price || parseFloat(formData.unit_price) <= 0) {
       toast({
-        title: "Validation Error",
-        description: "Valid unit price is required.",
+        title: "Invalid Price",
+        description: "Unit price must be greater than $0.00.",
         variant: "destructive",
       });
       return;
@@ -1112,13 +1113,16 @@ export function OrderCreationDialog({
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleSave}>
+          <Button
+            onClick={handleSave}
+            disabled={!formData.product_name || !formData.collection_id || !formData.quantity || !formData.unit_price}
+          >
             Add Item to Order
           </Button>
           {orderItems.length > 0 && (
             <Button
               onClick={() => onFinalizeOrder(projectId)}
-              className="bg-success-muted hover:bg-success-muted"
+              className="bg-success-muted hover:bg-success-muted text-white dark:text-white"
             >
               Finalize Order (${orderItems.reduce((sum, item) => sum + item.total_price, 0).toFixed(2)})
             </Button>

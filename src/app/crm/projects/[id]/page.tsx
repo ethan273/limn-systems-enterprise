@@ -197,10 +197,10 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
     }
 
     try {
-      // Get customer ID from project data
-      const customerId = data?.customer?.id;
+      // Get customer ID from project data (try customer object first, fall back to customer_id)
+      const customerId = data?.customer?.id || data?.project?.customer_id;
       if (!customerId) {
-        toast.error("Customer not found for this project.");
+        toast.error("Customer not found for this project. Please ensure the project has a customer assigned.");
         return;
       }
 
