@@ -23,8 +23,8 @@ export const apiCredentialsRouter = createTRPCRouter({
         if (cred.updated_by) userIds.add(cred.updated_by);
       });
 
-      // Fetch user data separately
-      const users = await ctx.db.users.findMany({
+      // Fetch user data separately (use user_profiles, not users table)
+      const users = await ctx.db.user_profiles.findMany({
         where: { id: { in: Array.from(userIds) } },
       });
 
