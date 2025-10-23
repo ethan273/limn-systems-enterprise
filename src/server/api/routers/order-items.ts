@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createTRPCRouter, publicProcedure } from '../trpc/init';
+import { createTRPCRouter, protectedProcedure } from '../trpc/init';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
 // Order Item Schema
@@ -33,7 +33,7 @@ const updateOrderItemSchema = createOrderItemSchema.partial();
 
 export const orderItemsRouter = createTRPCRouter({
   // Get all order items
-  getAll: publicProcedure
+  getAll: protectedProcedure
     .input(z.object({
       limit: z.number().min(1).max(100).default(50),
       offset: z.number().min(0).default(0),
@@ -86,7 +86,7 @@ export const orderItemsRouter = createTRPCRouter({
     }),
 
   // Create order item
-  create: publicProcedure
+  create: protectedProcedure
     .input(createOrderItemSchema)
     .mutation(async ({ input }) => {
       const supabase = getSupabaseAdmin();
@@ -170,7 +170,7 @@ export const orderItemsRouter = createTRPCRouter({
     }),
 
   // Update order item
-  update: publicProcedure
+  update: protectedProcedure
     .input(z.object({
       id: z.string().uuid(),
       data: updateOrderItemSchema,
@@ -248,7 +248,7 @@ export const orderItemsRouter = createTRPCRouter({
     }),
 
   // Delete order item
-  delete: publicProcedure
+  delete: protectedProcedure
     .input(z.object({
       id: z.string().uuid(),
     }))
@@ -268,7 +268,7 @@ export const orderItemsRouter = createTRPCRouter({
     }),
 
   // Get order item by ID
-  getById: publicProcedure
+  getById: protectedProcedure
     .input(z.object({
       id: z.string().uuid(),
     }))

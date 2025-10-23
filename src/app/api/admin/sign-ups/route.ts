@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 import { sendAccessApprovedEmail } from '@/lib/email/templates/access-approved';
 import { sendAccessDeniedEmail } from '@/lib/email/templates/access-denied';
 import { notifyAccessApproved, notifyAccessDenied } from '@/lib/google-chat';
-import { getServerSession } from 'next-auth';
+import { getUser, getUserProfile } from '@/lib/auth/server';
 
 const prisma = new PrismaClient();
 
@@ -31,6 +31,28 @@ function getSupabaseAdmin() {
 // GET - Fetch all pending sign-ups
 export async function GET(_request: NextRequest) {
   try {
+    // Check authentication and admin role
+    const user = await getUser();
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Please log in' },
+        { status: 401 }
+      );
+    }
+
+    // Check if user has admin or super_admin user_type
+    const userProfile = await prisma.user_profiles.findUnique({
+      where: { id: user.id },
+      select: { user_type: true },
+    });
+
+    if (!userProfile || (userProfile.user_type !== 'admin' && userProfile.user_type !== 'super_admin')) {
+      return NextResponse.json(
+        { error: 'Forbidden - Admin access required' },
+        { status: 403 }
+      );
+    }
+
     const signUps = await prisma.pending_user_requests.findMany({
       where: {
         status: 'pending',
@@ -103,6 +125,28 @@ export async function GET(_request: NextRequest) {
 // POST - Approve or reject a sign-up
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication and admin role
+    const user = await getUser();
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Please log in' },
+        { status: 401 }
+      );
+    }
+
+    // Check if user has admin or super_admin user_type
+    const userProfile = await prisma.user_profiles.findUnique({
+      where: { id: user.id },
+      select: { user_type: true },
+    });
+
+    if (!userProfile || (userProfile.user_type !== 'admin' && userProfile.user_type !== 'super_admin')) {
+      return NextResponse.json(
+        { error: 'Forbidden - Admin access required' },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const { id, action, reviewerNotes } = body;
 
@@ -120,10 +164,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get the session to identify the reviewer
-    const session = await getServerSession();
-    const reviewerEmail = session?.user?.email || 'system';
-    const reviewerId = (session?.user as any)?.id || null;
+    // Get reviewer info (already validated above)
+    const reviewerEmail = user.email || 'system';
+    const reviewerId = user.id;
 
     // Fetch the request first
     const signUpRequest = await prisma.pending_user_requests.findUnique({

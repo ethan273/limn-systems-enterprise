@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { createCrudRouter } from '../utils/crud-generator';
-import { createTRPCRouter, publicProcedure } from '../trpc/init';
+import { createTRPCRouter, publicProcedure, protectedProcedure } from '../trpc/init';
 
 // Project Schema
 const createProjectSchema = z.object({
@@ -257,7 +257,7 @@ export const projectsRouter = createTRPCRouter({
     }),
 
   // Create project with initial order
-  createWithOrder: publicProcedure
+  createWithOrder: protectedProcedure
     .input(z.object({
       project: createProjectSchema,
       order: z.object({

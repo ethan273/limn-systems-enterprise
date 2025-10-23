@@ -16,12 +16,22 @@ import {
   generatePageImageKey,
 } from "@/lib/flipbooks/storage";
 import { features } from "@/lib/features";
+import { getUser } from "@/lib/auth/server";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
 
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication
+    const user = await getUser();
+    if (!user) {
+      return NextResponse.json(
+        { error: "Unauthorized - Please log in to upload images" },
+        { status: 401 }
+      );
+    }
+
     // Feature flag check
     if (!features.flipbooks) {
       return NextResponse.json(

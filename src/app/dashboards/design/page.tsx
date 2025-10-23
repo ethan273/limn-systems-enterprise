@@ -141,9 +141,9 @@ export default function DesignDashboardPage() {
           </Button>
           <ExportPDFButton dashboardName="Design Dashboard" dateRange={dateRange} />
           <Button variant="outline" asChild>
-            <Link href="/design/files">
+            <Link href="/design/projects">
               <FolderOpen className="icon-sm" />
-              View Design Files
+              View Design Projects
             </Link>
           </Button>
         </div>
@@ -427,27 +427,27 @@ export default function DesignDashboardPage() {
         <h2 className="section-title">Quick Actions</h2>
         <div className="quick-actions-grid">
           <Button variant="outline" asChild>
-            <Link href="/design/files">
+            <Link href="/design/projects">
               <FolderOpen className="icon-sm" />
-              View Design Files
+              View Design Projects
             </Link>
           </Button>
           <Button variant="outline" asChild>
-            <Link href="/design/shop-drawings">
+            <Link href="/production/shop-drawings">
               <FileText className="icon-sm" />
               View Shop Drawings
             </Link>
           </Button>
           <Button variant="outline" asChild>
-            <Link href="/design/files">
+            <Link href="/design/briefs">
               <FilePlus className="icon-sm" />
-              Create New Design
+              View Design Briefs
             </Link>
           </Button>
           <Button variant="outline" asChild>
-            <Link href="/projects">
+            <Link href="/crm/projects">
               <FolderOpen className="icon-sm" />
-              View Projects
+              View All Projects
             </Link>
           </Button>
         </div>

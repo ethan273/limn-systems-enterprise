@@ -9,9 +9,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { uploadToSupabase, ensureBucketExists } from '@/lib/storage/supabase-storage';
 import { uploadToGoogleDrive } from '@/lib/storage/google-drive-storage';
 import { determineStorageType, generateUniqueFilename } from '@/lib/storage/hybrid-storage';
+import { getUser } from '@/lib/auth/server';
 
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication
+    const user = await getUser();
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Please log in to upload files' },
+        { status: 401 }
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const accessToken = formData.get('accessToken') as string | null;

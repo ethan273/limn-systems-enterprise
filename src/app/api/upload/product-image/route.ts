@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getUser } from '@/lib/auth/server';
 
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication
+    const user = await getUser();
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized - Please log in to upload images' },
+        { status: 401 }
+      );
+    }
+
     console.log('Upload API called');
     const formData = await request.formData();
     console.log('FormData entries:', Array.from(formData.entries()).map(([k, v]) => [k, typeof v]));

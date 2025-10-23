@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createTRPCRouter, publicProcedure } from '../trpc/init';
+import { createTRPCRouter, protectedProcedure } from '../trpc/init';
 import { Prisma } from '@prisma/client';
 
 /**
@@ -42,7 +42,7 @@ export const analyticsRouter = createTRPCRouter({
   /**
    * Get revenue overview with key metrics
    */
-  getRevenueOverview: publicProcedure
+  getRevenueOverview: protectedProcedure
     .input(dateRangeSchema)
     .query(async ({ ctx, input }) => {
       const { startDate, endDate } = input;
@@ -107,7 +107,7 @@ export const analyticsRouter = createTRPCRouter({
   /**
    * Get revenue trends over time
    */
-  getRevenueTrends: publicProcedure
+  getRevenueTrends: protectedProcedure
     .input(dateRangeSchema.extend({
       groupBy: z.enum(['day', 'week', 'month']).default('month'),
     }))
@@ -159,7 +159,7 @@ export const analyticsRouter = createTRPCRouter({
   /**
    * Get revenue by customer (top customers)
    */
-  getRevenueByCustomer: publicProcedure
+  getRevenueByCustomer: protectedProcedure
     .input(dateRangeSchema.extend({
       limit: z.number().min(1).max(100).default(10),
     }))
@@ -207,7 +207,7 @@ export const analyticsRouter = createTRPCRouter({
   /**
    * Get production overview metrics
    */
-  getProductionOverview: publicProcedure
+  getProductionOverview: protectedProcedure
     .input(dateRangeSchema)
     .query(async ({ ctx, input }) => {
       const { startDate, endDate } = input;
@@ -284,7 +284,7 @@ export const analyticsRouter = createTRPCRouter({
   /**
    * Get production throughput trends
    */
-  getProductionThroughput: publicProcedure
+  getProductionThroughput: protectedProcedure
     .input(dateRangeSchema.extend({
       groupBy: z.enum(['day', 'week', 'month']).default('month'),
     }))
@@ -335,7 +335,7 @@ export const analyticsRouter = createTRPCRouter({
   /**
    * Get production efficiency metrics
    */
-  getProductionEfficiency: publicProcedure
+  getProductionEfficiency: protectedProcedure
     .input(dateRangeSchema)
     .query(async ({ ctx, input }) => {
       const { startDate, endDate } = input;
@@ -399,7 +399,7 @@ export const analyticsRouter = createTRPCRouter({
   /**
    * Get quality overview metrics
    */
-  getQualityOverview: publicProcedure
+  getQualityOverview: protectedProcedure
     .input(dateRangeSchema)
     .query(async ({ ctx, input }) => {
       const { startDate, endDate } = input;
@@ -474,7 +474,7 @@ export const analyticsRouter = createTRPCRouter({
   /**
    * Get defect trends over time
    */
-  getDefectTrends: publicProcedure
+  getDefectTrends: protectedProcedure
     .input(dateRangeSchema.extend({
       groupBy: z.enum(['day', 'week', 'month']).default('month'),
     }))
@@ -529,7 +529,7 @@ export const analyticsRouter = createTRPCRouter({
   /**
    * Get defects by category
    */
-  getDefectsByCategory: publicProcedure
+  getDefectsByCategory: protectedProcedure
     .input(dateRangeSchema.extend({
       limit: z.number().min(1).max(50).default(10),
     }))
@@ -569,7 +569,7 @@ export const analyticsRouter = createTRPCRouter({
   /**
    * Generate custom report with flexible filtering
    */
-  generateCustomReport: publicProcedure
+  generateCustomReport: protectedProcedure
     .input(z.object({
       reportType: z.enum(['revenue', 'production', 'quality', 'inventory']),
       dateRange: dateRangeSchema,

@@ -117,7 +117,150 @@ export default function SignUpRequestForm() {
  )}
  </div>
  </div>
+
+ {/* Email and Phone */}
+ <div>
+ <label htmlFor="email" className="block text-sm font-medium">
+ Email Address *
+ </label>
+ <input
+ {...register('email')}
+ type="email"
+ className="mt-1 block w-full rounded-md border shadow-sm focus:border-primary focus:ring-indigo-500 sm:text-sm"
+ placeholder="john.doe@company.com"
+ />
+ {errors.email && (
+ <p className="mt-1 text-sm text-destructive">{errors.email.message}</p>
+ )}
  </div>
+
+ <div>
+ <label htmlFor="phoneNumber" className="block text-sm font-medium">
+ Phone Number
+ </label>
+ <input
+ {...register('phoneNumber')}
+ type="tel"
+ className="mt-1 block w-full rounded-md border shadow-sm focus:border-primary focus:ring-indigo-500 sm:text-sm"
+ placeholder="+1 (555) 123-4567"
+ />
+ {errors.phoneNumber && (
+ <p className="mt-1 text-sm text-destructive">{errors.phoneNumber.message}</p>
+ )}
+ </div>
+
+ <div>
+ <label htmlFor="companyName" className="block text-sm font-medium">
+ Company Name *
+ </label>
+ <input
+ {...register('companyName')}
+ type="text"
+ className="mt-1 block w-full rounded-md border shadow-sm focus:border-primary focus:ring-indigo-500 sm:text-sm"
+ placeholder="Acme Corporation"
+ />
+ {errors.companyName && (
+ <p className="mt-1 text-sm text-destructive">{errors.companyName.message}</p>
+ )}
+ </div>
+ </div>
+
+ {/* Business Justification */}
+ <div className="bg-card p-6 rounded-lg shadow-sm border border">
+ <h3 className="text-lg font-medium mb-4">
+ Business Justification
+ </h3>
+
+ <div className="space-y-4">
+ <div>
+ <label htmlFor="businessJustification" className="block text-sm font-medium">
+ Why do you need access to Limn Systems? *
+ </label>
+ <textarea
+ {...register('businessJustification')}
+ rows={4}
+ className="mt-1 block w-full rounded-md border shadow-sm focus:border-primary focus:ring-indigo-500 sm:text-sm"
+ placeholder="Explain how you plan to use Limn Systems and what business need it will address..."
+ />
+ {errors.businessJustification && (
+ <p className="mt-1 text-sm text-destructive">{errors.businessJustification.message}</p>
+ )}
+ </div>
+
+ <div>
+ <label htmlFor="referralSource" className="block text-sm font-medium">
+ How did you hear about us?
+ </label>
+ <input
+ {...register('referralSource')}
+ type="text"
+ className="mt-1 block w-full rounded-md border shadow-sm focus:border-primary focus:ring-indigo-500 sm:text-sm"
+ placeholder="Google Search, Referral, etc."
+ />
+ </div>
+ </div>
+ </div>
+
+ {/* Terms and Conditions */}
+ <div className="flex items-start">
+ <input
+ {...register('agreeToTerms')}
+ type="checkbox"
+ className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+ />
+ <label htmlFor="agreeToTerms" className="ml-2 block text-sm">
+ I agree to the{' '}
+ <a href="/terms" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">
+ Terms of Service
+ </a>{' '}
+ and{' '}
+ <a href="/privacy" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">
+ Privacy Policy
+ </a>
+ *
+ </label>
+ </div>
+ {errors.agreeToTerms && (
+ <p className="mt-1 text-sm text-destructive">{errors.agreeToTerms.message}</p>
+ )}
+ </div>
+
+ {/* Submit Button */}
+ <div>
+ <button
+ type="submit"
+ disabled={_isSubmitting}
+ className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+ >
+ {_isSubmitting ? 'Submitting...' : 'Submit Access Request'}
+ </button>
+ </div>
+
+ {/* Status Messages */}
+ {_submitStatus === 'success' && (
+ <div className="rounded-md bg-green-50 p-4">
+ <p className="text-sm font-medium text-green-800">
+ Your request has been submitted successfully! Redirecting...
+ </p>
+ </div>
+ )}
+
+ {_submitStatus === 'error' && (
+ <div className="rounded-md bg-red-50 p-4">
+ <p className="text-sm font-medium text-red-800">
+ {_errorMessage || 'An error occurred. Please try again.'}
+ </p>
+ </div>
+ )}
+
+ {/* Sign In Link */}
+ <div className="text-center">
+ <p className="text-sm">
+ Already have access?{' '}
+ <a href="/auth/sign-in" className="text-primary hover:underline font-medium">
+ Sign in here
+ </a>
+ </p>
  </div>
  </form>
  </div>

@@ -50,8 +50,8 @@ export default function Header() {
     // Navigate based on type
     const routes: Record<string, string> = {
       customer: `/crm/customers/${id}`,
-      order: `/orders/${id}`,
-      product: `/catalog/items/${id}`,
+      order: `/crm/orders/${id}`,
+      product: `/products/catalog/${id}`,
       contact: `/crm/contacts/${id}`,
       lead: `/crm/leads/${id}`,
     };

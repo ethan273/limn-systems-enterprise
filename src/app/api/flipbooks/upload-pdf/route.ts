@@ -19,6 +19,7 @@ import {
   initializeStorage,
 } from "@/lib/flipbooks/storage";
 import { features } from "@/lib/features";
+import { getUser } from "@/lib/auth/server";
 
 const prisma = new PrismaClient();
 
@@ -27,6 +28,15 @@ export const maxDuration = 60; // 1 minute - just for PDF upload
 
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication
+    const user = await getUser();
+    if (!user) {
+      return NextResponse.json(
+        { error: "Unauthorized - Please log in to upload flipbooks" },
+        { status: 401 }
+      );
+    }
+
     // Feature flag check
     if (!features.flipbooks) {
       return NextResponse.json(

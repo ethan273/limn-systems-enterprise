@@ -394,10 +394,11 @@ export default function ShippingDashboardPage() {
               View Pending
             </Link>
           </Button>
+          {/* TODO: Create /shipping/carriers page */}
           <Button variant="outline" asChild>
-            <Link href="/shipping/carriers">
+            <Link href="/shipping/shipments">
               <MapPin className="icon-sm" />
-              Manage Carriers
+              View All Shipments
             </Link>
           </Button>
         </div>

@@ -641,7 +641,7 @@ export const partnersRouter = createTRPCRouter({
 
         // Send portal access granted email (non-blocking)
         const partnerName = contact.partners?.company_name || 'Partner';
-        const contactName = `${contact.first_name || ''} ${contact.last_name || ''}`.trim() || contact.email;
+        const contactName = contact.name || contact.email;
 
         sendPortalAccessGranted({
           email: contact.email,
@@ -700,7 +700,7 @@ export const partnersRouter = createTRPCRouter({
 
         // Send portal access revoked email (non-blocking)
         const partnerName = contact.partners?.company_name || 'Partner';
-        const contactName = `${contact.first_name || ''} ${contact.last_name || ''}`.trim() || contact.email;
+        const contactName = contact.name || contact.email;
 
         sendPortalAccessRevoked({
           email: contact.email,

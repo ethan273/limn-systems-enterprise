@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod';
-import { createTRPCRouter, publicProcedure } from '../trpc/init';
+import { createTRPCRouter, protectedProcedure } from '../trpc/init';
 import { TRPCError } from '@trpc/server';
 import {
   getFileCategory as _getFileCategory,
@@ -24,7 +24,7 @@ export const storageRouter = createTRPCRouter({
    * Upload file with hybrid routing
    * Note: File upload is handled via client-side upload then metadata storage
    */
-  recordUpload: publicProcedure
+  recordUpload: protectedProcedure
     .input(
       z.object({
         fileName: z.string(),
@@ -72,14 +72,14 @@ export const storageRouter = createTRPCRouter({
   /**
    * Test Google Drive service account connection
    */
-  testDriveConnection: publicProcedure.query(async () => {
+  testDriveConnection: protectedProcedure.query(async () => {
     return await testConnection();
   }),
 
   /**
    * Get Google Drive configuration status
    */
-  getDriveStatus: publicProcedure.query(async () => {
+  getDriveStatus: protectedProcedure.query(async () => {
     const validation = validateServiceAccountConfig();
 
     if (!validation.valid) {
@@ -103,7 +103,7 @@ export const storageRouter = createTRPCRouter({
   /**
    * List all files for current user
    */
-  listFiles: publicProcedure
+  listFiles: protectedProcedure
     .input(
       z.object({
         projectId: z.string().optional(),
@@ -169,7 +169,7 @@ export const storageRouter = createTRPCRouter({
   /**
    * Get file by ID
    */
-  getFile: publicProcedure
+  getFile: protectedProcedure
     .input(z.object({ fileId: z.string() }))
     .query(async ({ ctx, input }) => {
       const file = await ctx.db.design_files.findUnique({
@@ -197,7 +197,7 @@ export const storageRouter = createTRPCRouter({
   /**
    * Update file metadata
    */
-  updateFile: publicProcedure
+  updateFile: protectedProcedure
     .input(
       z.object({
         fileId: z.string(),
@@ -260,7 +260,7 @@ export const storageRouter = createTRPCRouter({
   /**
    * Delete file
    */
-  deleteFile: publicProcedure
+  deleteFile: protectedProcedure
     .input(z.object({ fileId: z.string() }))
     .mutation(async ({ ctx, input }) => {
     if (!ctx.session?.user?.id) {
@@ -314,7 +314,7 @@ export const storageRouter = createTRPCRouter({
   /**
    * Get file download URL
    */
-  getDownloadUrl: publicProcedure
+  getDownloadUrl: protectedProcedure
     .input(z.object({ fileId: z.string() }))
     .query(async ({ ctx, input }) => {
       const file = await ctx.db.design_files.findUnique({
@@ -348,7 +348,7 @@ export const storageRouter = createTRPCRouter({
   /**
    * Get storage statistics
    */
-  getStorageStats: publicProcedure.query(async ({ ctx }) => {
+  getStorageStats: protectedProcedure.query(async ({ ctx }) => {
     if (!ctx.session?.user?.id) {
       throw new TRPCError({
         code: 'UNAUTHORIZED',
@@ -416,7 +416,7 @@ export const storageRouter = createTRPCRouter({
    * Upload QC Photo to Supabase Storage
    * QC PWA Enhancement - Phase 3
    */
-  uploadQcPhoto: publicProcedure
+  uploadQcPhoto: protectedProcedure
     .input(
       z.object({
         inspection_id: z.string().uuid(),
