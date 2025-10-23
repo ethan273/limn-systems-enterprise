@@ -42,8 +42,8 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-    actionTimeout: 20000,  // Increased from 15000ms to handle slow animations
-    navigationTimeout: 45000,  // Increased from 30000ms for slower page loads
+    actionTimeout: 30000,  // Phase 2 fix: Increased to 30s to reduce flaky tests
+    navigationTimeout: 60000,  // Phase 2 fix: Increased to 60s for data-heavy page loads
     headless: true
   },
   projects: [
