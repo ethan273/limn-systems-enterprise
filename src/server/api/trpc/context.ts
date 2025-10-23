@@ -3,14 +3,37 @@ import type { CreateNextContextOptions } from '@trpc/server/adapters/next';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import type { Session } from '@supabase/supabase-js';
-import { cache } from 'react';
+
+/**
+ * Conditional cache wrapper
+ * Uses React cache() in Next.js runtime, pass-through in test/non-React environments
+ */
+let cacheWrapper: <T extends (...args: any[]) => any>(fn: T) => T;
+if (typeof require !== 'undefined') {
+  try {
+    // Try to import React cache - will work in Next.js runtime
+    const react = require('react');
+    if (react && typeof react.cache === 'function') {
+      cacheWrapper = react.cache;
+    } else {
+      // React exists but cache not available - use pass-through
+      cacheWrapper = <T extends (...args: any[]) => any>(fn: T): T => fn;
+    }
+  } catch {
+    // React not available - use pass-through
+    cacheWrapper = <T extends (...args: any[]) => any>(fn: T): T => fn;
+  }
+} else {
+  // No require available (ES modules only) - use pass-through
+  cacheWrapper = <T extends (...args: any[]) => any>(fn: T): T => fn;
+}
 
 /**
  * Create Supabase server client to get session
  * Uses getUser() instead of getSession() for security - validates with Supabase server
- * ✅ WRAPPED WITH cache() FOR REQUEST DEDUPLICATION (Phase 3)
+ * ✅ WRAPPED WITH cache() FOR REQUEST DEDUPLICATION (Phase 3, conditional in tests)
  */
-const getSession = cache(async (): Promise<Session | null> => {
+const getSession = cacheWrapper(async (): Promise<Session | null> => {
   try {
     const cookieStore = await cookies();
 
@@ -73,11 +96,11 @@ interface CreateContextOptions {
 
 /**
  * Creates context for an incoming request
- * ✅ WRAPPED WITH cache() FOR REQUEST DEDUPLICATION (Phase 3)
+ * ✅ WRAPPED WITH cache() FOR REQUEST DEDUPLICATION (Phase 3, conditional in tests)
  * Prevents duplicate context creation and session checks within same request
  * @link https://trpc.io/docs/context
  */
-export const createContext = cache(async (opts: CreateNextContextOptions | CreateContextOptions) => {
+export const createContext = cacheWrapper(async (opts: CreateNextContextOptions | CreateContextOptions) => {
   // Get session from Supabase if not provided
   const session = 'session' in opts && opts.session !== undefined
     ? opts.session
