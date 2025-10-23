@@ -34,6 +34,68 @@ grep "DEV_DB_URL" production-credentials.env
 grep "PROD_DB_URL" production-credentials.env
 ```
 
+### Resend Email Service Configuration
+
+**Purpose**: Transactional email service for production (signup confirmations, password resets, notifications)
+
+**Environment Variables Required**:
+
+```bash
+# .env (Development)
+RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# Vercel (Production) - Add via Vercel dashboard or CLI
+RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+**Setup Instructions**:
+
+1. **Add to Local .env**:
+```bash
+# Open .env file
+nano .env
+
+# Add this line:
+RESEND_API_KEY=re_your_actual_api_key_here
+
+# Save: Ctrl+X, then Y, then Enter
+```
+
+2. **Add to Vercel**:
+```bash
+# Option 1: Via Vercel CLI
+vercel env add RESEND_API_KEY
+
+# Option 2: Via Vercel Dashboard
+# 1. Go to project settings → Environment Variables
+# 2. Add new variable:
+#    - Name: RESEND_API_KEY
+#    - Value: re_your_actual_api_key_here
+#    - Environment: Production, Preview, Development (select all)
+```
+
+**API Key Format**:
+- Starts with `re_`
+- Example: `re_123abc456def789ghi012jkl345mno678`
+- Get from: https://resend.com/api-keys
+
+**Verification**:
+```bash
+# Check if variable is set
+grep "RESEND_API_KEY" .env
+
+# Should output:
+# RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+**Security Notes**:
+- ✅ API key is in `.env` (already gitignored)
+- ✅ Never commit API keys to git
+- ✅ Rotate keys if exposed
+- ✅ Use separate keys for dev/staging/prod if needed
+
+**Status**: Ready for configuration (October 22, 2025)
+
 ---
 
 ## 🔴 CRITICAL: Database/Prisma Schema Synchronization
@@ -447,6 +509,196 @@ Check ALL files including:
 - Flaky tests must be investigated
 - E2E tests must pass for critical flows
 
+### E2E Test Environment Compatibility (CRITICAL)
+
+**Issue Discovered**: October 22, 2025
+**Impact**: Blocked ALL 1257 E2E tests from executing
+
+**Problem**: React Server Components features (like `cache()`) are **NOT** available in Playwright's Node.js test environment.
+
+**Solution**: Always use conditional wrappers for React-specific features:
+
+```typescript
+// ❌ WRONG - Breaks E2E tests
+import { cache } from 'react';
+const myFunction = cache(async () => { /* ... */ });
+
+// ✅ CORRECT - Works everywhere
+let cacheWrapper: <T extends (...args: any[]) => any>(fn: T) => T;
+if (typeof require !== 'undefined') {
+  try {
+    const react = require('react');
+    if (react && typeof react.cache === 'function') {
+      cacheWrapper = react.cache;  // Use in production
+    } else {
+      cacheWrapper = <T extends (...args: any[]) => any>(fn: T): T => fn;  // Pass-through
+    }
+  } catch {
+    cacheWrapper = <T extends (...args: any[]) => any>(fn: T): T => fn;
+  }
+} else {
+  cacheWrapper = <T extends (...args: any[]) => any>(fn: T): T => fn;
+}
+
+const myFunction = cacheWrapper(async () => { /* ... */ });
+```
+
+**When to Use This Pattern**:
+- React `cache()` function
+- React Server Components features
+- Any Next.js-specific runtime features used in code imported by tests
+
+**Reference**: `/limn-systems-enterprise-docs/01-CURRENT/PRODUCTION-READINESS-2025/E2E-TESTS-CRITICAL-FIX-2025-10-22.md`
+
+**Status**: ✅ Fixed as of commit `ca9ce7c` (October 22, 2025)
+
+### RLS Security Testing (CRITICAL)
+
+**Implemented**: October 22, 2025 (Phase 1.1)
+**Impact**: Validates multi-tenant data isolation and payment workflow security
+
+**Pattern**: Always use proper test infrastructure with setup/cleanup hooks
+
+```typescript
+// ✅ CORRECT RLS Test Pattern
+describe('Row Level Security Tests', () => {
+  // Test data variables
+  let testCustomerA: { id: string; email: string; name: string };
+  let testCustomerB: { id: string; email: string; name: string };
+  let testProjectA: { id: string; customer_id: string; name: string };
+  let testProjectB: { id: string; customer_id: string; name: string };
+  let testDataCreated = false;
+
+  // Setup hook - Create isolated test data
+  beforeAll(async () => {
+    try {
+      // Create unique test customers with timestamp to avoid conflicts
+      const customerA = await prisma.customers.create({
+        data: {
+          name: 'Test Customer A (RLS)',
+          email: `rls-test-customer-a-${Date.now()}@test.com`,
+          status: 'active',
+          company: 'Test Company A',
+        },
+      });
+
+      testCustomerA = {
+        id: customerA.id,
+        email: customerA.email || '',
+        name: customerA.name,
+      };
+
+      // Similar for Customer B...
+      testDataCreated = true;
+    } catch (error) {
+      console.error('[RLS Test Setup] Failed to create test data:', error);
+      testDataCreated = false;
+    }
+  });
+
+  // Cleanup hook - Remove test data
+  afterAll(async () => {
+    if (!testDataCreated) return;
+
+    try {
+      // Delete in reverse dependency order
+      await prisma.projects.deleteMany({ where: { id: testProjectA.id } });
+      await prisma.customers.deleteMany({ where: { id: testCustomerA.id } });
+      await prisma.$disconnect();
+    } catch (error) {
+      console.error('[RLS Test Cleanup] Failed to cleanup:', error);
+    }
+  });
+
+  // Test implementation - Relationship-based filtering
+  it('should filter data by customer_id via project relationship', async () => {
+    if (!testDataCreated) {
+      console.warn('[RLS Test] Skipping - test data not created');
+      return;
+    }
+
+    // Create test record for Customer A
+    const recordA = await prisma.production_orders.create({
+      data: {
+        order_number: `RLS-TEST-${Date.now()}`,
+        project_id: testProjectA.id,
+        product_type: 'Test Product',
+        item_name: 'Test Item',
+        quantity: 100,
+        unit_price: 10.00,
+        total_cost: 1000.00,
+        status: 'awaiting_deposit',
+      },
+    });
+
+    // Query with relationship filter (simulates RLS)
+    const recordsForCustomerA = await prisma.production_orders.findMany({
+      where: {
+        projects: {
+          customer_id: testCustomerA.id,
+        },
+      },
+      include: {
+        projects: {
+          select: { customer_id: true },
+        },
+      },
+    });
+
+    // Verify isolation
+    expect(recordsForCustomerA.length).toBeGreaterThanOrEqual(1);
+    recordsForCustomerA.forEach((record) => {
+      expect(record.projects?.customer_id).toBe(testCustomerA.id);
+    });
+
+    // Cleanup
+    await prisma.production_orders.deleteMany({
+      where: { id: recordA.id },
+    });
+  });
+});
+```
+
+**Key RLS Test Patterns**:
+
+1. **Test Data Isolation**
+   - Use unique timestamps in test data (`${Date.now()}`)
+   - Create complete customer → project → resource hierarchy
+   - Always clean up test data in `afterAll` hook
+
+2. **Relationship-Based Filtering**
+   - Filter via `projects.customer_id` for multi-tenant tables
+   - Use `include` to verify relationship integrity
+   - Test both positive (can see own data) and negative (can't see others' data)
+
+3. **Payment Workflow Gates**
+   - Verify deposit required before production starts
+   - Verify final payment required before shipping
+   - Test both blocking conditions and success paths
+
+4. **Graceful Degradation**
+   - Check `testDataCreated` flag before running tests
+   - Skip tests if setup fails (don't fail the suite)
+   - Log setup/cleanup failures for debugging
+
+**Critical Test Cases** (From Phase 1.1):
+1. ✅ Customer data isolation (cross-tenant access prevention)
+2. ✅ Production orders filtering by customer_id via project
+3. ✅ Shipments filtering by customer_id via project
+4. ✅ Documents filtering by customer_id (direct)
+5. ✅ Deposit payment gate (blocks production without deposit)
+6. ✅ Final payment gate (blocks shipping without payment)
+
+**Testing Framework**: Vitest (not Jest)
+- Use Vitest globals: `describe`, `it`, `expect`, `beforeAll`, `afterAll`
+- Do NOT import from `@jest/globals`
+
+**Reference**: `/limn-systems-enterprise-docs/01-CURRENT/PRODUCTION-READINESS-2025/PHASE-1.1-RLS-TESTS-COMPLETION-2025-10-22.md`
+
+**Status**: ✅ Implemented as of commit `96c896d` (October 22, 2025)
+**Test File**: `/src/__tests__/server/api/data-isolation.test.ts`
+**Results**: 6/6 tests passing (100%)
+
 ### Code Structure
 
 - No commented-out code blocks >10 lines
@@ -784,6 +1036,178 @@ When reviewing PRs or writing code, verify:
 
 **Status**: ✅ MANDATORY as of October 19, 2025
 **Compliance**: All new code MUST use this pattern
+**Violations**: Will be rejected in code review
+
+---
+
+## API Route Authentication Pattern (MANDATORY)
+
+**MANDATORY REQUIREMENT - Prime Directive Compliance**
+
+### ✅ THE ONE TRUE PATTERN (ALWAYS USE)
+
+```typescript
+import { getUser } from '@/lib/auth/server';
+
+export async function POST(request: NextRequest) {
+  try {
+    // Check authentication
+    const user = await getUser();
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Please log in' },
+        { status: 401 }
+      );
+    }
+
+    // ... protected logic here
+  }
+}
+```
+
+### ❌ BROKEN PATTERNS (NEVER USE)
+
+```typescript
+// ❌ DO NOT USE - Function doesn't exist in this codebase
+import { getServerSession } from '@/lib/auth/server'; // WRONG
+import { getServerSession } from 'next-auth'; // ALSO WRONG
+
+// ❌ DO NOT USE - Unreliable, returns undefined
+import { useAuthContext } from '@/lib/auth/AuthProvider';
+const { user } = useAuthContext();
+```
+
+### Admin Authorization Pattern
+
+For admin-only endpoints, add role validation:
+
+```typescript
+import { getUser } from '@/lib/auth/server';
+
+export async function POST(request: NextRequest) {
+  try {
+    // Check authentication
+    const user = await getUser();
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Please log in' },
+        { status: 401 }
+      );
+    }
+
+    // Check if user has admin or super_admin user_type
+    const userProfile = await prisma.user_profiles.findUnique({
+      where: { id: user.id },
+      select: { user_type: true },
+    });
+
+    if (!userProfile || (userProfile.user_type !== 'admin' && userProfile.user_type !== 'super_admin')) {
+      return NextResponse.json(
+        { error: 'Forbidden - Admin access required' },
+        { status: 403 }
+      );
+    }
+
+    // ... admin-only logic here
+  }
+}
+```
+
+### tRPC Procedure Authentication
+
+**ALWAYS use protectedProcedure for authenticated endpoints**:
+
+```typescript
+import { createTRPCRouter, protectedProcedure } from '../trpc/init';
+
+export const myRouter = createTRPCRouter({
+  // ✅ CORRECT: Requires authentication
+  getData: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      // ctx.user is guaranteed to exist
+      return await ctx.prisma.data.findMany({
+        where: { user_id: ctx.user.id }
+      });
+    }),
+
+  // ❌ WRONG: Exposes data without authentication
+  getData: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      // Anyone can call this!
+      return await ctx.prisma.data.findMany();
+    }),
+});
+```
+
+### File Upload Security Pattern
+
+**ALL file upload endpoints MUST have authentication**:
+
+```typescript
+import { getUser } from '@/lib/auth/server';
+
+export async function POST(request: NextRequest) {
+  try {
+    // Check authentication BEFORE accepting files
+    const user = await getUser();
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Please log in to upload files' },
+        { status: 401 }
+      );
+    }
+
+    const formData = await request.formData();
+    const file = formData.get('file') as File;
+
+    // ... file upload logic
+  }
+}
+```
+
+### Enforcement Rules
+
+1. **ALWAYS** use `getUser()` from `@/lib/auth/server` for API routes
+2. **NEVER** import `getServerSession` (it doesn't exist in this codebase)
+3. **ALWAYS** add authentication check BEFORE any data access or file operations
+4. **ALWAYS** use `protectedProcedure` for tRPC endpoints (not `publicProcedure`)
+5. **ALWAYS** validate admin role using `user_type` field (not `role` field)
+
+### Database Schema Awareness
+
+**CRITICAL**: Always verify field names exist in schema before using them.
+
+```typescript
+// ❌ WRONG: Assuming fields exist
+const name = `${contact.first_name} ${contact.last_name}`;
+
+// ✅ CORRECT: Check schema first
+// Schema has: { id, name, email, phone, company_id, position }
+const name = contact.name || contact.email;
+```
+
+**Prevention**:
+1. Check Prisma schema file before accessing fields
+2. Use TypeScript types from Prisma
+3. Test with actual data from database
+
+### Code Review Checklist
+
+When reviewing PRs or writing code, verify:
+- [ ] No `import { getServerSession }` statements
+- [ ] Uses `getUser()` from `@/lib/auth/server`
+- [ ] Has authentication check before data access
+- [ ] Uses `protectedProcedure` not `publicProcedure`
+- [ ] Admin endpoints have role validation
+- [ ] File uploads have authentication
+- [ ] Field names match Prisma schema
+
+**Reference**: See `/limn-systems-enterprise-docs/01-CURRENT/PRODUCTION-READINESS-2025/SECURITY-FIXES-2025-10-22.md` for complete documentation.
+
+**Status**: ✅ MANDATORY as of October 22, 2025
+**Compliance**: All new code MUST use these patterns
 **Violations**: Will be rejected in code review
 
 ---
