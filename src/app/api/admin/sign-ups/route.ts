@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 import { sendAccessApprovedEmail } from '@/lib/email/templates/access-approved';
 import { sendAccessDeniedEmail } from '@/lib/email/templates/access-denied';
 import { notifyAccessApproved, notifyAccessDenied } from '@/lib/google-chat';
-import { getUser, getUserProfile } from '@/lib/auth/server';
+import { getUser } from '@/lib/auth/server';
 
 const prisma = new PrismaClient();
 

@@ -206,7 +206,7 @@ export default function SignUpRequestForm() {
  <input
  {...register('agreeToTerms')}
  type="checkbox"
- className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+ className="mt-1 h-4 w-4 rounded border text-primary focus:ring-primary"
  />
  <label htmlFor="agreeToTerms" className="ml-2 block text-sm">
  I agree to the{' '}
@@ -238,16 +238,16 @@ export default function SignUpRequestForm() {
 
  {/* Status Messages */}
  {_submitStatus === 'success' && (
- <div className="rounded-md bg-green-50 p-4">
- <p className="text-sm font-medium text-green-800">
+ <div className="alert alert-success">
+ <p className="text-sm font-medium">
  Your request has been submitted successfully! Redirecting...
  </p>
  </div>
  )}
 
  {_submitStatus === 'error' && (
- <div className="rounded-md bg-red-50 p-4">
- <p className="text-sm font-medium text-red-800">
+ <div className="alert alert-error">
+ <p className="text-sm font-medium">
  {_errorMessage || 'An error occurred. Please try again.'}
  </p>
  </div>
