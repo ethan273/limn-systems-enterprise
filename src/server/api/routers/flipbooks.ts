@@ -1393,6 +1393,43 @@ export const flipbooksRouter = createTRPCRouter({
         LIMIT 10
       `;
 
+      // Get geographic distribution (country breakdown)
+      const geographic = await ctx.db.$queryRaw<Array<{ country: string | null; city: string | null; count: bigint }>>`
+        SELECT
+          COALESCE(viewer_country, 'Unknown') as country,
+          COALESCE(viewer_city, 'Unknown') as city,
+          COUNT(*) as count
+        FROM flipbook.share_link_views
+        WHERE share_link_id IN (
+          SELECT id FROM flipbooks.flipbook_share_links
+          WHERE flipbook_id = ${input.flipbookId}::uuid
+        )
+        AND viewed_at >= ${startDate}
+        GROUP BY viewer_country, viewer_city
+        ORDER BY count DESC
+        LIMIT 20
+      `;
+
+      // Get device breakdown from user agent
+      const devices = await ctx.db.$queryRaw<Array<{ device_type: string; count: bigint }>>`
+        SELECT
+          CASE
+            WHEN viewer_user_agent ILIKE '%Mobile%' OR viewer_user_agent ILIKE '%Android%' THEN 'Mobile'
+            WHEN viewer_user_agent ILIKE '%Tablet%' OR viewer_user_agent ILIKE '%iPad%' THEN 'Tablet'
+            WHEN viewer_user_agent IS NULL THEN 'Unknown'
+            ELSE 'Desktop'
+          END as device_type,
+          COUNT(*) as count
+        FROM flipbook.share_link_views
+        WHERE share_link_id IN (
+          SELECT id FROM flipbooks.flipbook_share_links
+          WHERE flipbook_id = ${input.flipbookId}::uuid
+        )
+        AND viewed_at >= ${startDate}
+        GROUP BY device_type
+        ORDER BY count DESC
+      `;
+
       return {
         totalViews,
         totalUniqueViews,
@@ -1404,6 +1441,15 @@ export const flipbooksRouter = createTRPCRouter({
         topShareLinks,
         topReferrers: referrers.map(row => ({
           referrer: row.referrer || 'Direct',
+          count: Number(row.count),
+        })),
+        geographic: geographic.map(row => ({
+          country: row.country || 'Unknown',
+          city: row.city || 'Unknown',
+          count: Number(row.count),
+        })),
+        devices: devices.map(row => ({
+          deviceType: row.device_type,
           count: Number(row.count),
         })),
       };
@@ -1500,6 +1546,261 @@ export const flipbooksRouter = createTRPCRouter({
           views: Number(row.views),
         })),
         recentViews,
+      };
+    }),
+
+  /**
+   * Bulk delete flipbooks
+   * Deletes multiple flipbooks at once with permission checks
+   */
+  bulkDelete: protectedProcedure
+    .input(z.object({
+      ids: z.array(z.string().uuid()).min(1).max(50),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // Permission check: ensure user owns all flipbooks
+      const flipbooks = await ctx.db.flipbooks.findMany({
+        where: { id: { in: input.ids } },
+        select: { id: true, created_by_id: true },
+      });
+
+      const unauthorized = flipbooks.filter(
+        f => f.created_by_id !== ctx.session.user.id
+      );
+
+      if (unauthorized.length > 0) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: `You do not have permission to delete ${unauthorized.length} of the selected flipbooks`,
+        });
+      }
+
+      // Bulk delete with cascading (pages, hotspots, share links will cascade)
+      const result = await ctx.db.flipbooks.deleteMany({
+        where: { id: { in: input.ids } },
+      });
+
+      return { deletedCount: result.count };
+    }),
+
+  /**
+   * Bulk update status
+   * Updates status for multiple flipbooks at once with permission checks
+   */
+  bulkUpdateStatus: protectedProcedure
+    .input(z.object({
+      ids: z.array(z.string().uuid()).min(1).max(50),
+      status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // Permission check: ensure user owns all flipbooks
+      const flipbooks = await ctx.db.flipbooks.findMany({
+        where: { id: { in: input.ids } },
+        select: { id: true, created_by_id: true },
+      });
+
+      const unauthorized = flipbooks.filter(
+        f => f.created_by_id !== ctx.session.user.id
+      );
+
+      if (unauthorized.length > 0) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: `You do not have permission to update ${unauthorized.length} of the selected flipbooks`,
+        });
+      }
+
+      // Bulk update status using raw SQL (updateMany not available in some Prisma setups)
+      const result = await ctx.db.$executeRaw`
+        UPDATE flipbooks.flipbooks
+        SET status = ${input.status}::flipbook_status,
+            updated_at = NOW()
+        WHERE id = ANY(${input.ids}::uuid[])
+      `;
+
+      return { updatedCount: result };
+    }),
+
+  /**
+   * Bulk duplicate flipbooks
+   * Creates copies of multiple flipbooks with all pages and hotspots
+   */
+  bulkDuplicate: protectedProcedure
+    .input(z.object({
+      ids: z.array(z.string().uuid()).min(1).max(20), // Lower limit for duplicates
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // Permission check: ensure user owns all flipbooks
+      const flipbooks = await ctx.db.flipbooks.findMany({
+        where: { id: { in: input.ids } },
+        include: {
+          flipbook_pages: {
+            include: {
+              hotspots: true,
+            },
+            orderBy: { page_number: 'asc' },
+          },
+        },
+      });
+
+      const unauthorized = flipbooks.filter(
+        f => f.created_by_id !== ctx.session.user.id
+      );
+
+      if (unauthorized.length > 0) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: `You do not have permission to duplicate ${unauthorized.length} of the selected flipbooks`,
+        });
+      }
+
+      // Duplicate each flipbook
+      const duplicatedIds: string[] = [];
+
+      for (const flipbook of flipbooks) {
+        // Create duplicate flipbook
+        const newFlipbook = await ctx.db.flipbooks.create({
+          data: {
+            title: `${flipbook.title} (Copy)`,
+            description: flipbook.description,
+            status: "DRAFT", // Always start as draft
+            pdf_source_url: flipbook.pdf_source_url,
+            total_pages: flipbook.total_pages,
+            created_by_id: ctx.session.user.id,
+            brand_id: flipbook.brand_id,
+          },
+        });
+
+        duplicatedIds.push(newFlipbook.id);
+
+        // Duplicate pages
+        for (const page of flipbook.flipbook_pages) {
+          const newPage = await ctx.db.flipbook_pages.create({
+            data: {
+              flipbook_id: newFlipbook.id,
+              page_number: page.page_number,
+              image_url: page.image_url,
+              created_by_id: ctx.session.user.id,
+            },
+          });
+
+          // Duplicate hotspots for this page
+          if (page.hotspots && page.hotspots.length > 0) {
+            await ctx.db.hotspots.createMany({
+              data: page.hotspots.map(hotspot => ({
+                page_id: newPage.id,
+                product_id: hotspot.product_id,
+                x_position: hotspot.x_position,
+                y_position: hotspot.y_position,
+                width: hotspot.width,
+                height: hotspot.height,
+                created_by_id: ctx.session.user.id,
+              })),
+            });
+          }
+        }
+      }
+
+      return {
+        duplicatedCount: duplicatedIds.length,
+        duplicatedIds,
+      };
+    }),
+
+  /**
+   * Get hotspot heat map data
+   * Returns hotspots with click counts for visualization
+   */
+  getHotspotHeatMap: protectedProcedure
+    .input(z.object({
+      flipbookId: z.string().uuid(),
+      pageId: z.string().uuid().optional(),
+    }))
+    .query(async ({ ctx, input }) => {
+      // Permission check
+      const flipbook = await ctx.db.flipbooks.findUnique({
+        where: { id: input.flipbookId },
+        select: { created_by_id: true },
+      });
+
+      if (!flipbook) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Flipbook not found",
+        });
+      }
+
+      if (flipbook.created_by_id !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have permission to view heat map for this flipbook",
+        });
+      }
+
+      // Get hotspots with click counts
+      const hotspots = await ctx.db.hotspots.findMany({
+        where: {
+          flipbook_pages: {
+            flipbook_id: input.flipbookId,
+            ...(input.pageId ? { id: input.pageId } : {}),
+          },
+        },
+        include: {
+          flipbook_pages: {
+            select: {
+              id: true,
+              page_number: true,
+              image_url: true,
+            },
+          },
+          products: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+        orderBy: {
+          click_count: 'desc',
+        },
+      });
+
+      // Calculate max clicks for intensity scaling
+      const maxClicks = Math.max(...hotspots.map(h => h.click_count), 1);
+
+      // Helper function to determine intensity color based on click count
+      const getIntensityColor = (clicks: number): string => {
+        if (clicks === 0) return '#E5E7EB'; // Gray - no clicks
+        if (clicks <= 10) return '#3B82F6'; // Blue - low
+        if (clicks <= 50) return '#10B981'; // Green - medium
+        if (clicks <= 100) return '#F59E0B'; // Yellow - high
+        if (clicks <= 500) return '#F97316'; // Orange - very high
+        return '#EF4444'; // Red - extremely high
+      };
+
+      // Calculate intensity (0-1 scale)
+      const calculateIntensity = (clicks: number, max: number): number => {
+        if (max === 0) return 0;
+        return clicks / max;
+      };
+
+      return {
+        hotspots: hotspots.map(hotspot => ({
+          id: hotspot.id,
+          pageId: hotspot.page_id,
+          pageNumber: hotspot.flipbook_pages.page_number,
+          productId: hotspot.product_id,
+          productName: hotspot.products?.name || 'Unknown Product',
+          xPosition: Number(hotspot.x_position),
+          yPosition: Number(hotspot.y_position),
+          width: Number(hotspot.width),
+          height: Number(hotspot.height),
+          clickCount: hotspot.click_count,
+          intensity: calculateIntensity(hotspot.click_count, maxClicks),
+          color: getIntensityColor(hotspot.click_count),
+        })),
+        maxClicks,
+        totalClicks: hotspots.reduce((sum, h) => sum + h.click_count, 0),
       };
     }),
 });

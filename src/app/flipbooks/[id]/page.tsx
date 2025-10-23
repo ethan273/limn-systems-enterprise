@@ -14,6 +14,7 @@ import dynamic from "next/dynamic";
 import { EmbedCodeGenerator } from "@/components/flipbooks/EmbedCodeGenerator";
 import { ShareLinkManager } from "@/components/flipbooks/ShareLinkManager";
 import { FlipbookAnalytics } from "@/components/flipbooks/FlipbookAnalytics";
+import { HotspotHeatMap } from "@/components/flipbooks/HotspotHeatMap";
 
 // Dynamically import 3D flipbook viewer to reduce initial bundle size
 const FlipbookViewer3DWrapper = dynamic(
@@ -268,6 +269,13 @@ export default function FlipbookViewerPage({
       {hasPages && (
         <div className="mt-6">
           <FlipbookAnalytics flipbookId={flipbookId} />
+        </div>
+      )}
+
+      {/* Heat Map Section */}
+      {hasPages && (
+        <div className="mt-6">
+          <HotspotHeatMap flipbookId={flipbookId} />
         </div>
       )}
 

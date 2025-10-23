@@ -18,6 +18,8 @@ import {
   Users,
   Eye,
   Link2,
+  Globe,
+  Smartphone,
 } from "lucide-react";
 import { format } from "date-fns";
 import {
@@ -312,6 +314,113 @@ export function FlipbookAnalytics({ flipbookId }: FlipbookAnalyticsProps) {
             ) : (
               <div className="text-center py-12 text-muted-foreground">
                 No traffic data yet
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Geographic Distribution and Device Breakdown */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Geographic Distribution */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Globe className="h-5 w-5" />
+              Geographic Distribution
+            </CardTitle>
+            <CardDescription>
+              Where your viewers are located
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {analytics.geographic && analytics.geographic.length > 0 ? (
+              <div className="space-y-3">
+                {analytics.geographic.slice(0, 10).map((location, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-2 hover:bg-muted/50 rounded-lg transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Badge variant="outline" className="w-8 h-8 flex items-center justify-center text-xs">
+                        {index + 1}
+                      </Badge>
+                      <div>
+                        <p className="font-medium text-sm">
+                          {location.city !== 'Unknown' ? location.city : 'Unknown City'}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {location.country !== 'Unknown' ? location.country : 'Unknown Country'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold">{location.count}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {((location.count / analytics.totalViews) * 100).toFixed(1)}%
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                No geographic data yet
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Device Breakdown */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Smartphone className="h-5 w-5" />
+              Device Breakdown
+            </CardTitle>
+            <CardDescription>
+              How viewers access your flipbook
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {analytics.devices && analytics.devices.length > 0 ? (
+              <div className="space-y-4">
+                {/* Device chart/visualization */}
+                <div className="space-y-3">
+                  {analytics.devices.map((device, index) => {
+                    const percentage = ((device.count / analytics.totalViews) * 100).toFixed(1);
+                    return (
+                      <div key={index} className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                            />
+                            <span className="font-medium">{device.deviceType}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold">{device.count}</span>
+                            <span className="text-muted-foreground">({percentage}%)</span>
+                          </div>
+                        </div>
+                        <div className="w-full bg-muted rounded-full h-2">
+                          <div
+                            className="h-2 rounded-full transition-all"
+                            style={{
+                              width: `${percentage}%`,
+                              backgroundColor: COLORS[index % COLORS.length],
+                            }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                No device data yet
               </div>
             )}
           </CardContent>

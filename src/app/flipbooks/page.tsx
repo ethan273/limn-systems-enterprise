@@ -3,9 +3,11 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/lib/api/client";
-import { BookOpen, Eye, Pencil, Trash2, Upload, AlertTriangle, RefreshCw } from "lucide-react";
+import { BookOpen, Eye, Pencil, Trash2, Upload, AlertTriangle, RefreshCw, CheckSquare, Copy, Archive } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTableFilters } from "@/hooks/useTableFilters";
@@ -44,6 +46,10 @@ export default function FlipbooksPage() {
   const queryClient = useQueryClient();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [flipbookToDelete, setFlipbookToDelete] = useState<any>(null);
+
+  // Bulk operations state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
 
   // Unified filter management with new hook (must be before conditional returns)
   const {
@@ -100,6 +106,85 @@ export default function FlipbooksPage() {
     }
   };
 
+  // Bulk delete mutation
+  const bulkDeleteMutation = api.flipbooks.bulkDelete.useMutation({
+    onSuccess: (result) => {
+      toast.success(`Deleted ${result.deletedCount} flipbook(s)`);
+      queryClient.invalidateQueries({ queryKey: ['flipbooks'] });
+      utils.flipbooks.list.invalidate();
+      setSelectedIds(new Set());
+      setBulkDeleteDialogOpen(false);
+    },
+    onError: (error) => {
+      toast.error("Failed to delete flipbooks: " + error.message);
+    },
+  });
+
+  // Bulk update status mutation
+  const bulkUpdateStatusMutation = api.flipbooks.bulkUpdateStatus.useMutation({
+    onSuccess: (result) => {
+      toast.success(`Updated ${result.updatedCount} flipbook(s)`);
+      queryClient.invalidateQueries({ queryKey: ['flipbooks'] });
+      utils.flipbooks.list.invalidate();
+      setSelectedIds(new Set());
+    },
+    onError: (error) => {
+      toast.error("Failed to update flipbooks: " + error.message);
+    },
+  });
+
+  // Bulk duplicate mutation
+  const bulkDuplicateMutation = api.flipbooks.bulkDuplicate.useMutation({
+    onSuccess: (result) => {
+      toast.success(`Duplicated ${result.duplicatedCount} flipbook(s)`);
+      queryClient.invalidateQueries({ queryKey: ['flipbooks'] });
+      utils.flipbooks.list.invalidate();
+      setSelectedIds(new Set());
+    },
+    onError: (error) => {
+      toast.error("Failed to duplicate flipbooks: " + error.message);
+    },
+  });
+
+  // Bulk operation handlers
+  const handleSelectAll = () => {
+    if (selectedIds.size === flipbooks.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(flipbooks.map((f: any) => f.id)));
+    }
+  };
+
+  const handleSelectOne = (id: string) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedIds(newSelected);
+  };
+
+  const handleBulkDelete = () => {
+    setBulkDeleteDialogOpen(true);
+  };
+
+  const handleConfirmBulkDelete = () => {
+    bulkDeleteMutation.mutate({ ids: Array.from(selectedIds) });
+  };
+
+  const handleBulkPublish = () => {
+    bulkUpdateStatusMutation.mutate({ ids: Array.from(selectedIds), status: "PUBLISHED" });
+  };
+
+  const handleBulkArchive = () => {
+    bulkUpdateStatusMutation.mutate({ ids: Array.from(selectedIds), status: "ARCHIVED" });
+  };
+
+  const handleBulkDuplicate = () => {
+    bulkDuplicateMutation.mutate({ ids: Array.from(selectedIds) });
+  };
+
   // Stats configuration
   const stats: StatItem[] = [
     {
@@ -134,6 +219,18 @@ export default function FlipbooksPage() {
 
   // DataTable columns configuration
   const columns: DataTableColumn<any>[] = [
+    {
+      key: 'select',
+      label: '', // Empty label for checkbox column
+      render: (_, row) => (
+        <Checkbox
+          checked={selectedIds.has(row.id)}
+          onCheckedChange={() => handleSelectOne(row.id)}
+          aria-label={`Select ${row.title}`}
+          onClick={(e) => e.stopPropagation()}
+        />
+      ),
+    },
     {
       key: 'title',
       label: 'Title',
@@ -295,6 +392,65 @@ export default function FlipbooksPage() {
         />
       </TableFilters.Bar>
 
+      {/* Bulk Actions Toolbar */}
+      {selectedIds.size > 0 && (
+        <div className="bg-card border rounded-lg p-4 mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <CheckSquare className="h-5 w-5 text-primary" />
+              <span className="font-medium">
+                {selectedIds.size} flipbook{selectedIds.size !== 1 ? 's' : ''} selected
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleBulkPublish}
+                disabled={bulkUpdateStatusMutation.isPending}
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                Publish
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleBulkArchive}
+                disabled={bulkUpdateStatusMutation.isPending}
+              >
+                <Archive className="h-4 w-4 mr-2" />
+                Archive
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleBulkDuplicate}
+                disabled={bulkDuplicateMutation.isPending}
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Duplicate
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleBulkDelete}
+                disabled={bulkDeleteMutation.isPending}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedIds(new Set())}
+              >
+                Clear Selection
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Flipbooks DataTable - No filters prop (server-side only) */}
       {isLoading ? (
         <LoadingState message="Loading flipbooks..." size="lg" />
@@ -342,6 +498,29 @@ export default function FlipbooksPage() {
               disabled={deleteMutation.isPending}
             >
               {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {selectedIds.size} Flipbook{selectedIds.size !== 1 ? 's' : ''}</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {selectedIds.size} flipbook{selectedIds.size !== 1 ? 's' : ''}? This action cannot be undone.
+              All pages, hotspots, and analytics data will be permanently deleted.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmBulkDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={bulkDeleteMutation.isPending}
+            >
+              {bulkDeleteMutation.isPending ? 'Deleting...' : 'Delete All'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
