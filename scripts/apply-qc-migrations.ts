@@ -7,8 +7,14 @@ import { Client } from 'pg';
 import * as fs from 'fs';
 import * as path from 'path';
 
-const DEV_DB_URL = 'postgresql://postgres:kegquT-vyspi4-javwon@db.gwqkbjymbarkufwvdmar.supabase.co:5432/postgres';
-const PROD_DB_URL = 'postgresql://postgres:tAxtop-xersu2-himsap@db.hwaxogapihsqleyzpqtj.supabase.co:5432/postgres';
+// SECURITY: Never hardcode credentials - use environment variables
+const DEV_DB_URL = process.env.DEV_DIRECT_URL || process.env.DIRECT_URL;
+const PROD_DB_URL = process.env.PROD_DIRECT_URL;
+
+if (!DEV_DB_URL || !PROD_DB_URL) {
+  console.error('❌ Missing database URLs. Set DEV_DIRECT_URL and PROD_DIRECT_URL environment variables.');
+  process.exit(1);
+}
 
 const migrations = [
   {
