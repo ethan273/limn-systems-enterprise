@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { renderAllPdfPages } from "@/lib/pdf/client-processor";
 
 interface FileUploaderProps {
   flipbookId: string;
@@ -126,11 +127,24 @@ export function FileUploader({
         }))
       );
 
-      toast.success(
-        type === "pdf"
-          ? `PDF uploaded successfully! ${result.pageCount} pages extracted.`
-          : `${result.pagesAdded} images uploaded successfully!`
-      );
+      // If PDF upload, automatically extract and upload pages
+      if (type === "pdf" && result.pageCount > 0) {
+        toast.success(`PDF uploaded! Extracting ${result.pageCount} pages...`);
+
+        try {
+          await extractAndUploadPages(uploadFiles[0]!.file, flipbookId, result.pageCount);
+          toast.success(`Successfully extracted and uploaded ${result.pageCount} pages!`);
+        } catch (error) {
+          console.error("Page extraction error:", error);
+          toast.error(`PDF uploaded but page extraction failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      } else {
+        toast.success(
+          type === "pdf"
+            ? `PDF uploaded successfully! ${result.pageCount} pages extracted.`
+            : `${result.pagesAdded} images uploaded successfully!`
+        );
+      }
 
       onUploadComplete?.(result);
 
@@ -164,6 +178,48 @@ export function FileUploader({
   // Clear all
   const clearAll = () => {
     setUploadFiles([]);
+  };
+
+  // Extract PDF pages and upload as images
+  const extractAndUploadPages = async (pdfFile: File, flipbookId: string, pageCount: number) => {
+    console.log(`[FlipbookUploader] Starting automatic page extraction for ${pageCount} pages...`);
+
+    // Render all PDF pages to images using PDF.js
+    const pages = await renderAllPdfPages(pdfFile, {
+      scale: 2.0,
+      format: 'jpeg',
+      quality: 0.9,
+    }, (current, total) => {
+      console.log(`[FlipbookUploader] Extracted page ${current}/${total}`);
+    });
+
+    console.log(`[FlipbookUploader] Successfully extracted ${pages.length} pages, uploading to server...`);
+
+    // Create FormData with all page images
+    const formData = new FormData();
+    formData.append('flipbookId', flipbookId);
+
+    // Convert blobs to files and add to FormData
+    pages.forEach((page, index) => {
+      const file = new File([page.blob], `page-${index + 1}.jpg`, { type: 'image/jpeg' });
+      formData.append('files', file);
+    });
+
+    // Upload all pages to the server
+    const response = await fetch('/api/flipbooks/upload-images', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to upload pages');
+    }
+
+    const result = await response.json();
+    console.log(`[FlipbookUploader] Successfully uploaded ${result.pagesAdded} pages to server`);
+
+    return result;
   };
 
   return (
