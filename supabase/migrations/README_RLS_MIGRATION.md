@@ -61,23 +61,25 @@ Failing to apply in order will result in flipbook features being broken (pages w
 
 #### For Development Database:
 ```bash
-# Get DIRECT_URL from .env
+# Get DIRECT_URL from .env file
+# Replace YOUR_DIRECT_URL with the actual connection string from .env
 # Apply BOTH migrations in order:
-psql "postgres://postgres:[PASSWORD]@db.hwaxogapihsqleyzpqtj.supabase.co:5432/postgres" \
+psql "YOUR_DIRECT_URL" \
   -f supabase/migrations/20251024_enable_rls_security_fixes.sql
 
-psql "postgres://postgres:[PASSWORD]@db.hwaxogapihsqleyzpqtj.supabase.co:5432/postgres" \
+psql "YOUR_DIRECT_URL" \
   -f supabase/migrations/20251024_flipbook_rls_policies.sql
 ```
 
 #### For Production Database:
 ```bash
-# Use production DIRECT_URL from .env.vercel.production
+# Get DIRECT_URL from .env.vercel.production file
+# Replace YOUR_PRODUCTION_DIRECT_URL with the actual connection string
 # Apply BOTH migrations in order:
-psql "postgres://postgres:tAxtop-xersu2-himsap@db.hwaxogapihsqleyzpqtj.supabase.co:5432/postgres" \
+psql "YOUR_PRODUCTION_DIRECT_URL" \
   -f supabase/migrations/20251024_enable_rls_security_fixes.sql
 
-psql "postgres://postgres:tAxtop-xersu2-himsap@db.hwaxogapihsqleyzpqtj.supabase.co:5432/postgres" \
+psql "YOUR_PRODUCTION_DIRECT_URL" \
   -f supabase/migrations/20251024_flipbook_rls_policies.sql
 ```
 
