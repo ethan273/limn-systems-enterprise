@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
         page_number: currentPageNumber,
         image_url: pageUpload.cdnUrl,
         thumbnail_url: thumbnailUpload.cdnUrl,
-        transition_type: "PAGE_TURN",
+        // page_type has default value 'CONTENT' in database
       } as any);
     }
 
