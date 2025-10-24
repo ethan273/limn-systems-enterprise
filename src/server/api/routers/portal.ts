@@ -371,6 +371,8 @@ export const portalRouter = createTRPCRouter({
       });
       const projectIds = customerProjects.map(p => p.id);
 
+      // Phase 4A Fix: Handle empty projectIds array to avoid Supabase .in() errors
+      // If customer has no projects, return 0 for project-related counts
       const [
         activeOrders,
         pendingPayments,
@@ -378,7 +380,7 @@ export const portalRouter = createTRPCRouter({
         documentsCount,
       ] = await Promise.all([
         // Active orders count - use project_id IN array instead of nested filter
-        ctx.db.production_orders.count({
+        projectIds.length === 0 ? Promise.resolve(0) : ctx.db.production_orders.count({
           where: {
             project_id: { in: projectIds },
             status: {
@@ -398,7 +400,7 @@ export const portalRouter = createTRPCRouter({
         }),
 
         // Recent shipments (last 30 days) - use project_id IN array instead of nested filter
-        ctx.db.shipments.count({
+        projectIds.length === 0 ? Promise.resolve(0) : ctx.db.shipments.count({
           where: {
             project_id: { in: projectIds },
             created_at: {
@@ -748,10 +750,26 @@ export const portalRouter = createTRPCRouter({
       offset: z.number().min(0).optional().default(0),
     }))
     .query(async ({ ctx, input }) => {
+      // Phase 3 Fix: Use two-step query to avoid nested filter in count()
+      // Step 1: Get project IDs for this customer
+      const customerProjects = await ctx.db.projects.findMany({
+        where: { customer_id: ctx.customerId },
+        select: { id: true },
+      });
+      const projectIds = customerProjects.map(p => p.id);
+
+      // Phase 4A Fix: Handle empty projectIds array
+      if (projectIds.length === 0) {
+        return {
+          orders: [],
+          total: 0,
+          hasMore: false,
+        };
+      }
+
+      // Step 2: Build where clause with direct filter
       const where: any = {
-        projects: {
-          customer_id: ctx.customerId,
-        },
+        project_id: { in: projectIds },
       };
 
       if (input.status && input.status !== 'all') {
@@ -1163,26 +1181,38 @@ export const portalRouter = createTRPCRouter({
       offset: z.number().min(0).optional().default(0),
     }))
     .query(async ({ ctx, input }) => {
+      // Phase 3 Fix: Use two-step query to avoid nested filter in count()
+      // Step 1: Get project IDs for this customer
+      const customerProjects = await ctx.db.projects.findMany({
+        where: { customer_id: ctx.customerId },
+        select: { id: true },
+      });
+      const projectIds = customerProjects.map(p => p.id);
+
+      // Phase 4A Fix: Handle empty projectIds array
+      if (projectIds.length === 0) {
+        return {
+          shipments: [],
+          total: 0,
+          hasMore: false,
+        };
+      }
+
+      // Step 2: Use direct filter
+      const where = {
+        project_id: { in: projectIds },
+      };
+
       const [shipments, total] = await Promise.all([
         ctx.db.shipments.findMany({
-          where: {
-            projects: {
-              customer_id: ctx.customerId,
-            },
-          },
+          where,
           orderBy: {
             created_at: 'desc',
           },
           take: input.limit,
           skip: input.offset,
         }),
-        ctx.db.shipments.count({
-          where: {
-            projects: {
-              customer_id: ctx.customerId,
-            },
-          },
-        }),
+        ctx.db.shipments.count({ where }),
       ]);
 
       return {

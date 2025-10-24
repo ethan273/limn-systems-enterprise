@@ -55,10 +55,11 @@ export const analyticsRouter = createTRPCRouter({
       // Total revenue from paid invoices
       // Note: aggregate not supported by wrapper, using findMany + manual aggregation
       // Note: select not supported by wrapper, fetching full records
+      // Phase 4A Fix: Use paid_date (correct column name, not payment_date)
       const paidInvoices = await (ctx.db as any).production_invoices.findMany({
         where: {
           status: 'paid',
-          ...(Object.keys(dateFilter).length > 0 && { payment_date: dateFilter }),
+          ...(Object.keys(dateFilter).length > 0 && { paid_date: dateFilter }),
         },
       });
       const revenueData = {
