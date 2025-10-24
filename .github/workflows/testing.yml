@@ -93,31 +93,6 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      - name: Clean up port 3000
-        run: |
-          # Kill any process using port 3000 (ignore errors if nothing is running)
-          lsof -ti:3000 | xargs kill -9 2>/dev/null || true
-          sleep 3
-        continue-on-error: true
-
-      - name: Verify port 3000 is free
-        run: |
-          if lsof -ti:3000 > /dev/null 2>&1; then
-            echo "ERROR: Port 3000 is still in use after cleanup"
-            lsof -i:3000
-            exit 1
-          fi
-          echo "Port 3000 is free"
-
-      - name: Start dev server
-        run: |
-          npm run dev &
-          npx wait-on http://localhost:3000 -t 60000
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-
       - name: Run Comprehensive Auth & Security Tests
         run: npx playwright test 00-comprehensive-auth-security --reporter=list
         env:
@@ -125,6 +100,9 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          # CI=true is automatically set by GitHub Actions, which tells Playwright
+          # to NOT reuse existing servers (webServer.reuseExistingServer: !process.env.CI)
+          # Playwright will automatically start and stop the dev server for us
 
       - name: Upload auth test report
         if: always()
