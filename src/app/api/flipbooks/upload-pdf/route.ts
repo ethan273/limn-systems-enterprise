@@ -26,6 +26,15 @@ const prisma = new PrismaClient();
 export const runtime = "nodejs";
 export const maxDuration = 60; // 1 minute - just for PDF upload
 
+// Increase body size limit for PDF uploads (100MB)
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '100mb',
+    },
+  },
+};
+
 export async function POST(request: NextRequest) {
   try {
     // Check authentication
@@ -62,6 +71,16 @@ export async function POST(request: NextRequest) {
     if (file.type !== "application/pdf") {
       return NextResponse.json({ error: "File must be a PDF" }, { status: 400 });
     }
+
+    // Validate file size (100MB limit)
+    const maxSize = 100 * 1024 * 1024; // 100MB in bytes
+    if (file.size > maxSize) {
+      return NextResponse.json({
+        error: `PDF file is too large. Maximum size is 100MB, your file is ${(file.size / 1024 / 1024).toFixed(2)}MB`
+      }, { status: 413 });
+    }
+
+    console.log(`[PDF Upload] Uploading PDF: ${file.name}, size: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
 
     // Convert file to buffer
     const buffer = Buffer.from(await file.arrayBuffer());
