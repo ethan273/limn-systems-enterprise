@@ -5,13 +5,13 @@
  * access control, and complete user workflows.
  *
  * Coverage:
- * - /portal/customer (dashboard)
- * - /portal/customer/orders (list)
- * - /portal/customer/orders/[id] (detail)
- * - /portal/customer/documents
- * - /portal/customer/financials
- * - /portal/customer/shipping
- * - /portal/customer/profile
+ * - /portal (dashboard)
+ * - /portal/orders (list)
+ * - /portal/orders/[id] (detail)
+ * - /portal/documents
+ * - /portal/financials
+ * - /portal/shipping
+ * - /portal/profile
  *
  * Rate Limiting Prevention:
  * - Uses session warmup pattern (pre-generated sessions)
@@ -32,11 +32,11 @@ test.afterAll(async () => {
 test.describe('Customer Portal - Access Control', () => {
   test('should allow customer user to access customer portal', async ({ page }) => {
     await login(page, 'customer-user@limn.us.com', 'password');
-    await page.goto('/portal/customer', { waitUntil: 'domcontentloaded' });
+    await page.goto('/portal', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
     // Should successfully load customer portal
-    expect(page.url()).toContain('/portal/customer');
+    expect(page.url()).toContain('/portal');
 
     // Should not redirect to login
     expect(page.url()).not.toContain('/login');
@@ -45,11 +45,11 @@ test.describe('Customer Portal - Access Control', () => {
   test('should prevent non-customer user from accessing customer portal', async ({ page }) => {
     // Try to access as regular employee (not customer)
     await login(page, 'dev-user@limn.us.com', 'password');
-    await page.goto('/portal/customer', { waitUntil: 'domcontentloaded' });
+    await page.goto('/portal', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
     // Should redirect away from customer portal (to dashboard or access denied)
-    const isNotCustomerPortal = !page.url().includes('/portal/customer') ||
+    const isNotCustomerPortal = !page.url().includes('/portal') ||
                                  page.url().includes('/dashboard') ||
                                  await (
       await page.locator('text=/access denied/i').count() > 0 ||
@@ -63,10 +63,10 @@ test.describe('Customer Portal - Access Control', () => {
 test.describe('Customer Portal - Dashboard', () => {
   test('should load customer dashboard without errors', async ({ page }) => {
     await login(page, 'customer-user@limn.us.com', 'password');
-    await page.goto('/portal/customer', { waitUntil: 'domcontentloaded' });
+    await page.goto('/portal', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    expect(page.url()).toContain('/portal/customer');
+    expect(page.url()).toContain('/portal');
 
     // Check for console errors
     const errors: string[] = [];
@@ -79,7 +79,7 @@ test.describe('Customer Portal - Dashboard', () => {
 
   test('should display dashboard widgets/cards', async ({ page }) => {
     await login(page, 'customer-user@limn.us.com', 'password');
-    await page.goto('/portal/customer', { waitUntil: 'domcontentloaded' });
+    await page.goto('/portal', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
     // Check for dashboard content (cards, widgets, stats)
@@ -91,7 +91,7 @@ test.describe('Customer Portal - Dashboard', () => {
 
   test('should have navigation menu', async ({ page }) => {
     await login(page, 'customer-user@limn.us.com', 'password');
-    await page.goto('/portal/customer', { waitUntil: 'domcontentloaded' });
+    await page.goto('/portal', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
     // Check for navigation (sidebar or top nav)
@@ -103,15 +103,15 @@ test.describe('Customer Portal - Dashboard', () => {
 test.describe('Customer Portal - Orders List', () => {
   test('should load orders list page', async ({ page }) => {
     await login(page, 'customer-user@limn.us.com', 'password');
-    await page.goto('/portal/customer/orders', { waitUntil: 'domcontentloaded' });
+    await page.goto('/portal/orders', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    expect(page.url()).toContain('/portal/customer/orders');
+    expect(page.url()).toContain('/portal/orders');
   });
 
   test('should display orders data', async ({ page }) => {
     await login(page, 'customer-user@limn.us.com', 'password');
-    await page.goto('/portal/customer/orders', { waitUntil: 'domcontentloaded' });
+    await page.goto('/portal/orders', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
     // Check for data display (table or cards)
@@ -127,7 +127,7 @@ test.describe('Customer Portal - Orders List', () => {
 
   test('should allow filtering/searching orders', async ({ page }) => {
     await login(page, 'customer-user@limn.us.com', 'password');
-    await page.goto('/portal/customer/orders', { waitUntil: 'domcontentloaded' });
+    await page.goto('/portal/orders', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
     // Look for search/filter controls
@@ -144,18 +144,18 @@ test.describe('Customer Portal - Orders List', () => {
 
   test('should navigate to order detail page', async ({ page }) => {
     await login(page, 'customer-user@limn.us.com', 'password');
-    await page.goto('/portal/customer/orders', { waitUntil: 'domcontentloaded' });
+    await page.goto('/portal/orders', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
     // Look for clickable order links
-    const orderLink = page.locator('a[href*="/portal/customer/orders/"], tr[role="button"], [class*="order"][class*="row"]').first();
+    const orderLink = page.locator('a[href*="/portal/orders/"], tr[role="button"], [class*="order"][class*="row"]').first();
 
     if (await orderLink.count() > 0) {
       await orderLink.click();
       await page.waitForTimeout(1500);
 
       // Should navigate to detail page
-      const isDetailPage = page.url().includes('/portal/customer/orders/') &&
+      const isDetailPage = page.url().includes('/portal/orders/') &&
                           !page.url().endsWith('/orders');
       expect(isDetailPage).toBe(true);
     }
@@ -189,10 +189,10 @@ test.describe('Customer Portal - Order Detail', () => {
     }
 
     await login(page, 'customer-user@limn.us.com', 'password');
-    await page.goto(`/portal/customer/orders/${order.id}`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`/portal/orders/${order.id}`, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    expect(page.url()).toContain(`/portal/customer/orders/${order.id}`);
+    expect(page.url()).toContain(`/portal/orders/${order.id}`);
 
     // Should display order details
     const pageContent = await page.textContent('body');
@@ -218,7 +218,7 @@ test.describe('Customer Portal - Order Detail', () => {
     if (!order) test.skip();
 
     await login(page, 'customer-user@limn.us.com', 'password');
-    await page.goto(`/portal/customer/orders/${order.id}`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`/portal/orders/${order.id}`, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
     // Look for status indicator
@@ -232,15 +232,15 @@ test.describe('Customer Portal - Order Detail', () => {
 test.describe('Customer Portal - Documents', () => {
   test('should load documents page', async ({ page }) => {
     await login(page, 'customer-user@limn.us.com', 'password');
-    await page.goto('/portal/customer/documents', { waitUntil: 'domcontentloaded' });
+    await page.goto('/portal/documents', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    expect(page.url()).toContain('/portal/customer/documents');
+    expect(page.url()).toContain('/portal/documents');
   });
 
   test('should display document list or upload area', async ({ page }) => {
     await login(page, 'customer-user@limn.us.com', 'password');
-    await page.goto('/portal/customer/documents', { waitUntil: 'domcontentloaded' });
+    await page.goto('/portal/documents', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
     // Check for documents list or upload UI
@@ -255,15 +255,15 @@ test.describe('Customer Portal - Documents', () => {
 test.describe('Customer Portal - Financials', () => {
   test('should load financials page', async ({ page }) => {
     await login(page, 'customer-user@limn.us.com', 'password');
-    await page.goto('/portal/customer/financials', { waitUntil: 'domcontentloaded' });
+    await page.goto('/portal/financials', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    expect(page.url()).toContain('/portal/customer/financials');
+    expect(page.url()).toContain('/portal/financials');
   });
 
   test('should display financial information', async ({ page }) => {
     await login(page, 'customer-user@limn.us.com', 'password');
-    await page.goto('/portal/customer/financials', { waitUntil: 'domcontentloaded' });
+    await page.goto('/portal/financials', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
     // Check for financial data (invoices, payments, balance)
@@ -281,15 +281,15 @@ test.describe('Customer Portal - Financials', () => {
 test.describe('Customer Portal - Shipping', () => {
   test('should load shipping page', async ({ page }) => {
     await login(page, 'customer-user@limn.us.com', 'password');
-    await page.goto('/portal/customer/shipping', { waitUntil: 'domcontentloaded' });
+    await page.goto('/portal/shipping', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    expect(page.url()).toContain('/portal/customer/shipping');
+    expect(page.url()).toContain('/portal/shipping');
   });
 
   test('should display shipping information', async ({ page }) => {
     await login(page, 'customer-user@limn.us.com', 'password');
-    await page.goto('/portal/customer/shipping', { waitUntil: 'domcontentloaded' });
+    await page.goto('/portal/shipping', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
     // Check for shipping data (addresses, shipments, tracking)
@@ -306,15 +306,15 @@ test.describe('Customer Portal - Shipping', () => {
 test.describe('Customer Portal - Profile', () => {
   test('should load profile page', async ({ page }) => {
     await login(page, 'customer-user@limn.us.com', 'password');
-    await page.goto('/portal/customer/profile', { waitUntil: 'domcontentloaded' });
+    await page.goto('/portal/profile', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    expect(page.url()).toContain('/portal/customer/profile');
+    expect(page.url()).toContain('/portal/profile');
   });
 
   test('should display customer information', async ({ page }) => {
     await login(page, 'customer-user@limn.us.com', 'password');
-    await page.goto('/portal/customer/profile', { waitUntil: 'domcontentloaded' });
+    await page.goto('/portal/profile', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
     // Check for profile fields
@@ -326,7 +326,7 @@ test.describe('Customer Portal - Profile', () => {
 
   test('should have edit/update functionality', async ({ page }) => {
     await login(page, 'customer-user@limn.us.com', 'password');
-    await page.goto('/portal/customer/profile', { waitUntil: 'domcontentloaded' });
+    await page.goto('/portal/profile', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
     // Check for edit button or editable fields
@@ -340,23 +340,23 @@ test.describe('Customer Portal - Profile', () => {
 test.describe('Customer Portal - Navigation & UX', () => {
   test('should have working navigation between portal pages', async ({ page }) => {
     await login(page, 'customer-user@limn.us.com', 'password');
-    await page.goto('/portal/customer', { waitUntil: 'domcontentloaded' });
+    await page.goto('/portal', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
     // Try to navigate to orders via nav menu
-    const ordersLink = page.locator('a[href*="/portal/customer/orders"], nav a:has-text("Orders")').first();
+    const ordersLink = page.locator('a[href*="/portal/orders"], nav a:has-text("Orders")').first();
 
     if (await ordersLink.count() > 0) {
       await ordersLink.click();
       await page.waitForTimeout(1500);
 
-      expect(page.url()).toContain('/portal/customer/orders');
+      expect(page.url()).toContain('/portal/orders');
     }
   });
 
   test('should have logout functionality', async ({ page }) => {
     await login(page, 'customer-user@limn.us.com', 'password');
-    await page.goto('/portal/customer', { waitUntil: 'domcontentloaded' });
+    await page.goto('/portal', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
     // Look for logout button
@@ -372,11 +372,11 @@ test.describe('Customer Portal - Navigation & UX', () => {
     await page.setViewportSize({ width: 375, height: 667 });
 
     await login(page, 'customer-user@limn.us.com', 'password');
-    await page.goto('/portal/customer', { waitUntil: 'domcontentloaded' });
+    await page.goto('/portal', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
     // Should still load in mobile view
-    expect(page.url()).toContain('/portal/customer');
+    expect(page.url()).toContain('/portal');
 
     // Check for mobile menu (hamburger or drawer)
     const hasMobileMenu = await page.locator('[class*="menu"], [class*="drawer"], button[aria-label*="menu" i]').count() > 0;
