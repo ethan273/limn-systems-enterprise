@@ -165,7 +165,8 @@ test.describe('Customer Portal - Orders List', () => {
 test.describe('Customer Portal - Order Detail', () => {
   test('should display order detail page', async ({ page }) => {
     // First, get a real order ID from database for this customer
-    const customerUser = await prisma.users.findUnique({
+    // Phase 4B Fix: Use findFirst instead of findUnique since email is not unique
+    const customerUser = await prisma.users.findFirst({
       where: { email: 'customer-user@limn.us.com' },
     });
 
@@ -199,7 +200,8 @@ test.describe('Customer Portal - Order Detail', () => {
   });
 
   test('should display order status', async ({ page }) => {
-    const customerUser = await prisma.users.findUnique({
+    // Phase 4B Fix: Use findFirst instead of findUnique since email is not unique
+    const customerUser = await prisma.users.findFirst({
       where: { email: 'customer-user@limn.us.com' },
     });
 
