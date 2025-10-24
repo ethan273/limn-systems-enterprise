@@ -17,7 +17,8 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import puppeteer from "puppeteer";
+import puppeteer from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
 import { PDFDocument } from "pdf-lib";
 import {
   uploadToS3,
@@ -137,20 +138,16 @@ export async function POST(request: NextRequest) {
     const tocEntries = await extractTocFromPdf(pdfDoc);
     console.log(`[PDF Extraction] Extracted ${tocEntries.length} ToC entries`);
 
-    // Launch Puppeteer browser
+    // Launch Puppeteer browser with @sparticuz/chromium for Vercel Lambda
     console.log(`[PDF Extraction] Launching Puppeteer browser...`);
     browser = await puppeteer.launch({
+      args: chromium.args,
+      defaultViewport: {
+        width: 1200,
+        height: 1600,
+      },
+      executablePath: await chromium.executablePath(),
       headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--no-first-run',
-        '--no-zygote',
-        '--single-process', // Required for Vercel
-        '--disable-gpu',
-      ],
     });
 
     const page = await browser.newPage();
@@ -271,7 +268,7 @@ export async function POST(request: NextRequest) {
       data: {
         page_count: extractedPages.length,
         toc_auto_generated: tocEntries.length > 0,
-        toc_data: tocEntries.length > 0 ? tocEntries : null,
+        toc_data: tocEntries.length > 0 ? (tocEntries as any) : undefined,
         toc_last_updated: new Date(),
         updated_at: new Date(),
       },
