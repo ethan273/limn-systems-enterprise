@@ -353,9 +353,10 @@ export const portalRouter = createTRPCRouter({
 
   /**
    * Get Current User Info (for display in UI)
-   * NOTE: Uses protectedProcedure (not portalProcedure) since it only needs session data
+   * Phase 4E: Changed to portalProcedure to enforce customer portal access at layout level
+   * This ensures non-customer portal users are blocked before the page renders
    */
-  getCurrentUser: protectedProcedure
+  getCurrentUser: portalProcedure
     .query(async ({ ctx }) => {
       return {
         id: ctx.session.user.id,
@@ -373,16 +374,14 @@ export const portalRouter = createTRPCRouter({
   getDashboardStats: portalProcedure
     .query(async ({ ctx }) => {
 
-      // Phase 4C Fix: Validate customerId is not null
-      // This can happen if portal_type migration left customer_id null for non-customer portals
+      // Phase 4E Fix: Block access if customerId is null (non-customer portal types)
+      // This enforces that only customer portal users can access customer portal data
       if (!ctx.customerId) {
-        console.log('⚠️ [getDashboardStats] customerId is null, returning zero stats');
-        return {
-          activeOrders: 0,
-          pendingPayments: 0,
-          recentShipments: 0,
-          documentsCount: 0,
-        };
+        console.log('❌ [getDashboardStats] Access denied: customerId is null (non-customer portal type)');
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'This portal type is not a customer portal. Please use the appropriate portal type.'
+        });
       }
 
       // Phase 1 Fix: Use two-step query instead of nested filters

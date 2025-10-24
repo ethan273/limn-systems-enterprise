@@ -203,31 +203,58 @@ export async function middleware(request: NextRequest) {
     console.log(`✅ Middleware: User ${user.id} has admin access (user_type: ${userData?.user_type})`);
   }
 
-  // Portal access control - verify user has access to specific portal type
-  const portalMatch = pathname.match(/^\/portal\/(customer|designer|factory|qc)(?:\/|$)/);
-  if (portalMatch) {
-    const requestedPortalType = portalMatch[1];
-
-    // Query customer_portal_access to check if user has access to this portal type
+  // Portal access control - verify user has access to customer portal
+  // Phase 4E: Block non-customer users from accessing /portal routes
+  if (pathname.startsWith('/portal') && pathname !== '/portal/login') {
+    // Query customer_portal_access to check if user has CUSTOMER portal access
     const { data: portalAccessRecords } = await supabase
       .from('customer_portal_access')
-      .select('portal_type, is_active')
+      .select('portal_type, is_active, customer_id')
       .eq('user_id', user.id)
-      .eq('portal_type', requestedPortalType)
       .eq('is_active', true);
 
-    if (!portalAccessRecords || portalAccessRecords.length === 0) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`🚫 Middleware: User ${user.id} denied access to ${requestedPortalType} portal`);
-      }
-      const redirectUrl = request.nextUrl.clone();
-      redirectUrl.pathname = '/portal/login';
-      redirectUrl.searchParams.set('error', 'unauthorized_portal');
-      return NextResponse.redirect(redirectUrl);
-    }
+    // For /portal routes (not /portal/customer, /portal/designer, etc.), require customer portal access
+    const portalMatch = pathname.match(/^\/portal\/(customer|designer|factory|qc)(?:\/|$)/);
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`✅ Middleware: User ${user.id} has valid ${requestedPortalType} portal access`);
+    if (portalMatch) {
+      // Specific portal type requested
+      const requestedPortalType = portalMatch[1];
+      const hasAccess = portalAccessRecords?.some(
+        record => record.portal_type === requestedPortalType && record.is_active
+      );
+
+      if (!hasAccess) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`🚫 Middleware: User ${user.id} denied access to ${requestedPortalType} portal`);
+        }
+        const redirectUrl = request.nextUrl.clone();
+        redirectUrl.pathname = '/portal/login';
+        redirectUrl.searchParams.set('error', 'unauthorized_portal');
+        return NextResponse.redirect(redirectUrl);
+      }
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`✅ Middleware: User ${user.id} has valid ${requestedPortalType} portal access`);
+      }
+    } else {
+      // Generic /portal route - require customer portal access (customer_id must be set)
+      const hasCustomerPortal = portalAccessRecords?.some(
+        record => record.portal_type === 'customer' && record.customer_id !== null && record.is_active
+      );
+
+      if (!hasCustomerPortal) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`🚫 Middleware: User ${user.id} denied access to /portal (not a customer portal user)`);
+        }
+        const redirectUrl = request.nextUrl.clone();
+        redirectUrl.pathname = '/portal/login';
+        redirectUrl.searchParams.set('error', 'unauthorized_portal');
+        return NextResponse.redirect(redirectUrl);
+      }
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`✅ Middleware: User ${user.id} has valid customer portal access`);
+      }
     }
   }
 

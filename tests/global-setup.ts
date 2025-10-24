@@ -170,21 +170,19 @@ async function globalSetup(config: FullConfig) {
       console.log(`   ✅ [Setup] Customer ensured: ${customer.id}`);
 
       // Create portal access (works for both new and existing users)
-      await prisma.customer_portal_access.upsert({
-        where: {
-          customer_id_user_id: {
-            customer_id: customer.id,
-            user_id: userId,
-          },
-        },
-        update: {
-          portal_type: testUser.portalType,
-          is_active: true,
-          updated_at: new Date(),
-        },
-        create: {
+      // IMPORTANT: For customer portal types, set customer_id. For other types (designer, factory, QC), leave customer_id as null
+      // This ensures the enforcePortalAccess middleware can properly validate portal access
+
+      // Delete any existing portal_access records for this user to ensure clean state
+      await prisma.customer_portal_access.deleteMany({
+        where: { user_id: userId },
+      });
+
+      // Create fresh portal access record with correct customer_id based on portal type
+      await prisma.customer_portal_access.create({
+        data: {
           user_id: userId,
-          customer_id: customer.id,
+          customer_id: testUser.portalType === 'customer' ? customer.id : null,
           portal_type: testUser.portalType,
           portal_role: 'admin',
           is_active: true,

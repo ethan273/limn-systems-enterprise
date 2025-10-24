@@ -137,7 +137,13 @@ export async function portalLogin(page: Page, email: string, password: string, p
 
   // Wait for portal content to load - use more lenient checks that work for all portal types
   // Allow time for initial render and hydration
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(3000); // Increased from 2000ms to 3000ms for slower servers
+
+  // Wait for any redirects to complete before checking URL
+  // This prevents false positives where we check too early during a redirect
+  await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {
+    // Ignore timeout, continue with URL check
+  });
 
   // Verify we're on the correct portal page (not redirected to login)
   const currentUrl = page.url();

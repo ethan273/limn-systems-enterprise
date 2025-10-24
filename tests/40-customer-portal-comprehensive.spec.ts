@@ -43,20 +43,19 @@ test.describe('Customer Portal - Access Control', () => {
   });
 
   test('should prevent non-customer user from accessing customer portal', async ({ page }) => {
-    // Try to access as regular employee (not customer)
+    // Try to access as QC employee (not customer) - dev-user has portal_type='qc', customer_id=null
     await login(page, 'dev-user@limn.us.com', 'password');
     await page.goto('/portal', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    // Should redirect away from customer portal (to dashboard or access denied)
-    const isNotCustomerPortal = !page.url().includes('/portal') ||
-                                 page.url().includes('/dashboard') ||
-                                 await (
-      await page.locator('text=/access denied/i').count() > 0 ||
-      await page.locator('text=/unauthorized/i').count() > 0
-    ) > 0;
+    // Phase 4E: Middleware blocks non-customer users and redirects to login
+    // Should be redirected to /portal/login with error parameter
+    const currentUrl = page.url();
+    const isRedirectedToLogin = currentUrl.includes('/portal/login');
+    const hasUnauthorizedError = currentUrl.includes('error=unauthorized_portal');
 
-    expect(isNotCustomerPortal).toBe(true);
+    // Should either be on login page OR show an error on the portal page
+    expect(isRedirectedToLogin || hasUnauthorizedError).toBe(true);
   });
 });
 
@@ -317,11 +316,12 @@ test.describe('Customer Portal - Profile', () => {
     await page.goto('/portal/profile', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 
-    // Check for profile fields
-    const hasForm = await page.locator('form').count() > 0;
-    const hasInputs = await page.locator('input').count() > 0;
+    // Check for profile information displayed (read-only view by default)
+    // Profile page shows information as read-only text until "Edit Profile" button is clicked
+    const hasProfileHeading = await page.locator('h1:has-text("My Profile"), heading:has-text("My Profile"), h1:has-text("Profile")').count() > 0;
+    const hasCustomerEmail = await page.locator('text=/customer-user@limn.us.com/i').count() > 0;
 
-    expect(hasForm || hasInputs).toBe(true);
+    expect(hasProfileHeading || hasCustomerEmail).toBe(true);
   });
 
   test('should have edit/update functionality', async ({ page }) => {

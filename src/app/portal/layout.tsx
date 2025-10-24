@@ -6,7 +6,7 @@
  * Provides navigation, authentication, and layout structure
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
@@ -37,8 +37,27 @@ export default function PortalLayout({ children }: LayoutProps) {
  const [sidebarOpen, setSidebarOpen] = useState(false);
  const [signingOut, setSigningOut] = useState(false);
 
- // Get user info from tRPC - middleware already validated auth
- const { data: userInfo } = api.portal.getCurrentUser.useQuery();
+ // Get user info from tRPC - middleware validates customer portal access
+ const { data: userInfo, error: userInfoError, isError: userInfoIsError } = api.portal.getCurrentUser.useQuery();
+
+ // Phase 4E: Handle unauthorized access (non-customer portal users)
+ if (userInfoIsError && userInfoError && pathname !== '/portal/login') {
+   // Show error UI for unauthorized access
+   return (
+     <div className="min-h-screen flex items-center justify-center bg-card">
+       <div className="max-w-md w-full p-6 card rounded-lg shadow-lg">
+         <h1 className="text-2xl font-bold mb-4 text-destructive">Access Denied</h1>
+         <p className="mb-4">{userInfoError.message || 'You do not have permission to access this portal.'}</p>
+         <Button
+           onClick={() => router.push('/portal/login')}
+           className="w-full"
+         >
+           Return to Login
+         </Button>
+       </div>
+     </div>
+   );
+ }
 
  // Fetch portal settings to determine navigation
  const { data: portalSettings } = api.portal.getPortalSettings.useQuery();
