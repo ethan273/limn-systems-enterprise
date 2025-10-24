@@ -93,6 +93,13 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
+      - name: Clean up port 3000
+        run: |
+          # Kill any process using port 3000 (ignore errors if nothing is running)
+          lsof -ti:3000 | xargs kill -9 || true
+          sleep 2
+        continue-on-error: true
+
       - name: Start dev server
         run: |
           npm run dev &
