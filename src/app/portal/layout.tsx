@@ -6,7 +6,7 @@
  * Provides navigation, authentication, and layout structure
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
