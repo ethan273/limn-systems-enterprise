@@ -164,3 +164,17 @@ public/workbox-*.js
 public/workbox-*.js.map
 public/fallback-*.js
 .env.vercel.*
+
+# Test Logs (use docs folder instead)
+*.log
+*-test-*.log
+*-validation-*.log
+*-results-*.log
+
+# Build Artifacts
+tsconfig.tsbuildinfo
+.DS_Store
+
+# Test Output Folders (use docs folder instead)
+screenshots/
+test-results/
