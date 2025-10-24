@@ -43,11 +43,21 @@ const enforcePortalAccess = async (ctx: Context) => {
     });
   }
 
+  // Phase 4C Fix: Validate customer_id is not null
+  // customer_id can be null for non-customer portal types (designer, factory, QC)
+  // This middleware is specifically for customer portals, so customer_id must exist
+  if (!portalAccess.customer_id) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'This portal type is not a customer portal. Please use the appropriate portal type.'
+    });
+  }
+
   // NOTE: last_login tracking removed from middleware for performance
   // Login tracking should happen at authentication time, not on every API call
 
   return {
-    customerId: portalAccess.customer_id as string,
+    customerId: portalAccess.customer_id,
     customer: portalAccess.customers,
   };
 };
@@ -362,6 +372,18 @@ export const portalRouter = createTRPCRouter({
    */
   getDashboardStats: portalProcedure
     .query(async ({ ctx }) => {
+
+      // Phase 4C Fix: Validate customerId is not null
+      // This can happen if portal_type migration left customer_id null for non-customer portals
+      if (!ctx.customerId) {
+        console.log('⚠️ [getDashboardStats] customerId is null, returning zero stats');
+        return {
+          activeOrders: 0,
+          pendingPayments: 0,
+          recentShipments: 0,
+          documentsCount: 0,
+        };
+      }
 
       // Phase 1 Fix: Use two-step query instead of nested filters
       // Get all project IDs for this customer first

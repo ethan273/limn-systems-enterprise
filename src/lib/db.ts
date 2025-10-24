@@ -2072,7 +2072,9 @@ export class DatabaseClient {
         if (value !== undefined && value !== null) {
           // Handle Prisma-style comparison operators
           if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-            if ('gte' in value) {
+            if ('in' in value) {
+              query = query.in(key, value.in);
+            } else if ('gte' in value) {
               query = query.gte(key, value.gte);
             } else if ('lte' in value) {
               query = query.lte(key, value.lte);
