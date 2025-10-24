@@ -9,7 +9,17 @@ This migration fixes all Supabase Security Advisor warnings by:
 
 ## Files
 
-- `20251024_enable_rls_security_fixes.sql` - Main migration SQL
+- `20251024_enable_rls_security_fixes.sql` - Main migration SQL (enables RLS and fixes functions)
+- `20251024_flipbook_rls_policies.sql` - Flipbook RLS policies (MUST apply after the first migration)
+
+## Application Order
+
+**IMPORTANT**: These migrations MUST be applied in order:
+
+1. First: `20251024_enable_rls_security_fixes.sql` - Enables RLS on all tables
+2. Second: `20251024_flipbook_rls_policies.sql` - Adds RLS policies for flipbook tables
+
+Failing to apply in order will result in flipbook features being broken (pages won't save).
 
 ## How to Apply
 
@@ -18,35 +28,57 @@ This migration fixes all Supabase Security Advisor warnings by:
 #### For Development Database:
 1. Go to Supabase Dashboard → Your Development Project
 2. Navigate to **SQL Editor**
-3. Click **New Query**
-4. Copy the contents of `20251024_enable_rls_security_fixes.sql`
-5. Paste into the editor
-6. Click **Run** to execute
-7. Verify no errors in the output panel
+3. **FIRST MIGRATION** - RLS Security Fixes:
+   - Click **New Query**
+   - Copy the contents of `20251024_enable_rls_security_fixes.sql`
+   - Paste into the editor
+   - Click **Run** to execute
+   - Verify no errors in the output panel
+4. **SECOND MIGRATION** - Flipbook Policies:
+   - Click **New Query** (new tab)
+   - Copy the contents of `20251024_flipbook_rls_policies.sql`
+   - Paste into the editor
+   - Click **Run** to execute
+   - Verify no errors in the output panel
 
 #### For Production Database:
 1. Go to Supabase Dashboard → Your Production Project
 2. Navigate to **SQL Editor**
-3. Click **New Query**
-4. Copy the contents of `20251024_enable_rls_security_fixes.sql`
-5. Paste into the editor
-6. Click **Run** to execute
-7. Verify no errors in the output panel
+3. **FIRST MIGRATION** - RLS Security Fixes:
+   - Click **New Query**
+   - Copy the contents of `20251024_enable_rls_security_fixes.sql`
+   - Paste into the editor
+   - Click **Run** to execute
+   - Verify no errors in the output panel
+4. **SECOND MIGRATION** - Flipbook Policies:
+   - Click **New Query** (new tab)
+   - Copy the contents of `20251024_flipbook_rls_policies.sql`
+   - Paste into the editor
+   - Click **Run** to execute
+   - Verify no errors in the output panel
 
 ### Option 2: Via psql Command Line
 
 #### For Development Database:
 ```bash
 # Get DIRECT_URL from .env
+# Apply BOTH migrations in order:
 psql "postgres://postgres:[PASSWORD]@db.hwaxogapihsqleyzpqtj.supabase.co:5432/postgres" \
   -f supabase/migrations/20251024_enable_rls_security_fixes.sql
+
+psql "postgres://postgres:[PASSWORD]@db.hwaxogapihsqleyzpqtj.supabase.co:5432/postgres" \
+  -f supabase/migrations/20251024_flipbook_rls_policies.sql
 ```
 
 #### For Production Database:
 ```bash
 # Use production DIRECT_URL from .env.vercel.production
+# Apply BOTH migrations in order:
 psql "postgres://postgres:tAxtop-xersu2-himsap@db.hwaxogapihsqleyzpqtj.supabase.co:5432/postgres" \
   -f supabase/migrations/20251024_enable_rls_security_fixes.sql
+
+psql "postgres://postgres:tAxtop-xersu2-himsap@db.hwaxogapihsqleyzpqtj.supabase.co:5432/postgres" \
+  -f supabase/migrations/20251024_flipbook_rls_policies.sql
 ```
 
 ## What This Migration Does
@@ -157,17 +189,23 @@ TO authenticated
 USING (true);
 ```
 
-### Tables That Need Policies
+### Flipbook RLS Policies
 
-Most tables in this migration already have RLS policies defined. However, these tables may need policies added:
+The second migration (`20251024_flipbook_rls_policies.sql`) adds comprehensive RLS policies for all flipbook tables:
 
-- `flipbooks` - Likely needs policies for creators/collaborators
-- `flipbook_pages` - Should inherit from parent flipbook
-- `hotspots` - Should inherit from parent page
+- `flipbooks` - Users can CRUD their own flipbooks; anyone can read published ones
+- `flipbook_pages` - Inherit access from parent flipbook
+- `hotspots` - Inherit access from parent page/flipbook
+- `flipbook_versions` - Users can CRUD versions of their own flipbooks
+- `flipbook_share_links` - Users can manage their own share links; public can read active ones
+- `share_link_views` - Users can read their own analytics; public can create views
+
+### Other Tables That May Need Policies
+
 - `templates` - May need read access for authenticated users
 - `analytics_events` - May need insert access for event tracking
 
-Check existing policies:
+Check all existing policies:
 
 ```sql
 SELECT schemaname, tablename, policyname, permissive, roles, cmd, qual
@@ -178,7 +216,46 @@ ORDER BY tablename, policyname;
 
 ## Rollback
 
-If you need to rollback this migration:
+If you need to rollback these migrations, run in REVERSE order:
+
+### Step 1: Remove Flipbook Policies
+
+```sql
+-- Remove all flipbook policies
+DROP POLICY IF EXISTS "users_read_own_flipbooks" ON public.flipbooks;
+DROP POLICY IF EXISTS "anyone_read_published_flipbooks" ON public.flipbooks;
+DROP POLICY IF EXISTS "users_create_flipbooks" ON public.flipbooks;
+DROP POLICY IF EXISTS "users_update_own_flipbooks" ON public.flipbooks;
+DROP POLICY IF EXISTS "users_delete_own_flipbooks" ON public.flipbooks;
+
+DROP POLICY IF EXISTS "users_read_own_flipbook_pages" ON public.flipbook_pages;
+DROP POLICY IF EXISTS "anyone_read_published_flipbook_pages" ON public.flipbook_pages;
+DROP POLICY IF EXISTS "users_create_own_flipbook_pages" ON public.flipbook_pages;
+DROP POLICY IF EXISTS "users_update_own_flipbook_pages" ON public.flipbook_pages;
+DROP POLICY IF EXISTS "users_delete_own_flipbook_pages" ON public.flipbook_pages;
+
+DROP POLICY IF EXISTS "users_read_own_hotspots" ON public.hotspots;
+DROP POLICY IF EXISTS "anyone_read_published_hotspots" ON public.hotspots;
+DROP POLICY IF EXISTS "users_create_own_hotspots" ON public.hotspots;
+DROP POLICY IF EXISTS "users_update_own_hotspots" ON public.hotspots;
+DROP POLICY IF EXISTS "users_delete_own_hotspots" ON public.hotspots;
+
+DROP POLICY IF EXISTS "users_read_own_flipbook_versions" ON public.flipbook_versions;
+DROP POLICY IF EXISTS "users_create_own_flipbook_versions" ON public.flipbook_versions;
+DROP POLICY IF EXISTS "users_update_own_flipbook_versions" ON public.flipbook_versions;
+DROP POLICY IF EXISTS "users_delete_own_flipbook_versions" ON public.flipbook_versions;
+
+DROP POLICY IF EXISTS "users_read_own_share_links" ON public.flipbook_share_links;
+DROP POLICY IF EXISTS "anyone_read_active_share_links_by_token" ON public.flipbook_share_links;
+DROP POLICY IF EXISTS "users_create_own_share_links" ON public.flipbook_share_links;
+DROP POLICY IF EXISTS "users_update_own_share_links" ON public.flipbook_share_links;
+DROP POLICY IF EXISTS "users_delete_own_share_links" ON public.flipbook_share_links;
+
+DROP POLICY IF EXISTS "users_read_own_share_link_views" ON public.share_link_views;
+DROP POLICY IF EXISTS "anyone_create_share_link_views" ON public.share_link_views;
+```
+
+### Step 2: Disable RLS
 
 ```sql
 -- Disable RLS on all tables (use with caution!)
