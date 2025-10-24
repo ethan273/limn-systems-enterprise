@@ -93,11 +93,32 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Trigger background page extraction job
+    console.log(`[PDF Upload] Triggering background page extraction...`);
+    try {
+      // Call extraction API in background (don't await, fire-and-forget)
+      fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/flipbooks/extract-pages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ flipbookId }),
+      }).catch(err => {
+        console.error('[PDF Upload] Failed to trigger extraction:', err);
+      });
+
+      console.log(`[PDF Upload] Background extraction job triggered`);
+    } catch (triggerError) {
+      console.error('[PDF Upload] Error triggering extraction:', triggerError);
+      // Don't fail the upload if background job trigger fails
+    }
+
     return NextResponse.json({
       success: true,
       flipbookId,
       pageCount,
       pdfUrl: pdfUpload.cdnUrl,
+      extractionTriggered: true, // Signal to frontend that extraction is in progress
       metadata: {
         title,
         author,
