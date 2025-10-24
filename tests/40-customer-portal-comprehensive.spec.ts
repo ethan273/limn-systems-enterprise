@@ -163,21 +163,20 @@ test.describe('Customer Portal - Orders List', () => {
 
 test.describe('Customer Portal - Order Detail', () => {
   test('should display order detail page', async ({ page }) => {
-    // First, get a real order ID from database for this customer
-    // Phase 4B Fix: Use findFirst instead of findUnique since email is not unique
-    const customerUser = await prisma.users.findFirst({
+    // Find the customer record for this email
+    const customer = await prisma.customers.findFirst({
       where: { email: 'customer-user@limn.us.com' },
     });
 
-    if (!customerUser) {
+    if (!customer) {
       test.skip();
     }
 
-    // Find an order for this customer via the orders relationship
+    // Find an order for this customer via the orders.customer_id relationship
     const order = await prisma.production_orders.findFirst({
       where: {
         orders: {
-          customer_id: customerUser.id,
+          customer_id: customer.id, // Query through customers table, not users table
         },
       },
     });
@@ -199,17 +198,17 @@ test.describe('Customer Portal - Order Detail', () => {
   });
 
   test('should display order status', async ({ page }) => {
-    // Phase 4B Fix: Use findFirst instead of findUnique since email is not unique
-    const customerUser = await prisma.users.findFirst({
+    // Find the customer record for this email
+    const customer = await prisma.customers.findFirst({
       where: { email: 'customer-user@limn.us.com' },
     });
 
-    if (!customerUser) test.skip();
+    if (!customer) test.skip();
 
     const order = await prisma.production_orders.findFirst({
       where: {
         orders: {
-          customer_id: customerUser.id,
+          customer_id: customer.id, // Query through customers table, not users table
         },
       },
     });

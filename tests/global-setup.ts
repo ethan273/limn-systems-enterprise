@@ -192,6 +192,59 @@ async function globalSetup(config: FullConfig) {
         },
       });
       console.log(`   ✅ [Setup] Portal access ensured`);
+
+      // Create test orders for customer portal users (to enable order detail tests)
+      if (testUser.portalType === 'customer' && testUser.email === 'customer-user@limn.us.com') {
+        // First create a project for this customer (portal uses project_id, not customer_id directly)
+        const testProject = await prisma.projects.upsert({
+          where: { id: '00000000-0000-0000-0000-000000000001' }, // Fixed UUID for test project
+          update: {},
+          create: {
+            id: '00000000-0000-0000-0000-000000000001',
+            name: 'Test Portal Project',
+            customer_id: customer.id,
+            status: 'active',
+            created_at: new Date(),
+            updated_at: new Date(),
+          },
+        });
+
+        // Create an `orders` record (optional parent, links via customers table)
+        const testOrder = await prisma.orders.upsert({
+          where: { order_number: 'TEST-ORDER-001' },
+          update: {},
+          create: {
+            order_number: 'TEST-ORDER-001',
+            customer_id: customer.id, // Link to customers table (correct for production queries)
+            status: 'in_production',
+            total_amount: 1500.00,
+            notes: 'Test order for portal E2E tests',
+            created_at: new Date(),
+            updated_at: new Date(),
+          },
+        });
+
+        // Create production_orders record linked to both project and orders
+        await prisma.production_orders.upsert({
+          where: { order_number: 'TEST-PROD-ORDER-001' },
+          update: {},
+          create: {
+            order_number: 'TEST-PROD-ORDER-001',
+            product_type: 'custom',
+            item_name: 'Test Product',
+            item_description: 'Test product for portal E2E tests',
+            quantity: 100,
+            unit_price: 15.00,
+            total_cost: 1500.00,
+            status: 'in_production',
+            order_date: new Date(),
+            project_id: testProject.id, // Link to project (for portal queries)
+            order_id: testOrder.id, // Link to orders (for test queries via orders.customer_id)
+          },
+        });
+        console.log(`   ✅ [Setup] Test orders created for ${testUser.email}`);
+      }
+
       console.log(`   ✅ [Setup] ${testUser.email} fully configured`);
     } catch (err) {
       console.error(`   ❌ [Setup] Error processing ${testUser.email}:`, err);
