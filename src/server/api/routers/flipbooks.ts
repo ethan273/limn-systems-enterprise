@@ -1670,9 +1670,9 @@ export const flipbooksRouter = createTRPCRouter({
             description: flipbook.description,
             status: "DRAFT", // Always start as draft
             pdf_source_url: flipbook.pdf_source_url,
-            total_pages: flipbook.total_pages,
+            page_count: flipbook.page_count, // Fixed: was total_pages
             created_by_id: ctx.session.user.id,
-            brand_id: flipbook.brand_id,
+            // Removed brand_id - field doesn't exist in schema
           },
         });
 
@@ -1685,7 +1685,6 @@ export const flipbooksRouter = createTRPCRouter({
               flipbook_id: newFlipbook.id,
               page_number: page.page_number,
               image_url: page.image_url,
-              created_by_id: ctx.session.user.id,
             },
           });
 
@@ -1694,12 +1693,11 @@ export const flipbooksRouter = createTRPCRouter({
             await ctx.db.hotspots.createMany({
               data: page.hotspots.map(hotspot => ({
                 page_id: newPage.id,
-                product_id: hotspot.product_id,
+                target_product_id: hotspot.target_product_id,
                 x_position: hotspot.x_position,
                 y_position: hotspot.y_position,
                 width: hotspot.width,
                 height: hotspot.height,
-                created_by_id: ctx.session.user.id,
               })),
             });
           }
@@ -1794,7 +1792,7 @@ export const flipbooksRouter = createTRPCRouter({
           id: hotspot.id,
           pageId: hotspot.page_id,
           pageNumber: hotspot.flipbook_pages.page_number,
-          productId: hotspot.product_id,
+          productId: hotspot.target_product_id,
           productName: hotspot.products?.name || 'Unknown Product',
           xPosition: Number(hotspot.x_position),
           yPosition: Number(hotspot.y_position),

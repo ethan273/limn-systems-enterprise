@@ -2920,7 +2920,7 @@ model flipbook_pages {
   page_number            Int
   image_url              String
   thumbnail_url          String?
-  page_type              Unsupported("page_type") @default(dbgenerated("'CONTENT'::flipbook.page_type"))
+  page_type              Unsupported("page_type") @default(dbgenerated("'CONTENT'::public.page_type"))
   text_content           String?
   seo_title              String?                  @db.VarChar(255)
   seo_description        String?
