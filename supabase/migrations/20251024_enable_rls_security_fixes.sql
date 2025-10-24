@@ -74,8 +74,8 @@ $$;
 
 -- Fix calculate_next_rotation_date function
 CREATE OR REPLACE FUNCTION public.calculate_next_rotation_date(
-    current_date TIMESTAMP WITH TIME ZONE,
-    rotation_period TEXT
+    p_current_date TIMESTAMP WITH TIME ZONE,
+    p_rotation_period TEXT
 )
 RETURNS TIMESTAMP WITH TIME ZONE
 LANGUAGE plpgsql
@@ -83,12 +83,12 @@ IMMUTABLE
 SET search_path = public, pg_temp
 AS $$
 BEGIN
-    RETURN CASE rotation_period
-        WHEN 'weekly' THEN current_date + INTERVAL '7 days'
-        WHEN 'biweekly' THEN current_date + INTERVAL '14 days'
-        WHEN 'monthly' THEN current_date + INTERVAL '1 month'
-        WHEN 'quarterly' THEN current_date + INTERVAL '3 months'
-        ELSE current_date + INTERVAL '30 days'
+    RETURN CASE p_rotation_period
+        WHEN 'weekly' THEN p_current_date + INTERVAL '7 days'
+        WHEN 'biweekly' THEN p_current_date + INTERVAL '14 days'
+        WHEN 'monthly' THEN p_current_date + INTERVAL '1 month'
+        WHEN 'quarterly' THEN p_current_date + INTERVAL '3 months'
+        ELSE p_current_date + INTERVAL '30 days'
     END;
 END;
 $$;
