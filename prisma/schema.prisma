@@ -2998,7 +2998,7 @@ model flipbooks {
   id                   String                         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   title                String                         @db.VarChar(255)
   description          String?
-  status               Unsupported("flipbook_status") @default(dbgenerated("'DRAFT'::flipbook.flipbook_status"))
+  status               Unsupported("flipbook_status") @default(dbgenerated("'DRAFT'::public.flipbook_status"))
   created_by_id        String                         @db.Uuid
   cover_image_url      String?
   thumbnail_url        String?
