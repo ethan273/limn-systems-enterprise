@@ -59,7 +59,7 @@ export async function middleware(request: NextRequest) {
     '/_next',
     '/icons',
     '/images',
-    '/auth/',           // All auth routes (callback, dev, employee, etc.)
+    '/auth/',           // All auth routes (callback, dev, employee, establish-session, etc.)
     '/api/auth',
     '/portal/login',
     '/share',
@@ -103,10 +103,15 @@ export async function middleware(request: NextRequest) {
           // Update response cookies with explicit sameSite configuration
           // CRITICAL: Use 'none' in production to support incognito mode
           const sameSiteValue = process.env.NODE_ENV === 'production' ? 'none' : 'lax';
+
+          // Filter out domain attribute to avoid "invalid domain" errors
+          // Let the browser use the current domain automatically
+          const { domain, ...safeOptions } = options || {};
+
           response.cookies.set({
             name,
             value,
-            ...options,
+            ...safeOptions,
             sameSite: sameSiteValue as 'none' | 'lax',
             secure: process.env.NODE_ENV === 'production',
           });
@@ -114,10 +119,15 @@ export async function middleware(request: NextRequest) {
         remove(name: string, options: CookieOptions) {
           // Update response cookies with explicit sameSite configuration
           const sameSiteValue = process.env.NODE_ENV === 'production' ? 'none' : 'lax';
+
+          // Filter out domain attribute to avoid "invalid domain" errors
+          // Let the browser use the current domain automatically
+          const { domain, ...safeOptions } = options || {};
+
           response.cookies.set({
             name,
             value: '',
-            ...options,
+            ...safeOptions,
             sameSite: sameSiteValue as 'none' | 'lax',
             secure: process.env.NODE_ENV === 'production',
           });

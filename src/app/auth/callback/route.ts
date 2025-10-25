@@ -299,8 +299,13 @@ export async function GET(request: NextRequest) {
           // CRITICAL FIX: Use 'none' in production to allow cookies in incognito/private mode
           // OAuth redirect chains require sameSite='none' to persist cookies across redirects
           const sameSiteValue = process.env.NODE_ENV === 'production' ? 'none' : 'lax';
+
+          // Filter out domain attribute to avoid "invalid domain" errors
+          // Let the browser use the current domain automatically
+          const { domain, ...safeOptions } = options || {};
+
           const cookieOptions = {
-            ...options,
+            ...safeOptions,
             path: '/',
             sameSite: sameSiteValue as 'none' | 'lax',
             secure: process.env.NODE_ENV === 'production',
@@ -423,8 +428,13 @@ export async function GET(request: NextRequest) {
           // CRITICAL FIX: Use 'none' in production to allow cookies in incognito/private mode
           // OAuth redirect chains require sameSite='none' to persist cookies across redirects
           const sameSiteValue = process.env.NODE_ENV === 'production' ? 'none' : 'lax';
+
+          // Filter out domain attribute to avoid "invalid domain" errors
+          // Let the browser use the current domain automatically
+          const { domain, ...safeOptions } = options || {};
+
           const cookieOptions = {
-            ...options,
+            ...safeOptions,
             path: '/',
             sameSite: sameSiteValue as 'none' | 'lax',
             secure: process.env.NODE_ENV === 'production',
