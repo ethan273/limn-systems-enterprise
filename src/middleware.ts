@@ -143,10 +143,15 @@ export async function middleware(request: NextRequest) {
   );
 
   // Check if user is authenticated
+  // CRITICAL FIX: Use getSession() instead of getUser() to prevent double-login
+  // getUser() hits Supabase API which can fail if cookies aren't fully propagated
+  // getSession() reads directly from cookies, much faster and more reliable
   const {
-    data: { user },
+    data: { session },
     error: authError,
-  } = await supabase.auth.getUser();
+  } = await supabase.auth.getSession();
+
+  const user = session?.user;
 
   // Enhanced logging for auth debugging
   if (authError) {

@@ -25,10 +25,13 @@ function SessionEstablisher() {
     //
     // SOLUTION: Full page reload with window.location ensures cookies are
     // sent with the request, middleware sees the session, auth succeeds
+    //
+    // PERFORMANCE FIX: Reduced delay from 1500ms to 300ms because middleware
+    // now uses getSession() instead of getUser() - much faster cookie read
     const timer = setTimeout(() => {
       // Use window.location for guaranteed cookie inclusion
       window.location.href = destination;
-    }, 1500); // Delay ensures cookie headers are fully written
+    }, 300); // Reduced delay - getSession() is fast
 
     return () => clearTimeout(timer);
   }, [destination]);
