@@ -106,7 +106,7 @@ export async function middleware(request: NextRequest) {
 
           // Filter out domain attribute to avoid "invalid domain" errors
           // Let the browser use the current domain automatically
-          const { domain, ...safeOptions } = options || {};
+          const { domain: _domain, ...safeOptions } = options || {};
 
           response.cookies.set({
             name,
@@ -122,7 +122,7 @@ export async function middleware(request: NextRequest) {
 
           // Filter out domain attribute to avoid "invalid domain" errors
           // Let the browser use the current domain automatically
-          const { domain, ...safeOptions } = options || {};
+          const { domain: _domain, ...safeOptions } = options || {};
 
           response.cookies.set({
             name,

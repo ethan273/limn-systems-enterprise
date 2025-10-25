@@ -39,8 +39,8 @@ interface FlipbookPage {
   hotspots?: Array<{
     id: string;
     hotspot_type: 'INTERNAL_LINK' | 'EXTERNAL_LINK' | 'PRODUCT_LINK' | 'DOWNLOAD' | 'VIDEO' | 'POPUP' | 'FORM' | 'ADD_TO_CART';
-    x_percent: number;
-    y_percent: number;
+    x_position: number;  // Database column: Decimal(5,2) - matches database schema
+    y_position: number;  // Database column: Decimal(5,2) - matches database schema
     width: number;
     height: number;
     label?: string;
@@ -48,12 +48,12 @@ interface FlipbookPage {
     target_page?: number;
     target_product_id?: string;
     popup_content?: any;
-    product?: {
+    products?: {  // Relation name from Prisma schema
       id: string;
       name: string;
       sku: string;
-      thumbnail_url: string | null;
-    };
+      // Note: thumbnail_url does not exist in products table
+    } | null;
   }>;
 }
 
@@ -215,8 +215,8 @@ const Page = forwardRef<
               key={hotspot.id}
               className="absolute group transition-all hover:scale-105 cursor-pointer"
               style={{
-                left: `${hotspot.x_percent}%`,
-                top: `${hotspot.y_percent}%`,
+                left: `${hotspot.x_position}%`,
+                top: `${hotspot.y_position}%`,
                 width: `${hotspot.width}%`,
                 height: `${hotspot.height}%`,
               }}

@@ -212,8 +212,8 @@ export function FlipbookViewer2D({
                 onClick={() => onHotspotClick?.(hotspot)}
                 className="absolute border-2 border-primary bg-primary/20 hover:bg-primary/40 transition-colors cursor-pointer rounded"
                 style={{
-                  left: `${hotspot.x_percent}%`,
-                  top: `${hotspot.y_percent}%`,
+                  left: `${hotspot.x_position}%`,
+                  top: `${hotspot.y_position}%`,
                   width: `${hotspot.width}%`,
                   height: `${hotspot.height}%`,
                 }}
