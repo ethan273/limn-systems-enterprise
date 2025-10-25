@@ -89,6 +89,13 @@ const withPWA = require('@ducanh2912/next-pwa').default({
         }
       }
     },
+    // PDF.js Worker Files - CRITICAL: NetworkOnly to prevent Service Worker blocking
+    // FIXES: "Setting up fake worker failed: error loading dynamically imported module"
+    // See: https://github.com/mozilla/pdf.js/issues/18162
+    {
+      urlPattern: /\/pdf\.worker.*\.m?js$/i,
+      handler: 'NetworkOnly', // Never cache to prevent worker loading errors
+    },
     // CSS and JavaScript files
     {
       urlPattern: /\.(?:css|js)$/i,
