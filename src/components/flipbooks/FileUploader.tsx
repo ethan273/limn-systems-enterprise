@@ -67,88 +67,25 @@ export function FileUploader({
     disabled: isUploading,
   });
 
-  // Upload files
+  // Upload files directly to Cloudinary (for PDFs) or via API (for images)
   const handleUpload = async () => {
     if (uploadFiles.length === 0) return;
 
     setIsUploading(true);
 
     try {
-      const formData = new FormData();
-      formData.append("flipbookId", flipbookId);
-
-      if (type === "pdf") {
-        formData.append("file", uploadFiles[0]!.file);
-      } else {
-        uploadFiles.forEach((uf) => {
-          formData.append("files", uf.file);
-        });
-      }
-
       // Update status to uploading
       setUploadFiles((prev) =>
         prev.map((f) => ({ ...f, status: "uploading" as const }))
       );
 
-      const endpoint =
-        type === "pdf" ? "/api/flipbooks/upload-pdf" : "/api/flipbooks/upload-images";
-
-      // Simulate progress (real implementation would use XMLHttpRequest for progress tracking)
-      const progressInterval = setInterval(() => {
-        setUploadFiles((prev) =>
-          prev.map((f) => ({
-            ...f,
-            progress: Math.min(f.progress + 10, 90),
-          }))
-        );
-      }, 200);
-
-      const response = await fetch(endpoint, {
-        method: "POST",
-        body: formData,
-      });
-
-      clearInterval(progressInterval);
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Upload failed");
-      }
-
-      const result = await response.json();
-
-      // Mark as success
-      setUploadFiles((prev) =>
-        prev.map((f) => ({
-          ...f,
-          status: "success" as const,
-          progress: 100,
-        }))
-      );
-
-      // Show different messages based on upload type
       if (type === "pdf") {
-        if (result.extractionTriggered) {
-          toast.success(
-            `PDF uploaded! Extracting ${result.pageCount} pages automatically...`,
-            {
-              description: "Pages will appear shortly. You can continue working while extraction completes.",
-              duration: 5000,
-            }
-          );
-        } else {
-          toast.success(`PDF uploaded successfully! ${result.pageCount} pages detected.`);
-        }
+        // Direct upload to Cloudinary for PDFs (bypasses Vercel body size limits)
+        await uploadPdfToCloudinary();
       } else {
-        toast.success(`${result.pagesAdded} images uploaded successfully!`);
+        // Use API route for images (smaller files, no size limit issues)
+        await uploadImagesToAPI();
       }
-
-      onUploadComplete?.(result);
-
-      // Clear files after success
-      setTimeout(() => {
-        setUploadFiles([]);
-      }, 2000);
     } catch (error: any) {
       console.error("Upload error:", error);
 
@@ -165,6 +102,173 @@ export function FileUploader({
     } finally {
       setIsUploading(false);
     }
+  };
+
+  // Upload PDF directly to Cloudinary (client-side upload)
+  const uploadPdfToCloudinary = async () => {
+    const file = uploadFiles[0]!.file;
+
+    // Step 1: Get signed upload parameters from our API
+    const signatureResponse = await fetch("/api/flipbooks/upload-signature", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ flipbookId }),
+    });
+
+    if (!signatureResponse.ok) {
+      const error = await signatureResponse.json();
+      throw new Error(error.error || "Failed to get upload signature");
+    }
+
+    const uploadConfig = await signatureResponse.json();
+
+    // Step 2: Upload directly to Cloudinary using XMLHttpRequest for progress tracking
+    const cloudinaryUpload = await new Promise<any>((resolve, reject) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("api_key", uploadConfig.apiKey);
+      formData.append("timestamp", uploadConfig.timestamp.toString());
+      formData.append("signature", uploadConfig.signature);
+      formData.append("public_id", uploadConfig.publicId);
+      formData.append("folder", uploadConfig.folder);
+      formData.append("resource_type", "image");
+      formData.append("overwrite", "true");
+      formData.append("invalidate", "true");
+      formData.append("pages", "true");
+
+      const xhr = new XMLHttpRequest();
+
+      // Track upload progress
+      xhr.upload.addEventListener("progress", (e) => {
+        if (e.lengthComputable) {
+          const percentComplete = Math.round((e.loaded / e.total) * 90); // Reserve 10% for processing
+          setUploadFiles((prev) =>
+            prev.map((f) => ({
+              ...f,
+              progress: percentComplete,
+            }))
+          );
+        }
+      });
+
+      xhr.addEventListener("load", () => {
+        if (xhr.status === 200) {
+          resolve(JSON.parse(xhr.responseText));
+        } else {
+          reject(new Error(`Cloudinary upload failed: ${xhr.statusText}`));
+        }
+      });
+
+      xhr.addEventListener("error", () => {
+        reject(new Error("Network error during upload"));
+      });
+
+      xhr.open("POST", `https://api.cloudinary.com/v1_1/${uploadConfig.cloudName}/image/upload`);
+      xhr.send(formData);
+    });
+
+    console.log("[Cloudinary Upload] Complete:", cloudinaryUpload);
+
+    // Step 3: Trigger page extraction on our backend
+    setUploadFiles((prev) =>
+      prev.map((f) => ({
+        ...f,
+        progress: 95,
+      }))
+    );
+
+    const extractResponse = await fetch("/api/flipbooks/extract-pages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        flipbookId,
+        cloudinaryPublicId: cloudinaryUpload.public_id,
+        cloudinaryUrl: cloudinaryUpload.secure_url,
+        pageCount: cloudinaryUpload.pages || 0,
+      }),
+    });
+
+    if (!extractResponse.ok) {
+      const error = await extractResponse.json();
+      throw new Error(error.error || "Failed to extract pages");
+    }
+
+    const result = await extractResponse.json();
+
+    // Mark as success
+    setUploadFiles((prev) =>
+      prev.map((f) => ({
+        ...f,
+        status: "success" as const,
+        progress: 100,
+      }))
+    );
+
+    toast.success(
+      `PDF uploaded! Extracting ${result.pagesExtracted || cloudinaryUpload.pages} pages...`,
+      {
+        description: "Pages will appear shortly. You can continue working.",
+        duration: 5000,
+      }
+    );
+
+    onUploadComplete?.(result);
+
+    // Clear files after success
+    setTimeout(() => {
+      setUploadFiles([]);
+    }, 2000);
+  };
+
+  // Upload images via API route (existing flow)
+  const uploadImagesToAPI = async () => {
+    const formData = new FormData();
+    formData.append("flipbookId", flipbookId);
+    uploadFiles.forEach((uf) => {
+      formData.append("files", uf.file);
+    });
+
+    // Simulate progress
+    const progressInterval = setInterval(() => {
+      setUploadFiles((prev) =>
+        prev.map((f) => ({
+          ...f,
+          progress: Math.min(f.progress + 10, 90),
+        }))
+      );
+    }, 200);
+
+    const response = await fetch("/api/flipbooks/upload-images", {
+      method: "POST",
+      body: formData,
+    });
+
+    clearInterval(progressInterval);
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || "Upload failed");
+    }
+
+    const result = await response.json();
+
+    // Mark as success
+    setUploadFiles((prev) =>
+      prev.map((f) => ({
+        ...f,
+        status: "success" as const,
+        progress: 100,
+      }))
+    );
+
+    toast.success(`${result.pagesAdded} images uploaded successfully!`);
+
+    onUploadComplete?.(result);
+
+    // Clear files after success
+    setTimeout(() => {
+      setUploadFiles([]);
+    }, 2000);
   };
 
   // Remove file

@@ -68,9 +68,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get parameters
+    // Get parameters - now accepts either flipbookId (legacy) or cloudinaryPublicId (new flow)
     const body = await request.json();
-    const { flipbookId } = body;
+    const { flipbookId, cloudinaryPublicId, cloudinaryUrl, pageCount: providedPageCount } = body;
 
     if (!flipbookId) {
       return NextResponse.json(
@@ -99,13 +99,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!flipbook.pdf_source_url) {
-      return NextResponse.json(
-        { error: "No PDF uploaded for this flipbook" },
-        { status: 400 }
-      );
-    }
-
     // Verify user owns this flipbook
     if (flipbook.created_by_id !== user.id) {
       return NextResponse.json(
@@ -114,43 +107,72 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Fetch PDF from storage
-    console.log(`[PDF Extraction] Fetching PDF from: ${flipbook.pdf_source_url}`);
-    const pdfResponse = await fetch(flipbook.pdf_source_url);
-    if (!pdfResponse.ok) {
-      throw new Error(`Failed to fetch PDF: ${pdfResponse.statusText}`);
+    // Determine the extraction flow based on provided parameters
+    let finalCloudinaryPublicId: string;
+    let finalPageCount: number;
+    let tocEntries: any[] = [];
+
+    if (cloudinaryPublicId && cloudinaryUrl) {
+      // New flow: PDF already uploaded to Cloudinary by client
+      console.log(`[PDF Extraction] Using pre-uploaded Cloudinary PDF: ${cloudinaryPublicId}`);
+      finalCloudinaryPublicId = cloudinaryPublicId;
+      finalPageCount = providedPageCount || 0;
+
+      // Update flipbook with Cloudinary URL
+      await prisma.flipbooks.update({
+        where: { id: flipbookId },
+        data: {
+          pdf_source_url: cloudinaryUrl,
+          updated_at: new Date(),
+        },
+      });
+
+    } else {
+      // Legacy flow: PDF uploaded to storage, need to upload to Cloudinary
+      if (!flipbook.pdf_source_url) {
+        return NextResponse.json(
+          { error: "No PDF uploaded for this flipbook" },
+          { status: 400 }
+        );
+      }
+
+      console.log(`[PDF Extraction] Fetching PDF from: ${flipbook.pdf_source_url}`);
+      const pdfResponse = await fetch(flipbook.pdf_source_url);
+      if (!pdfResponse.ok) {
+        throw new Error(`Failed to fetch PDF: ${pdfResponse.statusText}`);
+      }
+
+      const pdfBuffer = Buffer.from(await pdfResponse.arrayBuffer());
+      console.log(`[PDF Extraction] PDF fetched successfully (${(pdfBuffer.length / 1024 / 1024).toFixed(2)} MB)`);
+
+      // Load PDF with pdf-lib to get page count and metadata
+      const pdfDoc = await PDFDocument.load(pdfBuffer);
+      const pageCount = pdfDoc.getPageCount();
+      console.log(`[PDF Extraction] PDF has ${pageCount} pages`);
+
+      // Extract ToC
+      tocEntries = await extractTocFromPdf(pdfDoc);
+      console.log(`[PDF Extraction] Extracted ${tocEntries.length} ToC entries`);
+
+      // Upload PDF to Cloudinary
+      console.log(`[PDF Extraction] Uploading PDF to Cloudinary...`);
+      const cloudinaryUpload = await uploadPdfToCloudinary(
+        pdfBuffer,
+        flipbookId,
+        `flipbook-${flipbookId}.pdf`
+      );
+
+      console.log(`[PDF Extraction] PDF uploaded to Cloudinary: ${cloudinaryUpload.secureUrl}`);
+      console.log(`[PDF Extraction] Cloudinary detected ${cloudinaryUpload.pages || pageCount} pages`);
+
+      finalCloudinaryPublicId = cloudinaryUpload.publicId;
+      finalPageCount = cloudinaryUpload.pages || pageCount;
     }
-
-    const pdfBuffer = Buffer.from(await pdfResponse.arrayBuffer());
-    console.log(`[PDF Extraction] PDF fetched successfully (${(pdfBuffer.length / 1024 / 1024).toFixed(2)} MB)`);
-
-    // Load PDF with pdf-lib to get page count and metadata
-    const pdfDoc = await PDFDocument.load(pdfBuffer);
-    const pageCount = pdfDoc.getPageCount();
-    console.log(`[PDF Extraction] PDF has ${pageCount} pages`);
-
-    // Extract ToC
-    const tocEntries = await extractTocFromPdf(pdfDoc);
-    console.log(`[PDF Extraction] Extracted ${tocEntries.length} ToC entries`);
-
-    // Upload PDF to Cloudinary
-    console.log(`[PDF Extraction] Uploading PDF to Cloudinary...`);
-    const cloudinaryUpload = await uploadPdfToCloudinary(
-      pdfBuffer,
-      flipbookId,
-      `flipbook-${flipbookId}.pdf`
-    );
-
-    console.log(`[PDF Extraction] PDF uploaded to Cloudinary: ${cloudinaryUpload.secureUrl}`);
-    console.log(`[PDF Extraction] Cloudinary detected ${cloudinaryUpload.pages || pageCount} pages`);
-
-    // Use Cloudinary page count if available, otherwise use pdf-lib
-    const finalPageCount = cloudinaryUpload.pages || pageCount;
 
     // Extract pages using Cloudinary transformations
     console.log(`[PDF Extraction] Generating Cloudinary page URLs for ${finalPageCount} pages...`);
     const cloudinaryPages = await extractPdfPages(
-      cloudinaryUpload.publicId,
+      finalCloudinaryPublicId,
       finalPageCount,
       flipbookId
     );
@@ -199,7 +221,7 @@ export async function POST(request: NextRequest) {
       pagesExtracted: extractedPages.length,
       tocEntries: tocEntries.length,
       flipbookId,
-      cloudinaryPublicId: cloudinaryUpload.publicId,
+      cloudinaryPublicId: finalCloudinaryPublicId,
     } as PageExtractionResult & { cloudinaryPublicId: string });
 
   } catch (error: any) {
