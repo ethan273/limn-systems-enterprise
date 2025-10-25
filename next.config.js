@@ -261,7 +261,7 @@ const nextConfig = {
       "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com", // Explicit style-src-elem for external stylesheets
       `img-src 'self' data: blob: https://${supabaseHostname}`,
       "font-src 'self' https://fonts.gstatic.com", // Google Fonts
-      `connect-src 'self' https://${supabaseHostname} wss://${supabaseHostname} https://*.ingest.us.sentry.io`, // Supabase + Sentry
+      `connect-src 'self' https://${supabaseHostname} wss://${supabaseHostname} https://*.ingest.us.sentry.io https://api.cloudinary.com https://res.cloudinary.com`, // Supabase + Sentry + Cloudinary
       "worker-src 'self' blob:", // Web Workers
       "frame-src 'none'",
       "object-src 'none'",
