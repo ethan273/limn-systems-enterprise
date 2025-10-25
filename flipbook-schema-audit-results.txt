@@ -1,0 +1,168 @@
+========================================
+Flipbook Schema Audit
+========================================
+
+📋 Schema Reference:
+
+=== flipbooks table fields ===
+  - id
+  - title
+  - description
+  - status
+  - created_by_id
+  - cover_image_url
+  - thumbnail_url
+  - pdf_source_url
+  - page_count
+  - view_count
+  - published_at
+  - created_at
+  - updated_at
+  - settings
+  - branding
+  - toc_data
+  - toc_auto_generated
+  - toc_last_updated
+  - navigation_settings
+  - analytics_events
+  - flipbook_pages
+  - flipbook_share_links
+  - flipbook_versions
+  - user_profiles
+
+=== flipbook_pages table fields ===
+  - id
+  - flipbook_id
+  - page_number
+  - image_url
+  - thumbnail_url
+  - page_type
+  - text_content
+  - seo_title
+  - seo_description
+  - layout_data
+  - created_at
+  - updated_at
+  - thumbnail_small_url
+  - thumbnail_generated_at
+  - flipbooks
+  - hotspots
+  - id
+  - flipbook_id
+  - created_by_id
+  - token
+
+=== hotspots table fields ===
+  - id
+  - page_id
+  - hotspot_type
+  - x_position
+  - y_position
+  - width
+  - height
+  - target_url
+  - target_page
+  - target_product_id
+  - popup_content
+  - form_config
+  - style_config
+  - click_count
+  - created_at
+  - updated_at
+  - flipbook_pages
+  - products
+
+=== flipbook_share_links table fields ===
+  - id
+  - flipbook_id
+  - created_by_id
+  - token
+  - vanity_slug
+  - label
+  - view_count
+  - unique_view_count
+  - last_viewed_at
+  - expires_at
+  - is_active
+  - settings
+  - created_at
+  - updated_at
+  - user_profiles
+  - flipbooks
+  - share_link_views
+
+========================================
+🔍 Checking for field references in code
+========================================
+
+=== Checking ctx.db.flipbooks queries ===
+160:        const flipbooks = await ctx.db.flipbooks.findMany({
+216:      const flipbookBase = await ctx.db.flipbooks.findUnique({
+352:      // await ctx.db.flipbooks.update({
+376:        const flipbook = await ctx.db.flipbooks.create({
+421:      const existing = await ctx.db.flipbooks.findUnique({
+448:      const flipbook = await ctx.db.flipbooks.update({
+472:      const existing = await ctx.db.flipbooks.findUnique({
+492:      await ctx.db.flipbooks.delete({
+506:      const flipbook = await ctx.db.flipbooks.findUnique({
+598:      const flipbook = await ctx.db.flipbooks.findUnique({
+784:      const flipbook = await ctx.db.flipbooks.findUnique({
+816:      const updated = await ctx.db.flipbooks.update({
+846:      const flipbook = await ctx.db.flipbooks.findUnique({
+887:      const flipbook = await ctx.db.flipbooks.findUnique({
+925:      const updated = await ctx.db.flipbooks.update({
+954:      const flipbook = await ctx.db.flipbooks.findUnique({
+977:      await ctx.db.flipbooks.update({
+996:      const flipbook = await ctx.db.flipbooks.findUnique({
+1039:      const updated = await ctx.db.flipbooks.update({
+1067:      const flipbook = await ctx.db.flipbooks.findUnique({
+
+=== Checking ctx.db.flipbook_pages queries ===
+261:        ctx.db.flipbook_pages.findMany({
+562:      const page = await ctx.db.flipbook_pages.findUnique({
+581:      await ctx.db.flipbook_pages.delete({
+614:        await ctx.db.flipbook_pages.update({
+642:      const page = await ctx.db.flipbook_pages.findUnique({
+1792:          const newPage = await ctx.db.flipbook_pages.create({
+
+=== Checking ctx.db.hotspots queries ===
+286:        ? await ctx.db.hotspots.findMany({
+654:      const hotspot = await ctx.db.hotspots.create({
+695:      const hotspot = await ctx.db.hotspots.findUnique({
+720:      const updated = await ctx.db.hotspots.update({
+746:      const hotspot = await ctx.db.hotspots.findUnique({
+764:      await ctx.db.hotspots.delete({
+1802:            await ctx.db.hotspots.createMany({
+1853:      const hotspots = await ctx.db.hotspots.findMany({
+
+========================================
+⚠️  Checking for common field name errors
+========================================
+
+Checking for incorrect 'product_id' (should be 'target_product_id'):
+
+Checking for incorrect 'page_hotspots' (should be 'hotspots'):
+
+Checking for 'hotspot_type' in select (Unsupported field - cannot select):
+293:              // hotspot_type: true, // CRITICAL: Unsupported type - cannot select
+
+Checking for 'status' in select (Unsupported field on flipbooks):
+
+Checking for 'page_type' in select (Unsupported field on flipbook_pages):
+
+========================================
+📊 Summary
+========================================
+
+✅ Schema tables identified:
+   - flipbooks
+   - flipbook_pages
+   - hotspots
+   - flipbook_share_links
+
+⚠️  Unsupported fields that CANNOT be selected:
+   - flipbooks.status (Unsupported('flipbook_status'))
+   - flipbook_pages.page_type (Unsupported('page_type'))
+   - hotspots.hotspot_type (Unsupported('hotspot_type'))
+
+Audit complete!

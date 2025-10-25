@@ -290,11 +290,18 @@ export const flipbooksRouter = createTRPCRouter({
             select: {
               id: true,
               page_id: true,
+              // hotspot_type: true, // CRITICAL: Unsupported type - cannot select
               x_position: true,
               y_position: true,
               width: true,
               height: true,
-              product_id: true,
+              target_url: true,
+              target_page: true,
+              target_product_id: true,
+              popup_content: true,
+              form_config: true,
+              style_config: true,
+              click_count: true,
               created_at: true,
               updated_at: true,
               products: {
@@ -1791,15 +1798,24 @@ export const flipbooksRouter = createTRPCRouter({
           });
 
           // Duplicate hotspots for this page
+          // Include all fields to preserve complete hotspot functionality
           if (page.hotspots && page.hotspots.length > 0) {
             await ctx.db.hotspots.createMany({
               data: page.hotspots.map(hotspot => ({
                 page_id: newPage.id,
-                target_product_id: hotspot.target_product_id,
+                // NOTE: hotspot_type cannot be set via createMany (Unsupported field)
+                // It will use database default
                 x_position: hotspot.x_position,
                 y_position: hotspot.y_position,
                 width: hotspot.width,
                 height: hotspot.height,
+                target_url: hotspot.target_url,
+                target_page: hotspot.target_page,
+                target_product_id: hotspot.target_product_id,
+                popup_content: hotspot.popup_content,
+                form_config: hotspot.form_config,
+                style_config: hotspot.style_config,
+                click_count: 0, // Reset click count for duplicated hotspot
               })),
             });
           }
@@ -1843,6 +1859,7 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Get hotspots with click counts
+      // CRITICAL: Must use explicit select (not include) due to Unsupported hotspot_type field
       const hotspots = await ctx.db.hotspots.findMany({
         where: {
           flipbook_pages: {
@@ -1850,7 +1867,23 @@ export const flipbooksRouter = createTRPCRouter({
             ...(input.pageId ? { id: input.pageId } : {}),
           },
         },
-        include: {
+        select: {
+          id: true,
+          page_id: true,
+          // hotspot_type: true, // CRITICAL: Unsupported type - cannot select
+          x_position: true,
+          y_position: true,
+          width: true,
+          height: true,
+          target_url: true,
+          target_page: true,
+          target_product_id: true,
+          popup_content: true,
+          form_config: true,
+          style_config: true,
+          click_count: true,
+          created_at: true,
+          updated_at: true,
           flipbook_pages: {
             select: {
               id: true,
