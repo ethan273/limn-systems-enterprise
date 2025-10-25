@@ -321,9 +321,10 @@ export const flipbooksRouter = createTRPCRouter({
       const { id, ...data } = input;
 
       // Check if flipbook exists and user has permission
+      // NOTE: status field is Unsupported type in Prisma, cannot be selected
       const existing = await ctx.db.flipbooks.findUnique({
         where: { id },
-        select: { created_by_id: true, status: true },
+        select: { created_by_id: true },
       });
 
       if (!existing) {
@@ -341,8 +342,9 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Update published_at if status changes to PUBLISHED
+      // NOTE: Cannot check existing.status (Unsupported type), so always set published_at if status is PUBLISHED
       const updateData: any = { ...data };
-      if (data.status === "PUBLISHED" && existing.status !== "PUBLISHED") {
+      if (data.status === "PUBLISHED") {
         updateData.published_at = new Date();
       }
 

@@ -153,7 +153,8 @@ function FlipbookBuilderContent() {
     if (flipbook) {
       setTitle(flipbook.title);
       setDescription(flipbook.description || "");
-      setStatus(flipbook.status as any);
+      // NOTE: status field is Unsupported type in Prisma, cannot be read
+      // setStatus(flipbook.status as any);
     }
   }, [flipbook]);
 
