@@ -1,15 +1,19 @@
 /**
  * Flipbook Images Upload API Route
  *
- * Handles image uploads for flipbook pages:
+ * Handles image uploads for flipbook pages using Prisma for database operations:
  * 1. Validates image files
  * 2. Optimizes images
  * 3. Uploads to S3
- * 4. Creates flipbook_pages records
+ * 4. Creates flipbook_pages records via Prisma
+ * 5. Updates flipbook page_count
+ *
+ * CRITICAL: Uses Prisma instead of Supabase for database consistency
+ * All flipbook queries use Prisma to ensure proper data visibility
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseAdmin } from "@/lib/supabase";
+import { prisma } from "@/lib/prisma";
 import { optimizePageImage, createThumbnail } from "@/lib/flipbooks/pdf-processor";
 import {
   uploadToS3,
@@ -76,17 +80,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const supabase = getSupabaseAdmin();
+    // Get current max page number using Prisma
+    const existingPages = await prisma.flipbook_pages.findMany({
+      where: { flipbook_id: flipbookId },
+      orderBy: { page_number: 'desc' },
+      take: 1,
+      select: { page_number: true },
+    });
 
-    // Get current max page number
-    const { data: existingPages } = await supabase
-      .from("flipbook_pages")
-      .select("page_number")
-      .eq("flipbook_id", flipbookId)
-      .order("page_number", { ascending: false })
-      .limit(1);
-
-    let currentPageNumber = (existingPages as any)?.[0]?.page_number || 0;
+    let currentPageNumber = existingPages[0]?.page_number || 0;
 
     // Process and upload each image
     const pageRecords: any[] = [];
@@ -121,39 +123,60 @@ export async function POST(request: NextRequest) {
       } as any);
     }
 
-    // Insert page records
-    const insertResult = (await supabase
-      .from("flipbook_pages")
-      .insert(pageRecords as any)
-      .select()) as any;
-    const { data: pages, error: pagesError } = insertResult;
+    // Insert page records using Prisma createMany
+    console.log(`[Upload Images] Inserting ${pageRecords.length} pages for flipbook ${flipbookId}`);
 
-    if (pagesError) {
-      console.error("Error creating pages:", pagesError);
+    try {
+      const result = await prisma.flipbook_pages.createMany({
+        data: pageRecords,
+      });
+
+      console.log(`[Upload Images] Successfully inserted ${result.count} pages`);
+
+      // Fetch the created pages to return them (createMany doesn't return data)
+      const pages = await prisma.flipbook_pages.findMany({
+        where: { flipbook_id: flipbookId },
+        orderBy: { page_number: 'asc' },
+      });
+
+      console.log(`[Upload Images] Retrieved ${pages.length} total pages for flipbook`);
+
+    } catch (pagesError: any) {
+      console.error("[Upload Images] Error creating pages:", pagesError);
       return NextResponse.json(
-        { error: "Failed to create pages" },
+        { error: "Failed to create pages: " + pagesError.message },
         { status: 500 }
       );
     }
 
-    // Update flipbook page count
-    const updateResult = (await (supabase
-      .from("flipbooks") as any)
-      .update({
-        page_count: currentPageNumber,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", flipbookId)) as any;
-    const { error: updateError } = updateResult;
+    // Update flipbook page count using Prisma
+    try {
+      await prisma.flipbooks.update({
+        where: { id: flipbookId },
+        data: {
+          page_count: currentPageNumber,
+          updated_at: new Date(),
+        },
+      });
 
-    if (updateError) {
-      console.error("Error updating flipbook:", updateError);
+      console.log(`[Upload Images] Updated flipbook page_count to ${currentPageNumber}`);
+
+    } catch (updateError: any) {
+      console.error("[Upload Images] Error updating flipbook:", updateError);
+      // Don't fail the request, pages are already created
     }
+
+    // Fetch all pages to return
+    const pages = await prisma.flipbook_pages.findMany({
+      where: { flipbook_id: flipbookId },
+      orderBy: { page_number: 'asc' },
+    });
 
     return NextResponse.json({
       success: true,
       flipbookId,
       pagesAdded: files.length,
+      totalPages: pages.length,
       pages,
     });
   } catch (error: any) {
