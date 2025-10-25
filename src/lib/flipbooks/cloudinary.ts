@@ -148,7 +148,7 @@ export async function uploadImageToCloudinary(
 export async function extractPdfPages(
   pdfPublicId: string,
   pageCount: number,
-  flipbookId: string
+  _flipbookId: string
 ): Promise<CloudinaryPageExtractionResult[]> {
   try {
     console.log(`[Cloudinary] Extracting ${pageCount} pages from PDF: ${pdfPublicId}`);

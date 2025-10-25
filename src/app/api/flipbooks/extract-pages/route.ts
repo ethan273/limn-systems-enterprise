@@ -42,7 +42,7 @@ interface PageExtractionResult {
 /**
  * Extract Table of Contents from PDF using pdf-lib
  */
-async function extractTocFromPdf(pdfDoc: PDFDocument): Promise<any[]> {
+async function extractTocFromPdf(_pdfDoc: PDFDocument): Promise<any[]> {
   try {
     // pdf-lib doesn't natively support outline extraction
     // This would require parsing the PDF catalog's Outlines dictionary
