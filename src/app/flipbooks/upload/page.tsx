@@ -166,7 +166,17 @@ export default function FlipbookUploadPage() {
       console.log(`[Upload] All ${totalUploaded} pages uploaded successfully`);
 
       toast.success(`Flipbook created with ${pageCount} pages!`);
-      queryClient.invalidateQueries({ queryKey: ['flipbooks'] });
+
+      // Invalidate ALL flipbook queries to ensure fresh data
+      await queryClient.invalidateQueries({
+        predicate: (query) => {
+          const queryKey = query.queryKey as any[];
+          return queryKey[0] === 'flipbooks' ||
+                 (Array.isArray(queryKey) && queryKey.some(k => typeof k === 'string' && k.includes('flipbook')));
+        }
+      });
+
+      console.log(`[Upload] Cache invalidated, redirecting to builder...`);
 
       // Redirect to builder
       router.push(`/flipbooks/builder?id=${flipbook.id}`);
