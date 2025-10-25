@@ -16,15 +16,23 @@ function SessionEstablisher() {
   const destination = searchParams.get('destination') || '/dashboard';
 
   useEffect(() => {
-    // Increased delay to ensure cookies are fully propagated in incognito mode
-    // OAuth redirect chains in incognito require more time for cookie persistence
+    // CRITICAL FIX for incognito mode double-login issue:
+    // Using window.location.href instead of router.push + router.refresh
+    // to ensure cookies are fully persisted before next navigation
+    //
+    // WHY: router.refresh() can trigger server data fetch before cookies
+    // are fully propagated in browsers with strict cookie policies (incognito,
+    // Safari), causing middleware to not see the session and redirect to login
+    //
+    // SOLUTION: Full page reload with window.location ensures cookies are
+    // sent with the request, middleware sees the session, auth succeeds
     const timer = setTimeout(() => {
-      router.push(destination);
-      router.refresh(); // Force a refresh to re-run middleware with new session
-    }, 1500); // Increased from 500ms to 1500ms
+      // Use window.location for guaranteed cookie inclusion
+      window.location.href = destination;
+    }, 1500); // Delay ensures cookie headers are fully written
 
     return () => clearTimeout(timer);
-  }, [router, destination]);
+  }, [destination]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">
