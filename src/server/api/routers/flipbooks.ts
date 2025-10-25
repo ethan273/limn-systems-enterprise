@@ -247,7 +247,7 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Fetch relations separately
-      const [creator, pages, versions] = await Promise.all([
+      const [creator, pages] = await Promise.all([
         ctx.db.user_profiles.findUnique({
           where: { id: flipbookBase.created_by_id },
           select: {
@@ -297,11 +297,6 @@ export const flipbooksRouter = createTRPCRouter({
             },
           },
         }),
-        ctx.db.flipbook_versions.findMany({
-          where: { flipbook_id: input.id },
-          orderBy: { version_number: "desc" },
-          take: 5,
-        }),
       ]);
 
       // Combine results
@@ -309,7 +304,11 @@ export const flipbooksRouter = createTRPCRouter({
         ...flipbookBase,
         user_profiles: creator,
         flipbook_pages: pages,
-        flipbook_versions: versions,
+        flipbook_versions: [], // Empty array - not needed for this query
+      } as typeof flipbookBase & {
+        user_profiles: typeof creator;
+        flipbook_pages: typeof pages;
+        flipbook_versions: any[];
       };
 
       console.log("[tRPC Get Flipbook] Result:", {
