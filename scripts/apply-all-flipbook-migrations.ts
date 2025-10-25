@@ -74,6 +74,7 @@ async function applyMigrationToDatabase(
       // Extract operation name for logging
       let operationName = 'unknown';
       if (statement.includes('CREATE TABLE')) {
+        // eslint-disable-next-line security/detect-unsafe-regex
         const match = statement.match(
           /CREATE TABLE IF NOT EXISTS (?:[\w.]+\.)?(\w+)/
         );
