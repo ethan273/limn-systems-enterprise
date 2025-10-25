@@ -21,6 +21,18 @@ import { getUser } from "@/lib/auth/server";
 export const runtime = "nodejs";
 export const maxDuration = 300;
 
+// Increase body size limit for image uploads (50MB)
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '50mb',
+    },
+  },
+};
+
+// Next.js 13+ App Router: Use experimental config for body size
+export const experimental_bodySizeLimit = '50mb';
+
 export async function POST(request: NextRequest) {
   try {
     // Check authentication

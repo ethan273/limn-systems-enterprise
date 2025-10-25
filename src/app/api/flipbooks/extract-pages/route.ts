@@ -2,35 +2,35 @@
  * Flipbook PDF Page Extraction API Route (Background Job)
  *
  * Background job for extracting pages from uploaded PDFs
- * Uses Puppeteer + PDF.js for server-side PDF rendering
+ * Uses Cloudinary's PDF transformation API for cloud-based rendering
  *
  * Flow:
  * 1. Fetch PDF from storage
- * 2. Use Puppeteer to load PDF with PDF.js
- * 3. Render each page to canvas and capture as PNG
- * 4. Upload page images to storage
- * 5. Create flipbook_pages records in database
- * 6. Extract and save Table of Contents
+ * 2. Upload PDF to Cloudinary
+ * 3. Use Cloudinary's transformation API to generate page URLs
+ * 4. Create flipbook_pages records with Cloudinary URLs
+ * 5. Extract and save Table of Contents
  *
- * This runs as a long-running background job (5min max on Vercel Pro)
+ * Benefits over Puppeteer:
+ * - No serverless limitations (no Chromium/Puppeteer dependencies)
+ * - Built-in CDN for fast global delivery
+ * - Automatic image optimization (WebP, AVIF)
+ * - No cold starts or timeout issues
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import puppeteer from "puppeteer-core";
-import chromium from "@sparticuz/chromium";
 import { PDFDocument } from "pdf-lib";
 import {
-  uploadToS3,
-  generatePageImageKey,
-  initializeStorage,
-} from "@/lib/flipbooks/storage";
+  uploadPdfToCloudinary,
+  extractPdfPages,
+} from "@/lib/flipbooks/cloudinary";
 import { getUser } from "@/lib/auth/server";
 
 const prisma = new PrismaClient();
 
-export const runtime = "nodejs"; // Required for Puppeteer
-export const maxDuration = 300; // 5 minutes for background processing
+export const runtime = "nodejs";
+export const maxDuration = 60; // 1 minute - much faster with Cloudinary
 
 interface PageExtractionResult {
   success: boolean;
@@ -55,11 +55,9 @@ async function extractTocFromPdf(pdfDoc: PDFDocument): Promise<any[]> {
 }
 
 /**
- * Main background job: Extract all pages from PDF using Puppeteer + PDF.js
+ * Main background job: Extract all pages from PDF using Cloudinary
  */
 export async function POST(request: NextRequest) {
-  let browser: any = null;
-
   try {
     // Check authentication
     const user = await getUser();
@@ -81,7 +79,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(`[PDF Extraction] Starting extraction for flipbook: ${flipbookId}`);
+    console.log(`[PDF Extraction] Starting Cloudinary extraction for flipbook: ${flipbookId}`);
 
     // Get flipbook with PDF URL
     const flipbook = await prisma.flipbooks.findUnique({
@@ -116,9 +114,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Initialize storage
-    await initializeStorage();
-
     // Fetch PDF from storage
     console.log(`[PDF Extraction] Fetching PDF from: ${flipbook.pdf_source_url}`);
     const pdfResponse = await fetch(flipbook.pdf_source_url);
@@ -138,126 +133,49 @@ export async function POST(request: NextRequest) {
     const tocEntries = await extractTocFromPdf(pdfDoc);
     console.log(`[PDF Extraction] Extracted ${tocEntries.length} ToC entries`);
 
-    // Launch Puppeteer browser with @sparticuz/chromium for Vercel Lambda
-    console.log(`[PDF Extraction] Launching Puppeteer browser...`);
-    browser = await puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: {
-        width: 1200,
-        height: 1600,
-      },
-      executablePath: await chromium.executablePath(),
-      headless: true,
-    });
+    // Upload PDF to Cloudinary
+    console.log(`[PDF Extraction] Uploading PDF to Cloudinary...`);
+    const cloudinaryUpload = await uploadPdfToCloudinary(
+      pdfBuffer,
+      flipbookId,
+      `flipbook-${flipbookId}.pdf`
+    );
 
-    const page = await browser.newPage();
+    console.log(`[PDF Extraction] PDF uploaded to Cloudinary: ${cloudinaryUpload.secureUrl}`);
+    console.log(`[PDF Extraction] Cloudinary detected ${cloudinaryUpload.pages || pageCount} pages`);
 
-    // Set viewport to standard page size
-    await page.setViewport({ width: 1200, height: 1600 });
+    // Use Cloudinary page count if available, otherwise use pdf-lib
+    const finalPageCount = cloudinaryUpload.pages || pageCount;
 
-    // Convert PDF to base64 for embedding
-    const pdfBase64 = pdfBuffer.toString('base64');
+    // Extract pages using Cloudinary transformations
+    console.log(`[PDF Extraction] Generating Cloudinary page URLs for ${finalPageCount} pages...`);
+    const cloudinaryPages = await extractPdfPages(
+      cloudinaryUpload.publicId,
+      finalPageCount,
+      flipbookId
+    );
 
-    // Create HTML page with PDF.js to render each page
-    const htmlContent = `
-<!DOCTYPE html>
-<html>
-<head>
-  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
-  <style>
-    body { margin: 0; padding: 0; }
-    #renderCanvas { display: block; }
-  </style>
-</head>
-<body>
-  <canvas id="renderCanvas"></canvas>
-  <script>
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
-
-    const pdfData = atob('${pdfBase64}');
-    const loadingTask = pdfjsLib.getDocument({data: pdfData});
-
-    window.renderPage = async function(pageNum) {
-      const pdf = await loadingTask.promise;
-      const page = await pdf.getPage(pageNum);
-
-      const canvas = document.getElementById('renderCanvas');
-      const context = canvas.getContext('2d');
-
-      // Scale to 2x for high quality
-      const viewport = page.getViewport({scale: 2.0});
-      canvas.width = viewport.width;
-      canvas.height = viewport.height;
-
-      const renderContext = {
-        canvasContext: context,
-        viewport: viewport
-      };
-
-      await page.render(renderContext).promise;
-      return { width: viewport.width, height: viewport.height };
-    };
-
-    window.getPageCount = async function() {
-      const pdf = await loadingTask.promise;
-      return pdf.numPages;
-    };
-  </script>
-</body>
-</html>
-    `;
-
-    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
-
-    // Extract each page
+    // Create flipbook_pages records with Cloudinary URLs
     const extractedPages: any[] = [];
 
-    for (let pageNum = 1; pageNum <= pageCount; pageNum++) {
+    for (const cloudinaryPage of cloudinaryPages) {
       try {
-        console.log(`[PDF Extraction] Processing page ${pageNum}/${pageCount}...`);
-
-        // Render page using PDF.js
-        const dimensions = await page.evaluate((num) => {
-          return (window as any).renderPage(num);
-        }, pageNum);
-
-        // Wait for rendering to complete
-        await page.waitForTimeout(500);
-
-        // Take screenshot of canvas
-        const canvas = await page.$('#renderCanvas');
-        if (!canvas) {
-          throw new Error('Canvas element not found');
-        }
-
-        const screenshot = await canvas.screenshot({ type: 'jpeg', quality: 90 });
-
-        // Upload page image
-        const imageKey = generatePageImageKey(flipbookId, pageNum);
-        const imageUpload = await uploadToS3(
-          screenshot,
-          imageKey,
-          'image/jpeg'
-        );
-
-        console.log(`[PDF Extraction] Uploaded page ${pageNum}: ${imageUpload.cdnUrl}`);
-
-        // Create flipbook_page record
         const pageRecord = await prisma.flipbook_pages.create({
           data: {
             flipbook_id: flipbookId,
-            page_number: pageNum,
-            image_url: imageUpload.cdnUrl,
-            thumbnail_url: imageUpload.cdnUrl, // Same for now, generate thumbnails later
+            page_number: cloudinaryPage.pageNumber,
+            image_url: cloudinaryPage.url,
+            thumbnail_url: cloudinaryPage.thumbnailUrl,
             created_at: new Date(),
             updated_at: new Date(),
           },
         });
 
         extractedPages.push(pageRecord);
+        console.log(`[PDF Extraction] Created page record ${cloudinaryPage.pageNumber}: ${cloudinaryPage.url}`);
 
       } catch (pageError: any) {
-        console.error(`[PDF Extraction] Error extracting page ${pageNum}:`, pageError);
+        console.error(`[PDF Extraction] Error creating page ${cloudinaryPage.pageNumber}:`, pageError);
         // Continue with next page even if one fails
       }
     }
@@ -274,14 +192,15 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log(`[PDF Extraction] ✅ Extraction complete: ${extractedPages.length} pages extracted`);
+    console.log(`[PDF Extraction] ✅ Cloudinary extraction complete: ${extractedPages.length} pages extracted`);
 
     return NextResponse.json({
       success: true,
       pagesExtracted: extractedPages.length,
       tocEntries: tocEntries.length,
       flipbookId,
-    } as PageExtractionResult);
+      cloudinaryPublicId: cloudinaryUpload.publicId,
+    } as PageExtractionResult & { cloudinaryPublicId: string });
 
   } catch (error: any) {
     console.error("[PDF Extraction] Error:", error);
@@ -294,15 +213,5 @@ export async function POST(request: NextRequest) {
       } as PageExtractionResult,
       { status: 500 }
     );
-  } finally {
-    // Always close browser
-    if (browser) {
-      try {
-        await browser.close();
-        console.log(`[PDF Extraction] Browser closed`);
-      } catch (closeError) {
-        console.error(`[PDF Extraction] Error closing browser:`, closeError);
-      }
-    }
   }
 }

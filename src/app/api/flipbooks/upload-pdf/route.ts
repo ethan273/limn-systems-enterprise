@@ -35,6 +35,9 @@ export const config = {
   },
 };
 
+// Next.js 13+ App Router: Use experimental config for body size
+export const experimental_bodySizeLimit = '100mb';
+
 export async function POST(request: NextRequest) {
   try {
     // Check authentication
