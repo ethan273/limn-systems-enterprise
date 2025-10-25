@@ -114,8 +114,12 @@ export default function FlipbookUploadPage() {
       const BATCH_SIZE = 2;
       let totalUploaded = 0;
 
+      console.log(`[Upload] Starting batched upload of ${pageBlobs.length} pages in batches of ${BATCH_SIZE}`);
+
       for (let i = 0; i < pageBlobs.length; i += BATCH_SIZE) {
         const batchBlobs = pageBlobs.slice(i, i + BATCH_SIZE);
+        console.log(`[Upload] Batch ${Math.floor(i / BATCH_SIZE) + 1}: Processing pages ${i + 1}-${i + batchBlobs.length}`);
+
         const batchFormData = new FormData();
         batchFormData.append("flipbookId", flipbook.id);
 
@@ -124,9 +128,12 @@ export default function FlipbookUploadPage() {
           const blob = batchBlobs[j];
           if (blob) {
             const pageNumber = i + j + 1;
+            console.log(`[Upload] Adding page ${pageNumber} to batch (size: ${(blob.size / 1024).toFixed(2)}KB)`);
             batchFormData.append("files", blob, `page-${pageNumber}.jpg`);
           }
         }
+
+        console.log(`[Upload] Uploading batch to /api/flipbooks/upload-images...`);
 
         // Upload this batch
         const batchResponse = await fetch("/api/flipbooks/upload-images", {
@@ -134,14 +141,29 @@ export default function FlipbookUploadPage() {
           body: batchFormData,
         });
 
+        console.log(`[Upload] Batch response status: ${batchResponse.status} ${batchResponse.statusText}`);
+
         if (!batchResponse.ok) {
-          const error = await batchResponse.json();
-          throw new Error(error.error || `Failed to upload pages ${i + 1}-${i + batchBlobs.length}`);
+          const responseText = await batchResponse.text();
+          console.error(`[Upload] Batch upload failed:`, responseText);
+          let errorMessage;
+          try {
+            const error = JSON.parse(responseText);
+            errorMessage = error.error || `Failed to upload pages ${i + 1}-${i + batchBlobs.length}`;
+          } catch {
+            errorMessage = `Server returned ${batchResponse.status}: ${responseText.substring(0, 100)}`;
+          }
+          throw new Error(errorMessage);
         }
+
+        const batchResult = await batchResponse.json();
+        console.log(`[Upload] Batch upload successful:`, batchResult);
 
         totalUploaded += batchBlobs.length;
         toast.info(`Uploaded ${totalUploaded}/${pageCount} pages...`);
       }
+
+      console.log(`[Upload] All ${totalUploaded} pages uploaded successfully`);
 
       toast.success(`Flipbook created with ${pageCount} pages!`);
       queryClient.invalidateQueries({ queryKey: ['flipbooks'] });
