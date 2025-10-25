@@ -90,61 +90,24 @@ export default function FlipbookUploadPage() {
         description: description.trim() || undefined,
       });
 
-      // Step 2: Get signed upload parameters for direct Cloudinary upload
-      const signatureResponse = await fetch("/api/flipbooks/upload-signature", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ flipbookId: flipbook.id }),
-      });
+      toast.info("Processing PDF in browser...");
 
-      if (!signatureResponse.ok) {
-        const error = await signatureResponse.json();
-        throw new Error(error.error || "Failed to get upload signature");
-      }
-
-      const uploadConfig = await signatureResponse.json();
-
-      // Step 3: Upload PDF directly to Cloudinary
-      toast.info("Uploading PDF to cloud storage...");
-
-      const cloudinaryFormData = new FormData();
-      cloudinaryFormData.append("file", file);
-      cloudinaryFormData.append("api_key", uploadConfig.apiKey);
-      cloudinaryFormData.append("timestamp", uploadConfig.timestamp.toString());
-      cloudinaryFormData.append("signature", uploadConfig.signature);
-      cloudinaryFormData.append("public_id", uploadConfig.publicId);
-      // Note: Don't send 'folder' separately when public_id already contains folder path
-      // cloudinaryFormData.append("folder", uploadConfig.folder);
-
-      const cloudinaryResponse = await fetch(
-        `https://api.cloudinary.com/v1_1/${uploadConfig.cloudName}/image/upload`,
-        {
-          method: "POST",
-          body: cloudinaryFormData,
-        }
-      );
-
-      if (!cloudinaryResponse.ok) {
-        throw new Error(`Cloudinary upload failed: ${cloudinaryResponse.statusText}`);
-      }
-
-      const cloudinaryUpload = await cloudinaryResponse.json();
-      const pageCount = cloudinaryUpload.pages || 0;
-
-      toast.success(`PDF uploaded! Processing ${pageCount} pages in browser...`);
-
-      // Step 3: Process PDF pages client-side using shared PDF utility
+      // Step 2: Process PDF pages client-side using shared PDF utility
+      // This bypasses Vercel's body size limits by rendering pages in the browser
       const { renderAllPdfPages } = await import("@/lib/pdf/client-processor");
 
       const pageResults = await renderAllPdfPages(
         file,
         { scale: 2.0, format: 'jpeg', quality: 0.9 },
         (current, total) => {
-          toast.info(`Rendered page ${current}/${total}`);
+          toast.info(`Processing page ${current}/${total}`);
         }
       );
 
       const pageBlobs = pageResults.map(result => result.blob);
+      const pageCount = pageBlobs.length;
+
+      toast.success(`Processed ${pageCount} pages! Uploading...`);
 
       // Step 4: Upload rendered pages to server
       const imagesFormData = new FormData();
