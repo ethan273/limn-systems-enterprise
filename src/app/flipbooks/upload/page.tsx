@@ -109,25 +109,38 @@ export default function FlipbookUploadPage() {
 
       toast.success(`Processed ${pageCount} pages! Uploading...`);
 
-      // Step 4: Upload rendered pages to server
-      const imagesFormData = new FormData();
-      imagesFormData.append("flipbookId", flipbook.id);
+      // Step 3: Upload rendered pages to server in BATCHES to avoid 413 errors
+      // Vercel has ~4.5MB body size limit, so we upload 2 images at a time
+      const BATCH_SIZE = 2;
+      let totalUploaded = 0;
 
-      for (let i = 0; i < pageBlobs.length; i++) {
-        const blob = pageBlobs.at(i);
-        if (blob) {
-          imagesFormData.append("files", blob, `page-${i + 1}.jpg`);
+      for (let i = 0; i < pageBlobs.length; i += BATCH_SIZE) {
+        const batchBlobs = pageBlobs.slice(i, i + BATCH_SIZE);
+        const batchFormData = new FormData();
+        batchFormData.append("flipbookId", flipbook.id);
+
+        // Add batch of images
+        for (let j = 0; j < batchBlobs.length; j++) {
+          const blob = batchBlobs[j];
+          if (blob) {
+            const pageNumber = i + j + 1;
+            batchFormData.append("files", blob, `page-${pageNumber}.jpg`);
+          }
         }
-      }
 
-      const imagesResponse = await fetch("/api/flipbooks/upload-images", {
-        method: "POST",
-        body: imagesFormData,
-      });
+        // Upload this batch
+        const batchResponse = await fetch("/api/flipbooks/upload-images", {
+          method: "POST",
+          body: batchFormData,
+        });
 
-      if (!imagesResponse.ok) {
-        const error = await imagesResponse.json();
-        throw new Error(error.error || "Failed to upload page images");
+        if (!batchResponse.ok) {
+          const error = await batchResponse.json();
+          throw new Error(error.error || `Failed to upload pages ${i + 1}-${i + batchBlobs.length}`);
+        }
+
+        totalUploaded += batchBlobs.length;
+        toast.info(`Uploaded ${totalUploaded}/${pageCount} pages...`);
       }
 
       toast.success(`Flipbook created with ${pageCount} pages!`);
