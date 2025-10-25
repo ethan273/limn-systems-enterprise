@@ -206,8 +206,14 @@ export const flipbooksRouter = createTRPCRouter({
       // CRITICAL FIX: Cannot use include at top level because flipbooks.status is Unsupported
       // Using include causes Prisma to auto-select ALL flipbooks fields including Unsupported
       // status field, which causes silent failure (returns empty flipbook_pages array)
-      // SOLUTION: Use explicit select for ALL fields at every level
-      const flipbook = await ctx.db.flipbooks.findUnique({
+      //
+      // SOLUTION: Query in two steps:
+      // 1. First get the flipbook with explicit select (excluding Unsupported fields)
+      // 2. Then include relations separately
+      //
+      // This avoids the "column flipbooks.user_profiles does not exist" error that occurs
+      // when mixing select and include in a single query with Unsupported fields
+      const flipbookBase = await ctx.db.flipbooks.findUnique({
         where: { id: input.id },
         select: {
           // Explicit select for flipbooks table fields (excluding Unsupported status)
@@ -230,73 +236,87 @@ export const flipbooksRouter = createTRPCRouter({
           toc_auto_generated: true,
           toc_last_updated: true,
           navigation_settings: true,
-          // Relations
-          user_profiles: {
-            select: {
-              id: true,
-              full_name: true,
-              email: true,
-              avatar_url: true,
-            },
+        },
+      });
+
+      if (!flipbookBase) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Flipbook not found",
+        });
+      }
+
+      // Fetch relations separately
+      const [creator, pages, versions] = await Promise.all([
+        ctx.db.user_profiles.findUnique({
+          where: { id: flipbookBase.created_by_id },
+          select: {
+            id: true,
+            full_name: true,
+            email: true,
+            avatar_url: true,
           },
-          flipbook_pages: {
-            orderBy: { page_number: "asc" },
-            select: {
-              id: true,
-              flipbook_id: true,
-              page_number: true,
-              image_url: true,
-              thumbnail_url: true,
-              // page_type: true, // CRITICAL: Unsupported type - cannot select
-              text_content: true,
-              seo_title: true,
-              seo_description: true,
-              layout_data: true,
-              created_at: true,
-              updated_at: true,
-              thumbnail_small_url: true,
-              thumbnail_generated_at: true,
-              hotspots: {
-                select: {
-                  id: true,
-                  page_id: true,
-                  x: true,
-                  y: true,
-                  width: true,
-                  height: true,
-                  product_id: true,
-                  created_at: true,
-                  updated_at: true,
-                  products: {
-                    select: {
-                      id: true,
-                      name: true,
-                      sku: true,
-                    },
+        }),
+        ctx.db.flipbook_pages.findMany({
+          where: { flipbook_id: input.id },
+          orderBy: { page_number: "asc" },
+          select: {
+            id: true,
+            flipbook_id: true,
+            page_number: true,
+            image_url: true,
+            thumbnail_url: true,
+            // page_type: true, // CRITICAL: Unsupported type - cannot select
+            text_content: true,
+            seo_title: true,
+            seo_description: true,
+            layout_data: true,
+            created_at: true,
+            updated_at: true,
+            thumbnail_small_url: true,
+            thumbnail_generated_at: true,
+            hotspots: {
+              select: {
+                id: true,
+                page_id: true,
+                x: true,
+                y: true,
+                width: true,
+                height: true,
+                product_id: true,
+                created_at: true,
+                updated_at: true,
+                products: {
+                  select: {
+                    id: true,
+                    name: true,
+                    sku: true,
                   },
                 },
               },
             },
           },
-          flipbook_versions: {
-            orderBy: { version_number: "desc" },
-            take: 5,
-          },
-        },
-      });
+        }),
+        ctx.db.flipbook_versions.findMany({
+          where: { flipbook_id: input.id },
+          orderBy: { version_number: "desc" },
+          take: 5,
+        }),
+      ]);
+
+      // Combine results
+      const flipbook = {
+        ...flipbookBase,
+        user_profiles: creator,
+        flipbook_pages: pages,
+        flipbook_versions: versions,
+      };
 
       console.log("[tRPC Get Flipbook] Result:", {
         id: flipbook?.id,
         pageCount: flipbook?.page_count,
         pagesFound: flipbook?.flipbook_pages?.length || 0,
       });
-
-      if (!flipbook) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Flipbook not found",
-        });
-      }
 
       // Check permissions - only creator can view
       if (flipbook.created_by_id !== ctx.session.user.id) {
