@@ -196,6 +196,8 @@ export const flipbooksRouter = createTRPCRouter({
   get: protectedProcedure
     .input(getFlipbookInput)
     .query(async ({ ctx, input }) => {
+      console.log("[tRPC Get Flipbook] Querying for ID:", input.id);
+
       const flipbook = await ctx.db.flipbooks.findUnique({
         where: { id: input.id },
         include: {
@@ -228,6 +230,12 @@ export const flipbooksRouter = createTRPCRouter({
             take: 5,
           },
         },
+      });
+
+      console.log("[tRPC Get Flipbook] Result:", {
+        id: flipbook?.id,
+        pageCount: flipbook?.page_count,
+        pagesFound: flipbook?.flipbook_pages?.length || 0,
       });
 
       if (!flipbook) {
