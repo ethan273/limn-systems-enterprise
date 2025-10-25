@@ -48,15 +48,13 @@ export async function POST(request: NextRequest) {
     const timestamp = Math.round(new Date().getTime() / 1000);
     const publicId = `flipbooks/${flipbookId}/source`;
 
-    // Parameters for upload (must match what client sends)
-    const uploadParams = {
+    // Parameters for upload (must match EXACTLY what client sends)
+    // CRITICAL: Cloudinary signature validation requires exact parameter match
+    // The client sends these as strings, so we must sign them as strings
+    const uploadParams: Record<string, string | number> = {
       timestamp: timestamp,
       public_id: publicId,
       folder: 'flipbooks',
-      resource_type: 'image', // Cloudinary treats PDFs as images
-      overwrite: true,
-      invalidate: true,
-      pages: true, // Extract page count
     };
 
     // Generate signature using Cloudinary SDK
