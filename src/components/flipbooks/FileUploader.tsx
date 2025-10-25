@@ -4,7 +4,8 @@
  * File Uploader Component
  *
  * Drag-and-drop file uploader for PDFs and images
- * Integrates with flipbook upload API routes
+ * PDFs upload directly to Cloudinary to bypass Vercel body size limits
+ * Images use API route upload
  */
 
 import { useCallback, useState } from "react";
