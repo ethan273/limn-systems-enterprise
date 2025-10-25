@@ -692,11 +692,14 @@ export const flipbooksRouter = createTRPCRouter({
       const { hotspotId, xPercent, yPercent, width, height } = input;
 
       // Check permissions
+      // CRITICAL: Must use explicit select (not include) due to Unsupported hotspot_type field
       const hotspot = await ctx.db.hotspots.findUnique({
         where: { id: hotspotId },
-        include: {
+        select: {
+          id: true,
           flipbook_pages: {
-            include: {
+            select: {
+              id: true,
               flipbooks: { select: { created_by_id: true } },
             },
           },
@@ -717,10 +720,27 @@ export const flipbooksRouter = createTRPCRouter({
       if (width !== undefined) updateData.width = width;
       if (height !== undefined) updateData.height = height;
 
+      // CRITICAL: Must use explicit select (not include) due to Unsupported hotspot_type field
       const updated = await ctx.db.hotspots.update({
         where: { id: hotspotId },
         data: updateData,
-        include: {
+        select: {
+          id: true,
+          page_id: true,
+          // hotspot_type: true, // CRITICAL: Unsupported type - cannot select
+          x_position: true,
+          y_position: true,
+          width: true,
+          height: true,
+          target_url: true,
+          target_page: true,
+          target_product_id: true,
+          popup_content: true,
+          form_config: true,
+          style_config: true,
+          click_count: true,
+          created_at: true,
+          updated_at: true,
           products: {
             select: {
               id: true,
@@ -743,11 +763,14 @@ export const flipbooksRouter = createTRPCRouter({
     .input(z.object({ hotspotId: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       // Check permissions
+      // CRITICAL: Must use explicit select (not include) due to Unsupported hotspot_type field
       const hotspot = await ctx.db.hotspots.findUnique({
         where: { id: input.hotspotId },
-        include: {
+        select: {
+          id: true,
           flipbook_pages: {
-            include: {
+            select: {
+              id: true,
               flipbooks: { select: { created_by_id: true } },
             },
           },
@@ -1860,7 +1883,8 @@ export const flipbooksRouter = createTRPCRouter({
 
       // Get hotspots with click counts
       // CRITICAL: Must use explicit select (not include) due to Unsupported hotspot_type field
-      const hotspots = await ctx.db.hotspots.findMany({
+      // CRITICAL: Cannot nest relations in select - must fetch separately
+      const hotspotsBase = await ctx.db.hotspots.findMany({
         where: {
           flipbook_pages: {
             flipbook_id: input.flipbookId,
@@ -1884,24 +1908,47 @@ export const flipbooksRouter = createTRPCRouter({
           click_count: true,
           created_at: true,
           updated_at: true,
-          flipbook_pages: {
-            select: {
-              id: true,
-              page_number: true,
-              image_url: true,
-            },
-          },
-          products: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
         },
         orderBy: {
           click_count: 'desc',
         },
       });
+
+      // Fetch related pages separately
+      const pageIds = [...new Set(hotspotsBase.map(h => h.page_id))];
+      const pages = await ctx.db.flipbook_pages.findMany({
+        where: {
+          id: { in: pageIds },
+        },
+        select: {
+          id: true,
+          page_number: true,
+          image_url: true,
+        },
+      });
+
+      // Fetch related products separately
+      const productIds = [...new Set(hotspotsBase.map(h => h.target_product_id).filter((id): id is string => id !== null))];
+      const products = productIds.length > 0
+        ? await ctx.db.products.findMany({
+            where: {
+              id: { in: productIds },
+            },
+            select: {
+              id: true,
+              name: true,
+            },
+          })
+        : [];
+
+      // Map relations back to hotspots
+      const hotspots = hotspotsBase.map(hotspot => ({
+        ...hotspot,
+        flipbook_pages: pages.find(p => p.id === hotspot.page_id)!,
+        products: hotspot.target_product_id
+          ? products.find(p => p.id === hotspot.target_product_id)
+          : null,
+      }));
 
       // Calculate max clicks for intensity scaling
       const maxClicks = Math.max(...hotspots.map(h => h.click_count), 1);
