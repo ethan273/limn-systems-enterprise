@@ -125,6 +125,7 @@ export default function FlipbookUploadPage() {
 
         // Add batch of images
         for (let j = 0; j < batchBlobs.length; j++) {
+          // eslint-disable-next-line security/detect-object-injection
           const blob = batchBlobs[j];
           if (blob) {
             const pageNumber = i + j + 1;

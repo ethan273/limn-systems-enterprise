@@ -15,13 +15,6 @@ import { SortablePageList } from "@/components/flipbooks/SortablePageList";
 import { ProductPicker } from "@/components/flipbooks/ProductPicker";
 import { TOCBuilder } from "@/components/flipbooks/builder/TOCBuilder";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Dialog,
   DialogContent,
   DialogDescription,

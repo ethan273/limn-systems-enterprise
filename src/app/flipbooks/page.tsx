@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/lib/api/client";
+// eslint-disable-next-line no-unused-vars
 import { BookOpen, Eye, Pencil, Trash2, Upload, AlertTriangle, RefreshCw, CheckSquare, Copy, Archive } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Badge } from "@/components/ui/badge";
@@ -303,6 +304,7 @@ export default function FlipbooksPage() {
   ];
 
   // Status filter options
+  // eslint-disable-next-line no-unused-vars
   const statusOptions = [
     { value: 'all', label: 'All Statuses' },
     { value: 'DRAFT', label: 'Draft' },

@@ -46,7 +46,6 @@ export function FileUploader({
     : { "image/*": [".jpg", ".jpeg", ".png", ".webp"] };
 
   const maxFiles = type === "pdf" ? 1 : 20;
-  const CACHE_BUSTER = "v2"; // Force bundle hash change
 
   // Handle file drop
   const onDrop = useCallback(
