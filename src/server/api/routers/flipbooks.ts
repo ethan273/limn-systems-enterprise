@@ -157,11 +157,32 @@ export const flipbooksRouter = createTRPCRouter({
         console.log('[FLIPBOOKS] Where clause built', { where });
 
         // Query flipbooks
+        // CRITICAL: Must use explicit select (not include) due to Unsupported status field
         const flipbooks = await ctx.db.flipbooks.findMany({
           where,
           take: limit,
           orderBy: { created_at: "desc" },
-          include: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            // status: true, // CRITICAL: Unsupported type - cannot select
+            created_by_id: true,
+            cover_image_url: true,
+            thumbnail_url: true,
+            pdf_source_url: true,
+            page_count: true,
+            view_count: true,
+            published_at: true,
+            created_at: true,
+            updated_at: true,
+            settings: true,
+            branding: true,
+            toc_data: true,
+            toc_auto_generated: true,
+            toc_last_updated: true,
+            navigation_settings: true,
+            analytics_events: true,
             user_profiles: {
               select: {
                 id: true,
@@ -559,9 +580,13 @@ export const flipbooksRouter = createTRPCRouter({
     .input(z.object({ pageId: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       // Get page with flipbook info for permission check
+      // CRITICAL: Must use explicit select (not include) due to Unsupported page_type field
       const page = await ctx.db.flipbook_pages.findUnique({
         where: { id: input.pageId },
-        include: { flipbooks: { select: { created_by_id: true } } },
+        select: {
+          id: true,
+          flipbooks: { select: { created_by_id: true } },
+        },
       });
 
       if (!page) {
@@ -639,9 +664,13 @@ export const flipbooksRouter = createTRPCRouter({
     }))
     .mutation(async ({ ctx, input }) => {
       // Check permissions via page
+      // CRITICAL: Must use explicit select (not include) due to Unsupported page_type field
       const page = await ctx.db.flipbook_pages.findUnique({
         where: { id: input.pageId },
-        include: { flipbooks: { select: { created_by_id: true } } },
+        select: {
+          id: true,
+          flipbooks: { select: { created_by_id: true } },
+        },
       });
 
       if (!page || page.flipbooks.created_by_id !== ctx.session.user.id) {
@@ -651,6 +680,7 @@ export const flipbooksRouter = createTRPCRouter({
         });
       }
 
+      // CRITICAL: Must use explicit select (not include) due to Unsupported hotspot_type field
       const hotspot = await ctx.db.hotspots.create({
         data: {
           page_id: input.pageId,
@@ -661,7 +691,23 @@ export const flipbooksRouter = createTRPCRouter({
           height: input.height,
           target_product_id: input.productId,
         },
-        include: {
+        select: {
+          id: true,
+          page_id: true,
+          // hotspot_type: true, // CRITICAL: Unsupported type - cannot select
+          x_position: true,
+          y_position: true,
+          width: true,
+          height: true,
+          target_url: true,
+          target_page: true,
+          target_product_id: true,
+          popup_content: true,
+          form_config: true,
+          style_config: true,
+          click_count: true,
+          created_at: true,
+          updated_at: true,
           products: {
             select: {
               id: true,
@@ -1252,33 +1298,34 @@ export const flipbooksRouter = createTRPCRouter({
   getShareLinkByToken: protectedProcedure
     .input(z.object({ token: z.string() }))
     .query(async ({ input, ctx }) => {
-      const shareLink = await ctx.db.flipbook_share_links.findUnique({
+      // CRITICAL: Must use explicit select (not include) due to Unsupported fields:
+      // - flipbooks.status (Unsupported)
+      // - flipbook_pages.page_type (Unsupported)
+      // - hotspots.hotspot_type (Unsupported)
+      // Cannot nest relations in select - must fetch separately
+
+      // Fetch share link base data
+      const shareLinkBase = await ctx.db.flipbook_share_links.findUnique({
         where: { token: input.token },
-        include: {
-          flipbooks: {
-            include: {
-              flipbook_pages: {
-                orderBy: { page_number: 'asc' },
-                include: {
-                  hotspots: {
-                    include: {
-                      products: {
-                        select: {
-                          id: true,
-                          name: true,
-                          sku: true,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
+        select: {
+          id: true,
+          flipbook_id: true,
+          created_by_id: true,
+          token: true,
+          vanity_slug: true,
+          label: true,
+          view_count: true,
+          unique_view_count: true,
+          last_viewed_at: true,
+          expires_at: true,
+          is_active: true,
+          settings: true,
+          created_at: true,
+          updated_at: true,
         },
       });
 
-      if (!shareLink) {
+      if (!shareLinkBase) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Share link not found",
@@ -1286,7 +1333,7 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Check if expired
-      if (shareLink.expires_at && new Date(shareLink.expires_at) < new Date()) {
+      if (shareLinkBase.expires_at && new Date(shareLinkBase.expires_at) < new Date()) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "This share link has expired",
@@ -1294,12 +1341,139 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Check if active
-      if (!shareLink.is_active) {
+      if (!shareLinkBase.is_active) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "This share link has been deactivated",
         });
       }
+
+      // Fetch flipbook separately
+      const flipbook = await ctx.db.flipbooks.findUnique({
+        where: { id: shareLinkBase.flipbook_id },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          // status: true, // CRITICAL: Unsupported type - cannot select
+          created_by_id: true,
+          cover_image_url: true,
+          thumbnail_url: true,
+          pdf_source_url: true,
+          page_count: true,
+          view_count: true,
+          published_at: true,
+          created_at: true,
+          updated_at: true,
+          settings: true,
+          branding: true,
+          toc_data: true,
+          toc_auto_generated: true,
+          toc_last_updated: true,
+          navigation_settings: true,
+          analytics_events: true,
+        },
+      });
+
+      if (!flipbook) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Flipbook not found",
+        });
+      }
+
+      // Fetch pages separately
+      const pages = await ctx.db.flipbook_pages.findMany({
+        where: { flipbook_id: flipbook.id },
+        select: {
+          id: true,
+          flipbook_id: true,
+          page_number: true,
+          image_url: true,
+          thumbnail_url: true,
+          // page_type: true, // CRITICAL: Unsupported type - cannot select
+          text_content: true,
+          seo_title: true,
+          seo_description: true,
+          layout_data: true,
+          created_at: true,
+          updated_at: true,
+          thumbnail_small_url: true,
+          thumbnail_generated_at: true,
+        },
+        orderBy: { page_number: 'asc' },
+      });
+
+      // Fetch hotspots separately
+      const pageIds = pages.map(p => p.id);
+      const hotspots = pageIds.length > 0
+        ? await ctx.db.hotspots.findMany({
+            where: { page_id: { in: pageIds } },
+            select: {
+              id: true,
+              page_id: true,
+              // hotspot_type: true, // CRITICAL: Unsupported type - cannot select
+              x_position: true,
+              y_position: true,
+              width: true,
+              height: true,
+              target_url: true,
+              target_page: true,
+              target_product_id: true,
+              popup_content: true,
+              form_config: true,
+              style_config: true,
+              click_count: true,
+              created_at: true,
+              updated_at: true,
+            },
+          })
+        : [];
+
+      // Fetch products separately
+      const productIds = [...new Set(hotspots.map(h => h.target_product_id).filter((id): id is string => id !== null))];
+      const products = productIds.length > 0
+        ? await ctx.db.products.findMany({
+            where: { id: { in: productIds } },
+            select: {
+              id: true,
+              name: true,
+              sku: true,
+            },
+          })
+        : [];
+
+      // Map products to hotspots
+      const hotspotsWithProducts = hotspots.map(hotspot => {
+        const product = hotspot.target_product_id
+          ? products.find(p => p.id === hotspot.target_product_id) || null
+          : null;
+        return {
+          ...hotspot,
+          products: product,
+        };
+      });
+
+      // Map hotspots to pages
+      const pagesWithHotspots = pages.map(page => {
+        // TypeScript fix: Filter needs explicit handling
+        const pageHotspots = hotspotsWithProducts.filter((h): h is typeof h & { page_id: string } => {
+          return 'page_id' in h && h.page_id === page.id;
+        });
+        return {
+          ...page,
+          hotspots: pageHotspots,
+        };
+      });
+
+      // Construct final response
+      const shareLink = {
+        ...shareLinkBase,
+        flipbooks: {
+          ...flipbook,
+          flipbook_pages: pagesWithHotspots,
+        },
+      };
 
       return shareLink;
     }),
@@ -1767,16 +1941,79 @@ export const flipbooksRouter = createTRPCRouter({
     }))
     .mutation(async ({ ctx, input }) => {
       // Permission check: ensure user owns all flipbooks
-      const flipbooks = await ctx.db.flipbooks.findMany({
+      // CRITICAL: Must use explicit select (not include) due to Unsupported fields:
+      // - flipbooks.status (Unsupported)
+      // - flipbook_pages.page_type (Unsupported)
+      // - hotspots.hotspot_type (Unsupported)
+      // Cannot nest relations in select - must fetch separately
+      const flipbooksBase = await ctx.db.flipbooks.findMany({
         where: { id: { in: input.ids } },
-        include: {
-          flipbook_pages: {
-            include: {
-              hotspots: true,
-            },
-            orderBy: { page_number: 'asc' },
-          },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          // status: true, // CRITICAL: Unsupported type - cannot select
+          created_by_id: true,
+          pdf_source_url: true,
+          page_count: true,
         },
+      });
+
+      // Fetch pages separately
+      const flipbookIds = flipbooksBase.map(f => f.id);
+      const pages = await ctx.db.flipbook_pages.findMany({
+        where: { flipbook_id: { in: flipbookIds } },
+        select: {
+          id: true,
+          flipbook_id: true,
+          page_number: true,
+          image_url: true,
+          // page_type: true, // CRITICAL: Unsupported type - cannot select
+        },
+        orderBy: { page_number: 'asc' },
+      });
+
+      // Fetch hotspots separately
+      const pageIds = pages.map(p => p.id);
+      const hotspots = pageIds.length > 0
+        ? await ctx.db.hotspots.findMany({
+            where: { page_id: { in: pageIds } },
+            select: {
+              id: true,
+              page_id: true,
+              // hotspot_type: true, // CRITICAL: Unsupported type - cannot select
+              x_position: true,
+              y_position: true,
+              width: true,
+              height: true,
+              target_url: true,
+              target_page: true,
+              target_product_id: true,
+              popup_content: true,
+              form_config: true,
+              style_config: true,
+            },
+          })
+        : [];
+
+      // Map hotspots to pages
+      // TypeScript fix: Use type assertion to preserve types through complex mapping
+      const pagesWithHotspots = pages.map((page: any) => {
+        const pageHotspots = hotspots.filter((h: any) => h.page_id === page.id);
+        return {
+          ...page,
+          hotspots: pageHotspots,
+        };
+      });
+
+      // Map pages to flipbooks
+      // TypeScript fix: Use type assertion to preserve types through complex mapping
+      const flipbooks = flipbooksBase.map((flipbook: any) => {
+        const flipbookPages = pagesWithHotspots.filter((p: any) => p.flipbook_id === flipbook.id);
+        return {
+          ...flipbook,
+          flipbook_pages: flipbookPages,
+        };
       });
 
       const unauthorized = flipbooks.filter(
@@ -1942,13 +2179,18 @@ export const flipbooksRouter = createTRPCRouter({
         : [];
 
       // Map relations back to hotspots
-      const hotspots = hotspotsBase.map(hotspot => ({
-        ...hotspot,
-        flipbook_pages: pages.find(p => p.id === hotspot.page_id)!,
-        products: hotspot.target_product_id
-          ? products.find(p => p.id === hotspot.target_product_id)
-          : null,
-      }));
+      // TypeScript fix: Use type assertion to preserve types through complex mapping
+      const hotspots = hotspotsBase.map((hotspot: any) => {
+        const page = pages.find((p: any) => p.id === hotspot.page_id)!;
+        const product = hotspot.target_product_id
+          ? products.find((p: any) => p.id === hotspot.target_product_id) || null
+          : null;
+        return {
+          ...hotspot,
+          flipbook_pages: page,
+          products: product,
+        };
+      });
 
       // Calculate max clicks for intensity scaling
       const maxClicks = Math.max(...hotspots.map(h => h.click_count), 1);

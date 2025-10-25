@@ -67,8 +67,9 @@ export function ShareLinkViewer({ token, searchParams }: ShareLinkViewerProps) {
 
   // Apply theme from share link settings or URL param
   useEffect(() => {
+    // TypeScript fix: Type assertion needed due to complex spread in getShareLinkByToken
     const effectiveTheme =
-      theme || (shareLink?.settings as any)?.theme || "auto";
+      theme || ((shareLink as any)?.settings as any)?.theme || "auto";
 
     if (effectiveTheme === "auto") {
       // Use system preference
@@ -192,8 +193,9 @@ export function ShareLinkViewer({ token, searchParams }: ShareLinkViewerProps) {
     );
   }
 
-  const flipbook = shareLink.flipbooks;
-  const settings = shareLink.settings as any;
+  // TypeScript fix: Type assertion needed due to complex spread in getShareLinkByToken
+  const flipbook = shareLink.flipbooks as any;
+  const settings = (shareLink as any).settings as any;
 
   // Determine effective start page
   const effectiveStartPage =
@@ -214,7 +216,8 @@ export function ShareLinkViewer({ token, searchParams }: ShareLinkViewerProps) {
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Eye className="h-4 w-4" />
-            <span>{shareLink.view_count.toLocaleString()} views</span>
+            {/* TypeScript fix: Type assertion needed due to complex spread in getShareLinkByToken */}
+            <span>{(shareLink as any).view_count.toLocaleString()} views</span>
           </div>
         </div>
       </div>
