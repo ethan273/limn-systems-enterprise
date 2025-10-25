@@ -90,23 +90,49 @@ export default function FlipbookUploadPage() {
         description: description.trim() || undefined,
       });
 
-      // Step 2: Upload PDF (server just stores it, doesn't process)
-      const pdfFormData = new FormData();
-      pdfFormData.append("file", file);
-      pdfFormData.append("flipbookId", flipbook.id);
-
-      const pdfResponse = await fetch("/api/flipbooks/upload-pdf", {
+      // Step 2: Get signed upload parameters for direct Cloudinary upload
+      const signatureResponse = await fetch("/api/flipbooks/upload-signature", {
         method: "POST",
-        body: pdfFormData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ flipbookId: flipbook.id }),
       });
 
-      if (!pdfResponse.ok) {
-        const error = await pdfResponse.json();
-        throw new Error(error.error || "PDF upload failed");
+      if (!signatureResponse.ok) {
+        const error = await signatureResponse.json();
+        throw new Error(error.error || "Failed to get upload signature");
       }
 
-      const pdfResult = await pdfResponse.json();
-      const pageCount = pdfResult.pageCount;
+      const uploadConfig = await signatureResponse.json();
+
+      // Step 3: Upload PDF directly to Cloudinary
+      toast.info("Uploading PDF to cloud storage...");
+
+      const cloudinaryFormData = new FormData();
+      cloudinaryFormData.append("file", file);
+      cloudinaryFormData.append("api_key", uploadConfig.apiKey);
+      cloudinaryFormData.append("timestamp", uploadConfig.timestamp.toString());
+      cloudinaryFormData.append("signature", uploadConfig.signature);
+      cloudinaryFormData.append("public_id", uploadConfig.publicId);
+      cloudinaryFormData.append("folder", uploadConfig.folder);
+      cloudinaryFormData.append("resource_type", "image");
+      cloudinaryFormData.append("overwrite", "true");
+      cloudinaryFormData.append("invalidate", "true");
+      cloudinaryFormData.append("pages", "true");
+
+      const cloudinaryResponse = await fetch(
+        `https://api.cloudinary.com/v1_1/${uploadConfig.cloudName}/image/upload`,
+        {
+          method: "POST",
+          body: cloudinaryFormData,
+        }
+      );
+
+      if (!cloudinaryResponse.ok) {
+        throw new Error(`Cloudinary upload failed: ${cloudinaryResponse.statusText}`);
+      }
+
+      const cloudinaryUpload = await cloudinaryResponse.json();
+      const pageCount = cloudinaryUpload.pages || 0;
 
       toast.success(`PDF uploaded! Processing ${pageCount} pages in browser...`);
 
