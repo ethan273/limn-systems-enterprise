@@ -177,7 +177,7 @@ const Page = forwardRef<
       case 'EXTERNAL_LINK':
         return hotspot.target_url || 'External link';
       case 'PRODUCT_LINK':
-        return hotspot.product?.name || 'View product';
+        return hotspot.products?.name || 'View product';
       case 'DOWNLOAD':
         return 'Download file';
       case 'VIDEO':
