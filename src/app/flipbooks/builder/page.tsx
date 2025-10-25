@@ -65,6 +65,19 @@ function FlipbookBuilderContent() {
     { enabled: !!flipbookId }
   );
 
+  // DEBUG: Log query data
+  useEffect(() => {
+    if (flipbook) {
+      console.log("[Builder] Flipbook data loaded:", {
+        id: flipbook.id,
+        title: flipbook.title,
+        pageCount: flipbook.page_count,
+        pagesArrayLength: flipbook.flipbook_pages?.length || 0,
+        pages: flipbook.flipbook_pages?.map(p => ({ id: p.id, page_number: p.page_number })) || []
+      });
+    }
+  }, [flipbook]);
+
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
 
