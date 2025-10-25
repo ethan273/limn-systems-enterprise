@@ -247,6 +247,7 @@ export const flipbooksRouter = createTRPCRouter({
       }
 
       // Fetch relations separately
+      // CRITICAL: Cannot use nested relations with explicit select due to Prisma Unsupported field limitations
       const [creator, pages] = await Promise.all([
         ctx.db.user_profiles.findUnique({
           where: { id: flipbookBase.created_by_id },
@@ -275,39 +276,53 @@ export const flipbooksRouter = createTRPCRouter({
             updated_at: true,
             thumbnail_small_url: true,
             thumbnail_generated_at: true,
-            hotspots: {
-              select: {
-                id: true,
-                page_id: true,
-                x: true,
-                y: true,
-                width: true,
-                height: true,
-                product_id: true,
-                created_at: true,
-                updated_at: true,
-                products: {
-                  select: {
-                    id: true,
-                    name: true,
-                    sku: true,
-                  },
-                },
-              },
-            },
           },
         }),
       ]);
+
+      // Fetch hotspots for all pages (now that we have page IDs)
+      const pageIds = pages.map(p => p.id);
+      const allHotspots = pageIds.length > 0
+        ? await ctx.db.hotspots.findMany({
+            where: {
+              page_id: { in: pageIds }
+            },
+            select: {
+              id: true,
+              page_id: true,
+              x_position: true,
+              y_position: true,
+              width: true,
+              height: true,
+              product_id: true,
+              created_at: true,
+              updated_at: true,
+              products: {
+                select: {
+                  id: true,
+                  name: true,
+                  sku: true,
+                },
+              },
+            },
+          })
+        : [];
+
+      // Attach hotspots to their respective pages
+      const pagesWithHotspots: (typeof pages[0] & { hotspots: typeof allHotspots })[] = pages.map(page => ({
+        ...page,
+        hotspots: allHotspots.filter(h => h.page_id === page.id),
+      }));
 
       // Combine results
       const flipbook = {
         ...flipbookBase,
         user_profiles: creator,
-        flipbook_pages: pages,
+        flipbook_pages: pagesWithHotspots,
         flipbook_versions: [], // Empty array - not needed for this query
       } as typeof flipbookBase & {
         user_profiles: typeof creator;
-        flipbook_pages: typeof pages;
+        flipbook_pages: typeof pagesWithHotspots;
         flipbook_versions: any[];
       };
 
