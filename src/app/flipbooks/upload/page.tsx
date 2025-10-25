@@ -113,11 +113,8 @@ export default function FlipbookUploadPage() {
       cloudinaryFormData.append("timestamp", uploadConfig.timestamp.toString());
       cloudinaryFormData.append("signature", uploadConfig.signature);
       cloudinaryFormData.append("public_id", uploadConfig.publicId);
-      cloudinaryFormData.append("folder", uploadConfig.folder);
-      cloudinaryFormData.append("resource_type", "image");
-      cloudinaryFormData.append("overwrite", "true");
-      cloudinaryFormData.append("invalidate", "true");
-      cloudinaryFormData.append("pages", "true");
+      // Note: Don't send 'folder' separately when public_id already contains folder path
+      // cloudinaryFormData.append("folder", uploadConfig.folder);
 
       const cloudinaryResponse = await fetch(
         `https://api.cloudinary.com/v1_1/${uploadConfig.cloudName}/image/upload`,

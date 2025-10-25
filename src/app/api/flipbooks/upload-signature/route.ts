@@ -50,11 +50,11 @@ export async function POST(request: NextRequest) {
 
     // Parameters for upload (must match EXACTLY what client sends)
     // CRITICAL: Cloudinary signature validation requires exact parameter match
-    // The client sends these as strings, so we must sign them as strings
+    // Only sign parameters that will be included in signature validation
+    // Note: public_id already contains folder path, so don't sign 'folder' separately
     const uploadParams: Record<string, string | number> = {
       timestamp: timestamp,
       public_id: publicId,
-      folder: 'flipbooks',
     };
 
     // Generate signature using Cloudinary SDK
