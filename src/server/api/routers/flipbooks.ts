@@ -325,13 +325,9 @@ export const flipbooksRouter = createTRPCRouter({
               click_count: true,
               created_at: true,
               updated_at: true,
-              products: {
-                select: {
-                  id: true,
-                  name: true,
-                  sku: true,
-                },
-              },
+              // CRITICAL FIX: Removed products relation - causes "column hotspots.products does not exist" error
+              // Relation name conflicts with database schema
+              // TODO: If product data needed, fetch separately using target_product_id
             },
           })
         : [];
@@ -708,15 +704,8 @@ export const flipbooksRouter = createTRPCRouter({
           click_count: true,
           created_at: true,
           updated_at: true,
-          products: {
-            select: {
-              id: true,
-              name: true,
-              sku: true,
-              category: true,
-              base_price: true,
-            },
-          },
+          // CRITICAL FIX: Removed products relation - causes "column hotspots.products does not exist" error
+          // TODO: If product data needed, fetch separately using target_product_id
         },
       });
 
@@ -787,15 +776,8 @@ export const flipbooksRouter = createTRPCRouter({
           click_count: true,
           created_at: true,
           updated_at: true,
-          products: {
-            select: {
-              id: true,
-              name: true,
-              sku: true,
-              category: true,
-              base_price: true,
-            },
-          },
+          // CRITICAL FIX: Removed products relation - causes "column hotspots.products does not exist" error
+          // TODO: If product data needed, fetch separately using target_product_id
         },
       });
 
