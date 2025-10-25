@@ -11,7 +11,6 @@ import { Loader2 } from 'lucide-react';
  * Solves the race condition where middleware runs before session cookies propagate.
  */
 function SessionEstablisher() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const destination = searchParams.get('destination') || '/dashboard';
 

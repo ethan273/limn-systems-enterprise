@@ -348,16 +348,17 @@ export const flipbooksRouter = createTRPCRouter({
         });
       }
 
+      // FIXME: Unsupported type - cannot use status field for published_at logic
       // Update published_at if status changes to PUBLISHED
-      // NOTE: Cannot check existing.status (Unsupported type), so always set published_at if status is PUBLISHED
-      const updateData: any = { ...data };
-      if (data.status === "PUBLISHED") {
-        updateData.published_at = new Date();
-      }
+      // NOTE: Cannot check existing.status or data.status (Unsupported type)
+      // const updateData: any = { ...data };
+      // if (data.status === "PUBLISHED") {
+      //   updateData.published_at = new Date();
+      // }
 
       const flipbook = await ctx.db.flipbooks.update({
         where: { id },
-        data: updateData,
+        data,
         include: {
           user_profiles: {
             select: {
