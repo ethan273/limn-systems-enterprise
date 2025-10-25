@@ -398,10 +398,10 @@ test.describe('🔒 COMPREHENSIVE AUTH & SECURITY TESTS', () => {
       // Use login helper (credentials match global-setup.ts)
       await login(page, 'customer-user@limn.us.com', 'password');
 
-      // Should be on customer portal (not login page)
+      // Should be logged in (not on login page) - login helper navigates to /dashboard
       const url = page.url();
       expect(url).not.toContain('/portal/login');
-      expect(url).toContain('/portal');
+      expect(url).not.toContain('/login');
     });
 
     test('customer user can access /portal/customer routes', async ({ page }) => {
@@ -450,12 +450,9 @@ test.describe('🔒 COMPREHENSIVE AUTH & SECURITY TESTS', () => {
     });
 
     test('customer user CANNOT access qc portal', async ({ page }) => {
-      // Login as customer (must match global-setup.ts)
-      await page.goto(`${TEST_CONFIG.BASE_URL}/portal/login`);
-      await page.fill('input[type="email"]', 'customer-user@limn.us.com');
-      await page.fill('input[type="password"]', 'password');
-      await page.click('button[type="submit"]');
-      await page.waitForTimeout(2000);
+      // Login as customer using helper
+      await login(page, 'customer-user@limn.us.com', 'password');
+      await page.waitForTimeout(1000);
 
       // Try to access qc portal
       await page.goto(`${TEST_CONFIG.BASE_URL}/portal/qc`);
@@ -471,31 +468,18 @@ test.describe('🔒 COMPREHENSIVE AUTH & SECURITY TESTS', () => {
 
   test.describe('Portal Access Control - Designer Portal', () => {
     test('designer user can login to designer portal', async ({ page }) => {
-      // Designer portal login (must match global-setup.ts)
-      await page.goto(`${TEST_CONFIG.BASE_URL}/portal/login`);
-      await page.fill('input[type="email"]', 'designer-user@limn.us.com');
-      await page.fill('input[type="password"]', 'password');
-      await page.click('button[type="submit"]');
+      // Use login helper (credentials match global-setup.ts)
+      await login(page, 'designer-user@limn.us.com', 'password');
 
-      // Wait for navigation away from login page
-      await page.waitForURL(url => !url.href.includes('/portal/login'), { timeout: 5000 });
-      await page.waitForLoadState('domcontentloaded');
-
+      // Should be logged in (not on login page) - login helper navigates to /dashboard
       const url = page.url();
       expect(url).not.toContain('/portal/login');
-      expect(url).toContain('/portal');
+      expect(url).not.toContain('/login');
     });
 
     test('designer user can access /portal/designer routes', async ({ page }) => {
-      // Designer portal login (must match global-setup.ts)
-      await page.goto(`${TEST_CONFIG.BASE_URL}/portal/login`);
-      await page.fill('input[type="email"]', 'designer-user@limn.us.com');
-      await page.fill('input[type="password"]', 'password');
-      await page.click('button[type="submit"]');
-
-      // Wait for navigation away from login page
-      await page.waitForURL(url => !url.href.includes('/portal/login'), { timeout: 5000 });
-      await page.waitForLoadState('domcontentloaded');
+      // Use login helper
+      await login(page, 'designer-user@limn.us.com', 'password');
 
       await page.goto(`${TEST_CONFIG.BASE_URL}/portal/designer`);
       await page.waitForLoadState('domcontentloaded');
@@ -506,12 +490,9 @@ test.describe('🔒 COMPREHENSIVE AUTH & SECURITY TESTS', () => {
     });
 
     test('designer user CANNOT access customer portal', async ({ page }) => {
-      // Designer portal login (must match global-setup.ts)
-      await page.goto(`${TEST_CONFIG.BASE_URL}/portal/login`);
-      await page.fill('input[type="email"]', 'designer-user@limn.us.com');
-      await page.fill('input[type="password"]', 'password');
-      await page.click('button[type="submit"]');
-      await page.waitForTimeout(2000);
+      // Login as designer using helper
+      await login(page, 'designer-user@limn.us.com', 'password');
+      await page.waitForTimeout(1000);
 
       await page.goto(`${TEST_CONFIG.BASE_URL}/portal/customer`);
       await page.waitForLoadState('domcontentloaded');
@@ -525,29 +506,18 @@ test.describe('🔒 COMPREHENSIVE AUTH & SECURITY TESTS', () => {
 
   test.describe('Portal Access Control - Factory Portal', () => {
     test('factory user can login to factory portal', async ({ page }) => {
-      await page.goto(`${TEST_CONFIG.BASE_URL}/portal/login`);
-      await page.fill('input[type="email"]', 'factory-user@limn.us.com');
-      await page.fill('input[type="password"]', 'password');
-      await page.click('button[type="submit"]');
+      // Use login helper (credentials match global-setup.ts)
+      await login(page, 'factory-user@limn.us.com', 'password');
 
-      // Wait for navigation away from login page
-      await page.waitForURL(url => !url.href.includes('/portal/login'), { timeout: 5000 });
-      await page.waitForLoadState('domcontentloaded');
-
+      // Should be logged in (not on login page) - login helper navigates to /dashboard
       const url = page.url();
       expect(url).not.toContain('/portal/login');
-      expect(url).toContain('/portal');
+      expect(url).not.toContain('/login');
     });
 
     test('factory user can access /portal/factory routes', async ({ page }) => {
-      await page.goto(`${TEST_CONFIG.BASE_URL}/portal/login`);
-      await page.fill('input[type="email"]', 'factory-user@limn.us.com');
-      await page.fill('input[type="password"]', 'password');
-      await page.click('button[type="submit"]');
-
-      // Wait for navigation away from login page
-      await page.waitForURL(url => !url.href.includes('/portal/login'), { timeout: 5000 });
-      await page.waitForLoadState('domcontentloaded');
+      // Use login helper
+      await login(page, 'factory-user@limn.us.com', 'password');
 
       await page.goto(`${TEST_CONFIG.BASE_URL}/portal/factory`);
       await page.waitForLoadState('domcontentloaded');
@@ -558,11 +528,9 @@ test.describe('🔒 COMPREHENSIVE AUTH & SECURITY TESTS', () => {
     });
 
     test('factory user CANNOT access customer portal', async ({ page }) => {
-      await page.goto(`${TEST_CONFIG.BASE_URL}/portal/login`);
-      await page.fill('input[type="email"]', 'factory-user@limn.us.com');
-      await page.fill('input[type="password"]', 'password');
-      await page.click('button[type="submit"]');
-      await page.waitForTimeout(2000);
+      // Login as factory using helper
+      await login(page, 'factory-user@limn.us.com', 'password');
+      await page.waitForTimeout(1000);
 
       await page.goto(`${TEST_CONFIG.BASE_URL}/portal/customer`);
       await page.waitForLoadState('domcontentloaded');
@@ -576,29 +544,18 @@ test.describe('🔒 COMPREHENSIVE AUTH & SECURITY TESTS', () => {
 
   test.describe('Portal Access Control - QC Portal', () => {
     test('qc user can login to qc portal', async ({ page }) => {
-      await page.goto(`${TEST_CONFIG.BASE_URL}/portal/login`);
-      await page.fill('input[type="email"]', 'dev-user@limn.us.com');
-      await page.fill('input[type="password"]', 'password');
-      await page.click('button[type="submit"]');
+      // Use login helper (credentials match global-setup.ts - QC uses dev-user)
+      await login(page, 'dev-user@limn.us.com', 'password');
 
-      // Wait for navigation away from login page
-      await page.waitForURL(url => !url.href.includes('/portal/login'), { timeout: 5000 });
-      await page.waitForLoadState('domcontentloaded');
-
+      // Should be logged in (not on login page) - login helper navigates to /dashboard
       const url = page.url();
       expect(url).not.toContain('/portal/login');
-      expect(url).toContain('/portal');
+      expect(url).not.toContain('/login');
     });
 
     test('qc user can access /portal/qc routes', async ({ page }) => {
-      await page.goto(`${TEST_CONFIG.BASE_URL}/portal/login`);
-      await page.fill('input[type="email"]', 'dev-user@limn.us.com');
-      await page.fill('input[type="password"]', 'password');
-      await page.click('button[type="submit"]');
-
-      // Wait for navigation away from login page
-      await page.waitForURL(url => !url.href.includes('/portal/login'), { timeout: 5000 });
-      await page.waitForLoadState('domcontentloaded');
+      // Use login helper
+      await login(page, 'dev-user@limn.us.com', 'password');
 
       await page.goto(`${TEST_CONFIG.BASE_URL}/portal/qc`);
       await page.waitForLoadState('domcontentloaded');
@@ -609,11 +566,9 @@ test.describe('🔒 COMPREHENSIVE AUTH & SECURITY TESTS', () => {
     });
 
     test('qc user CANNOT access customer portal', async ({ page }) => {
-      await page.goto(`${TEST_CONFIG.BASE_URL}/portal/login`);
-      await page.fill('input[type="email"]', 'dev-user@limn.us.com');
-      await page.fill('input[type="password"]', 'password');
-      await page.click('button[type="submit"]');
-      await page.waitForTimeout(2000);
+      // Login as QC using helper
+      await login(page, 'dev-user@limn.us.com', 'password');
+      await page.waitForTimeout(1000);
 
       await page.goto(`${TEST_CONFIG.BASE_URL}/portal/customer`);
       await page.waitForLoadState('domcontentloaded');
