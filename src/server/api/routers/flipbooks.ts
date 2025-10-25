@@ -216,9 +216,32 @@ export const flipbooksRouter = createTRPCRouter({
           },
           flipbook_pages: {
             orderBy: { page_number: "asc" },
-            include: {
+            select: {
+              id: true,
+              flipbook_id: true,
+              page_number: true,
+              image_url: true,
+              thumbnail_url: true,
+              // page_type: true, // CRITICAL: Unsupported type - cannot select
+              text_content: true,
+              seo_title: true,
+              seo_description: true,
+              layout_data: true,
+              created_at: true,
+              updated_at: true,
+              thumbnail_small_url: true,
+              thumbnail_generated_at: true,
               hotspots: {
-                include: {
+                select: {
+                  id: true,
+                  page_id: true,
+                  x: true,
+                  y: true,
+                  width: true,
+                  height: true,
+                  product_id: true,
+                  created_at: true,
+                  updated_at: true,
                   products: {
                     select: {
                       id: true,
