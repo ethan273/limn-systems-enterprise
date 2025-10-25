@@ -27,7 +27,8 @@ export default function AnalyticsPage() {
   // Calculate aggregate stats
   const totalViews = flipbooks.reduce((sum: number, f: any) => sum + (f.view_count || 0), 0);
   const totalFlipbooks = flipbooks.length;
-  const publishedCount = flipbooks.filter((f: any) => f.status === 'PUBLISHED').length;
+  // FIXME: publishedCount disabled - status field is Unsupported type in Prisma
+  // const publishedCount = flipbooks.filter((f: any) => f.status === 'PUBLISHED').length;
   const avgViewsPerFlipbook = totalFlipbooks > 0 ? Math.round(totalViews / totalFlipbooks) : 0;
 
   const stats: StatItem[] = [
@@ -38,13 +39,14 @@ export default function AnalyticsPage() {
       icon: Eye,
       iconColor: 'info',
     },
-    {
-      title: 'Published Flipbooks',
-      value: publishedCount,
-      description: 'Live flipbooks',
-      icon: BarChart3,
-      iconColor: 'success',
-    },
+    // FIXME: Published Flipbooks stat disabled - status field is Unsupported type in Prisma
+    // {
+    //   title: 'Published Flipbooks',
+    //   value: publishedCount,
+    //   description: 'Live flipbooks',
+    //   icon: BarChart3,
+    //   iconColor: 'success',
+    // },
     {
       title: 'Avg Views per Flipbook',
       value: avgViewsPerFlipbook.toLocaleString(),
