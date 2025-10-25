@@ -100,6 +100,12 @@ export async function middleware(request: NextRequest) {
           return value;
         },
         set(name: string, value: string, options: CookieOptions) {
+          // Only handle Supabase auth cookies - skip third-party cookies like Cloudflare's __cf_bm
+          // This prevents "invalid domain" errors from cookies we don't control
+          if (!name.startsWith('sb-')) {
+            return;
+          }
+
           // Update response cookies with explicit sameSite configuration
           // CRITICAL: Use 'none' in production to support incognito mode
           const sameSiteValue = process.env.NODE_ENV === 'production' ? 'none' : 'lax';

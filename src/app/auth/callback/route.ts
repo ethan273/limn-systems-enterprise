@@ -221,6 +221,10 @@ export async function GET(request: NextRequest) {
             return cookieStore.get(name)?.value;
           },
           set(name: string, value: string, options: any) {
+            // Only handle Supabase auth cookies - skip third-party cookies like Cloudflare's __cf_bm
+            if (!name.startsWith('sb-')) {
+              return;
+            }
             cookiesToSetMagic.push({ name, value, options });
           },
           remove(name: string, options: any) {
@@ -339,6 +343,10 @@ export async function GET(request: NextRequest) {
             return cookieStore.get(name)?.value;
           },
           set(name: string, value: string, options: any) {
+            // Only handle Supabase auth cookies - skip third-party cookies like Cloudflare's __cf_bm
+            if (!name.startsWith('sb-')) {
+              return;
+            }
             cookiesToSet.push({ name, value, options });
           },
           remove(name: string, options: any) {
