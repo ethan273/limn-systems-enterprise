@@ -24,9 +24,9 @@ async function main() {
       id: true,
       title: true,
       page_count: true,
-      status: true,
+      // status: true, // FIXME: Unsupported type
       created_at: true,
-      created_by_user_id: true,
+      created_by_id: true,
     },
   });
 
@@ -47,7 +47,7 @@ async function main() {
       page_number: true,
       image_url: true,
       thumbnail_url: true,
-      page_type: true,
+      // page_type: true, // FIXME: Unsupported type
     },
   });
 

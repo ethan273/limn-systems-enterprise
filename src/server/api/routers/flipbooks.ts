@@ -203,9 +203,34 @@ export const flipbooksRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       console.log("[tRPC Get Flipbook] Querying for ID:", input.id);
 
+      // CRITICAL FIX: Cannot use include at top level because flipbooks.status is Unsupported
+      // Using include causes Prisma to auto-select ALL flipbooks fields including Unsupported
+      // status field, which causes silent failure (returns empty flipbook_pages array)
+      // SOLUTION: Use explicit select for ALL fields at every level
       const flipbook = await ctx.db.flipbooks.findUnique({
         where: { id: input.id },
-        include: {
+        select: {
+          // Explicit select for flipbooks table fields (excluding Unsupported status)
+          id: true,
+          title: true,
+          description: true,
+          // status: true, // CRITICAL: Unsupported type - cannot select
+          created_by_id: true,
+          cover_image_url: true,
+          thumbnail_url: true,
+          pdf_source_url: true,
+          page_count: true,
+          view_count: true,
+          published_at: true,
+          created_at: true,
+          updated_at: true,
+          settings: true,
+          branding: true,
+          toc_data: true,
+          toc_auto_generated: true,
+          toc_last_updated: true,
+          navigation_settings: true,
+          // Relations
           user_profiles: {
             select: {
               id: true,
