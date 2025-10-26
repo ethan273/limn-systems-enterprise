@@ -36,6 +36,8 @@ interface FlipbookPage {
   page_number: number;
   image_url: string;
   thumbnail_url: string;
+  width?: number | null;   // Original page width from PDF
+  height?: number | null;  // Original page height from PDF
   hotspots?: Array<{
     id: string;
     hotspot_type: 'INTERNAL_LINK' | 'EXTERNAL_LINK' | 'PRODUCT_LINK' | 'DOWNLOAD' | 'VIDEO' | 'POPUP' | 'FORM' | 'ADD_TO_CART';
@@ -201,7 +203,7 @@ const Page = forwardRef<
       className="relative h-full w-full shadow-lg overflow-hidden"
       style={{ backgroundColor }}
     >
-      {/* Page Image - Fill the entire page area */}
+      {/* Page Image - Cover fill (container already matches aspect ratio) */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={page.image_url}
@@ -282,6 +284,12 @@ export function FlipbookViewerV2({
 
   const totalPages = pages.length;
 
+  // Determine if pages are portrait or landscape
+  const firstPageWithDimensions = pages.find(p => p.width && p.height);
+  const isPortraitOrientation = firstPageWithDimensions?.width && firstPageWithDimensions?.height
+    ? firstPageWithDimensions.height > firstPageWithDimensions.width
+    : true; // Default to portrait
+
   // Fetch TOC data if flipbookId is provided
   const { data: tocData } = api.flipbooks.getTOC.useQuery(
     { flipbookId: flipbookId! },
@@ -289,6 +297,7 @@ export function FlipbookViewerV2({
   );
 
   // Calculate book size based on container - MAXIMIZE screen usage
+  // DYNAMIC ASPECT RATIO: Use actual page dimensions if available
   useEffect(() => {
     const updateSize = () => {
       if (!containerRef.current) return;
@@ -300,17 +309,46 @@ export function FlipbookViewerV2({
       const availableHeight = containerHeight - 140; // Reduced from 200px
       const availableWidth = containerWidth - 40; // Reduced from 100px - minimal padding
 
-      // Use actual page dimensions if available, otherwise use full available space
-      // Two pages shown at once in spread view
-      let width = availableWidth / 2;
-      let height = availableHeight;
+      // Calculate aspect ratio from first page with dimensions
+      const firstPageWithDimensions = pages.find(p => p.width && p.height);
+      const pageWidth = firstPageWithDimensions?.width;
+      const pageHeight = firstPageWithDimensions?.height;
+      const hasActualDimensions = !!(pageWidth && pageHeight);
+      const aspectRatio = hasActualDimensions
+        ? pageWidth / pageHeight
+        : 2 / 2.8; // Default portrait ratio
+
+      console.log('[FlipbookViewerV2] Page dimensions:', {
+        hasActualDimensions,
+        width: pageWidth,
+        height: pageHeight,
+        aspectRatio,
+      });
+
+      // Calculate dimensions that respect aspect ratio
+      // For portrait mode (usePortrait=true): shows single page, use full width
+      // For landscape mode (usePortrait=false): shows two pages, use half width
+      const isPortrait = hasActualDimensions
+        ? pageHeight > pageWidth
+        : true;
+
+      let width = isPortrait ? availableWidth : availableWidth / 2;
+      let height = width / aspectRatio; // Calculate height from width
+
+      // If calculated height exceeds available space, scale down
+      if (height > availableHeight) {
+        height = availableHeight;
+        width = height * aspectRatio;
+      }
 
       // Ensure minimum readable size
       if (width < 400) {
         width = 400;
+        height = width / aspectRatio;
       }
       if (height < 500) {
         height = 500;
+        width = height * aspectRatio;
       }
 
       setBookSize({ width: Math.floor(width), height: Math.floor(height) });
@@ -319,7 +357,7 @@ export function FlipbookViewerV2({
     updateSize();
     window.addEventListener("resize", updateSize);
     return () => window.removeEventListener("resize", updateSize);
-  }, [showTOC]); // Re-calculate when TOC toggles
+  }, [showTOC, pages]); // Re-calculate when TOC toggles or pages change
 
   // Navigation handlers
   const goToNextPage = useCallback(() => {
@@ -583,16 +621,16 @@ export function FlipbookViewerV2({
                     ref={flipBookRef}
                     width={bookSize.width}
                     height={bookSize.height}
-                    size="stretch"
+                    size="fixed"
                     minWidth={300}
                     maxWidth={2000} // Increased from 1200 to allow larger displays
                     minHeight={400}
                     maxHeight={2400} // Increased from 1680 to fill larger screens
                     drawShadow={true}
                     flippingTime={1000} // 1 second page turn
-                    usePortrait={false}
+                    usePortrait={isPortraitOrientation} // Dynamic: portrait pages show single, landscape shows spread
                     startPage={initialPage - 1} // 0-indexed
-                    autoSize={true}
+                    autoSize={false}
                     style={{}}
                     startZIndex={0}
                     maxShadowOpacity={0.5}
