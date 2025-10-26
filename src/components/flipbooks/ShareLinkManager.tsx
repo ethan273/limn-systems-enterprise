@@ -239,6 +239,8 @@ export function ShareLinkManager({
         theme: (link.settings as any)?.theme || "auto",
         startPage: (link.settings as any)?.startPage || 1,
         showControls: (link.settings as any)?.showControls ?? true,
+        password: "", // Don't show existing password for security
+        requirePassword: !!(link.settings as any)?.password, // Show if password exists
       });
     },
     []
