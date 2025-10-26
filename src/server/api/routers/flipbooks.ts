@@ -157,9 +157,10 @@ export const flipbooksRouter = createTRPCRouter({
 
         console.log('[FLIPBOOKS] Where clause built', { where });
 
-        // Query flipbooks
-        // CRITICAL: Must use explicit select (not include) due to Unsupported status field
-        const flipbooks = await ctx.db.flipbooks.findMany({
+        // Query flipbooks base data
+        // CRITICAL: Cannot use nested selects for relations when using explicit field select
+        // Must query relations separately to avoid "column flipbooks.user_profiles does not exist" error
+        const flipbooksBase = await ctx.db.flipbooks.findMany({
           where,
           take: limit,
           orderBy: { created_at: "desc" },
@@ -183,26 +184,60 @@ export const flipbooksRouter = createTRPCRouter({
             toc_auto_generated: true,
             toc_last_updated: true,
             navigation_settings: true,
-            // CRITICAL FIX: Cannot select analytics_events - it's a relation array, not a field
-            // Removed to prevent "column flipbooks.analytics_events does not exist" error
-            user_profiles: {
-              select: {
-                id: true,
-                full_name: true,
-                email: true,
-              },
-            },
-            flipbook_pages: {
-              select: {
-                id: true,
-                page_number: true,
-              },
-              orderBy: { page_number: "asc" },
-            },
+            // CRITICAL FIX: Cannot select relations (analytics_events, user_profiles, flipbook_pages)
+            // Relations must be queried separately when using explicit field select
           },
         });
 
-        console.log('[FLIPBOOKS] Query completed', { count: flipbooks.length });
+        console.log('[FLIPBOOKS] Base query completed', { count: flipbooksBase.length });
+
+        // Fetch user profiles for all creators
+        const creatorIds = [...new Set(flipbooksBase.map(f => f.created_by_id))];
+        const creators = await ctx.db.user_profiles.findMany({
+          where: { id: { in: creatorIds } },
+          select: {
+            id: true,
+            full_name: true,
+            email: true,
+          },
+        });
+
+        const creatorsMap = new Map(creators.map(c => [c.id, c]));
+
+        // Fetch page counts for all flipbooks
+        const flipbookIds = flipbooksBase.map(f => f.id);
+        const allPages = await ctx.db.flipbook_pages.findMany({
+          where: { flipbook_id: { in: flipbookIds } },
+          select: {
+            id: true,
+            flipbook_id: true,
+            page_number: true,
+          },
+          orderBy: { page_number: "asc" },
+        });
+
+        // Group pages by flipbook
+        const pagesByFlipbook = new Map<string, typeof allPages>();
+        for (const page of allPages) {
+          if (!pagesByFlipbook.has(page.flipbook_id)) {
+            pagesByFlipbook.set(page.flipbook_id, []);
+          }
+          pagesByFlipbook.get(page.flipbook_id)!.push(page);
+        }
+
+        // Combine results with explicit typing
+        type FlipbookWithRelations = typeof flipbooksBase[0] & {
+          user_profiles: typeof creators[0] | null;
+          flipbook_pages: typeof allPages;
+        };
+
+        const flipbooks: FlipbookWithRelations[] = flipbooksBase.map(flipbook => ({
+          ...flipbook,
+          user_profiles: creatorsMap.get(flipbook.created_by_id) || null,
+          flipbook_pages: pagesByFlipbook.get(flipbook.id) || [],
+        }));
+
+        console.log('[FLIPBOOKS] Full query completed', { count: flipbooks.length });
 
         return {
           flipbooks,
