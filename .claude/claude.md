@@ -1213,6 +1213,151 @@ upsert: async (options: { where: Record<string, any>; create: Record<string, any
 
 ---
 
+## Prisma Relation Query Pattern (CRITICAL)
+
+**MANDATORY REQUIREMENT - Prime Directive Compliance**
+
+### ⚠️ THE PROBLEM
+
+**Prisma Limitation**: Cannot use nested `select` for relations when using explicit field selects (due to Unsupported fields in schema).
+
+**Symptoms**:
+- Error: `column table_name.relation_name does not exist`
+- Trying to select a relation as if it's a column
+- Queries fail with "column does not exist" for relation fields
+
+**Example of What NOT to Do**:
+```typescript
+// ❌ WRONG - This will cause "column does not exist" error
+const flipbooks = await ctx.db.flipbooks.findMany({
+  select: {
+    id: true,
+    title: true,
+    user_profiles: true,  // ❌ This is a RELATION, not a column!
+    flipbook_pages: true, // ❌ This is a RELATION, not a column!
+  },
+});
+```
+
+### ✅ THE SOLUTION: 3-Step Query Pattern
+
+When you need to query a table WITH its relations:
+
+**Step 1**: Query base data (scalar fields only)
+```typescript
+const flipbooksBase = await ctx.db.flipbooks.findMany({
+  where: { status: 'active' },
+  take: 10,
+  orderBy: { created_at: 'desc' },
+  select: {
+    id: true,
+    title: true,
+    description: true,
+    created_by_id: true,
+    // ... ALL scalar fields
+    // ❌ NO RELATIONS HERE!
+  },
+});
+```
+
+**Step 2**: Query relations separately using WHERE IN (batch queries)
+```typescript
+// Get unique IDs for batch query
+const creatorIds = [...new Set(flipbooksBase.map(f => f.created_by_id))];
+const flipbookIds = flipbooksBase.map(f => f.id);
+
+// Fetch user_profiles separately
+const creators = await ctx.db.user_profiles.findMany({
+  where: { id: { in: creatorIds } },
+  select: { id: true, full_name: true, email: true },
+});
+
+// Fetch flipbook_pages separately
+const allPages = await ctx.db.flipbook_pages.findMany({
+  where: { flipbook_id: { in: flipbookIds } },
+  select: { id: true, flipbook_id: true, page_number: true },
+  orderBy: { page_number: 'asc' },
+});
+```
+
+**Step 3**: Combine using Maps for O(1) lookup
+```typescript
+// Create lookup maps
+const creatorsMap = new Map(creators.map(c => [c.id, c]));
+
+const pagesByFlipbook = new Map<string, typeof allPages>();
+for (const page of allPages) {
+  if (!pagesByFlipbook.has(page.flipbook_id)) {
+    pagesByFlipbook.set(page.flipbook_id, []);
+  }
+  pagesByFlipbook.get(page.flipbook_id)!.push(page);
+}
+
+// Define combined type
+type FlipbookWithRelations = typeof flipbooksBase[0] & {
+  user_profiles: typeof creators[0] | null;
+  flipbook_pages: typeof allPages;
+};
+
+// Combine data
+const flipbooks: FlipbookWithRelations[] = flipbooksBase.map(flipbook => ({
+  ...flipbook,
+  user_profiles: creatorsMap.get(flipbook.created_by_id) || null,
+  flipbook_pages: pagesByFlipbook.get(flipbook.id) || [],
+}));
+
+return flipbooks;
+```
+
+### Why This Pattern Works
+
+1. ✅ **Avoids Prisma limitation** - No nested selects with Unsupported fields
+2. ✅ **Efficient** - Uses WHERE IN for batch queries (2-3 queries total vs N+1)
+3. ✅ **Type-safe** - Explicit TypeScript types for combined data
+4. ✅ **Performant** - O(1) lookup using Maps instead of nested loops
+5. ✅ **Maintainable** - Clear separation of concerns
+
+### When to Use This Pattern
+
+Use the 3-step pattern when:
+- Query needs relations AND you're using explicit field select
+- You get "column does not exist" errors for relation names
+- Table has Unsupported fields in Prisma schema
+- You need to query multiple related tables
+
+### Alternative: Use Include Instead of Select
+
+If you don't need to limit fields, use `include` instead:
+
+```typescript
+// ✅ WORKS - Using include instead of select
+const flipbooks = await ctx.db.flipbooks.findMany({
+  include: {
+    user_profiles: {
+      select: { id: true, full_name: true, email: true },
+    },
+    flipbook_pages: {
+      orderBy: { page_number: 'asc' },
+    },
+  },
+});
+```
+
+**Note**: This returns ALL scalar fields from flipbooks table. Use 3-step pattern when you need to limit which scalar fields are returned.
+
+### Real-World Example
+
+**Commit**: `1794a4c` - Fixed user_profiles relation query error
+**File**: `/src/server/api/routers/flipbooks.ts` (lines 160-245)
+
+**Reference**: See `SESSION-9-UPDATES.md` for complete implementation details and context.
+
+**Status**: ✅ MANDATORY as of October 25, 2025
+**Compliance**: Use this pattern for all complex relation queries
+**Violations**: Will cause "column does not exist" runtime errors
+
+---
+
 ## Authentication Pattern Standard
 
 **MANDATORY REQUIREMENT - Prime Directive Compliance**
