@@ -341,14 +341,28 @@ export function FlipbookViewerV2({
         width = height * aspectRatio;
       }
 
-      // Ensure minimum readable size
-      if (width < 400) {
-        width = 400;
+      // CRITICAL: Ensure we NEVER exceed available space (prevents overflow/cutoff)
+      // Apply minimums only if they fit, otherwise use what's available
+      const minWidth = Math.min(400, availableWidth);
+      const minHeight = Math.min(500, availableHeight);
+
+      if (width < minWidth && availableWidth >= minWidth) {
+        width = minWidth;
         height = width / aspectRatio;
+        // Re-check height constraint
+        if (height > availableHeight) {
+          height = availableHeight;
+          width = height * aspectRatio;
+        }
       }
-      if (height < 500) {
-        height = 500;
+      if (height < minHeight && availableHeight >= minHeight) {
+        height = minHeight;
         width = height * aspectRatio;
+        // Re-check width constraint
+        if (width > availableWidth) {
+          width = availableWidth;
+          height = width / aspectRatio;
+        }
       }
 
       setBookSize({ width: Math.floor(width), height: Math.floor(height) });
