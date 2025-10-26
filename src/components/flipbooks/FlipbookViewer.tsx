@@ -23,6 +23,8 @@ interface FlipbookPage {
   page_number: number;
   image_url: string;
   thumbnail_url: string;
+  width?: number | null;
+  height?: number | null;
   hotspots?: Array<{
     id: string;
     x_percent: number;
@@ -53,6 +55,7 @@ interface FlipbookViewerProps {
 
 /**
  * Page component with texture and turn animation
+ * Dynamically sizes based on page aspect ratio
  */
 function Page({
   imageUrl,
@@ -60,12 +63,16 @@ function Page({
   rotation,
   isActive,
   onClick,
+  pageWidth,
+  pageHeight,
 }: {
   imageUrl: string;
   position: [number, number, number];
   rotation: [number, number, number];
   isActive: boolean;
   onClick?: () => void;
+  pageWidth?: number | null;
+  pageHeight?: number | null;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
@@ -74,6 +81,17 @@ function Page({
   const texture = useTexture(imageUrl);
   texture.minFilter = THREE.LinearFilter;
   texture.magFilter = THREE.LinearFilter;
+
+  // Calculate aspect ratio from page dimensions
+  // Default to 2:2.8 (portrait) if dimensions not available
+  const aspectRatio = (pageWidth && pageHeight) ? pageWidth / pageHeight : 2 / 2.8;
+
+  // Standard page height (keep consistent viewer size)
+  const standardHeight = 2.8;
+
+  // Calculate width based on aspect ratio
+  const planeWidth = standardHeight * aspectRatio;
+  const planeHeight = standardHeight;
 
   // Animate page turn
   useFrame((_state, _delta) => {
@@ -96,7 +114,7 @@ function Page({
       onPointerOver={() => setHovered(true)}
       onPointerOut={() => setHovered(false)}
     >
-      <planeGeometry args={[2, 2.8]} />
+      <planeGeometry args={[planeWidth, planeHeight]} />
       <meshStandardMaterial
         map={texture}
         side={THREE.DoubleSide}
@@ -109,6 +127,7 @@ function Page({
 
 /**
  * Hotspot marker component
+ * Dynamically positions based on page dimensions
  */
 function Hotspot({
   xPercent,
@@ -117,6 +136,8 @@ function Hotspot({
   height,
   label,
   onClick,
+  pageWidth,
+  pageHeight,
 }: {
   xPercent: number;
   yPercent: number;
@@ -124,15 +145,24 @@ function Hotspot({
   height: number;
   label?: string;
   onClick: () => void;
+  pageWidth?: number | null;
+  pageHeight?: number | null;
 }) {
   const [hovered, setHovered] = useState(false);
 
-  // Convert percentage to 3D coordinates
-  // Page is 2 units wide, 2.8 units tall
-  const x = ((xPercent - 50) / 50) * 1; // -1 to 1
-  const y = ((50 - yPercent) / 50) * 1.4; // -1.4 to 1.4
-  const w = (width / 100) * 2;
-  const h = (height / 100) * 2.8;
+  // Calculate page aspect ratio and plane dimensions (matches Page component)
+  const aspectRatio = (pageWidth && pageHeight) ? pageWidth / pageHeight : 2 / 2.8;
+  const standardHeight = 2.8;
+  const planeWidth = standardHeight * aspectRatio;
+  const planeHeight = standardHeight;
+
+  // Convert percentage to 3D coordinates using actual plane dimensions
+  const halfWidth = planeWidth / 2;
+  const halfHeight = planeHeight / 2;
+  const x = ((xPercent - 50) / 50) * halfWidth; // -halfWidth to +halfWidth
+  const y = ((50 - yPercent) / 50) * halfHeight; // -halfHeight to +halfHeight
+  const w = (width / 100) * planeWidth;
+  const h = (height / 100) * planeHeight;
 
   return (
     <group position={[x, y, 0.01]}>
@@ -191,6 +221,8 @@ function Scene({
         position={[0, 0, 0]}
         rotation={[0, 0, 0]}
         isActive={true}
+        pageWidth={page.width}
+        pageHeight={page.height}
       />
 
       {/* Hotspots */}
@@ -203,6 +235,8 @@ function Scene({
           height={hotspot.height}
           label={hotspot.label || hotspot.product.name}
           onClick={() => onHotspotClick?.(hotspot)}
+          pageWidth={page.width}
+          pageHeight={page.height}
         />
       ))}
 

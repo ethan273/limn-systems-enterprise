@@ -104,8 +104,7 @@ export default function FlipbookUploadPage() {
         }
       );
 
-      const pageBlobs = pageResults.map(result => result.blob);
-      const pageCount = pageBlobs.length;
+      const pageCount = pageResults.length;
 
       toast.success(`Processed ${pageCount} pages! Uploading...`);
 
@@ -114,23 +113,26 @@ export default function FlipbookUploadPage() {
       const BATCH_SIZE = 2;
       let totalUploaded = 0;
 
-      console.log(`[Upload] Starting batched upload of ${pageBlobs.length} pages in batches of ${BATCH_SIZE}`);
+      console.log(`[Upload] Starting batched upload of ${pageResults.length} pages in batches of ${BATCH_SIZE}`);
 
-      for (let i = 0; i < pageBlobs.length; i += BATCH_SIZE) {
-        const batchBlobs = pageBlobs.slice(i, i + BATCH_SIZE);
-        console.log(`[Upload] Batch ${Math.floor(i / BATCH_SIZE) + 1}: Processing pages ${i + 1}-${i + batchBlobs.length}`);
+      for (let i = 0; i < pageResults.length; i += BATCH_SIZE) {
+        const batchResults = pageResults.slice(i, i + BATCH_SIZE);
+        console.log(`[Upload] Batch ${Math.floor(i / BATCH_SIZE) + 1}: Processing pages ${i + 1}-${i + batchResults.length}`);
 
         const batchFormData = new FormData();
         batchFormData.append("flipbookId", flipbook.id);
 
-        // Add batch of images
-        for (let j = 0; j < batchBlobs.length; j++) {
+        // Add batch of images with dimensions
+        for (let j = 0; j < batchResults.length; j++) {
           // eslint-disable-next-line security/detect-object-injection
-          const blob = batchBlobs[j];
-          if (blob) {
+          const result = batchResults[j];
+          if (result) {
             const pageNumber = i + j + 1;
-            console.log(`[Upload] Adding page ${pageNumber} to batch (size: ${(blob.size / 1024).toFixed(2)}KB)`);
-            batchFormData.append("files", blob, `page-${pageNumber}.jpg`);
+            console.log(`[Upload] Adding page ${pageNumber} to batch (size: ${(result.blob.size / 1024).toFixed(2)}KB, dimensions: ${result.width}x${result.height})`);
+            batchFormData.append("files", result.blob, `page-${pageNumber}.jpg`);
+            // Send dimensions as metadata
+            batchFormData.append(`width_${pageNumber}`, result.width.toString());
+            batchFormData.append(`height_${pageNumber}`, result.height.toString());
           }
         }
 
@@ -160,7 +162,7 @@ export default function FlipbookUploadPage() {
         const batchResult = await batchResponse.json();
         console.log(`[Upload] Batch upload successful:`, batchResult);
 
-        totalUploaded += batchBlobs.length;
+        totalUploaded += batchResults.length;
         toast.info(`Uploaded ${totalUploaded}/${pageCount} pages...`);
       }
 

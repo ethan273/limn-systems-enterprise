@@ -69,6 +69,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No files provided" }, { status: 400 });
     }
 
+    // Extract dimensions from formData (sent as width_N and height_N)
+    const dimensions = new Map<number, { width: number; height: number }>();
+    for (const [key, value] of formData.entries()) {
+      const widthMatch = key.match(/^width_(\d+)$/);
+      const heightMatch = key.match(/^height_(\d+)$/);
+      if (widthMatch) {
+        const pageNum = parseInt(widthMatch[1] as string, 10);
+        if (!dimensions.has(pageNum)) dimensions.set(pageNum, { width: 0, height: 0 });
+        dimensions.get(pageNum)!.width = parseInt(value as string, 10);
+      }
+      if (heightMatch) {
+        const pageNum = parseInt(heightMatch[1] as string, 10);
+        if (!dimensions.has(pageNum)) dimensions.set(pageNum, { width: 0, height: 0 });
+        dimensions.get(pageNum)!.height = parseInt(value as string, 10);
+      }
+    }
+
     // Validate file types
     const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
     for (const file of files) {
@@ -113,12 +130,17 @@ export async function POST(request: NextRequest) {
       const thumbnailBuffer = await createThumbnail(optimizedBuffer);
       const thumbnailUpload = await uploadToS3(thumbnailBuffer, thumbnailKey, "image/jpeg");
 
-      // Prepare page record
+      // Get dimensions for this page
+      const pageDims = dimensions.get(currentPageNumber);
+
+      // Prepare page record with dimensions
       pageRecords.push({
         flipbook_id: flipbookId,
         page_number: currentPageNumber,
         image_url: pageUpload.cdnUrl,
         thumbnail_url: thumbnailUpload.cdnUrl,
+        width: pageDims?.width || null,
+        height: pageDims?.height || null,
         // page_type has default value 'CONTENT' in database
       } as any);
     }
