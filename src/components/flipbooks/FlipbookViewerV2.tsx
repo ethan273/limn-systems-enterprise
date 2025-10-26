@@ -731,15 +731,20 @@ export function FlipbookViewerV2({
                 key={page.id}
                 onClick={() => goToPage(page.page_number)}
                 className={cn(
-                  "h-20 w-14 rounded border-2 transition-all flex-shrink-0",
+                  "h-20 rounded border-2 transition-all flex-shrink-0",
                   currentPage === index
                     ? "border-primary ring-2 ring-primary/50"
                     : "border-muted-foreground/30 hover:border-primary/50"
                 )}
                 style={{
                   backgroundImage: `url(${page.thumbnail_url || page.image_url})`,
-                  backgroundSize: "cover",
+                  backgroundSize: "contain",
                   backgroundPosition: "center",
+                  backgroundRepeat: "no-repeat",
+                  width: "auto",
+                  aspectRatio: page.width && page.height
+                    ? `${page.width} / ${page.height}`
+                    : "2 / 3",
                 }}
                 title={`Go to page ${page.page_number}`}
               />

@@ -33,6 +33,8 @@ interface Page {
   id: string;
   page_number: number;
   thumbnail_url: string;
+  width?: number | null;
+  height?: number | null;
 }
 
 interface SortablePageListProps {
@@ -97,8 +99,17 @@ function SortablePageItem({
         )}
       >
         <div
-          className="w-12 h-16 rounded bg-cover bg-center border flex-shrink-0"
-          style={{ backgroundImage: `url(${page.thumbnail_url})` }}
+          className="h-16 rounded border flex-shrink-0"
+          style={{
+            backgroundImage: `url(${page.thumbnail_url})`,
+            backgroundSize: "contain",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+            width: "auto",
+            aspectRatio: page.width && page.height
+              ? `${page.width} / ${page.height}`
+              : "3 / 4",
+          }}
         />
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium">Page {page.page_number}</p>

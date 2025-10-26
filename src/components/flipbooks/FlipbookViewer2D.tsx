@@ -246,7 +246,13 @@ export function FlipbookViewer2D({
               <img
                 src={page.thumbnail_url}
                 alt={`Page ${page.page_number}`}
-                className="w-16 h-20 object-cover"
+                className="h-20 object-contain"
+                style={{
+                  width: "auto",
+                  aspectRatio: page.width && page.height
+                    ? `${page.width} / ${page.height}`
+                    : "2 / 3",
+                }}
               />
               <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs text-center py-0.5">
                 {page.page_number}

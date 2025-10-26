@@ -168,15 +168,13 @@ export async function extractPdfPages(
         crop: 'limit', // Don't upscale, only downscale if needed
       });
 
-      // Generate thumbnail URL
+      // Generate thumbnail URL - preserve aspect ratio
       const thumbnailUrl = cloudinary.url(pdfPublicId, {
         resource_type: 'image',
         format: 'jpg',
         page: pageNum,
-        width: 300,
-        height: 400,
-        crop: 'fill',
-        gravity: 'north', // Crop from top
+        width: 200,
+        crop: 'limit', // Don't upscale or distort, preserve aspect ratio
         quality: 'auto:low',
       });
 
