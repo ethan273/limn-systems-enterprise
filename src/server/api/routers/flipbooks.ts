@@ -7,8 +7,9 @@
  */
 
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc/init";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "@/server/api/trpc/init";
 import { TRPCError } from "@trpc/server";
+import bcrypt from "bcryptjs"; // For password hashing
 import {
   validateTOCStructure,
   createEmptyTOC,
@@ -1274,6 +1275,7 @@ export const flipbooksRouter = createTRPCRouter({
           theme: z.enum(["light", "dark", "auto"]).optional(),
           startPage: z.number().int().min(1).optional(),
           showControls: z.boolean().optional(),
+          password: z.string().min(1).optional(), // Password for protection (will be hashed)
         }).optional(),
       })
     )
@@ -1317,6 +1319,16 @@ export const flipbooksRouter = createTRPCRouter({
         Math.random().toString(36).charAt(2)
       ).join('');
 
+      // Hash password if provided in settings
+      let settingsToStore = input.settings || {};
+      if (settingsToStore.password) {
+        const hashedPassword = await bcrypt.hash(settingsToStore.password, 10);
+        settingsToStore = {
+          ...settingsToStore,
+          password: hashedPassword, // Replace plain password with hashed version
+        };
+      }
+
       // Create share link
       const shareLink = await ctx.db.flipbook_share_links.create({
         data: {
@@ -1326,7 +1338,7 @@ export const flipbooksRouter = createTRPCRouter({
           vanity_slug: input.vanitySlug,
           label: input.label,
           expires_at: input.expiresAt,
-          settings: input.settings || {},
+          settings: settingsToStore,
         },
         include: {
           flipbooks: {
@@ -1378,7 +1390,7 @@ export const flipbooksRouter = createTRPCRouter({
   /**
    * Get a share link by token (public endpoint for viewing)
    */
-  getShareLinkByToken: protectedProcedure
+  getShareLinkByToken: publicProcedure // PUBLIC: Share links must be accessible without authentication
     .input(z.object({ token: z.string() }))
     .query(async ({ input, ctx }) => {
       // CRITICAL: Must use explicit select (not include) due to Unsupported fields:

@@ -66,6 +66,8 @@ interface ShareLinkFormData {
   theme: "light" | "dark" | "auto";
   startPage: number;
   showControls: boolean;
+  password: string; // Password protection
+  requirePassword: boolean; // Toggle password requirement
 }
 
 export function ShareLinkManager({
@@ -83,6 +85,8 @@ export function ShareLinkManager({
     theme: "auto",
     startPage: 1,
     showControls: true,
+    password: "",
+    requirePassword: false,
   });
 
   const utils = api.useUtils();
@@ -136,6 +140,8 @@ export function ShareLinkManager({
       theme: "auto",
       startPage: 1,
       showControls: true,
+      password: "",
+      requirePassword: false,
     });
   }, []);
 
@@ -145,6 +151,8 @@ export function ShareLinkManager({
       theme: formData.theme,
       startPage: formData.startPage,
       showControls: formData.showControls,
+      // Include password if requirePassword is enabled
+      ...(formData.requirePassword && formData.password ? { password: formData.password } : {}),
     };
 
     createMutation.mutate({
@@ -383,6 +391,43 @@ export function ShareLinkManager({
                     setFormData({ ...formData, showControls: checked })
                   }
                 />
+              </div>
+
+              {/* Password Protection */}
+              <div className="space-y-3 pt-2 border-t">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="requirePassword">Password Protection</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Require a password to view this flipbook
+                    </p>
+                  </div>
+                  <Switch
+                    id="requirePassword"
+                    checked={formData.requirePassword}
+                    onCheckedChange={(checked) =>
+                      setFormData({ ...formData, requirePassword: checked })
+                    }
+                  />
+                </div>
+
+                {formData.requirePassword && (
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Password</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="Enter password"
+                      value={formData.password}
+                      onChange={(e) =>
+                        setFormData({ ...formData, password: e.target.value })
+                      }
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Users will need to enter this password to view the flipbook
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
