@@ -203,12 +203,12 @@ const Page = forwardRef<
       className="relative h-full w-full shadow-lg overflow-hidden"
       style={{ backgroundColor }}
     >
-      {/* Page Image - Cover fill (container already matches aspect ratio) */}
+      {/* Page Image - Contain to show full image without cropping */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={page.image_url}
         alt={`Page ${page.page_number}`}
-        className="h-full w-full object-cover"
+        className="h-full w-full object-contain"
         draggable={false}
       />
 

@@ -326,6 +326,7 @@ export function ShareLinkViewer({ token, searchParams }: ShareLinkViewerProps) {
           pages={flipbook.flipbook_pages as any}
           initialPage={effectiveStartPage}
           onHotspotClick={handleHotspotClick}
+          backgroundColor="#f5f5f5"
         />
       </div>
 
