@@ -208,6 +208,9 @@ const nextConfig = {
     // React Compiler - DISABLED: Experimental, has peer dependency conflicts with current setup
     // reactCompiler: true,
 
+    // Icon tree-shaking optimization - reduces bundle size by only importing used icons
+    optimizePackageImports: ['lucide-react'],
+
     // Server actions configuration
     serverActions: {
       allowedOrigins: ["localhost:3000", "127.0.0.1:3000", "192.168.50.158:3000"],
