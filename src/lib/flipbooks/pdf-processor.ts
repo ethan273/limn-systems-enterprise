@@ -173,9 +173,11 @@ export async function optimizePageImage(imageBuffer: Buffer): Promise<Buffer> {
  * Create thumbnail from page image
  */
 export async function createThumbnail(imageBuffer: Buffer): Promise<Buffer> {
+  // Preserve aspect ratio - only constrain width, let height adjust naturally
   return await sharp(imageBuffer)
-    .resize(300, 400, {
-      fit: "cover",
+    .resize(200, null, {
+      fit: "inside", // Preserve aspect ratio, no cropping
+      withoutEnlargement: true, // Don't upscale small images
     })
     .jpeg({
       quality: 80,
