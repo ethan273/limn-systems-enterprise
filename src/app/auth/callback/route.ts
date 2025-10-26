@@ -191,6 +191,8 @@ async function provisionUserProfile(
 }
 
 export async function GET(request: NextRequest) {
+  console.log('[Auth Callback] 🔵 Handler invoked - request URL:', request.url);
+
   const { searchParams, origin: rawOrigin } = new URL(request.url)
   // Fix 0.0.0.0 to localhost for browser compatibility
   const origin = rawOrigin.replace('http://0.0.0.0:', 'http://localhost:')
@@ -200,6 +202,14 @@ export async function GET(request: NextRequest) {
   const errorDescription = searchParams.get('error_description')
   const userType = searchParams.get('type')
 
+  console.log('[Auth Callback] Parameters:', {
+    code: code ? `${code.substring(0, 10)}...` : null,
+    token: token ? `${token.substring(0, 10)}...` : null,
+    error,
+    errorDescription,
+    userType
+  });
+
   // Handle OAuth errors first
   if (error) {
     return NextResponse.redirect(`${origin}/login?error=${error}&details=${encodeURIComponent(errorDescription || '')}`)
@@ -207,6 +217,7 @@ export async function GET(request: NextRequest) {
 
   // Handle magic link token (from dev login or email magic links)
   if (token && !code) {
+    console.log('[Auth Callback] 🔵 Magic link path - starting token verification');
     const cookieStore = await cookies();
 
     // Track cookies to set on response
@@ -263,10 +274,15 @@ export async function GET(request: NextRequest) {
         const userId = data.session.user.id;
         const userMetadata = data.session.user.user_metadata;
 
+        console.log('[Auth Callback] 🟢 Magic link session created - user:', userEmail, 'id:', userId);
+
         // Provision user profile (creates/updates user_profiles record)
+        console.log('[Auth Callback] 🔵 About to provision user profile for:', userEmail);
         await provisionUserProfile(userId, userEmail, userMetadata);
+        console.log('[Auth Callback] 🟢 User profile provisioning completed for:', userEmail);
 
         // Log successful login
+        console.log('[Auth Callback] 🔵 About to log login attempt for:', userEmail);
         await logLoginAttempt({
           userId,
           email: userEmail || null,
@@ -275,6 +291,7 @@ export async function GET(request: NextRequest) {
           ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
           userAgent: request.headers.get('user-agent') || undefined,
         });
+        console.log('[Auth Callback] 🟢 Login attempt logged for:', userEmail);
 
         // Determine final destination URL
         let destination = '/dashboard';
@@ -329,6 +346,7 @@ export async function GET(request: NextRequest) {
 
   // Handle OAuth code exchange
   if (code) {
+    console.log('[Auth Callback] 🔵 OAuth path - starting code exchange');
     const cookieStore = await cookies();
 
     // Track cookies to set on response
@@ -380,10 +398,15 @@ export async function GET(request: NextRequest) {
         const userId = data.session.user.id
         const userMetadata = data.session.user.user_metadata
 
+        console.log('[Auth Callback] 🟢 OAuth session created - user:', userEmail, 'id:', userId);
+
         // Provision user profile (creates/updates user_profiles record)
+        console.log('[Auth Callback] 🔵 About to provision user profile for:', userEmail);
         await provisionUserProfile(userId, userEmail, userMetadata);
+        console.log('[Auth Callback] 🟢 User profile provisioning completed for:', userEmail);
 
         // Log successful login
+        console.log('[Auth Callback] 🔵 About to log login attempt for:', userEmail);
         await logLoginAttempt({
           userId,
           email: userEmail || null,
@@ -392,6 +415,7 @@ export async function GET(request: NextRequest) {
           ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
           userAgent: request.headers.get('user-agent') || undefined,
         });
+        console.log('[Auth Callback] 🟢 Login attempt logged for:', userEmail);
 
         // Determine final destination
         let destination = '/dashboard';
@@ -460,5 +484,6 @@ export async function GET(request: NextRequest) {
   }
 
   // Return to login page if no code or other issues
+  console.log('[Auth Callback] ⚠️ Fallback path - no code or token found, redirecting to login');
   return NextResponse.redirect(`${origin}/login?error=no_code`)
 }
