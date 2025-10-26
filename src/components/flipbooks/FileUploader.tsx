@@ -213,7 +213,12 @@ export function FileUploader({
       }
     );
 
-    onUploadComplete?.(result);
+    // Pass result with cloudinaryUrl for TOC generation
+    onUploadComplete?.({
+      ...result,
+      cloudinaryUrl: cloudinaryUpload.secure_url,
+      pdfUrl: cloudinaryUpload.secure_url, // For convenience
+    });
 
     // Clear files after success
     setTimeout(() => {
