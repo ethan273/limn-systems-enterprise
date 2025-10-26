@@ -15,6 +15,7 @@ import { SortablePageList } from "@/components/flipbooks/SortablePageList";
 import { ProductPicker } from "@/components/flipbooks/ProductPicker";
 import { LinkTypeSelector } from "@/components/flipbooks/LinkTypeSelector";
 import { TOCBuilder } from "@/components/flipbooks/builder/TOCBuilder";
+import { ShareLinkManager } from "@/components/flipbooks/ShareLinkManager";
 import {
   Dialog,
   DialogContent,
@@ -431,6 +432,7 @@ function FlipbookBuilderContent() {
         <TabsList className="mb-4">
           <TabsTrigger value="pages">Pages & Hotspots</TabsTrigger>
           <TabsTrigger value="toc">Table of Contents</TabsTrigger>
+          <TabsTrigger value="share">Share & Publish</TabsTrigger>
         </TabsList>
 
         {/* Pages & Hotspots Tab */}
@@ -623,6 +625,24 @@ function FlipbookBuilderContent() {
             <div className="bg-card rounded-lg border p-8 text-center">
               <p className="text-muted-foreground">
                 Save your flipbook first to manage table of contents
+              </p>
+            </div>
+          )}
+        </TabsContent>
+
+        {/* Share & Publish Tab */}
+        <TabsContent value="share">
+          {flipbookId ? (
+            <div className="bg-card rounded-lg border p-6">
+              <ShareLinkManager
+                flipbookId={flipbookId}
+                flipbookTitle={flipbook?.title || "Flipbook"}
+              />
+            </div>
+          ) : (
+            <div className="bg-card rounded-lg border p-8 text-center">
+              <p className="text-muted-foreground">
+                Save your flipbook first to create share links
               </p>
             </div>
           )}
