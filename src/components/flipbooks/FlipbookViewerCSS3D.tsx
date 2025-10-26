@@ -16,6 +16,8 @@ interface FlipbookPage {
   page_number: number;
   image_url: string;
   thumbnail_url: string;
+  width?: number | null;   // Original page width from PDF
+  height?: number | null;  // Original page height from PDF
   hotspots?: any[];
 }
 

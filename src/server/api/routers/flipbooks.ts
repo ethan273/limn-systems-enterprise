@@ -335,6 +335,8 @@ export const flipbooksRouter = createTRPCRouter({
             updated_at: true,
             thumbnail_small_url: true,
             thumbnail_generated_at: true,
+            width: true,   // Original page width from PDF
+            height: true,  // Original page height from PDF
           },
         }),
       ]);
@@ -2102,6 +2104,8 @@ export const flipbooksRouter = createTRPCRouter({
           page_number: true,
           image_url: true,
           // page_type: true, // CRITICAL: Unsupported type - cannot select
+          width: true,   // Original page width from PDF
+          height: true,  // Original page height from PDF
         },
         orderBy: { page_number: 'asc' },
       });
