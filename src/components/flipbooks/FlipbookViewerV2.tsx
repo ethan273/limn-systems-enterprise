@@ -67,6 +67,7 @@ interface FlipbookViewerV2Props {
   onHotspotClick?: (_hotspot: FlipbookHotspot) => void;
   onClose?: () => void;
   className?: string;
+  backgroundColor?: string; // Custom background color for pages
 }
 
 /**
@@ -80,8 +81,9 @@ const Page = forwardRef<
     onHotspotClick?: (_hotspot: FlipbookHotspot) => void;
     onInternalLinkClick?: (_pageNumber: number) => void;
     onVideoClick?: (_url: string, _title?: string) => void;
+    backgroundColor?: string;
   }
->(({ page, onHotspotClick, onInternalLinkClick, onVideoClick }, ref) => {
+>(({ page, onHotspotClick, onInternalLinkClick, onVideoClick, backgroundColor = 'white' }, ref) => {
   /**
    * Handle hotspot click based on type
    */
@@ -196,14 +198,15 @@ const Page = forwardRef<
   return (
     <div
       ref={ref}
-      className="relative h-full w-full bg-white shadow-lg overflow-hidden"
+      className="relative h-full w-full shadow-lg overflow-hidden"
+      style={{ backgroundColor }}
     >
-      {/* Page Image */}
+      {/* Page Image - Fill the entire page area */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={page.image_url}
         alt={`Page ${page.page_number}`}
-        className="h-full w-full object-contain"
+        className="h-full w-full object-cover"
         draggable={false}
       />
 
@@ -261,6 +264,7 @@ export function FlipbookViewerV2({
   onHotspotClick,
   onClose,
   className,
+  backgroundColor = 'white',
 }: FlipbookViewerV2Props) {
   const flipBookRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -284,7 +288,7 @@ export function FlipbookViewerV2({
     { enabled: !!flipbookId }
   );
 
-  // Calculate book size based on container
+  // Calculate book size based on container - MAXIMIZE screen usage
   useEffect(() => {
     const updateSize = () => {
       if (!containerRef.current) return;
@@ -292,20 +296,21 @@ export function FlipbookViewerV2({
       const containerWidth = containerRef.current.clientWidth;
       const containerHeight = containerRef.current.clientHeight;
 
-      // Leave space for controls
-      const availableHeight = containerHeight - 200; // 200px for controls
-      const availableWidth = containerWidth - 100; // 100px for padding
+      // Minimal space for controls - maximize page display area
+      const availableHeight = containerHeight - 140; // Reduced from 200px
+      const availableWidth = containerWidth - 40; // Reduced from 100px - minimal padding
 
-      // Standard page aspect ratio (similar to A4)
-      const pageAspectRatio = 1 / 1.4;
+      // Use actual page dimensions if available, otherwise use full available space
+      // Two pages shown at once in spread view
+      let width = availableWidth / 2;
+      let height = availableHeight;
 
-      // Calculate dimensions that fit within available space
-      let width = availableWidth / 2; // Two pages shown at once
-      let height = width / pageAspectRatio;
-
-      if (height > availableHeight) {
-        height = availableHeight;
-        width = height * pageAspectRatio;
+      // Ensure minimum readable size
+      if (width < 400) {
+        width = 400;
+      }
+      if (height < 500) {
+        height = 500;
       }
 
       setBookSize({ width: Math.floor(width), height: Math.floor(height) });
@@ -580,9 +585,9 @@ export function FlipbookViewerV2({
                     height={bookSize.height}
                     size="stretch"
                     minWidth={300}
-                    maxWidth={1200}
-                    minHeight={420}
-                    maxHeight={1680}
+                    maxWidth={2000} // Increased from 1200 to allow larger displays
+                    minHeight={400}
+                    maxHeight={2400} // Increased from 1680 to fill larger screens
                     drawShadow={true}
                     flippingTime={1000} // 1 second page turn
                     usePortrait={false}
@@ -608,6 +613,7 @@ export function FlipbookViewerV2({
                         onHotspotClick={onHotspotClick}
                         onInternalLinkClick={goToPage}
                         onVideoClick={handleVideoClick}
+                        backgroundColor={backgroundColor}
                       />
                     ))}
                   </HTMLFlipBook>

@@ -16,6 +16,7 @@ interface FlipbookViewer3DWrapperProps {
   onHotspotClick?: (_hotspot: any) => void;
   onClose?: () => void;
   use3D?: boolean;
+  backgroundColor?: string; // Custom background color for pages
 }
 
 export function FlipbookViewer3DWrapper({
@@ -25,6 +26,7 @@ export function FlipbookViewer3DWrapper({
   onHotspotClick,
   onClose,
   use3D = true,
+  backgroundColor,
 }: FlipbookViewer3DWrapperProps) {
   // Use react-pageflip viewer by default for realistic page turning
   if (use3D) {
@@ -35,6 +37,7 @@ export function FlipbookViewer3DWrapper({
         onPageChange={onPageChange}
         onHotspotClick={onHotspotClick}
         onClose={onClose}
+        backgroundColor={backgroundColor}
       />
     );
   }
@@ -47,6 +50,7 @@ export function FlipbookViewer3DWrapper({
       onPageChange={onPageChange}
       onHotspotClick={onHotspotClick}
       onClose={onClose}
+      backgroundColor={backgroundColor}
     />
   );
 }

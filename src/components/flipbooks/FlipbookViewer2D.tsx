@@ -30,6 +30,7 @@ interface FlipbookViewer2DProps {
   onPageChange?: (_pageNumber: number) => void;
   onHotspotClick?: (_hotspot: any) => void;
   onClose?: () => void;
+  backgroundColor?: string; // Custom background color for pages
 }
 
 export function FlipbookViewer2D({
@@ -39,6 +40,7 @@ export function FlipbookViewer2D({
   onPageChange,
   onHotspotClick,
   onClose,
+  backgroundColor = 'white',
 }: FlipbookViewer2DProps) {
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [zoom, setZoom] = useState(1);
@@ -186,23 +188,24 @@ export function FlipbookViewer2D({
         </div>
       </div>
 
-      {/* Page Display */}
+      {/* Page Display - Fill screen with customizable background */}
       <div className="flex-1 overflow-auto pt-16">
-        <div className="flex items-center justify-center min-h-full p-8">
+        <div className="flex items-center justify-center min-h-full p-4">
           <div
             style={{
               transform: `scale(${zoom})`,
               transformOrigin: "center center",
               transition: "transform 0.2s ease-out",
+              backgroundColor,
             }}
-            className="relative max-w-full"
+            className="relative max-w-full shadow-2xl rounded-lg"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={currentPageData.image_url}
               alt={`Page ${currentPage}`}
-              className="max-w-full h-auto shadow-2xl rounded-lg"
-              style={{ maxHeight: "80vh" }}
+              className="w-full h-auto"
+              style={{ maxHeight: "calc(100vh - 180px)" }}
             />
 
             {/* Hotspots */}
