@@ -1402,7 +1402,9 @@ export const flipbooksRouter = createTRPCRouter({
       // Cannot nest relations in select - must fetch separately
 
       // Fetch share link base data
-      const shareLinkBase = await ctx.db.flipbook_share_links.findUnique({
+      // CRITICAL: input.token can be either the full token OR a vanity slug
+      // Try token first, then vanity_slug if not found
+      let shareLinkBase = await ctx.db.flipbook_share_links.findUnique({
         where: { token: input.token },
         select: {
           id: true,
@@ -1421,6 +1423,29 @@ export const flipbooksRouter = createTRPCRouter({
           updated_at: true,
         },
       });
+
+      // If not found by token, try vanity_slug
+      if (!shareLinkBase) {
+        shareLinkBase = await ctx.db.flipbook_share_links.findUnique({
+          where: { vanity_slug: input.token },
+          select: {
+            id: true,
+            flipbook_id: true,
+            created_by_id: true,
+            token: true,
+            vanity_slug: true,
+            label: true,
+            view_count: true,
+            unique_view_count: true,
+            last_viewed_at: true,
+            expires_at: true,
+            is_active: true,
+            settings: true,
+            created_at: true,
+            updated_at: true,
+          },
+        });
+      }
 
       if (!shareLinkBase) {
         throw new TRPCError({
