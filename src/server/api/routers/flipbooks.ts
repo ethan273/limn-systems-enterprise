@@ -32,6 +32,7 @@ const updateFlipbookInput = z.object({
   id: z.string().uuid(),
   title: z.string().min(1).max(255).optional(),
   description: z.string().optional(),
+  pdf_source_url: z.string().url().optional(),
   // FIXME: status field is Unsupported("flipbook_status") in Prisma schema - cannot be used
   // status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]).optional(),
 });
@@ -575,13 +576,13 @@ export const flipbooksRouter = createTRPCRouter({
   deletePage: protectedProcedure
     .input(z.object({ pageId: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      // Get page with flipbook info for permission check
-      // CRITICAL: Must use explicit select (not include) due to Unsupported page_type field
+      // CRITICAL FIX: Cannot use select with relations due to Unsupported page_type field
+      // Query in 2 steps: page first, then check flipbook ownership
       const page = await ctx.db.flipbook_pages.findUnique({
         where: { id: input.pageId },
         select: {
           id: true,
-          flipbooks: { select: { created_by_id: true } },
+          flipbook_id: true,
         },
       });
 
@@ -592,7 +593,13 @@ export const flipbooksRouter = createTRPCRouter({
         });
       }
 
-      if (page.flipbooks.created_by_id !== ctx.session.user.id) {
+      // Check flipbook ownership separately
+      const flipbook = await ctx.db.flipbooks.findUnique({
+        where: { id: page.flipbook_id },
+        select: { created_by_id: true },
+      });
+
+      if (!flipbook || flipbook.created_by_id !== ctx.session.user.id) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You do not have permission to delete this page",
@@ -651,7 +658,8 @@ export const flipbooksRouter = createTRPCRouter({
   createHotspot: protectedProcedure
     .input(z.object({
       pageId: z.string().uuid(),
-      productId: z.string().uuid(),
+      productId: z.string().uuid().optional(),
+      targetUrl: z.string().url().optional(),
       xPercent: z.number().min(0).max(100),
       yPercent: z.number().min(0).max(100),
       width: z.number().min(1).max(100).default(10),
@@ -659,33 +667,48 @@ export const flipbooksRouter = createTRPCRouter({
       label: z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
-      // Check permissions via page
-      // CRITICAL: Must use explicit select (not include) due to Unsupported page_type field
+      // CRITICAL FIX: Cannot use select with relations due to Unsupported page_type field
+      // Query in 2 steps: page first, then check flipbook ownership
       const page = await ctx.db.flipbook_pages.findUnique({
         where: { id: input.pageId },
         select: {
           id: true,
-          flipbooks: { select: { created_by_id: true } },
+          flipbook_id: true,
         },
       });
 
-      if (!page || page.flipbooks.created_by_id !== ctx.session.user.id) {
+      if (!page) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Page not found",
+        });
+      }
+
+      // Check flipbook ownership separately
+      const flipbook = await ctx.db.flipbooks.findUnique({
+        where: { id: page.flipbook_id },
+        select: { created_by_id: true },
+      });
+
+      if (!flipbook || flipbook.created_by_id !== ctx.session.user.id) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You do not have permission to add hotspots",
         });
       }
 
-      // CRITICAL: Must use explicit select (not include) due to Unsupported hotspot_type field
+      // CRITICAL: Cannot set hotspot_type - it's Unsupported in Prisma
+      // Database will use default value from schema
       const hotspot = await ctx.db.hotspots.create({
         data: {
           page_id: input.pageId,
-          hotspot_type: "PRODUCT_LINK",
+          // hotspot_type: "PRODUCT_LINK", // REMOVED: Unsupported type
           x_position: input.xPercent,
           y_position: input.yPercent,
           width: input.width,
           height: input.height,
-          target_product_id: input.productId,
+          target_product_id: input.productId || null,
+          target_url: input.targetUrl || null,
         },
         select: {
           id: true,
@@ -790,22 +813,43 @@ export const flipbooksRouter = createTRPCRouter({
   deleteHotspot: protectedProcedure
     .input(z.object({ hotspotId: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      // Check permissions
-      // CRITICAL: Must use explicit select (not include) due to Unsupported hotspot_type field
+      // CRITICAL FIX: Cannot use nested select with relations due to Unsupported fields
+      // Query in 3 steps: hotspot -> page -> flipbook
       const hotspot = await ctx.db.hotspots.findUnique({
         where: { id: input.hotspotId },
         select: {
           id: true,
-          flipbook_pages: {
-            select: {
-              id: true,
-              flipbooks: { select: { created_by_id: true } },
-            },
-          },
+          page_id: true,
         },
       });
 
-      if (!hotspot || hotspot.flipbook_pages.flipbooks.created_by_id !== ctx.session.user.id) {
+      if (!hotspot) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Hotspot not found",
+        });
+      }
+
+      // Get page to find flipbook_id
+      const page = await ctx.db.flipbook_pages.findUnique({
+        where: { id: hotspot.page_id },
+        select: { flipbook_id: true },
+      });
+
+      if (!page) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Page not found",
+        });
+      }
+
+      // Check flipbook ownership
+      const flipbook = await ctx.db.flipbooks.findUnique({
+        where: { id: page.flipbook_id },
+        select: { created_by_id: true },
+      });
+
+      if (!flipbook || flipbook.created_by_id !== ctx.session.user.id) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You do not have permission to delete this hotspot",
