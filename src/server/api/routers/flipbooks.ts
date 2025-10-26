@@ -333,10 +333,28 @@ export const flipbooksRouter = createTRPCRouter({
           })
         : [];
 
+      // Transform hotspots to extract label from popup_content
+      type HotspotWithLabel = typeof allHotspots[0] & { label?: string };
+      const transformedHotspots: HotspotWithLabel[] = allHotspots.map(hotspot => {
+        let label: string | undefined;
+        if (hotspot.popup_content) {
+          try {
+            const content = JSON.parse(hotspot.popup_content as string);
+            label = content.label;
+          } catch (e) {
+            // Invalid JSON, ignore
+          }
+        }
+        return {
+          ...hotspot,
+          label,
+        };
+      });
+
       // Attach hotspots to their respective pages
-      const pagesWithHotspots: (typeof pages[0] & { hotspots: typeof allHotspots })[] = pages.map(page => ({
+      const pagesWithHotspots: (typeof pages[0] & { hotspots: HotspotWithLabel[] })[] = pages.map(page => ({
         ...page,
-        hotspots: allHotspots.filter(h => h.page_id === page.id),
+        hotspots: transformedHotspots.filter(h => h.page_id === page.id),
       }));
 
       // Combine results
@@ -660,6 +678,7 @@ export const flipbooksRouter = createTRPCRouter({
       pageId: z.string().uuid(),
       productId: z.string().uuid().optional(),
       targetUrl: z.string().url().optional(),
+      targetPageId: z.string().uuid().optional(),
       xPercent: z.number().min(0).max(100),
       yPercent: z.number().min(0).max(100),
       width: z.number().min(1).max(100).default(10),
@@ -709,6 +728,8 @@ export const flipbooksRouter = createTRPCRouter({
           height: input.height,
           target_product_id: input.productId || null,
           target_url: input.targetUrl || null,
+          target_page: input.targetPageId || null,
+          popup_content: input.label ? JSON.stringify({ label: input.label }) : null,
         },
         select: {
           id: true,

@@ -13,6 +13,7 @@ import { FileUploader } from "@/components/flipbooks/FileUploader";
 import { PageCanvas } from "@/components/flipbooks/PageCanvas";
 import { SortablePageList } from "@/components/flipbooks/SortablePageList";
 import { ProductPicker } from "@/components/flipbooks/ProductPicker";
+import { LinkTypeSelector } from "@/components/flipbooks/LinkTypeSelector";
 import { TOCBuilder } from "@/components/flipbooks/builder/TOCBuilder";
 import {
   Dialog,
@@ -46,6 +47,7 @@ function FlipbookBuilderContent() {
   const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [uploadType, setUploadType] = useState<"pdf" | "images">("pdf");
+  const [linkTypeSelectorOpen, setLinkTypeSelectorOpen] = useState(false);
   const [productPickerOpen, setProductPickerOpen] = useState(false);
   const [pendingHotspot, setPendingHotspot] = useState<any>(null);
   const [title, setTitle] = useState("");
@@ -187,16 +189,65 @@ function FlipbookBuilderContent() {
     deletePage.mutate({ pageId });
   };
 
-  // Handle hotspot creation - open product picker
+  // Handle hotspot creation - open link type selector
   const handleHotspotCreate = (hotspot: any) => {
     if (!selectedPageId) {
       toast.error("Please select a page first");
       return;
     }
 
-    // Store pending hotspot data and open product picker
+    // Store pending hotspot data and open link type selector
     setPendingHotspot(hotspot);
+    setLinkTypeSelectorOpen(true);
+  };
+
+  // Handle link type: Product selection
+  const handleLinkTypeProduct = () => {
+    setLinkTypeSelectorOpen(false);
     setProductPickerOpen(true);
+  };
+
+  // Handle link type: URL (external or video)
+  const handleLinkTypeUrl = (url: string, label?: string) => {
+    if (!pendingHotspot || !selectedPageId) return;
+
+    createHotspot.mutate({
+      pageId: selectedPageId,
+      targetUrl: url,
+      label,
+      xPercent: pendingHotspot.xPercent,
+      yPercent: pendingHotspot.yPercent,
+      width: pendingHotspot.width,
+      height: pendingHotspot.height,
+    });
+
+    setLinkTypeSelectorOpen(false);
+    setPendingHotspot(null);
+  };
+
+  // Handle link type: Page jump
+  const handleLinkTypePage = (pageNumber: number) => {
+    if (!pendingHotspot || !selectedPageId) return;
+
+    // Find the page by page_number to get its ID
+    const targetPage = flipbook?.flipbook_pages?.find((p: any) => p.page_number === pageNumber);
+    if (!targetPage) {
+      toast.error(`Page ${pageNumber} not found`);
+      return;
+    }
+
+    createHotspot.mutate({
+      pageId: selectedPageId,
+      targetPageId: targetPage.id,
+      label: `Go to page ${pageNumber}`,
+      xPercent: pendingHotspot.xPercent,
+      yPercent: pendingHotspot.yPercent,
+      width: pendingHotspot.width,
+      height: pendingHotspot.height,
+    });
+
+    setLinkTypeSelectorOpen(false);
+    setPendingHotspot(null);
   };
 
   // Handle product selection from picker
@@ -212,6 +263,7 @@ function FlipbookBuilderContent() {
       height: pendingHotspot.height,
     });
 
+    setProductPickerOpen(false);
     setPendingHotspot(null);
   };
 
@@ -492,6 +544,19 @@ function FlipbookBuilderContent() {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Link Type Selector Dialog */}
+      <LinkTypeSelector
+        open={linkTypeSelectorOpen}
+        onClose={() => {
+          setLinkTypeSelectorOpen(false);
+          setPendingHotspot(null);
+        }}
+        onSelectProduct={handleLinkTypeProduct}
+        onSelectUrl={handleLinkTypeUrl}
+        onSelectPage={handleLinkTypePage}
+        totalPages={flipbook?.page_count || flipbook?.flipbook_pages?.length || 1}
+      />
 
       {/* Product Picker Dialog */}
       <ProductPicker
