@@ -375,13 +375,29 @@ export function FlipbookViewerV2({
         }
       }
 
-      const finalWidth = Math.floor(width);
-      const finalHeight = Math.floor(height);
+      // CRITICAL: HTMLFlipBook with usePortrait=false shows TWO pages side-by-side
+      // So the actual rendered width is width × 2. We need to account for this.
+      let finalWidth = Math.floor(width);
+      let finalHeight = Math.floor(height);
+
+      // If showing 2-page spread (landscape), ensure total width fits
+      if (!isPortrait) {
+        const totalSpreadWidth = finalWidth * 2;
+        if (totalSpreadWidth > availableWidth) {
+          // Scale down to fit
+          finalWidth = Math.floor(availableWidth / 2);
+          finalHeight = Math.floor(finalWidth / aspectRatio);
+        }
+      }
+
+      const actualRenderedWidth = isPortrait ? finalWidth : finalWidth * 2;
 
       console.log('[FlipbookViewerV2] Final book size:', {
         width: finalWidth,
         height: finalHeight,
-        fitsInWidth: finalWidth <= availableWidth,
+        isPortrait,
+        actualRenderedWidth,
+        fitsInWidth: actualRenderedWidth <= availableWidth,
         fitsInHeight: finalHeight <= availableHeight,
       });
 
