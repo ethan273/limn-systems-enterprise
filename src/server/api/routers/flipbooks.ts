@@ -183,7 +183,8 @@ export const flipbooksRouter = createTRPCRouter({
             toc_auto_generated: true,
             toc_last_updated: true,
             navigation_settings: true,
-            analytics_events: true,
+            // CRITICAL FIX: Cannot select analytics_events - it's a relation array, not a field
+            // Removed to prevent "column flipbooks.analytics_events does not exist" error
             user_profiles: {
               select: {
                 id: true,
@@ -1418,7 +1419,8 @@ export const flipbooksRouter = createTRPCRouter({
           toc_auto_generated: true,
           toc_last_updated: true,
           navigation_settings: true,
-          analytics_events: true,
+          // CRITICAL FIX: Cannot select analytics_events - it's a relation array, not a field
+          // Removed to prevent "column flipbooks.analytics_events does not exist" error
         },
       });
 
