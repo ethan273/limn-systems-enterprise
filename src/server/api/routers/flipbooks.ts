@@ -1654,9 +1654,44 @@ export const flipbooksRouter = createTRPCRouter({
     }),
 
   /**
-   * Track a share link view
+   * Verify password for a share link (PUBLIC endpoint)
    */
-  trackShareLinkView: protectedProcedure
+  verifyShareLinkPassword: publicProcedure
+    .input(z.object({
+      token: z.string(),
+      password: z.string(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // Fetch share link
+      const shareLink = await ctx.db.flipbook_share_links.findUnique({
+        where: { token: input.token },
+        select: { settings: true },
+      });
+
+      if (!shareLink) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Share link not found",
+        });
+      }
+
+      // Check if password protection is enabled
+      const settings = shareLink.settings as any;
+      if (!settings?.password) {
+        // No password set, access granted
+        return { verified: true };
+      }
+
+      // Verify password using bcrypt
+      const isValid = await bcrypt.compare(input.password, settings.password);
+
+      return { verified: isValid };
+    }),
+
+  /**
+   * Track a share link view (PUBLIC endpoint - anyone can track views)
+   */
+  trackShareLinkView: publicProcedure
     .input(
       z.object({
         token: z.string(),

@@ -70,11 +70,11 @@ export default function Sidebar() {
  "CRM": pathname.startsWith('/crm'),
  "Partners": pathname.startsWith('/partners'),
  "Design": pathname.startsWith('/design'),
+ "Marketing": pathname.startsWith('/flipbooks'),
  "Products": pathname.startsWith('/products'),
  "Production": pathname.startsWith('/production'),
  "Finance": pathname.startsWith('/finance'),
- "Admin": pathname.startsWith('/admin'),
- "Flipbooks": pathname.startsWith('/flipbooks')
+ "Admin": pathname.startsWith('/admin')
  });
 
  useEffect(() => {
@@ -84,13 +84,13 @@ export default function Sidebar() {
  "CRM": pathname.startsWith('/crm'),
  "Partners": pathname.startsWith('/partners'),
  "Design": pathname.startsWith('/design'),
+ "Marketing": pathname.startsWith('/flipbooks'),
  "Products": pathname.startsWith('/products'),
  "Production": pathname.startsWith('/production'),
  "Shipping": pathname.startsWith('/shipping'),
  "Finance": pathname.startsWith('/finance') || pathname.startsWith('/financials'),
  "Admin": pathname.startsWith('/admin'),
- "Documents": pathname.startsWith('/documents'),
- "Flipbooks": pathname.startsWith('/flipbooks')
+ "Documents": pathname.startsWith('/documents')
  });
  }, [pathname]);
 
@@ -171,6 +171,16 @@ export default function Sidebar() {
  { label: "Documents", href: "/design/documents" },
  ]
  },
+ // Marketing module (Flipbooks) - only visible when feature flag is enabled
+ ...(features.flipbooks ? [{
+ label: "Marketing",
+ icon: BookOpen,
+ items: [
+ { label: "Flipbook Library", href: "/flipbooks" },
+ { label: "Flipbook Builder", href: "/flipbooks/builder" },
+ { label: "Flipbook Analytics", href: "/flipbooks/analytics" },
+ ]
+ }] : []),
  {
  label: "Products",
  icon: Package,
@@ -223,16 +233,6 @@ export default function Sidebar() {
  { label: "All Documents", href: "/documents" },
  ]
  },
- // Flipbooks module - only visible when feature flag is enabled
- ...(features.flipbooks ? [{
- label: "Flipbooks",
- icon: BookOpen,
- items: [
- { label: "Library", href: "/flipbooks" },
- { label: "Builder", href: "/flipbooks/builder" },
- { label: "Analytics", href: "/flipbooks/analytics" },
- ]
- }] : []),
  {
  label: "Admin",
  icon: Shield,
