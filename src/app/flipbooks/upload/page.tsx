@@ -152,7 +152,7 @@ export default function FlipbookUploadPage() {
           let errorMessage;
           try {
             const error = JSON.parse(responseText);
-            errorMessage = error.error || `Failed to upload pages ${i + 1}-${i + batchBlobs.length}`;
+            errorMessage = error.error || `Failed to upload pages ${i + 1}-${i + batchResults.length}`;
           } catch {
             errorMessage = `Server returned ${batchResponse.status}: ${responseText.substring(0, 100)}`;
           }
