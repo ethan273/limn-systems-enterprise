@@ -62,6 +62,7 @@ export async function middleware(request: NextRequest) {
     '/auth/',           // All auth routes (callback, dev, employee, establish-session, etc.)
     '/api/auth',
     '/portal/login',
+    '/s/',              // Share links (e.g., /s/token or /s/vanity-slug)
     '/share',
     '/manifest.json',
     '/favicon',
