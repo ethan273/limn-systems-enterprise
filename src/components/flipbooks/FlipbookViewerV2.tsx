@@ -305,9 +305,15 @@ export function FlipbookViewerV2({
       const containerWidth = containerRef.current.clientWidth;
       const containerHeight = containerRef.current.clientHeight;
 
-      // Minimal space for controls - maximize page display area
-      const availableHeight = containerHeight - 140; // Reduced from 200px
-      const availableWidth = containerWidth - 40; // Reduced from 100px - minimal padding
+      // Account for ALL space used by controls and padding
+      // p-8 = 32px padding on each side = 64px total
+      // Top controls: ~60px, Bottom controls: ~80px
+      const paddingTotal = 64; // p-8 padding (32px each side)
+      const topControlsHeight = 60;
+      const bottomControlsHeight = 80;
+
+      const availableHeight = containerHeight - topControlsHeight - bottomControlsHeight - paddingTotal;
+      const availableWidth = containerWidth - paddingTotal;
 
       // Calculate aspect ratio from first page with dimensions
       const firstPageWithDimensions = pages.find(p => p.width && p.height);
@@ -318,10 +324,14 @@ export function FlipbookViewerV2({
         ? pageWidth / pageHeight
         : 2 / 2.8; // Default portrait ratio
 
-      console.log('[FlipbookViewerV2] Page dimensions:', {
+      console.log('[FlipbookViewerV2] Container and page info:', {
+        containerWidth,
+        containerHeight,
+        availableWidth,
+        availableHeight,
         hasActualDimensions,
-        width: pageWidth,
-        height: pageHeight,
+        pageWidth,
+        pageHeight,
         aspectRatio,
       });
 
@@ -365,7 +375,17 @@ export function FlipbookViewerV2({
         }
       }
 
-      setBookSize({ width: Math.floor(width), height: Math.floor(height) });
+      const finalWidth = Math.floor(width);
+      const finalHeight = Math.floor(height);
+
+      console.log('[FlipbookViewerV2] Final book size:', {
+        width: finalWidth,
+        height: finalHeight,
+        fitsInWidth: finalWidth <= availableWidth,
+        fitsInHeight: finalHeight <= availableHeight,
+      });
+
+      setBookSize({ width: finalWidth, height: finalHeight });
     };
 
     updateSize();
