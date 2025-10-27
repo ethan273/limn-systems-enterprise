@@ -98,6 +98,13 @@ export const auditRouter = createTRPCRouter({
         ctx.db.admin_audit_log.count({ where }),
       ]);
 
+      // DEBUG: Log what we're returning
+      console.log('[AUDIT API] getAdminLogs returning:', {
+        count: logs.length,
+        total,
+        sample: logs.slice(0, 2).map(l => ({ action: l.action, user: l.user_email, date: l.created_at }))
+      });
+
       return {
         logs: logs.map((log) => ({
           id: log.id,
