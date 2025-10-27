@@ -11,7 +11,7 @@
     "no-console": "off",
     "react/no-unescaped-entities": "warn",
     "import/no-anonymous-default-export": "warn",
-    "security/detect-object-injection": "warn",
+    "security/detect-object-injection": "off", // Disabled: produces too many false positives with TypeScript type-safe code
     "security/detect-non-literal-regexp": "warn",
     "security/detect-unsafe-regex": "error",
     "security/detect-buffer-noassert": "error",
