@@ -26,17 +26,16 @@ const handler = (req: NextRequest) =>
     batching: {
       enabled: true,
     },
-    onError:
-      process.env.NODE_ENV === 'development'
-        ? ({ path, error }) => {
-            // Suppress expected UNAUTHORIZED errors to reduce console noise
-            if (error.code !== 'UNAUTHORIZED' && error.message !== 'UNAUTHORIZED') {
-              console.error(
-                `❌ tRPC failed on ${path ?? '<no-path>'}: ${error.message}`
-              );
-            }
-          }
-        : undefined,
+    onError: ({ path, error }) => {
+      // CRITICAL: Log errors in ALL environments (production included)
+      // Suppress expected UNAUTHORIZED errors to reduce console noise
+      if (error.code !== 'UNAUTHORIZED' && error.message !== 'UNAUTHORIZED') {
+        console.error(
+          `❌ tRPC failed on ${path ?? '<no-path>'}: ${error.message}`,
+          error.cause ? `\nCause: ${JSON.stringify(error.cause)}` : ''
+        );
+      }
+    },
   });
 
 export { handler as GET, handler as POST };

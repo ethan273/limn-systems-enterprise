@@ -44,7 +44,7 @@ export default function ActivityLogsPage() {
     pageSize: 50,
   });
 
-  const { data: adminLogs, isLoading: isLoadingAdmin } =
+  const { data: adminLogs, isLoading: isLoadingAdmin, error: adminError } =
     api.audit.getAdminLogs.useQuery(
       {
         ...queryParams,
@@ -53,7 +53,7 @@ export default function ActivityLogsPage() {
       { enabled: activeTab === 'admin', refetchOnMount: 'always', refetchOnWindowFocus: true, staleTime: 0, gcTime: 0 }
     );
 
-  const { data: securityLogs, isLoading: isLoadingSecurity } =
+  const { data: securityLogs, isLoading: isLoadingSecurity, error: securityError } =
     api.audit.getSecurityLogs.useQuery(
       {
         ...queryParams,
@@ -62,7 +62,7 @@ export default function ActivityLogsPage() {
       { enabled: activeTab === 'security', refetchOnMount: 'always', refetchOnWindowFocus: true, staleTime: 0, gcTime: 0 }
     );
 
-  const { data: loginLogs, isLoading: isLoadingLogin } =
+  const { data: loginLogs, isLoading: isLoadingLogin, error: loginError } =
     api.audit.getLoginLogs.useQuery(
       {
         ...queryParams,
@@ -70,7 +70,7 @@ export default function ActivityLogsPage() {
       { enabled: activeTab === 'login', refetchOnMount: 'always', refetchOnWindowFocus: true, staleTime: 0, gcTime: 0 }
     );
 
-  const { data: stats } = api.audit.getActivityStats.useQuery({ days: 30 }, { refetchOnMount: 'always', refetchOnWindowFocus: true, staleTime: 0, gcTime: 0 });
+  const { data: stats, error: statsError } = api.audit.getActivityStats.useQuery({ days: 30 }, { refetchOnMount: 'always', refetchOnWindowFocus: true, staleTime: 0, gcTime: 0 });
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
@@ -280,6 +280,17 @@ export default function ActivityLogsPage() {
         ]}
       />
 
+      {statsError && (
+        <Card className="border-destructive">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2 text-destructive">
+              <Activity className="h-5 w-5" />
+              <span>Failed to load activity statistics: {statsError.message}</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <StatsGrid stats={statsData} columns={4} />
 
       {/* Filters - New Unified System */}
@@ -314,7 +325,13 @@ export default function ActivityLogsPage() {
             </TabsList>
 
             <TabsContent value="admin">
-              {isLoadingAdmin ? (
+              {adminError ? (
+                <EmptyState
+                  icon={Activity}
+                  title="Failed to load admin logs"
+                  description={adminError.message || 'An error occurred while loading admin logs'}
+                />
+              ) : isLoadingAdmin ? (
                 <LoadingState message="Loading admin logs..." />
               ) : !adminLogs?.logs || adminLogs.logs.length === 0 ? (
                 <EmptyState
@@ -339,7 +356,13 @@ export default function ActivityLogsPage() {
             </TabsContent>
 
             <TabsContent value="security">
-              {isLoadingSecurity ? (
+              {securityError ? (
+                <EmptyState
+                  icon={Shield}
+                  title="Failed to load security logs"
+                  description={securityError.message || 'An error occurred while loading security logs'}
+                />
+              ) : isLoadingSecurity ? (
                 <LoadingState message="Loading security logs..." />
               ) : !securityLogs?.logs || securityLogs.logs.length === 0 ? (
                 <EmptyState
@@ -364,7 +387,13 @@ export default function ActivityLogsPage() {
             </TabsContent>
 
             <TabsContent value="login">
-              {isLoadingLogin ? (
+              {loginError ? (
+                <EmptyState
+                  icon={LogIn}
+                  title="Failed to load login logs"
+                  description={loginError.message || 'An error occurred while loading login logs'}
+                />
+              ) : isLoadingLogin ? (
                 <LoadingState message="Loading login logs..." />
               ) : !loginLogs?.logs || loginLogs.logs.length === 0 ? (
                 <EmptyState
