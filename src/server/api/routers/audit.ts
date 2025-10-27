@@ -466,4 +466,260 @@ export const auditRouter = createTRPCRouter({
         lastLoginAt: lastLogin?.login_time,
       };
     }),
+
+  // ==================
+  // SECURITY EVENTS (NEW - Phase 4)
+  // ==================
+
+  /**
+   * Get unified security events from all audit tables
+   */
+  getSecurityEvents: protectedProcedure
+    .input(
+      z.object({
+        search: z.string().optional(),
+        severity: z.enum(['info', 'low', 'medium', 'high', 'critical']).optional(),
+        category: z.string().optional(),
+        userId: z.string().uuid().optional(),
+        dateRange: dateRangeSchema.optional(),
+        limit: z.number().min(1).max(100).default(50),
+        offset: z.number().min(0).default(0),
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      const { search, severity, category, userId, dateRange, limit, offset } = input;
+
+      // Build where clause for admin_security_events
+      const where: any = {};
+
+      if (userId) {
+        where.user_id = userId;
+      }
+
+      if (severity) {
+        where.severity = severity;
+      }
+
+      if (dateRange) {
+        where.created_at = {};
+        if (dateRange.from) {
+          where.created_at.gte = dateRange.from;
+        }
+        if (dateRange.to) {
+          where.created_at.lte = dateRange.to;
+        }
+      }
+
+      // Fetch from admin_security_events (high/critical severity events)
+      const [events, total] = await Promise.all([
+        ctx.db.admin_security_events.findMany({
+          where,
+          take: limit,
+          skip: offset,
+          orderBy: { created_at: 'desc' },
+          include: {
+            users: {
+              select: {
+                id: true,
+                email: true,
+              },
+            },
+          },
+        }),
+        ctx.db.admin_security_events.count({ where }),
+      ]);
+
+      return {
+        events: events.map((event) => ({
+          id: event.id,
+          eventType: event.event_type,
+          userId: event.user_id,
+          userEmail: event.users?.email,
+          ipAddress: event.ip_address,
+          userAgent: event.user_agent,
+          metadata: event.metadata,
+          severity: event.severity,
+          createdAt: event.created_at,
+        })),
+        total,
+        hasMore: offset + limit < total,
+      };
+    }),
+
+  /**
+   * Get security event statistics for dashboard
+   */
+  getSecurityEventStats: protectedProcedure
+    .input(
+      z.object({
+        days: z.number().min(1).max(90).default(30),
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      const { days } = input;
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
+
+      const [
+        totalEvents,
+        criticalEvents,
+        highEvents,
+        permissionDenials,
+        roleChanges,
+        failedLogins,
+      ] = await Promise.all([
+        ctx.db.security_audit_log.count({
+          where: { event_time: { gte: startDate } },
+        }),
+        ctx.db.admin_security_events.count({
+          where: {
+            created_at: { gte: startDate },
+            severity: 'critical',
+          },
+        }),
+        ctx.db.admin_security_events.count({
+          where: {
+            created_at: { gte: startDate },
+            severity: 'high',
+          },
+        }),
+        ctx.db.security_audit_log.count({
+          where: {
+            event_time: { gte: startDate },
+            action: { contains: 'permission_denied' },
+          },
+        }),
+        ctx.db.security_audit_log.count({
+          where: {
+            event_time: { gte: startDate },
+            action: { contains: 'role_change' },
+          },
+        }),
+        ctx.db.sso_login_audit.count({
+          where: {
+            login_time: { gte: startDate },
+            success: false,
+          },
+        }),
+      ]);
+
+      // Get severity distribution
+      const severityDistribution = await ctx.db.admin_security_events.groupBy({
+        by: ['severity'],
+        where: {
+          created_at: { gte: startDate },
+        },
+        _count: true,
+      });
+
+      // Get top users by security events
+      const topUsers = await ctx.db.admin_security_events.groupBy({
+        by: ['user_id'],
+        where: {
+          created_at: { gte: startDate },
+          user_id: { not: null },
+        },
+        _count: true,
+        orderBy: {
+          _count: {
+            user_id: 'desc',
+          },
+        },
+        take: 10,
+      });
+
+      // Get user details for top users
+      const userIds = topUsers.map((u) => u.user_id).filter((id): id is string => id !== null);
+      const users = await ctx.db.users.findMany({
+        where: { id: { in: userIds } },
+        select: { id: true, email: true },
+      });
+      const userMap = new Map(users.map((u) => [u.id, u.email]));
+
+      return {
+        totalEvents,
+        criticalEvents,
+        highEvents,
+        permissionDenials,
+        roleChanges,
+        failedLogins,
+        severityDistribution: severityDistribution.map((item) => ({
+          severity: item.severity || 'unknown',
+          count: item._count,
+        })),
+        topUsers: topUsers.map((item) => ({
+          userId: item.user_id,
+          userEmail: item.user_id ? userMap.get(item.user_id) : undefined,
+          count: item._count,
+        })),
+      };
+    }),
+
+  /**
+   * Export security events to CSV
+   */
+  exportSecurityEvents: protectedProcedure
+    .input(
+      z.object({
+        dateRange: dateRangeSchema.optional(),
+        severity: z.enum(['info', 'low', 'medium', 'high', 'critical']).optional(),
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      const { dateRange, severity } = input;
+
+      const where: any = {};
+
+      if (severity) {
+        where.severity = severity;
+      }
+
+      if (dateRange) {
+        where.created_at = {};
+        if (dateRange.from) {
+          where.created_at.gte = dateRange.from;
+        }
+        if (dateRange.to) {
+          where.created_at.lte = dateRange.to;
+        }
+      }
+
+      const events = await ctx.db.admin_security_events.findMany({
+        where,
+        orderBy: { created_at: 'desc' },
+        take: 10000, // Max 10k records for export
+        include: {
+          users: {
+            select: {
+              email: true,
+            },
+          },
+        },
+      });
+
+      // Convert to CSV format
+      const csvRows = [
+        // Header
+        ['ID', 'Event Type', 'User Email', 'IP Address', 'Severity', 'Created At', 'Metadata'].join(','),
+        // Data rows
+        ...events.map((event) =>
+          [
+            event.id,
+            event.event_type,
+            event.users?.email || '',
+            event.ip_address || '',
+            event.severity || '',
+            event.created_at?.toISOString() || '',
+            JSON.stringify(event.metadata || {}),
+          ]
+            .map((field) => `"${String(field).replace(/"/g, '""')}"`)
+            .join(',')
+        ),
+      ];
+
+      return {
+        csv: csvRows.join('\n'),
+        count: events.length,
+      };
+    }),
 });

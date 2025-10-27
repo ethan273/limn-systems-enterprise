@@ -1,7 +1,10 @@
 /**
  * Permission Gate Components
  *
- * Conditionally render UI elements based on user roles and permissions
+ * Conditionally render UI elements based on user roles and permissions.
+ *
+ * Note: Permission denials are automatically logged to the security audit trail
+ * when server-side permission checks are performed via the RBAC service.
  *
  * @example
  * <RequireRole role={SYSTEM_ROLES.ADMIN}>

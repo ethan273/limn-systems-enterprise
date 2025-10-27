@@ -4,10 +4,18 @@
  * Complete implementation of RBAC using user_roles table.
  * Industry-standard permission management system.
  *
+ * Includes integrated security event logging for audit trail.
+ *
  * @see /limn-systems-enterprise-docs/07-DEVELOPMENT-GUIDES/RBAC-SYSTEM.md
  */
 
 import { PrismaClient } from '@prisma/client';
+import {
+  logPermissionDenial,
+  logRoleChange,
+  logSecurityEvent,
+} from './security-events-service';
+import { SecurityEventType } from './security-events-types';
 
 const prisma = new PrismaClient();
 
@@ -300,10 +308,37 @@ export async function getUserPermissions(userId: string): Promise<Permission[]> 
 
 /**
  * Check if user has a specific permission
+ *
+ * Logs permission denials to audit trail for security monitoring.
  */
-export async function hasPermission(userId: string, permission: Permission): Promise<boolean> {
-  const permissions = await getUserPermissions(userId);
-  return permissions.includes(permission);
+export async function hasPermission(userId: string, permission: Permission, options?: {
+  resource?: string;
+  action?: string;
+  ipAddress?: string;
+  userAgent?: string;
+}): Promise<boolean> {
+  const [permissions, roles] = await Promise.all([
+    getUserPermissions(userId),
+    getUserRoles(userId),
+  ]);
+
+  const hasAccess = permissions.includes(permission);
+
+  // Log permission denial for audit trail
+  if (!hasAccess) {
+    await logPermissionDenial({
+      userId,
+      requiredPermission: permission,
+      resource: options?.resource || 'system',
+      action: options?.action || 'access',
+      userRoles: roles,
+      userPermissions: permissions,
+      ipAddress: options?.ipAddress,
+      userAgent: options?.userAgent,
+    });
+  }
+
+  return hasAccess;
 }
 
 /**
@@ -328,8 +363,19 @@ export async function hasAllPermissions(userId: string, permissions: Permission[
 
 /**
  * Assign a role to a user
+ *
+ * Logs role changes to audit trail for compliance.
  */
-export async function assignRole(userId: string, role: SystemRole): Promise<void> {
+export async function assignRole(userId: string, role: SystemRole, options?: {
+  performedBy?: string;
+  performedByEmail?: string;
+  reason?: string;
+  ipAddress?: string;
+  userAgent?: string;
+}): Promise<void> {
+  // Get current roles before change
+  const oldRoles = await getUserRoles(userId);
+
   // Check if role already assigned
   const existing = await prisma.user_roles.findFirst({
     where: {
@@ -348,24 +394,76 @@ export async function assignRole(userId: string, role: SystemRole): Promise<void
       role: role,
     },
   });
+
+  // Get new roles after change
+  const newRoles = [...oldRoles, role];
+
+  // Log role change
+  await logRoleChange({
+    targetUserId: userId,
+    performedBy: options?.performedBy || userId,
+    performedByEmail: options?.performedByEmail,
+    oldRoles,
+    newRoles,
+    reason: options?.reason || `Assigned role: ${role}`,
+    ipAddress: options?.ipAddress,
+    userAgent: options?.userAgent,
+  });
 }
 
 /**
  * Remove a role from a user
+ *
+ * Logs role changes to audit trail for compliance.
  */
-export async function removeRole(userId: string, role: SystemRole): Promise<void> {
+export async function removeRole(userId: string, role: SystemRole, options?: {
+  performedBy?: string;
+  performedByEmail?: string;
+  reason?: string;
+  ipAddress?: string;
+  userAgent?: string;
+}): Promise<void> {
+  // Get current roles before change
+  const oldRoles = await getUserRoles(userId);
+
   await prisma.user_roles.deleteMany({
     where: {
       user_id: userId,
       role: role,
     },
   });
+
+  // Get new roles after change
+  const newRoles = oldRoles.filter((r) => r !== role);
+
+  // Log role change
+  await logRoleChange({
+    targetUserId: userId,
+    performedBy: options?.performedBy || userId,
+    performedByEmail: options?.performedByEmail,
+    oldRoles,
+    newRoles,
+    reason: options?.reason || `Removed role: ${role}`,
+    ipAddress: options?.ipAddress,
+    userAgent: options?.userAgent,
+  });
 }
 
 /**
  * Set user's roles (replaces all existing roles)
+ *
+ * Logs role changes to audit trail for compliance.
  */
-export async function setUserRoles(userId: string, roles: SystemRole[]): Promise<void> {
+export async function setUserRoles(userId: string, roles: SystemRole[], options?: {
+  performedBy?: string;
+  performedByEmail?: string;
+  reason?: string;
+  ipAddress?: string;
+  userAgent?: string;
+}): Promise<void> {
+  // Get current roles before change
+  const oldRoles = await getUserRoles(userId);
+
   await prisma.$transaction(async (tx) => {
     // Remove all existing roles
     await tx.user_roles.deleteMany({
@@ -381,6 +479,18 @@ export async function setUserRoles(userId: string, roles: SystemRole[]): Promise
         })),
       });
     }
+  });
+
+  // Log role change
+  await logRoleChange({
+    targetUserId: userId,
+    performedBy: options?.performedBy || userId,
+    performedByEmail: options?.performedByEmail,
+    oldRoles,
+    newRoles: roles,
+    reason: options?.reason || `Updated roles: ${oldRoles.join(', ')} → ${roles.join(', ')}`,
+    ipAddress: options?.ipAddress,
+    userAgent: options?.userAgent,
   });
 }
 

@@ -3661,6 +3661,42 @@ export class DatabaseClient {
       this.countGeneric('admin_audit_log', options),
   };
 
+  admin_security_events = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('admin_security_events', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('admin_security_events', options),
+    findFirst: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findFirstGeneric<Record<string, any>>('admin_security_events', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('admin_security_events', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('admin_security_events', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('admin_security_events', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('admin_security_events', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('admin_security_events', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('admin_security_events', options),
+    groupBy: (options: any) =>
+      this.groupByGeneric('admin_security_events', options),
+  };
+
+  api_credential_audit_logs = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('api_credential_audit_logs', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('api_credential_audit_logs', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('api_credential_audit_logs', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('api_credential_audit_logs', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('api_credential_audit_logs', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('api_credential_audit_logs', options),
+  };
+
   admin_settings = {
     findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('admin_settings', options),
     findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
