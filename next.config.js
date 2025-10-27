@@ -37,21 +37,10 @@ const withPWA = require('@ducanh2912/next-pwa').default({
       urlPattern: /^https?:\/\/.*\/api\/admin\/.*/i,
       handler: 'NetworkOnly', // Never cache admin API calls
     },
-    // tRPC API calls - optimized for enterprise operations
+    // tRPC API calls - CRITICAL: NetworkOnly for admin data freshness
     {
       urlPattern: /^https?:\/\/.*\/api\/trpc\/.*/i,
-      handler: 'NetworkFirst',
-      options: {
-        cacheName: 'trpc-api-cache',
-        expiration: {
-          maxEntries: 200,
-          maxAgeSeconds: 30 // 30 seconds for fresher data
-        },
-        networkTimeoutSeconds: 5, // Faster timeout
-        cacheableResponse: {
-          statuses: [200] // Only cache successful responses
-        }
-      }
+      handler: 'NetworkOnly', // NEVER cache - admin pages must show real-time data
     },
     // Static assets (images, fonts)
     {
