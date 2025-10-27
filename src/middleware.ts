@@ -325,7 +325,7 @@ export async function middleware(request: NextRequest) {
     console.log(`[ADMIN ACCESS] User: ${user.id}, roles:`, userRoles, 'error:', rolesError);
 
     let hasAdminRole = userRoles?.some(ur =>
-      ur.role === 'admin' || ur.role === 'super_admin' || ur.role === 'employee'
+      ur.role === 'admin' || ur.role === 'super_admin'
     ) ?? false;
 
     // ⚠️ FALLBACK: If no roles found, check user_type field for backward compatibility
@@ -343,8 +343,7 @@ export async function middleware(request: NextRequest) {
 
         // Allow access if user_type is admin or super_admin
         hasAdminRole = userProfile.user_type === 'super_admin' ||
-                       userProfile.user_type === 'admin' ||
-                       userProfile.user_type === 'employee';
+                       userProfile.user_type === 'admin';
 
         if (hasAdminRole) {
           console.log(`✅ [ADMIN ACCESS FALLBACK] Granted access based on user_type: ${userProfile.user_type}`);

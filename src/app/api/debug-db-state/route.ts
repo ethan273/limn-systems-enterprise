@@ -36,12 +36,12 @@ export async function GET() {
       users: users.map(u => ({
         email: u.email,
         type: u.user_type,
-        created: u.created_at.toISOString().split('T')[0],
+        created: u.created_at?.toISOString().split('T')[0] || 'N/A',
       })),
       admin_logs_sample: adminLogs.map(l => ({
         action: l.action,
         user: l.user_email,
-        date: l.created_at.toISOString(),
+        date: l.created_at?.toISOString() || 'N/A',
       })),
     });
   } catch (error) {
