@@ -272,7 +272,7 @@ export const exportRouter = createTRPCRouter({
    */
   getExportStats: protectedProcedure.query(async ({ ctx }) => {
     const [usersCount, adminLogsCount, securityLogsCount, loginLogsCount, settingsCount] = await Promise.all([
-      ctx.db.users.count(),
+      ctx.db.user_profiles.count(),
       ctx.db.admin_audit_log.count(),
       ctx.db.security_audit_log.count(),
       ctx.db.sso_login_audit.count(),
