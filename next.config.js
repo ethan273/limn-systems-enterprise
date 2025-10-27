@@ -14,8 +14,20 @@ const withPWA = require('@ducanh2912/next-pwa').default({
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === 'development' && process.env.ENABLE_PWA !== 'true',
+  // CRITICAL: Exclude admin pages from Service Worker caching entirely
+  // Admin pages MUST always fetch fresh data from the server
+  cacheOnFrontEndNav: false,
+  scope: '/',
+  sw: 'sw.js',
   buildExcludes: [/middleware-manifest\.json$/], // Critical: prevent PWA from caching middleware manifest
+  // Exclude admin routes from being precached or cached at all
+  publicExcludes: ['!admin/**/*'],
   runtimeCaching: [
+    // CRITICAL: Admin pages - NEVER cache to ensure real-time data
+    {
+      urlPattern: /^https?:\/\/.*\/admin\/.*/i,
+      handler: 'NetworkOnly', // Never cache admin pages
+    },
     // Supabase API calls - uses NEXT_PUBLIC_SUPABASE_URL
     {
       urlPattern: supabaseUrlPattern,

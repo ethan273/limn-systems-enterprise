@@ -1,5 +1,6 @@
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
+import ServiceWorkerUpdater from "@/components/ServiceWorkerUpdater";
 
 // Force dynamic rendering - no static generation or caching for admin pages
 // Admin pages must always show real-time data from the database
@@ -13,14 +14,17 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="app-layout">
-      <Sidebar />
-      <div className="main-content-wrapper">
-        <Header />
-        <main className="main-content">
-          {children}
-        </main>
+    <>
+      <ServiceWorkerUpdater />
+      <div className="app-layout">
+        <Sidebar />
+        <div className="main-content-wrapper">
+          <Header />
+          <main className="main-content">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
