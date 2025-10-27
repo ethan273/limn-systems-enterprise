@@ -39,6 +39,14 @@ interface PortalTestUser {
 
 const TEST_USERS: PortalTestUser[] = [
   {
+    email: 'admin@test.com',
+    password: 'password',
+    portalType: 'qc',
+    userType: 'employee', // Will be set to admin in user_roles table
+    firstName: 'Admin',
+    lastName: 'User',
+  },
+  {
     email: 'customer-user@limn.us.com',
     password: 'password',
     portalType: 'customer',
@@ -147,6 +155,24 @@ async function globalSetup(config: FullConfig) {
         },
       });
       console.log(`   ✅ [Setup] User profile ensured`);
+
+      // Create user_roles entry for admin users (admin@test.com should have admin role)
+      if (testUser.email === 'admin@test.com') {
+        await prisma.user_roles.upsert({
+          where: {
+            user_id_role: {
+              user_id: userId,
+              role: 'admin',
+            },
+          },
+          update: {},
+          create: {
+            user_id: userId,
+            role: 'admin',
+          },
+        });
+        console.log(`   ✅ [Setup] Admin role assigned in user_roles table`);
+      }
 
       // Create customer (works for both new and existing users)
       const customer = await prisma.customers.upsert({

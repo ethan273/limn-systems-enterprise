@@ -124,7 +124,7 @@ async function provisionUserProfile(
       firstName = (pendingRequest as any).first_name;
       lastName = (pendingRequest as any).last_name;
       console.log(`[Auth Callback] Found approved access request - user_type: ${userType}`);
-    } else if (email.endsWith('@limn.us.com') || email.endsWith('@limnsystems.com')) {
+    } else if (email.endsWith('@limn.us.com')) {
       // Company emails get employee status by default
       // Super admin, specific departments, and roles should be assigned manually:
       // 1. Via database: UPDATE user_profiles SET user_type = 'super_admin', role = 'admin' WHERE email = 'user@limn.us.com'
