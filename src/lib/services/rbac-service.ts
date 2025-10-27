@@ -13,9 +13,7 @@ import { PrismaClient } from '@prisma/client';
 import {
   logPermissionDenial,
   logRoleChange,
-  logSecurityEvent,
 } from './security-events-service';
-import { SecurityEventType } from './security-events-types';
 
 const prisma = new PrismaClient();
 

@@ -178,3 +178,4 @@ tsconfig.tsbuildinfo
 # Test Output Folders (use docs folder instead)
 screenshots/
 test-results/
+.env.production

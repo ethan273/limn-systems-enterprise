@@ -26,7 +26,6 @@ import type {
   SendCampaignResult,
   ProcessQueueResult,
   CampaignMetrics,
-  EmailEventType,
   RecipientData,
 } from './email-types';
 
@@ -116,6 +115,7 @@ export function validateTemplateVariables(
 // =====================================================
 
 export class EmailTemplateService {
+  // eslint-disable-next-line no-unused-vars
   constructor(private db: DatabaseClient) {}
 
   /**
@@ -270,6 +270,7 @@ export class EmailTemplateService {
 // =====================================================
 
 export class EmailSendingService {
+  // eslint-disable-next-line no-unused-vars
   constructor(private db: DatabaseClient) {}
 
   /**

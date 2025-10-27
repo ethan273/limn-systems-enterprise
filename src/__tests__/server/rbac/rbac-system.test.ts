@@ -27,7 +27,6 @@ import {
   clearUserCache,
   SYSTEM_ROLES,
   PERMISSIONS,
-  type SystemRole,
 } from '@/lib/services/rbac-service';
 
 const prisma = new PrismaClient();
@@ -422,7 +421,7 @@ describe('RBAC System Tests', () => {
       if (!testDataCreated) return;
 
       await setUserRoles(testUserId, [SYSTEM_ROLES.USER]);
-      const roles1 = await getEffectiveRoles(testUserId);
+      const _roles1 = await getEffectiveRoles(testUserId);
 
       // Change roles
       await setUserRoles(testUserId, [SYSTEM_ROLES.ADMIN]);

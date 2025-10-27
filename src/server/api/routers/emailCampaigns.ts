@@ -20,7 +20,6 @@ import {
   EmailCampaignService,
   EmailSendingService,
 } from '@/lib/services/email-service';
-import type { CampaignStatus } from '@/lib/services/email-types';
 
 // =====================================================
 // VALIDATION SCHEMAS

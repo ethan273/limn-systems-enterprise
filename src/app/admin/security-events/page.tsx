@@ -14,7 +14,7 @@
  * - Event detail modals
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { api } from '@/lib/api/client';
 import Link from 'next/link';
 import {
@@ -26,7 +26,6 @@ import {
   RefreshCw,
   ArrowLeft,
   Calendar,
-  Filter,
   User,
   Activity,
 } from 'lucide-react';
@@ -75,7 +74,7 @@ export default function SecurityEventsPage() {
   );
 
   // Fetch statistics
-  const { data: stats, isLoading: statsLoading, refetch: refetchStats } = api.audit.getSecurityEventStats.useQuery(
+  const { data: stats, isLoading: _statsLoading, refetch: refetchStats } = api.audit.getSecurityEventStats.useQuery(
     {
       days: selectedDays,
     },
@@ -205,12 +204,12 @@ export default function SecurityEventsPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-red-600" />
+              <AlertTriangle className="h-4 w-4 text-destructive" />
               Critical Events
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">
+            <div className="text-2xl font-bold text-destructive">
               {stats?.criticalEvents?.toLocaleString() || 0}
             </div>
             <p className="text-xs text-muted-foreground mt-1">Require immediate attention</p>
@@ -220,12 +219,12 @@ export default function SecurityEventsPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 text-orange-500" />
+              <AlertCircle className="h-4 w-4 text-muted-foreground" />
               High Severity
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-500">
+            <div className="text-2xl font-bold text-muted-foreground">
               {stats?.highEvents?.toLocaleString() || 0}
             </div>
             <p className="text-xs text-muted-foreground mt-1">Security concerns</p>
@@ -499,7 +498,7 @@ export default function SecurityEventsPage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+              <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
               <span className="text-sm">Live monitoring active</span>
             </div>
             <p className="text-xs text-muted-foreground mt-1">Updates every 5 seconds</p>

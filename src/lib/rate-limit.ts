@@ -212,9 +212,9 @@ export async function checkRateLimit(
 export class RateLimitError extends Error {
   constructor(
     message: string,
-    public limit: number,
-    public remaining: number,
-    public reset: number
+    public _limit: number,
+    public _remaining: number,
+    public _reset: number
   ) {
     super(message);
     this.name = 'RateLimitError';

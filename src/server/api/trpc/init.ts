@@ -9,7 +9,6 @@ import {
   emailRateLimit,
   campaignRateLimit,
   checkRateLimit,
-  RateLimitError
 } from '@/lib/rate-limit';
 
 const t = initTRPC.context<Context>().create({
@@ -111,7 +110,7 @@ const enforceUserIsSuperAdmin = t.middleware(async ({ ctx, next }) => {
 export const superAdminProcedure = t.procedure.use(enforceUserIsSuperAdmin);
 
 // Rate limiting middleware
-const rateLimitMiddleware = t.middleware(async ({ ctx, next, path }) => {
+const rateLimitMiddleware = t.middleware(async ({ ctx, next, path: _path }) => {
   // Only rate limit if user is authenticated
   if (!ctx.session?.user) {
     return next();

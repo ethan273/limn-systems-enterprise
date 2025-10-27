@@ -43,7 +43,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
-import { Plus, Edit, Trash2, Eye, Code } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import type { EmailTemplate } from '@/lib/services/email-types';
 

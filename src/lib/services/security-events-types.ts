@@ -5,6 +5,8 @@
  * Used by security-events-service.ts
  */
 
+/* eslint-disable no-unused-vars */
+
 import { z } from 'zod';
 
 // ============================================

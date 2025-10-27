@@ -49,10 +49,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Send, Calendar, Eye, Edit, Trash2, BarChart3, XCircle } from 'lucide-react';
+import { Plus, Send, Trash2, BarChart3, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
-import type { EmailCampaign, RecipientData, CampaignStatus } from '@/lib/services/email-types';
+import type { RecipientData, CampaignStatus } from '@/lib/services/email-types';
 
 const STATUS_COLORS: Record<CampaignStatus, string> = {
   draft: 'secondary',
@@ -70,7 +69,7 @@ export default function EmailCampaignsPage() {
 
   // Queries
   const { data: campaigns, isLoading, refetch } = api.emailCampaigns.list.useQuery();
-  const { data: templates } = api.emailTemplates.list.useQuery({ is_active: true });
+  const { data: _templates } = api.emailTemplates.list.useQuery({ is_active: true });
   const { data: queueStatus } = api.emailCampaigns.getQueueStatus.useQuery();
   const { data: stats } = api.emailCampaigns.getStats.useQuery();
 

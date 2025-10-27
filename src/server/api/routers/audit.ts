@@ -487,7 +487,7 @@ export const auditRouter = createTRPCRouter({
       })
     )
     .query(async ({ input, ctx }) => {
-      const { search, severity, category, userId, dateRange, limit, offset } = input;
+      const { search: _search, severity, category: _category, userId, dateRange, limit, offset } = input;
 
       // Build where clause for admin_security_events
       const where: any = {};

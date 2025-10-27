@@ -50,7 +50,7 @@ export default function UnsubscribePage() {
         <Card className="w-full max-w-md">
           <CardHeader>
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-6 w-6 text-green-500" />
+              <CheckCircle2 className="h-6 w-6 text-primary" />
               <CardTitle>Successfully Unsubscribed</CardTitle>
             </div>
             <CardDescription>
@@ -59,7 +59,7 @@ export default function UnsubscribePage() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-4">
-              You will no longer receive emails from our campaigns. We're sorry to see you go!
+              You will no longer receive emails from our campaigns. We&apos;re sorry to see you go!
             </p>
             <Button
               onClick={() => router.push('/')}
@@ -91,7 +91,7 @@ export default function UnsubscribePage() {
           )}
 
           <p className="text-sm text-muted-foreground">
-            By clicking "Unsubscribe", you will no longer receive marketing
+            By clicking &ldquo;Unsubscribe&rdquo;, you will no longer receive marketing
             emails from us. You will still receive important transactional
             emails related to your account.
           </p>

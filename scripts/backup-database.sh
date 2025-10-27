@@ -154,30 +154,21 @@ fi
 log "Recent backups:"
 ls -lht "${BACKUP_DIR}"/limn_db_backup_*.sql.gz | head -5 | tee -a "${LOG_FILE}"
 
-# Optional: Send Slack notification
-if [ -n "${SLACK_WEBHOOK_URL:-}" ]; then
-    SLACK_MESSAGE=$(cat <<EOF
+# Optional: Send Google Chat notification
+if [ -n "${GOOGLE_CHAT_WEBHOOK_URL:-}" ]; then
+    GOOGLE_CHAT_MESSAGE=$(cat <<EOF
 {
-  "text": "✅ Database Backup Complete",
-  "blocks": [
-    {
-      "type": "section",
-      "text": {
-        "type": "mrkdwn",
-        "text": "*Database Backup Completed*\n*Size:* ${BACKUP_SIZE}\n*File:* ${BACKUP_FILE}.gz\n*Timestamp:* $(date '+%Y-%m-%d %H:%M:%S')"
-      }
-    }
-  ]
+  "text": "✅ Database Backup Completed\n\nSize: ${BACKUP_SIZE}\nFile: ${BACKUP_FILE}.gz\nTimestamp: $(date '+%Y-%m-%d %H:%M:%S')"
 }
 EOF
 )
 
-    if curl -X POST "${SLACK_WEBHOOK_URL}" \
+    if curl -X POST "${GOOGLE_CHAT_WEBHOOK_URL}" \
         -H 'Content-Type: application/json' \
-        -d "${SLACK_MESSAGE}" >> "${LOG_FILE}" 2>&1; then
-        log "Slack notification sent"
+        -d "${GOOGLE_CHAT_MESSAGE}" >> "${LOG_FILE}" 2>&1; then
+        log "Google Chat notification sent"
     else
-        log_warning "Failed to send Slack notification"
+        log_warning "Failed to send Google Chat notification"
     fi
 fi
 
