@@ -330,17 +330,71 @@ export async function hasAllRoles(userId: string, roles: SystemRole[]): Promise<
 
 /**
  * Get all permissions for a user
+ * ✅ UPDATED: Now queries database-driven role-permission mappings
  */
 export async function getUserPermissions(userId: string): Promise<Permission[]> {
   const effectiveRoles = await getEffectiveRoles(userId);
-  const permissions = new Set<Permission>();
 
-  for (const role of effectiveRoles) {
-    const rolePermissions = ROLE_PERMISSIONS[role] || [];
-    rolePermissions.forEach((perm) => permissions.add(perm));
+  // If no roles, return empty
+  if (effectiveRoles.length === 0) {
+    return [];
   }
 
-  return Array.from(permissions);
+  try {
+    // Query role_definitions to get role IDs for the user's roles
+    const roleDefinitions = await prisma.role_definitions.findMany({
+      where: {
+        role_key: { in: effectiveRoles },
+        is_active: true,
+      },
+      select: { id: true },
+    });
+
+    const roleIds = roleDefinitions.map(r => r.id);
+
+    if (roleIds.length === 0) {
+      // Fallback to hardcoded mappings if roles not in database yet
+      console.warn(`[RBAC] No database roles found for ${effectiveRoles.join(', ')}, using hardcoded mappings`);
+      const permissions = new Set<Permission>();
+      for (const role of effectiveRoles) {
+        const rolePermissions = ROLE_PERMISSIONS[role] || [];
+        rolePermissions.forEach((perm) => permissions.add(perm));
+      }
+      return Array.from(permissions);
+    }
+
+    // Query role_permissions to get all permission IDs
+    const rolePermissions = await prisma.role_permissions.findMany({
+      where: {
+        role_id: { in: roleIds },
+        is_active: true,
+      },
+      include: {
+        permission: {
+          select: {
+            permission_key: true,
+          },
+        },
+      },
+    });
+
+    // Extract unique permission keys
+    const permissionKeys = new Set<Permission>();
+    rolePermissions.forEach(rp => {
+      permissionKeys.add(rp.permission.permission_key as Permission);
+    });
+
+    return Array.from(permissionKeys);
+  } catch (error) {
+    console.error('[RBAC] Error querying database permissions:', error);
+    // Fallback to hardcoded mappings on error
+    const permissions = new Set<Permission>();
+    for (const role of effectiveRoles) {
+      const rolePermissions = ROLE_PERMISSIONS[role] || [];
+      rolePermissions.forEach((perm) => permissions.add(perm));
+    }
+    return Array.from(permissions);
+  }
 }
 
 /**

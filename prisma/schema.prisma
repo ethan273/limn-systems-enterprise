@@ -7797,6 +7797,65 @@ model user_roles {
   @@schema("public")
 }
 
+/// Role Definitions - Stores metadata for all system roles
+model role_definitions {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  role_key    String   @unique @db.VarChar(50)
+  role_name   String   @db.VarChar(100)
+  description String?
+  is_system   Boolean  @default(true)
+  is_active   Boolean  @default(true)
+  hierarchy_level Int  @default(0)
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime @default(now()) @db.Timestamptz(6)
+
+  role_permissions role_permissions[]
+
+  @@index([role_key], map: "idx_role_definitions_key")
+  @@index([is_active], map: "idx_role_definitions_active")
+  @@index([hierarchy_level], map: "idx_role_definitions_hierarchy")
+  @@schema("public")
+}
+
+/// Permission Definitions - Stores metadata for all system permissions
+model permission_definitions {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  permission_key String   @unique @db.VarChar(100)
+  permission_name String  @db.VarChar(150)
+  description    String?
+  category       String?  @db.VarChar(50)
+  is_system      Boolean  @default(true)
+  is_active      Boolean  @default(true)
+  created_at     DateTime @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime @default(now()) @db.Timestamptz(6)
+
+  role_permissions role_permissions[]
+
+  @@index([permission_key], map: "idx_permission_definitions_key")
+  @@index([category], map: "idx_permission_definitions_category")
+  @@index([is_active], map: "idx_permission_definitions_active")
+  @@schema("public")
+}
+
+/// Role Permissions - Junction table mapping roles to permissions
+model role_permissions {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  role_id       String   @db.Uuid
+  permission_id String   @db.Uuid
+  is_active     Boolean  @default(true)
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime @default(now()) @db.Timestamptz(6)
+
+  role          role_definitions       @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  permission    permission_definitions @relation(fields: [permission_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([role_id, permission_id], map: "unique_role_permission")
+  @@index([role_id], map: "idx_role_permissions_role")
+  @@index([permission_id], map: "idx_role_permissions_permission")
+  @@index([is_active], map: "idx_role_permissions_active")
+  @@schema("public")
+}
+
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model verification_logs {
   id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
