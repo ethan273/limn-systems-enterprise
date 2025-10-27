@@ -19,6 +19,7 @@ This file has been **modularized for maintainability**. For detailed information
 - **[Auth Patterns](patterns/auth-patterns.md)** - getCurrentUser, API auth, RBAC system, tRPC security
 - **[UI Patterns](patterns/ui-patterns.md)** - Logo usage, theming, UI conventions
 - **[Email Patterns](patterns/email-patterns.md)** - Campaign system, webhooks, rate limiting, unsubscribe
+- **[Build Patterns](patterns/build-patterns.md)** - Client/server separation, Prisma bundling, type safety
 
 ### Critical (Production & Quality Requirements)
 - **[Production Readiness](critical/production-readiness.md)** - Schema sync, E2E testing, security, deployment

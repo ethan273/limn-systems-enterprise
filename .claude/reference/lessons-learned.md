@@ -36,6 +36,51 @@
 
 ---
 
+### October 27, 2025 Incident
+
+**What Happened:**
+- Pushed code without running full build verification
+- Missed ESLint warnings that blocked Vercel deployments
+- Did not trace client component import chains
+- Caused PrismaClient browser environment error in production
+- Application completely broken for all users
+
+**Root Cause:**
+- Did not run `npm run build` before pushing previous commit
+- Assumed partial checks (type-check, prevention tests) were sufficient
+- Did not analyze full import graph for client/server separation
+- Did not test production build locally before deploying
+
+**Consequences:**
+- 4 consecutive Vercel deployment failures
+- GitHub Actions tests failing
+- Production application crashed (blank screen)
+- Zero users could access application
+- User criticism: "Why aren't you catching these before pushing?"
+
+**Lessons:**
+1. **ALWAYS run `npm run build` before pushing** - No exceptions
+2. **Trace client import chains** - Verify no server code imported
+3. **Test production build locally** - Run `npm run build && npm start`
+4. **ESLint warnings = deployment blockers** - Zero tolerance
+5. **Import chain analysis required** - Client components must not transitively import server code
+6. **Lazy-loading for external services** - Never instantiate at module load time
+
+**Corrective Actions Taken:**
+1. Created build-patterns.md documenting client/server separation
+2. Established {domain}-types.ts + {domain}-service.ts pattern
+3. Implemented lazy-loading for Resend client
+4. Fixed all ESLint errors and warnings (zero tolerance)
+5. Verified production build succeeds before pushing
+
+**Prevention Measures:**
+1. Pre-push checklist now includes full build verification
+2. Documentation updated with build separation patterns
+3. Verification workflow: TypeScript → Build → Prevention Tests → Commit
+4. Import chain analysis for new client components
+
+---
+
 ## Error Response Protocol
 
 When encountering errors:
@@ -84,5 +129,5 @@ When I fail these standards, I will:
 ---
 
 **Status**: ✅ PERMANENT RECORD
-**Last Updated**: October 25, 2025
+**Last Updated**: October 27, 2025
 **Reference**: [Main CLAUDE.md](../CLAUDE.md)
