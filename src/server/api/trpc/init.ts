@@ -223,7 +223,6 @@ export function requirePermission(permission: Permission) {
 
     // Check permission (includes automatic permission denial logging)
     const hasAccess = await hasPermission(userProfile.id, permission, {
-      resource: path || 'tRPC endpoint',
       action: 'access',
       ipAddress,
       userAgent,

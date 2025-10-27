@@ -400,36 +400,59 @@ export async function getUserPermissions(userId: string): Promise<Permission[]> 
 /**
  * Check if user has a specific permission
  *
+ * Phase 2: Now supports scoped permissions for resource-level access control.
  * Logs permission denials to audit trail for security monitoring.
  */
 export async function hasPermission(userId: string, permission: Permission, options?: {
-  resource?: string;
+  resource?: {
+    type: string;
+    id?: string;
+    metadata?: Record<string, any>;
+  };
   action?: string;
   ipAddress?: string;
   userAgent?: string;
 }): Promise<boolean> {
+  // Step 1: Check role-based permission (Phase 1)
   const [permissions, roles] = await Promise.all([
     getUserPermissions(userId),
     getUserRoles(userId),
   ]);
 
-  const hasAccess = permissions.includes(permission);
+  const hasRolePermission = permissions.includes(permission);
 
-  // Log permission denial for audit trail
-  if (!hasAccess) {
-    await logPermissionDenial({
-      userId,
-      requiredPermission: permission,
-      resource: options?.resource || 'system',
-      action: options?.action || 'access',
-      userRoles: roles,
-      userPermissions: permissions,
-      ipAddress: options?.ipAddress,
-      userAgent: options?.userAgent,
-    });
+  if (hasRolePermission) {
+    // User has global access via role
+    return true;
   }
 
-  return hasAccess;
+  // Step 2: Check scoped permission (Phase 2)
+  if (options?.resource) {
+    const hasScopedAccess = await checkScopedPermission(
+      userId,
+      permission,
+      options.resource
+    );
+
+    if (hasScopedAccess) {
+      // User has scoped access to this specific resource
+      return true;
+    }
+  }
+
+  // Step 3: Log permission denial for audit trail
+  await logPermissionDenial({
+    userId,
+    requiredPermission: permission,
+    resource: options?.resource?.type || 'system',
+    action: options?.action || 'access',
+    userRoles: roles,
+    userPermissions: permissions,
+    ipAddress: options?.ipAddress,
+    userAgent: options?.userAgent,
+  });
+
+  return false;
 }
 
 /**
@@ -446,6 +469,102 @@ export async function hasAnyPermission(userId: string, permissions: Permission[]
 export async function hasAllPermissions(userId: string, permissions: Permission[]): Promise<boolean> {
   const userPermissions = await getUserPermissions(userId);
   return permissions.every((perm) => userPermissions.includes(perm));
+}
+
+// ============================================
+// SCOPED PERMISSIONS (Phase 2)
+// ============================================
+
+/**
+ * Helper function to check if resource metadata matches scope metadata
+ */
+function matchesMetadata(
+  resourceMeta: Record<string, any>,
+  scopeMeta: Record<string, any>
+): boolean {
+  for (const [key, value] of Object.entries(scopeMeta)) {
+    if (Array.isArray(value)) {
+      // If scope value is array, resource value must be in array
+      if (!value.includes(resourceMeta[key])) {
+        return false;
+      }
+    } else {
+      // Exact match required
+      if (resourceMeta[key] !== value) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+/**
+ * Check if user has scoped permission for specific resource
+ *
+ * This allows resource-level access control beyond role-based permissions.
+ * Example: Customer can view THEIR orders, but not all orders.
+ */
+export async function checkScopedPermission(
+  userId: string,
+  permission: Permission,
+  resource: {
+    type: string;
+    id?: string;
+    metadata?: Record<string, any>;
+  }
+): Promise<boolean> {
+  const now = new Date();
+
+  try {
+    const scopes = await prisma.permission_scopes.findMany({
+      where: {
+        user_id: userId,
+        permission_key: permission,
+        resource_type: resource.type,
+        is_active: true,
+        OR: [
+          { expires_at: null },
+          { expires_at: { gt: now } },
+        ],
+      },
+    });
+
+    if (scopes.length === 0) {
+      return false;
+    }
+
+    // Check if any scope matches the resource
+    for (const scope of scopes) {
+      // If scope has no resource_id, it grants access to all resources of this type
+      if (!scope.resource_id) {
+        // Check metadata constraints if provided
+        if (scope.scope_metadata && resource.metadata) {
+          if (matchesMetadata(resource.metadata, scope.scope_metadata as Record<string, any>)) {
+            return true;
+          }
+        } else {
+          return true;
+        }
+      }
+
+      // If scope has resource_id, it must match
+      if (scope.resource_id === resource.id) {
+        // Check metadata constraints if provided
+        if (scope.scope_metadata && resource.metadata) {
+          if (matchesMetadata(resource.metadata, scope.scope_metadata as Record<string, any>)) {
+            return true;
+          }
+        } else {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  } catch (error) {
+    console.error('[RBAC] Error checking scoped permission:', error);
+    return false;
+  }
 }
 
 // ============================================

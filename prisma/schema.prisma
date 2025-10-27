@@ -525,6 +525,8 @@ model users {
   user_profiles_user_profiles_user_idTousers                            user_profiles?                      @relation("user_profiles_user_idTousers")
   user_roles                                                            user_roles[]
   verification_logs                                                     verification_logs[]
+  permission_scopes_permission_scopes_user_idTousers                    permission_scopes[]                 @relation("UserPermissionScopes")
+  permission_scopes_permission_scopes_granted_byTousers                 permission_scopes[]                 @relation("GrantedByUser")
 
   @@index([instance_id])
   @@index([is_anonymous])
@@ -7853,6 +7855,35 @@ model role_permissions {
   @@index([role_id], map: "idx_role_permissions_role")
   @@index([permission_id], map: "idx_role_permissions_permission")
   @@index([is_active], map: "idx_role_permissions_active")
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model permission_scopes {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id        String    @db.Uuid
+  permission_key String    @db.VarChar(100)
+  resource_type  String    @db.VarChar(100)
+  resource_id    String?   @db.Uuid
+  scope_metadata Json?     @db.JsonB
+  granted_by     String?   @db.Uuid
+  granted_at     DateTime  @default(now()) @db.Timestamptz(6)
+  expires_at     DateTime? @db.Timestamptz(6)
+  is_active      Boolean   @default(true)
+  reason         String?
+  created_at     DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime  @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  user            users  @relation("UserPermissionScopes", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_permission_scopes_user")
+  granted_by_user users? @relation("GrantedByUser", fields: [granted_by], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "fk_permission_scopes_granted_by")
+
+  @@index([user_id], map: "idx_permission_scopes_user")
+  @@index([permission_key], map: "idx_permission_scopes_permission")
+  @@index([resource_type, resource_id], map: "idx_permission_scopes_resource")
+  @@index([is_active], map: "idx_permission_scopes_active")
+  @@index([expires_at], map: "idx_permission_scopes_expires")
+  @@index([scope_metadata(ops: JsonbPathOps)], type: Gin, map: "idx_permission_scopes_metadata")
   @@schema("public")
 }
 
