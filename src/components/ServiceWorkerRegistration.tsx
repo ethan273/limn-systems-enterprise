@@ -12,6 +12,11 @@ export function ServiceWorkerRegistration() {
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
+    // CRITICAL TEMPORARY FIX: PWA is completely disabled until old service workers are cleared
+    // This prevents new service workers from being registered while we clear old ones
+    console.log('[SW] Service worker registration DISABLED - PWA temporarily disabled');
+    return;
+
     // Only run in browser
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
       return;
