@@ -158,7 +158,10 @@ export class EmailTemplateService {
     limit?: number;
     offset?: number;
   }): Promise<EmailTemplate[]> {
-    const where: any = {};
+    const where: {
+      is_active?: boolean;
+      language?: string;
+    } = {};
 
     if (params?.is_active !== undefined) {
       where.is_active = params.is_active;
@@ -262,7 +265,7 @@ export class EmailSendingService {
     error?: string;
   }> {
     try {
-      const emailOptions: any = {
+      const emailOptions: Record<string, any> = {
         from: options.from,
         to: Array.isArray(options.to) ? options.to : [options.to],
         subject: options.subject,
@@ -274,7 +277,7 @@ export class EmailSendingService {
       if (options.tags) emailOptions.tags = options.tags;
       if (options.headers) emailOptions.headers = options.headers;
 
-      const response = await resend.emails.send(emailOptions);
+      const response = await resend.emails.send(emailOptions as any);
 
       if ('id' in response.data!) {
         return {
@@ -483,7 +486,10 @@ export class EmailCampaignService {
     limit?: number;
     offset?: number;
   }): Promise<EmailCampaign[]> {
-    const where: any = {};
+    const where: {
+      status?: string;
+      created_by?: string;
+    } = {};
 
     if (params?.status) {
       where.status = params.status;
@@ -507,7 +513,7 @@ export class EmailCampaignService {
    * Update a campaign
    */
   async update(id: string, input: UpdateCampaignInput): Promise<EmailCampaign> {
-    const updateData: any = { ...input };
+    const updateData: UpdateCampaignInput & { updated_at?: Date; total_recipients?: number } = { ...input };
 
     // Update total_recipients if recipient_list changed
     if (input.recipient_list) {
@@ -633,7 +639,7 @@ export class EmailCampaignService {
     });
 
     const eventCounts: Record<string, number> = {};
-    trackingData.forEach((item: any) => {
+    trackingData.forEach((item: { event_type: string; _count: { event_type: number } }) => {
       eventCounts[item.event_type] = item._count.event_type;
     });
 

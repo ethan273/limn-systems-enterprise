@@ -104,7 +104,7 @@ export const emailAnalyticsRouter = createTRPCRouter({
       // Group by event type and time interval
       const timeline: Record<string, Record<EmailEventType, number>> = {};
 
-      events.forEach((event: any) => {
+      events.forEach((event: Record<string, any>) => {
         const date = new Date(event.created_at);
         let key: string;
 
@@ -170,8 +170,8 @@ export const emailAnalyticsRouter = createTRPCRouter({
       // Group by URL
       const urlCounts: Record<string, { total: number; unique: Set<string> }> = {};
 
-      clicks.forEach((click: any) => {
-        const url = click.event_data?.link_url;
+      clicks.forEach((click: Record<string, any>) => {
+        const url = click.event_data?.link_url as string | undefined;
         if (!url) return;
 
         if (!urlCounts[url]) {
@@ -208,7 +208,10 @@ export const emailAnalyticsRouter = createTRPCRouter({
       })
     )
     .query(async ({ input, ctx }) => {
-      const where: any = {};
+      const where: {
+        campaign_id?: string;
+        created_at?: { gte: Date; lte: Date };
+      } = {};
 
       if (input.campaign_id) {
         where.campaign_id = input.campaign_id;
@@ -227,7 +230,7 @@ export const emailAnalyticsRouter = createTRPCRouter({
         _count: { id: true },
       });
 
-      return breakdown.map((item: any) => ({
+      return breakdown.map((item: { event_type: string; _count: { id: number } }) => ({
         event_type: item.event_type,
         count: item._count.id,
       }));
@@ -283,7 +286,7 @@ export const emailAnalyticsRouter = createTRPCRouter({
       // Group by interval
       const grouped: Record<string, Record<string, number>> = {};
 
-      events.forEach((event: any) => {
+      events.forEach((event: Record<string, any>) => {
         const date = new Date(event.created_at);
         let key: string;
 
@@ -327,7 +330,9 @@ export const emailAnalyticsRouter = createTRPCRouter({
   getOverallStats: protectedProcedure
     .input(dateRangeSchema.optional())
     .query(async ({ input, ctx }) => {
-      const where: any = {};
+      const where: {
+        created_at?: { gte: Date; lte: Date };
+      } = {};
 
       if (input) {
         where.created_at = {
@@ -364,11 +369,20 @@ export const emailAnalyticsRouter = createTRPCRouter({
       ]);
 
       return {
-        events: eventCounts.map((item: any) => ({
+        events: eventCounts.map((item: { event_type: string; _count: { id: number } }) => ({
           event_type: item.event_type,
           count: item._count.id,
         })),
-        campaigns: campaignCounts.map((item: any) => ({
+        campaigns: campaignCounts.map((item: {
+          status: string;
+          _count: { id: number };
+          _sum: {
+            total_recipients: number | null;
+            sent_count: number | null;
+            open_count: number | null;
+            click_count: number | null;
+          }
+        }) => ({
           status: item.status,
           count: item._count.id,
           total_recipients: item._sum.total_recipients ?? 0,
@@ -376,7 +390,7 @@ export const emailAnalyticsRouter = createTRPCRouter({
           open_count: item._sum.open_count ?? 0,
           click_count: item._sum.click_count ?? 0,
         })),
-        queue: queueStats.map((item: any) => ({
+        queue: queueStats.map((item: { status: string; _count: { id: number } }) => ({
           status: item.status,
           count: item._count.id,
         })),

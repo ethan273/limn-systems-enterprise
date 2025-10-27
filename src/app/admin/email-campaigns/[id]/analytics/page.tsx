@@ -105,7 +105,7 @@ export default function CampaignAnalyticsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Delivered</CardTitle>
-            <Mail className="h-4 w-4 text-green-600" />
+            <Mail className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.delivered_count}</div>
@@ -119,7 +119,7 @@ export default function CampaignAnalyticsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Opened</CardTitle>
-            <Eye className="h-4 w-4 text-blue-600" />
+            <Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.open_count}</div>
@@ -133,7 +133,7 @@ export default function CampaignAnalyticsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Clicked</CardTitle>
-            <MousePointer className="h-4 w-4 text-purple-600" />
+            <MousePointer className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.click_count}</div>
@@ -150,7 +150,7 @@ export default function CampaignAnalyticsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Bounced</CardTitle>
-            <XCircle className="h-4 w-4 text-red-600" />
+            <XCircle className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.bounce_count}</div>
@@ -163,7 +163,7 @@ export default function CampaignAnalyticsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Unsubscribed</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-orange-600" />
+            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.unsubscribe_count}</div>

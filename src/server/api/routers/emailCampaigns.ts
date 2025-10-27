@@ -216,7 +216,18 @@ export const emailCampaignsRouter = createTRPCRouter({
         },
       });
 
-      return campaigns.map((item: any) => ({
+      return campaigns.map((item: {
+        status: string;
+        _count: { id: number };
+        _sum: {
+          total_recipients: number | null;
+          sent_count: number | null;
+          open_count: number | null;
+          click_count: number | null;
+          bounce_count: number | null;
+          unsubscribe_count: number | null;
+        }
+      }) => ({
         status: item.status,
         count: item._count.id,
         total_recipients: item._sum.total_recipients ?? 0,
@@ -252,7 +263,7 @@ export const emailCampaignsRouter = createTRPCRouter({
         _count: { id: true },
       });
 
-      return stats.map((item: any) => ({
+      return stats.map((item: { status: string; _count: { id: number } }) => ({
         status: item.status,
         count: item._count.id,
       }));

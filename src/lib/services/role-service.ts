@@ -50,7 +50,8 @@ export async function getUserRole(userId: string): Promise<UserRole> {
         return 'unknown';
       }
 
-      // Check user type
+      // Check user type (legacy - transitioning to RBAC)
+      // TODO: Remove after full RBAC migration
       if (userProfile.user_type) {
         return mapUserTypeToRole(userProfile.user_type);
       }
