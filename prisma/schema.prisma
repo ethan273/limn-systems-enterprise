@@ -308,6 +308,31 @@ model sessions {
   @@schema("auth")
 }
 
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model session_tracking {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  session_id       String    @db.Uuid
+  user_id          String    @db.Uuid
+  ip_address       String    @db.Inet
+  user_agent       String?
+  geo_location     Json?     @db.JsonB
+  is_suspicious    Boolean   @default(false)
+  login_at         DateTime  @default(now()) @db.Timestamptz(6)
+  last_activity_at DateTime  @default(now()) @db.Timestamptz(6)
+  logout_at        DateTime? @db.Timestamptz(6)
+  session_metadata Json?     @db.JsonB
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@index([session_id], map: "idx_session_tracking_session")
+  @@index([user_id], map: "idx_session_tracking_user")
+  @@index([ip_address], map: "idx_session_tracking_ip")
+  @@index([user_id], map: "idx_session_tracking_active")
+  @@index([is_suspicious], map: "idx_session_tracking_suspicious")
+  @@index([last_activity_at], map: "idx_session_tracking_last_activity")
+  @@schema("public")
+}
+
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
