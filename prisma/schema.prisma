@@ -7719,7 +7719,6 @@ model user_profiles {
   full_name                                                         String?                      @default(dbgenerated("((COALESCE(first_name, ''::text) ||\nCASE\n    WHEN ((first_name IS NOT NULL) AND (last_name IS NOT NULL)) THEN ' '::text\n    ELSE ''::text\nEND) || COALESCE(last_name, ''::text))"))
   job_title                                                         String?
   raw_metadata                                                      Json?
-  ai_generation_queue                                               ai_generation_queue[]
   analytics_events                                                  analytics_events[]
   board_activity_log                                                board_activity_log[]
   board_collaborators_board_collaborators_invited_byTouser_profiles board_collaborators[]        @relation("board_collaborators_invited_byTouser_profiles")
@@ -7952,31 +7951,6 @@ model workflows {
   @@index([status], map: "idx_workflows_status")
   @@index([trigger_type], map: "idx_workflows_trigger_type")
   @@index([updated_at], map: "idx_workflows_updated_at")
-  @@schema("public")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model ai_generation_queue {
-  id                   String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id              String               @db.Uuid
-  prompt               String
-  status               ai_generation_status @default(PENDING)
-  flipbook_id          String?              @db.Uuid
-  generation_config    Json
-  source_data          Json?
-  result_data          Json?
-  error_message        String?
-  progress_percent     Int                  @default(0)
-  estimated_completion DateTime?            @db.Timestamptz(6)
-  created_at           DateTime             @default(now()) @db.Timestamptz(6)
-  updated_at           DateTime             @default(now()) @db.Timestamptz(6)
-  completed_at         DateTime?            @db.Timestamptz(6)
-  user_profiles        user_profiles        @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ai_generation_queue_user")
-
-  @@index([created_at(sort: Desc)], map: "idx_ai_generation_queue_created_at")
-  @@index([status], map: "idx_ai_generation_queue_status")
-  @@index([updated_at], map: "idx_ai_generation_queue_updated_at")
-  @@index([user_id], map: "idx_ai_generation_queue_user")
   @@schema("public")
 }
 
@@ -8322,15 +8296,6 @@ enum user_type_enum {
   admin
   factory
   qc_tester
-
-  @@schema("public")
-}
-
-enum ai_generation_status {
-  PENDING
-  PROCESSING
-  COMPLETED
-  FAILED
 
   @@schema("public")
 }
