@@ -18,6 +18,8 @@ import {
   campaignRateLimit,
   checkRateLimit,
 } from '@/lib/rate-limit';
+import { validateSessionIP } from '@/lib/services/session-service';
+import { getEffectiveRoles } from '@/lib/services/rbac-service';
 
 const t = initTRPC.context<Context>().create({
   transformer: superjson,
@@ -183,6 +185,67 @@ const enforceUserIsManager = t.middleware(async ({ ctx, next }) => {
 });
 
 export const managerProcedure = t.procedure.use(enforceUserIsManager);
+
+// ============================================
+// SESSION IP VALIDATION (RBAC Phase 2.2)
+// ============================================
+
+/**
+ * Middleware to validate session IP address matches original login IP
+ * - Applies role-based IP validation modes (STRICT, FLEXIBLE, DISABLED)
+ * - Terminates sessions on suspicious IP changes
+ * - Logs security events for audit trail
+ */
+const enforceSessionIPValidation = t.middleware(async ({ ctx, next }) => {
+  // Only validate for authenticated users
+  if (!ctx.session?.user) {
+    return next();
+  }
+
+  try {
+    // Extract current IP address from request
+    const currentIP =
+      ctx.req?.headers?.['x-forwarded-for']?.toString().split(',')[0] ||
+      ctx.req?.headers?.['x-real-ip']?.toString() ||
+      '0.0.0.0';
+
+    // Get session ID from session (using user.id as fallback for session identifier)
+    // Note: In a full implementation, you'd extract the actual session ID from the JWT
+    const sessionId = ctx.session.user.id;
+
+    // Get user's effective roles for IP validation mode
+    const roles = await getEffectiveRoles(ctx.session.user.id);
+    const userRole = roles[0] || 'customer';
+
+    // Validate session IP
+    const validation = await validateSessionIP(sessionId, currentIP, userRole);
+
+    if (!validation.valid) {
+      console.error(
+        `[SECURITY] Session IP validation failed for user ${ctx.session.user.id}: ${validation.reason}`
+      );
+
+      // Force logout when validation fails (IP mismatch)
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'Session terminated due to suspicious activity. Please log in again.',
+      });
+    }
+
+    return next();
+  } catch (error) {
+    // If IP validation fails catastrophically, log but don't block (fail open for availability)
+    if (error instanceof TRPCError) {
+      throw error; // Re-throw TRPC errors (like force_logout)
+    }
+
+    console.error('[SECURITY] IP validation error (non-blocking):', error);
+    return next();
+  }
+});
+
+// Export IP-validated procedure
+export const ipValidatedProcedure = protectedProcedure.use(enforceSessionIPValidation);
 
 // ============================================
 // PERMISSION-BASED PROCEDURES

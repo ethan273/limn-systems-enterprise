@@ -2,6 +2,8 @@ import { createServerClient } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { trackSessionCreation, enforceSessionLimits } from '@/lib/services/session-service';
+import { getEffectiveRoles } from '@/lib/services/rbac-service';
 
 /**
  * Log login attempt to audit trail
@@ -293,6 +295,34 @@ export async function GET(request: NextRequest) {
         });
         console.log('[Auth Callback] 🟢 Login attempt logged for:', userEmail);
 
+        // Track session and enforce limits (RBAC Phase 2.2)
+        try {
+          const ipAddress =
+            request.headers.get('x-forwarded-for')?.split(',')[0] ||
+            request.headers.get('x-real-ip') ||
+            '0.0.0.0';
+          const userAgent = request.headers.get('user-agent') || undefined;
+
+          console.log('[Auth Callback] 🔵 Tracking session for user:', userId);
+          await trackSessionCreation(data.session.access_token, userId, {
+            ipAddress,
+            userAgent,
+          });
+
+          console.log('[Auth Callback] 🔵 Enforcing session limits for user:', userId);
+          const roles = await getEffectiveRoles(userId);
+          await enforceSessionLimits(
+            userId,
+            roles[0] || 'customer',
+            data.session.access_token
+          );
+
+          console.log('[Auth Callback] 🟢 Session tracked and limits enforced for:', userEmail);
+        } catch (trackError) {
+          // Don't block login if session tracking fails
+          console.error('[Auth Callback] ⚠️ Failed to track session (non-blocking):', trackError);
+        }
+
         // Determine final destination URL
         let destination = '/dashboard';
 
@@ -416,6 +446,34 @@ export async function GET(request: NextRequest) {
           userAgent: request.headers.get('user-agent') || undefined,
         });
         console.log('[Auth Callback] 🟢 Login attempt logged for:', userEmail);
+
+        // Track session and enforce limits (RBAC Phase 2.2)
+        try {
+          const ipAddress =
+            request.headers.get('x-forwarded-for')?.split(',')[0] ||
+            request.headers.get('x-real-ip') ||
+            '0.0.0.0';
+          const userAgent = request.headers.get('user-agent') || undefined;
+
+          console.log('[Auth Callback] 🔵 Tracking session for user:', userId);
+          await trackSessionCreation(data.session.access_token, userId, {
+            ipAddress,
+            userAgent,
+          });
+
+          console.log('[Auth Callback] 🔵 Enforcing session limits for user:', userId);
+          const roles = await getEffectiveRoles(userId);
+          await enforceSessionLimits(
+            userId,
+            roles[0] || 'customer',
+            data.session.access_token
+          );
+
+          console.log('[Auth Callback] 🟢 Session tracked and limits enforced for:', userEmail);
+        } catch (trackError) {
+          // Don't block login if session tracking fails
+          console.error('[Auth Callback] ⚠️ Failed to track session (non-blocking):', trackError);
+        }
 
         // Determine final destination
         let destination = '/dashboard';
