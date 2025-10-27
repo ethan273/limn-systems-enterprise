@@ -16,8 +16,9 @@ This file has been **modularized for maintainability**. For detailed information
 
 ### Patterns (Development Patterns & Best Practices)
 - **[Database Patterns](patterns/database-patterns.md)** - ctx.db usage, Prisma 3-step queries, schema sync, permissions
-- **[Auth Patterns](patterns/auth-patterns.md)** - getCurrentUser, API auth, admin authorization, tRPC security
+- **[Auth Patterns](patterns/auth-patterns.md)** - getCurrentUser, API auth, RBAC system, tRPC security
 - **[UI Patterns](patterns/ui-patterns.md)** - Logo usage, theming, UI conventions
+- **[Email Patterns](patterns/email-patterns.md)** - Campaign system, webhooks, rate limiting, unsubscribe
 
 ### Critical (Production & Quality Requirements)
 - **[Production Readiness](critical/production-readiness.md)** - Schema sync, E2E testing, security, deployment
@@ -83,28 +84,54 @@ This file has been **modularized for maintainability**. For detailed information
 3. ✅ **ALWAYS** verify both databases have matching changes
 4. ✅ **NEVER** assume .env contains prod credentials
 
-### Resend Email Service Configuration
+### Email Campaign System Configuration
+
+**Status**: ✅ PRODUCTION READY (October 26, 2025)
 
 **Environment Variables Required**:
 ```bash
-# .env (Development)
+# Email Service Provider
 RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+RESEND_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-# Vercel (Production)
-RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+# Rate Limiting (Upstash Redis)
+UPSTASH_REDIS_REST_URL=https://xxx.upstash.io
+UPSTASH_REDIS_REST_TOKEN=xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# Cron Jobs (Vercel)
+CRON_SECRET=your-secure-random-string-here
+
+# Error Monitoring (Sentry)
+NEXT_PUBLIC_SENTRY_DSN=https://xxxxx@xxxxx.ingest.sentry.io/xxxxx
+
+# Application URL (for unsubscribe links)
+NEXT_PUBLIC_URL=https://your-production-domain.com
 ```
 
 **Setup:**
 ```bash
 # Add to .env
 nano .env
-# Add: RESEND_API_KEY=re_your_actual_api_key_here
+# Add all variables above
 
 # Add to Vercel
 vercel env add RESEND_API_KEY
+vercel env add RESEND_WEBHOOK_SECRET
+vercel env add UPSTASH_REDIS_REST_URL
+vercel env add UPSTASH_REDIS_REST_TOKEN
+vercel env add CRON_SECRET
+vercel env add NEXT_PUBLIC_SENTRY_DSN
 ```
 
-**API Key Format**: Starts with `re_` (get from https://resend.com/api-keys)
+**Critical Deployment Blockers - RESOLVED**:
+1. ✅ Scheduled Campaign Sending (Vercel Cron)
+2. ✅ Email Webhook Integration (Resend)
+3. ✅ Unsubscribe System (CAN-SPAM compliance)
+4. ✅ Rate Limiting (Upstash Redis)
+5. ✅ Error Monitoring (Sentry with PII redaction)
+6. ✅ Database Backups (Automated daily backups)
+
+**See**: `/Users/eko3/limn-systems-enterprise-docs/00-MASTER-PLANS/PRODUCTION-DEPLOYMENT-GUIDE.md`
 
 ---
 

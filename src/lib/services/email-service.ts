@@ -34,7 +34,23 @@ import type {
 // RESEND CLIENT INITIALIZATION
 // =====================================================
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy-load Resend client to avoid errors when API key not configured
+// This allows the module to load in test/build environments
+let resendClient: Resend | null = null;
+
+function getResendClient(): Resend {
+  if (!resendClient) {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      throw new Error(
+        'RESEND_API_KEY environment variable is not configured. ' +
+        'Email sending is disabled. Set RESEND_API_KEY to enable email functionality.'
+      );
+    }
+    resendClient = new Resend(apiKey);
+  }
+  return resendClient;
+}
 
 // Default sender configuration
 const DEFAULT_FROM_EMAIL = process.env.EMAIL_FROM ?? 'no-reply@limn.us.com';
@@ -277,6 +293,7 @@ export class EmailSendingService {
       if (options.tags) emailOptions.tags = options.tags;
       if (options.headers) emailOptions.headers = options.headers;
 
+      const resend = getResendClient();
       const response = await resend.emails.send(emailOptions as any);
 
       if ('id' in response.data!) {
