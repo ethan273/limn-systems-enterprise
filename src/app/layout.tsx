@@ -70,6 +70,45 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* CRITICAL: Immediately unregister old Service Workers to prevent stale cache */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                if ('serviceWorker' in navigator) {
+                  console.log('[SW Force Clear] Checking for service workers...');
+                  navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    console.log('[SW Force Clear] Found', registrations.length, 'service worker(s)');
+                    var unregistered = 0;
+                    registrations.forEach(function(registration) {
+                      console.log('[SW Force Clear] Unregistering service worker:', registration.scope);
+                      registration.unregister().then(function(success) {
+                        if (success) {
+                          unregistered++;
+                          console.log('[SW Force Clear] Successfully unregistered service worker');
+                        }
+                      });
+                    });
+                    if (unregistered > 0) {
+                      console.log('[SW Force Clear] Unregistered', unregistered, 'service worker(s)');
+                      // Clear all caches
+                      if ('caches' in window) {
+                        caches.keys().then(function(names) {
+                          console.log('[SW Force Clear] Clearing', names.length, 'cache(s)');
+                          names.forEach(function(name) {
+                            caches.delete(name);
+                          });
+                        });
+                      }
+                    }
+                  });
+                }
+              })();
+            `,
+          }}
+        />
+      </head>
       <body className={`${inter.className} bg-background text-foreground antialiased`}>
         <ErrorBoundary>
           <Providers>

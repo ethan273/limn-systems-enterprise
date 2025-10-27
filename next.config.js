@@ -13,7 +13,9 @@ const withPWA = require('@ducanh2912/next-pwa').default({
   dest: 'public',
   register: true,
   skipWaiting: true,
-  disable: process.env.NODE_ENV === 'development' && process.env.ENABLE_PWA !== 'true',
+  // CRITICAL TEMPORARY FIX: Disable PWA entirely until old Service Workers are cleared from all browsers
+  // Old SWs with aggressive caching are preventing admin pages from showing real-time data
+  disable: true, // TEMPORARILY DISABLED - was: process.env.NODE_ENV === 'development' && process.env.ENABLE_PWA !== 'true'
   // CRITICAL: Exclude admin pages from Service Worker caching entirely
   // Admin pages MUST always fetch fresh data from the server
   cacheOnFrontEndNav: false,
