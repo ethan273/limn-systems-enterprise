@@ -33,13 +33,13 @@ export default function AnalyticsDashboardPage() {
   // Fetch activity stats
   const { data: stats, isLoading: isLoadingStats, error: statsError } = api.audit.getActivityStats.useQuery({
     days: timeRange,
-  });
+  }, { refetchOnMount: 'always', refetchOnWindowFocus: true, staleTime: 0, gcTime: 0 });
 
   // Fetch all users
   const { data: usersData, isLoading: isLoadingUsers, error: usersError } = api.admin.users.list.useQuery({
     limit: 100,
     offset: 0,
-  });
+  }, { refetchOnMount: 'always', refetchOnWindowFocus: true, staleTime: 0, gcTime: 0 });
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();

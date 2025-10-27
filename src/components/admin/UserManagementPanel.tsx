@@ -56,7 +56,7 @@ export function UserManagementPanel() {
     userType: userTypeFilter as any,
     limit: 50,
     offset: 0,
-  });
+  }, { refetchOnMount: 'always', refetchOnWindowFocus: true, staleTime: 0, gcTime: 0 });
 
   const updateUserMutation = api.admin.users.update.useMutation({
     onSuccess: () => {

@@ -50,7 +50,7 @@ export default function ActivityLogsPage() {
         ...queryParams,
         action: rawFilters.action === 'all' ? undefined : rawFilters.action,
       },
-      { enabled: activeTab === 'admin' }
+      { enabled: activeTab === 'admin', refetchOnMount: 'always', refetchOnWindowFocus: true, staleTime: 0, gcTime: 0 }
     );
 
   const { data: securityLogs, isLoading: isLoadingSecurity } =
@@ -59,7 +59,7 @@ export default function ActivityLogsPage() {
         ...queryParams,
         action: rawFilters.action === 'all' ? undefined : rawFilters.action,
       },
-      { enabled: activeTab === 'security' }
+      { enabled: activeTab === 'security', refetchOnMount: 'always', refetchOnWindowFocus: true, staleTime: 0, gcTime: 0 }
     );
 
   const { data: loginLogs, isLoading: isLoadingLogin } =
@@ -67,10 +67,10 @@ export default function ActivityLogsPage() {
       {
         ...queryParams,
       },
-      { enabled: activeTab === 'login' }
+      { enabled: activeTab === 'login', refetchOnMount: 'always', refetchOnWindowFocus: true, staleTime: 0, gcTime: 0 }
     );
 
-  const { data: stats } = api.audit.getActivityStats.useQuery({ days: 30 });
+  const { data: stats } = api.audit.getActivityStats.useQuery({ days: 30 }, { refetchOnMount: 'always', refetchOnWindowFocus: true, staleTime: 0, gcTime: 0 });
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();

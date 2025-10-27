@@ -26,7 +26,7 @@ export default function DataExportPage() {
   const [exportFormat, setExportFormat] = useState<ExportFormat>('csv');
 
   // Fetch export stats
-  const { data: stats, isLoading, error } = api.export.getExportStats.useQuery();
+  const { data: stats, isLoading, error } = api.export.getExportStats.useQuery(undefined, { refetchOnMount: 'always', refetchOnWindowFocus: true, staleTime: 0, gcTime: 0, retry: 3 });
   const utils = api.useUtils();
 
   if (isLoading) {
