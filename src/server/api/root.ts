@@ -50,6 +50,9 @@ import { rotationRouter as apiRotationRouter } from './routers/apiManagement/rot
 import { jobsRouter as apiJobsRouter } from './routers/apiManagement/jobs';
 import { flipbooksRouter } from './routers/flipbooks';
 import { globalSearchRouter } from './routers/global-search';
+import { emailTemplatesRouter } from './routers/emailTemplates';
+import { emailCampaignsRouter } from './routers/emailCampaigns';
+import { emailAnalyticsRouter } from './routers/emailAnalytics';
 
 /**
  * Main API router
@@ -161,6 +164,11 @@ export const appRouter = createTRPCRouter({
 
   // Flipbooks (Feature Flag Protected)
   flipbooks: flipbooksRouter,
+
+  // Email Campaign System (Phase 5)
+  emailTemplates: emailTemplatesRouter,
+  emailCampaigns: emailCampaignsRouter,
+  emailAnalytics: emailAnalyticsRouter,
 });
 
 // Export type for client

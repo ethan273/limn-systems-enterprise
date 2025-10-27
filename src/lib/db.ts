@@ -3697,6 +3697,96 @@ export class DatabaseClient {
       this.countGeneric('api_credential_audit_logs', options),
   };
 
+  // =====================================================
+  // EMAIL SYSTEM TABLES (Phase 5 - Email Campaign System)
+  // =====================================================
+
+  email_templates = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('email_templates', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('email_templates', options),
+    findFirst: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findFirstGeneric<Record<string, any>>('email_templates', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('email_templates', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('email_templates', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('email_templates', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('email_templates', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('email_templates', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('email_templates', options),
+  };
+
+  email_campaigns = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('email_campaigns', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('email_campaigns', options),
+    findFirst: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findFirstGeneric<Record<string, any>>('email_campaigns', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('email_campaigns', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('email_campaigns', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('email_campaigns', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('email_campaigns', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('email_campaigns', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('email_campaigns', options),
+    groupBy: (options: any) =>
+      this.groupByGeneric('email_campaigns', options),
+  };
+
+  email_queue = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('email_queue', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('email_queue', options),
+    findFirst: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findFirstGeneric<Record<string, any>>('email_queue', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('email_queue', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('email_queue', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('email_queue', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('email_queue', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('email_queue', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('email_queue', options),
+    groupBy: (options: any) =>
+      this.groupByGeneric('email_queue', options),
+  };
+
+  email_tracking = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('email_tracking', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('email_tracking', options),
+    findFirst: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findFirstGeneric<Record<string, any>>('email_tracking', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('email_tracking', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('email_tracking', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('email_tracking', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('email_tracking', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('email_tracking', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('email_tracking', options),
+    groupBy: (options: any) =>
+      this.groupByGeneric('email_tracking', options),
+  };
+
   admin_settings = {
     findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('admin_settings', options),
     findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
