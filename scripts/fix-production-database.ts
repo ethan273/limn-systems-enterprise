@@ -11,20 +11,22 @@
 
 import { Pool } from 'pg';
 
-const PROD_DB_URL = process.env.PROD_DB_URL ||
-  `postgresql://postgres:${process.env.PROD_DB_PASSWORD}@db.hwaxogapihsqleyzpqtj.supabase.co:5432/postgres`;
+// Use PROD_DB_URL from environment only
+// NEVER hardcode database URLs - security violation
+const PROD_DB_URL = process.env.PROD_DB_URL;
 
 async function fixProductionDatabase() {
   console.log('🔧 Fixing Production Database Constraints\n');
 
-  if (!process.env.PROD_DB_PASSWORD && !process.env.PROD_DB_URL) {
-    console.error('❌ ERROR: PROD_DB_PASSWORD or PROD_DB_URL environment variable required');
+  if (!PROD_DB_URL) {
+    console.error('❌ ERROR: PROD_DB_URL environment variable required');
     console.error('');
     console.error('Usage:');
-    console.error('  PROD_DB_PASSWORD="your-password" npx tsx scripts/fix-production-database.ts');
+    console.error('  PROD_DB_URL="postgresql://..." npx tsx scripts/fix-production-database.ts');
     console.error('');
-    console.error('Get password from:');
-    console.error('  https://supabase.com/dashboard/project/hwaxogapihsqleyzpqtj/settings/database');
+    console.error('Get URL from:');
+    console.error('  /Users/eko3/limn-systems-enterprise/production-credentials.env');
+    console.error('  or Supabase dashboard');
     process.exit(1);
   }
 

@@ -102,6 +102,44 @@ else
 fi
 echo ""
 
+echo "6a. Running schema validation tests..."
+if npm run schema:validate > /dev/null 2>&1; then
+    print_pass "Schema validation tests passed"
+else
+    print_fail "Schema validation tests failed"
+fi
+echo ""
+
+echo "6b. Checking schema sync..."
+if npm run schema:check:fast > /dev/null 2>&1; then
+    print_pass "Schema in sync with database"
+else
+    print_fail "Schema out of sync - run: npm run schema:sync"
+fi
+echo ""
+
+echo "6c. Running prevention tests (schema)..."
+if npx vitest run scripts/tests/prevention/schema-validation.test.ts --silent > /dev/null 2>&1; then
+    print_pass "Schema prevention tests passed"
+else
+    print_fail "Schema prevention tests failed"
+fi
+echo ""
+
+echo "6d. Running prevention tests (patterns)..."
+if npx vitest run scripts/tests/prevention/pattern-consistency.test.ts --silent > /dev/null 2>&1; then
+    print_pass "Pattern prevention tests passed"
+else
+    # Pattern tests may have warnings, check if actual failures
+    PATTERN_OUTPUT=$(npx vitest run scripts/tests/prevention/pattern-consistency.test.ts 2>&1 || true)
+    if echo "$PATTERN_OUTPUT" | grep -q " failed"; then
+        print_fail "Pattern prevention tests failed"
+    else
+        print_warn "Pattern prevention tests have warnings"
+    fi
+fi
+echo ""
+
 echo "7. Building for production..."
 echo "   (This may take 2-3 minutes...)"
 # Check if timeout command exists (Linux) or gtimeout (macOS with coreutils)

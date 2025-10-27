@@ -821,10 +821,6 @@ export const qcPwaRouter = createTRPCRouter({
       sinceDate.setDate(sinceDate.getDate() - input.days_back);
 
       // Get checkpoint results with counts
-      // Use prisma client directly for raw queries
-      const { PrismaClient } = await import('@prisma/client');
-      const _prisma = new PrismaClient();
-
       const results = await ctx.db.$queryRaw<Array<{
         checkpoint_code: string;
         checkpoint_text: string;
@@ -879,10 +875,6 @@ export const qcPwaRouter = createTRPCRouter({
       const sinceDate = new Date();
       sinceDate.setDate(sinceDate.getDate() - input.days_back);
 
-      // Use prisma client directly for raw queries
-      const { PrismaClient } = await import('@prisma/client');
-      const _prisma = new PrismaClient();
-
       const metrics = await ctx.db.$queryRaw<Array<{
         factory_id: string;
         factory_name: string;
@@ -931,10 +923,6 @@ export const qcPwaRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const sinceDate = new Date();
       sinceDate.setDate(sinceDate.getDate() - input.days_back);
-
-      // Use prisma client directly for raw queries
-      const { PrismaClient } = await import('@prisma/client');
-      const _prisma = new PrismaClient();
 
       const metrics = await ctx.db.$queryRaw<Array<{
         inspector_id: string;

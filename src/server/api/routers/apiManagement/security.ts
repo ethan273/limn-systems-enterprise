@@ -273,11 +273,8 @@ export const securityRouter = createTRPCRouter({
     const now = new Date();
     const last30Days = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    // Get audit log counts (using Prisma directly for new tables)
-    const { PrismaClient } = await import('@prisma/client');
-    const prisma = new PrismaClient();
-
-    const totalEvents = await prisma.api_credential_audit_logs.count({
+    // Get audit log counts
+    const totalEvents = await ctx.db.api_credential_audit_logs.count({
       where: {
         created_at: {
           gte: last30Days,
@@ -285,7 +282,7 @@ export const securityRouter = createTRPCRouter({
       },
     });
 
-    const failedEvents = await prisma.api_credential_audit_logs.count({
+    const failedEvents = await ctx.db.api_credential_audit_logs.count({
       where: {
         created_at: {
           gte: last30Days,
