@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { PageHeader, EmptyState } from "@/components/common";
 import { getUserFirstName, getUserLastName } from "@/lib/utils/user-utils";
 import { AlertTriangle, RefreshCw } from "lucide-react";
+import { ActiveSessions } from "@/components/settings/ActiveSessions";
 
 export default function SettingsPage() {
   const { toast } = useToast();
@@ -230,7 +231,7 @@ export default function SettingsPage() {
           </div>
 
           {/* Notifications Section */}
-          <div className="card">
+          <div className="card mb-6">
             <div className="card-header">
               <h2 className="card-title">Notifications</h2>
               <p className="card-description">Manage how you receive notifications</p>
@@ -293,6 +294,17 @@ export default function SettingsPage() {
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Security & Sessions Section */}
+          <div className="card">
+            <div className="card-header">
+              <h2 className="card-title">Security & Sessions</h2>
+              <p className="card-description">Manage your active sessions and security settings</p>
+            </div>
+            <div className="card-content">
+              <ActiveSessions />
             </div>
           </div>
         </div>
