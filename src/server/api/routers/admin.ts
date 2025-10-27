@@ -151,6 +151,13 @@ export const adminRouter = createTRPCRouter({
           where,
         });
 
+        // DEBUG: Log what we're returning
+        console.log('[ADMIN API] users.list returning:', {
+          count: profiles.length,
+          total,
+          emails: profiles.map(p => p.email).slice(0, 5),
+        });
+
         return {
           users: profiles.map(profile => ({
             id: profile.id,
