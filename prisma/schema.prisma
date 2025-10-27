@@ -308,31 +308,6 @@ model sessions {
   @@schema("auth")
 }
 
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model session_tracking {
-  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  session_id       String    @db.Uuid
-  user_id          String    @db.Uuid
-  ip_address       String    @db.Inet
-  user_agent       String?
-  geo_location     Json?     @db.JsonB
-  is_suspicious    Boolean   @default(false)
-  login_at         DateTime  @default(now()) @db.Timestamptz(6)
-  last_activity_at DateTime  @default(now()) @db.Timestamptz(6)
-  logout_at        DateTime? @db.Timestamptz(6)
-  session_metadata Json?     @db.JsonB
-  created_at       DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at       DateTime  @default(now()) @db.Timestamptz(6)
-
-  @@index([session_id], map: "idx_session_tracking_session")
-  @@index([user_id], map: "idx_session_tracking_user")
-  @@index([ip_address], map: "idx_session_tracking_ip")
-  @@index([user_id], map: "idx_session_tracking_active")
-  @@index([is_suspicious], map: "idx_session_tracking_suspicious")
-  @@index([last_activity_at], map: "idx_session_tracking_last_activity")
-  @@schema("public")
-}
-
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -474,6 +449,14 @@ model users {
   partner_documents                                                     partner_documents[]
   partners                                                              partners?
   password_reset_tokens                                                 password_reset_tokens[]
+  permission_conditions_permission_conditions_created_byTousers         permission_conditions[]             @relation("permission_conditions_created_byTousers")
+  permission_conditions_permission_conditions_user_idTousers            permission_conditions[]             @relation("permission_conditions_user_idTousers")
+  permission_delegations_permission_delegations_delegatee_idTousers     permission_delegations[]            @relation("permission_delegations_delegatee_idTousers")
+  permission_delegations_permission_delegations_delegator_idTousers     permission_delegations[]            @relation("permission_delegations_delegator_idTousers")
+  permission_delegations_permission_delegations_revoked_byTousers       permission_delegations[]            @relation("permission_delegations_revoked_byTousers")
+  permission_requests_permission_requests_approver_idTousers            permission_requests[]               @relation("permission_requests_approver_idTousers")
+  permission_requests_permission_requests_requester_idTousers           permission_requests[]               @relation("permission_requests_requester_idTousers")
+  permission_usage_log                                                  permission_usage_log[]
   portal_activity_log                                                   portal_activity_log[]
   portal_configurations_portal_configurations_created_byTousers         portal_configurations[]             @relation("portal_configurations_created_byTousers")
   portal_configurations_portal_configurations_updated_byTousers         portal_configurations[]             @relation("portal_configurations_updated_byTousers")
@@ -550,8 +533,6 @@ model users {
   user_profiles_user_profiles_user_idTousers                            user_profiles?                      @relation("user_profiles_user_idTousers")
   user_roles                                                            user_roles[]
   verification_logs                                                     verification_logs[]
-  permission_scopes_permission_scopes_user_idTousers                    permission_scopes[]                 @relation("UserPermissionScopes")
-  permission_scopes_permission_scopes_granted_byTousers                 permission_scopes[]                 @relation("GrantedByUser")
 
   @@index([instance_id])
   @@index([is_anonymous])
@@ -738,6 +719,33 @@ model analytics_dashboard_widgets {
   @@index([created_by], map: "idx_analytics_dashboard_widgets_created_by")
   @@index([is_active], map: "idx_analytics_dashboard_widgets_is_active")
   @@index([updated_at], map: "idx_analytics_dashboard_widgets_updated_at")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model analytics_events {
+  id               String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  flipbook_id      String               @db.Uuid
+  event_type       analytics_event_type
+  user_id          String?              @db.Uuid
+  session_id       String?              @db.Uuid
+  page_number      Int?
+  hotspot_id       String?              @db.Uuid
+  duration_seconds Int?
+  user_agent       String?
+  ip_address       String?              @db.VarChar(45)
+  referrer         String?
+  device_type      String?              @db.VarChar(50)
+  metadata         Json?
+  created_at       DateTime             @default(now()) @db.Timestamptz(6)
+  flipbooks        flipbooks            @relation(fields: [flipbook_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_analytics_events_flipbook")
+  user_profiles    user_profiles?       @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_analytics_events_user")
+
+  @@index([created_at(sort: Desc)], map: "idx_analytics_events_created_at")
+  @@index([flipbook_id], map: "idx_analytics_events_flipbook")
+  @@index([event_type], map: "idx_analytics_events_type")
+  @@index([user_id], map: "idx_analytics_events_user")
   @@schema("public")
 }
 
@@ -2572,7 +2580,7 @@ model documents {
   user_profiles_documents_uploaded_by_userTouser_profiles user_profiles?          @relation("documents_uploaded_by_userTouser_profiles", fields: [uploaded_by_user], references: [id], onDelete: NoAction, onUpdate: NoAction)
   concepts                                                concepts?               @relation(fields: [concept_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_documents_concepts")
   prototypes                                              prototypes?             @relation(fields: [prototype_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_documents_prototypes")
-  production_orders                                       production_orders[]     @relation("documentsToproduction_orders")
+  production_orders                                       production_orders[]
 
   @@index([approved_by], map: "idx_documents_approved_by")
   @@index([catalog_item_id], map: "idx_documents_catalog_item_id")
@@ -2621,8 +2629,8 @@ model email_campaigns {
   scheduled_for     DateTime?        @db.Timestamptz(6)
   updated_at        DateTime?        @default(now()) @db.Timestamptz(6)
   users             users?           @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  email_tracking    email_tracking[]
   email_queue       email_queue[]
+  email_tracking    email_tracking[]
 
   @@index([created_at], map: "idx_email_campaigns_created_at")
   @@index([created_by], map: "idx_email_campaigns_created_by")
@@ -2635,7 +2643,6 @@ model email_campaigns {
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model email_queue {
   id                  String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  campaign_id         String?          @db.Uuid
   recipient_email     String           @db.VarChar(255)
   template_id         String?          @db.Uuid
   subject             String           @db.VarChar(255)
@@ -2649,8 +2656,9 @@ model email_queue {
   delivered_at        DateTime?        @db.Timestamptz(6)
   priority            Int?             @default(5)
   metadata            Json?            @default("{}")
-  unsubscribe_token   String?          @unique @db.VarChar(255)
   created_at          DateTime?        @default(now()) @db.Timestamptz(6)
+  campaign_id         String?          @db.Uuid
+  unsubscribe_token   String?          @db.VarChar(255)
   email_campaigns     email_campaigns? @relation(fields: [campaign_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   email_templates     email_templates? @relation(fields: [template_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
@@ -2704,12 +2712,12 @@ model email_tracking {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model email_unsubscribes {
-  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email            String    @unique @db.VarChar(255)
-  reason           String?   @db.VarChar(100)
-  unsubscribed_at  DateTime? @default(now()) @db.Timestamptz(6)
-  campaign_id      String?   @db.Uuid
-  metadata         Json?     @default("{}")
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email           String    @unique @db.VarChar(255)
+  reason          String?   @db.VarChar(100)
+  unsubscribed_at DateTime? @default(now()) @db.Timestamptz(6)
+  campaign_id     String?   @db.Uuid
+  metadata        Json?     @default("{}")
 
   @@index([email], map: "idx_email_unsubscribes_email")
   @@index([unsubscribed_at], map: "idx_email_unsubscribes_unsubscribed_at")
@@ -2961,13 +2969,14 @@ model financial_periods {
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model flipbook_pages {
   id                     String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   flipbook_id            String                   @db.Uuid
   page_number            Int
   image_url              String
   thumbnail_url          String?
-  page_type              Unsupported("page_type") @default(dbgenerated("'CONTENT'::public.page_type"))
+  page_type              Unsupported("page_type") @default(dbgenerated("'CONTENT'::flipbook.page_type"))
   text_content           String?
   seo_title              String?                  @db.VarChar(255)
   seo_description        String?
@@ -2986,10 +2995,11 @@ model flipbook_pages {
   @@index([flipbook_id], map: "idx_flipbook_pages_flipbook")
   @@index([flipbook_id], map: "idx_flipbook_pages_flipbook_id")
   @@index([updated_at], map: "idx_flipbook_pages_updated_at")
-  @@index([width, height], map: "idx_flipbook_pages_aspect_ratio")
   @@schema("public")
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model flipbook_share_links {
   id                String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   flipbook_id       String             @db.Uuid
@@ -3022,6 +3032,7 @@ model flipbook_share_links {
   @@schema("public")
 }
 
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model flipbook_versions {
   id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   flipbook_id    String        @db.Uuid
@@ -3044,36 +3055,36 @@ model flipbook_versions {
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model flipbooks {
-  id                   String                         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  title                String                         @db.VarChar(255)
+  id                   String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title                String                 @db.VarChar(255)
   description          String?
-  status               Unsupported("flipbook_status") @default(dbgenerated("'DRAFT'::public.flipbook_status"))
-  created_by_id        String                         @db.Uuid
+  created_by_id        String                 @db.Uuid
   cover_image_url      String?
   thumbnail_url        String?
   pdf_source_url       String?
-  page_count           Int?                           @default(0)
-  view_count           Int?                           @default(0)
-  published_at         DateTime?                      @db.Timestamptz(6)
-  created_at           DateTime                       @default(now()) @db.Timestamptz(6)
-  updated_at           DateTime                       @default(now()) @db.Timestamptz(6)
+  page_count           Int?                   @default(0)
+  view_count           Int?                   @default(0)
+  published_at         DateTime?              @db.Timestamptz(6)
+  created_at           DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime               @default(now()) @db.Timestamptz(6)
   settings             Json?
   branding             Json?
   toc_data             Json?
-  toc_auto_generated   Boolean?                       @default(false)
-  toc_last_updated     DateTime?                      @db.Timestamptz(6)
+  toc_auto_generated   Boolean?               @default(false)
+  toc_last_updated     DateTime?              @db.Timestamptz(6)
   navigation_settings  Json?
+  status               flipbook_status        @default(DRAFT)
   analytics_events     analytics_events[]
   flipbook_pages       flipbook_pages[]
   flipbook_share_links flipbook_share_links[]
   flipbook_versions    flipbook_versions[]
-  user_profiles        user_profiles                  @relation(fields: [created_by_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user_profiles        user_profiles          @relation(fields: [created_by_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([created_at(sort: Desc)], map: "idx_flipbooks_created_at")
   @@index([created_by_id], map: "idx_flipbooks_created_by_id")
   @@index([created_by_id], map: "idx_flipbooks_creator")
-  @@index([status], map: "idx_flipbooks_status")
   @@index([updated_at], map: "idx_flipbooks_updated_at")
   @@schema("public")
 }
@@ -3210,6 +3221,7 @@ model furniture_dimensions {
   @@schema("public")
 }
 
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model hotspots {
   id                String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   page_id           String                      @db.Uuid
@@ -4409,6 +4421,7 @@ model pandadoc_templates {
   @@schema("public")
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model partner_contacts {
   id                       String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -4500,6 +4513,7 @@ model partner_performance {
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model partner_portal_roles {
   id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   partner_type    String    @db.VarChar(50)
@@ -4741,6 +4755,179 @@ model performance_metrics {
 
   @@unique([metric_date, metric_type])
   @@index([created_at], map: "idx_performance_metrics_created_at")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model permission_conditions {
+  id                                            String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  permission_id                                 String                 @db.Uuid
+  user_id                                       String?                @db.Uuid
+  role_id                                       String?                @db.Uuid
+  condition_type                                String
+  time_start                                    DateTime?              @db.Time(6)
+  time_end                                      DateTime?              @db.Time(6)
+  days_of_week                                  Int[]
+  timezone                                      String?                @default("UTC")
+  allowed_countries                             String[]
+  allowed_regions                               String[]
+  allowed_cities                                String[]
+  geo_fence                                     Json?
+  allowed_device_types                          String[]
+  required_os                                   String[]
+  corporate_device_only                         Boolean?               @default(false)
+  allowed_ip_ranges                             String[]               @db.Inet
+  is_active                                     Boolean?               @default(true)
+  created_at                                    DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at                                    DateTime               @default(now()) @db.Timestamptz(6)
+  created_by                                    String?                @db.Uuid
+  users_permission_conditions_created_byTousers users?                 @relation("permission_conditions_created_byTousers", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  permission_definitions                        permission_definitions @relation(fields: [permission_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  role_definitions                              role_definitions?      @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users_permission_conditions_user_idTousers    users?                 @relation("permission_conditions_user_idTousers", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([permission_id], map: "idx_permission_conditions_permission")
+  @@index([role_id], map: "idx_permission_conditions_role")
+  @@index([condition_type], map: "idx_permission_conditions_type")
+  @@index([user_id], map: "idx_permission_conditions_user")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model permission_definitions {
+  id                     String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  permission_key         String                   @unique @db.VarChar(100)
+  permission_name        String                   @db.VarChar(150)
+  description            String?
+  category               String?                  @db.VarChar(50)
+  is_system              Boolean                  @default(true)
+  is_active              Boolean                  @default(true)
+  created_at             DateTime                 @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime                 @default(now()) @db.Timestamptz(6)
+  permission_conditions  permission_conditions[]
+  permission_delegations permission_delegations[]
+  permission_requests    permission_requests[]
+  permission_usage_log   permission_usage_log[]
+  role_permissions       role_permissions[]
+
+  @@index([is_active], map: "idx_permission_definitions_active")
+  @@index([category], map: "idx_permission_definitions_category")
+  @@index([permission_key], map: "idx_permission_definitions_key")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model permission_delegations {
+  id                                               String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  delegator_id                                     String                 @db.Uuid
+  delegatee_id                                     String                 @db.Uuid
+  permission_id                                    String                 @db.Uuid
+  resource_type                                    String?
+  resource_id                                      String?
+  valid_from                                       DateTime               @default(now()) @db.Timestamptz(6)
+  valid_until                                      DateTime               @db.Timestamptz(6)
+  status                                           String                 @default("active")
+  revoked_at                                       DateTime?              @db.Timestamptz(6)
+  revoked_by                                       String?                @db.Uuid
+  revoke_reason                                    String?
+  delegation_reason                                String?
+  created_at                                       DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at                                       DateTime               @default(now()) @db.Timestamptz(6)
+  users_permission_delegations_delegatee_idTousers users                  @relation("permission_delegations_delegatee_idTousers", fields: [delegatee_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users_permission_delegations_delegator_idTousers users                  @relation("permission_delegations_delegator_idTousers", fields: [delegator_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  permission_definitions                           permission_definitions @relation(fields: [permission_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users_permission_delegations_revoked_byTousers   users?                 @relation("permission_delegations_revoked_byTousers", fields: [revoked_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([delegatee_id], map: "idx_delegations_delegatee")
+  @@index([delegator_id], map: "idx_delegations_delegator")
+  @@index([permission_id], map: "idx_delegations_permission")
+  @@index([status], map: "idx_delegations_status")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model permission_requests {
+  id                                            String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  requester_id                                  String                 @db.Uuid
+  permission_id                                 String                 @db.Uuid
+  resource_type                                 String?
+  resource_id                                   String?
+  request_reason                                String
+  duration_hours                                Int?
+  status                                        String                 @default("pending")
+  approver_id                                   String?                @db.Uuid
+  approved_at                                   DateTime?              @db.Timestamptz(6)
+  denied_at                                     DateTime?              @db.Timestamptz(6)
+  approval_reason                               String?
+  auto_approved                                 Boolean?               @default(false)
+  auto_approval_reason                          String?
+  requested_at                                  DateTime               @default(now()) @db.Timestamptz(6)
+  expires_at                                    DateTime?              @db.Timestamptz(6)
+  metadata                                      Json?
+  created_at                                    DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at                                    DateTime               @default(now()) @db.Timestamptz(6)
+  users_permission_requests_approver_idTousers  users?                 @relation("permission_requests_approver_idTousers", fields: [approver_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  permission_definitions                        permission_definitions @relation(fields: [permission_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users_permission_requests_requester_idTousers users                  @relation("permission_requests_requester_idTousers", fields: [requester_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([approver_id], map: "idx_permission_requests_approver")
+  @@index([permission_id], map: "idx_permission_requests_permission")
+  @@index([requester_id], map: "idx_permission_requests_requester")
+  @@index([status], map: "idx_permission_requests_status")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model permission_scopes {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id        String    @db.Uuid
+  permission_key String    @db.VarChar(100)
+  resource_type  String    @db.VarChar(100)
+  resource_id    String?   @db.Uuid
+  scope_metadata Json?
+  granted_by     String?   @db.Uuid
+  granted_at     DateTime  @default(now()) @db.Timestamptz(6)
+  expires_at     DateTime? @db.Timestamptz(6)
+  is_active      Boolean   @default(true)
+  reason         String?
+  created_at     DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@index([is_active], map: "idx_permission_scopes_active")
+  @@index([scope_metadata], map: "idx_permission_scopes_metadata", type: Gin)
+  @@index([permission_key], map: "idx_permission_scopes_permission")
+  @@index([resource_type, resource_id], map: "idx_permission_scopes_resource")
+  @@index([user_id], map: "idx_permission_scopes_user")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model permission_usage_log {
+  id                     String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                String                 @db.Uuid
+  permission_id          String                 @db.Uuid
+  resource_type          String?
+  resource_id            String?
+  action                 String?
+  result                 String
+  denial_reason          String?
+  ip_address             String?                @db.Inet
+  user_agent             String?
+  session_id             String?                @db.Uuid
+  timestamp              DateTime               @default(now()) @db.Timestamptz(6)
+  metadata               Json?
+  permission_definitions permission_definitions @relation(fields: [permission_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                  users                  @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([permission_id, timestamp(sort: Desc)], map: "idx_usage_log_permission_time")
+  @@index([result], map: "idx_usage_log_result")
+  @@index([timestamp(sort: Desc)], map: "idx_usage_log_timestamp")
+  @@index([user_id, timestamp(sort: Desc)], map: "idx_usage_log_user_time")
   @@schema("public")
 }
 
@@ -5180,6 +5367,7 @@ model production_milestones {
   @@schema("public")
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model production_orders {
   id                                             String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -5210,9 +5398,9 @@ model production_orders {
   estimated_completion_date                      DateTime?                  @db.Date
   production_start_date                          DateTime?                  @db.Date
   shipped_date                                   DateTime?                  @db.Date
-  completed_at                                   DateTime?                  @db.Timestamptz(6)
   balance_amount                                 Decimal?                   @db.Decimal(10, 2)
   deposit_amount                                 Decimal?                   @db.Decimal(10, 2)
+  completed_at                                   DateTime?                  @db.Timestamptz(6)
   ordered_items_production                       ordered_items_production[]
   production_invoices                            production_invoices[]
   production_milestones                          production_milestones[]
@@ -5227,9 +5415,10 @@ model production_orders {
   production_payments                            production_payments[]
   shipping_quotes                                shipping_quotes[]
   shop_drawings                                  shop_drawings[]
-  documents                                      documents[]                @relation("documentsToproduction_orders")
+  documents                                      documents[]
 
   @@index([catalog_item_id], map: "idx_production_orders_catalog_item_id")
+  @@index([completed_at], map: "idx_production_orders_completed_at")
   @@index([concept_id], map: "idx_production_orders_concept_id")
   @@index([created_at], map: "idx_production_orders_created_at")
   @@index([created_by], map: "idx_production_orders_created_by")
@@ -6605,6 +6794,44 @@ model quickbooks_webhooks {
   @@schema("public")
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model role_definitions {
+  id                    String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  role_key              String                  @unique @db.VarChar(50)
+  role_name             String                  @db.VarChar(100)
+  description           String?
+  is_system             Boolean                 @default(true)
+  is_active             Boolean                 @default(true)
+  hierarchy_level       Int                     @default(0)
+  created_at            DateTime                @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime                @default(now()) @db.Timestamptz(6)
+  permission_conditions permission_conditions[]
+  role_permissions      role_permissions[]
+
+  @@index([is_active], map: "idx_role_definitions_active")
+  @@index([hierarchy_level], map: "idx_role_definitions_hierarchy")
+  @@index([role_key], map: "idx_role_definitions_key")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model role_permissions {
+  id                     String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  role_id                String                 @db.Uuid
+  permission_id          String                 @db.Uuid
+  is_active              Boolean                @default(true)
+  created_at             DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime               @default(now()) @db.Timestamptz(6)
+  permission_definitions permission_definitions @relation(fields: [permission_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  role_definitions       role_definitions       @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([role_id, permission_id], map: "unique_role_permission")
+  @@index([is_active], map: "idx_role_permissions_active")
+  @@index([permission_id], map: "idx_role_permissions_permission")
+  @@index([role_id], map: "idx_role_permissions_role")
+  @@schema("public")
+}
+
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model saved_searches {
   id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -6661,6 +6888,48 @@ model seko_config {
   @@index([created_at], map: "idx_seko_config_created_at")
   @@index([is_active], map: "idx_seko_config_is_active")
   @@index([updated_at], map: "idx_seko_config_updated_at")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model session_tracking {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  session_id       String    @db.Uuid
+  user_id          String    @db.Uuid
+  ip_address       String    @db.Inet
+  user_agent       String?
+  geo_location     Json?
+  is_suspicious    Boolean?  @default(false)
+  login_at         DateTime  @default(now()) @db.Timestamptz(6)
+  last_activity_at DateTime  @default(now()) @db.Timestamptz(6)
+  logout_at        DateTime? @db.Timestamptz(6)
+  session_metadata Json?
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@index([ip_address], map: "idx_session_tracking_ip")
+  @@index([last_activity_at], map: "idx_session_tracking_last_activity")
+  @@index([session_id], map: "idx_session_tracking_session")
+  @@index([user_id], map: "idx_session_tracking_user")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model share_link_views {
+  id                   String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  share_link_id        String               @db.Uuid
+  viewer_ip            String?              @db.VarChar(45)
+  viewer_user_agent    String?
+  viewer_country       String?              @db.VarChar(2)
+  viewer_city          String?              @db.VarChar(100)
+  referrer             String?
+  viewed_at            DateTime             @default(now()) @db.Timestamptz(6)
+  session_id           String?              @db.Uuid
+  flipbook_share_links flipbook_share_links @relation(fields: [share_link_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_share_link_views_link")
+
+  @@index([share_link_id], map: "idx_share_views_link")
+  @@index([viewed_at], map: "idx_share_views_timestamp")
   @@schema("public")
 }
 
@@ -7559,6 +7828,31 @@ model teams {
   @@schema("public")
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model templates {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name            String            @db.VarChar(255)
+  description     String?
+  category        template_category
+  thumbnail_url   String?
+  template_config Json
+  page_layouts    Json
+  brand_config    Json?
+  is_public       Boolean           @default(true)
+  created_by_id   String?           @db.Uuid
+  use_count       Int               @default(0)
+  tags            String[]          @default([])
+  created_at      DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime          @default(now()) @db.Timestamptz(6)
+  user_profiles   user_profiles?    @relation(fields: [created_by_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_templates_creator")
+
+  @@index([category], map: "idx_templates_category")
+  @@index([created_by_id], map: "idx_templates_creator")
+  @@index([is_public], map: "idx_templates_public")
+  @@schema("public")
+}
+
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model tenants {
   id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -7806,109 +8100,22 @@ model user_profiles {
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model user_roles {
   id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   user_id    String?  @db.Uuid
   role       String
-  is_active  Boolean  @default(true)
   created_at DateTime @default(now()) @db.Timestamptz(6)
   updated_at DateTime @default(now()) @db.Timestamptz(6)
+  is_active  Boolean  @default(true)
   users      users?   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([user_id, role], map: "unique_user_role")
   @@index([created_at], map: "idx_user_roles_created_at")
+  @@index([is_active], map: "idx_user_roles_is_active")
   @@index([updated_at], map: "idx_user_roles_updated_at")
   @@index([user_id], map: "idx_user_roles_user_id")
-  @@index([is_active], map: "idx_user_roles_is_active")
-  @@schema("public")
-}
-
-/// Role Definitions - Stores metadata for all system roles
-model role_definitions {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  role_key    String   @unique @db.VarChar(50)
-  role_name   String   @db.VarChar(100)
-  description String?
-  is_system   Boolean  @default(true)
-  is_active   Boolean  @default(true)
-  hierarchy_level Int  @default(0)
-  created_at  DateTime @default(now()) @db.Timestamptz(6)
-  updated_at  DateTime @default(now()) @db.Timestamptz(6)
-
-  role_permissions role_permissions[]
-
-  @@index([role_key], map: "idx_role_definitions_key")
-  @@index([is_active], map: "idx_role_definitions_active")
-  @@index([hierarchy_level], map: "idx_role_definitions_hierarchy")
-  @@schema("public")
-}
-
-/// Permission Definitions - Stores metadata for all system permissions
-model permission_definitions {
-  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  permission_key String   @unique @db.VarChar(100)
-  permission_name String  @db.VarChar(150)
-  description    String?
-  category       String?  @db.VarChar(50)
-  is_system      Boolean  @default(true)
-  is_active      Boolean  @default(true)
-  created_at     DateTime @default(now()) @db.Timestamptz(6)
-  updated_at     DateTime @default(now()) @db.Timestamptz(6)
-
-  role_permissions role_permissions[]
-
-  @@index([permission_key], map: "idx_permission_definitions_key")
-  @@index([category], map: "idx_permission_definitions_category")
-  @@index([is_active], map: "idx_permission_definitions_active")
-  @@schema("public")
-}
-
-/// Role Permissions - Junction table mapping roles to permissions
-model role_permissions {
-  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  role_id       String   @db.Uuid
-  permission_id String   @db.Uuid
-  is_active     Boolean  @default(true)
-  created_at    DateTime @default(now()) @db.Timestamptz(6)
-  updated_at    DateTime @default(now()) @db.Timestamptz(6)
-
-  role          role_definitions       @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  permission    permission_definitions @relation(fields: [permission_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@unique([role_id, permission_id], map: "unique_role_permission")
-  @@index([role_id], map: "idx_role_permissions_role")
-  @@index([permission_id], map: "idx_role_permissions_permission")
-  @@index([is_active], map: "idx_role_permissions_active")
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model permission_scopes {
-  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id        String    @db.Uuid
-  permission_key String    @db.VarChar(100)
-  resource_type  String    @db.VarChar(100)
-  resource_id    String?   @db.Uuid
-  scope_metadata Json?     @db.JsonB
-  granted_by     String?   @db.Uuid
-  granted_at     DateTime  @default(now()) @db.Timestamptz(6)
-  expires_at     DateTime? @db.Timestamptz(6)
-  is_active      Boolean   @default(true)
-  reason         String?
-  created_at     DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at     DateTime  @default(now()) @db.Timestamptz(6)
-
-  // Relations
-  user            users  @relation("UserPermissionScopes", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_permission_scopes_user")
-  granted_by_user users? @relation("GrantedByUser", fields: [granted_by], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "fk_permission_scopes_granted_by")
-
-  @@index([user_id], map: "idx_permission_scopes_user")
-  @@index([permission_key], map: "idx_permission_scopes_permission")
-  @@index([resource_type, resource_id], map: "idx_permission_scopes_resource")
-  @@index([is_active], map: "idx_permission_scopes_active")
-  @@index([expires_at], map: "idx_permission_scopes_expires")
-  @@index([scope_metadata(ops: JsonbPathOps)], type: Gin, map: "idx_permission_scopes_metadata")
   @@schema("public")
 }
 
@@ -8091,74 +8298,6 @@ model workflows {
   @@schema("public")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model analytics_events {
-  id               String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  flipbook_id      String               @db.Uuid
-  event_type       analytics_event_type
-  user_id          String?              @db.Uuid
-  session_id       String?              @db.Uuid
-  page_number      Int?
-  hotspot_id       String?              @db.Uuid
-  duration_seconds Int?
-  user_agent       String?
-  ip_address       String?              @db.VarChar(45)
-  referrer         String?
-  device_type      String?              @db.VarChar(50)
-  metadata         Json?
-  created_at       DateTime             @default(now()) @db.Timestamptz(6)
-  flipbooks        flipbooks            @relation(fields: [flipbook_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_analytics_events_flipbook")
-  user_profiles    user_profiles?       @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_analytics_events_user")
-
-  @@index([created_at(sort: Desc)], map: "idx_analytics_events_created_at")
-  @@index([flipbook_id], map: "idx_analytics_events_flipbook")
-  @@index([event_type], map: "idx_analytics_events_type")
-  @@index([user_id], map: "idx_analytics_events_user")
-  @@schema("public")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model share_link_views {
-  id                   String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  share_link_id        String               @db.Uuid
-  viewer_ip            String?              @db.VarChar(45)
-  viewer_user_agent    String?
-  viewer_country       String?              @db.VarChar(2)
-  viewer_city          String?              @db.VarChar(100)
-  referrer             String?
-  viewed_at            DateTime             @default(now()) @db.Timestamptz(6)
-  session_id           String?              @db.Uuid
-  flipbook_share_links flipbook_share_links @relation(fields: [share_link_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_share_link_views_link")
-
-  @@index([share_link_id], map: "idx_share_views_link")
-  @@index([viewed_at], map: "idx_share_views_timestamp")
-  @@schema("public")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model templates {
-  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name            String            @db.VarChar(255)
-  description     String?
-  category        template_category
-  thumbnail_url   String?
-  template_config Json
-  page_layouts    Json
-  brand_config    Json?
-  is_public       Boolean           @default(true)
-  created_by_id   String?           @db.Uuid
-  use_count       Int               @default(0)
-  tags            String[]          @default([])
-  created_at      DateTime          @default(now()) @db.Timestamptz(6)
-  updated_at      DateTime          @default(now()) @db.Timestamptz(6)
-  user_profiles   user_profiles?    @relation(fields: [created_by_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_templates_creator")
-
-  @@index([category], map: "idx_templates_category")
-  @@index([created_by_id], map: "idx_templates_creator")
-  @@index([is_public], map: "idx_templates_public")
-  @@schema("public")
-}
-
 enum aal_level {
   aal1
   aal2
@@ -8244,6 +8383,27 @@ enum address_type_enum {
   @@schema("public")
 }
 
+enum ai_generation_status {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+
+  @@schema("public")
+}
+
+enum analytics_event_type {
+  VIEW
+  PAGE_TURN
+  HOTSPOT_CLICK
+  SHARE
+  DOWNLOAD
+  ZOOM
+  SEARCH
+
+  @@schema("public")
+}
+
 enum defect_severity_enum {
   critical
   major
@@ -8299,6 +8459,14 @@ enum file_type_category {
   video
   archive
   other
+
+  @@schema("public")
+}
+
+enum flipbook_status {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
 
   @@schema("public")
 }
@@ -8411,6 +8579,16 @@ enum sync_direction {
   @@schema("public")
 }
 
+enum template_category {
+  PRODUCT_CATALOG
+  LOOKBOOK
+  BROCHURE
+  MENU
+  PORTFOLIO
+
+  @@schema("public")
+}
+
 enum user_role_enum {
   admin
   manager
@@ -8433,28 +8611,6 @@ enum user_type_enum {
   admin
   factory
   qc_tester
-
-  @@schema("public")
-}
-
-enum analytics_event_type {
-  VIEW
-  PAGE_TURN
-  HOTSPOT_CLICK
-  SHARE
-  DOWNLOAD
-  ZOOM
-  SEARCH
-
-  @@schema("public")
-}
-
-enum template_category {
-  PRODUCT_CATALOG
-  LOOKBOOK
-  BROCHURE
-  MENU
-  PORTFOLIO
 
   @@schema("public")
 }

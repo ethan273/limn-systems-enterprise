@@ -430,6 +430,7 @@ export async function getUserActiveSessions(userId: string): Promise<ActiveSessi
 
     return sessions.map(session => ({
       ...session,
+      is_suspicious: session.is_suspicious ?? false,
       geo_location: session.geo_location as any,
     }));
   } catch (error) {

@@ -370,7 +370,7 @@ export async function getUserPermissions(userId: string): Promise<Permission[]> 
         is_active: true,
       },
       include: {
-        permission: {
+        permission_definitions: {
           select: {
             permission_key: true,
           },
@@ -381,7 +381,7 @@ export async function getUserPermissions(userId: string): Promise<Permission[]> 
     // Extract unique permission keys
     const permissionKeys = new Set<Permission>();
     rolePermissions.forEach(rp => {
-      permissionKeys.add(rp.permission.permission_key as Permission);
+      permissionKeys.add(rp.permission_definitions.permission_key as Permission);
     });
 
     return Array.from(permissionKeys);

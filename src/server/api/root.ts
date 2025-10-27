@@ -55,6 +55,7 @@ import { emailCampaignsRouter } from './routers/emailCampaigns';
 import { emailAnalyticsRouter } from './routers/emailAnalytics';
 import { rbacRouter } from './routers/rbac';
 import { sessionsRouter } from './routers/sessions';
+import { permissionsAdvancedRouter } from './routers/permissions-advanced';
 
 /**
  * Main API router
@@ -72,6 +73,7 @@ export const appRouter = createTRPCRouter({
   auth: authRouter,
   rbac: rbacRouter,
   sessions: sessionsRouter,
+  permissionsAdvanced: permissionsAdvancedRouter,
 
   // Admin Portal
   admin: adminRouter,
