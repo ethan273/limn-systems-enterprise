@@ -8,8 +8,8 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api/client';
-import type { SystemRole, Permission } from '@/lib/services/rbac-service';
-import { SYSTEM_ROLES, PERMISSIONS } from '@/lib/services/rbac-service';
+import type { SystemRole, Permission } from '@/lib/services/rbac-types';
+import { SYSTEM_ROLES, PERMISSIONS } from '@/lib/services/rbac-types';
 
 /**
  * Get current user's roles
