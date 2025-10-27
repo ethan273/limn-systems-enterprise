@@ -97,8 +97,115 @@ When reviewing PRs or writing code with logos, verify:
 
 ---
 
+## Navigation Module Organization (STANDARD CONVENTION)
+
+**MANDATORY REQUIREMENT - Prime Directive Compliance**
+
+### Module Organization Rules
+
+**Email Campaign & Template Pages**:
+- ✅ **CORRECT**: Email pages belong in **Marketing** module
+- ❌ **WRONG**: Email pages in Admin module
+
+**Rationale**:
+- Email campaigns are marketing tools, not admin configuration
+- Marketers need access without full admin permissions
+- Logical grouping: Marketing = Flipbooks + Email Campaigns + Templates
+- Admin module should contain system administration only
+
+### ✅ CORRECT PATTERN (Marketing Module)
+
+```typescript
+{
+  label: "Marketing",
+  icon: BookOpen,
+  items: [
+    { label: "Email Campaigns", href: "/admin/email-campaigns" },
+    { label: "Email Templates", href: "/admin/email-templates" },
+    { label: "Flipbook Library", href: "/flipbooks" },
+    { label: "Flipbook Builder", href: "/flipbooks/builder" },
+    { label: "Flipbook Analytics", href: "/flipbooks/analytics" },
+  ]
+}
+```
+
+**Note**: Routes still use `/admin/email-*` paths for now (route refactoring is separate task)
+
+### Admin Module Access
+
+**Allowed User Types**:
+```typescript
+{
+  label: "Admin",
+  icon: Shield,
+  allowedUserTypes: ['super_admin', 'admin'], // Both super_admin AND admin
+  items: [
+    { label: "Dashboard", href: "/admin/dashboard" },
+    { label: "Users", href: "/admin/users" },
+    { label: "Roles", href: "/admin/roles" },
+    { label: "Security Events", href: "/admin/security-events" },
+    { label: "Activity", href: "/admin/activity" },
+    { label: "Analytics", href: "/admin/analytics" },
+    { label: "API Management", href: "/admin/api-management" },
+    { label: "Portal Management", href: "/admin/portals" },
+    { label: "Approvals", href: "/admin/approvals" },
+    { label: "Export", href: "/admin/export" },
+  ]
+}
+```
+
+**CRITICAL**: Both `super_admin` AND `admin` user types should see Admin module
+
+### RBAC Role Loading Pattern
+
+**Problem**: Admin module flickering or disappearing during initial load
+
+**Solution**: Show modules during loading, hide only after roles loaded
+```typescript
+if (rolesLoading || roles.length === 0) {
+  // During loading, show all modules to prevent flickering
+  // Once loaded, if no roles, hide restricted modules
+  return rolesLoading ? true : false;
+}
+```
+
+### Module Expansion State
+
+**Marketing Module Expansion**:
+```typescript
+"Marketing": pathname.startsWith('/flipbooks') || pathname.startsWith('/admin/email'),
+```
+
+**Admin Module Expansion**:
+```typescript
+"Admin": pathname.startsWith('/admin') && !pathname.startsWith('/admin/email'),
+```
+
+**Why**: Email pages should NOT expand Admin module (they're in Marketing now)
+
+### Verification Checklist
+
+When modifying navigation:
+- [ ] Email pages appear in Marketing module
+- [ ] Admin module visible to both super_admin and admin users
+- [ ] No flickering during role loading
+- [ ] Module expansion states correct for all paths
+- [ ] Debug logging can be removed after verification
+
+### Files Affected
+
+**Primary Navigation Component**:
+- `src/components/Sidebar.tsx:183-268` - Module definitions and filtering
+
+**Related Files**:
+- Navigation is centralized in Sidebar.tsx only
+- No other files require changes for module organization
+
+---
+
 **Status**: ✅ MANDATORY as of October 19, 2025
 **Compliance**: All logo usage MUST follow this pattern
 **Violations**: Will be rejected in code review
 **Testing**: MUST verify visual appearance in both themes
+**Navigation**: ✅ UPDATED October 27, 2025 - Email pages in Marketing module
 **Reference**: [Main CLAUDE.md](../CLAUDE.md)

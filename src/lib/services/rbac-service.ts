@@ -251,9 +251,48 @@ export async function getUserRoles(userId: string): Promise<SystemRole[]> {
 
 /**
  * Get all effective roles for a user (including inherited roles)
+ *
+ * IMPORTANT: Falls back to user_type field if no roles found in user_roles table.
+ * This ensures backward compatibility during RBAC migration period.
  */
 export async function getEffectiveRoles(userId: string): Promise<SystemRole[]> {
-  const directRoles = await getUserRoles(userId);
+  let directRoles = await getUserRoles(userId);
+
+  // ⚠️ FALLBACK: If no roles found in user_roles table, derive from user_type
+  // This handles migration period where user_roles table might not be populated yet
+  if (directRoles.length === 0) {
+    console.log(`[RBAC] No roles found for user ${userId}, checking user_type fallback...`);
+
+    const userProfile = await prisma.user_profiles.findUnique({
+      where: { id: userId },
+      select: { user_type: true, email: true },
+    });
+
+    if (userProfile?.user_type) {
+      console.log(`[RBAC] User ${userProfile.email} has user_type: ${userProfile.user_type}, deriving role...`);
+
+      // Map user_type to role using standard mapping
+      const USER_TYPE_TO_ROLE: Record<string, SystemRole> = {
+        'super_admin': SYSTEM_ROLES.SUPER_ADMIN,
+        'admin': SYSTEM_ROLES.ADMIN,
+        'employee': SYSTEM_ROLES.USER,
+        'customer': SYSTEM_ROLES.VIEWER,
+        'contractor': SYSTEM_ROLES.USER,
+        'designer': SYSTEM_ROLES.DESIGNER,
+        'manufacturer': SYSTEM_ROLES.USER,
+        'factory': SYSTEM_ROLES.USER,
+        'finance': SYSTEM_ROLES.ANALYST,
+        'qc_tester': SYSTEM_ROLES.USER,
+      };
+
+      const derivedRole = USER_TYPE_TO_ROLE[userProfile.user_type];
+      if (derivedRole) {
+        console.log(`[RBAC] Derived role: ${derivedRole} from user_type: ${userProfile.user_type}`);
+        directRoles = [derivedRole];
+      }
+    }
+  }
+
   const effectiveRoles = new Set<SystemRole>(directRoles);
 
   // Add inherited roles

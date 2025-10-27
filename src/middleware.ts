@@ -324,10 +324,33 @@ export async function middleware(request: NextRequest) {
     // Log query result for debugging
     console.log(`[ADMIN ACCESS] User: ${user.id}, roles:`, userRoles, 'error:', rolesError);
 
-    // Check if user has admin, super_admin, or employee role
-    const hasAdminRole = userRoles?.some(ur =>
+    let hasAdminRole = userRoles?.some(ur =>
       ur.role === 'admin' || ur.role === 'super_admin' || ur.role === 'employee'
     ) ?? false;
+
+    // ⚠️ FALLBACK: If no roles found, check user_type field for backward compatibility
+    if (!hasAdminRole && (!userRoles || userRoles.length === 0)) {
+      console.log(`[ADMIN ACCESS FALLBACK] No roles found, checking user_type for user ${user.id}...`);
+
+      const { data: userProfile } = await supabase
+        .from('user_profiles')
+        .select('user_type, email')
+        .eq('id', user.id)
+        .single();
+
+      if (userProfile?.user_type) {
+        console.log(`[ADMIN ACCESS FALLBACK] User ${userProfile.email} has user_type: ${userProfile.user_type}`);
+
+        // Allow access if user_type is admin or super_admin
+        hasAdminRole = userProfile.user_type === 'super_admin' ||
+                       userProfile.user_type === 'admin' ||
+                       userProfile.user_type === 'employee';
+
+        if (hasAdminRole) {
+          console.log(`✅ [ADMIN ACCESS FALLBACK] Granted access based on user_type: ${userProfile.user_type}`);
+        }
+      }
+    }
 
     if (!hasAdminRole) {
       console.log(`🚫 Middleware: User ${user.id} denied access to admin area (has admin role: false)`);

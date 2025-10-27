@@ -179,3 +179,4 @@ tsconfig.tsbuildinfo
 screenshots/
 test-results/
 .env.production
+.env.prod
