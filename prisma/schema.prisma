@@ -2595,6 +2595,7 @@ model email_campaigns {
   updated_at        DateTime?        @default(now()) @db.Timestamptz(6)
   users             users?           @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
   email_tracking    email_tracking[]
+  email_queue       email_queue[]
 
   @@index([created_at], map: "idx_email_campaigns_created_at")
   @@index([created_by], map: "idx_email_campaigns_created_by")
@@ -2607,6 +2608,7 @@ model email_campaigns {
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model email_queue {
   id                  String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  campaign_id         String?          @db.Uuid
   recipient_email     String           @db.VarChar(255)
   template_id         String?          @db.Uuid
   subject             String           @db.VarChar(255)
@@ -2620,13 +2622,17 @@ model email_queue {
   delivered_at        DateTime?        @db.Timestamptz(6)
   priority            Int?             @default(5)
   metadata            Json?            @default("{}")
+  unsubscribe_token   String?          @unique @db.VarChar(255)
   created_at          DateTime?        @default(now()) @db.Timestamptz(6)
+  email_campaigns     email_campaigns? @relation(fields: [campaign_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   email_templates     email_templates? @relation(fields: [template_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
+  @@index([campaign_id], map: "idx_email_queue_campaign_id")
   @@index([created_at], map: "idx_email_queue_created_at")
   @@index([status], map: "idx_email_queue_status")
   @@index([template_id], map: "idx_email_queue_template")
   @@index([template_id], map: "idx_email_queue_template_id")
+  @@index([unsubscribe_token], map: "idx_email_queue_unsubscribe_token")
   @@schema("public")
 }
 
@@ -2666,6 +2672,20 @@ model email_tracking {
 
   @@index([campaign_id], map: "idx_email_tracking_campaign_id")
   @@index([created_at], map: "idx_email_tracking_created_at")
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model email_unsubscribes {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email            String    @unique @db.VarChar(255)
+  reason           String?   @db.VarChar(100)
+  unsubscribed_at  DateTime? @default(now()) @db.Timestamptz(6)
+  campaign_id      String?   @db.Uuid
+  metadata         Json?     @default("{}")
+
+  @@index([email], map: "idx_email_unsubscribes_email")
+  @@index([unsubscribed_at], map: "idx_email_unsubscribes_unsubscribed_at")
   @@schema("public")
 }
 

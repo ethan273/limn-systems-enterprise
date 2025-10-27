@@ -9,7 +9,7 @@
  */
 
 import { z } from 'zod';
-import { createTRPCRouter, protectedProcedure } from '../trpc/init';
+import { createTRPCRouter, protectedProcedure, publicProcedure } from '../trpc/init';
 import {
   EmailCampaignService,
   EmailSendingService,
@@ -267,5 +267,83 @@ export const emailCampaignsRouter = createTRPCRouter({
         status: item.status,
         count: item._count.id,
       }));
+    }),
+
+  /**
+   * Unsubscribe from emails (public endpoint)
+   */
+  unsubscribe: publicProcedure
+    .input(z.object({ token: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      // Find the email queue item by unsubscribe token
+      const queueItem = await ctx.db.email_queue.findUnique({
+        where: { unsubscribe_token: input.token },
+        select: {
+          recipient_email: true,
+          campaign_id: true,
+        },
+      });
+
+      if (!queueItem) {
+        throw new Error('Invalid unsubscribe token');
+      }
+
+      const recipientEmail = queueItem.recipient_email;
+
+      // Check if already unsubscribed
+      const existing = await ctx.db.email_unsubscribes.findUnique({
+        where: { email: recipientEmail },
+      });
+
+      if (existing) {
+        return {
+          success: true,
+          message: 'Email already unsubscribed',
+          email: recipientEmail,
+        };
+      }
+
+      // Track the unsubscribe event
+      await ctx.db.email_tracking.create({
+        data: {
+          campaign_id: queueItem.campaign_id,
+          recipient_email: recipientEmail,
+          event_type: 'unsubscribed',
+          event_data: {
+            reason: 'user_request',
+            token: input.token,
+          },
+        },
+      });
+
+      // Add to unsubscribe list
+      await ctx.db.email_unsubscribes.create({
+        data: {
+          email: recipientEmail,
+          reason: 'user_request',
+          campaign_id: queueItem.campaign_id,
+          metadata: {
+            unsubscribed_via: 'web',
+            token: input.token,
+          },
+        },
+      });
+
+      // Update campaign unsubscribe count if campaign exists
+      if (queueItem.campaign_id) {
+        await ctx.db.email_campaigns.update({
+          where: { id: queueItem.campaign_id },
+          data: {
+            unsubscribe_count: { increment: 1 },
+            updated_at: new Date(),
+          },
+        });
+      }
+
+      return {
+        success: true,
+        message: 'Successfully unsubscribed',
+        email: recipientEmail,
+      };
     }),
 });

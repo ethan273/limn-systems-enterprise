@@ -302,16 +302,55 @@ export class EmailSendingService {
    * Queue an email for sending
    */
   async queueEmail(input: CreateEmailQueueInput): Promise<string> {
+    // Check if email is unsubscribed
+    const unsubscribed = await this.db.email_unsubscribes.findUnique({
+      where: { email: input.recipient_email },
+    });
+
+    if (unsubscribed) {
+      throw new Error(`Email address is unsubscribed: ${input.recipient_email}`);
+    }
+
+    // Generate unsubscribe token
+    const unsubscribeToken = crypto.randomUUID();
+
+    // Add unsubscribe link to HTML content
+    const baseUrl = process.env.NEXT_PUBLIC_URL ?? 'http://localhost:3000';
+    const unsubscribeLink = `${baseUrl}/unsubscribe/${unsubscribeToken}`;
+
+    let htmlContent = input.html_content ?? '';
+
+    // Add unsubscribe footer if HTML content exists
+    if (htmlContent) {
+      const unsubscribeFooter = `
+        <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center; color: #6b7280; font-size: 12px;">
+          <p>
+            If you no longer wish to receive these emails, you can
+            <a href="${unsubscribeLink}" style="color: #3b82f6; text-decoration: underline;">unsubscribe here</a>.
+          </p>
+        </div>
+      `;
+
+      // Try to insert before closing body tag, or append if not found
+      if (htmlContent.includes('</body>')) {
+        htmlContent = htmlContent.replace('</body>', `${unsubscribeFooter}</body>`);
+      } else {
+        htmlContent += unsubscribeFooter;
+      }
+    }
+
     const queued = await this.db.email_queue.create({
       data: {
+        campaign_id: input.campaign_id ?? null,
         recipient_email: input.recipient_email,
         template_id: input.template_id ?? null,
         subject: input.subject,
-        html_content: input.html_content ?? null,
+        html_content: htmlContent,
         text_content: input.text_content ?? null,
         status: 'pending',
         priority: input.priority ?? 5,
         metadata: input.metadata ?? {},
+        unsubscribe_token: unsubscribeToken,
       },
     });
 
@@ -580,6 +619,7 @@ export class EmailCampaignService {
         });
 
         await this.sendingService.queueEmail({
+          campaign_id: campaignId,
           recipient_email: recipient.email,
           subject,
           html_content: html,

@@ -4247,7 +4247,15 @@ export class DatabaseClient {
 
   // =====================================================
   // RAW QUERY SUPPORT
-  // Expose Prisma's $queryRaw for advanced queries
+  // =====================================================
+  // EMAIL UNSUBSCRIBES (Direct Prisma - temporary)
+  // =====================================================
+  get email_unsubscribes() {
+    return prisma.email_unsubscribes;
+  }
+
+  // =====================================================
+  // ADVANCED RAW QUERIES
   // =====================================================
   $queryRaw = prisma.$queryRaw.bind(prisma);
   $queryRawUnsafe = prisma.$queryRawUnsafe.bind(prisma);

@@ -134,6 +134,7 @@ export interface EmailQueueItem {
 }
 
 export interface CreateEmailQueueInput {
+  campaign_id?: string;
   recipient_email: string;
   template_id?: string;
   subject: string;
