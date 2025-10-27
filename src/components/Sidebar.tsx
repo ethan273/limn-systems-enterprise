@@ -55,7 +55,14 @@ export default function Sidebar() {
  const { data: currentUser, isLoading: authLoading } = api.userProfile.getCurrentUser.useQuery();
 
  // ✅ RBAC Migration: Get user roles for permission checking
- const { roles } = useUserRoles();
+ const { roles, isLoading: rolesLoading } = useUserRoles();
+
+ // Debug logging for roles (can be removed after verification)
+ useEffect(() => {
+   if (!rolesLoading && roles.length > 0) {
+     console.log('[Sidebar] User roles loaded:', roles);
+   }
+ }, [roles, rolesLoading]);
 
  // Get display name and initials using utility functions
  const displayName = authLoading ? null : getUserFullName({ ...(currentUser || {}), email: (currentUser as any)?.email });
@@ -71,7 +78,7 @@ export default function Sidebar() {
  "CRM": pathname.startsWith('/crm'),
  "Partners": pathname.startsWith('/partners'),
  "Design": pathname.startsWith('/design'),
- "Marketing": pathname.startsWith('/flipbooks'),
+ "Marketing": pathname.startsWith('/flipbooks') || pathname.startsWith('/admin/email'),
  "Products": pathname.startsWith('/products'),
  "Production": pathname.startsWith('/production'),
  "Finance": pathname.startsWith('/finance'),
@@ -85,12 +92,12 @@ export default function Sidebar() {
  "CRM": pathname.startsWith('/crm'),
  "Partners": pathname.startsWith('/partners'),
  "Design": pathname.startsWith('/design'),
- "Marketing": pathname.startsWith('/flipbooks'),
+ "Marketing": pathname.startsWith('/flipbooks') || pathname.startsWith('/admin/email'),
  "Products": pathname.startsWith('/products'),
  "Production": pathname.startsWith('/production'),
  "Shipping": pathname.startsWith('/shipping'),
  "Finance": pathname.startsWith('/finance') || pathname.startsWith('/financials'),
- "Admin": pathname.startsWith('/admin'),
+ "Admin": pathname.startsWith('/admin') && !pathname.startsWith('/admin/email'),
  "Documents": pathname.startsWith('/documents')
  });
  }, [pathname]);
@@ -172,16 +179,25 @@ export default function Sidebar() {
  { label: "Documents", href: "/design/documents" },
  ]
  },
- // Marketing module (Flipbooks) - only visible when feature flag is enabled
+ // Marketing module - Email Campaigns & Flipbooks
  ...(features.flipbooks ? [{
  label: "Marketing",
  icon: BookOpen,
  items: [
+ { label: "Email Campaigns", href: "/admin/email-campaigns" },
+ { label: "Email Templates", href: "/admin/email-templates" },
  { label: "Flipbook Library", href: "/flipbooks" },
  { label: "Flipbook Builder", href: "/flipbooks/builder" },
  { label: "Flipbook Analytics", href: "/flipbooks/analytics" },
  ]
- }] : []),
+ }] : [{
+ label: "Marketing",
+ icon: BookOpen,
+ items: [
+ { label: "Email Campaigns", href: "/admin/email-campaigns" },
+ { label: "Email Templates", href: "/admin/email-templates" },
+ ]
+ }]),
  {
  label: "Products",
  icon: Package,
@@ -237,16 +253,17 @@ export default function Sidebar() {
  {
  label: "Admin",
  icon: Shield,
- allowedUserTypes: ['super_admin'], // Only super_admin can access Admin module
+ allowedUserTypes: ['super_admin', 'admin'], // Super admin and admin can access Admin module
  items: [
  { label: "Dashboard", href: "/admin/dashboard" },
- { label: "Approvals", href: "/admin/approvals" },
  { label: "Users", href: "/admin/users" },
- { label: "Portal Management", href: "/admin/portals" },
  { label: "Roles", href: "/admin/roles" },
+ { label: "Security Events", href: "/admin/security-events" },
  { label: "Activity", href: "/admin/activity" },
  { label: "Analytics", href: "/admin/analytics" },
  { label: "API Management", href: "/admin/api-management" },
+ { label: "Portal Management", href: "/admin/portals" },
+ { label: "Approvals", href: "/admin/approvals" },
  { label: "Export", href: "/admin/export" },
  ]
  }
@@ -257,11 +274,17 @@ export default function Sidebar() {
  // If no allowedUserTypes specified, module is accessible to all
  if (!module.allowedUserTypes) return true;
 
- // ✅ RBAC Migration: If roles not loaded yet, hide restricted modules
- if (roles.length === 0) return false;
+ // ✅ RBAC Migration: If roles not loaded yet, show loading (don't hide)
+ // This prevents Admin module from being hidden during initial load
+ if (rolesLoading || roles.length === 0) {
+   // During loading, show all modules to prevent flickering
+   // Once loaded, if no roles, hide restricted modules
+   return rolesLoading ? true : false;
+ }
 
  // Map allowedUserTypes to required roles and check if user has any of them
  // 'super_admin' user_type → check for SUPER_ADMIN role
+ // 'admin' user_type → check for ADMIN role
  // 'employee' user_type → check for ADMIN or MANAGER role
  const hasRequiredRole = module.allowedUserTypes.some(userType => {
    if (userType === 'super_admin') return roles.includes(SYSTEM_ROLES.SUPER_ADMIN);
@@ -269,6 +292,16 @@ export default function Sidebar() {
    if (userType === 'employee') return roles.includes(SYSTEM_ROLES.ADMIN) || roles.includes(SYSTEM_ROLES.MANAGER);
    return false;
  });
+
+ // Debug log for Admin module
+ if (module.label === 'Admin') {
+   console.log('[Sidebar] Admin module check:', {
+     allowedUserTypes: module.allowedUserTypes,
+     userRoles: roles,
+     hasRequiredRole,
+     rolesLoading
+   });
+ }
 
  return hasRequiredRole;
  });
