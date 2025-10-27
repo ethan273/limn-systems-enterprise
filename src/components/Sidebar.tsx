@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import { api } from "@/lib/api/client";
 import { features } from "@/lib/features";
 import { getUserFullName, getUserInitials } from "@/lib/utils/user-utils";
+import { useUserRoles, SYSTEM_ROLES } from "@/hooks/useRBAC";
 
 interface NavSubItem {
  label: string;
@@ -53,8 +54,8 @@ export default function Sidebar() {
  // Get current user from tRPC (standardized auth pattern)
  const { data: currentUser, isLoading: authLoading } = api.userProfile.getCurrentUser.useQuery();
 
- // Get user type for permission checking
- const userType = (currentUser as any)?.user_type;
+ // ✅ RBAC Migration: Get user roles for permission checking
+ const { roles } = useUserRoles();
 
  // Get display name and initials using utility functions
  const displayName = authLoading ? null : getUserFullName({ ...(currentUser || {}), email: (currentUser as any)?.email });
@@ -256,12 +257,20 @@ export default function Sidebar() {
  // If no allowedUserTypes specified, module is accessible to all
  if (!module.allowedUserTypes) return true;
 
- // If profile is not loaded yet, hide restricted modules (don't show temporarily)
- // This prevents showing admin-only options before we know the user's role
- if (!userType) return false;
+ // ✅ RBAC Migration: If roles not loaded yet, hide restricted modules
+ if (roles.length === 0) return false;
 
- // Otherwise, check if user's type is in the allowed list
- return module.allowedUserTypes.includes(userType);
+ // Map allowedUserTypes to required roles and check if user has any of them
+ // 'super_admin' user_type → check for SUPER_ADMIN role
+ // 'employee' user_type → check for ADMIN or MANAGER role
+ const hasRequiredRole = module.allowedUserTypes.some(userType => {
+   if (userType === 'super_admin') return roles.includes(SYSTEM_ROLES.SUPER_ADMIN);
+   if (userType === 'admin') return roles.includes(SYSTEM_ROLES.ADMIN);
+   if (userType === 'employee') return roles.includes(SYSTEM_ROLES.ADMIN) || roles.includes(SYSTEM_ROLES.MANAGER);
+   return false;
+ });
+
+ return hasRequiredRole;
  });
 
  const toggleModule = (moduleLabel: string) => {

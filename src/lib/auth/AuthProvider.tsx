@@ -9,6 +9,7 @@ interface AuthContextType {
  user: User | null;
  profile: UserProfile | null;
  loading: boolean;
+ /** @deprecated Use useIsAdmin() or useIsSuperAdmin() from @/hooks/useRBAC instead */
  isAdmin: boolean;
  refreshProfile: () => Promise<void>;
 }
@@ -139,7 +140,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
  return () => subscription.unsubscribe();
  }, [supabase, fetchProfile]);
- 
+
+ // ✅ RBAC Migration Note: This is deprecated
+ // Components should use useIsAdmin() or useIsSuperAdmin() from @/hooks/useRBAC instead
+ // Keeping for backwards compatibility but will be removed in future
  const isAdmin = profile?.user_type === 'Super Admin' || profile?.user_type === 'Employee';
  
  return (

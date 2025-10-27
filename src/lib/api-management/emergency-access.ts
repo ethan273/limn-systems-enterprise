@@ -8,6 +8,7 @@
 import { PrismaClient } from '@prisma/client';
 import { logCredentialAccess } from './audit-logger';
 import crypto from 'crypto';
+import { hasRole, SYSTEM_ROLES } from '@/lib/services/rbac-service';
 
 const prisma = new PrismaClient();
 
@@ -113,11 +114,11 @@ export async function requestEmergencyAccess(params: {
     throw new Error('User not found');
   }
 
-  // Validate user type via user_profiles table
+  // ✅ RBAC Migration: Validate user has super_admin role
   const userProfile = await prisma.user_profiles.findUnique({
     where: { id: requestedBy },
     select: {
-      user_type: true,
+      id: true,
       name: true,
     },
   });
@@ -126,8 +127,8 @@ export async function requestEmergencyAccess(params: {
     throw new Error('User profile not found');
   }
 
-  if (userProfile.user_type !== 'super_admin') {
-    throw new Error('Only super admins can request emergency access. Current user type: ' + userProfile.user_type);
+  if (!await hasRole(userProfile.id, SYSTEM_ROLES.SUPER_ADMIN)) {
+    throw new Error('Only super admins can request emergency access');
   }
 
   // Generate secure access token
@@ -177,10 +178,20 @@ export async function requestEmergencyAccess(params: {
 
   // Send notifications to all super admins
   try {
-    // Get all super admin users
+    // ✅ RBAC Migration: Get all users with super_admin role via user_roles table
+    const superAdminRoles = await prisma.user_roles.findMany({
+      where: {
+        role: SYSTEM_ROLES.SUPER_ADMIN,
+      },
+      select: {
+        user_id: true,
+      },
+    });
+
+    const superAdminIds = superAdminRoles.map(r => r.user_id).filter((id): id is string => id !== null);
     const superAdmins = await prisma.user_profiles.findMany({
       where: {
-        user_type: 'super_admin',
+        id: { in: superAdminIds },
         is_active: true,
       },
       select: {

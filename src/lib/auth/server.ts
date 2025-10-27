@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { cache } from 'react';
 import { prisma } from '@/lib/prisma';
+import { hasRole, SYSTEM_ROLES } from '@/lib/services/rbac-service';
 
 /**
  * Create Supabase server client
@@ -64,14 +65,16 @@ export const getUserProfile = cache(async () => {
 });
 
 /**
- * Check if user is admin (Super Admin or Employee)
+ * Check if user is admin
+ * Uses RBAC system to verify admin role
  */
 export async function isAdmin() {
   const profile = await getUserProfile();
-  
+
   if (!profile) return false;
-  
-  return profile.user_type === 'super_admin' || profile.user_type === 'employee';
+
+  // ✅ RBAC Migration: Use role-based access control instead of user_type
+  return await hasRole(profile.id, SYSTEM_ROLES.ADMIN);
 }
 
 /**

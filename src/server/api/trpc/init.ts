@@ -3,6 +3,7 @@ import superjson from 'superjson';
 import { ZodError } from 'zod';
 import type { Context } from './context';
 import { captureException, addBreadcrumb } from '@/lib/sentry';
+import { hasRole, SYSTEM_ROLES } from '@/lib/services/rbac-service';
 
 const t = initTRPC.context<Context>().create({
   transformer: superjson,
@@ -70,14 +71,16 @@ const enforceUserIsSuperAdmin = t.middleware(async ({ ctx, next }) => {
     throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Authentication required' });
   }
 
-  // Get user profile to check user_type
-  // Note: select not supported by wrapper, fetching full record
+  // ✅ RBAC Migration: Check user has super_admin role
   const userProfile = await ctx.db.user_profiles.findUnique({
     where: { id: ctx.session.user.id },
+    select: { id: true, full_name: true },
   });
 
-  // Only super_admin can access
-  if (userProfile?.user_type !== 'super_admin') {
+  // Check super_admin role via RBAC system
+  const isSuperAdmin = userProfile ? await hasRole(userProfile.id, SYSTEM_ROLES.SUPER_ADMIN) : false;
+
+  if (!isSuperAdmin) {
     // Log unauthorized access attempt
     console.error(`[SECURITY] Unauthorized access attempt to super admin endpoint by user: ${ctx.session.user.id} (${userProfile?.full_name || 'unknown'})`);
     throw new TRPCError({
@@ -87,7 +90,7 @@ const enforceUserIsSuperAdmin = t.middleware(async ({ ctx, next }) => {
   }
 
   // Log authorized access for audit trail
-  console.log(`[SECURITY] Super admin access granted to user: ${ctx.session.user.id} (${userProfile.full_name})`);
+  console.log(`[SECURITY] Super admin access granted to user: ${ctx.session.user.id} (${userProfile?.full_name || 'unknown'})`);
 
   return next({
     ctx: {

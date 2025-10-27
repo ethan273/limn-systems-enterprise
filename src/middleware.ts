@@ -204,25 +204,29 @@ export async function middleware(request: NextRequest) {
 
   // Admin access control - only admins can access /admin routes
   if (pathname.startsWith('/admin')) {
-    const { data: userData, error: userError } = await supabase
-      .from('user_profiles')
-      .select('user_type')
-      .eq('id', user.id)
-      .single();
+    // ✅ RBAC Migration: Check user roles via user_roles table
+    const { data: userRoles, error: rolesError } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('is_active', true);
 
     // Log query result for debugging
-    console.log(`[ADMIN ACCESS] User: ${user.id}, userData:`, userData, 'error:', userError);
+    console.log(`[ADMIN ACCESS] User: ${user.id}, roles:`, userRoles, 'error:', rolesError);
 
-    const isAdmin = userData?.user_type === 'super_admin';
+    // Check if user has admin, super_admin, or employee role
+    const hasAdminRole = userRoles?.some(ur =>
+      ur.role === 'admin' || ur.role === 'super_admin' || ur.role === 'employee'
+    ) ?? false;
 
-    if (!isAdmin) {
-      console.log(`🚫 Middleware: User ${user.id} denied access to admin area (user_type: ${userData?.user_type})`);
+    if (!hasAdminRole) {
+      console.log(`🚫 Middleware: User ${user.id} denied access to admin area (has admin role: false)`);
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = '/dashboard';
       return NextResponse.redirect(redirectUrl);
     }
 
-    console.log(`✅ Middleware: User ${user.id} has admin access (user_type: ${userData?.user_type})`);
+    console.log(`✅ Middleware: User ${user.id} has admin access (roles:`, userRoles?.map(r => r.role).join(', '), ')');
   }
 
   // Portal access control - verify user has access to customer portal

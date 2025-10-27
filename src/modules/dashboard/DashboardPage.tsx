@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { DashboardStatCard } from '@/components/dashboard/DashboardStatCard'
+import { useIsSuperAdmin } from '@/hooks/useRBAC'
 import {
  BarChart,
  Users,
@@ -21,9 +22,8 @@ import {
 } from 'lucide-react'
 
 export default function DashboardPage() {
- // Get current user from tRPC (standardized auth pattern)
- const { data: currentUser } = api.userProfile.getCurrentUser.useQuery();
- const isAdmin = (currentUser as any)?.user_type === 'super_admin';
+ // ✅ RBAC Migration: Use RBAC hook for admin check
+ const isAdmin = useIsSuperAdmin();
 
  // Fetch admin stats for pending requests - only if user is admin
  // Set retry to false to prevent blocking the UI if the query fails

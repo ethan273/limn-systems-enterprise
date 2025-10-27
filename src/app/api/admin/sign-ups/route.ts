@@ -5,6 +5,7 @@ import { sendAccessApprovedEmail } from '@/lib/email/templates/access-approved';
 import { sendAccessDeniedEmail } from '@/lib/email/templates/access-denied';
 import { notifyAccessApproved, notifyAccessDenied } from '@/lib/google-chat';
 import { getUser } from '@/lib/auth/server';
+import { hasRole, SYSTEM_ROLES } from '@/lib/services/rbac-service';
 
 const prisma = new PrismaClient();
 
@@ -40,13 +41,13 @@ export async function GET(_request: NextRequest) {
       );
     }
 
-    // Check if user has admin or super_admin user_type
+    // ✅ RBAC Migration: Check if user has admin role
     const userProfile = await prisma.user_profiles.findUnique({
       where: { id: user.id },
-      select: { user_type: true },
+      select: { id: true },
     });
 
-    if (!userProfile || (userProfile.user_type !== 'admin' && userProfile.user_type !== 'super_admin')) {
+    if (!userProfile || !await hasRole(userProfile.id, SYSTEM_ROLES.ADMIN)) {
       return NextResponse.json(
         { error: 'Forbidden - Admin access required' },
         { status: 403 }
@@ -134,13 +135,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user has admin or super_admin user_type
+    // ✅ RBAC Migration: Check if user has admin role
     const userProfile = await prisma.user_profiles.findUnique({
       where: { id: user.id },
-      select: { user_type: true },
+      select: { id: true },
     });
 
-    if (!userProfile || (userProfile.user_type !== 'admin' && userProfile.user_type !== 'super_admin')) {
+    if (!userProfile || !await hasRole(userProfile.id, SYSTEM_ROLES.ADMIN)) {
       return NextResponse.json(
         { error: 'Forbidden - Admin access required' },
         { status: 403 }

@@ -11,11 +11,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
 import { CheckIcon, XIcon, UserIcon, BuildingIcon, PhoneIcon, MailIcon } from 'lucide-react'
+import { useIsSuperAdmin } from '@/hooks/useRBAC'
 
 export function AdminApprovalPanel() {
- // Get current user from tRPC (standardized auth pattern)
- const { data: currentUser } = api.userProfile.getCurrentUser.useQuery();
- const isAdmin = (currentUser as any)?.user_type === 'super_admin';
+ // ✅ RBAC Migration: Use RBAC hook for admin check
+ const isAdmin = useIsSuperAdmin();
 
  const [adminNotes, setAdminNotes] = useState<Record<string, string>>({})
  const [selectedStatus, setSelectedStatus] = useState<'pending' | 'approved' | 'denied' | 'all'>('pending')

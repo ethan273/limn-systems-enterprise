@@ -18,6 +18,7 @@ import {
 } from "@/lib/flipbooks/toc-extractor";
 import type { TOCData, TOCItem } from "@/types/flipbook-navigation";
 import { TOC_VALIDATION } from "@/types/flipbook-navigation";
+import { hasRole, SYSTEM_ROLES } from "@/lib/services/rbac-service";
 
 
 /**
@@ -129,9 +130,10 @@ export const flipbooksRouter = createTRPCRouter({
           select: { user_type: true },
         });
 
-        console.log('[FLIPBOOKS] User profile fetched', { userType: userProfile?.user_type });
+        console.log('[FLIPBOOKS] User profile fetched', { userId: userProfile?.id });
 
-        const isSuperAdmin = userProfile?.user_type === 'super_admin';
+        // ✅ RBAC Migration: Check if user has super_admin role
+        const isSuperAdmin = userProfile ? await hasRole(userProfile.id, SYSTEM_ROLES.SUPER_ADMIN) : false;
 
         // Build where clause
         // Super admins can see all flipbooks, regular users only see their own
