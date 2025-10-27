@@ -9,7 +9,7 @@
  */
 
 import { z } from 'zod';
-import { createTRPCRouter, protectedProcedure } from '../trpc/init';
+import { createTRPCRouter, adminProcedure } from '../trpc/init';
 import { getUserFullName } from '@/lib/utils/user-utils';
 
 
@@ -36,7 +36,7 @@ export const exportRouter = createTRPCRouter({
   /**
    * Export all users to CSV/JSON
    */
-  exportUsers: protectedProcedure
+  exportUsers: adminProcedure
     .input(
       z.object({
         format: exportFormatSchema,
@@ -121,7 +121,7 @@ export const exportRouter = createTRPCRouter({
   /**
    * Export activity logs
    */
-  exportActivityLogs: protectedProcedure
+  exportActivityLogs: adminProcedure
     .input(
       z.object({
         format: exportFormatSchema,
@@ -226,7 +226,7 @@ export const exportRouter = createTRPCRouter({
   /**
    * Export system settings
    */
-  exportSettings: protectedProcedure
+  exportSettings: adminProcedure
     .input(
       z.object({
         format: exportFormatSchema,
@@ -270,7 +270,7 @@ export const exportRouter = createTRPCRouter({
   /**
    * Get export statistics
    */
-  getExportStats: protectedProcedure.query(async ({ ctx }) => {
+  getExportStats: adminProcedure.query(async ({ ctx }) => {
     const [usersCount, adminLogsCount, securityLogsCount, loginLogsCount, settingsCount] = await Promise.all([
       ctx.db.user_profiles.count(),
       ctx.db.admin_audit_log.count(),

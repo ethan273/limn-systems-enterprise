@@ -9,7 +9,7 @@
  */
 
 import { z } from 'zod';
-import { createTRPCRouter, protectedProcedure } from '../trpc/init';
+import { createTRPCRouter, adminProcedure } from '../trpc/init';
 
 
 // ============================================
@@ -38,7 +38,7 @@ export const auditRouter = createTRPCRouter({
   /**
    * Get admin activity logs with filtering and pagination
    */
-  getAdminLogs: protectedProcedure
+  getAdminLogs: adminProcedure
     .input(
       z.object({
         search: z.string().optional(),
@@ -125,7 +125,7 @@ export const auditRouter = createTRPCRouter({
   /**
    * Get security audit logs
    */
-  getSecurityLogs: protectedProcedure
+  getSecurityLogs: adminProcedure
     .input(
       z.object({
         search: z.string().optional(),
@@ -206,7 +206,7 @@ export const auditRouter = createTRPCRouter({
   /**
    * Get SSO login audit logs
    */
-  getLoginLogs: protectedProcedure
+  getLoginLogs: adminProcedure
     .input(
       z.object({
         search: z.string().optional(),
@@ -298,7 +298,7 @@ export const auditRouter = createTRPCRouter({
   /**
    * Get activity statistics for dashboard
    */
-  getActivityStats: protectedProcedure
+  getActivityStats: adminProcedure
     .input(
       z.object({
         days: z.number().min(1).max(90).default(30),
@@ -422,7 +422,7 @@ export const auditRouter = createTRPCRouter({
   /**
    * Get user activity summary
    */
-  getUserActivitySummary: protectedProcedure
+  getUserActivitySummary: adminProcedure
     .input(
       z.object({
         userId: z.string().uuid(),
@@ -481,7 +481,7 @@ export const auditRouter = createTRPCRouter({
   /**
    * Get unified security events from all audit tables
    */
-  getSecurityEvents: protectedProcedure
+  getSecurityEvents: adminProcedure
     .input(
       z.object({
         search: z.string().optional(),
@@ -556,7 +556,7 @@ export const auditRouter = createTRPCRouter({
   /**
    * Get security event statistics for dashboard
    */
-  getSecurityEventStats: protectedProcedure
+  getSecurityEventStats: adminProcedure
     .input(
       z.object({
         days: z.number().min(1).max(90).default(30),
@@ -665,7 +665,7 @@ export const auditRouter = createTRPCRouter({
   /**
    * Export security events to CSV
    */
-  exportSecurityEvents: protectedProcedure
+  exportSecurityEvents: adminProcedure
     .input(
       z.object({
         dateRange: dateRangeSchema.optional(),
