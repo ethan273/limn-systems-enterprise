@@ -22,7 +22,7 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
  new QueryClient({
  defaultOptions: {
  queries: {
- staleTime: 1000 * 60 * 5, // 5 minutes - data considered fresh
+ staleTime: 0, // Always fetch fresh data (was 5 minutes - causing stale data)
  gcTime: 1000 * 60 * 10, // 10 minutes - garbage collection time (was cacheTime in v4)
  refetchOnWindowFocus: false, // Don't refetch on window focus
  refetchOnReconnect: false, // Don't refetch on reconnect
