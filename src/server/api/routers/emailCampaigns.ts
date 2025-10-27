@@ -9,7 +9,13 @@
  */
 
 import { z } from 'zod';
-import { createTRPCRouter, protectedProcedure, publicProcedure } from '../trpc/init';
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure,
+  emailRateLimitedProcedure,
+  campaignRateLimitedProcedure,
+} from '../trpc/init';
 import {
   EmailCampaignService,
   EmailSendingService,
@@ -66,7 +72,7 @@ export const emailCampaignsRouter = createTRPCRouter({
   /**
    * Create a new campaign
    */
-  create: protectedProcedure
+  create: campaignRateLimitedProcedure
     .input(createCampaignSchema)
     .mutation(async ({ input, ctx }) => {
       const service = new EmailCampaignService(ctx.db);
@@ -151,7 +157,7 @@ export const emailCampaignsRouter = createTRPCRouter({
   /**
    * Send a campaign immediately
    */
-  send: protectedProcedure
+  send: campaignRateLimitedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ input, ctx }) => {
       const service = new EmailCampaignService(ctx.db);
@@ -242,7 +248,7 @@ export const emailCampaignsRouter = createTRPCRouter({
   /**
    * Process email queue (admin only)
    */
-  processQueue: protectedProcedure
+  processQueue: emailRateLimitedProcedure
     .input(
       z.object({
         limit: z.number().int().min(1).max(1000).default(100),

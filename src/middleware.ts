@@ -1,12 +1,119 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
+
+// Initialize Redis client for rate limiting
+function createRedis() {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+  if (!url || !token) {
+    return null;
+  }
+
+  return new Redis({ url, token });
+}
+
+const redis = createRedis();
+
+// Create rate limiters for different endpoint types
+const webhookLimiter = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(100, '1 m'),
+      analytics: true,
+      prefix: 'ratelimit:webhook',
+    })
+  : null;
+
+const publicApiLimiter = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(20, '1 m'),
+      analytics: true,
+      prefix: 'ratelimit:public-api',
+    })
+  : null;
 
 /**
  * Authentication Middleware
  * Protects all routes except public paths (login, auth, public assets)
+ * Also adds rate limiting for webhooks and public endpoints
  */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // =====================================================
+  // RATE LIMITING FOR WEBHOOKS
+  // =====================================================
+  if (pathname.startsWith('/api/webhooks/')) {
+    if (webhookLimiter) {
+      const identifier =
+        request.headers.get('x-forwarded-for')?.split(',')[0] ||
+        request.headers.get('x-real-ip') ||
+        'anonymous';
+      const result = await webhookLimiter.limit(identifier);
+
+      if (!result.success) {
+        return new NextResponse('Too Many Requests', {
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': result.limit.toString(),
+            'X-RateLimit-Remaining': result.remaining.toString(),
+            'X-RateLimit-Reset': result.reset.toString(),
+            'Retry-After': Math.ceil((result.reset - Date.now()) / 1000).toString(),
+          },
+        });
+      }
+    }
+  }
+
+  // =====================================================
+  // RATE LIMITING FOR UNSUBSCRIBE PAGE
+  // =====================================================
+  if (pathname.startsWith('/unsubscribe/')) {
+    if (publicApiLimiter) {
+      const identifier =
+        request.headers.get('x-forwarded-for')?.split(',')[0] ||
+        request.headers.get('x-real-ip') ||
+        'anonymous';
+      const result = await publicApiLimiter.limit(identifier);
+
+      if (!result.success) {
+        return new NextResponse('Too Many Requests - Please try again later', {
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': result.limit.toString(),
+            'X-RateLimit-Remaining': result.remaining.toString(),
+            'X-RateLimit-Reset': result.reset.toString(),
+            'Retry-After': Math.ceil((result.reset - Date.now()) / 1000).toString(),
+          },
+        });
+      }
+    }
+  }
+
+  // =====================================================
+  // CRON JOB AUTHENTICATION
+  // =====================================================
+  if (pathname.startsWith('/api/cron/')) {
+    const authHeader = request.headers.get('authorization');
+    const expectedSecret = process.env.CRON_SECRET;
+
+    if (!expectedSecret) {
+      console.error('[middleware] CRON_SECRET not configured');
+      return new NextResponse('Service configuration error', { status: 500 });
+    }
+
+    if (authHeader !== `Bearer ${expectedSecret}`) {
+      console.error('[middleware] Unauthorized cron request:', pathname);
+      return new NextResponse('Unauthorized', { status: 401 });
+    }
+
+    // Allow cron jobs to proceed without further checks
+    return NextResponse.next();
+  }
 
   // Only log in development
   if (process.env.NODE_ENV === 'development') {
@@ -61,9 +168,12 @@ export async function middleware(request: NextRequest) {
     '/images',
     '/auth/',           // All auth routes (callback, dev, employee, establish-session, etc.)
     '/api/auth',
+    '/api/webhooks',    // Webhook endpoints (rate-limited separately)
+    '/api/cron',        // Cron job endpoints (authenticated separately)
     '/portal/login',
     '/s/',              // Share links (e.g., /s/token or /s/vanity-slug)
     '/share',
+    '/unsubscribe/',    // Email unsubscribe page (public, rate-limited)
     '/manifest.json',
     '/favicon',
     '/sw.js',

@@ -4,6 +4,13 @@ import { ZodError } from 'zod';
 import type { Context } from './context';
 import { captureException, addBreadcrumb } from '@/lib/sentry';
 import { hasRole, SYSTEM_ROLES } from '@/lib/services/rbac-service';
+import {
+  apiRateLimit,
+  emailRateLimit,
+  campaignRateLimit,
+  checkRateLimit,
+  RateLimitError
+} from '@/lib/rate-limit';
 
 const t = initTRPC.context<Context>().create({
   transformer: superjson,
@@ -102,6 +109,72 @@ const enforceUserIsSuperAdmin = t.middleware(async ({ ctx, next }) => {
 });
 
 export const superAdminProcedure = t.procedure.use(enforceUserIsSuperAdmin);
+
+// Rate limiting middleware
+const rateLimitMiddleware = t.middleware(async ({ ctx, next, path }) => {
+  // Only rate limit if user is authenticated
+  if (!ctx.session?.user) {
+    return next();
+  }
+
+  const identifier = ctx.session.user.id;
+  const result = await checkRateLimit(apiRateLimit, identifier);
+
+  if (!result.success) {
+    const resetInSeconds = Math.ceil((result.reset - Date.now()) / 1000);
+    throw new TRPCError({
+      code: 'TOO_MANY_REQUESTS',
+      message: `Rate limit exceeded. Try again in ${resetInSeconds} seconds.`,
+    });
+  }
+
+  return next();
+});
+
+// Email-specific rate limiting
+const emailRateLimitMiddleware = t.middleware(async ({ ctx, next }) => {
+  if (!ctx.session?.user) {
+    throw new TRPCError({ code: 'UNAUTHORIZED' });
+  }
+
+  const identifier = ctx.session.user.id;
+  const result = await checkRateLimit(emailRateLimit, identifier);
+
+  if (!result.success) {
+    const resetInSeconds = Math.ceil((result.reset - Date.now()) / 1000);
+    throw new TRPCError({
+      code: 'TOO_MANY_REQUESTS',
+      message: `Email rate limit exceeded. Try again in ${resetInSeconds} seconds.`,
+    });
+  }
+
+  return next();
+});
+
+// Campaign-specific rate limiting
+const campaignRateLimitMiddleware = t.middleware(async ({ ctx, next }) => {
+  if (!ctx.session?.user) {
+    throw new TRPCError({ code: 'UNAUTHORIZED' });
+  }
+
+  const identifier = ctx.session.user.id;
+  const result = await checkRateLimit(campaignRateLimit, identifier);
+
+  if (!result.success) {
+    const resetInSeconds = Math.ceil((result.reset - Date.now()) / 1000);
+    throw new TRPCError({
+      code: 'TOO_MANY_REQUESTS',
+      message: `Campaign operation limit exceeded. Try again in ${resetInSeconds} seconds.`,
+    });
+  }
+
+  return next();
+});
+
+// Export rate-limited procedures
+export const rateLimitedProcedure = protectedProcedure.use(rateLimitMiddleware);
+export const emailRateLimitedProcedure = protectedProcedure.use(emailRateLimitMiddleware);
+export const campaignRateLimitedProcedure = protectedProcedure.use(campaignRateLimitMiddleware);
 
 // Performance monitoring middleware
 const sentryMiddleware = t.middleware(async ({ path, type, next }) => {
