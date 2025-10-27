@@ -53,6 +53,7 @@ import { globalSearchRouter } from './routers/global-search';
 import { emailTemplatesRouter } from './routers/emailTemplates';
 import { emailCampaignsRouter } from './routers/emailCampaigns';
 import { emailAnalyticsRouter } from './routers/emailAnalytics';
+import { rbacRouter } from './routers/rbac';
 
 /**
  * Main API router
@@ -68,6 +69,7 @@ export const appRouter = createTRPCRouter({
 
   // Authentication & Access Control
   auth: authRouter,
+  rbac: rbacRouter,
 
   // Admin Portal
   admin: adminRouter,

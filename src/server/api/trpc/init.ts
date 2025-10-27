@@ -3,7 +3,15 @@ import superjson from 'superjson';
 import { ZodError } from 'zod';
 import type { Context } from './context';
 import { captureException, addBreadcrumb } from '@/lib/sentry';
-import { hasRole, SYSTEM_ROLES } from '@/lib/services/rbac-service';
+import {
+  hasRole,
+  hasAnyRole,
+  hasPermission,
+  hasAnyPermission,
+  hasAllPermissions,
+  SYSTEM_ROLES,
+  type Permission,
+} from '@/lib/services/rbac-service';
 import {
   apiRateLimit,
   emailRateLimit,
@@ -46,25 +54,44 @@ const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
 
 export const protectedProcedure = t.procedure.use(enforceUserIsAuthed);
 
-// Middleware to check if user is admin
-const enforceUserIsAdmin = t.middleware(({ ctx, next }) => {
+// Middleware to check if user is admin (uses RBAC)
+const enforceUserIsAdmin = t.middleware(async ({ ctx, next }) => {
   if (!ctx.session?.user) {
-    throw new TRPCError({ code: 'UNAUTHORIZED' });
+    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Authentication required' });
   }
 
-  // Check if user is admin (customize based on your role system)
-  const isAdmin = ctx.session.user.email?.endsWith('@limn.us.com') ||
-                  ctx.session.user.app_metadata?.role === 'admin' ||
-                  ctx.session.user.user_metadata?.role === 'admin';
+  // ✅ RBAC: Check user has admin or super_admin role
+  const userProfile = await ctx.db.user_profiles.findUnique({
+    where: { id: ctx.session.user.id },
+    select: { id: true, full_name: true },
+  });
+
+  // Check admin role via RBAC system (admin or super_admin)
+  const isAdmin = userProfile
+    ? await hasAnyRole(userProfile.id, [SYSTEM_ROLES.ADMIN, SYSTEM_ROLES.SUPER_ADMIN])
+    : false;
 
   if (!isAdmin) {
-    throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin access required' });
+    // Log unauthorized access attempt
+    console.error(
+      `[SECURITY] Unauthorized access attempt to admin endpoint by user: ${ctx.session.user.id} (${userProfile?.full_name || 'unknown'})`
+    );
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Admin access required. This incident has been logged.',
+    });
   }
+
+  // Log authorized access for audit trail
+  console.log(
+    `[SECURITY] Admin access granted to user: ${ctx.session.user.id} (${userProfile?.full_name || 'unknown'})`
+  );
 
   return next({
     ctx: {
       ...ctx,
       session: ctx.session,
+      userProfile,
     },
   });
 });
@@ -108,6 +135,231 @@ const enforceUserIsSuperAdmin = t.middleware(async ({ ctx, next }) => {
 });
 
 export const superAdminProcedure = t.procedure.use(enforceUserIsSuperAdmin);
+
+// Middleware to check if user is manager (or higher)
+const enforceUserIsManager = t.middleware(async ({ ctx, next }) => {
+  if (!ctx.session?.user) {
+    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Authentication required' });
+  }
+
+  // ✅ RBAC: Check user has manager, admin, or super_admin role
+  const userProfile = await ctx.db.user_profiles.findUnique({
+    where: { id: ctx.session.user.id },
+    select: { id: true, full_name: true },
+  });
+
+  // Check manager role via RBAC system (manager, admin, or super_admin)
+  const isManager = userProfile
+    ? await hasAnyRole(userProfile.id, [
+        SYSTEM_ROLES.MANAGER,
+        SYSTEM_ROLES.ADMIN,
+        SYSTEM_ROLES.SUPER_ADMIN,
+      ])
+    : false;
+
+  if (!isManager) {
+    // Log unauthorized access attempt
+    console.error(
+      `[SECURITY] Unauthorized access attempt to manager endpoint by user: ${ctx.session.user.id} (${userProfile?.full_name || 'unknown'})`
+    );
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Manager access required. This incident has been logged.',
+    });
+  }
+
+  // Log authorized access for audit trail
+  console.log(
+    `[SECURITY] Manager access granted to user: ${ctx.session.user.id} (${userProfile?.full_name || 'unknown'})`
+  );
+
+  return next({
+    ctx: {
+      ...ctx,
+      session: ctx.session,
+      userProfile,
+    },
+  });
+});
+
+export const managerProcedure = t.procedure.use(enforceUserIsManager);
+
+// ============================================
+// PERMISSION-BASED PROCEDURES
+// ============================================
+
+/**
+ * Create a procedure that requires a specific permission
+ *
+ * @example
+ * ```ts
+ * export const viewUsers = requirePermission(PERMISSIONS.USERS_VIEW)
+ *   .input(z.object({ id: z.string() }))
+ *   .query(async ({ input, ctx }) => {
+ *     // User is guaranteed to have USERS_VIEW permission
+ *   });
+ * ```
+ */
+export function requirePermission(permission: Permission) {
+  const middleware = t.middleware(async ({ ctx, next, path }) => {
+    if (!ctx.session?.user) {
+      throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Authentication required' });
+    }
+
+    const userProfile = await ctx.db.user_profiles.findUnique({
+      where: { id: ctx.session.user.id },
+      select: { id: true, full_name: true },
+    });
+
+    if (!userProfile) {
+      throw new TRPCError({ code: 'UNAUTHORIZED', message: 'User profile not found' });
+    }
+
+    // Get IP and User Agent for audit logging
+    const ipAddress = ctx.req?.headers?.['x-forwarded-for']?.toString().split(',')[0] ||
+                      ctx.req?.headers?.['x-real-ip']?.toString() ||
+                      ctx.req?.connection?.remoteAddress;
+    const userAgent = ctx.req?.headers?.['user-agent'];
+
+    // Check permission (includes automatic permission denial logging)
+    const hasAccess = await hasPermission(userProfile.id, permission, {
+      resource: path || 'tRPC endpoint',
+      action: 'access',
+      ipAddress,
+      userAgent,
+    });
+
+    if (!hasAccess) {
+      console.error(
+        `[SECURITY] Permission denied for user ${ctx.session.user.id} (${userProfile.full_name}): Required permission "${permission}" for ${path || 'endpoint'}`
+      );
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: `Permission denied: ${permission}. This incident has been logged.`,
+      });
+    }
+
+    return next({
+      ctx: {
+        ...ctx,
+        session: ctx.session,
+        userProfile,
+      },
+    });
+  });
+
+  return protectedProcedure.use(middleware);
+}
+
+/**
+ * Create a procedure that requires ANY of the specified permissions
+ *
+ * @example
+ * ```ts
+ * export const viewData = requireAnyPermission([
+ *   PERMISSIONS.PRODUCTION_VIEW,
+ *   PERMISSIONS.ORDERS_VIEW
+ * ])
+ *   .query(async ({ ctx }) => {
+ *     // User has at least one of the required permissions
+ *   });
+ * ```
+ */
+export function requireAnyPermission(permissions: Permission[]) {
+  const middleware = t.middleware(async ({ ctx, next, path }) => {
+    if (!ctx.session?.user) {
+      throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Authentication required' });
+    }
+
+    const userProfile = await ctx.db.user_profiles.findUnique({
+      where: { id: ctx.session.user.id },
+      select: { id: true, full_name: true },
+    });
+
+    if (!userProfile) {
+      throw new TRPCError({ code: 'UNAUTHORIZED', message: 'User profile not found' });
+    }
+
+    // Check if user has any of the required permissions
+    const hasAccess = await hasAnyPermission(userProfile.id, permissions);
+
+    if (!hasAccess) {
+      console.error(
+        `[SECURITY] Permission denied for user ${ctx.session.user.id} (${userProfile.full_name}): Required ANY of [${permissions.join(', ')}] for ${path || 'endpoint'}`
+      );
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: `Permission denied: Requires one of [${permissions.join(', ')}]. This incident has been logged.`,
+      });
+    }
+
+    return next({
+      ctx: {
+        ...ctx,
+        session: ctx.session,
+        userProfile,
+      },
+    });
+  });
+
+  return protectedProcedure.use(middleware);
+}
+
+/**
+ * Create a procedure that requires ALL of the specified permissions
+ *
+ * @example
+ * ```ts
+ * export const approveOrder = requireAllPermissions([
+ *   PERMISSIONS.ORDERS_VIEW,
+ *   PERMISSIONS.ORDERS_APPROVE,
+ *   PERMISSIONS.FINANCE_VIEW
+ * ])
+ *   .input(z.object({ orderId: z.string() }))
+ *   .mutation(async ({ input, ctx }) => {
+ *     // User has all three required permissions
+ *   });
+ * ```
+ */
+export function requireAllPermissions(permissions: Permission[]) {
+  const middleware = t.middleware(async ({ ctx, next, path }) => {
+    if (!ctx.session?.user) {
+      throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Authentication required' });
+    }
+
+    const userProfile = await ctx.db.user_profiles.findUnique({
+      where: { id: ctx.session.user.id },
+      select: { id: true, full_name: true },
+    });
+
+    if (!userProfile) {
+      throw new TRPCError({ code: 'UNAUTHORIZED', message: 'User profile not found' });
+    }
+
+    // Check if user has all of the required permissions
+    const hasAccess = await hasAllPermissions(userProfile.id, permissions);
+
+    if (!hasAccess) {
+      console.error(
+        `[SECURITY] Permission denied for user ${ctx.session.user.id} (${userProfile.full_name}): Required ALL of [${permissions.join(', ')}] for ${path || 'endpoint'}`
+      );
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: `Permission denied: Requires all of [${permissions.join(', ')}]. This incident has been logged.`,
+      });
+    }
+
+    return next({
+      ctx: {
+        ...ctx,
+        session: ctx.session,
+        userProfile,
+      },
+    });
+  });
+
+  return protectedProcedure.use(middleware);
+}
 
 // Rate limiting middleware
 const rateLimitMiddleware = t.middleware(async ({ ctx, next, path: _path }) => {
