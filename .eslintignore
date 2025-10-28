@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+.next/
+.vercel/
+dist/
+build/
+
+# Scripts and utilities (not production code)
+scripts/
+prisma/seeds/
+prisma/seed*.ts
+
+# Test files and directories
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+e2e/
+playwright-report/
+test-results/
+tests/
+
+# Config files
+*.config.js
+*.config.ts
+*.config.mjs
+next.config.mjs
+tailwind.config.ts
+postcss.config.js
+
+# Documentation
+**/*.md
+
+# Environment
+.env*
+!.env.example

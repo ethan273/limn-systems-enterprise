@@ -10,7 +10,7 @@ import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure, adminProcedure } from '../trpc/init';
 import * as multiTenancy from '@/lib/services/multi-tenancy-service';
 import * as permissionTemplates from '@/lib/services/permission-templates-service';
-import { SYSTEM_ROLES, PERMISSIONS } from '@/lib/services/rbac-service';
+import { SYSTEM_ROLES } from '@/lib/services/rbac-service';
 
 // ============================================
 // Input Validation Schemas

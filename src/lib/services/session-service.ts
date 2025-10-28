@@ -17,8 +17,11 @@ const prisma = new PrismaClient();
 // ============================================
 
 export enum IPValidationMode {
+  // eslint-disable-next-line no-unused-vars
   STRICT = 'strict',       // Must match exactly (Admin/Super Admin)
+  // eslint-disable-next-line no-unused-vars
   FLEXIBLE = 'flexible',   // Allow same subnet (/24) (Regular users)
+  // eslint-disable-next-line no-unused-vars
   DISABLED = 'disabled'    // No validation (Dev/Testing only)
 }
 

@@ -333,14 +333,6 @@ export async function getSecurityAlerts(
     }
   }
 
-  // Alert: Unusual time access (outside business hours)
-  const nightAccess = await prisma.permission_usage_log.count({
-    where: {
-      timestamp: { gte: last24Hours },
-      result: 'granted',
-    },
-  });
-
   // Filter by severity if specified
   if (severity) {
     return alerts.filter(a => a.severity === severity);

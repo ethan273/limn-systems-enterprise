@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
-import { BarChart3, Eye, MousePointerClick, Clock, TrendingUp, AlertTriangle, RefreshCw, DollarSign, Target, Activity } from "lucide-react";
+import { BarChart3, Eye, MousePointerClick, Clock, TrendingUp, DollarSign, Target, Activity } from "lucide-react";
 import { PageHeader, LoadingState, StatsGrid, EmptyState, type StatItem } from "@/components/common";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -25,7 +25,8 @@ export default function AnalyticsPage() {
     limit: 100,
   });
 
-  const flipbooks = flipbooksData?.flipbooks || [];
+  // Memoize flipbooks to prevent useMemo dependency changes on every render
+  const flipbooks = useMemo(() => flipbooksData?.flipbooks || [], [flipbooksData]);
 
   // Query analytics for selected flipbook (or aggregate)
   const flipbookId = selectedFlipbook === "all" ? flipbooks[0]?.id : selectedFlipbook;
@@ -44,9 +45,6 @@ export default function AnalyticsPage() {
     { flipbookId: flipbookId || "" },
     { enabled: !!flipbookId }
   );
-
-  // Get tRPC utils for cache invalidation
-  const utils = api.useUtils();
 
   // Calculate aggregate stats across all flipbooks
   const aggregateStats = useMemo(() => {

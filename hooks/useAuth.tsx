@@ -12,8 +12,8 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signIn: (email: string, password?: string) => Promise<void>;
-  signInWithMagicLink: (email: string) => Promise<void>;
+  signIn: (_email: string, _password?: string) => Promise<void>;
+  signInWithMagicLink: (_email: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   refreshToken: () => Promise<void>;
@@ -27,8 +27,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    checkAuth();    const interval = setInterval(refreshToken, 14 * 60 * 1000);
+    void checkAuth();
+    const interval = setInterval(() => void refreshToken(), 14 * 60 * 1000);
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkAuth = async () => {

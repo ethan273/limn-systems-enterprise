@@ -435,7 +435,6 @@ export const ordersRouter = createTRPCRouter({
           // Create order items using Supabase admin client
           const supabase = getSupabaseAdmin();
           const createdItems: any[] = [];
-          let lineItemNumber = 1;
 
           for (const item of input.order_items) {
             // Generate Full SKU from base SKU + material selections
@@ -472,7 +471,6 @@ export const ordersRouter = createTRPCRouter({
             }
 
             createdItems.push(orderItem);
-            lineItemNumber++;
           }
 
           // Return order with items

@@ -74,19 +74,23 @@ export function useFlipbookAnalytics({
   useEffect(() => {
     if (!enabled || !flipbookId) return;
 
+    // Capture ref values at effect creation time
+    const sessionId = sessionIdRef.current;
+    const sessionStartTime = sessionStartTimeRef.current;
+
     return () => {
-      const durationSeconds = Math.floor((Date.now() - sessionStartTimeRef.current) / 1000);
+      const durationSeconds = Math.floor((Date.now() - sessionStartTime) / 1000);
 
       // Track session end asynchronously (fire and forget)
       trackSessionEndMutation.mutate({
         flipbookId,
-        sessionId: sessionIdRef.current,
+        sessionId,
         durationSeconds,
       });
 
       console.log('[Analytics] Session ended:', {
         flipbookId,
-        sessionId: sessionIdRef.current,
+        sessionId,
         durationSeconds,
       });
     };

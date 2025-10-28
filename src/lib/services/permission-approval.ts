@@ -261,7 +261,7 @@ export async function cancelRequest(
 /**
  * Gets all pending requests that a user can approve
  */
-export async function getPendingRequests(approverId: string): Promise<PermissionRequest[]> {
+export async function getPendingRequests(_approverId: string): Promise<PermissionRequest[]> {
   // In a full implementation, this would check which permissions
   // the approver has the authority to approve
   // For now, simplified to all pending requests
