@@ -140,12 +140,34 @@ async function logSecurityEvent(event: {
   userId: string;
   details: Record<string, any>;
 }): Promise<void> {
+  // Map session actions to valid SecurityEventType enum values
+  const eventTypeMap: Record<string, string> = {
+    'session_created': 'login_success',
+    'session_terminated': 'logout',
+    'session_timeout': 'session_expired',
+    'session_ip_mismatch': 'suspicious_activity',
+    'session_subnet_change': 'suspicious_activity',
+    'session_limit_exceeded': 'unauthorized_access_attempt',
+    'geo_location_anomaly': 'suspicious_activity',
+  };
+
+  const validEventType = eventTypeMap[event.action];
+
+  if (!validEventType) {
+    // Skip logging if we don't have a valid mapping
+    console.warn(`[SESSION] Skipping security event logging for unknown action: ${event.action}`);
+    return;
+  }
+
   try {
     await prisma.admin_security_events.create({
       data: {
         user_id: event.userId,
-        event_type: `session_${event.action}`, // e.g., "session_ip_mismatch"
-        metadata: event.details,
+        event_type: validEventType,
+        metadata: {
+          ...event.details,
+          originalAction: event.action, // Preserve original action for debugging
+        },
         severity: 'medium',
         created_at: new Date(),
       },
