@@ -304,7 +304,9 @@ export async function GET(request: NextRequest) {
           const userAgent = request.headers.get('user-agent') || undefined;
 
           console.log('[Auth Callback] 🔵 Tracking session for user:', userId);
-          await trackSessionCreation(data.session.access_token, userId, {
+          // Generate a proper UUID for session tracking (access tokens are JWTs, not UUIDs)
+          const sessionTrackingId = crypto.randomUUID();
+          await trackSessionCreation(sessionTrackingId, userId, {
             ipAddress,
             userAgent,
           });
@@ -314,7 +316,7 @@ export async function GET(request: NextRequest) {
           await enforceSessionLimits(
             userId,
             roles[0] || 'customer',
-            data.session.access_token
+            sessionTrackingId
           );
 
           console.log('[Auth Callback] 🟢 Session tracked and limits enforced for:', userEmail);
@@ -456,7 +458,9 @@ export async function GET(request: NextRequest) {
           const userAgent = request.headers.get('user-agent') || undefined;
 
           console.log('[Auth Callback] 🔵 Tracking session for user:', userId);
-          await trackSessionCreation(data.session.access_token, userId, {
+          // Generate a proper UUID for session tracking (access tokens are JWTs, not UUIDs)
+          const sessionTrackingId = crypto.randomUUID();
+          await trackSessionCreation(sessionTrackingId, userId, {
             ipAddress,
             userAgent,
           });
@@ -466,7 +470,7 @@ export async function GET(request: NextRequest) {
           await enforceSessionLimits(
             userId,
             roles[0] || 'customer',
-            data.session.access_token
+            sessionTrackingId
           );
 
           console.log('[Auth Callback] 🟢 Session tracked and limits enforced for:', userEmail);

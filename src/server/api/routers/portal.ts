@@ -353,10 +353,9 @@ export const portalRouter = createTRPCRouter({
 
   /**
    * Get Current User Info (for display in UI)
-   * Phase 4E: Changed to portalProcedure to enforce customer portal access at layout level
-   * This ensures non-customer portal users are blocked before the page renders
+   * Works for all portal types (customer, designer, factory, QC)
    */
-  getCurrentUser: portalProcedure
+  getCurrentUser: universalPortalProcedure
     .query(async ({ ctx }) => {
       return {
         id: ctx.session.user.id,
@@ -457,16 +456,16 @@ export const portalRouter = createTRPCRouter({
   // ============================================
 
   /**
-   * Get Notifications
+   * Get Notifications - Works for all portal types
    */
-  getNotifications: portalProcedure
+  getNotifications: universalPortalProcedure
     .input(z.object({
       limit: z.number().min(1).max(100).default(20),
       offset: z.number().min(0).default(0),
       read: z.boolean().optional(),
     }))
     .query(async ({ ctx, input }) => {
-      // Only customers have customer_notifications (designer/factory don't have customer_id)
+      // Only customers have customer_notifications (designer/factory don't have customerId)
       if (!ctx.customerId) {
         // Return empty notifications for non-customer portals
         return {
