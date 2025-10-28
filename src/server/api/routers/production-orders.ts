@@ -1,6 +1,9 @@
 import { z } from 'zod';
 import { createTRPCRouter, publicProcedure } from '../trpc/init';
-import { Prisma } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
+
+// Direct Prisma instance for raw SQL (advisory locks)
+const prisma = new PrismaClient();
 
 // ============================================================================
 // SCHEMAS
@@ -44,7 +47,7 @@ const updateProductionOrderSchema = createProductionOrderSchema.partial();
  * Uses PostgreSQL advisory lock to prevent race conditions.
  * The lock ensures only one transaction can generate a number at a time.
  */
-async function generateOrderNumber(db: any): Promise<string> {
+async function generateOrderNumber(): Promise<string> {
   const year = new Date().getFullYear();
   const prefix = `PO-${year}-`;
 
@@ -54,10 +57,10 @@ async function generateOrderNumber(db: any): Promise<string> {
 
   try {
     // Acquire advisory lock (blocks until available)
-    await db.$executeRaw`SELECT pg_advisory_lock(${lockId})`;
+    await prisma.$executeRaw`SELECT pg_advisory_lock(${lockId})`;
 
     // Find the highest existing number for this year
-    const existingOrders = await db.production_orders.findMany({
+    const existingOrders = await prisma.production_orders.findMany({
       where: {
         order_number: {
           startsWith: prefix,
@@ -83,7 +86,7 @@ async function generateOrderNumber(db: any): Promise<string> {
     return `${prefix}${String(nextNumber).padStart(4, '0')}`;
   } finally {
     // Always release the lock, even if an error occurred
-    await db.$executeRaw`SELECT pg_advisory_unlock(${lockId})`;
+    await prisma.$executeRaw`SELECT pg_advisory_unlock(${lockId})`;
   }
 }
 
@@ -94,7 +97,7 @@ async function generateOrderNumber(db: any): Promise<string> {
  * Uses PostgreSQL advisory lock to prevent race conditions.
  * The lock ensures only one transaction can generate a number at a time.
  */
-async function generateInvoiceNumber(db: any): Promise<string> {
+async function generateInvoiceNumber(): Promise<string> {
   const year = new Date().getFullYear();
   const prefix = `INV-${year}-`;
 
@@ -104,10 +107,10 @@ async function generateInvoiceNumber(db: any): Promise<string> {
 
   try {
     // Acquire advisory lock (blocks until available)
-    await db.$executeRaw`SELECT pg_advisory_lock(${lockId})`;
+    await prisma.$executeRaw`SELECT pg_advisory_lock(${lockId})`;
 
     // Find the highest existing number for this year
-    const existingInvoices = await db.production_invoices.findMany({
+    const existingInvoices = await prisma.production_invoices.findMany({
       where: {
         invoice_number: {
           startsWith: prefix,
@@ -133,7 +136,7 @@ async function generateInvoiceNumber(db: any): Promise<string> {
     return `${prefix}${String(nextNumber).padStart(4, '0')}`;
   } finally {
     // Always release the lock, even if an error occurred
-    await db.$executeRaw`SELECT pg_advisory_unlock(${lockId})`;
+    await prisma.$executeRaw`SELECT pg_advisory_unlock(${lockId})`;
   }
 }
 
@@ -154,7 +157,7 @@ async function _createDepositInvoice(
   }
 ) {
   const depositAmount = orderData.total_cost * 0.5;
-  const invoiceNumber = await generateInvoiceNumber(db);
+  const invoiceNumber = await generateInvoiceNumber();
 
   // Get customer from project if available
   let customer_id: string | undefined;
@@ -214,7 +217,7 @@ async function createFinalInvoice(
   estimatedShipping: number = 500
 ) {
   const balanceAmount = order.total_cost * 0.5;
-  const invoiceNumber = await generateInvoiceNumber(db);
+  const invoiceNumber = await generateInvoiceNumber();
 
   // Get customer from project if available
   let customer_id: string | undefined;
@@ -412,7 +415,7 @@ export const productionOrdersRouter = createTRPCRouter({
       const totalCost = input.unit_price * input.quantity;
 
       // Generate order number using advisory lock (no retry needed)
-      const orderNumber = await generateOrderNumber(ctx.db);
+      const orderNumber = await generateOrderNumber();
 
       // Create Production Order
       const order = await ctx.db.production_orders.create({

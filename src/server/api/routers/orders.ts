@@ -5,6 +5,10 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 import { generateProjectSku } from '@/lib/utils/project-sku-generator';
 import { generateFullSku } from '@/lib/utils/full-sku-generator';
 import { createFullName } from '@/lib/utils/name-utils';
+import { PrismaClient } from '@prisma/client';
+
+// Direct Prisma instance for raw SQL (advisory locks)
+const prisma = new PrismaClient();
 
 // ============================================================================
 // HELPER FUNCTIONS
@@ -17,7 +21,7 @@ import { createFullName } from '@/lib/utils/name-utils';
  * Uses PostgreSQL advisory lock to prevent race conditions.
  * The lock ensures only one transaction can generate a number at a time.
  */
-async function generateOrderNumber(db: any): Promise<string> {
+async function generateOrderNumber(): Promise<string> {
   const prefix = 'ORD-';
 
   // Use advisory lock to make this operation atomic
@@ -26,10 +30,10 @@ async function generateOrderNumber(db: any): Promise<string> {
 
   try {
     // Acquire advisory lock (blocks until available)
-    await db.$executeRaw`SELECT pg_advisory_lock(${lockId})`;
+    await prisma.$executeRaw`SELECT pg_advisory_lock(${lockId})`;
 
     // Find the highest existing number
-    const existingOrders = await db.orders.findMany({
+    const existingOrders = await prisma.orders.findMany({
       where: {
         order_number: {
           startsWith: prefix,
@@ -55,7 +59,7 @@ async function generateOrderNumber(db: any): Promise<string> {
     return `${prefix}${String(nextNumber).padStart(6, '0')}`;
   } finally {
     // Always release the lock, even if an error occurred
-    await db.$executeRaw`SELECT pg_advisory_unlock(${lockId})`;
+    await prisma.$executeRaw`SELECT pg_advisory_unlock(${lockId})`;
   }
 }
 
@@ -415,7 +419,7 @@ export const ordersRouter = createTRPCRouter({
       for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
           // Generate order number
-          const orderNumber = await generateOrderNumber(ctx.db);
+          const orderNumber = await generateOrderNumber();
 
           // Create the order
           const order = await ctx.db.orders.create({

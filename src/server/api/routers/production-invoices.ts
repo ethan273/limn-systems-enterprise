@@ -1,7 +1,10 @@
 import { z } from 'zod';
 import { createTRPCRouter, publicProcedure } from '../trpc/init';
-import { Prisma } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { quickbooksClient } from '@/lib/quickbooks/client';
+
+// Direct Prisma instance for raw SQL (advisory locks)
+const prisma = new PrismaClient();
 
 // ============================================================================
 // HELPER FUNCTIONS - Shipping
@@ -57,7 +60,7 @@ const recordPaymentSchema = z.object({
  * Uses PostgreSQL advisory lock to prevent race conditions.
  * The lock ensures only one transaction can generate a number at a time.
  */
-async function generatePaymentNumber(db: any): Promise<string> {
+async function generatePaymentNumber(): Promise<string> {
   const year = new Date().getFullYear();
   const prefix = `PAY-${year}-`;
 
@@ -67,10 +70,10 @@ async function generatePaymentNumber(db: any): Promise<string> {
 
   try {
     // Acquire advisory lock (blocks until available)
-    await db.$executeRaw`SELECT pg_advisory_lock(${lockId})`;
+    await prisma.$executeRaw`SELECT pg_advisory_lock(${lockId})`;
 
     // Find the highest existing number for this year
-    const existingPayments = await db.production_payments.findMany({
+    const existingPayments = await prisma.production_payments.findMany({
       where: {
         payment_number: {
           startsWith: prefix,
@@ -96,7 +99,7 @@ async function generatePaymentNumber(db: any): Promise<string> {
     return `${prefix}${String(nextNumber).padStart(4, '0')}`;
   } finally {
     // Always release the lock, even if an error occurred
-    await db.$executeRaw`SELECT pg_advisory_unlock(${lockId})`;
+    await prisma.$executeRaw`SELECT pg_advisory_unlock(${lockId})`;
   }
 }
 
@@ -305,7 +308,7 @@ export const productionInvoicesRouter = createTRPCRouter({
       }
 
       // Generate payment number
-      const paymentNumber = await generatePaymentNumber(ctx.db);
+      const paymentNumber = await generatePaymentNumber();
 
       // Create payment record
       const payment = await ctx.db.production_payments.create({
