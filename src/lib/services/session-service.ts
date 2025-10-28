@@ -134,26 +134,25 @@ function isSameSubnet(ip1: string, ip2: string): boolean {
 
 /**
  * Log security event to admin_security_events table
+ *
+ * NOTE: The admin_security_events table has a CHECK constraint that only allows:
+ * 'login', 'logout', 'password_reset', 'mfa_enabled', 'suspicious_activity', 'permission_change'
+ *
+ * We map session events to these allowed values until the constraint is removed.
  */
 async function logSecurityEvent(event: {
   action: string;
   userId: string;
   details: Record<string, any>;
 }): Promise<void> {
-  // TODO: Fix admin_security_events table constraint - currently rejects all event types
-  // Temporarily disabled to unblock authentication flows
-  // The database check constraint doesn't match the SecurityEventType enum values
-  console.log(`[SESSION] Security event logged (disabled): ${event.action} for user ${event.userId}`);
-  return;
-
-  /* DISABLED CODE - Re-enable after fixing database constraint
+  // Map session actions to allowed event_type values (constraint-compliant)
   const eventTypeMap: Record<string, string> = {
-    'session_created': 'login_success',
+    'session_created': 'login',
     'session_terminated': 'logout',
-    'session_timeout': 'session_expired',
+    'session_timeout': 'logout',
     'session_ip_mismatch': 'suspicious_activity',
     'session_subnet_change': 'suspicious_activity',
-    'session_limit_exceeded': 'unauthorized_access_attempt',
+    'session_limit_exceeded': 'suspicious_activity',
     'geo_location_anomaly': 'suspicious_activity',
   };
 
@@ -177,10 +176,10 @@ async function logSecurityEvent(event: {
         created_at: new Date(),
       },
     });
+    console.log(`[SESSION] Security event logged: ${event.action} -> ${validEventType} for user ${event.userId}`);
   } catch (error) {
     console.error('[SESSION] Failed to log security event:', error);
   }
-  */
 }
 
 /**

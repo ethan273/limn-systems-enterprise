@@ -314,6 +314,9 @@ export async function middleware(request: NextRequest) {
 
   // Admin access control - only admins can access /admin routes
   if (pathname.startsWith('/admin')) {
+    // Enhanced logging for debugging employee access issue
+    console.log(`[ADMIN ACCESS CHECK] Starting admin access check for user ${user.id} at ${pathname}`);
+
     // ✅ RBAC Migration: Check user roles via user_roles table
     const { data: userRoles, error: rolesError } = await supabase
       .from('user_roles')
@@ -327,6 +330,8 @@ export async function middleware(request: NextRequest) {
     let hasAdminRole = userRoles?.some(ur =>
       ur.role === 'admin' || ur.role === 'super_admin'
     ) ?? false;
+
+    console.log(`[ADMIN ACCESS] hasAdminRole after user_roles check: ${hasAdminRole}`);
 
     // ⚠️ FALLBACK: If no roles found, check user_type field for backward compatibility
     if (!hasAdminRole && (!userRoles || userRoles.length === 0)) {
@@ -345,6 +350,8 @@ export async function middleware(request: NextRequest) {
         hasAdminRole = userProfile.user_type === 'super_admin' ||
                        userProfile.user_type === 'admin';
 
+        console.log(`[ADMIN ACCESS FALLBACK] hasAdminRole after user_type check: ${hasAdminRole}`);
+
         // ADDITIONAL FALLBACK: Known admin test emails (for E2E tests where user_type may be 'employee')
         // This handles the case where test setup creates admin role in user_roles table
         // but RLS policies prevent reading it, and user_type is still 'employee'
@@ -353,14 +360,18 @@ export async function middleware(request: NextRequest) {
           hasAdminRole = true;
         }
 
+        console.log(`[ADMIN ACCESS FALLBACK] hasAdminRole after email check: ${hasAdminRole}`);
+
         if (hasAdminRole) {
           console.log(`✅ [ADMIN ACCESS FALLBACK] Granted access for ${userProfile.email}`);
         }
       }
     }
 
+    console.log(`[ADMIN ACCESS] Final hasAdminRole value: ${hasAdminRole}`);
+
     if (!hasAdminRole) {
-      console.log(`🚫 Middleware: User ${user.id} denied access to admin area (has admin role: false)`);
+      console.log(`🚫 Middleware: User ${user.id} denied access to admin area - REDIRECTING to /dashboard`);
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = '/dashboard';
       return NextResponse.redirect(redirectUrl);
