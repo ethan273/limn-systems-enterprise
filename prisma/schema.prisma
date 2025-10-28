@@ -4174,7 +4174,7 @@ model order_items {
   due_date             DateTime?              @db.Timestamptz(6)
   status               String?
   notes                String?
-  full_sku             String?                @db.VarChar(200)
+  full_sku             String?                @db.VarChar(500)
   cost_tracking        cost_tracking[]
   documents            documents[]
   invoice_items        invoice_items[]
