@@ -444,6 +444,10 @@ model users {
   offline_sync_queue                                                    offline_sync_queue[]
   ordered_items_production                                              ordered_items_production[]
   orders_old                                                            orders_old[]
+  organization_members_organization_members_invited_byTousers           organization_members[]              @relation("organization_members_invited_byTousers")
+  organization_members_organization_members_user_idTousers              organization_members[]              @relation("organization_members_user_idTousers")
+  organization_permissions_organization_permissions_granted_byTousers   organization_permissions[]          @relation("organization_permissions_granted_byTousers")
+  organization_permissions_organization_permissions_user_idTousers      organization_permissions[]          @relation("organization_permissions_user_idTousers")
   pandadoc_documents                                                    pandadoc_documents[]
   partner_contacts                                                      partner_contacts[]
   partner_documents                                                     partner_documents[]
@@ -456,6 +460,7 @@ model users {
   permission_delegations_permission_delegations_revoked_byTousers       permission_delegations[]            @relation("permission_delegations_revoked_byTousers")
   permission_requests_permission_requests_approver_idTousers            permission_requests[]               @relation("permission_requests_approver_idTousers")
   permission_requests_permission_requests_requester_idTousers           permission_requests[]               @relation("permission_requests_requester_idTousers")
+  permission_templates                                                  permission_templates[]
   permission_usage_log                                                  permission_usage_log[]
   portal_activity_log                                                   portal_activity_log[]
   portal_configurations_portal_configurations_created_byTousers         portal_configurations[]             @relation("portal_configurations_created_byTousers")
@@ -4320,6 +4325,59 @@ model orders_old {
   @@schema("public")
 }
 
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model organization_members {
+  id                                           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organization_id                              String    @db.Uuid
+  user_id                                      String    @db.Uuid
+  organization_roles                           String[]  @default([])
+  status                                       String    @default("active")
+  is_primary_org                               Boolean?  @default(false)
+  joined_at                                    DateTime  @default(now()) @db.Timestamptz(6)
+  invited_by                                   String?   @db.Uuid
+  invitation_accepted_at                       DateTime? @db.Timestamptz(6)
+  created_at                                   DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at                                   DateTime  @default(now()) @db.Timestamptz(6)
+  users_organization_members_invited_byTousers users?    @relation("organization_members_invited_byTousers", fields: [invited_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_organization_members_user_idTousers    users     @relation("organization_members_user_idTousers", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([organization_id, user_id], map: "uq_org_member")
+  @@index([organization_id], map: "idx_org_members_org")
+  @@index([status], map: "idx_org_members_status")
+  @@index([user_id], map: "idx_org_members_user")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model organization_permissions {
+  id                                               String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organization_id                                  String                 @db.Uuid
+  user_id                                          String                 @db.Uuid
+  permission_id                                    String                 @db.Uuid
+  resource_type                                    String?                @db.VarChar(100)
+  resource_id                                      String?                @db.Uuid
+  scope_metadata                                   Json?
+  granted_by                                       String?                @db.Uuid
+  granted_at                                       DateTime               @default(now()) @db.Timestamptz(6)
+  expires_at                                       DateTime?              @db.Timestamptz(6)
+  reason                                           String?
+  is_active                                        Boolean?               @default(true)
+  created_at                                       DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at                                       DateTime               @default(now()) @db.Timestamptz(6)
+  users_organization_permissions_granted_byTousers users?                 @relation("organization_permissions_granted_byTousers", fields: [granted_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  permission_definitions                           permission_definitions @relation(fields: [permission_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users_organization_permissions_user_idTousers    users                  @relation("organization_permissions_user_idTousers", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([organization_id, user_id, permission_id, resource_type, resource_id], map: "uq_org_perm")
+  @@index([scope_metadata(ops: JsonbPathOps)], map: "idx_org_perms_metadata", type: Gin)
+  @@index([organization_id], map: "idx_org_perms_org")
+  @@index([permission_id], map: "idx_org_perms_permission")
+  @@index([resource_type, resource_id], map: "idx_org_perms_resource")
+  @@index([user_id], map: "idx_org_perms_user")
+  @@schema("public")
+}
+
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model packing_boxes {
   id                   String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -4796,20 +4854,22 @@ model permission_conditions {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model permission_definitions {
-  id                     String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  permission_key         String                   @unique @db.VarChar(100)
-  permission_name        String                   @db.VarChar(150)
-  description            String?
-  category               String?                  @db.VarChar(50)
-  is_system              Boolean                  @default(true)
-  is_active              Boolean                  @default(true)
-  created_at             DateTime                 @default(now()) @db.Timestamptz(6)
-  updated_at             DateTime                 @default(now()) @db.Timestamptz(6)
-  permission_conditions  permission_conditions[]
-  permission_delegations permission_delegations[]
-  permission_requests    permission_requests[]
-  permission_usage_log   permission_usage_log[]
-  role_permissions       role_permissions[]
+  id                        String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  permission_key            String                      @unique @db.VarChar(100)
+  permission_name           String                      @db.VarChar(150)
+  description               String?
+  category                  String?                     @db.VarChar(50)
+  is_system                 Boolean                     @default(true)
+  is_active                 Boolean                     @default(true)
+  created_at                DateTime                    @default(now()) @db.Timestamptz(6)
+  updated_at                DateTime                    @default(now()) @db.Timestamptz(6)
+  organization_permissions  organization_permissions[]
+  permission_conditions     permission_conditions[]
+  permission_delegations    permission_delegations[]
+  permission_requests       permission_requests[]
+  permission_template_items permission_template_items[]
+  permission_usage_log      permission_usage_log[]
+  role_permissions          role_permissions[]
 
   @@index([is_active], map: "idx_permission_definitions_active")
   @@index([category], map: "idx_permission_definitions_category")
@@ -4902,6 +4962,47 @@ model permission_scopes {
   @@index([permission_key], map: "idx_permission_scopes_permission")
   @@index([resource_type, resource_id], map: "idx_permission_scopes_resource")
   @@index([user_id], map: "idx_permission_scopes_user")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model permission_template_items {
+  id                     String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  template_id            String                 @db.Uuid
+  permission_id          String                 @db.Uuid
+  resource_type          String?                @db.VarChar(100)
+  scope_metadata         Json?
+  created_at             DateTime               @default(now()) @db.Timestamptz(6)
+  permission_definitions permission_definitions @relation(fields: [permission_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  permission_templates   permission_templates   @relation(fields: [template_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([template_id, permission_id, resource_type], map: "uq_template_item")
+  @@index([permission_id], map: "idx_perm_template_items_permission")
+  @@index([resource_type], map: "idx_perm_template_items_resource")
+  @@index([template_id], map: "idx_perm_template_items_template")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model permission_templates {
+  id                        String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  template_name             String                      @unique @db.VarChar(100)
+  template_description      String?
+  is_global                 Boolean?                    @default(true)
+  organization_id           String?                     @db.Uuid
+  category                  String?                     @db.VarChar(50)
+  is_system_template        Boolean?                    @default(false)
+  is_active                 Boolean?                    @default(true)
+  created_by                String?                     @db.Uuid
+  created_at                DateTime                    @default(now()) @db.Timestamptz(6)
+  updated_at                DateTime                    @default(now()) @db.Timestamptz(6)
+  permission_template_items permission_template_items[]
+  users                     users?                      @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([category], map: "idx_perm_templates_category")
+  @@index([template_name], map: "idx_perm_templates_name")
+  @@index([organization_id], map: "idx_perm_templates_org")
   @@schema("public")
 }
 
