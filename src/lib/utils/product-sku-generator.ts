@@ -42,15 +42,44 @@ function abbreviateMaterial(materialName: string): string {
 /**
  * Extract top 2 materials based on priority order
  *
- * @param materials Object with material selections (e.g., { fabric_brand: "Maharam", wood_type: "Oak" })
+ * Supports both data structures:
+ * - Flat: { fabric_brand: "Maharam", wood_type: "Oak" }
+ * - Hierarchical: { fabric: { brand: "Maharam", color: "Navy" }, wood: { type: "Oak" } }
+ *
+ * @param materials Object with material selections
  * @returns Array of top 2 material abbreviations
  */
-function extractTopMaterials(materials: Record<string, string | null | undefined>): string[] {
+function extractTopMaterials(materials: Record<string, any>): string[] {
   const selectedMaterials: { priority: number; abbr: string }[] = [];
 
   // Check each material type in priority order
   for (const [index, materialType] of MATERIAL_PRIORITY.entries()) {
-    // Look for any field containing this material type
+    // First, check for hierarchical structure (e.g., { fabric: { color: "Navy" } })
+    const hierarchicalValue = materials[materialType];
+    if (hierarchicalValue && typeof hierarchicalValue === 'object') {
+      // Extract most specific value from hierarchical structure
+      // Priority: color > finish > pattern > collection > type/species/material > brand/style
+      const mostSpecific =
+        hierarchicalValue.color ||
+        hierarchicalValue.finish ||
+        hierarchicalValue.pattern ||
+        hierarchicalValue.collection ||
+        hierarchicalValue.type ||
+        hierarchicalValue.species ||
+        hierarchicalValue.material ||
+        hierarchicalValue.brand ||
+        hierarchicalValue.style;
+
+      if (mostSpecific && typeof mostSpecific === 'string' && mostSpecific.trim() !== '') {
+        const abbr = abbreviateMaterial(mostSpecific);
+        if (abbr) {
+          selectedMaterials.push({ priority: index, abbr });
+          continue; // Move to next material type
+        }
+      }
+    }
+
+    // Fallback to flat structure (e.g., { fabric_brand: "Maharam" })
     for (const [key, value] of Object.entries(materials)) {
       if (
         key.toLowerCase().includes(materialType) &&
@@ -79,13 +108,17 @@ function extractTopMaterials(materials: Record<string, string | null | undefined
  *
  * Format: {PREFIX}-{NAME_ABBR}-{SEQ}-{MAT1}-{MAT2}
  *
+ * Supports both data structures:
+ * - Flat: { fabric_brand: "Maharam", wood_type: "Oak" }
+ * - Hierarchical: { fabric: { brand: "Maharam", color: "Navy" }, wood: { type: "Oak" } }
+ *
  * @param baseSku Base SKU from catalog (e.g., "UK-DINI-001")
- * @param materials Object with selected materials
+ * @param materials Object with selected materials (supports both flat and hierarchical)
  * @returns Product SKU (e.g., "UK-DINI-001-HER-OAK")
  */
 export function generateProductSku(
   baseSku: string,
-  materials: Record<string, string | null | undefined>
+  materials: Record<string, any>
 ): string {
   if (!baseSku) {
     throw new Error('Base SKU is required to generate Product SKU');
