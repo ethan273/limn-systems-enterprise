@@ -787,3 +787,392 @@ function SecuritySettings() {
 **Compliance**: All new code MUST use these patterns
 **Violations**: Will be rejected in code review
 **Reference**: [Main CLAUDE.md](../CLAUDE.md) | [RBAC Patterns](rbac-patterns.md)
+
+---
+
+## Portal Middleware Patterns
+
+**MANDATORY REQUIREMENT** | **Critical for Multi-Portal Applications**
+
+### The Problem This Solves
+
+**Issue Discovered**: October 28, 2025 - GitHub Actions test failures revealed portal middleware misuse causing:
+- Session tracking UUID errors (JWT tokens used as UUIDs)
+- Designer/factory/QC portals blocked from basic user endpoints
+- Cross-portal endpoints using customer-only middleware
+
+### Portal Types in Application
+
+The application supports 4 portal types:
+1. **Customer Portal** - External customers viewing their orders
+2. **Designer Portal** - Design partners managing projects
+3. **Factory Portal** - Manufacturing partners managing production
+4. **QC Portal** - Quality control testers managing inspections
+
+---
+
+### Portal Middleware Hierarchy
+
+#### 1. `portalProcedure` ❌ DEPRECATED for cross-portal endpoints
+
+**Location**: `src/server/api/routers/portal.ts:137-147`
+
+**Purpose**: Customer-portal-specific endpoints ONLY
+
+**Middleware**: Calls `enforcePortalAccess` which:
+- ✅ Requires `customer_id` to be present
+- ❌ Blocks designer/factory/QC portals (they don't have customer_id)
+
+**Context Provided**:
+```typescript
+ctx.customerId: string
+ctx.customer: Customer
+```
+
+**Use For**:
+- Customer-only endpoints (orders, invoices, shipping addresses)
+- Endpoints that explicitly require customer data
+
+**Example**:
+```typescript
+// ✅ CORRECT: Customer-only endpoint
+getCustomerOrders: portalProcedure
+  .query(async ({ ctx }) => {
+    return ctx.db.production_orders.findMany({
+      where: { customer_id: ctx.customerId },  // Uses ctx.customerId
+    });
+  }),
+```
+
+#### 2. `universalPortalProcedure` ✅ USE for cross-portal endpoints
+
+**Location**: `src/server/api/routers/portal.ts:153-170`
+
+**Purpose**: Endpoints that work for ALL portal types
+
+**Middleware**: Calls `enforcePortalAccessByType` which:
+- ✅ Works for customer, designer, factory, AND QC portals
+- ✅ Provides portal type information
+- ✅ Provides backward-compatible customer fields (null for non-customer portals)
+
+**Context Provided**:
+```typescript
+// New universal fields
+ctx.portalType: string        // 'customer' | 'designer' | 'factory' | 'qc'
+ctx.entityType: string        // 'customer' | 'partner' | 'qc_tester'
+ctx.entityId: string          // UUID of the entity
+ctx.entity: any               // Full entity object
+ctx.portalRole: string        // Portal role
+
+// Backward compatibility (null for non-customer portals)
+ctx.customerId: string | null
+ctx.customer: Customer | null
+```
+
+**Use For**:
+- User profile endpoints (getCurrentUser, updateProfile)
+- Notification endpoints (getNotifications, markAsRead)
+- Settings endpoints (getSettings, updateSettings)
+- Any endpoint that should work across all portals
+
+**Example**:
+```typescript
+// ✅ CORRECT: Cross-portal endpoint
+getCurrentUser: universalPortalProcedure
+  .query(async ({ ctx }) => {
+    return {
+      id: ctx.session.user.id,
+      email: ctx.session.user.email,
+      portalType: ctx.portalType,  // Works for all portals
+    };
+  }),
+
+// ✅ CORRECT: Conditional logic based on portal type
+getNotifications: universalPortalProcedure
+  .query(async ({ ctx, input }) => {
+    // Only customers have customer_notifications
+    if (!ctx.customerId) {
+      return { notifications: [], total: 0, unreadCount: 0 };
+    }
+
+    // Customer-specific notifications
+    return ctx.db.customer_notifications.findMany({
+      where: { customer_id: ctx.customerId },
+    });
+  }),
+```
+
+#### 3. Type-Specific Procedures (Optional)
+
+**Available Procedures**:
+- `designerPortalProcedure` - Designer portal only
+- `factoryPortalProcedure` - Factory portal only
+- `qcPortalProcedure` - QC portal only
+
+**Use For**:
+- Endpoints specific to one non-customer portal type
+- Rare - most endpoints should be either customer-only or universal
+
+---
+
+### When to Use Which Middleware
+
+#### Decision Tree
+
+```
+Is this endpoint for customers ONLY?
+├─ YES → Use portalProcedure
+│        Example: getCustomerOrders, getShippingAddresses
+│
+└─ NO → Should it work for all portal types?
+         ├─ YES → Use universalPortalProcedure
+         │        Example: getCurrentUser, getNotifications, getSettings
+         │
+         └─ NO → Is it for one specific non-customer portal?
+                  └─ YES → Use type-specific procedure
+                           Example: designerPortalProcedure for designer-only features
+```
+
+#### Common Scenarios
+
+| Endpoint Type | Middleware | Reasoning |
+|--------------|------------|-----------|
+| Get current user | `universalPortalProcedure` | All portals need user info |
+| Get notifications | `universalPortalProcedure` | All portals may have notifications |
+| Get user settings | `universalPortalProcedure` | All portals can customize settings |
+| Get customer orders | `portalProcedure` | Customer-specific data |
+| Get shipping addresses | `portalProcedure` | Customer-specific data |
+| Get designer projects | `designerPortalProcedure` | Designer-specific data |
+| Get QC inspections | `qcPortalProcedure` | QC-specific data |
+
+---
+
+### Critical Bug Pattern (October 28, 2025)
+
+#### ❌ WRONG: Using portalProcedure for cross-portal endpoint
+
+**Issue**: Blocks non-customer portals from accessing universal functionality
+
+```typescript
+// ❌ BLOCKS designer/factory/QC users!
+getCurrentUser: portalProcedure
+  .query(async ({ ctx }) => {
+    return {
+      id: ctx.session.user.id,
+      email: ctx.session.user.email,
+    };
+  }),
+```
+
+**Error**:
+```
+tRPC failed on portal.getCurrentUser: This portal type is not a customer portal.
+Please use the appropriate portal type.
+```
+
+**Impact**: Designer, factory, and QC portal users completely blocked from basic functionality
+
+#### ✅ CORRECT: Using universalPortalProcedure
+
+```typescript
+// ✅ Works for ALL portal types
+getCurrentUser: universalPortalProcedure
+  .query(async ({ ctx }) => {
+    return {
+      id: ctx.session.user.id,
+      email: ctx.session.user.email,
+      portalType: ctx.portalType,  // Bonus: Can show which portal they're in
+    };
+  }),
+```
+
+---
+
+### Implementation Guide
+
+#### Step 1: Identify Endpoint Audience
+
+Ask: "Who should be able to call this endpoint?"
+
+- **Only customers** → `portalProcedure`
+- **All portal types** → `universalPortalProcedure`
+- **One specific non-customer type** → Type-specific procedure
+
+#### Step 2: Use Appropriate Context Properties
+
+```typescript
+// With portalProcedure (customer-only)
+getData: portalProcedure.query(async ({ ctx }) => {
+  // ✅ Available
+  ctx.customerId  // Always present
+  ctx.customer    // Always present
+
+  // ❌ Not available
+  ctx.portalType  // undefined
+  ctx.entityType  // undefined
+});
+
+// With universalPortalProcedure (all portals)
+getData: universalPortalProcedure.query(async ({ ctx }) => {
+  // ✅ Available
+  ctx.portalType   // Always present
+  ctx.entityType   // Always present
+  ctx.entityId     // Always present
+
+  // ⚠️ Conditional
+  ctx.customerId   // Null for non-customer portals
+  ctx.customer     // Null for non-customer portals
+});
+```
+
+#### Step 3: Handle Conditional Logic
+
+```typescript
+// Pattern: Universal endpoint with customer-specific features
+getNotifications: universalPortalProcedure
+  .query(async ({ ctx, input }) => {
+    // Check if customer portal
+    if (!ctx.customerId) {
+      // Non-customer portal: Return empty or different data
+      return { notifications: [], total: 0 };
+    }
+
+    // Customer portal: Return customer-specific data
+    return {
+      notifications: await ctx.db.customer_notifications.findMany({
+        where: { customer_id: ctx.customerId },
+      }),
+      total: await ctx.db.customer_notifications.count({
+        where: { customer_id: ctx.customerId },
+      }),
+    };
+  }),
+```
+
+---
+
+### Session Tracking Pattern
+
+**CRITICAL**: October 28, 2025 fix
+
+#### ❌ WRONG: Using JWT token as UUID
+
+```typescript
+// ❌ JWT tokens are NOT UUIDs!
+await trackSessionCreation(data.session.access_token, userId, {
+  ipAddress,
+  userAgent,
+});
+```
+
+**Error**:
+```
+[SESSION] Error tracking session creation: Error [PrismaClientKnownRequestError]:
+Inconsistent column data: Error creating UUID, invalid character:
+expected an optional prefix of `urn:uuid:` followed by [0-9a-fA-F-], found `y` at 2
+```
+
+**Why This Fails**:
+- JWT access tokens start with "eyJ" (base64 encoded JSON)
+- Database expects RFC 4122 UUID format: `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`
+- Cannot store JWT in UUID column
+
+#### ✅ CORRECT: Generate proper UUID for session tracking
+
+```typescript
+// ✅ Generate proper UUID for session tracking
+const sessionTrackingId = crypto.randomUUID();
+await trackSessionCreation(sessionTrackingId, userId, {
+  ipAddress,
+  userAgent,
+});
+await enforceSessionLimits(userId, roles[0] || 'customer', sessionTrackingId);
+```
+
+**Files**: `src/app/auth/callback/route.ts:307-318, 459-470`
+
+---
+
+### Testing Requirements
+
+#### Before Committing Portal Changes
+
+**MANDATORY**: Run comprehensive auth/security tests
+
+```bash
+# Run full auth test suite
+npx playwright test 00-comprehensive-auth-security
+
+# Or run specific portal tests
+npx playwright test 15-customer-portal
+npx playwright test --grep "portal"
+```
+
+#### Test Coverage Required
+
+When modifying portal endpoints, verify:
+1. ✅ Customer portal users can access
+2. ✅ Designer portal users can access (if universal)
+3. ✅ Factory portal users can access (if universal)
+4. ✅ QC portal users can access (if universal)
+5. ✅ Unauthenticated users are blocked
+6. ✅ Session tracking works correctly
+
+---
+
+### Enforcement Rules
+
+1. **ALWAYS** use `universalPortalProcedure` for cross-portal endpoints
+2. **ONLY** use `portalProcedure` for customer-specific data endpoints
+3. **ALWAYS** check which portal types should access an endpoint before choosing middleware
+4. **NEVER** use JWT tokens as UUIDs for session tracking
+5. **ALWAYS** generate proper UUIDs with `crypto.randomUUID()` for session IDs
+6. **ALWAYS** run auth tests before committing portal middleware changes
+
+---
+
+### Key Files
+
+**Portal Middleware**:
+- `src/server/api/routers/portal.ts:18-130` - Middleware definitions
+- `src/server/api/routers/portal.ts:137-147` - `portalProcedure`
+- `src/server/api/routers/portal.ts:153-170` - `universalPortalProcedure`
+
+**Session Tracking**:
+- `src/app/auth/callback/route.ts:307-318` - Session UUID generation (first occurrence)
+- `src/app/auth/callback/route.ts:459-470` - Session UUID generation (second occurrence)
+- `src/lib/services/session-service.ts` - Session tracking logic
+
+**Tests**:
+- `tests/00-comprehensive-auth-security.spec.ts` - Full auth/security test suite
+- `tests/15-customer-portal.spec.ts` - Customer portal specific tests
+
+---
+
+### Lessons Learned (October 28, 2025)
+
+**Critical Failures Fixed**:
+1. Session UUID Error - JWT tokens used as UUIDs breaking session tracking
+2. Portal Middleware Misuse - Customer-only middleware blocking universal endpoints
+
+**Root Causes**:
+1. Insufficient understanding of portal middleware requirements
+2. Tests not run before committing portal changes
+3. Assumptions about token formats vs database column types
+
+**Prevention**:
+1. ✅ Added comprehensive portal middleware documentation
+2. ✅ Clarified when to use each middleware type
+3. ✅ Mandated running auth tests before portal commits
+4. ✅ Documented session UUID pattern
+
+**Reference**: 
+- Session file: `/Users/eko3/limn-systems-enterprise-docs/00-SESSION-START/2025-10-28-GITHUB-ACTIONS-TEST-FIXES.md`
+- Commit: `42ea35e` - "fix(auth): Fix GitHub Actions test failures for authentication and portal access"
+
+---
+
+**Status**: ✅ MANDATORY as of October 28, 2025
+**Compliance**: All portal endpoint code MUST follow these patterns
+**Violations**: Will cause test failures and block non-customer portals
+**Reference**: [Main CLAUDE.md](../CLAUDE.md) | [Session Documentation](/Users/eko3/limn-systems-enterprise-docs/00-SESSION-START/2025-10-28-GITHUB-ACTIONS-TEST-FIXES.md)

@@ -140,20 +140,9 @@ export function OrderCreationDialog({
   // Get furniture collections for filtering
   const { data: _furnitureCollections } = api.products.getAllCollections.useQuery();
 
-  // Get materials filtered by collection (hierarchical, uses parent_material_id)
-  const { data: filteredMaterials } = api.products.getMaterialsByCollection.useQuery(
-    { collectionId: formData.collection_id },
-    { enabled: !!formData.collection_id }
-  );
-
-  // Get ALL materials if no collection selected (fallback)
-  const { data: allMaterials } = api.products.getAllMaterials.useQuery(
-    undefined,
-    { enabled: !formData.collection_id }
-  );
-
-  // Use filtered materials when collection selected, otherwise all materials
-  const availableMaterials = formData.collection_id ? filteredMaterials : allMaterials;
+  // TEMPORARY FIX: getMaterialsByCollection doesn't actually filter by collection
+  // Use getAllMaterials for now until collection filtering is properly implemented
+  const { data: availableMaterials } = api.products.getAllMaterials.useQuery();
 
   // Debug: Log materials data to understand structure
   if (availableMaterials && availableMaterials.length > 0) {
