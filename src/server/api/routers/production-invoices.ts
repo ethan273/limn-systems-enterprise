@@ -51,20 +51,53 @@ const recordPaymentSchema = z.object({
 // ============================================================================
 
 /**
- * Generates a unique payment number
+ * Generates a unique payment number with PostgreSQL advisory lock
  * Format: PAY-YYYY-XXXX
+ *
+ * Uses PostgreSQL advisory lock to prevent race conditions.
+ * The lock ensures only one transaction can generate a number at a time.
  */
 async function generatePaymentNumber(db: any): Promise<string> {
   const year = new Date().getFullYear();
-  const count = await db.production_payments.count({
-    where: {
-      payment_number: {
-        startsWith: `PAY-${year}-`,
-      },
-    },
-  });
+  const prefix = `PAY-${year}-`;
 
-  return `PAY-${year}-${String(count + 1).padStart(4, '0')}`;
+  // Use advisory lock to make this operation atomic
+  // Lock ID: 2147483645 - year (unique for payments by year)
+  const lockId = 2147483645 - year;
+
+  try {
+    // Acquire advisory lock (blocks until available)
+    await db.$executeRaw`SELECT pg_advisory_lock(${lockId})`;
+
+    // Find the highest existing number for this year
+    const existingPayments = await db.production_payments.findMany({
+      where: {
+        payment_number: {
+          startsWith: prefix,
+        },
+      },
+      select: {
+        payment_number: true,
+      },
+      orderBy: {
+        payment_number: 'desc',
+      },
+      take: 1,
+    });
+
+    let nextNumber = 1;
+    if (existingPayments.length > 0) {
+      const lastPaymentNumber = existingPayments[0].payment_number;
+      // Extract the numeric part (e.g., "PAY-2025-0004" -> "0004" -> 4)
+      const lastNumber = parseInt(lastPaymentNumber.slice(prefix.length), 10);
+      nextNumber = lastNumber + 1;
+    }
+
+    return `${prefix}${String(nextNumber).padStart(4, '0')}`;
+  } finally {
+    // Always release the lock, even if an error occurred
+    await db.$executeRaw`SELECT pg_advisory_unlock(${lockId})`;
+  }
 }
 
 /**

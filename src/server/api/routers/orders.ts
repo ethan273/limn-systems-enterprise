@@ -11,39 +11,52 @@ import { createFullName } from '@/lib/utils/name-utils';
 // ============================================================================
 
 /**
- * Generates a unique order number with race condition protection
+ * Generates a unique order number with PostgreSQL advisory lock
  * Format: ORD-XXXXXX (6 digits, zero-padded)
  *
- * Uses MAX() query instead of COUNT() to avoid race conditions.
+ * Uses PostgreSQL advisory lock to prevent race conditions.
+ * The lock ensures only one transaction can generate a number at a time.
  */
 async function generateOrderNumber(db: any): Promise<string> {
   const prefix = 'ORD-';
 
-  // Find the highest existing number
-  const existingOrders = await db.orders.findMany({
-    where: {
-      order_number: {
-        startsWith: prefix,
+  // Use advisory lock to make this operation atomic
+  // Lock ID: 1234567890 (unique for CRM orders)
+  const lockId = 1234567890;
+
+  try {
+    // Acquire advisory lock (blocks until available)
+    await db.$executeRaw`SELECT pg_advisory_lock(${lockId})`;
+
+    // Find the highest existing number
+    const existingOrders = await db.orders.findMany({
+      where: {
+        order_number: {
+          startsWith: prefix,
+        },
       },
-    },
-    select: {
-      order_number: true,
-    },
-    orderBy: {
-      order_number: 'desc',
-    },
-    take: 1,
-  });
+      select: {
+        order_number: true,
+      },
+      orderBy: {
+        order_number: 'desc',
+      },
+      take: 1,
+    });
 
-  let nextNumber = 1;
-  if (existingOrders.length > 0) {
-    const lastOrderNumber = existingOrders[0].order_number;
-    // Extract the numeric part (e.g., "ORD-000123" -> "000123" -> 123)
-    const lastNumber = parseInt(lastOrderNumber.slice(prefix.length), 10);
-    nextNumber = lastNumber + 1;
+    let nextNumber = 1;
+    if (existingOrders.length > 0) {
+      const lastOrderNumber = existingOrders[0].order_number;
+      // Extract the numeric part (e.g., "ORD-000123" -> "000123" -> 123)
+      const lastNumber = parseInt(lastOrderNumber.slice(prefix.length), 10);
+      nextNumber = lastNumber + 1;
+    }
+
+    return `${prefix}${String(nextNumber).padStart(6, '0')}`;
+  } finally {
+    // Always release the lock, even if an error occurred
+    await db.$executeRaw`SELECT pg_advisory_unlock(${lockId})`;
   }
-
-  return `${prefix}${String(nextNumber).padStart(6, '0')}`;
 }
 
 // ============================================================================

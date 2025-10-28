@@ -38,58 +38,103 @@ const updateProductionOrderSchema = createProductionOrderSchema.partial();
 // ============================================================================
 
 /**
- * Generates a unique production order number with retry logic
+ * Generates a unique production order number with PostgreSQL advisory lock
  * Format: PO-YYYY-XXXX
  *
- * Uses MAX() query instead of COUNT() to avoid race conditions.
- * Includes retry loop to handle concurrent insertions.
+ * Uses PostgreSQL advisory lock to prevent race conditions.
+ * The lock ensures only one transaction can generate a number at a time.
  */
 async function generateOrderNumber(db: any): Promise<string> {
   const year = new Date().getFullYear();
   const prefix = `PO-${year}-`;
 
-  // Find the highest existing number for this year
-  const existingOrders = await db.production_orders.findMany({
-    where: {
-      order_number: {
-        startsWith: prefix,
+  // Use advisory lock to make this operation atomic
+  // Lock ID: hash of 'production_orders' + year
+  const lockId = 2147483647 - year; // Use negative year as unique lock ID
+
+  try {
+    // Acquire advisory lock (blocks until available)
+    await db.$executeRaw`SELECT pg_advisory_lock(${lockId})`;
+
+    // Find the highest existing number for this year
+    const existingOrders = await db.production_orders.findMany({
+      where: {
+        order_number: {
+          startsWith: prefix,
+        },
       },
-    },
-    select: {
-      order_number: true,
-    },
-    orderBy: {
-      order_number: 'desc',
-    },
-    take: 1,
-  });
+      select: {
+        order_number: true,
+      },
+      orderBy: {
+        order_number: 'desc',
+      },
+      take: 1,
+    });
 
-  let nextNumber = 1;
-  if (existingOrders.length > 0) {
-    const lastOrderNumber = existingOrders[0].order_number;
-    // Extract the numeric part (e.g., "PO-2025-0004" -> "0004" -> 4)
-    const lastNumber = parseInt(lastOrderNumber.slice(prefix.length), 10);
-    nextNumber = lastNumber + 1;
+    let nextNumber = 1;
+    if (existingOrders.length > 0) {
+      const lastOrderNumber = existingOrders[0].order_number;
+      // Extract the numeric part (e.g., "PO-2025-0004" -> "0004" -> 4)
+      const lastNumber = parseInt(lastOrderNumber.slice(prefix.length), 10);
+      nextNumber = lastNumber + 1;
+    }
+
+    return `${prefix}${String(nextNumber).padStart(4, '0')}`;
+  } finally {
+    // Always release the lock, even if an error occurred
+    await db.$executeRaw`SELECT pg_advisory_unlock(${lockId})`;
   }
-
-  return `${prefix}${String(nextNumber).padStart(4, '0')}`;
 }
 
 /**
- * Generates a unique invoice number
+ * Generates a unique invoice number with PostgreSQL advisory lock
  * Format: INV-YYYY-XXXX
+ *
+ * Uses PostgreSQL advisory lock to prevent race conditions.
+ * The lock ensures only one transaction can generate a number at a time.
  */
 async function generateInvoiceNumber(db: any): Promise<string> {
   const year = new Date().getFullYear();
-  const count = await db.production_invoices.count({
-    where: {
-      invoice_number: {
-        startsWith: `INV-${year}-`,
-      },
-    },
-  });
+  const prefix = `INV-${year}-`;
 
-  return `INV-${year}-${String(count + 1).padStart(4, '0')}`;
+  // Use advisory lock to make this operation atomic
+  // Lock ID: 2147483646 - year (unique for invoices by year)
+  const lockId = 2147483646 - year;
+
+  try {
+    // Acquire advisory lock (blocks until available)
+    await db.$executeRaw`SELECT pg_advisory_lock(${lockId})`;
+
+    // Find the highest existing number for this year
+    const existingInvoices = await db.production_invoices.findMany({
+      where: {
+        invoice_number: {
+          startsWith: prefix,
+        },
+      },
+      select: {
+        invoice_number: true,
+      },
+      orderBy: {
+        invoice_number: 'desc',
+      },
+      take: 1,
+    });
+
+    let nextNumber = 1;
+    if (existingInvoices.length > 0) {
+      const lastInvoiceNumber = existingInvoices[0].invoice_number;
+      // Extract the numeric part (e.g., "INV-2025-0004" -> "0004" -> 4)
+      const lastNumber = parseInt(lastInvoiceNumber.slice(prefix.length), 10);
+      nextNumber = lastNumber + 1;
+    }
+
+    return `${prefix}${String(nextNumber).padStart(4, '0')}`;
+  } finally {
+    // Always release the lock, even if an error occurred
+    await db.$executeRaw`SELECT pg_advisory_unlock(${lockId})`;
+  }
 }
 
 /**
@@ -366,62 +411,42 @@ export const productionOrdersRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const totalCost = input.unit_price * input.quantity;
 
-      // Retry logic to handle race conditions in order number generation
-      const maxRetries = 5;
-      let lastError: Error | null = null;
+      // Generate order number using advisory lock (no retry needed)
+      const orderNumber = await generateOrderNumber(ctx.db);
 
-      for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-          const orderNumber = await generateOrderNumber(ctx.db);
+      // Create Production Order
+      const order = await ctx.db.production_orders.create({
+        data: {
+          order_number: orderNumber,
+          order_id: input.order_id, // Links to CRM order for grouping/shipping
+          project_id: input.project_id,
+          product_type: input.product_type,
+          catalog_item_id: input.catalog_item_id,
+          prototype_id: input.prototype_id,
+          concept_id: input.concept_id,
+          item_name: input.item_name,
+          item_description: input.item_description,
+          quantity: input.quantity,
+          unit_price: new Prisma.Decimal(input.unit_price),
+          total_cost: new Prisma.Decimal(totalCost),
+          estimated_ship_date: input.estimated_ship_date,
+          factory_id: input.factory_id,
+          factory_notes: input.factory_notes,
+          status: 'awaiting_deposit', // CRITICAL: Blocks production until deposit paid
+          deposit_paid: false,
+          final_payment_paid: false,
+          created_by: ctx.session?.user?.id,
+        },
+      });
 
-          // Create Production Order
-          const order = await ctx.db.production_orders.create({
-            data: {
-              order_number: orderNumber,
-              order_id: input.order_id, // Links to CRM order for grouping/shipping
-              project_id: input.project_id,
-              product_type: input.product_type,
-              catalog_item_id: input.catalog_item_id,
-              prototype_id: input.prototype_id,
-              concept_id: input.concept_id,
-              item_name: input.item_name,
-              item_description: input.item_description,
-              quantity: input.quantity,
-              unit_price: new Prisma.Decimal(input.unit_price),
-              total_cost: new Prisma.Decimal(totalCost),
-              estimated_ship_date: input.estimated_ship_date,
-              factory_id: input.factory_id,
-              factory_notes: input.factory_notes,
-              status: 'awaiting_deposit', // CRITICAL: Blocks production until deposit paid
-              deposit_paid: false,
-              final_payment_paid: false,
-              created_by: ctx.session?.user?.id,
-            },
-          });
+      // NOTE: Invoice generation is handled separately per CRM order (not per production order)
+      // When order_id is provided, ONE invoice covers all production orders for that CRM order
+      // Skipping individual invoice creation to avoid duplicate invoices
 
-          // NOTE: Invoice generation is handled separately per CRM order (not per production order)
-          // When order_id is provided, ONE invoice covers all production orders for that CRM order
-          // Skipping individual invoice creation to avoid duplicate invoices
-
-          return {
-            order,
-            message: `Production order ${orderNumber} created and linked to CRM order. Invoice will be generated for the complete order.`,
-          };
-        } catch (error: any) {
-          // Check if it's a duplicate key error
-          if (error?.code === '23505' && error?.message?.includes('production_orders_order_number_key')) {
-            lastError = error;
-            // Wait briefly before retrying (exponential backoff)
-            await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 100));
-            continue;
-          }
-          // If it's not a duplicate key error, throw immediately
-          throw error;
-        }
-      }
-
-      // If we exhausted all retries, throw the last error
-      throw new Error(`Failed to create production order after ${maxRetries} attempts: ${lastError?.message || 'Unknown error'}`);
+      return {
+        order,
+        message: `Production order ${orderNumber} created and linked to CRM order. Invoice will be generated for the complete order.`,
+      };
     }),
 
   // Update production order status - TRIGGERS ORDERED ITEMS CREATION & FINAL INVOICE
