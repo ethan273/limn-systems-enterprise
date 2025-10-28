@@ -517,7 +517,7 @@ export default function OrderedItemsPage() {
     order_id: item.orders?.order_number || 'N/A',
     product_id: item.id,
     product_name: item.description || 'Unnamed Product',
-    product_sku: item.client_sku,
+    product_sku: item.project_sku,
     quantity: item.quantity || 0,
     unit_price: item.unit_price || 0,
     total_price: (item.quantity || 0) * (item.unit_price || 0),

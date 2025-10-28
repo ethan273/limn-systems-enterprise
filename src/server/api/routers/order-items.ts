@@ -68,7 +68,7 @@ export const orderItemsRouter = createTRPCRouter({
       }
 
       if (input.search && input.search.trim()) {
-        query = query.or(`description.ilike.%${input.search}%,client_sku.ilike.%${input.search}%`);
+        query = query.or(`description.ilike.%${input.search}%,project_sku.ilike.%${input.search}%`);
       }
 
       const { data, error, count } = await query

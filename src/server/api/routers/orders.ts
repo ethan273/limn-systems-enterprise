@@ -151,7 +151,7 @@ export const ordersRouter = createTRPCRouter({
               id: true,
               quantity: true,
               unit_price: true,
-              client_sku: true,
+              project_sku: true,
               description: true,
             },
           },
@@ -380,7 +380,7 @@ export const ordersRouter = createTRPCRouter({
           order_id: order.id,
           quantity: item.quantity,
           unit_price: item.unit_price,
-          client_sku: item.project_sku, // Use project SKU as client SKU
+          project_sku: item.project_sku, // Store project SKU for order tracking
           full_sku: fullSku, // Store Full SKU for manufacturing and analytics
           description: item.product_name,
           specifications: {
@@ -540,7 +540,7 @@ export const ordersRouter = createTRPCRouter({
               id: true,
               quantity: true,
               unit_price: true,
-              client_sku: true,
+              project_sku: true,
               description: true,
               specifications: true,
             },

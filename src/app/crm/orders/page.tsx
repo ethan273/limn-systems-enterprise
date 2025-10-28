@@ -316,7 +316,7 @@ export default function CRMOrdersPage() {
  {order.order_items.map((item: any) => (
  <TableRow key={item.id}>
  <TableCell>{item.description || "—"}</TableCell>
- <TableCell className="font-mono text-sm">{item.client_sku || "—"}</TableCell>
+ <TableCell className="font-mono text-sm">{item.project_sku || "—"}</TableCell>
  <TableCell>{item.quantity}</TableCell>
  <TableCell>${Number(item.unit_price).toFixed(2)}</TableCell>
  <TableCell className="font-medium">

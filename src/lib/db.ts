@@ -422,7 +422,7 @@ export interface OrderItem {
   product_id?: string | null;
   sku_base?: string | null;
   sku_full?: string | null;
-  client_sku?: string | null;
+  project_sku?: string | null;
   item_name: string;
   collection_id?: string | null;
   collection_name?: string | null;
