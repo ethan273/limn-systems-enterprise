@@ -73,6 +73,7 @@
     "schema:check:fast": "npx tsx scripts/check-schema-sync.ts --no-fix",
     "schema:sync": "npm run schema:check",
     "schema:validate": "npx tsx scripts/validate-schema-references.ts",
+    "schema:audit": "npx tsx scripts/audit-schema-mismatches-v2.ts",
     "schema:drift": "npx prisma db pull --force --dry-run",
     "verify-env": "npx tsx scripts/verify-env.ts",
     "test:prevention": "npx vitest run scripts/tests/prevention/*.test.ts",

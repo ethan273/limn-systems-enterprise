@@ -2975,6 +2975,31 @@ model financial_periods {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model flipbook_conversions {
+  id             String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  flipbook_id    String         @db.Uuid
+  session_id     String         @db.Uuid
+  order_id       String         @db.Uuid
+  user_id        String?        @db.Uuid
+  converted_at   DateTime       @default(now()) @db.Timestamptz(6)
+  revenue_amount Decimal?       @db.Decimal(12, 2)
+  metadata       Json?
+  created_at     DateTime       @default(now()) @db.Timestamptz(6)
+  flipbooks      flipbooks      @relation(fields: [flipbook_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_flipbook_conversions_flipbook")
+  orders         orders         @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_flipbook_conversions_order")
+  user_profiles  user_profiles? @relation(fields: [user_id], references: [id], onUpdate: NoAction, map: "fk_flipbook_conversions_user")
+
+  @@index([converted_at(sort: Desc)], map: "idx_flipbook_conversions_converted_at")
+  @@index([created_at(sort: Desc)], map: "idx_flipbook_conversions_created_at")
+  @@index([flipbook_id], map: "idx_flipbook_conversions_flipbook_id")
+  @@index([order_id], map: "idx_flipbook_conversions_order_id")
+  @@index([session_id], map: "idx_flipbook_conversions_session_id")
+  @@index([user_id], map: "idx_flipbook_conversions_user_id")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model flipbook_pages {
   id                     String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   flipbook_id            String                   @db.Uuid
@@ -3028,6 +3053,7 @@ model flipbook_share_links {
   @@index([created_by_id], map: "idx_flipbook_share_links_created_by_id")
   @@index([flipbook_id], map: "idx_flipbook_share_links_flipbook_id")
   @@index([is_active], map: "idx_flipbook_share_links_is_active")
+  @@index([token], map: "idx_flipbook_share_links_token")
   @@index([updated_at], map: "idx_flipbook_share_links_updated_at")
   @@index([created_by_id], map: "idx_share_links_creator")
   @@index([expires_at], map: "idx_share_links_expiry")
@@ -3093,31 +3119,6 @@ model flipbooks {
   @@index([created_by_id], map: "idx_flipbooks_creator")
   @@index([status], map: "idx_flipbooks_status")
   @@index([updated_at], map: "idx_flipbooks_updated_at")
-  @@schema("public")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires additional setup for migrations: Read more: https://pris.ly/d/database-comments
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model flipbook_conversions {
-  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  flipbook_id     String         @db.Uuid
-  session_id      String         @db.Uuid
-  order_id        String         @db.Uuid
-  user_id         String?        @db.Uuid
-  converted_at    DateTime       @default(now()) @db.Timestamptz(6)
-  revenue_amount  Decimal?       @db.Decimal(12, 2)
-  metadata        Json?
-  created_at      DateTime       @default(now()) @db.Timestamptz(6)
-  flipbooks       flipbooks      @relation(fields: [flipbook_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  orders          orders         @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  user_profiles   user_profiles? @relation(fields: [user_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
-
-  @@index([flipbook_id], map: "idx_flipbook_conversions_flipbook_id")
-  @@index([order_id], map: "idx_flipbook_conversions_order_id")
-  @@index([session_id], map: "idx_flipbook_conversions_session_id")
-  @@index([user_id], map: "idx_flipbook_conversions_user_id")
-  @@index([converted_at(sort: Desc)], map: "idx_flipbook_conversions_converted_at")
-  @@index([created_at(sort: Desc)], map: "idx_flipbook_conversions_created_at")
   @@schema("public")
 }
 
@@ -4109,7 +4110,6 @@ model notifications {
   @@index([created_at], map: "idx_notifications_created_at")
   @@index([customer_id], map: "idx_notifications_customer_id")
   @@index([entity_type, entity_id], map: "idx_notifications_entity")
-  @@index([user_id, read_at], map: "idx_notifications_user_id_read_at")
   @@schema("public")
 }
 
@@ -4513,9 +4513,7 @@ model pandadoc_templates {
 model partner_contacts {
   id                       String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   partner_id               String    @db.Uuid
-  name                     String    // Full name - kept for backward compatibility
-  first_name               String?   @db.VarChar(255)
-  last_name                String?   @db.VarChar(255)
+  name                     String
   role                     String
   email                    String
   phone                    String?
@@ -4536,13 +4534,14 @@ model partner_contacts {
   portal_access_enabled    Boolean?  @default(false)
   portal_modules_allowed   Json?     @default("[]")
   last_login_at            DateTime? @db.Timestamptz(6)
+  first_name               String?   @db.VarChar(255)
+  last_name                String?   @db.VarChar(255)
   users                    users?    @relation(fields: [user_id], references: [id], onUpdate: NoAction, map: "fk_partner_contacts_user")
   partners                 partners  @relation(fields: [partner_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([created_at], map: "idx_partner_contacts_created_at")
   @@index([email], map: "idx_partner_contacts_email")
   @@index([partner_id], map: "idx_partner_contacts_partner_id")
-  @@index([is_qc], map: "idx_partner_contacts_qc")
   @@index([updated_at], map: "idx_partner_contacts_updated_at")
   @@schema("public")
 }
@@ -7062,7 +7061,6 @@ model share_link_views {
   flipbook_share_links flipbook_share_links @relation(fields: [share_link_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_share_link_views_link")
 
   @@index([share_link_id], map: "idx_share_views_link")
-  @@index([session_id], map: "idx_share_views_session")
   @@index([viewed_at], map: "idx_share_views_timestamp")
   @@schema("public")
 }

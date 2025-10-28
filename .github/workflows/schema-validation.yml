@@ -33,6 +33,12 @@ jobs:
       - name: Validate schema references
         run: npm run schema:validate
 
+      - name: Run schema mismatch audit
+        run: npm run schema:audit
+        continue-on-error: true
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
       - name: Upload violation report
         if: failure()
         uses: actions/upload-artifact@v4
@@ -40,3 +46,12 @@ jobs:
           name: schema-violations-report
           path: SCHEMA-VIOLATIONS-REPORT.md
           retention-days: 30
+
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: schema-audit-report
+          path: /Users/eko3/limn-systems-enterprise-docs/02-QUALITY-TOOLS/schema-audit/schema-audit-v2-*.md
+          retention-days: 30
+          if-no-files-found: warn
