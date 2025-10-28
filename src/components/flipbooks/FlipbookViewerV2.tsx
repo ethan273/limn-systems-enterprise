@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils";
 import { api } from "@/lib/api/client";
 import { TOCPanel } from "@/components/flipbooks/navigation/TOCPanel";
 import { VideoPlayerModal } from "@/components/flipbooks/VideoPlayerModal";
+import { useFlipbookAnalytics } from "@/hooks/useFlipbookAnalytics";
 
 interface FlipbookPage {
   id: string;
@@ -82,14 +83,18 @@ const Page = forwardRef<
     onHotspotClick?: (_hotspot: FlipbookHotspot) => void;
     onInternalLinkClick?: (_pageNumber: number) => void;
     onVideoClick?: (_url: string, _title?: string) => void;
+    onAnalyticsHotspotClick?: (_hotspotId: string, _pageNumber: number) => void;
     backgroundColor?: string;
   }
->(({ page, onHotspotClick, onInternalLinkClick, onVideoClick, backgroundColor = 'white' }, ref) => {
+>(({ page, onHotspotClick, onInternalLinkClick, onVideoClick, onAnalyticsHotspotClick, backgroundColor = 'white' }, ref) => {
   /**
    * Handle hotspot click based on type
    */
   const handleHotspotClick = (e: React.MouseEvent, hotspot: FlipbookHotspot) => {
     e.stopPropagation();
+
+    // Track hotspot click analytics
+    onAnalyticsHotspotClick?.(hotspot.id, page.page_number);
 
     switch (hotspot.hotspot_type) {
       case 'INTERNAL_LINK':
@@ -299,6 +304,12 @@ export function FlipbookViewerV2({
     { enabled: !!flipbookId }
   );
 
+  // Initialize analytics tracking
+  const analytics = useFlipbookAnalytics({
+    flipbookId,
+    enabled: !!flipbookId,
+  });
+
   // Calculate book size based on container - MAXIMIZE screen usage
   // DYNAMIC ASPECT RATIO: Use actual page dimensions if available
   useEffect(() => {
@@ -440,8 +451,11 @@ export function FlipbookViewerV2({
       const newPage = e.data + 1; // Convert to 1-indexed
       setCurrentPage(e.data);
       onPageChange?.(newPage);
+
+      // Track page turn analytics
+      analytics.trackPageTurn(newPage);
     },
-    [onPageChange]
+    [onPageChange, analytics]
   );
 
   // Fullscreen handlers
@@ -652,6 +666,7 @@ export function FlipbookViewerV2({
                         onHotspotClick={onHotspotClick}
                         onInternalLinkClick={goToPage}
                         onVideoClick={handleVideoClick}
+                        onAnalyticsHotspotClick={analytics.trackHotspotClick}
                         backgroundColor={backgroundColor}
                       />
                     ))}

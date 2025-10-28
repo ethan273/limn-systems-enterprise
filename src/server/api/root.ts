@@ -49,6 +49,7 @@ import { healthRouter as apiHealthRouter } from './routers/apiManagement/health'
 import { rotationRouter as apiRotationRouter } from './routers/apiManagement/rotation';
 import { jobsRouter as apiJobsRouter } from './routers/apiManagement/jobs';
 import { flipbooksRouter } from './routers/flipbooks';
+import { flipbookAnalyticsRouter } from './routers/flipbook-analytics';
 import { globalSearchRouter } from './routers/global-search';
 import { emailTemplatesRouter } from './routers/emailTemplates';
 import { emailCampaignsRouter } from './routers/emailCampaigns';
@@ -172,6 +173,7 @@ export const appRouter = createTRPCRouter({
 
   // Flipbooks (Feature Flag Protected)
   flipbooks: flipbooksRouter,
+  flipbookAnalytics: flipbookAnalyticsRouter,
 
   // Email Campaign System (Phase 5)
   emailTemplates: emailTemplatesRouter,

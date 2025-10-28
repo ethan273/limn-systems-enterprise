@@ -3082,6 +3082,7 @@ model flipbooks {
   navigation_settings  Json?
   status               flipbook_status        @default(DRAFT)
   analytics_events     analytics_events[]
+  flipbook_conversions flipbook_conversions[]
   flipbook_pages       flipbook_pages[]
   flipbook_share_links flipbook_share_links[]
   flipbook_versions    flipbook_versions[]
@@ -3092,6 +3093,31 @@ model flipbooks {
   @@index([created_by_id], map: "idx_flipbooks_creator")
   @@index([status], map: "idx_flipbooks_status")
   @@index([updated_at], map: "idx_flipbooks_updated_at")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model flipbook_conversions {
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  flipbook_id     String         @db.Uuid
+  session_id      String         @db.Uuid
+  order_id        String         @db.Uuid
+  user_id         String?        @db.Uuid
+  converted_at    DateTime       @default(now()) @db.Timestamptz(6)
+  revenue_amount  Decimal?       @db.Decimal(12, 2)
+  metadata        Json?
+  created_at      DateTime       @default(now()) @db.Timestamptz(6)
+  flipbooks       flipbooks      @relation(fields: [flipbook_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  orders          orders         @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user_profiles   user_profiles? @relation(fields: [user_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  @@index([flipbook_id], map: "idx_flipbook_conversions_flipbook_id")
+  @@index([order_id], map: "idx_flipbook_conversions_order_id")
+  @@index([session_id], map: "idx_flipbook_conversions_session_id")
+  @@index([user_id], map: "idx_flipbook_conversions_user_id")
+  @@index([converted_at(sort: Desc)], map: "idx_flipbook_conversions_converted_at")
+  @@index([created_at(sort: Desc)], map: "idx_flipbook_conversions_created_at")
   @@schema("public")
 }
 
@@ -4262,6 +4288,7 @@ model orders {
   customer_production_notifications customer_production_notifications[]
   design_approvals                  design_approvals[]
   document_folders                  document_folders[]
+  flipbook_conversions              flipbook_conversions[]
   invoices                          invoices[]
   order_items                       order_items[]
   collections                       collections?                        @relation(fields: [collection_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -8186,6 +8213,7 @@ model user_profiles {
   document_revisions_document_revisions_reviewed_byTouser_profiles  document_revisions[]         @relation("document_revisions_reviewed_byTouser_profiles")
   documents_documents_approved_byTouser_profiles                    documents[]                  @relation("documents_approved_byTouser_profiles")
   documents_documents_uploaded_by_userTouser_profiles               documents[]                  @relation("documents_uploaded_by_userTouser_profiles")
+  flipbook_conversions                                              flipbook_conversions[]
   flipbook_share_links                                              flipbook_share_links[]
   flipbook_versions                                                 flipbook_versions[]
   flipbooks                                                         flipbooks[]
