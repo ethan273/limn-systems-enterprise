@@ -118,7 +118,15 @@ else
 fi
 echo ""
 
-echo "6c. Running prevention tests (schema)..."
+echo "6c. Database schema sync validation..."
+if ./scripts/validate-schema-sync.sh > /dev/null 2>&1; then
+    print_pass "Dev and Prod schemas are in sync"
+else
+    print_fail "Dev and Prod schemas are out of sync - run comprehensive audit"
+fi
+echo ""
+
+echo "6d. Running prevention tests (schema)..."
 if npx vitest run scripts/tests/prevention/schema-validation.test.ts --silent > /dev/null 2>&1; then
     print_pass "Schema prevention tests passed"
 else
@@ -126,7 +134,7 @@ else
 fi
 echo ""
 
-echo "6d. Running prevention tests (patterns)..."
+echo "6e. Running prevention tests (patterns)..."
 if npx vitest run scripts/tests/prevention/pattern-consistency.test.ts --silent > /dev/null 2>&1; then
     print_pass "Pattern prevention tests passed"
 else

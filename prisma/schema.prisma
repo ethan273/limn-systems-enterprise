@@ -3090,6 +3090,7 @@ model flipbooks {
   @@index([created_at(sort: Desc)], map: "idx_flipbooks_created_at")
   @@index([created_by_id], map: "idx_flipbooks_created_by_id")
   @@index([created_by_id], map: "idx_flipbooks_creator")
+  @@index([status], map: "idx_flipbooks_status")
   @@index([updated_at], map: "idx_flipbooks_updated_at")
   @@schema("public")
 }
@@ -4082,6 +4083,7 @@ model notifications {
   @@index([created_at], map: "idx_notifications_created_at")
   @@index([customer_id], map: "idx_notifications_customer_id")
   @@index([entity_type, entity_id], map: "idx_notifications_entity")
+  @@index([user_id, read_at], map: "idx_notifications_user_id_read_at")
   @@schema("public")
 }
 
@@ -4511,6 +4513,7 @@ model partner_contacts {
   @@index([created_at], map: "idx_partner_contacts_created_at")
   @@index([email], map: "idx_partner_contacts_email")
   @@index([partner_id], map: "idx_partner_contacts_partner_id")
+  @@index([is_qc], map: "idx_partner_contacts_qc")
   @@index([updated_at], map: "idx_partner_contacts_updated_at")
   @@schema("public")
 }
@@ -7030,6 +7033,7 @@ model share_link_views {
   flipbook_share_links flipbook_share_links @relation(fields: [share_link_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_share_link_views_link")
 
   @@index([share_link_id], map: "idx_share_views_link")
+  @@index([session_id], map: "idx_share_views_session")
   @@index([viewed_at], map: "idx_share_views_timestamp")
   @@schema("public")
 }
@@ -7949,8 +7953,10 @@ model templates {
   user_profiles   user_profiles?    @relation(fields: [created_by_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_templates_creator")
 
   @@index([category], map: "idx_templates_category")
+  @@index([created_at], map: "idx_templates_created_at")
   @@index([created_by_id], map: "idx_templates_creator")
   @@index([is_public], map: "idx_templates_public")
+  @@index([updated_at], map: "idx_templates_updated_at")
   @@schema("public")
 }
 

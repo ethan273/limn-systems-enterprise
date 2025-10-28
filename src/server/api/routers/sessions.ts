@@ -19,6 +19,7 @@ import {
   type ActiveSession,
 } from '@/lib/services/session-service';
 
+// Use Prisma client directly for session_tracking (not in DatabaseClient)
 const prisma = new PrismaClient();
 
 export const sessionsRouter = createTRPCRouter({

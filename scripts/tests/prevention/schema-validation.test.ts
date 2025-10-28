@@ -149,12 +149,14 @@ describe('Schema Validation Prevention Tests', () => {
 
       // Allow legitimate tables:
       // - *_templates (template systems)
+      // - permission_template_items (RBAC Phase 4)
       // - orders_old (legacy data)
       // - qc_template_* (QC system templates)
       // Filter out legitimate tables
       const actualSuspicious = suspiciousFound.filter(
         table =>
           !table.endsWith('_templates') &&
+          table !== 'permission_template_items' &&
           !table.startsWith('orders_old') &&
           !table.startsWith('qc_template_')
       );
