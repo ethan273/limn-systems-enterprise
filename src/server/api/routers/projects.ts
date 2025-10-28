@@ -77,6 +77,7 @@ export const projectsRouter = createTRPCRouter({
           { is_primary: 'desc' },
           { created_at: 'desc' },
         ],
+        take: 50, // Reasonable limit - customers rarely have > 50 addresses
       }) : [];
 
       // Get orders related to this project
@@ -93,6 +94,7 @@ export const projectsRouter = createTRPCRouter({
           },
         },
         orderBy: { created_at: 'desc' },
+        take: 500, // Reasonable limit - projects rarely have > 500 orders
       });
 
       // Get all ordered items from these orders
@@ -100,6 +102,7 @@ export const projectsRouter = createTRPCRouter({
       const orderedItems = orderIds.length > 0 ? await ctx.db.order_items.findMany({
         where: { order_id: { in: orderIds } },
         orderBy: { created_at: 'desc' },
+        take: 2000, // Reasonable limit for order items
       }) : [];
 
       // Calculate analytics
@@ -190,9 +193,11 @@ export const projectsRouter = createTRPCRouter({
               total_amount: true,
               created_at: true,
             },
+            take: 100, // Limit orders per project when included
           },
         } : undefined,
         orderBy: { created_at: 'desc' },
+        take: 200, // Reasonable limit - customers rarely have > 200 projects
       });
 
       return projects;

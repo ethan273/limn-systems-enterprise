@@ -240,6 +240,7 @@ export const ordersRouter = createTRPCRouter({
           } : false,
         },
         orderBy: { created_at: 'desc' },
+        take: 500, // Reasonable limit - projects rarely have > 500 orders
       });
 
       // Calculate totals

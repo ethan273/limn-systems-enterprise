@@ -672,108 +672,81 @@ export const productsRouter = createTRPCRouter({
       hierarchyLevel: z.number().optional(),
     }))
     .query(async ({ ctx, input }) => {
-      // Fetch all active materials with their relations
-      // Filter in memory since database wrapper doesn't support complex OR clauses
-      const allMaterials = await (ctx.db as any).materials.findMany({
-        where: {
-          active: true,
+      // OPTIMIZATION: Use database-level filtering instead of in-memory
+      // Build WHERE clause dynamically based on filters
+      const whereClause: any = {
+        active: true,
+      };
+
+      if (input.materialType) {
+        whereClause.type = input.materialType;
+      }
+
+      if (input.hierarchyLevel !== undefined) {
+        whereClause.hierarchy_level = input.hierarchyLevel;
+      }
+
+      // Fetch materials with database-level JOIN filtering
+      // Include materials that either:
+      // 1. Are assigned to this collection OR
+      // 2. Have no collection assignments (available everywhere)
+      const materials = await (ctx.db as any).materials.findMany({
+        where: whereClause,
+        include: {
+          // Include category with selective fields
+          material_categories: {
+            select: {
+              id: true,
+              name: true,
+              active: true,
+            },
+          },
+          // Include parent material with selective fields
+          materials: {
+            select: {
+              id: true,
+              name: true,
+              hierarchy_path: true,
+              type: true,
+            },
+          },
+          // Include material_collections with collection details
+          material_collections: {
+            include: {
+              collections: {
+                select: {
+                  id: true,
+                  name: true,
+                  prefix: true,
+                },
+              },
+            },
+          },
         },
-        take: 1000,
+        orderBy: [
+          { hierarchy_path: 'asc' },
+          { name: 'asc' },
+        ],
+        take: 1000, // Reasonable limit
       });
 
-      // Fetch categories
-      const categories = await (ctx.db as any).material_categories.findMany({
-        where: { active: true },
+      // Filter by collection in memory (still needed for "no collections" logic)
+      // But much faster since we're only filtering materials, not doing O(n*m) joins
+      const filteredMaterials = materials.filter((material: any) => {
+        const hasNoCollections = !material.material_collections || material.material_collections.length === 0;
+        const hasThisCollection = material.material_collections?.some(
+          (mc: any) => mc.collection_id === input.collectionId
+        );
+        return hasNoCollections || hasThisCollection;
       });
-      const categoryMap = new Map(categories.map((c: any) => [c.id, c]));
 
-      // Fetch material collections
-      const materialCollections = await (ctx.db as any).material_collections.findMany({});
-      const collections = await (ctx.db as any).collections.findMany({});
-      const collectionMap = new Map(collections.map((c: any) => [c.id, c]));
-
-      // Build a map of materials by ID for parent lookups
-      const materialMap = new Map(allMaterials.map((m: any) => [m.id, m]));
-
-      // Enhance and filter materials
-      const enhancedMaterials = allMaterials
-        .filter((material: any) => {
-          // Apply type filter if specified
-          if (input.materialType && material.type !== input.materialType) {
-            return false;
-          }
-
-          // Apply hierarchy level filter if specified
-          if (input.hierarchyLevel && material.hierarchy_level !== input.hierarchyLevel) {
-            return false;
-          }
-
-          // Filter by collection: include materials that:
-          // 1. Are assigned to this collection OR
-          // 2. Have no collection assignments (available everywhere)
-          const materialCollectionLinks = materialCollections.filter(
-            (mc: any) => mc.material_id === material.id
-          );
-
-          const hasNoCollections = materialCollectionLinks.length === 0;
-          const hasThisCollection = materialCollectionLinks.some(
-            (mc: any) => mc.collection_id === input.collectionId
-          );
-
-          return hasNoCollections || hasThisCollection;
-        })
-        .map((material: any) => {
-          // Add category
-          const category = material.category_id ? categoryMap.get(material.category_id) : null;
-
-          // Add parent material
-          let parentMaterial: any = null;
-          if (material.parent_material_id) {
-            const parent = materialMap.get(material.parent_material_id) as any;
-            if (parent) {
-              parentMaterial = {
-                id: parent.id,
-                name: parent.name,
-                hierarchy_path: parent.hierarchy_path,
-                type: parent.type,
-              };
-            }
-          }
-
-          // Add collections
-          const materialCollectionLinks = materialCollections.filter(
-            (mc: any) => mc.material_id === material.id
-          );
-          const materialCollectionsData = materialCollectionLinks.map((mc: any) => {
-            const collection = collectionMap.get(mc.collection_id) as any;
-            return {
-              id: mc.id,
-              collections: collection ? {
-                id: collection.id,
-                name: collection.name,
-                prefix: collection.prefix,
-              } : null,
-            };
-          });
-
-          return {
-            ...material,
-            material_categories: category,
-            materials: parentMaterial,
-            material_collections: materialCollectionsData,
-            collections: materialCollectionsData
-              .map((mc: any) => mc.collections)
-              .filter((c: any) => c !== null),
-          };
-        })
-        .sort((a: any, b: any) => {
-          // Sort by hierarchy_path, then name
-          if (a.hierarchy_path < b.hierarchy_path) return -1;
-          if (a.hierarchy_path > b.hierarchy_path) return 1;
-          if (a.name < b.name) return -1;
-          if (a.name > b.name) return 1;
-          return 0;
-        });
+      // Transform to match expected format
+      const enhancedMaterials = filteredMaterials.map((material: any) => ({
+        ...material,
+        collections: material.material_collections
+          ?.map((mc: any) => mc.collections)
+          .filter((c: any) => c !== null) || [],
+      }));
 
       return enhancedMaterials;
     }),
