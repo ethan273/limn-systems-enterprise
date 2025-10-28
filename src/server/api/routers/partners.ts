@@ -79,7 +79,11 @@ const updatePartnerSchema = createPartnerSchema.partial().extend({
 
 const partnerContactSchema = z.object({
   partner_id: z.string().uuid(),
-  name: z.string().min(1, "Name is required"),
+  // Name fields - align with CRM contacts pattern
+  name: z.string().optional(), // Keep for backward compatibility
+  first_name: z.string().min(1, "First name is required"),
+  last_name: z.string().optional(),
+  // Contact fields
   role: z.string().min(1, "Role is required"),
   email: z.string().email("Invalid email address"),
   phone: z.string().optional(),
@@ -105,7 +109,6 @@ const partnerContactSchema = z.object({
   employment_start_date: z.date().optional().nullable(),
   employment_end_date: z.date().optional().nullable(),
   qc_specializations: z.array(z.string()).default([]),
-  certifications: z.array(z.string()).default([]),
 });
 
 const partnerDocumentSchema = z.object({

@@ -27,7 +27,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { LoadingState } from '@/components/common/LoadingState';
 
 const employeeFormSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
+  first_name: z.string().min(1, 'First name is required'),
+  last_name: z.string().optional(),
   role: z.string().min(1, 'Role is required'),
   email: z.string().email('Invalid email address'),
   phone: z.string().optional(),
@@ -72,7 +73,8 @@ export function EmployeeFormDialog({
   const form = useForm<EmployeeFormData>({
     resolver: zodResolver(employeeFormSchema),
     defaultValues: {
-      name: '',
+      first_name: '',
+      last_name: '',
       role: '',
       email: '',
       phone: '',
@@ -93,7 +95,8 @@ export function EmployeeFormDialog({
   useEffect(() => {
     if (contact) {
       form.reset({
-        name: contact.name,
+        first_name: contact.first_name || '',
+        last_name: contact.last_name || '',
         role: contact.role,
         email: contact.email,
         phone: contact.phone || '',
@@ -113,7 +116,8 @@ export function EmployeeFormDialog({
       });
     } else if (!isEditMode) {
       form.reset({
-        name: '',
+        first_name: '',
+        last_name: '',
         role: '',
         email: '',
         phone: '',
@@ -152,8 +156,14 @@ export function EmployeeFormDialog({
   });
 
   const onSubmit = async (data: EmployeeFormData) => {
+    // Construct full name from first_name and last_name
+    const fullName = data.last_name
+      ? `${data.first_name} ${data.last_name}`.trim()
+      : data.first_name;
+
     const payload = {
       ...data,
+      name: fullName, // Include for backward compatibility
       partner_id: partnerId,
       employment_start_date: data.employment_start_date
         ? new Date(data.employment_start_date)
@@ -198,15 +208,29 @@ export function EmployeeFormDialog({
               <h3 className="text-sm font-medium">Basic Information</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="name">Full Name *</Label>
+                  <Label htmlFor="first_name">First Name *</Label>
                   <Input
-                    id="name"
-                    {...form.register('name')}
-                    placeholder="John Doe"
+                    id="first_name"
+                    {...form.register('first_name')}
+                    placeholder="John"
                   />
-                  {form.formState.errors.name && (
+                  {form.formState.errors.first_name && (
                     <p className="text-sm text-danger mt-1">
-                      {form.formState.errors.name.message}
+                      {form.formState.errors.first_name.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="last_name">Last Name</Label>
+                  <Input
+                    id="last_name"
+                    {...form.register('last_name')}
+                    placeholder="Doe"
+                  />
+                  {form.formState.errors.last_name && (
+                    <p className="text-sm text-danger mt-1">
+                      {form.formState.errors.last_name.message}
                     </p>
                   )}
                 </div>

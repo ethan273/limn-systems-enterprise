@@ -4513,7 +4513,9 @@ model pandadoc_templates {
 model partner_contacts {
   id                       String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   partner_id               String    @db.Uuid
-  name                     String
+  name                     String    // Full name - kept for backward compatibility
+  first_name               String?   @db.VarChar(255)
+  last_name                String?   @db.VarChar(255)
   role                     String
   email                    String
   phone                    String?
