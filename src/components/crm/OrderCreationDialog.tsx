@@ -63,8 +63,9 @@ export interface OrderItem {
   quantity: number;
   unit_price: number;
   total_price: number;
-  material_selections: Record<string, string>;
+  material_selections: any; // Hierarchical structure for full-sku-generator
   custom_specifications?: string;
+  collection_id?: string; // Collection for analytics and filtering
 }
 
 interface OrderCreationDialogProps {
@@ -75,6 +76,7 @@ interface OrderCreationDialogProps {
   orderItems: OrderItem[];
   setOrderItems: React.Dispatch<React.SetStateAction<OrderItem[]>>;
   onFinalizeOrder: (_projectId: string) => Promise<void>;
+  isFinalizingOrder?: boolean; // Prevent duplicate order submissions
 }
 
 export function OrderCreationDialog({
@@ -85,6 +87,7 @@ export function OrderCreationDialog({
   orderItems,
   setOrderItems,
   onFinalizeOrder,
+  isFinalizingOrder = false,
 }: OrderCreationDialogProps) {
   const [formData, setFormData] = useState<OrderCreationFormData>({
     project_id: projectId,
@@ -332,24 +335,91 @@ export function OrderCreationDialog({
       return (material as any)?.name || '';
     };
 
-    // Prepare material selections for SKU (using names)
-    const materialSelections = {
-      fabric_brand: getMaterialName(formData.fabric_brand_id),
-      fabric_collection: getMaterialName(formData.fabric_collection_id),
-      fabric_color: getMaterialName(formData.fabric_color_id),
-      wood_type: getMaterialName(formData.wood_type_id),
-      wood_finish: getMaterialName(formData.wood_finish_id),
-      metal_type: getMaterialName(formData.metal_type_id),
-      metal_finish: getMaterialName(formData.metal_finish_id),
-      metal_color: getMaterialName(formData.metal_color_id),
-      stone_type: getMaterialName(formData.stone_type_id),
-      stone_finish: getMaterialName(formData.stone_finish_id),
-      weaving_material: getMaterialName(formData.weaving_material_id),
-      weaving_pattern: getMaterialName(formData.weaving_pattern_id),
-      weaving_color: getMaterialName(formData.weaving_color_id),
-      carving_style: getMaterialName(formData.carving_style_id),
-      carving_pattern: getMaterialName(formData.carving_pattern_id),
+    // Get material SKU if available
+    const getMaterialSku = (materialId: string) => {
+      if (!materialId) return undefined;
+      const material = availableMaterials?.find((m: any) => m.id === materialId);
+      return (material as any)?.sku || undefined;
     };
+
+    // Prepare material selections in HIERARCHICAL structure for full-sku-generator
+    // This matches the MaterialSelection interface expected by generateFullSku()
+    const materialSelections: any = {};
+
+    // Fabric materials
+    const fabricBrand = getMaterialName(formData.fabric_brand_id);
+    const fabricCollection = getMaterialName(formData.fabric_collection_id);
+    const fabricColor = getMaterialName(formData.fabric_color_id);
+    if (fabricBrand || fabricCollection || fabricColor) {
+      materialSelections.fabric = {
+        brand: fabricBrand,
+        collection: fabricCollection,
+        color: fabricColor,
+        sku: getMaterialSku(formData.fabric_color_id) || getMaterialSku(formData.fabric_collection_id),
+      };
+    }
+
+    // Wood materials
+    const woodType = getMaterialName(formData.wood_type_id);
+    const woodFinish = getMaterialName(formData.wood_finish_id);
+    if (woodType || woodFinish) {
+      materialSelections.wood = {
+        type: woodType,
+        species: woodType, // Alias for compatibility
+        finish: woodFinish,
+        sku: getMaterialSku(formData.wood_finish_id) || getMaterialSku(formData.wood_type_id),
+      };
+    }
+
+    // Metal materials
+    const metalType = getMaterialName(formData.metal_type_id);
+    const metalFinish = getMaterialName(formData.metal_finish_id);
+    const metalColor = getMaterialName(formData.metal_color_id);
+    if (metalType || metalFinish || metalColor) {
+      materialSelections.metal = {
+        type: metalType,
+        material: metalType, // Alias for compatibility
+        finish: metalFinish,
+        color: metalColor,
+        sku: getMaterialSku(formData.metal_color_id) || getMaterialSku(formData.metal_finish_id),
+      };
+    }
+
+    // Stone materials
+    const stoneType = getMaterialName(formData.stone_type_id);
+    const stoneFinish = getMaterialName(formData.stone_finish_id);
+    if (stoneType || stoneFinish) {
+      materialSelections.stone = {
+        type: stoneType,
+        material: stoneType, // Alias for compatibility
+        finish: stoneFinish,
+        sku: getMaterialSku(formData.stone_finish_id) || getMaterialSku(formData.stone_type_id),
+      };
+    }
+
+    // Weaving materials
+    const weavingMaterial = getMaterialName(formData.weaving_material_id);
+    const weavingPattern = getMaterialName(formData.weaving_pattern_id);
+    const weavingColor = getMaterialName(formData.weaving_color_id);
+    if (weavingMaterial || weavingPattern || weavingColor) {
+      materialSelections.weaving = {
+        material: weavingMaterial,
+        pattern: weavingPattern,
+        color: weavingColor,
+        sku: getMaterialSku(formData.weaving_color_id) || getMaterialSku(formData.weaving_pattern_id),
+      };
+    }
+
+    // Carving
+    const carvingStyle = getMaterialName(formData.carving_style_id);
+    const carvingPattern = getMaterialName(formData.carving_pattern_id);
+    if (carvingStyle || carvingPattern) {
+      materialSelections.carving = {
+        style: carvingStyle,
+        pattern: carvingPattern,
+        sku: getMaterialSku(formData.carving_pattern_id) || getMaterialSku(formData.carving_style_id),
+      };
+    }
 
     // Generate base SKU (using catalog system: PREFIX-ITEM-VERSION)
     const itemCode = formData.product_name.substring(0, 3).toUpperCase();
@@ -374,6 +444,7 @@ export function OrderCreationDialog({
       total_price: parseInt(formData.quantity) * parseFloat(formData.unit_price),
       material_selections: materialSelections,
       custom_specifications: formData.custom_specifications,
+      collection_id: formData.collection_id, // Store collection for order-level analytics
     };
 
     // Add to order items list
@@ -1072,19 +1143,22 @@ export function OrderCreationDialog({
                       </div>
 
                       {/* Show material selections */}
-                      {Object.entries(item.material_selections).some(([_, value]) => value) && (
+                      {item.material_selections && Object.keys(item.material_selections).length > 0 && (
                         <div className="text-xs space-y-1 border-t pt-2">
                           <p className="text-muted-foreground font-medium">Materials:</p>
-                          {Object.entries(item.material_selections)
-                            .filter(([_, value]) => value && value.trim())
-                            .map(([key, value]) => (
-                              <div key={key} className="flex justify-between">
-                                <span className="text-muted-foreground">
-                                  {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}:
-                                </span>
-                                <span className="truncate ml-1">{value}</span>
-                              </div>
-                            ))}
+                          {Object.entries(item.material_selections).map(([materialType, specs]: [string, any]) => {
+                            if (!specs || typeof specs !== 'object') return null;
+                            return Object.entries(specs)
+                              .filter(([key, value]) => value && key !== 'sku')
+                              .map(([key, value]) => (
+                                <div key={`${materialType}-${key}`} className="flex justify-between">
+                                  <span className="text-muted-foreground">
+                                    {materialType.charAt(0).toUpperCase() + materialType.slice(1)} {key}:
+                                  </span>
+                                  <span className="truncate ml-1">{String(value)}</span>
+                                </div>
+                              ));
+                          })}
                         </div>
                       )}
                     </div>
@@ -1122,9 +1196,14 @@ export function OrderCreationDialog({
           {orderItems.length > 0 && (
             <Button
               onClick={() => onFinalizeOrder(projectId)}
+              disabled={isFinalizingOrder}
               className="bg-success-muted hover:bg-success-muted text-white dark:text-white"
             >
-              Finalize Order (${orderItems.reduce((sum, item) => sum + item.total_price, 0).toFixed(2)})
+              {isFinalizingOrder ? (
+                <>Processing...</>
+              ) : (
+                <>Finalize Order (${orderItems.reduce((sum, item) => sum + item.total_price, 0).toFixed(2)})</>
+              )}
             </Button>
           )}
         </DialogFooter>

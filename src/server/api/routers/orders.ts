@@ -6,6 +6,50 @@ import { generateProjectSku } from '@/lib/utils/project-sku-generator';
 import { generateFullSku } from '@/lib/utils/full-sku-generator';
 import { createFullName } from '@/lib/utils/name-utils';
 
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+/**
+ * Generates a unique order number with race condition protection
+ * Format: ORD-XXXXXX (6 digits, zero-padded)
+ *
+ * Uses MAX() query instead of COUNT() to avoid race conditions.
+ */
+async function generateOrderNumber(db: any): Promise<string> {
+  const prefix = 'ORD-';
+
+  // Find the highest existing number
+  const existingOrders = await db.orders.findMany({
+    where: {
+      order_number: {
+        startsWith: prefix,
+      },
+    },
+    select: {
+      order_number: true,
+    },
+    orderBy: {
+      order_number: 'desc',
+    },
+    take: 1,
+  });
+
+  let nextNumber = 1;
+  if (existingOrders.length > 0) {
+    const lastOrderNumber = existingOrders[0].order_number;
+    // Extract the numeric part (e.g., "ORD-000123" -> "000123" -> 123)
+    const lastNumber = parseInt(lastOrderNumber.slice(prefix.length), 10);
+    nextNumber = lastNumber + 1;
+  }
+
+  return `${prefix}${String(nextNumber).padStart(6, '0')}`;
+}
+
+// ============================================================================
+// SCHEMAS
+// ============================================================================
+
 // Order Schema
 const createOrderSchema = z.object({
   customer_id: z.string().uuid(),
@@ -340,79 +384,118 @@ export const ordersRouter = createTRPCRouter({
         quantity: z.number().min(1),
         unit_price: z.number().min(0),
         total_price: z.number().min(0),
-        material_selections: z.record(z.string()),
+        material_selections: z.any(), // Accept hierarchical structure from generateFullSku
         custom_specifications: z.string().optional(),
       })),
       notes: z.string().optional(),
       priority: z.enum(['low', 'normal', 'high', 'urgent']).default('normal'),
     }))
     .mutation(async ({ ctx, input }) => {
-      // Generate order number
-      const orderCount = await ctx.db.orders.count();
-      const orderNumber = `ORD-${(orderCount + 1).toString().padStart(6, '0')}`;
-
       // Calculate total amount
       const totalAmount = input.order_items.reduce((sum: number, item) => sum + item.total_price, 0);
 
-      // Create the order
-      const order = await ctx.db.orders.create({
-        data: {
-          order_number: orderNumber,
-          customer_id: input.customer_id,
-          collection_id: input.collection_id,
-          status: 'pending',
-          priority: input.priority,
-          total_amount: totalAmount,
-          notes: input.notes,
-          created_by: ctx.session?.user?.id || 'system',
-        },
-      });
+      // Retry logic to handle race conditions in order number generation
+      const maxRetries = 5;
+      let lastError: Error | null = null;
 
-      // Create order items using Supabase admin client
-      const supabase = getSupabaseAdmin();
-      const createdItems: any[] = [];
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          // Generate order number
+          const orderNumber = await generateOrderNumber(ctx.db);
 
-      for (const item of input.order_items) {
-        // Generate Full SKU from base SKU + material selections
-        const fullSku = generateFullSku(item.base_sku, item.material_selections);
+          // Create the order
+          const order = await ctx.db.orders.create({
+            data: {
+              order_number: orderNumber,
+              customer_id: input.customer_id,
+              collection_id: input.collection_id,
+              project_id: input.project_id,
+              status: 'pending',
+              priority: input.priority,
+              total_amount: totalAmount,
+              notes: input.notes,
+              created_by: ctx.session?.user?.id || 'system',
+            },
+          });
 
-        const orderItemData = {
-          order_id: order.id,
-          quantity: item.quantity,
-          unit_price: item.unit_price,
-          project_sku: item.project_sku, // Store project SKU for order tracking
-          full_sku: fullSku, // Store Full SKU for manufacturing and analytics
-          description: item.product_name,
-          specifications: {
-            product_sku: item.product_sku,
-            project_sku: item.project_sku,
-            base_sku: item.base_sku,
-            material_selections: item.material_selections,
-            custom_specifications: item.custom_specifications,
-          },
-          status: 'pending',
-        };
+          // Fetch customer and project info for project SKU generation
+          // Note: ctx.db only supports 'include', not 'select' (see database-patterns.md)
+          const customer = await ctx.db.customers.findUnique({
+            where: { id: input.customer_id },
+          });
 
-        const { data: orderItem, error } = await supabase
-          .from('order_items')
-          .insert(orderItemData as any)
-          .select()
-          .single();
+          const project = await ctx.db.projects.findUnique({
+            where: { id: input.project_id },
+          });
 
-        if (error) {
-          throw new Error(`Failed to create order item: ${error.message}`);
+          const customerName = customer?.name || 'UNKNOWN';
+          const projectName = project?.name || null;
+
+          // Create order items using Supabase admin client
+          const supabase = getSupabaseAdmin();
+          const createdItems: any[] = [];
+          let lineItemNumber = 1;
+
+          for (const item of input.order_items) {
+            // Generate Full SKU from base SKU + material selections
+            const fullSkuResult = generateFullSku(item.base_sku, item.material_selections);
+
+            // Generate proper Project SKU (not temp)
+            const projectSku = await generateProjectSku(customerName, projectName, order.id);
+
+            const orderItemData = {
+              order_id: order.id,
+              quantity: item.quantity,
+              unit_price: item.unit_price,
+              project_sku: projectSku, // Real project SKU for tracking
+              full_sku: fullSkuResult.fullSku, // Store Full SKU for manufacturing and analytics
+              description: item.product_name,
+              specifications: {
+                product_sku: item.product_sku,
+                project_sku: projectSku, // Store real project SKU in specs too
+                base_sku: item.base_sku,
+                material_selections: item.material_selections,
+                custom_specifications: item.custom_specifications,
+              },
+              status: 'pending',
+            };
+
+            const { data: orderItem, error } = await supabase
+              .from('order_items')
+              .insert(orderItemData as any)
+              .select()
+              .single();
+
+            if (error) {
+              throw new Error(`Failed to create order item: ${error.message}`);
+            }
+
+            createdItems.push(orderItem);
+            lineItemNumber++;
+          }
+
+          // Return order with items
+          return {
+            order,
+            order_items: createdItems,
+            total_items: createdItems.length,
+            total_amount: totalAmount,
+          };
+        } catch (error: any) {
+          // Check if it's a duplicate key error
+          if (error?.code === '23505' && error?.message?.includes('orders_order_number_key')) {
+            lastError = error;
+            // Wait briefly before retrying (exponential backoff)
+            await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 100));
+            continue;
+          }
+          // If it's not a duplicate key error, throw immediately
+          throw error;
         }
-
-        createdItems.push(orderItem);
       }
 
-      // Return order with items
-      return {
-        order,
-        order_items: createdItems,
-        total_items: createdItems.length,
-        total_amount: totalAmount,
-      };
+      // If we exhausted all retries, throw the last error
+      throw new Error(`Failed to create order after ${maxRetries} attempts: ${lastError?.message || 'Unknown error'}`);
     }),
 
   // Update order status with validation

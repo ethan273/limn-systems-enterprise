@@ -81,6 +81,7 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+  const [isFinalizingOrder, setIsFinalizingOrder] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -196,18 +197,31 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
       return;
     }
 
+    // Prevent duplicate submissions
+    if (isFinalizingOrder) {
+      return;
+    }
+
+    setIsFinalizingOrder(true);
+
     try {
       // Get customer ID from project data (try customer object first, fall back to customer_id)
       const customerId = data?.customer?.id || data?.project?.customer_id;
       if (!customerId) {
         toast.error("Customer not found for this project. Please ensure the project has a customer assigned.");
+        setIsFinalizingOrder(false);
         return;
       }
+
+      // NOTE: collection_id is NOT passed at order level because orders can contain
+      // items from multiple collections. Each order item tracks its own collection_id
+      // for analytics and filtering purposes.
 
       // STEP 1: Create CRM Order with all items
       const crmOrderResult = await createCRMOrderMutation.mutateAsync({
         project_id: projectId,
         customer_id: customerId,
+        // collection_id omitted - tracked at item level for multi-collection support
         order_items: orderItems.map(item => ({
           product_name: item.product_name,
           product_sku: item.product_sku,
@@ -265,6 +279,7 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
       // Clear order items and close dialog
       setOrderItems([]);
       setIsOrderDialogOpen(false);
+      setIsFinalizingOrder(false);
 
       // Invalidate queries for instant updates
       utils.projects.getById.invalidate();
@@ -273,6 +288,7 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
     } catch (error: any) {
       console.error('Error creating order:', error);
       toast.error(error.message || "Failed to create order. Please try again.");
+      setIsFinalizingOrder(false);
     }
   };
 
@@ -696,6 +712,7 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
         orderItems={orderItems}
         setOrderItems={setOrderItems}
         onFinalizeOrder={handleFinalizeOrder}
+        isFinalizingOrder={isFinalizingOrder}
       />
     </div>
   );
