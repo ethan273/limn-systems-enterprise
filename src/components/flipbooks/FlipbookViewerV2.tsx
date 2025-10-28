@@ -22,8 +22,6 @@ import {
   Menu,
   Maximize,
   Minimize,
-  Home as HomeIcon,
-  SkipForward,
   RotateCcw,
   Grid3x3,
 } from "lucide-react";
@@ -284,6 +282,8 @@ export function FlipbookViewerV2({
   } | null>(null);
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(true);
   const [showThumbnails, setShowThumbnails] = useState(false);
+  const [showControls, setShowControls] = useState(true); // Auto-hide controls
+  const [controlsTimeout, setControlsTimeout] = useState<NodeJS.Timeout | null>(null);
 
   const totalPages = pages.length;
 
@@ -521,6 +521,36 @@ export function FlipbookViewerV2({
     return () => clearTimeout(timer);
   }, []); // Run once on mount
 
+  // Auto-hide controls after 3 seconds of inactivity (FlipSnack-style)
+  useEffect(() => {
+    const handleMouseMove = () => {
+      setShowControls(true);
+
+      // Clear existing timeout
+      if (controlsTimeout) {
+        clearTimeout(controlsTimeout);
+      }
+
+      // Set new timeout to hide controls after 3 seconds
+      const timeout = setTimeout(() => {
+        setShowControls(false);
+      }, 3000);
+
+      setControlsTimeout(timeout);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('touchstart', handleMouseMove);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('touchstart', handleMouseMove);
+      if (controlsTimeout) {
+        clearTimeout(controlsTimeout);
+      }
+    };
+  }, [controlsTimeout]);
+
   // Handle video hotspot click
   const handleVideoClick = useCallback((url: string, title?: string) => {
     setCurrentVideo({
@@ -564,108 +594,8 @@ export function FlipbookViewerV2({
 
       {/* Main viewer area */}
       <div className="flex-1 relative flex flex-col">
-        {/* Top controls */}
-        <div className="bg-background border-b px-4 py-3 flex items-center justify-between z-10 flex-shrink-0">
-          <div className="flex gap-2">
-            {/* TOC Toggle Button */}
-            {tocData?.tocData && (
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setShowTOC(!showTOC)}
-                title={
-                  showTOC ? "Hide table of contents" : "Show table of contents"
-                }
-              >
-                <Menu className="h-4 w-4" />
-              </Button>
-            )}
-            {/* Thumbnail Grid Toggle Button */}
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setShowThumbnails(!showThumbnails)}
-              title={showThumbnails ? "Hide thumbnails" : "Show all pages"}
-            >
-              <Grid3x3 className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={goToFirstPage}
-              title="First page (Home)"
-            >
-              <HomeIcon className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={goToLastPage}
-              title="Last page (End)"
-            >
-              <SkipForward className="h-4 w-4" />
-            </Button>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <span className="text-sm font-medium">
-              Page {currentPage + 1} of {totalPages}
-            </span>
-          </div>
-
-          <div className="flex gap-2">
-            {/* Zoom buttons - trigger hidden controls */}
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => document.getElementById("zoom-in-btn")?.click()}
-              title="Zoom in (scroll wheel or pinch)"
-            >
-              <ZoomIn className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => document.getElementById("zoom-out-btn")?.click()}
-              title="Zoom out (scroll wheel or pinch)"
-            >
-              <ZoomOut className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => document.getElementById("zoom-reset-btn")?.click()}
-              title="Reset zoom (double-click page)"
-            >
-              <RotateCcw className="h-4 w-4" />
-            </Button>
-
-            {/* Fullscreen Toggle Button */}
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={toggleFullscreen}
-              title={
-                isFullscreen ? "Exit fullscreen (F)" : "Enter fullscreen (F)"
-              }
-            >
-              {isFullscreen ? (
-                <Minimize className="h-4 w-4" />
-              ) : (
-                <Maximize className="h-4 w-4" />
-              )}
-            </Button>
-
-            {onClose && (
-              <Button variant="outline" size="icon" onClick={onClose}>
-                <X className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {/* Flipbook Canvas with Zoom */}
-        <div className="flex-1 flex items-center justify-center p-8 overflow-hidden">
+        {/* Flipbook Canvas with Zoom - Full screen, no padding */}
+        <div className="flex-1 flex items-center justify-center overflow-hidden">
           <TransformWrapper
             initialScale={1}
             minScale={0.5}
@@ -732,74 +662,141 @@ export function FlipbookViewerV2({
           </TransformWrapper>
         </div>
 
-        {/* Bottom controls */}
-        <div className="bg-background border-t px-4 py-4 flex items-center justify-between z-10 flex-shrink-0">
-          {/* Previous button */}
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={goToPreviousPage}
-            disabled={currentPage === 0}
-          >
-            <ChevronLeft className="h-5 w-5 mr-2" />
-            Previous
-          </Button>
+        {/* FlipSnack-style minimal bottom controls - Auto-hide after 3s of inactivity */}
+        {showControls && (
+          <div className="absolute bottom-0 left-0 right-0 bg-black/60 backdrop-blur-sm px-6 py-3 flex items-center justify-center gap-4 z-20 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            {/* Previous Page */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={goToPreviousPage}
+              disabled={currentPage === 0}
+              className="text-white hover:bg-white/20"
+              title="Previous page (← or ←)"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
 
-          {/* Page thumbnails strip */}
-          <div className="flex gap-2 overflow-x-auto max-w-2xl px-4">
-            {pages.map((page, index) => (
-              <button
-                key={page.id}
-                onClick={() => goToPage(page.page_number)}
-                className={cn(
-                  "h-20 rounded border-2 transition-all flex-shrink-0",
-                  currentPage === index
-                    ? "border-primary ring-2 ring-primary/50"
-                    : "border-muted-foreground/30 hover:border-primary/50"
-                )}
-                style={{
-                  backgroundImage: `url(${page.thumbnail_url || page.image_url})`,
-                  backgroundSize: "contain",
-                  backgroundPosition: "center",
-                  backgroundRepeat: "no-repeat",
-                  width: "auto",
-                  aspectRatio: page.width && page.height
-                    ? `${page.width} / ${page.height}`
-                    : "2 / 3",
-                }}
-                title={`Go to page ${page.page_number}`}
-              />
-            ))}
+            {/* TOC Toggle */}
+            {tocData?.tocData && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowTOC(!showTOC)}
+                className="text-white hover:bg-white/20"
+                title={showTOC ? "Hide table of contents" : "Show table of contents"}
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+            )}
+
+            {/* Thumbnail Grid Toggle */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowThumbnails(!showThumbnails)}
+              className="text-white hover:bg-white/20"
+              title={showThumbnails ? "Hide thumbnails" : "Show all pages"}
+            >
+              <Grid3x3 className="h-5 w-5" />
+            </Button>
+
+            {/* Page Counter */}
+            <div className="text-white text-sm font-medium px-3 py-1 bg-white/10 rounded-md">
+              {currentPage + 1} / {totalPages}
+            </div>
+
+            {/* Zoom In */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => document.getElementById("zoom-in-btn")?.click()}
+              className="text-white hover:bg-white/20"
+              title="Zoom in (scroll wheel or pinch)"
+            >
+              <ZoomIn className="h-5 w-5" />
+            </Button>
+
+            {/* Zoom Out */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => document.getElementById("zoom-out-btn")?.click()}
+              className="text-white hover:bg-white/20"
+              title="Zoom out (scroll wheel or pinch)"
+            >
+              <ZoomOut className="h-5 w-5" />
+            </Button>
+
+            {/* Reset Zoom */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => document.getElementById("zoom-reset-btn")?.click()}
+              className="text-white hover:bg-white/20"
+              title="Reset zoom (double-click page)"
+            >
+              <RotateCcw className="h-5 w-5" />
+            </Button>
+
+            {/* Fullscreen Toggle */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleFullscreen}
+              className="text-white hover:bg-white/20"
+              title={isFullscreen ? "Exit fullscreen (F)" : "Enter fullscreen (F)"}
+            >
+              {isFullscreen ? (
+                <Minimize className="h-5 w-5" />
+              ) : (
+                <Maximize className="h-5 w-5" />
+              )}
+            </Button>
+
+            {/* Next Page */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={goToNextPage}
+              disabled={currentPage === totalPages - 1}
+              className="text-white hover:bg-white/20"
+              title="Next page (→ or Space)"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </Button>
+
+            {/* Close button (if onClose provided) */}
+            {onClose && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onClose}
+                className="text-white hover:bg-white/20 ml-2"
+                title="Close viewer (ESC)"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            )}
           </div>
-
-          {/* Next button */}
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={goToNextPage}
-            disabled={currentPage === totalPages - 1}
-          >
-            Next
-            <ChevronRight className="h-5 w-5 ml-2" />
-          </Button>
-        </div>
+        )}
 
         {/* Keyboard shortcuts hint - Auto-hides after 5 seconds, dismissible */}
         {showKeyboardShortcuts && (
-          <div className="absolute bottom-28 right-6 rounded-lg bg-background border shadow-lg p-3 text-xs z-10 animate-in fade-in slide-in-from-right-2 duration-300">
+          <div className="absolute bottom-20 right-6 rounded-lg bg-black/80 backdrop-blur-sm border border-white/20 shadow-lg p-3 text-xs z-30 animate-in fade-in slide-in-from-right-2 duration-300 text-white">
             <div className="flex items-start justify-between gap-2 mb-2">
               <div className="font-semibold">Keyboard Shortcuts:</div>
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-4 w-4 p-0 hover:bg-muted"
+                className="h-4 w-4 p-0 text-white hover:bg-white/20"
                 onClick={() => setShowKeyboardShortcuts(false)}
                 title="Dismiss shortcuts"
               >
                 <X className="h-3 w-3" />
               </Button>
             </div>
-            <div className="space-y-1 text-muted-foreground">
+            <div className="space-y-1 text-white/80">
               <div>← → Arrow keys to navigate</div>
               <div>Space for next page</div>
               <div>Home/End for first/last</div>
