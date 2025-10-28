@@ -16,7 +16,8 @@ This file has been **modularized for maintainability**. For detailed information
 
 ### Patterns (Development Patterns & Best Practices)
 - **[Database Patterns](patterns/database-patterns.md)** - ctx.db usage, Prisma 3-step queries, schema sync, permissions
-- **[Auth Patterns](patterns/auth-patterns.md)** - getCurrentUser, API auth, RBAC system, tRPC security
+- **[Auth Patterns](patterns/auth-patterns.md)** - getCurrentUser, API auth, admin authorization, tRPC security
+- **[RBAC Patterns](patterns/rbac-patterns.md)** - ⭐ NEW - Permission checking, multi-tenancy, templates, sessions
 - **[UI Patterns](patterns/ui-patterns.md)** - Logo usage, theming, UI conventions
 - **[Email Patterns](patterns/email-patterns.md)** - Campaign system, webhooks, rate limiting, unsubscribe
 - **[Build Patterns](patterns/build-patterns.md)** - Client/server separation, Prisma bundling, type safety
