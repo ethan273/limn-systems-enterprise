@@ -24,9 +24,16 @@ import {
   assignRole,
   removeRole,
   setUserRoles,
+  hasRole,
+  hasAnyRole,
+  hasAllRoles,
+  hasPermission,
+  hasAnyPermission,
+  hasAllPermissions,
   SYSTEM_ROLES,
   PERMISSIONS,
   type SystemRole,
+  type Permission,
 } from '@/lib/services/rbac-service';
 
 // ============================================
@@ -617,5 +624,227 @@ export const rbacRouter = createTRPCRouter({
         successCount: results.success.length,
         failedCount: results.failed.length,
       };
+    }),
+
+  /**
+   * Check if user has a specific role
+   * Accessible by authenticated users (check own roles) and admins
+   */
+  hasRole: protectedProcedure
+    .input(z.object({
+      userId: z.string().uuid().optional(), // If not provided, checks current user
+      role: z.string(),
+    }))
+    .query(async ({ input, ctx }) => {
+      const userId = input.userId || ctx.session?.user?.id;
+
+      if (!userId) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'User ID required',
+        });
+      }
+
+      // If checking another user, must be admin
+      if (input.userId && input.userId !== ctx.session?.user?.id) {
+        const requestingUserRoles = await getEffectiveRoles(ctx.session?.user?.id!);
+        const isAdmin = requestingUserRoles.includes(SYSTEM_ROLES.ADMIN) ||
+                        requestingUserRoles.includes(SYSTEM_ROLES.SUPER_ADMIN);
+
+        if (!isAdmin) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Only admins can check other users\' roles',
+          });
+        }
+      }
+
+      return await hasRole(userId, input.role as SystemRole);
+    }),
+
+  /**
+   * Check if user has any of the specified roles
+   * Accessible by authenticated users (check own roles) and admins
+   */
+  hasAnyRole: protectedProcedure
+    .input(z.object({
+      userId: z.string().uuid().optional(),
+      roles: z.array(z.string()),
+    }))
+    .query(async ({ input, ctx }) => {
+      const userId = input.userId || ctx.session?.user?.id;
+
+      if (!userId) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'User ID required',
+        });
+      }
+
+      // If checking another user, must be admin
+      if (input.userId && input.userId !== ctx.session?.user?.id) {
+        const requestingUserRoles = await getEffectiveRoles(ctx.session?.user?.id!);
+        const isAdmin = requestingUserRoles.includes(SYSTEM_ROLES.ADMIN) ||
+                        requestingUserRoles.includes(SYSTEM_ROLES.SUPER_ADMIN);
+
+        if (!isAdmin) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Only admins can check other users\' roles',
+          });
+        }
+      }
+
+      return await hasAnyRole(userId, input.roles as SystemRole[]);
+    }),
+
+  /**
+   * Check if user has all of the specified roles
+   * Accessible by authenticated users (check own roles) and admins
+   */
+  hasAllRoles: protectedProcedure
+    .input(z.object({
+      userId: z.string().uuid().optional(),
+      roles: z.array(z.string()),
+    }))
+    .query(async ({ input, ctx }) => {
+      const userId = input.userId || ctx.session?.user?.id;
+
+      if (!userId) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'User ID required',
+        });
+      }
+
+      // If checking another user, must be admin
+      if (input.userId && input.userId !== ctx.session?.user?.id) {
+        const requestingUserRoles = await getEffectiveRoles(ctx.session?.user?.id!);
+        const isAdmin = requestingUserRoles.includes(SYSTEM_ROLES.ADMIN) ||
+                        requestingUserRoles.includes(SYSTEM_ROLES.SUPER_ADMIN);
+
+        if (!isAdmin) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Only admins can check other users\' roles',
+          });
+        }
+      }
+
+      return await hasAllRoles(userId, input.roles as SystemRole[]);
+    }),
+
+  /**
+   * Check if user has a specific permission
+   * Accessible by authenticated users (check own permissions) and admins
+   */
+  hasPermission: protectedProcedure
+    .input(z.object({
+      userId: z.string().uuid().optional(),
+      permission: z.string(),
+      resource: z.object({
+        type: z.string(),
+        id: z.string(),
+      }).optional(),
+    }))
+    .query(async ({ input, ctx }) => {
+      const userId = input.userId || ctx.session?.user?.id;
+
+      if (!userId) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'User ID required',
+        });
+      }
+
+      // If checking another user, must be admin
+      if (input.userId && input.userId !== ctx.session?.user?.id) {
+        const requestingUserRoles = await getEffectiveRoles(ctx.session?.user?.id!);
+        const isAdmin = requestingUserRoles.includes(SYSTEM_ROLES.ADMIN) ||
+                        requestingUserRoles.includes(SYSTEM_ROLES.SUPER_ADMIN);
+
+        if (!isAdmin) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Only admins can check other users\' permissions',
+          });
+        }
+      }
+
+      return await hasPermission(userId, input.permission as Permission, {
+        resource: input.resource,
+      });
+    }),
+
+  /**
+   * Check if user has any of the specified permissions
+   * Accessible by authenticated users (check own permissions) and admins
+   */
+  hasAnyPermission: protectedProcedure
+    .input(z.object({
+      userId: z.string().uuid().optional(),
+      permissions: z.array(z.string()),
+    }))
+    .query(async ({ input, ctx }) => {
+      const userId = input.userId || ctx.session?.user?.id;
+
+      if (!userId) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'User ID required',
+        });
+      }
+
+      // If checking another user, must be admin
+      if (input.userId && input.userId !== ctx.session?.user?.id) {
+        const requestingUserRoles = await getEffectiveRoles(ctx.session?.user?.id!);
+        const isAdmin = requestingUserRoles.includes(SYSTEM_ROLES.ADMIN) ||
+                        requestingUserRoles.includes(SYSTEM_ROLES.SUPER_ADMIN);
+
+        if (!isAdmin) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Only admins can check other users\' permissions',
+          });
+        }
+      }
+
+      return await hasAnyPermission(userId, input.permissions as Permission[]);
+    }),
+
+  /**
+   * Check if user has all of the specified permissions
+   * Accessible by authenticated users (check own permissions) and admins
+   */
+  hasAllPermissions: protectedProcedure
+    .input(z.object({
+      userId: z.string().uuid().optional(),
+      permissions: z.array(z.string()),
+    }))
+    .query(async ({ input, ctx }) => {
+      const userId = input.userId || ctx.session?.user?.id;
+
+      if (!userId) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'User ID required',
+        });
+      }
+
+      // If checking another user, must be admin
+      if (input.userId && input.userId !== ctx.session?.user?.id) {
+        const requestingUserRoles = await getEffectiveRoles(ctx.session?.user?.id!);
+        const isAdmin = requestingUserRoles.includes(SYSTEM_ROLES.ADMIN) ||
+                        requestingUserRoles.includes(SYSTEM_ROLES.SUPER_ADMIN);
+
+        if (!isAdmin) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Only admins can check other users\' permissions',
+          });
+        }
+      }
+
+      return await hasAllPermissions(userId, input.permissions as Permission[]);
     }),
 });

@@ -10,6 +10,7 @@
 
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '../trpc/init';
+import { TRPCError } from '@trpc/server';
 import * as conditionalPermissions from '@/lib/services/conditional-permissions';
 import * as permissionDelegation from '@/lib/services/permission-delegation';
 import * as permissionApproval from '@/lib/services/permission-approval';
@@ -429,5 +430,184 @@ export const permissionsAdvancedRouter = createTRPCRouter({
         input.resourceId,
         input.limit
       );
+    }),
+
+  // Additional Delegation Endpoints
+  /**
+   * Get specific delegation by ID
+   */
+  getDelegation: protectedProcedure
+    .input(z.object({ delegationId: z.string().uuid() }))
+    .query(async ({ input, ctx }) => {
+      const delegation = await permissionDelegation.getDelegation(input.delegationId);
+
+      if (!delegation) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Delegation not found',
+        });
+      }
+
+      // Only allow viewing if user is delegator, delegatee, or admin
+      const userId = ctx.session?.user?.id;
+      const userRoles = await ctx.db.user_roles.findMany({
+        where: { user_id: userId },
+        select: { role: true },
+      });
+      const isAdmin = userRoles.some(r => r.role === 'admin' || r.role === 'super_admin');
+
+      if (
+        delegation.delegatorId !== userId &&
+        delegation.delegateeId !== userId &&
+        !isAdmin
+      ) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You do not have permission to view this delegation',
+        });
+      }
+
+      return delegation;
+    }),
+
+  /**
+   * Expire outdated delegations (admin/cron job)
+   */
+  expireOutdatedDelegations: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      // Check if user is admin
+      const userId = ctx.session?.user?.id;
+      const userRoles = await ctx.db.user_roles.findMany({
+        where: { user_id: userId },
+        select: { role: true },
+      });
+      const isAdmin = userRoles.some(r => r.role === 'admin' || r.role === 'super_admin');
+
+      if (!isAdmin) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Only admins can expire delegations',
+        });
+      }
+
+      const count = await permissionDelegation.expireOutdatedDelegations();
+      return { expiredCount: count };
+    }),
+
+  /**
+   * Get delegations expiring soon (for notifications)
+   */
+  getDelegationsExpiringSoon: protectedProcedure
+    .input(z.object({ hoursUntilExpiry: z.number().positive().default(24) }))
+    .query(async ({ input }) => {
+      return permissionDelegation.getDelegationsExpiringSoon(input.hoursUntilExpiry);
+    }),
+
+  // Additional Approval Endpoints
+  /**
+   * Get specific approval request by ID
+   */
+  getApprovalRequest: protectedProcedure
+    .input(z.object({ requestId: z.string().uuid() }))
+    .query(async ({ input, ctx }) => {
+      const request = await permissionApproval.getRequest(input.requestId);
+
+      if (!request) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Request not found',
+        });
+      }
+
+      // Only allow viewing if user is requester, approver, or admin
+      const userId = ctx.session?.user?.id;
+      const userRoles = await ctx.db.user_roles.findMany({
+        where: { user_id: userId },
+        select: { role: true },
+      });
+      const isAdmin = userRoles.some(r => r.role === 'admin' || r.role === 'super_admin');
+
+      if (
+        request.requesterId !== userId &&
+        request.approverId !== userId &&
+        !isAdmin
+      ) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You do not have permission to view this request',
+        });
+      }
+
+      return request;
+    }),
+
+  /**
+   * Get pending requests for a specific permission (admin)
+   */
+  getPendingRequestsByPermission: protectedProcedure
+    .input(z.object({ permissionId: z.string().uuid() }))
+    .query(async ({ input, ctx }) => {
+      // Check if user is admin
+      const userId = ctx.session?.user?.id;
+      const userRoles = await ctx.db.user_roles.findMany({
+        where: { user_id: userId },
+        select: { role: true },
+      });
+      const isAdmin = userRoles.some(r => r.role === 'admin' || r.role === 'super_admin');
+
+      if (!isAdmin) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Only admins can view permission requests',
+        });
+      }
+
+      return permissionApproval.getPendingRequestsByPermission(input.permissionId);
+    }),
+
+  // Generic Condition Creation
+  /**
+   * Create a permission condition (generic)
+   * Note: Prefer using specific condition endpoints (addTimeCondition, etc.)
+   */
+  createPermissionCondition: protectedProcedure
+    .input(z.object({
+      permissionId: z.string().uuid(),
+      userId: z.string().uuid().optional(),
+      roleId: z.string().uuid().optional(),
+      conditionType: z.enum(['time', 'location', 'device', 'ip_range']),
+      config: z.record(z.any()),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      // Check if user is admin
+      const currentUserId = ctx.session?.user?.id;
+      if (!currentUserId) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'User not authenticated',
+        });
+      }
+
+      const userRoles = await ctx.db.user_roles.findMany({
+        where: { user_id: currentUserId },
+        select: { role: true },
+      });
+      const isAdmin = userRoles.some(r => r.role === 'admin' || r.role === 'super_admin');
+
+      if (!isAdmin) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Only admins can create permission conditions',
+        });
+      }
+
+      return conditionalPermissions.createPermissionCondition({
+        permissionId: input.permissionId,
+        userId: input.userId,
+        roleId: input.roleId,
+        conditionType: input.conditionType as 'time' | 'location' | 'device' | 'ip_range',
+        config: input.config as any,
+        createdBy: currentUserId,
+      });
     }),
 });
