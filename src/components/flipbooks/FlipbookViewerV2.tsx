@@ -25,6 +25,7 @@ import {
   Home as HomeIcon,
   SkipForward,
   RotateCcw,
+  Grid3x3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api/client";
@@ -281,6 +282,8 @@ export function FlipbookViewerV2({
     title?: string;
     description?: string;
   } | null>(null);
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(true);
+  const [showThumbnails, setShowThumbnails] = useState(false);
 
   const totalPages = pages.length;
 
@@ -509,6 +512,15 @@ export function FlipbookViewerV2({
     onClose,
   ]);
 
+  // Auto-hide keyboard shortcuts after 5 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowKeyboardShortcuts(false);
+    }, 5000); // 5 seconds
+
+    return () => clearTimeout(timer);
+  }, []); // Run once on mount
+
   // Handle video hotspot click
   const handleVideoClick = useCallback((url: string, title?: string) => {
     setCurrentVideo({
@@ -568,6 +580,15 @@ export function FlipbookViewerV2({
                 <Menu className="h-4 w-4" />
               </Button>
             )}
+            {/* Thumbnail Grid Toggle Button */}
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setShowThumbnails(!showThumbnails)}
+              title={showThumbnails ? "Hide thumbnails" : "Show all pages"}
+            >
+              <Grid3x3 className="h-4 w-4" />
+            </Button>
             <Button
               variant="outline"
               size="icon"
@@ -763,18 +784,31 @@ export function FlipbookViewerV2({
           </Button>
         </div>
 
-        {/* Keyboard shortcuts hint */}
-        <div className="absolute bottom-28 right-6 rounded-lg bg-background border shadow-lg p-3 text-xs z-10">
-          <div className="font-semibold mb-2">Keyboard Shortcuts:</div>
-          <div className="space-y-1 text-muted-foreground">
-            <div>← → Arrow keys to navigate</div>
-            <div>Space for next page</div>
-            <div>Home/End for first/last</div>
-            <div>F for fullscreen</div>
-            <div>ESC to close</div>
-            {tocData?.tocData && <div>Click menu icon for TOC</div>}
+        {/* Keyboard shortcuts hint - Auto-hides after 5 seconds, dismissible */}
+        {showKeyboardShortcuts && (
+          <div className="absolute bottom-28 right-6 rounded-lg bg-background border shadow-lg p-3 text-xs z-10 animate-in fade-in slide-in-from-right-2 duration-300">
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <div className="font-semibold">Keyboard Shortcuts:</div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-4 w-4 p-0 hover:bg-muted"
+                onClick={() => setShowKeyboardShortcuts(false)}
+                title="Dismiss shortcuts"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+            <div className="space-y-1 text-muted-foreground">
+              <div>← → Arrow keys to navigate</div>
+              <div>Space for next page</div>
+              <div>Home/End for first/last</div>
+              <div>F for fullscreen</div>
+              <div>ESC to close</div>
+              {tocData?.tocData && <div>Click menu icon for TOC</div>}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Video Player Modal */}
@@ -785,6 +819,55 @@ export function FlipbookViewerV2({
           videoUrl={currentVideo.url}
           title={currentVideo.title}
         />
+      )}
+
+      {/* Thumbnail Grid Overlay */}
+      {showThumbnails && (
+        <div className="absolute inset-0 bg-background z-50 overflow-y-auto p-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold">All Pages</h2>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setShowThumbnails(false)}
+              title="Close thumbnails"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            {pages.map((page) => (
+              <button
+                key={page.id}
+                onClick={() => {
+                  goToPage(page.page_number);
+                  setShowThumbnails(false);
+                }}
+                className={cn(
+                  "relative rounded-lg overflow-hidden border-2 transition-all hover:scale-105 hover:shadow-lg group",
+                  currentPage === page.page_number - 1
+                    ? "border-primary ring-2 ring-primary"
+                    : "border-border hover:border-primary"
+                )}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={page.thumbnail_url || page.image_url}
+                  alt={`Page ${page.page_number}`}
+                  className="w-full h-auto object-cover"
+                />
+                <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white px-2 py-1 text-sm font-medium text-center">
+                  {page.page_number}
+                </div>
+                {currentPage === page.page_number - 1 && (
+                  <div className="absolute top-2 right-2 bg-primary text-primary-foreground px-2 py-1 rounded text-xs font-bold">
+                    Current
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );
