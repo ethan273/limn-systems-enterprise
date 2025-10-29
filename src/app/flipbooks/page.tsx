@@ -68,15 +68,13 @@ export default function FlipbooksPage() {
   });
 
   // Build query params for flipbooks API (uses cursor, not offset)
-  // FIXME: status filter removed - Unsupported type in Prisma
   const queryParams: {
     search?: string;
-    // status?: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+    status?: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
     limit: number;
   } = {
     search: filters.search || undefined,
-    // FIXME: status filter disabled - Unsupported type in Prisma
-    // status: (filters.status === '' ? undefined : filters.status) as 'DRAFT' | 'PUBLISHED' | 'ARCHIVED' | undefined,
+    status: (filters.status === '' ? undefined : filters.status) as 'DRAFT' | 'PUBLISHED' | 'ARCHIVED' | undefined,
     limit: 50,
   };
 
@@ -123,18 +121,17 @@ export default function FlipbooksPage() {
     },
   });
 
-  // FIXME: bulkUpdateStatus mutation disabled - status field is Unsupported type in Prisma
-  // const bulkUpdateStatusMutation = api.flipbooks.bulkUpdateStatus.useMutation({
-  //   onSuccess: (result) => {
-  //     toast.success(`Updated ${result.updatedCount} flipbook(s)`);
-  //     queryClient.invalidateQueries({ queryKey: ['flipbooks'] });
-  //     utils.flipbooks.list.invalidate();
-  //     setSelectedIds(new Set());
-  //   },
-  //   onError: (error) => {
-  //     toast.error("Failed to update flipbooks: " + error.message);
-  //   },
-  // });
+  const bulkUpdateStatusMutation = api.flipbooks.bulkUpdateStatus.useMutation({
+    onSuccess: (result) => {
+      toast.success(`Updated ${result.updatedCount} flipbook(s)`);
+      queryClient.invalidateQueries({ queryKey: ['flipbooks'] });
+      utils.flipbooks.list.invalidate();
+      setSelectedIds(new Set());
+    },
+    onError: (error) => {
+      toast.error("Failed to update flipbooks: " + error.message);
+    },
+  });
 
   // Bulk duplicate mutation
   const bulkDuplicateMutation = api.flipbooks.bulkDuplicate.useMutation({
@@ -176,14 +173,13 @@ export default function FlipbooksPage() {
     bulkDeleteMutation.mutate({ ids: Array.from(selectedIds) });
   };
 
-  // FIXME: Bulk publish/archive disabled - status field is Unsupported type in Prisma
-  // const handleBulkPublish = () => {
-  //   bulkUpdateStatusMutation.mutate({ ids: Array.from(selectedIds), status: "PUBLISHED" });
-  // };
+  const handleBulkPublish = () => {
+    bulkUpdateStatusMutation.mutate({ ids: Array.from(selectedIds), status: "PUBLISHED" });
+  };
 
-  // const handleBulkArchive = () => {
-  //   bulkUpdateStatusMutation.mutate({ ids: Array.from(selectedIds), status: "ARCHIVED" });
-  // };
+  const handleBulkArchive = () => {
+    bulkUpdateStatusMutation.mutate({ ids: Array.from(selectedIds), status: "ARCHIVED" });
+  };
 
   const handleBulkDuplicate = () => {
     bulkDuplicateMutation.mutate({ ids: Array.from(selectedIds) });
@@ -198,21 +194,20 @@ export default function FlipbooksPage() {
       icon: BookOpen,
       iconColor: 'info',
     },
-    // FIXME: Published/Draft counts disabled - status field is Unsupported type in Prisma
-    // {
-    //   title: 'Published',
-    //   value: flipbooks.filter((f: any) => f.status === 'PUBLISHED').length,
-    //   description: 'Live flipbooks',
-    //   icon: Eye,
-    //   iconColor: 'success',
-    // },
-    // {
-    //   title: 'Drafts',
-    //   value: flipbooks.filter((f: any) => f.status === 'DRAFT').length,
-    //   description: 'Work in progress',
-    //   icon: Pencil,
-    //   iconColor: 'warning',
-    // },
+    {
+      title: 'Published',
+      value: flipbooks.filter((f: any) => f.status === 'PUBLISHED').length,
+      description: 'Live flipbooks',
+      icon: Eye,
+      iconColor: 'success',
+    },
+    {
+      title: 'Drafts',
+      value: flipbooks.filter((f: any) => f.status === 'DRAFT').length,
+      description: 'Work in progress',
+      icon: Pencil,
+      iconColor: 'warning',
+    },
     {
       title: 'Total Views',
       value: flipbooks.reduce((sum: number, f: any) => sum + (f.view_count || 0), 0),
@@ -389,13 +384,12 @@ export default function FlipbooksPage() {
           placeholder="Search by title or description..."
         />
 
-        {/* FIXME: Status Filter disabled - status field is Unsupported type in Prisma */}
-        {/* <TableFilters.Select
+        <TableFilters.Select
           value={rawFilters.status}
           onChange={(value) => setFilter('status', value as '' | 'DRAFT' | 'PUBLISHED' | 'ARCHIVED')}
           options={statusOptions}
           placeholder="All Statuses"
-        /> */}
+        />
       </TableFilters.Bar>
 
       {/* Bulk Actions Toolbar */}
@@ -409,8 +403,7 @@ export default function FlipbooksPage() {
               </span>
             </div>
             <div className="flex items-center gap-2">
-              {/* FIXME: Bulk publish/archive buttons disabled - status field is Unsupported type in Prisma */}
-              {/* <Button
+              <Button
                 variant="outline"
                 size="sm"
                 onClick={handleBulkPublish}
@@ -427,7 +420,7 @@ export default function FlipbooksPage() {
               >
                 <Archive className="h-4 w-4 mr-2" />
                 Archive
-              </Button> */}
+              </Button>
               <Button
                 variant="outline"
                 size="sm"

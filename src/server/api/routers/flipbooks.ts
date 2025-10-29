@@ -35,8 +35,7 @@ const updateFlipbookInput = z.object({
   title: z.string().min(1).max(255).optional(),
   description: z.string().optional(),
   pdf_source_url: z.string().url().optional(),
-  // FIXME: status field is Unsupported("flipbook_status") in Prisma schema - cannot be used
-  // status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]).optional(),
+  status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]).optional(),
 });
 
 const getFlipbookInput = z.object({
@@ -46,8 +45,7 @@ const getFlipbookInput = z.object({
 const listFlipbooksInput = z.object({
   limit: z.number().min(1).max(100).default(20),
   cursor: z.string().uuid().optional(),
-  // FIXME: status field is Unsupported("flipbook_status") in Prisma schema - cannot be used
-  // status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]).optional(),
+  status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]).optional(),
   search: z.string().optional(),
 });
 
@@ -118,9 +116,7 @@ export const flipbooksRouter = createTRPCRouter({
     .input(listFlipbooksInput)
     .query(async ({ ctx, input }) => {
       try {
-        const { limit, cursor, search } = input;
-        // FIXME: status removed - Unsupported type in Prisma
-        // const { limit, cursor, status, search } = input;
+        const { limit, cursor, status, search } = input;
 
         console.log('[FLIPBOOKS] Starting list query', { userId: ctx.session.user.id, limit, search });
 
@@ -141,10 +137,9 @@ export const flipbooksRouter = createTRPCRouter({
           created_by_id: ctx.session.user.id,
         };
 
-        // FIXME: status filter removed - Unsupported type in Prisma
-        // if (status) {
-        //   where.status = status;
-        // }
+        if (status) {
+          where.status = status;
+        }
 
         // Case-insensitive search on title and description
         if (search) {
@@ -446,8 +441,7 @@ export const flipbooksRouter = createTRPCRouter({
           description: input.description,
           created_by_id: ctx.session.user.id,
           pdf_source_url: input.pdf_source_url,
-          // FIXME: status field removed - Unsupported type in Prisma
-          // status: "DRAFT",
+          status: "DRAFT",
         });
 
         const flipbook = await ctx.db.flipbooks.create({
@@ -456,8 +450,7 @@ export const flipbooksRouter = createTRPCRouter({
             description: input.description,
             created_by_id: ctx.session.user.id,
             pdf_source_url: input.pdf_source_url,
-            // FIXME: status field removed - Unsupported type in Prisma, cannot be set
-            // status: "DRAFT",
+            status: "DRAFT",
           },
           include: {
             user_profiles: {
@@ -514,17 +507,15 @@ export const flipbooksRouter = createTRPCRouter({
         });
       }
 
-      // FIXME: Unsupported type - cannot use status field for published_at logic
       // Update published_at if status changes to PUBLISHED
-      // NOTE: Cannot check existing.status or data.status (Unsupported type)
-      // const updateData: any = { ...data };
-      // if (data.status === "PUBLISHED") {
-      //   updateData.published_at = new Date();
-      // }
+      const updateData: any = { ...data };
+      if (data.status === "PUBLISHED") {
+        updateData.published_at = new Date();
+      }
 
       const flipbook = await ctx.db.flipbooks.update({
         where: { id },
-        data,
+        data: updateData,
         include: {
           user_profiles: {
             select: {
@@ -2053,45 +2044,44 @@ export const flipbooksRouter = createTRPCRouter({
    * Bulk update status
    * Updates status for multiple flipbooks at once with permission checks
    */
-  // FIXME: bulkUpdateStatus disabled - status field is Unsupported type in Prisma
-  // bulkUpdateStatus: protectedProcedure
-  //   .input(z.object({
-  //     ids: z.array(z.string().uuid()).min(1).max(50),
-  //     status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]),
-  //   }))
-  //   .mutation(async ({ ctx, input }) => {
-  //     // Permission check: ensure user owns all flipbooks
-  //     const flipbooks = await ctx.db.flipbooks.findMany({
-  //       where: { id: { in: input.ids } },
-  //       select: { id: true, created_by_id: true },
-  //     });
-  //
-  //     const unauthorized = flipbooks.filter(
-  //       f => f.created_by_id !== ctx.session.user.id
-  //     );
-  //
-  //     if (unauthorized.length > 0) {
-  //       throw new TRPCError({
-  //         code: "FORBIDDEN",
-  //         message: `You do not have permission to update ${unauthorized.length} of the selected flipbooks`,
-  //       });
-  //     }
-  //
-  //     // Bulk update status (updateMany not supported by wrapper, using Promise.all with individual updates)
-  //     await Promise.all(
-  //       input.ids.map((id) =>
-  //         ctx.db.flipbooks.update({
-  //           where: { id },
-  //           data: {
-  //             status: input.status,
-  //             updated_at: new Date(),
-  //           },
-  //         })
-  //       )
-  //     );
-  //
-  //     return { updatedCount: input.ids.length };
-  //   }),
+  bulkUpdateStatus: protectedProcedure
+    .input(z.object({
+      ids: z.array(z.string().uuid()).min(1).max(50),
+      status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // Permission check: ensure user owns all flipbooks
+      const flipbooks = await ctx.db.flipbooks.findMany({
+        where: { id: { in: input.ids } },
+        select: { id: true, created_by_id: true },
+      });
+
+      const unauthorized = flipbooks.filter(
+        f => f.created_by_id !== ctx.session.user.id
+      );
+
+      if (unauthorized.length > 0) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: `You do not have permission to update ${unauthorized.length} of the selected flipbooks`,
+        });
+      }
+
+      // Bulk update status (updateMany not supported by wrapper, using Promise.all with individual updates)
+      await Promise.all(
+        input.ids.map((id) =>
+          ctx.db.flipbooks.update({
+            where: { id },
+            data: {
+              status: input.status,
+              updated_at: new Date(),
+            },
+          })
+        )
+      );
+
+      return { updatedCount: input.ids.length };
+    }),
 
   /**
    * Bulk duplicate flipbooks
@@ -2200,8 +2190,7 @@ export const flipbooksRouter = createTRPCRouter({
           data: {
             title: `${flipbook.title} (Copy)`,
             description: flipbook.description,
-            // FIXME: status field removed - Unsupported type in Prisma, cannot be set
-            // status: "DRAFT", // Always start as draft
+            status: "DRAFT", // Always start as draft
             pdf_source_url: flipbook.pdf_source_url,
             page_count: flipbook.page_count, // Fixed: was total_pages
             created_by_id: ctx.session.user.id,

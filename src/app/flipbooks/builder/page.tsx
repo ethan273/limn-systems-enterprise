@@ -53,8 +53,7 @@ function FlipbookBuilderContent() {
   const [pendingHotspot, setPendingHotspot] = useState<any>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  // FIXME: status state disabled - status field is Unsupported type in Prisma
-  // const [status, setStatus] = useState<"DRAFT" | "PUBLISHED" | "ARCHIVED">("DRAFT");
+  const [status, setStatus] = useState<"DRAFT" | "PUBLISHED" | "ARCHIVED">("DRAFT");
 
   // Query flipbook if editing
   const { data: flipbook, isLoading, error } = api.flipbooks.get.useQuery(
@@ -173,8 +172,7 @@ function FlipbookBuilderContent() {
       id: flipbookId,
       title,
       description,
-      // FIXME: status removed - Unsupported type in Prisma
-      // status,
+      status,
     });
   };
 
@@ -570,8 +568,7 @@ function FlipbookBuilderContent() {
                   placeholder="Brief description"
                 />
               </div>
-              {/* FIXME: Status dropdown disabled - status field is Unsupported type in Prisma */}
-              {/* <div>
+              <div>
                 <label className="text-sm font-medium">Status</label>
                 <Select value={status} onValueChange={(value) => setStatus(value as any)}>
                   <SelectTrigger className="w-full mt-1">
@@ -583,7 +580,7 @@ function FlipbookBuilderContent() {
                     <SelectItem value="ARCHIVED">Archived</SelectItem>
                   </SelectContent>
                 </Select>
-              </div> */}
+              </div>
             </div>
           </div>
 

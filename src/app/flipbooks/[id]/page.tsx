@@ -160,12 +160,11 @@ export default function FlipbookViewerPage({
         <div className="bg-card rounded-lg border p-4 mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
-              {/* FIXME: status badge disabled - status field is Unsupported type in Prisma */}
-              {/* <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 <Badge variant="outline" className={statusColors[flipbook.status]}>
                   {flipbook.status}
                 </Badge>
-              </div> */}
+              </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <BookOpen className="h-4 w-4" />
                 <span>{flipbook.page_count || 0} pages</span>
@@ -289,15 +288,14 @@ export default function FlipbookViewerPage({
               <dt className="text-muted-foreground">Created by</dt>
               <dd className="font-medium">{flipbook.user_profiles?.full_name || 'Unknown'}</dd>
             </div>
-            {/* FIXME: status display disabled - status field is Unsupported type in Prisma */}
-            {/* <div className="flex justify-between">
+            <div className="flex justify-between">
               <dt className="text-muted-foreground">Status</dt>
               <dd>
                 <Badge variant="outline" className={statusColors[flipbook.status]}>
                   {flipbook.status}
                 </Badge>
               </dd>
-            </div> */}
+            </div>
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Total Views</dt>
               <dd className="font-medium">{flipbook.view_count || 0}</dd>
