@@ -1176,3 +1176,233 @@ When modifying portal endpoints, verify:
 **Compliance**: All portal endpoint code MUST follow these patterns
 **Violations**: Will cause test failures and block non-customer portals
 **Reference**: [Main CLAUDE.md](../CLAUDE.md) | [Session Documentation](/Users/eko3/limn-systems-enterprise-docs/00-SESSION-START/2025-10-28-GITHUB-ACTIONS-TEST-FIXES.md)
+
+---
+
+## Admin Authorization Testing Pattern
+
+**CRITICAL**: October 28, 2025 fix
+
+### The Problem
+
+E2E test `"employee CANNOT access /admin routes (redirected to /dashboard)"` was failing because:
+1. Test user `dev-user@limn.us.com` had **stale admin permissions** in database
+2. Test setup (tests/global-setup.ts) did NOT update existing users' permissions
+3. Middleware was working correctly, but test data was incorrect
+
+### Root Cause
+
+**Test Global Setup Issue**:
+```typescript
+// ❌ WRONG: Only sets permissions on CREATE, not UPDATE
+await prisma.user_profiles.upsert({
+  where: { id: userId },
+  update: {},  // Empty update = permissions never cleaned up!
+  create: {
+    user_type: testUser.userType,
+    // ...
+  },
+});
+```
+
+**Result**: Test users kept old admin permissions from previous test runs, causing:
+- Non-admin test users to have admin access
+- Tests expecting redirect to fail
+- Confusion about whether middleware was working
+
+### The Solution
+
+#### 1. Update Test Global Setup to Clean Permissions
+
+**File**: `tests/global-setup.ts`
+
+```typescript
+// ✅ CORRECT: Always update user_type to match test expectations
+await prisma.user_profiles.upsert({
+  where: { id: userId },
+  update: {
+    user_type: testUser.userType,  // Update existing users!
+    first_name: testUser.firstName,
+    last_name: testUser.lastName,
+  },
+  create: {
+    id: userId,
+    email: testUser.email,
+    user_type: testUser.userType,
+    first_name: testUser.firstName,
+    last_name: testUser.lastName,
+    created_at: new Date(),
+  },
+});
+
+// ✅ CORRECT: Manage user_roles based on test user type
+if (testUser.email === 'admin@test.com') {
+  // Admin user: ensure they have admin role
+  await prisma.user_roles.upsert({
+    where: {
+      user_id_role: {
+        user_id: userId,
+        role: 'admin',
+      },
+    },
+    update: {
+      is_active: true,  // Ensure role is active
+    },
+    create: {
+      user_id: userId,
+      role: 'admin',
+      is_active: true,
+    },
+  });
+} else {
+  // Non-admin users: remove any admin/super_admin roles
+  await prisma.user_roles.deleteMany({
+    where: {
+      user_id: userId,
+      role: {
+        in: ['admin', 'super_admin'],
+      },
+    },
+  });
+}
+```
+
+#### 2. Middleware Already Correct
+
+**File**: `src/middleware.ts:316-381`
+
+The middleware was already working correctly:
+- ✅ Checks `user_roles` table for admin/super_admin roles
+- ✅ Falls back to `user_type` field for backward compatibility
+- ✅ Redirects non-admin users to `/dashboard`
+
+**No middleware changes needed** - it was doing the right thing all along.
+
+#### 3. Admin Layout Should NOT Duplicate Middleware
+
+**File**: `src/app/admin/layout.tsx`
+
+```typescript
+// ❌ WRONG: Duplicating middleware authorization
+export default async function AdminLayout({ children }) {
+  const user = await getUser();
+  if (!user) redirect('/login');
+
+  // Don't duplicate what middleware already does!
+  const userRoles = await prisma.user_roles.findMany({
+    where: { user_id: user.id }
+  });
+  if (!isAdmin) redirect('/dashboard');
+
+  return <>{children}</>;
+}
+
+// ✅ CORRECT: Let middleware handle authorization
+export default async function AdminLayout({ children }) {
+  // NOTE: Admin authorization is handled by middleware.ts (lines 316-381)
+  // Middleware checks user_roles table for admin/super_admin roles
+  // and redirects non-admin users to /dashboard before this layout runs
+
+  return (
+    <>
+      <ServiceWorkerUpdater />
+      <div className="app-layout">
+        <Sidebar />
+        <div className="main-content-wrapper">
+          <Header />
+          <main className="main-content">{children}</main>
+        </div>
+      </div>
+    </>
+  );
+}
+```
+
+**Why**: Server-side authorization in layouts is:
+- Redundant with middleware
+- Can cause hydration issues
+- Adds unnecessary database queries
+
+### Verification
+
+**Test Result**: ✅ PASSED
+```bash
+npx playwright test tests/00-comprehensive-auth-security.spec.ts:279
+
+✓ employee CANNOT access /admin routes (redirected to /dashboard) (7.4s)
+1 passed (19.4s)
+```
+
+**GitHub Actions**: ✅ ALL PASSED
+- Schema Validation workflow: ✅ SUCCESS
+- Comprehensive Testing workflow: ✅ SUCCESS
+
+### Best Practices for Test User Setup
+
+#### 1. Always Update, Not Just Create
+
+```typescript
+// ✅ GOOD: Update existing test users
+await prisma.user_profiles.upsert({
+  where: { id: userId },
+  update: {
+    user_type: testUser.userType,  // Critical!
+  },
+  create: { /* ... */ },
+});
+```
+
+#### 2. Clean Up Permissions for Non-Admin Users
+
+```typescript
+// ✅ GOOD: Remove stale admin roles
+await prisma.user_roles.deleteMany({
+  where: {
+    user_id: userId,
+    role: { in: ['admin', 'super_admin'] },
+  },
+});
+```
+
+#### 3. Ensure Admin Users Have Active Roles
+
+```typescript
+// ✅ GOOD: Make sure admin role is active
+await prisma.user_roles.upsert({
+  where: {
+    user_id_role: { user_id: userId, role: 'admin' },
+  },
+  update: { is_active: true },
+  create: { user_id: userId, role: 'admin', is_active: true },
+});
+```
+
+### Enforcement Rules
+
+1. **ALWAYS** update `user_type` in global setup upsert operations
+2. **ALWAYS** clean up admin roles for non-admin test users
+3. **NEVER** duplicate middleware authorization in layouts
+4. **ALWAYS** run E2E tests after modifying test setup
+5. **ALWAYS** check for stale test data when tests fail unexpectedly
+
+### Key Files
+
+**Test Setup**:
+- `tests/global-setup.ts:143-195` - User profile and role management
+
+**Middleware**:
+- `src/middleware.ts:316-381` - Admin authorization check (already correct)
+
+**Admin Layout**:
+- `src/app/admin/layout.tsx` - Now correctly delegates to middleware
+
+**Tests**:
+- `tests/00-comprehensive-auth-security.spec.ts:279-290` - Admin authorization test
+
+---
+
+**Status**: ✅ FIXED as of October 28, 2025 (commit ed6f2f2)
+**Issue**: Stale test data causing E2E test failures
+**Solution**: Updated test global setup to clean permissions
+**Verification**: All tests passing locally and in GitHub Actions
+**Reference**: [Main CLAUDE.md](../CLAUDE.md)
