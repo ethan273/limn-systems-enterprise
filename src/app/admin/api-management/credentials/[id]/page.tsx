@@ -72,7 +72,7 @@ export default function ApiCredentialDetailPage() {
             <ArrowLeft className="h-4 w-4 mr-2" />Back
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">{credential.credential_name}</h1>
+            <h1 className="text-3xl font-bold">{credential.display_name}</h1>
             <p className="text-muted-foreground">API Credential Details</p>
           </div>
         </div>
@@ -86,14 +86,14 @@ export default function ApiCredentialDetailPage() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h3 className="text-sm font-medium text-muted-foreground mb-1">Credential Name</h3>
+              <h3 className="text-sm font-medium text-muted-foreground mb-1">Service Name</h3>
               <p className="text-base flex items-center gap-2">
-                <Key className="h-4 w-4" />{credential.credential_name}
+                <Key className="h-4 w-4" />{credential.service_name}
               </p>
             </div>
             <div>
-              <h3 className="text-sm font-medium text-muted-foreground mb-1">API Key</h3>
-              <p className="text-base font-mono text-xs">{credential.api_key?.substring(0, 20)}...</p>
+              <h3 className="text-sm font-medium text-muted-foreground mb-1">Credential Type</h3>
+              <p className="text-base">{credential.credential_type}</p>
             </div>
             {credential.scopes && (
               <div className="col-span-2">

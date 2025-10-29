@@ -236,33 +236,33 @@ export default function EmailCampaignDetailPage() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="flex flex-col items-center p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
-              <Mail className="h-8 w-8 text-blue-600 mb-2" />
+            <div className="flex flex-col items-center p-4 bg-accent rounded-lg">
+              <Mail className="h-8 w-8 text-primary mb-2" />
               <p className="text-2xl font-bold">{campaign.sent_count?.toLocaleString() || 0}</p>
               <p className="text-sm text-muted-foreground">Sent</p>
             </div>
-            <div className="flex flex-col items-center p-4 bg-green-50 dark:bg-green-950 rounded-lg">
-              <Eye className="h-8 w-8 text-green-600 mb-2" />
+            <div className="flex flex-col items-center p-4 bg-accent rounded-lg">
+              <Eye className="h-8 w-8 text-primary mb-2" />
               <p className="text-2xl font-bold">{campaign.open_count?.toLocaleString() || 0}</p>
               <p className="text-sm text-muted-foreground">Opens ({openRate}%)</p>
             </div>
-            <div className="flex flex-col items-center p-4 bg-purple-50 dark:bg-purple-950 rounded-lg">
-              <MousePointer className="h-8 w-8 text-purple-600 mb-2" />
+            <div className="flex flex-col items-center p-4 bg-accent rounded-lg">
+              <MousePointer className="h-8 w-8 text-primary mb-2" />
               <p className="text-2xl font-bold">{campaign.click_count?.toLocaleString() || 0}</p>
               <p className="text-sm text-muted-foreground">Clicks ({clickRate}%)</p>
             </div>
-            <div className="flex flex-col items-center p-4 bg-red-50 dark:bg-red-950 rounded-lg">
-              <XCircle className="h-8 w-8 text-red-600 mb-2" />
+            <div className="flex flex-col items-center p-4 bg-accent rounded-lg">
+              <XCircle className="h-8 w-8 text-destructive mb-2" />
               <p className="text-2xl font-bold">{campaign.bounce_count?.toLocaleString() || 0}</p>
               <p className="text-sm text-muted-foreground">Bounces ({bounceRate}%)</p>
             </div>
           </div>
 
           {campaign.unsubscribe_count !== null && campaign.unsubscribe_count > 0 && (
-            <div className="mt-6 p-4 bg-orange-50 dark:bg-orange-950 rounded-lg">
+            <div className="mt-6 p-4 bg-accent rounded-lg">
               <div className="flex items-center gap-2">
-                <User className="h-5 w-5 text-orange-600" />
-                <span className="font-semibold text-orange-900 dark:text-orange-100">
+                <User className="h-5 w-5 text-primary" />
+                <span className="font-semibold">
                   {campaign.unsubscribe_count} Unsubscribe{campaign.unsubscribe_count !== 1 ? "s" : ""}
                 </span>
               </div>

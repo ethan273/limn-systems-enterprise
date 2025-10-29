@@ -101,17 +101,17 @@ export default function DocumentDetailPage() {
 
   // Get document type badge
   const getTypeBadge = (type: string) => {
-    const typeMap: Record<string, { label: string; className: string }> = {
-      image: { label: "Image", className: "bg-blue-100 text-blue-800 border-blue-300" },
-      pdf: { label: "PDF", className: "bg-red-100 text-red-800 border-red-300" },
-      document: { label: "Document", className: "bg-green-100 text-green-800 border-green-300" },
-      spreadsheet: { label: "Spreadsheet", className: "bg-purple-100 text-purple-800 border-purple-300" },
-      other: { label: "Other", className: "bg-gray-100 text-gray-800 border-gray-300" },
+    const typeMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+      image: { label: "Image", variant: "default" },
+      pdf: { label: "PDF", variant: "destructive" },
+      document: { label: "Document", variant: "default" },
+      spreadsheet: { label: "Spreadsheet", variant: "secondary" },
+      other: { label: "Other", variant: "outline" },
     };
 
-    const info = typeMap[type] || { label: type, className: "bg-gray-100 text-gray-800" };
+    const info = typeMap[type] || { label: type, variant: "outline" as const };
     return (
-      <Badge variant="outline" className={info.className}>
+      <Badge variant={info.variant}>
         {info.label}
       </Badge>
     );
@@ -145,7 +145,7 @@ export default function DocumentDetailPage() {
         <div className="flex gap-2">
           {document.document_type && getTypeBadge(document.document_type)}
           {document.is_primary_image && (
-            <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">
+            <Badge variant="outline">
               Primary Image
             </Badge>
           )}

@@ -112,16 +112,16 @@ export default function PackingListDetailPage() {
 
   // Get status badge
   const getStatusBadge = (status: string) => {
-    const statusMap: Record<string, { label: string; className: string }> = {
-      pending: { label: "Pending", className: "bg-yellow-100 text-yellow-800 border-yellow-300" },
-      in_progress: { label: "In Progress", className: "bg-blue-100 text-blue-800 border-blue-300" },
-      packed: { label: "Packed", className: "bg-green-100 text-green-800 border-green-300" },
-      shipped: { label: "Shipped", className: "bg-purple-100 text-purple-800 border-purple-300" },
+    const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+      pending: { label: "Pending", variant: "secondary" },
+      in_progress: { label: "In Progress", variant: "default" },
+      packed: { label: "Packed", variant: "default" },
+      shipped: { label: "Shipped", variant: "outline" },
     };
 
-    const info = statusMap[status] || { label: status, className: "bg-gray-100 text-gray-800" };
+    const info = statusMap[status] || { label: status, variant: "outline" as const };
     return (
-      <Badge variant="outline" className={info.className}>
+      <Badge variant={info.variant}>
         {info.label}
       </Badge>
     );
@@ -129,15 +129,15 @@ export default function PackingListDetailPage() {
 
   // Get priority badge
   const getPriorityBadge = (priority: string) => {
-    const priorityMap: Record<string, { label: string; className: string }> = {
-      low: { label: "Low", className: "bg-gray-100 text-gray-800 border-gray-300" },
-      normal: { label: "Normal", className: "bg-blue-100 text-blue-800 border-blue-300" },
-      high: { label: "High", className: "bg-red-100 text-red-800 border-red-300" },
+    const priorityMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+      low: { label: "Low", variant: "outline" },
+      normal: { label: "Normal", variant: "default" },
+      high: { label: "High", variant: "destructive" },
     };
 
-    const info = priorityMap[priority] || { label: priority, className: "bg-gray-100 text-gray-800" };
+    const info = priorityMap[priority] || { label: priority, variant: "outline" as const };
     return (
-      <Badge variant="outline" className={info.className}>
+      <Badge variant={info.variant}>
         {info.label}
       </Badge>
     );
@@ -197,9 +197,9 @@ export default function PackingListDetailPage() {
                   {job.packed_quantity} / {job.quantity} packed ({packingProgress}%)
                 </p>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+              <div className="w-full bg-secondary rounded-full h-2 mt-2">
                 <div
-                  className="bg-green-600 h-2 rounded-full"
+                  className="bg-primary h-2 rounded-full"
                   style={{ width: `${packingProgress}%` }}
                 ></div>
               </div>
@@ -268,12 +268,12 @@ export default function PackingListDetailPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-orange-600" />
+              <AlertCircle className="h-5 w-5 text-primary" />
               Special Instructions
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="p-4 bg-orange-50 dark:bg-orange-950 rounded-lg">
+            <div className="p-4 bg-accent rounded-lg">
               <p className="text-base whitespace-pre-wrap">{job.special_instructions}</p>
             </div>
           </CardContent>

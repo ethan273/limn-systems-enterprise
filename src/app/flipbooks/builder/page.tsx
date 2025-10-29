@@ -8,6 +8,13 @@ import { useEffect, useState, Suspense } from "react";
 import { api } from "@/lib/api/client";
 import { ArrowLeft, Save, Eye, FileText, Image as ImageIcon, AlertTriangle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { PageHeader, LoadingState, EmptyState } from "@/components/common";
 import { FileUploader } from "@/components/flipbooks/FileUploader";
 import { PageCanvas } from "@/components/flipbooks/PageCanvas";

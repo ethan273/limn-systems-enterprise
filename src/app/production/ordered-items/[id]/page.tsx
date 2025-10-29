@@ -103,18 +103,18 @@ export default function OrderedItemDetailPage() {
 
   // Get status badge
   const getStatusBadge = (status: string) => {
-    const statusMap: Record<string, { label: string; className: string }> = {
-      pending: { label: "Pending", className: "bg-yellow-100 text-yellow-800 border-yellow-300" },
-      in_production: { label: "In Production", className: "bg-blue-100 text-blue-800 border-blue-300" },
-      qc_passed: { label: "QC Passed", className: "bg-green-100 text-green-800 border-green-300" },
-      qc_failed: { label: "QC Failed", className: "bg-red-100 text-red-800 border-red-300" },
-      packed: { label: "Packed", className: "bg-purple-100 text-purple-800 border-purple-300" },
-      shipped: { label: "Shipped", className: "bg-indigo-100 text-indigo-800 border-indigo-300" },
+    const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+      pending: { label: "Pending", variant: "secondary" },
+      in_production: { label: "In Production", variant: "default" },
+      qc_passed: { label: "QC Passed", variant: "default" },
+      qc_failed: { label: "QC Failed", variant: "destructive" },
+      packed: { label: "Packed", variant: "outline" },
+      shipped: { label: "Shipped", variant: "outline" },
     };
 
-    const info = statusMap[status] || { label: status, className: "bg-gray-100 text-gray-800" };
+    const info = statusMap[status] || { label: status, variant: "outline" as const };
     return (
-      <Badge variant="outline" className={info.className}>
+      <Badge variant={info.variant}>
         {info.label}
       </Badge>
     );
@@ -143,7 +143,7 @@ export default function OrderedItemDetailPage() {
         <div className="flex gap-2">
           {getStatusBadge(item.status)}
           {item.qc_status && (
-            <Badge variant="outline" className="bg-blue-50 text-blue-800">
+            <Badge variant="secondary">
               QC: {item.qc_status}
             </Badge>
           )}

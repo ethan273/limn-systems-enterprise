@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
 import { ArrowLeft, Edit, Eye, BookOpen, Maximize2, AlertTriangle, RefreshCw, Code } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { LoadingState, PageHeader, EmptyState } from "@/components/common";
 import { formatDistanceToNow } from "date-fns";
