@@ -8706,3 +8706,60 @@ enum user_type_enum {
 
   @@schema("public")
 }
+
+// Order System Enums (Phase 1 - Order System 100% Production Ready)
+enum order_status_enum {
+  draft
+  pending
+  confirmed
+  deposit_paid
+  sent_to_production
+  completed
+  freight_on_board
+  final_invoice_sent
+  cancelled
+
+  @@schema("public")
+}
+
+enum production_order_status_enum {
+  awaiting_deposit
+  deposit_paid
+  in_production
+  qc
+  packing
+  freight_on_board
+  shipped
+  delivered
+  cancelled
+
+  @@schema("public")
+}
+
+enum payment_status_enum {
+  pending
+  partial
+  paid
+  refunded
+  overdue
+
+  @@schema("public")
+}
+
+enum order_priority_enum {
+  low
+  normal
+  high
+  urgent
+
+  @@schema("public")
+}
+
+enum order_type_enum {
+  standard
+  custom
+  rush
+  sample
+
+  @@schema("public")
+}
