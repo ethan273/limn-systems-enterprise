@@ -127,7 +127,7 @@ export function PortalModuleConfigDialog({
   const entityList = portalType === 'customer' ? customers : partners;
 
   const portalTypeLabels = {
-    customer: 'Customer',
+    customer: 'Client',
     designer: 'Designer',
     factory: 'Factory',
     qc: 'QC',

@@ -16,7 +16,7 @@
  * ```tsx
  * <Breadcrumbs
  *   items={[
- *     { label: 'Customers', href: '/crm/customers', icon: Users },
+ *     { label: 'Clients', href: '/crm/customers', icon: Users },
  *     { label: 'John Doe' }, // current page, no href
  *   ]}
  * />

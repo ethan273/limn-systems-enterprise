@@ -26,7 +26,7 @@ interface QuickBooksWebhookPayload {
     realmId: string;
     dataChangeEvent: {
       entities: Array<{
-        name: string; // e.g., "Invoice", "Payment", "Customer"
+        name: string; // e.g., "Invoice", "Payment", "Client"
         id: string; // QuickBooks entity ID
         operation: 'Create' | 'Update' | 'Delete' | 'Merge' | 'Void';
         lastUpdated: string; // ISO 8601 timestamp

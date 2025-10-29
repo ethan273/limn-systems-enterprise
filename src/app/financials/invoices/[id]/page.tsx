@@ -282,7 +282,7 @@ export default function InvoiceDetailPage({ params }: PageProps) {
               title="Invoice Details"
               items={[
                 { label: 'Invoice ID', value: invoice.id },
-                { label: 'Customer', value: customer?.company_name || customer?.name || "N/A" },
+                { label: 'Client', value: customer?.company_name || customer?.name || "N/A" },
                 { label: 'Project', value: project?.project_name || "N/A" },
                 { label: 'Created Date', value: format(new Date(invoice.created_at), "MMM dd, yyyy") },
               ]}

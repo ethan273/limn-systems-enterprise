@@ -31,7 +31,7 @@ export function WithHomeBreadcrumbsExample() {
     <Breadcrumbs
       items={[
         { label: 'CRM', href: '/crm' },
-        { label: 'Customers', href: '/crm/customers' },
+        { label: 'Clients', href: '/crm/customers' },
         { label: 'John Doe' }, // current page
       ]}
     />
@@ -46,7 +46,7 @@ export function WithIconsBreadcrumbsExample() {
     <Breadcrumbs
       items={[
         { label: 'CRM', href: '/crm', icon: Building2 },
-        { label: 'Customers', href: '/crm/customers', icon: Users },
+        { label: 'Clients', href: '/crm/customers', icon: Users },
         { label: 'John Doe', icon: User }, // current page
       ]}
     />
@@ -106,7 +106,7 @@ export function CRMCustomerDetailBreadcrumbs() {
     <Breadcrumbs
       items={[
         { label: 'CRM', href: '/crm' },
-        { label: 'Customers', href: '/crm/customers', icon: Users },
+        { label: 'Clients', href: '/crm/customers', icon: Users },
         { label: 'Acme Corporation' }, // current customer detail page
       ]}
     />
@@ -136,7 +136,7 @@ export function ConditionalBreadcrumbsExample({ customerId, customerName }: { cu
     <Breadcrumbs
       items={[
         { label: 'CRM', href: '/crm' },
-        { label: 'Customers', href: '/crm/customers', icon: Users },
+        { label: 'Clients', href: '/crm/customers', icon: Users },
         { label: customerName, href: `/crm/customers/${customerId}` },
         { label: 'Edit' }, // current page
       ]}

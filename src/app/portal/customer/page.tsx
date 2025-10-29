@@ -80,7 +80,7 @@ export default function CustomerPortalPage() {
     return (
       <div className="page-container">
         <PageHeader
-          title="Customer Portal"
+          title="Client Portal"
           subtitle="Track your orders, manage payments, and view shipment status"
         />
         <EmptyState

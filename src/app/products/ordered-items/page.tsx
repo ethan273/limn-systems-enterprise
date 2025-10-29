@@ -818,7 +818,7 @@ export default function OrderedItemsPage() {
               <TableRow>
                 <TableHead>Product</TableHead>
                 <TableHead>Order</TableHead>
-                <TableHead>Customer</TableHead>
+                <TableHead>Client</TableHead>
                 <TableHead>Collection</TableHead>
                 <TableHead>Quantity</TableHead>
                 <TableHead>Unit Price</TableHead>

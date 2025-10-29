@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
         userId: '550e8400-e29b-41d4-a716-446655440002',
         profile: {
           name: 'Customer User',
-          first_name: 'Customer',
+          first_name: 'Client',
           last_name: 'User',
           user_type: 'customer',
           department: null,

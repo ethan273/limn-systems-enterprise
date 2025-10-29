@@ -359,7 +359,7 @@ export default function RevenueAnalyticsPage() {
               <table>
                 <thead>
                   <tr>
-                    <th>Customer</th>
+                    <th>Client</th>
                     <th>Revenue</th>
                     <th>Invoices</th>
                   </tr>

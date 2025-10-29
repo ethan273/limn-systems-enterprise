@@ -88,7 +88,7 @@ export default function CRMPage() {
           iconColor="primary"
         />
         <DashboardStatCard
-          title="Customers"
+          title="Clients"
           value={metrics.totalCustomers.toString()}
           icon={Building2}
           iconColor="success"

@@ -256,7 +256,7 @@ export default function CRMOrdersPage() {
  <TableRow>
  <TableHead className="w-12"></TableHead>
  <TableHead>Order Number</TableHead>
- <TableHead>Customer</TableHead>
+ <TableHead>Client</TableHead>
  <TableHead>Project</TableHead>
  <TableHead>Items</TableHead>
  <TableHead>Total Amount</TableHead>

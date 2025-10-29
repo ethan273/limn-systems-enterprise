@@ -49,7 +49,7 @@ export interface InfoCardProps {
  * @example
  * ```tsx
  * <InfoCard
- *   title="Customer Information"
+ *   title="Client Information"
  *   subtitle="Contact details and status"
  *   icon={User}
  *   items={[

@@ -576,7 +576,7 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
 
             {/* Customer Information */}
             <InfoCard
-              title="Customer Information"
+              title="Client Information"
               items={customer ? [
                 { label: 'Name', value: getFullName(customer) || '—' },
                 { label: 'Company', value: customer.company || '—' },

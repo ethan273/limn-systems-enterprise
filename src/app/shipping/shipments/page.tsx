@@ -171,7 +171,7 @@ export default function ShipmentsPage() {
     },
     {
       key: "customer",
-      label: "Customer",
+      label: "Client",
       render: (_, row) => {
         const orders = row.orders as any;
         return orders?.customers ? (

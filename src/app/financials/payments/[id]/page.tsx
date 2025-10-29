@@ -228,7 +228,7 @@ export default function PaymentDetailPage({ params }: PageProps) {
           title="Additional Information"
           items={[
             { label: 'Status', value: <StatusBadge status={payment.status} /> },
-            { label: 'Customer', value: customer?.company_name || customer?.name || "N/A" },
+            { label: 'Client', value: customer?.company_name || customer?.name || "N/A" },
             { label: 'Notes', value: payment.notes || "No notes" },
           ]}
         />
@@ -246,7 +246,7 @@ export default function PaymentDetailPage({ params }: PageProps) {
                 <thead>
                   <tr className="border-b">
                     <th className="text-left p-2">Invoice</th>
-                    <th className="text-left p-2 hidden sm:table-cell">Customer</th>
+                    <th className="text-left p-2 hidden sm:table-cell">Client</th>
                     <th className="text-right p-2">Allocated Amount</th>
                     <th className="text-left p-2 hidden md:table-cell">Allocation Date</th>
                   </tr>

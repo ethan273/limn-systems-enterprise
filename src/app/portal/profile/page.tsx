@@ -165,7 +165,7 @@ export default function PortalProfilePage() {
 
   // Get portal type display
   const portalTypeDisplay = {
-    customer: 'Customer',
+    customer: 'Client',
     designer: 'Designer',
     factory: 'Factory',
     qc: 'QC Tester',

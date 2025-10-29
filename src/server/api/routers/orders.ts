@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import { createCrudRouter } from '../utils/crud-generator';
 import { createTRPCRouter, publicProcedure } from '../trpc/init';
-import { getSupabaseAdmin } from '@/lib/supabase';
 import { generateProjectSku } from '@/lib/utils/project-sku-generator';
 import { generateFullSku } from '@/lib/utils/full-sku-generator';
 import { createFullName } from '@/lib/utils/name-utils';
@@ -283,68 +282,73 @@ export const ordersRouter = createTRPCRouter({
       order_data: createOrderSchema.omit({ customer_id: true, project_id: true }),
     }))
     .mutation(async ({ ctx, input }) => {
-      let projectId = input.project_id;
+      // PHASE 3: Use Prisma transaction to ensure atomicity
+      const result = await ctx.db.$transaction(async (tx) => {
+        let projectId = input.project_id;
 
-      // If no project specified, find or create default project
-      if (!projectId) {
-        // Note: findFirst not supported by wrapper, using findMany
-        const existingProject = (await ctx.db.projects.findMany({
-          where: {
-            customer_id: input.customer_id,
-            status: { in: ['planning', 'active'] },
-          },
-          orderBy: { created_at: 'desc' },
-          take: 1,
-        }))[0];
-
-        if (existingProject) {
-          projectId = existingProject.id;
-        } else {
-          // Create a default project
-          const customer = await ctx.db.customers.findUnique({
-            where: { id: input.customer_id },
-          });
-
-          if (!customer) {
-            throw new Error('Customer not found');
-          }
-
-          const customerName = createFullName(customer.first_name || '', customer.last_name || undefined);
-          const newProject = await ctx.db.projects.create({
-            data: {
+        // If no project specified, find or create default project
+        if (!projectId) {
+          // Note: findFirst not supported by wrapper, using findMany
+          const existingProject = (await tx.projects.findMany({
+            where: {
               customer_id: input.customer_id,
-              name: `${customerName} - New Project`,
-              status: 'active',
-              description: 'Auto-created project for new order',
-              user_id: ctx.session?.user?.id || input.customer_id,
-              created_by: ctx.session?.user?.id || input.customer_id,
+              status: { in: ['planning', 'active'] },
             },
-          });
+            orderBy: { created_at: 'desc' },
+            take: 1,
+          }))[0];
 
-          projectId = newProject.id;
+          if (existingProject) {
+            projectId = existingProject.id;
+          } else {
+            // Create a default project
+            const customer = await tx.customers.findUnique({
+              where: { id: input.customer_id },
+            });
+
+            if (!customer) {
+              throw new Error('Customer not found');
+            }
+
+            const customerName = createFullName(customer.first_name || '', customer.last_name || undefined);
+            const newProject = await tx.projects.create({
+              data: {
+                customer_id: input.customer_id,
+                name: `${customerName} - New Project`,
+                status: 'active',
+                description: 'Auto-created project for new order',
+                user_id: ctx.session?.user?.id || input.customer_id,
+                created_by: ctx.session?.user?.id || input.customer_id,
+              },
+            });
+
+            projectId = newProject.id;
+          }
         }
-      }
 
-      // Create the order
-      const order = await ctx.db.orders.create({
-        data: {
-          ...input.order_data,
-          customer_id: input.customer_id,
-          project_id: projectId,
-        },
-        include: {
-          customers: true,
-          projects: {
-            select: {
-              id: true,
-              name: true,
-              status: true,
+        // Create the order
+        const order = await tx.orders.create({
+          data: {
+            ...input.order_data,
+            customer_id: input.customer_id,
+            project_id: projectId,
+          },
+          include: {
+            customers: true,
+            projects: {
+              select: {
+                id: true,
+                name: true,
+                status: true,
+              },
             },
           },
-        },
+        });
+
+        return order;
       });
 
-      return order;
+      return result;
     }),
 
   // Get order with full details
@@ -389,6 +393,7 @@ export const ordersRouter = createTRPCRouter({
     }),
 
   // Create order with order items (for project orders)
+  // PHASE 3: Wrapped in Prisma transaction for atomicity
   createWithItems: publicProcedure
     .input(z.object({
       project_id: z.string().uuid(),
@@ -418,85 +423,81 @@ export const ordersRouter = createTRPCRouter({
 
       for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
-          // Generate order number
+          // Generate order number (advisory lock handles concurrency)
           const orderNumber = await generateOrderNumber();
 
-          // Create the order
-          const order = await ctx.db.orders.create({
-            data: {
-              order_number: orderNumber,
-              customer_id: input.customer_id,
-              collection_id: input.collection_id,
-              project_id: input.project_id,
-              status: 'pending',
-              priority: input.priority,
-              total_amount: totalAmount,
-              notes: input.notes,
-              created_by: ctx.session?.user?.id || 'system',
-            },
-          });
-
-          // Fetch customer and project info for project SKU generation
-          // Note: ctx.db only supports 'include', not 'select' (see database-patterns.md)
-          const customer = await ctx.db.customers.findUnique({
-            where: { id: input.customer_id },
-          });
-
-          const project = await ctx.db.projects.findUnique({
-            where: { id: input.project_id },
-          });
-
-          const customerName = customer?.name || 'UNKNOWN';
-          const projectName = project?.name || null;
-
-          // Create order items using Supabase admin client
-          const supabase = getSupabaseAdmin();
-          const createdItems: any[] = [];
-
-          for (const item of input.order_items) {
-            // Generate Full SKU from base SKU + material selections
-            const fullSkuResult = generateFullSku(item.base_sku, item.material_selections);
-
-            // Generate proper Project SKU (not temp)
-            const projectSku = await generateProjectSku(customerName, projectName, order.id);
-
-            const orderItemData = {
-              order_id: order.id,
-              quantity: item.quantity,
-              unit_price: item.unit_price,
-              project_sku: projectSku, // Real project SKU for tracking
-              full_sku: fullSkuResult.fullSku, // Store Full SKU for manufacturing and analytics
-              description: item.product_name,
-              specifications: {
-                product_sku: item.product_sku,
-                project_sku: projectSku, // Store real project SKU in specs too
-                base_sku: item.base_sku,
-                material_selections: item.material_selections,
-                custom_specifications: item.custom_specifications,
+          // PHASE 3: Use Prisma transaction to ensure atomicity
+          // Either all operations succeed or all are rolled back
+          const result = await ctx.db.$transaction(async (tx) => {
+            // Create the order
+            const order = await tx.orders.create({
+              data: {
+                order_number: orderNumber,
+                customer_id: input.customer_id,
+                collection_id: input.collection_id,
+                project_id: input.project_id,
+                status: 'pending',
+                priority: input.priority,
+                total_amount: totalAmount,
+                notes: input.notes,
+                created_by: ctx.session?.user?.id || 'system',
               },
-              status: 'pending',
-            };
+            });
 
-            const { data: orderItem, error } = await supabase
-              .from('order_items')
-              .insert(orderItemData as any)
-              .select()
-              .single();
+            // Fetch customer and project info for project SKU generation
+            const customer = await tx.customers.findUnique({
+              where: { id: input.customer_id },
+            });
 
-            if (error) {
-              throw new Error(`Failed to create order item: ${error.message}`);
+            const project = await tx.projects.findUnique({
+              where: { id: input.project_id },
+            });
+
+            const customerName = customer?.name || 'UNKNOWN';
+            const projectName = project?.name || null;
+
+            // Create order items using Prisma (within transaction)
+            const createdItems: any[] = [];
+
+            for (const item of input.order_items) {
+              // Generate Full SKU from base SKU + material selections
+              const fullSkuResult = generateFullSku(item.base_sku, item.material_selections);
+
+              // Generate proper Project SKU (not temp)
+              const projectSku = await generateProjectSku(customerName, projectName, order.id);
+
+              const orderItem = await tx.order_items.create({
+                data: {
+                  order_id: order.id,
+                  quantity: item.quantity,
+                  unit_price: item.unit_price,
+                  project_sku: projectSku,
+                  full_sku: fullSkuResult.fullSku,
+                  description: item.product_name,
+                  specifications: {
+                    product_sku: item.product_sku,
+                    project_sku: projectSku,
+                    base_sku: item.base_sku,
+                    material_selections: item.material_selections,
+                    custom_specifications: item.custom_specifications,
+                  },
+                  status: 'pending',
+                },
+              });
+
+              createdItems.push(orderItem);
             }
 
-            createdItems.push(orderItem);
-          }
+            // Return order with items
+            return {
+              order,
+              order_items: createdItems,
+              total_items: createdItems.length,
+              total_amount: totalAmount,
+            };
+          });
 
-          // Return order with items
-          return {
-            order,
-            order_items: createdItems,
-            total_items: createdItems.length,
-            total_amount: totalAmount,
-          };
+          return result;
         } catch (error: any) {
           // Check if it's a duplicate key error
           if (error?.code === '23505' && error?.message?.includes('orders_order_number_key')) {

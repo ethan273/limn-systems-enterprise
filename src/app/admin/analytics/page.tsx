@@ -337,7 +337,7 @@ export default function AnalyticsDashboardPage() {
                       </div>
                     </div>
                     <div className="stat-card">
-                      <div className="stat-label">Customers</div>
+                      <div className="stat-label">Clients</div>
                       <div className="stat-value-sm">
                         {usersData.users.filter((u) => u.userType === 'customer').length}
                       </div>

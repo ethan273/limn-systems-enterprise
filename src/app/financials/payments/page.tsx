@@ -209,7 +209,7 @@ export default function PaymentsPage() {
     },
     {
       key: 'customers',
-      label: 'Customer',
+      label: 'Client',
       render: (value: any) => {
         if (!value) return <span className="text-muted">—</span>;
         return (
