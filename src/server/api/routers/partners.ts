@@ -3,6 +3,7 @@ import { createTRPCRouter, protectedProcedure } from "../trpc/init";
 import { TRPCError } from "@trpc/server";
 import { sendPortalAccessGranted } from "@/lib/email/templates/portal-access-granted";
 import { sendPortalAccessRevoked } from "@/lib/email/templates/portal-access-revoked";
+import { supabaseAdmin } from "@/lib/supabase";
 
 
 /**
@@ -713,11 +714,17 @@ export const partnersRouter = createTRPCRouter({
           console.error('[revokePortalAccess] Failed to send portal access revoked email:', err);
         });
 
-        // TODO: Invalidate user sessions if user_id exists
-        // This would require Supabase Auth API integration
-        // if (updatedContact.user_id) {
-        //   await supabaseAdmin.auth.admin.signOut(updatedContact.user_id);
-        // }
+        // Invalidate user sessions when employee is deactivated
+        if (updatedContact.user_id) {
+          try {
+            const admin = await supabaseAdmin();
+            await admin.auth.admin.signOut(updatedContact.user_id);
+            console.log(`[Partners] Invalidated sessions for user ${updatedContact.user_id} (employee deactivated)`);
+          } catch (error) {
+            console.error(`[Partners] Failed to invalidate sessions for user ${updatedContact.user_id}:`, error);
+            // Non-blocking: Continue even if session invalidation fails
+          }
+        }
 
         return updatedContact;
       }),
