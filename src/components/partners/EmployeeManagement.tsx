@@ -22,6 +22,7 @@ import {
   Trash2,
   Shield,
   XCircle,
+  CheckCircle2,
   AlertTriangle,
   RefreshCw,
 } from 'lucide-react';
@@ -180,10 +181,6 @@ export function EmployeeManagement({ partnerId, partnerType }: EmployeeManagemen
                     <TableCell>
                       <div className="flex flex-col gap-1">
                         <span className="text-sm">{contact.role}</span>
-                        {/* TODO: Department field not in schema yet */}
-                        {/* {contact.department && (
-                          <span className="text-xs text-muted-foreground">{contact.department}</span>
-                        )} */}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -193,32 +190,21 @@ export function EmployeeManagement({ partnerId, partnerType }: EmployeeManagemen
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col gap-1">
-                        {/* TODO: Employment status fields not in schema yet */}
                         <Badge
                           variant={contact.active ? 'default' : 'secondary'}
                           className="text-xs w-fit"
                         >
                           {contact.active ? 'Active' : 'Inactive'}
                         </Badge>
-                        {/* {contact.employment_start_date && (
-                          <span className="text-xs text-muted-foreground">
-                            Since {formatDate(contact.employment_start_date)}
-                          </span>
-                        )} */}
                       </div>
                     </TableCell>
                     <TableCell>
-                      {/* TODO: Portal access fields not in schema yet */}
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <XCircle className="h-4 w-4" />
-                        <span className="text-xs">Not available</span>
-                      </div>
-                      {/* {contact.portal_access_enabled ? (
+                      {contact.portal_access_enabled ? (
                         <div className="flex items-center gap-2">
                           <CheckCircle2 className="h-4 w-4 text-success" />
                           <div className="flex flex-col gap-1">
                             <span className="text-xs font-medium">{contact.portal_role}</span>
-                            {contact.portal_modules_allowed && contact.portal_modules_allowed.length > 0 && (
+                            {contact.portal_modules_allowed && Array.isArray(contact.portal_modules_allowed) && contact.portal_modules_allowed.length > 0 && (
                               <span className="text-xs text-muted-foreground">
                                 {contact.portal_modules_allowed.length} modules
                               </span>
@@ -230,13 +216,11 @@ export function EmployeeManagement({ partnerId, partnerType }: EmployeeManagemen
                           <XCircle className="h-4 w-4" />
                           <span className="text-xs">No access</span>
                         </div>
-                      )} */}
+                      )}
                     </TableCell>
                     <TableCell>
                       <span className="text-sm">
-                        {/* TODO: last_login_at field not in schema yet */}
-                        —
-                        {/* {contact.last_login_at ? formatDate(contact.last_login_at) : '—'} */}
+                        {contact.last_login_at ? _formatDate(contact.last_login_at) : '—'}
                       </span>
                     </TableCell>
                     <TableCell className="text-right">

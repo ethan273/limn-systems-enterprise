@@ -79,11 +79,8 @@ export function PortalAccessDialog({
   // Update form when contact data loads
   useEffect(() => {
     if (contact) {
-      // TODO: Portal fields not in schema yet
-      // setSelectedRole(contact.portal_role || '');
-      // setSelectedModules(contact.portal_modules_allowed || []);
-      setSelectedRole('');
-      setSelectedModules([]);
+      setSelectedRole(contact.portal_role || '');
+      setSelectedModules(contact.portal_modules_allowed as string[] || []);
     }
   }, [contact]);
 
@@ -157,14 +154,13 @@ export function PortalAccessDialog({
             <div className="p-4 bg-muted rounded-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  {/* TODO: Portal access fields not in schema yet */}
-                  {false ? (
+                  {contact?.portal_access_enabled ? (
                     <>
                       <CheckCircle2 className="h-5 w-5 text-success" />
                       <div>
                         <p className="font-medium">Portal Access Enabled</p>
                         <p className="text-sm text-muted-foreground">
-                          Role: N/A • Last login: Never
+                          Role: {contact.portal_role || 'N/A'} • Last login: {contact.last_login_at ? new Date(contact.last_login_at).toLocaleDateString() : 'Never'}
                         </p>
                       </div>
                     </>
@@ -259,8 +255,7 @@ export function PortalAccessDialog({
             </div>
 
             {/* Warning for user creation */}
-            {/* TODO: user_id field not in schema yet */}
-            {true && (
+            {!contact?.user_id && (
               <div className="flex items-start gap-3 p-3 bg-warning/10 border border-warning/20 rounded-lg">
                 <AlertCircle className="h-5 w-5 text-warning mt-0.5" />
                 <div className="flex-1">
@@ -275,8 +270,7 @@ export function PortalAccessDialog({
             {/* Actions */}
             <div className="flex justify-between gap-3 pt-4 border-t">
               <div>
-                {/* TODO: portal_access_enabled field not in schema yet */}
-                {false && (
+                {contact?.portal_access_enabled && (
                   <Button
                     type="button"
                     variant="destructive"
@@ -302,7 +296,7 @@ export function PortalAccessDialog({
                 >
                   {isSubmitting
                     ? 'Saving...'
-                    : false
+                    : contact?.portal_access_enabled
                     ? 'Update Access'
                     : 'Grant Access'}
                 </Button>
