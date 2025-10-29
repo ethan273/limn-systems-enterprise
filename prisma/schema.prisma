@@ -1323,49 +1323,6 @@ model client_projects {
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model clients {
-  id                       String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  name                     String    @db.VarChar
-  email                    String?   @unique @db.VarChar
-  phone                    String?   @db.VarChar
-  address                  String?
-  city                     String?   @db.VarChar
-  state                    String?   @db.VarChar
-  zip                      String?   @db.VarChar
-  country                  String?   @default("USA") @db.VarChar
-  notes                    String?
-  created_at               DateTime? @default(now()) @db.Timestamptz(6)
-  updated_at               DateTime? @default(now()) @db.Timestamptz(6)
-  status                   String?
-  portal_created_at        DateTime? @default(now()) @db.Timestamptz(6)
-  user_id                  String?
-  company_name             String?
-  type                     String?
-  billing_address_line1    String?
-  billing_address_line2    String?
-  billing_city             String?
-  billing_state            String?
-  billing_zip              String?
-  billing_country          String?
-  shipping_same_as_billing Boolean?
-  credit_limit             Int?
-  tags                     String[]
-  portal_access            Boolean?
-  portal_password          String?
-  last_portal_login        String?
-  portal_access_granted_at String?
-  portal_access_granted_by String?
-  portal_created_by        String?
-  last_password_reset      String?
-  created_by               String?
-
-  @@index([created_at], map: "idx_clients_created_at")
-  @@index([status], map: "idx_clients_status")
-  @@index([updated_at], map: "idx_clients_updated_at")
-  @@schema("public")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model collection_activities {
   id                                            String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   customer_id                                   String?    @db.Uuid
