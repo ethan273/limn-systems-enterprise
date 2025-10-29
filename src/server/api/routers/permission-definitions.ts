@@ -290,7 +290,7 @@ export const permissionDefinitionsRouter = createTRPCRouter({
         });
       }
 
-      const { id, ...updateData } = input;
+      const { id: _id, ...updateData } = input;
 
       const updatedPermission = await ctx.db.permission_definitions.update({
         where: { id: input.id },

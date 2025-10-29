@@ -543,7 +543,7 @@ export const timeEntriesRouter = createTRPCRouter({
         duration = Math.floor((endTime.getTime() - startTime.getTime()) / 1000);
       }
 
-      const { id, ...updateData } = input;
+      const { id: _id, ...updateData } = input;
 
       const updatedEntry = await ctx.db.time_entries.update({
         where: { id: input.id },

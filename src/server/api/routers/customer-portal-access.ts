@@ -336,7 +336,7 @@ export const customerPortalAccessRouter = createTRPCRouter({
         });
       }
 
-      const { id, ...updateData } = input;
+      const { id: _id, ...updateData } = input;
 
       const updated = await ctx.db.customer_portal_access.update({
         where: { id: input.id },

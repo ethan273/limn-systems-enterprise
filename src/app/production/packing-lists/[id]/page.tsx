@@ -38,7 +38,6 @@ import {
   Calendar,
   Weight,
   Ruler,
-  User,
   AlertCircle,
 } from "lucide-react";
 import { format } from "date-fns";

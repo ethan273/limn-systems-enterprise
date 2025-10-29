@@ -28,7 +28,6 @@ import {
   ExternalLink,
   Calendar,
   Hash,
-  Tag,
 } from "lucide-react";
 import { format } from "date-fns";
 

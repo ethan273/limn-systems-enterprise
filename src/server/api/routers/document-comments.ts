@@ -439,7 +439,7 @@ export const documentCommentsRouter = createTRPCRouter({
         });
       }
 
-      const { id, ...updateData } = input;
+      const { id: _id, ...updateData } = input;
 
       const updatedComment = await ctx.db.document_comments.update({
         where: { id: input.id },

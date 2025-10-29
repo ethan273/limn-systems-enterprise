@@ -368,7 +368,7 @@ export const permissionConditionsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, ...updateData } = input;
+      const { id: _id, ...updateData } = input;
 
       const updatedCondition = await ctx.db.permission_conditions.update({
         where: { id: input.id },

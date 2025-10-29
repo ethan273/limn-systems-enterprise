@@ -271,7 +271,7 @@ export const costTrackingRouter = createTRPCRouter({
         });
       }
 
-      const { id, ...updateData } = input;
+      const { id: _id, ...updateData } = input;
 
       const updated = await ctx.db.cost_tracking.update({
         where: { id: input.id },

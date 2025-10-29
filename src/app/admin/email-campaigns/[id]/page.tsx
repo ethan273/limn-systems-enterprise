@@ -31,8 +31,6 @@ import {
   User,
   Send,
   BarChart3,
-  Edit,
-  Trash2,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -46,7 +44,7 @@ export default function EmailCampaignDetailPage() {
     { enabled: !!campaignId }
   );
 
-  const { data: metrics } = api.emailCampaigns.getMetrics.useQuery(
+  const { data: _metrics } = api.emailCampaigns.getMetrics.useQuery(
     { id: campaignId },
     { enabled: !!campaignId }
   );

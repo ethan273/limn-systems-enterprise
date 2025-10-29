@@ -203,7 +203,7 @@ export const taskAttachmentsRouter = createTRPCRouter({
         });
       }
 
-      const { id, ...updateData } = input;
+      const { id: _id, ...updateData } = input;
 
       const updatedAttachment = await ctx.db.task_attachments.update({
         where: { id: input.id },

@@ -5,7 +5,7 @@ import { api } from "@/utils/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Key, Calendar, User, Shield } from "lucide-react";
+import { ArrowLeft, Key, Calendar } from "lucide-react";
 import { format } from "date-fns";
 
 export default function ApiCredentialDetailPage() {

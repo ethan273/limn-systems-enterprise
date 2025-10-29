@@ -389,7 +389,7 @@ export const documentFoldersRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, ...updateData } = input;
+      const { id: _id, ...updateData } = input;
 
       // If renaming, recalculate full_path
       let newFullPath: string | undefined;

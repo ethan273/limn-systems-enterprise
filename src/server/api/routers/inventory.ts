@@ -90,7 +90,7 @@ export const inventoryRouter = createTRPCRouter({
       });
 
       // Filter low stock in-memory if needed
-      let filteredInventory = low_stock
+      const filteredInventory = low_stock
         ? inventory.filter(inv =>
             inv.quantity !== null &&
             inv.reorder_point !== null &&
