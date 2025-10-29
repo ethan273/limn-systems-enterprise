@@ -76,6 +76,99 @@ import { inventoryRouter } from './routers/inventory';
 import { taskEntityLinksRouter } from './routers/task-entity-links';
 import { taskAttachmentsRouter } from './routers/task-attachments';
 import { permissionUsageLogRouter } from './routers/permission-usage-log';
+import { activitiesRouter } from './routers/activities';
+import { additionalSpecsRouter } from './routers/additional-specs';
+import { addressesRouter } from './routers/addresses';
+import { apiCredentialAuditLogsRouter } from './routers/api-credential-audit-logs';
+import { automationLogsRouter } from './routers/automation-logs';
+import { automationRulesRouter } from './routers/automation-rules';
+import { boardActivityLogRouter } from './routers/board-activity-log';
+import { boardCollaboratorsRouter } from './routers/board-collaborators';
+import { boardCommentsRouter } from './routers/board-comments';
+import { boardObjectsRouter } from './routers/board-objects';
+import { boardSnapshotsRouter } from './routers/board-snapshots';
+import { boardTemplatesRouter } from './routers/board-templates';
+import { boardVotesRouter } from './routers/board-votes';
+import { budgetsRouter } from './routers/budgets';
+import { collectionActivitiesRouter } from './routers/collection-activities';
+import { costTrackingRouter } from './routers/cost-tracking';
+import { customerCommunicationPreferencesRouter } from './routers/customer-communication-preferences';
+import { customerFinancialsRouter } from './routers/customer-financials';
+import { customerPortalAccessRouter } from './routers/customer-portal-access';
+import { customerPortalActivityRouter } from './routers/customer-portal-activity';
+import { customerProductionNotificationsRouter } from './routers/customer-production-notifications';
+import { designApprovalsRouter } from './routers/design-approvals';
+import { designDeliverablesRouter } from './routers/design-deliverables';
+import { designFilesRouter } from './routers/design-files';
+import { designRevisionsRouter } from './routers/design-revisions';
+import { designToPrototypeRouter } from './routers/design-to-prototype';
+import { documentAccessLogRouter } from './routers/document-access-log';
+import { documentApprovalWorkflowRouter } from './routers/document-approval-workflow';
+import { documentApprovalsRouter } from './routers/document-approvals';
+import { documentCategoriesRouter } from './routers/document-categories';
+import { documentCommentsRouter } from './routers/document-comments';
+import { documentFoldersRouter } from './routers/document-folders';
+import { documentRevisionsRouter } from './routers/document-revisions';
+import { emailUnsubscribesRouter } from './routers/email-unsubscribes';
+import { flipbookConversionsRouter } from './routers/flipbook-conversions';
+import { furnitureDimensionsRouter } from './routers/furniture-dimensions';
+import { hotspotsRouter } from './routers/hotspots';
+import { invoiceItemsRouter } from './routers/invoice-items';
+import { manufacturerCommunicationsRouter } from './routers/manufacturer-communications';
+import { manufacturerContractsRouter } from './routers/manufacturer-contracts';
+import { manufacturerPerformanceRouter } from './routers/manufacturer-performance';
+import { manufacturerPricingRouter } from './routers/manufacturer-pricing';
+import { manufacturerProjectsRouter } from './routers/manufacturer-projects';
+import { manufacturerQcRecordsRouter } from './routers/manufacturer-qc-records';
+import { manufacturersRouter } from './routers/manufacturers';
+import { materialCollectionAuditRouter } from './routers/material-collection-audit';
+import { materialFurnitureCollectionsRouter } from './routers/material-furniture-collections';
+import { materialPriceHistoryRouter } from './routers/material-price-history';
+import { orderItemMaterialsRouter } from './routers/order-item-materials';
+import { organizationPermissionsRouter } from './routers/organization-permissions';
+import { pandadocDocumentsRouter } from './routers/pandadoc-documents';
+import { partnerPortalRolesRouter } from './routers/partner-portal-roles';
+import { permissionConditionsRouter } from './routers/permission-conditions';
+import { permissionScopesRouter } from './routers/permission-scopes';
+import { permissionTemplateItemsRouter } from './routers/permission-template-items';
+import { permissionTemplatesRouter } from './routers/permission-templates';
+import { pickupRequestsRouter } from './routers/pickup-requests';
+import { portalConfigurationsRouter } from './routers/portal-configurations';
+import { productionBatchesRouter } from './routers/production-batches';
+import { productionEventsRouter } from './routers/production-events';
+import { productionInvoiceLineItemsRouter } from './routers/production-invoice-line-items';
+import { productionItemsRouter } from './routers/production-items';
+import { productionMilestonesRouter } from './routers/production-milestones';
+import { productionPaymentsRouter } from './routers/production-payments';
+import { productionProgressRouter } from './routers/production-progress';
+import { productionStageHistoryRouter } from './routers/production-stage-history';
+import { productionStagesRouter } from './routers/production-stages';
+import { projectMaterialsRouter } from './routers/project-materials';
+import { prototypeFeedbackRouter } from './routers/prototype-feedback';
+import { prototypeProductionRouter } from './routers/prototype-production';
+import { shopDrawingApprovalsRouter } from './routers/shop-drawing-approvals';
+import { shopDrawingCommentsRouter } from './routers/shop-drawing-comments';
+import { shopDrawingVersionsRouter } from './routers/shop-drawing-versions';
+import { smsCampaignsRouter } from './routers/sms-campaigns';
+import { smsDeliveryLogsRouter } from './routers/sms-delivery-logs';
+import { smsInvitationsRouter } from './routers/sms-invitations';
+import { smsLogsRouter } from './routers/sms-logs';
+import { smsOptOutsRouter } from './routers/sms-opt-outs';
+import { smsProvidersRouter } from './routers/sms-providers';
+import { smsScheduledJobsRouter } from './routers/sms-scheduled-jobs';
+import { smsTemplatesRouter } from './routers/sms-templates';
+import { smsTrackingRouter } from './routers/sms-tracking';
+import { smsUsageRouter } from './routers/sms-usage';
+import { statusChangeLogRouter } from './routers/status-change-log';
+import { taxRatesRouter } from './routers/tax-rates';
+import { trackingMilestonesRouter } from './routers/tracking-milestones';
+import { userDocumentPermissionsRouter } from './routers/user-document-permissions';
+import { webhookDeliveriesRouter } from './routers/webhook-deliveries';
+import { webhookEndpointsRouter } from './routers/webhook-endpoints';
+import { workflowExecutionsRouter } from './routers/workflow-executions';
+import { workflowStepsRouter } from './routers/workflow-steps';
+import { workflowTemplatesRouter } from './routers/workflow-templates';
+import { workflowsRouter } from './routers/workflows';
 
 /**
  * Main API router
@@ -91,28 +184,36 @@ export const appRouter = createTRPCRouter({
 
   // Authentication & Access Control
   auth: authRouter,
-  rbac: rbacRouter,
-  sessions: sessionsRouter,
-  sessionTracking: sessionTrackingRouter,
-  permissionsAdvanced: permissionsAdvancedRouter,
-  permissionRequests: permissionRequestsRouter,
-  permissionDelegations: permissionDelegationsRouter,
-  permissionDefinitions: permissionDefinitionsRouter,
-  permissionUsageLog: permissionUsageLogRouter,
   enterpriseRbac: enterpriseRbacRouter,
+  organizationPermissions: organizationPermissionsRouter,
+  permissionConditions: permissionConditionsRouter,
+  permissionDefinitions: permissionDefinitionsRouter,
+  permissionDelegations: permissionDelegationsRouter,
+  permissionRequests: permissionRequestsRouter,
+  permissionScopes: permissionScopesRouter,
+  permissionTemplateItems: permissionTemplateItemsRouter,
+  permissionTemplates: permissionTemplatesRouter,
+  permissionUsageLog: permissionUsageLogRouter,
+  permissionsAdvanced: permissionsAdvancedRouter,
+  rbac: rbacRouter,
+  sessionTracking: sessionTrackingRouter,
+  sessions: sessionsRouter,
 
 
   // Admin Portal
+  activities: activitiesRouter,
   admin: adminRouter,
+  apiCredentialAuditLogs: apiCredentialAuditLogsRouter,
+  apiCredentialRotations: apiCredentialRotationsRouter,
+  apiCredentials: apiCredentialsRouter,
+  apiAudit: apiAuditRouter,
+  apiHealth: apiHealthRouter,
+  apiJobs: apiJobsRouter,
+  apiRotation: apiRotationRouter,
+  apiSecurity: apiSecurityRouter,
   audit: auditRouter,
   export: exportRouter,
-  apiCredentials: apiCredentialsRouter,
-  apiCredentialRotations: apiCredentialRotationsRouter,
-  apiAudit: apiAuditRouter,
-  apiSecurity: apiSecurityRouter,
-  apiHealth: apiHealthRouter,
-  apiRotation: apiRotationRouter,
-  apiJobs: apiJobsRouter,
+  statusChangeLog: statusChangeLogRouter,
 
   // Notifications & User Profile
   notifications: notificationsRouter,
@@ -130,54 +231,106 @@ export const appRouter = createTRPCRouter({
   organizationMembers: organizationMembersRouter,
 
   // CRM & Sales
+  addresses: addressesRouter,
+  clients: clientsRouter, // Legacy support for existing clients router
+  contacts: contactsRouter, // Direct access to contacts router
   crm: crmRouter,
+  customerCommunicationPreferences: customerCommunicationPreferencesRouter,
+  customerFinancials: customerFinancialsRouter,
   customers: customersRouter, // Direct access to customers router
   leads: leadsRouter, // Direct access to leads router
-  contacts: contactsRouter, // Direct access to contacts router
-  clients: clientsRouter, // Legacy support for existing clients router
+  taxRates: taxRatesRouter,
   
   // Projects
+  budgets: budgetsRouter,
+  costTracking: costTrackingRouter,
+  projectMaterials: projectMaterialsRouter,
   projects: projectsRouter,
-  
+
   // Product Catalog
+  additionalSpecs: additionalSpecsRouter,
+  collectionActivities: collectionActivitiesRouter,
   collections: collectionsRouter,
+  furnitureDimensions: furnitureDimensionsRouter,
+  inventory: inventoryRouter,
   items: itemsRouter,
-  materials: materialsRouter,
   materialCategories: materialCategoriesRouter,
+  materialCollectionAudit: materialCollectionAuditRouter,
   materialCollections: materialCollectionsRouter,
+  materialFurnitureCollections: materialFurnitureCollectionsRouter,
+  materialPriceHistory: materialPriceHistoryRouter,
+  materials: materialsRouter,
   products: productsRouter,
   templates: templatesRouter,
-  inventory: inventoryRouter,
 
   // Orders
-  orders: ordersRouter,
+  orderItemMaterials: orderItemMaterialsRouter,
   orderItems: orderItemsRouter,
+  orders: ordersRouter,
 
   // Production Orders (Phase 1)
-  productionOrders: productionOrdersRouter,
-  productionInvoices: productionInvoicesRouter,
-  productionTracking: productionTrackingRouter,
+  customerProductionNotifications: customerProductionNotificationsRouter,
   orderedItemsProduction: orderedItemsProductionRouter,
+  productionBatches: productionBatchesRouter,
+  productionEvents: productionEventsRouter,
+  productionInvoiceLineItems: productionInvoiceLineItemsRouter,
+  productionInvoices: productionInvoicesRouter,
+  productionItems: productionItemsRouter,
+  productionMilestones: productionMilestonesRouter,
+  productionOrders: productionOrdersRouter,
+  productionPayments: productionPaymentsRouter,
+  productionProgress: productionProgressRouter,
+  productionStageHistory: productionStageHistoryRouter,
+  productionStages: productionStagesRouter,
+  productionTracking: productionTrackingRouter,
+  trackingMilestones: trackingMilestonesRouter,
 
   // Partners (Phase 2)
+  partnerPortalRoles: partnerPortalRolesRouter,
   partners: partnersRouter,
 
+  // Manufacturer Management
+  manufacturerCommunications: manufacturerCommunicationsRouter,
+  manufacturerContracts: manufacturerContractsRouter,
+  manufacturerPerformance: manufacturerPerformanceRouter,
+  manufacturerPricing: manufacturerPricingRouter,
+  manufacturerProjects: manufacturerProjectsRouter,
+  manufacturerQcRecords: manufacturerQcRecordsRouter,
+  manufacturers: manufacturersRouter,
+
   // Design Module (Phase 2 - Week 13-15)
-  designBriefs: designBriefsRouter,
-  designProjects: designProjectsRouter,
-  moodBoards: moodBoardsRouter,
-  designBoards: designBoardsRouter,
-  designers: designersRouter,
+  boardActivityLog: boardActivityLogRouter,
+  boardCollaborators: boardCollaboratorsRouter,
+  boardComments: boardCommentsRouter,
+  boardObjects: boardObjectsRouter,
+  boardSnapshots: boardSnapshotsRouter,
+  boardTemplates: boardTemplatesRouter,
+  boardVotes: boardVotesRouter,
   concepts: conceptsRouter,
+  designApprovals: designApprovalsRouter,
+  designBoards: designBoardsRouter,
+  designBriefs: designBriefsRouter,
+  designDeliverables: designDeliverablesRouter,
+  designFiles: designFilesRouter,
+  designProjects: designProjectsRouter,
+  designRevisions: designRevisionsRouter,
+  designToPrototype: designToPrototypeRouter,
+  designers: designersRouter,
+  moodBoards: moodBoardsRouter,
 
   // OAuth & Storage (Phase 2 - Week 13-15 Day 7-9)
   oauth: oauthRouter,
   storage: storageRouter,
 
   // Shop Drawings (Phase 2 - Week 16)
+  shopDrawingApprovals: shopDrawingApprovalsRouter,
+  shopDrawingComments: shopDrawingCommentsRouter,
+  shopDrawingVersions: shopDrawingVersionsRouter,
   shopDrawings: shopDrawingsRouter,
 
   // Prototypes (Phase 2 - Week 17)
+  prototypeFeedback: prototypeFeedbackRouter,
+  prototypeProduction: prototypeProductionRouter,
   prototypes: prototypesRouter,
 
   // Factory Reviews (Phase 2 - Week 18)
@@ -191,6 +344,7 @@ export const appRouter = createTRPCRouter({
   packing: packingRouter,
 
   // Shipping (SEKO Integration)
+  pickupRequests: pickupRequestsRouter,
   shipping: shippingRouter,
 
   // QuickBooks Integration
@@ -198,24 +352,62 @@ export const appRouter = createTRPCRouter({
   quickbooksConnections: quickbooksConnectionsRouter,
 
   // Financials (General Accounting)
-  invoices: invoicesRouter,
-  payments: paymentsRouter,
   expenses: expensesRouter,
+  invoiceItems: invoiceItemsRouter,
+  invoices: invoicesRouter,
+  pandadocDocuments: pandadocDocumentsRouter,
+  payments: paymentsRouter,
 
   // Documents & Media (Phase 4)
+  documentAccessLog: documentAccessLogRouter,
+  documentApprovalWorkflow: documentApprovalWorkflowRouter,
+  documentApprovals: documentApprovalsRouter,
+  documentCategories: documentCategoriesRouter,
+  documentComments: documentCommentsRouter,
+  documentFolders: documentFoldersRouter,
+  documentRevisions: documentRevisionsRouter,
   documents: documentsRouter,
+  userDocumentPermissions: userDocumentPermissionsRouter,
 
   // Customer Portal (Phase 3)
+  customerPortalAccess: customerPortalAccessRouter,
+  customerPortalActivity: customerPortalActivityRouter,
   portal: portalRouter,
+  portalConfigurations: portalConfigurationsRouter,
 
   // Flipbooks (Feature Flag Protected)
-  flipbooks: flipbooksRouter,
   flipbookAnalytics: flipbookAnalyticsRouter,
+  flipbookConversions: flipbookConversionsRouter,
+  flipbooks: flipbooksRouter,
+  hotspots: hotspotsRouter,
 
   // Email Campaign System (Phase 5)
-  emailTemplates: emailTemplatesRouter,
-  emailCampaigns: emailCampaignsRouter,
   emailAnalytics: emailAnalyticsRouter,
+  emailCampaigns: emailCampaignsRouter,
+  emailTemplates: emailTemplatesRouter,
+  emailUnsubscribes: emailUnsubscribesRouter,
+
+  // SMS System
+  smsCampaigns: smsCampaignsRouter,
+  smsDeliveryLogs: smsDeliveryLogsRouter,
+  smsInvitations: smsInvitationsRouter,
+  smsLogs: smsLogsRouter,
+  smsOptOuts: smsOptOutsRouter,
+  smsProviders: smsProvidersRouter,
+  smsScheduledJobs: smsScheduledJobsRouter,
+  smsTemplates: smsTemplatesRouter,
+  smsTracking: smsTrackingRouter,
+  smsUsage: smsUsageRouter,
+
+  // Workflow Automation
+  automationLogs: automationLogsRouter,
+  automationRules: automationRulesRouter,
+  webhookDeliveries: webhookDeliveriesRouter,
+  webhookEndpoints: webhookEndpointsRouter,
+  workflowExecutions: workflowExecutionsRouter,
+  workflowSteps: workflowStepsRouter,
+  workflowTemplates: workflowTemplatesRouter,
+  workflows: workflowsRouter,
 });
 
 // Export type for client
