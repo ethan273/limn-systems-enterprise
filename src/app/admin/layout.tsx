@@ -8,7 +8,11 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
 
-export default function AdminLayout({
+// NOTE: Admin authorization is handled by middleware.ts (lines 316-381)
+// Middleware checks user_roles table for admin/super_admin roles
+// and redirects non-admin users to /dashboard before this layout runs
+
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;

@@ -142,9 +142,14 @@ async function globalSetup(config: FullConfig) {
 
       // Create user profile (works for both new and existing users)
       // Note: full_name is a generated column, don't include it
+      // IMPORTANT: Always update user_type to match test expectations
       await prisma.user_profiles.upsert({
         where: { id: userId },
-        update: {},
+        update: {
+          user_type: testUser.userType, // Update user_type for existing users
+          first_name: testUser.firstName,
+          last_name: testUser.lastName,
+        },
         create: {
           id: userId,
           email: testUser.email,
@@ -156,8 +161,9 @@ async function globalSetup(config: FullConfig) {
       });
       console.log(`   ✅ [Setup] User profile ensured`);
 
-      // Create user_roles entry for admin users (admin@test.com should have admin role)
+      // Manage user_roles entries based on test user type
       if (testUser.email === 'admin@test.com') {
+        // Admin user: ensure they have admin role
         await prisma.user_roles.upsert({
           where: {
             user_id_role: {
@@ -165,13 +171,27 @@ async function globalSetup(config: FullConfig) {
               role: 'admin',
             },
           },
-          update: {},
+          update: {
+            is_active: true, // Ensure role is active
+          },
           create: {
             user_id: userId,
             role: 'admin',
+            is_active: true,
           },
         });
         console.log(`   ✅ [Setup] Admin role assigned in user_roles table`);
+      } else {
+        // Non-admin users: remove any admin/super_admin roles
+        await prisma.user_roles.deleteMany({
+          where: {
+            user_id: userId,
+            role: {
+              in: ['admin', 'super_admin'],
+            },
+          },
+        });
+        console.log(`   ✅ [Setup] Admin roles removed (non-admin user)`);
       }
 
       // Create customer (works for both new and existing users)
