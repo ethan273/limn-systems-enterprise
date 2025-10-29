@@ -587,13 +587,12 @@ export const partnersRouter = createTRPCRouter({
     delete: protectedProcedure
       .input(z.object({ id: z.string().uuid() }))
       .mutation(async ({ ctx, input }) => {
-        // TODO: Employment fields (employment_status, employment_end_date) need to be added to schema
         const contact = await ctx.db.partner_contacts.update({
           where: { id: input.id },
           data: {
             active: false,
-            // employment_status: "terminated",
-            // employment_end_date: new Date(),
+            employment_status: "terminated",
+            employment_end_date: new Date(),
           },
         });
         return contact;

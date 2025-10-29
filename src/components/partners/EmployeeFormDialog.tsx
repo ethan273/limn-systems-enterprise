@@ -101,13 +101,12 @@ export function EmployeeFormDialog({
         email: contact.email,
         phone: contact.phone || '',
         mobile: contact.mobile || '',
-        // TODO: Employment fields not in schema yet
-        // employee_id: contact.employee_id || '',
-        // department: contact.department || '',
-        // employment_status: (contact.employment_status as 'active' | 'inactive' | 'terminated' | 'suspended') || 'active',
-        // employment_start_date: contact.employment_start_date
-        //   ? new Date(contact.employment_start_date).toISOString().split('T')[0]
-        //   : '',
+        employee_id: contact.employee_id || '',
+        department: contact.department || '',
+        employment_status: (contact.employment_status as 'active' | 'inactive' | 'terminated' | 'suspended') || 'active',
+        employment_start_date: contact.employment_start_date
+          ? new Date(contact.employment_start_date).toISOString().split('T')[0]
+          : '',
         is_primary: contact.is_primary,
         is_qc: contact.is_qc,
         is_production: contact.is_production,

@@ -181,6 +181,9 @@ export function EmployeeManagement({ partnerId, partnerType }: EmployeeManagemen
                     <TableCell>
                       <div className="flex flex-col gap-1">
                         <span className="text-sm">{contact.role}</span>
+                        {contact.department && (
+                          <span className="text-xs text-muted-foreground">{contact.department}</span>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -191,11 +194,16 @@ export function EmployeeManagement({ partnerId, partnerType }: EmployeeManagemen
                     <TableCell>
                       <div className="flex flex-col gap-1">
                         <Badge
-                          variant={contact.active ? 'default' : 'secondary'}
+                          variant={contact.employment_status === 'active' ? 'default' : 'secondary'}
                           className="text-xs w-fit"
                         >
-                          {contact.active ? 'Active' : 'Inactive'}
+                          {contact.employment_status || 'Active'}
                         </Badge>
+                        {contact.employment_start_date && (
+                          <span className="text-xs text-muted-foreground">
+                            Since {_formatDate(contact.employment_start_date)}
+                          </span>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>
