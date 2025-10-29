@@ -49,6 +49,138 @@ export interface AutoApprovalRule {
 }
 
 // ============================================
+// Permission Granting
+// ============================================
+
+/**
+ * Grants a temporary permission by creating a permission_scopes entry
+ */
+async function grantTemporaryPermission(
+  userId: string,
+  permissionId: string,
+  requestId: string,
+  expiresAt: Date | null,
+  reason: string,
+  grantedBy: string | null
+): Promise<void> {
+  // Get the permission definition to extract the permission_key
+  const permissionDef = await prisma.permission_definitions.findUnique({
+    where: { id: permissionId },
+    select: { permission_key: true },
+  });
+
+  if (!permissionDef) {
+    throw new Error(`Permission definition not found: ${permissionId}`);
+  }
+
+  // Get the request to extract resource information
+  const request = await prisma.permission_requests.findUnique({
+    where: { id: requestId },
+    select: { resource_type: true, resource_id: true },
+  });
+
+  if (!request) {
+    throw new Error(`Permission request not found: ${requestId}`);
+  }
+
+  // Create the permission scope
+  const scope = await prisma.permission_scopes.create({
+    data: {
+      user_id: userId,
+      permission_key: permissionDef.permission_key,
+      resource_type: request.resource_type || 'global',
+      resource_id: request.resource_id,
+      granted_by: grantedBy,
+      granted_at: new Date(),
+      expires_at: expiresAt,
+      is_active: true,
+      reason: reason,
+      scope_metadata: {
+        request_id: requestId,
+        granted_via: 'permission_request_workflow',
+      },
+    },
+  });
+
+  console.log(
+    `[Permission Approval] Granted permission scope ${scope.id} to user ${userId} (expires: ${expiresAt ? expiresAt.toISOString() : 'never'})`
+  );
+}
+
+/**
+ * Notifies approvers about a new permission request
+ */
+async function notifyApprovers(
+  requestId: string,
+  permissionId: string,
+  requesterId: string,
+  reason: string
+): Promise<void> {
+  // Get users with security_admin or admin roles
+  const approverRoles = await prisma.user_roles.findMany({
+    where: {
+      role: { in: ['security_admin', 'admin'] },
+      is_active: true,
+    },
+    include: {
+      users: {
+        select: {
+          id: true,
+          email: true,
+          full_name: true,
+        },
+      },
+    },
+  });
+
+  const approvers = approverRoles
+    .filter((ur) => ur.users) // Filter out null users
+    .map((ur) => ur.users!);
+
+  if (approvers.length === 0) {
+    console.warn(
+      `[Permission Approval] No approvers found for request ${requestId}. No security_admin or admin users available.`
+    );
+    return;
+  }
+
+  // Get requester information
+  const requester = await prisma.users.findUnique({
+    where: { id: requesterId },
+    select: { email: true, full_name: true },
+  });
+
+  // Get permission information
+  const permission = await prisma.permission_definitions.findUnique({
+    where: { id: permissionId },
+    select: { permission_name: true, permission_key: true },
+  });
+
+  console.log(
+    `[Permission Approval] Notifying ${approvers.length} approvers about request ${requestId}`
+  );
+
+  // Log notification details for each approver
+  approvers.forEach((approver) => {
+    console.log(
+      `[Permission Approval] Notification to ${approver.email}: ` +
+        `User "${requester?.full_name || requesterId}" requested permission ` +
+        `"${permission?.permission_name || permissionId}" (${permission?.permission_key || 'unknown'})` +
+        ` - Reason: "${reason}"`
+    );
+  });
+
+  // TODO: Future email integration
+  // When email service is available, send emails to approvers here
+  // Example:
+  // await emailService.send({
+  //   to: approvers.map(a => a.email),
+  //   subject: `Permission Request Pending Approval`,
+  //   body: `User ${requester?.full_name} has requested permission ${permission?.permission_name}...`
+  // });
+}
+
+// ============================================
 // Request Creation
 // ============================================
 
@@ -106,10 +238,21 @@ export async function requestPermission(
 
   if (autoApproval.approved) {
     console.log(`[Permission Approval] Auto-approved request ${request.id}: ${autoApproval.reason}`);
-    // TODO: Grant the permission automatically
+
+    // Grant the permission automatically
+    await grantTemporaryPermission(
+      request.requester_id,
+      request.permission_id,
+      request.id,
+      request.expires_at,
+      autoApproval.reason || 'Auto-approved',
+      null // No approver for auto-approval
+    );
   } else {
     console.log(`[Permission Approval] Created permission request ${request.id} for ${requesterId}`);
-    // TODO: Notify approvers
+
+    // Notify approvers
+    await notifyApprovers(request.id, permissionId, requesterId, options.reason);
   }
 
   return mapRequestToInterface(request);
@@ -184,8 +327,15 @@ export async function approveRequest(
 
   console.log(`[Permission Approval] Approved request ${requestId} by ${approverId}`);
 
-  // TODO: Grant the permission
-  // This would create a permission_scopes entry or similar
+  // Grant the permission
+  await grantTemporaryPermission(
+    request.requester_id,
+    request.permission_id,
+    requestId,
+    request.expires_at,
+    reason,
+    approverId
+  );
 }
 
 /**
