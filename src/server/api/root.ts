@@ -66,6 +66,16 @@ import { rbacRouter } from './routers/rbac';
 import { sessionsRouter } from './routers/sessions';
 import { permissionsAdvancedRouter } from './routers/permissions-advanced';
 import { enterpriseRbacRouter } from './routers/enterprise-rbac';
+import { apiCredentialRotationsRouter } from './routers/api-credential-rotations';
+import { timeEntriesRouter } from './routers/time-entries';
+import { permissionDelegationsRouter } from './routers/permission-delegations';
+import { permissionDefinitionsRouter } from './routers/permission-definitions';
+import { quickbooksConnectionsRouter } from './routers/quickbooks-connections';
+import { organizationMembersRouter } from './routers/organization-members';
+import { inventoryRouter } from './routers/inventory';
+import { taskEntityLinksRouter } from './routers/task-entity-links';
+import { taskAttachmentsRouter } from './routers/task-attachments';
+import { permissionUsageLogRouter } from './routers/permission-usage-log';
 
 /**
  * Main API router
@@ -86,13 +96,18 @@ export const appRouter = createTRPCRouter({
   sessionTracking: sessionTrackingRouter,
   permissionsAdvanced: permissionsAdvancedRouter,
   permissionRequests: permissionRequestsRouter,
+  permissionDelegations: permissionDelegationsRouter,
+  permissionDefinitions: permissionDefinitionsRouter,
+  permissionUsageLog: permissionUsageLogRouter,
   enterpriseRbac: enterpriseRbacRouter,
+
 
   // Admin Portal
   admin: adminRouter,
   audit: auditRouter,
   export: exportRouter,
   apiCredentials: apiCredentialsRouter,
+  apiCredentialRotations: apiCredentialRotationsRouter,
   apiAudit: apiAuditRouter,
   apiSecurity: apiSecurityRouter,
   apiHealth: apiHealthRouter,
@@ -106,9 +121,13 @@ export const appRouter = createTRPCRouter({
 
   // Task Management
   tasks: tasksRouter,
+  timeEntries: timeEntriesRouter,
+  taskEntityLinks: taskEntityLinksRouter,
+  taskAttachments: taskAttachmentsRouter,
 
   // User Management
   users: usersRouter,
+  organizationMembers: organizationMembersRouter,
 
   // CRM & Sales
   crm: crmRouter,
@@ -128,6 +147,7 @@ export const appRouter = createTRPCRouter({
   materialCollections: materialCollectionsRouter,
   products: productsRouter,
   templates: templatesRouter,
+  inventory: inventoryRouter,
 
   // Orders
   orders: ordersRouter,
@@ -175,6 +195,7 @@ export const appRouter = createTRPCRouter({
 
   // QuickBooks Integration
   quickbooksSync: quickbooksSyncRouter,
+  quickbooksConnections: quickbooksConnectionsRouter,
 
   // Financials (General Accounting)
   invoices: invoicesRouter,
