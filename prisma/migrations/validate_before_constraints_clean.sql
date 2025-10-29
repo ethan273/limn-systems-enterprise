@@ -52,9 +52,9 @@ WHERE order_number !~ '^ORD-[0-9]{6}$'
 ORDER BY created_at DESC
 LIMIT 10;
 
--- CHECK 3: Negative amounts in orders (total_amount)
+-- CHECK 3: Negative amounts in orders (total_amount only)
 SELECT
-  'CHECK 3a: Negative total_amount in orders' as check_name,
+  'CHECK 3: Negative total_amount in orders' as check_name,
   COUNT(*) as invalid_count,
   CASE
     WHEN COUNT(*) = 0 THEN 'PASS - No negative total_amount'
@@ -63,27 +63,15 @@ SELECT
 FROM orders
 WHERE total_amount < 0;
 
--- CHECK 3b: Negative amounts in orders (deposit_amount)
-SELECT
-  'CHECK 3b: Negative deposit_amount in orders' as check_name,
-  COUNT(*) as invalid_count,
-  CASE
-    WHEN COUNT(*) = 0 THEN 'PASS - No negative deposit_amount'
-    ELSE 'FAIL - Found negative deposit_amount values'
-  END as status
-FROM orders
-WHERE deposit_amount < 0;
-
 -- Show details if any found
 SELECT
-  'Negative Amount Details' as info,
+  'Negative Total Amount Details' as info,
   id,
   order_number,
   total_amount,
-  deposit_amount,
   created_at
 FROM orders
-WHERE total_amount < 0 OR deposit_amount < 0
+WHERE total_amount < 0
 LIMIT 10;
 
 -- CHECK 4: Negative amounts in production_orders (total_cost)
@@ -112,7 +100,7 @@ WHERE deposit_amount < 0;
 SELECT
   'Negative Production Amount Details' as info,
   id,
-  production_order_number,
+  order_number as production_order_number,
   total_cost,
   deposit_amount,
   created_at
@@ -140,7 +128,7 @@ BEGIN
 
   SELECT COUNT(*) INTO negative_order_amounts
   FROM orders
-  WHERE total_amount < 0 OR deposit_amount < 0;
+  WHERE total_amount < 0;
 
   SELECT COUNT(*) INTO negative_production_amounts
   FROM production_orders
