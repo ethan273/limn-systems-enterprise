@@ -459,6 +459,7 @@ export interface QueryOptions {
   offset?: number;
   take?: number;
   skip?: number;
+  cursor?: Record<string, any>;
   orderBy?: Record<string, 'asc' | 'desc'> | Record<string, 'asc' | 'desc'>[];
   where?: Record<string, any>;
   include?: Record<string, any>;
