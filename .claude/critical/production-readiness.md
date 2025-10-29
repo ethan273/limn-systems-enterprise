@@ -43,6 +43,26 @@ git diff prisma/schema.prisma
 # These models existed in code but not in database
 ```
 
+### Step 4: Validate Schema References (ALWAYS RUN BEFORE COMMIT)
+```bash
+npm run schema:validate
+# Scans all TypeScript/SQL files for table/column references
+# Ensures no code references non-existent database tables
+# Exit code 0 = all references valid
+# Exit code 1 = violations found (must fix before committing)
+```
+
+**CRITICAL**: This check is **MANDATORY** before every commit. The schema validator ensures:
+- No code references tables that don't exist
+- No code references columns that don't exist
+- SQL queries use valid table names
+- Prevents runtime crashes from invalid schema references
+
+**Common False Positives** (now fixed):
+- SQL aggregate functions (AVG, COUNT, SUM) are not tables
+- SQL functions (EXTRACT, COALESCE) are not tables
+- These are now whitelisted in the validator
+
 ---
 
 ## E2E Testing Compliance Standard
