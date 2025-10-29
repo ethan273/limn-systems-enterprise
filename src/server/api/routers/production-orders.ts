@@ -47,6 +47,13 @@ const updateProductionOrderSchema = createProductionOrderSchema.partial();
  *
  * Uses PostgreSQL advisory lock to prevent race conditions.
  * The lock ensures only one transaction can generate a number at a time.
+ *
+ * CRITICAL: This function uses a direct Prisma instance for advisory locks.
+ * The lock is held ONLY during number generation, NOT during order creation.
+ * This is safe because:
+ * 1. The unique constraint on order_number will catch any duplicates
+ * 2. If a duplicate occurs, the error is surfaced to the client for retry
+ * 3. Advisory locks across different connections would cause deadlocks
  */
 async function generateOrderNumber(): Promise<string> {
   const year = new Date().getFullYear();
@@ -415,42 +422,71 @@ export const productionOrdersRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const totalCost = input.unit_price * input.quantity;
 
-      // Generate order number using advisory lock (no retry needed)
-      const orderNumber = await generateOrderNumber();
+      // Retry loop to handle race conditions in order number generation
+      // If a duplicate order number is generated (rare but possible), retry up to 3 times
+      const MAX_RETRIES = 3;
+      let lastError: Error | null = null;
 
-      // Create Production Order
-      const order = await ctx.db.production_orders.create({
-        data: {
-          order_number: orderNumber,
-          order_id: input.order_id, // Links to CRM order for grouping/shipping
-          project_id: input.project_id,
-          product_type: input.product_type,
-          catalog_item_id: input.catalog_item_id,
-          prototype_id: input.prototype_id,
-          concept_id: input.concept_id,
-          item_name: input.item_name,
-          item_description: input.item_description,
-          quantity: input.quantity,
-          unit_price: new Prisma.Decimal(input.unit_price),
-          total_cost: new Prisma.Decimal(totalCost),
-          estimated_ship_date: input.estimated_ship_date,
-          factory_id: input.factory_id,
-          factory_notes: input.factory_notes,
-          status: 'awaiting_deposit', // CRITICAL: Blocks production until deposit paid
-          deposit_paid: false,
-          final_payment_paid: false,
-          created_by: ctx.session?.user?.id,
-        },
-      });
+      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        try {
+          // Generate order number using advisory lock
+          const orderNumber = await generateOrderNumber();
 
-      // NOTE: Invoice generation is handled separately per CRM order (not per production order)
-      // When order_id is provided, ONE invoice covers all production orders for that CRM order
-      // Skipping individual invoice creation to avoid duplicate invoices
+          // Create Production Order
+          const order = await ctx.db.production_orders.create({
+            data: {
+              order_number: orderNumber,
+              order_id: input.order_id, // Links to CRM order for grouping/shipping
+              project_id: input.project_id,
+              product_type: input.product_type,
+              catalog_item_id: input.catalog_item_id,
+              prototype_id: input.prototype_id,
+              concept_id: input.concept_id,
+              item_name: input.item_name,
+              item_description: input.item_description,
+              quantity: input.quantity,
+              unit_price: new Prisma.Decimal(input.unit_price),
+              total_cost: new Prisma.Decimal(totalCost),
+              estimated_ship_date: input.estimated_ship_date,
+              factory_id: input.factory_id,
+              factory_notes: input.factory_notes,
+              status: 'awaiting_deposit', // CRITICAL: Blocks production until deposit paid
+              deposit_paid: false,
+              final_payment_paid: false,
+              created_by: ctx.session?.user?.id,
+            },
+          });
 
-      return {
-        order,
-        message: `Production order ${orderNumber} created and linked to CRM order. Invoice will be generated for the complete order.`,
-      };
+          // Success - return the order
+          // NOTE: Invoice generation is handled separately per CRM order (not per production order)
+          // When order_id is provided, ONE invoice covers all production orders for that CRM order
+          // Skipping individual invoice creation to avoid duplicate invoices
+          return {
+            order,
+            message: `Production order ${orderNumber} created and linked to CRM order. Invoice will be generated for the complete order.`,
+          };
+        } catch (error: any) {
+          // Check if this is a duplicate key error
+          const isDuplicateKeyError = error?.code === 'P2002' ||
+                                       error?.message?.includes('duplicate key') ||
+                                       error?.message?.includes('production_orders_order_number_key');
+
+          if (isDuplicateKeyError && attempt < MAX_RETRIES) {
+            // Log the retry attempt
+            console.warn(`[production-orders] Duplicate order number detected on attempt ${attempt}. Retrying...`);
+            lastError = error;
+            // Wait a short time before retrying (exponential backoff)
+            await new Promise(resolve => setTimeout(resolve, 100 * attempt));
+            continue; // Retry
+          }
+
+          // If it's not a duplicate error, or we've exhausted retries, throw the error
+          throw error;
+        }
+      }
+
+      // If we get here, all retries failed
+      throw new Error(`Failed to create production order after ${MAX_RETRIES} attempts. Last error: ${lastError?.message}`);
     }),
 
   // Update production order status - TRIGGERS ORDERED ITEMS CREATION & FINAL INVOICE

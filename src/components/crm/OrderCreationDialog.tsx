@@ -1186,7 +1186,7 @@ export function OrderCreationDialog({
             <Button
               onClick={() => onFinalizeOrder(projectId)}
               disabled={isFinalizingOrder}
-              className="bg-success-muted hover:bg-success-muted text-white dark:text-white"
+              className="bg-success-muted hover:bg-success text-success-foreground hover:text-white font-semibold"
             >
               {isFinalizingOrder ? (
                 <>Processing...</>
