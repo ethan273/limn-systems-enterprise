@@ -38,6 +38,8 @@ import { documentsRouter } from './routers/documents';
 import { dashboardsRouter } from './routers/dashboards';
 import { notificationsRouter } from './routers/notifications';
 import { userProfileRouter } from './routers/user-profile';
+import { profilesRouter } from './routers/profiles';
+import { templatesRouter } from './routers/templates';
 import { adminRouter } from './routers/admin';
 import { auditRouter } from './routers/audit';
 import { exportRouter } from './routers/export';
@@ -51,6 +53,12 @@ import { jobsRouter as apiJobsRouter } from './routers/apiManagement/jobs';
 import { flipbooksRouter } from './routers/flipbooks';
 import { flipbookAnalyticsRouter } from './routers/flipbook-analytics';
 import { globalSearchRouter } from './routers/global-search';
+import { designersRouter } from './routers/designers';
+import { materialCategoriesRouter } from './routers/material-categories';
+import { materialCollectionsRouter } from './routers/material-collections';
+import { conceptsRouter } from './routers/concepts';
+import { permissionRequestsRouter } from './routers/permission-requests';
+import { sessionTrackingRouter } from './routers/session-tracking';
 import { emailTemplatesRouter } from './routers/emailTemplates';
 import { emailCampaignsRouter } from './routers/emailCampaigns';
 import { emailAnalyticsRouter } from './routers/emailAnalytics';
@@ -75,7 +83,9 @@ export const appRouter = createTRPCRouter({
   auth: authRouter,
   rbac: rbacRouter,
   sessions: sessionsRouter,
+  sessionTracking: sessionTrackingRouter,
   permissionsAdvanced: permissionsAdvancedRouter,
+  permissionRequests: permissionRequestsRouter,
   enterpriseRbac: enterpriseRbacRouter,
 
   // Admin Portal
@@ -92,6 +102,7 @@ export const appRouter = createTRPCRouter({
   // Notifications & User Profile
   notifications: notificationsRouter,
   userProfile: userProfileRouter,
+  profiles: profilesRouter,
 
   // Task Management
   tasks: tasksRouter,
@@ -113,7 +124,10 @@ export const appRouter = createTRPCRouter({
   collections: collectionsRouter,
   items: itemsRouter,
   materials: materialsRouter,
+  materialCategories: materialCategoriesRouter,
+  materialCollections: materialCollectionsRouter,
   products: productsRouter,
+  templates: templatesRouter,
 
   // Orders
   orders: ordersRouter,
@@ -133,6 +147,8 @@ export const appRouter = createTRPCRouter({
   designProjects: designProjectsRouter,
   moodBoards: moodBoardsRouter,
   designBoards: designBoardsRouter,
+  designers: designersRouter,
+  concepts: conceptsRouter,
 
   // OAuth & Storage (Phase 2 - Week 13-15 Day 7-9)
   oauth: oauthRouter,
