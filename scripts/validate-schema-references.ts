@@ -225,9 +225,20 @@ class SchemaValidator {
       const sqlTableRegex = /\b(?:FROM|JOIN)\s+(\w+)/g;
       while ((match = sqlTableRegex.exec(cleanedLine)) !== null) {
         const tableName = match[1];
+        // Skip SQL keywords and aggregate functions
+        const sqlKeywordsAndFunctions = [
+          'SELECT', 'WHERE', 'ON', 'SET', 'VALUES',
+          // SQL aggregate functions
+          'AVG', 'COUNT', 'SUM', 'MAX', 'MIN',
+          // SQL functions
+          'EXTRACT', 'COALESCE', 'CAST', 'SUBSTRING', 'TRIM', 'UPPER', 'LOWER',
+          'NOW', 'CURRENT_TIMESTAMP', 'CURRENT_DATE',
+          // SQL clauses that can appear after FROM
+          'LATERAL', 'UNNEST',
+        ];
         // Skip SQL keywords and only validate if line looks like SQL (has SELECT, UPDATE, DELETE, etc)
         const hasSQL = /\b(SELECT|UPDATE|DELETE|INSERT)\b/.test(cleanedLine.toUpperCase());
-        if (hasSQL && !['SELECT', 'WHERE', 'ON', 'SET', 'VALUES'].includes(tableName.toUpperCase())) {
+        if (hasSQL && !sqlKeywordsAndFunctions.includes(tableName.toUpperCase())) {
           this.validateTableReference(tableName, filePath, lineNumber, line);
         }
       }
