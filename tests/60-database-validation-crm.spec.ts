@@ -133,7 +133,7 @@ test.describe('Database Validation - Contacts Table', () => {
 test.describe('Database Validation - Customers (Clients) Table', () => {
   test('should enforce required fields on customers', async () => {
     try {
-      await prisma.clients.create({
+      await prisma.customers.create({
         data: {
           // Missing required name field
           email: 'test-customer@example.com',
@@ -146,11 +146,11 @@ test.describe('Database Validation - Customers (Clients) Table', () => {
   });
 
   test('should enforce unique email constraint on customers', async () => {
-    // SKIPPED: clients table has NO unique constraint on email field
+    // SKIPPED: customers table has NO unique constraint on email field
     // Schema verification shows: email is nullable character varying with no unique constraint
     const uniqueEmail = `customer-unique-${Date.now()}@example.com`;
 
-    await prisma.clients.create({
+    await prisma.customers.create({
       data: {
         name: 'Customer 1',
         email: uniqueEmail,
@@ -158,7 +158,7 @@ test.describe('Database Validation - Customers (Clients) Table', () => {
     });
 
     try {
-      await prisma.clients.create({
+      await prisma.customers.create({
         data: {
           name: 'Customer 2',
           email: uniqueEmail,
@@ -170,13 +170,13 @@ test.describe('Database Validation - Customers (Clients) Table', () => {
     }
 
     // Cleanup
-    await prisma.clients.deleteMany({
+    await prisma.customers.deleteMany({
       where: { email: uniqueEmail },
     });
   });
 
   test('should set default timestamps on customers creation', async () => {
-    const customer = await prisma.clients.create({
+    const customer = await prisma.customers.create({
       data: {
         name: 'Timestamp Customer',
         email: `customer-timestamp-${Date.now()}@example.com`,
@@ -187,11 +187,11 @@ test.describe('Database Validation - Customers (Clients) Table', () => {
     expect(customer.updated_at).toBeInstanceOf(Date);
 
     // Cleanup
-    await prisma.clients.delete({ where: { id: customer.id } });
+    await prisma.customers.delete({ where: { id: customer.id } });
   });
 
   test('should allow nullable company_name field on customers', async () => {
-    const customer = await prisma.clients.create({
+    const customer = await prisma.customers.create({
       data: {
         name: 'Individual Customer',
         email: `individual-${Date.now()}@example.com`,
@@ -202,11 +202,11 @@ test.describe('Database Validation - Customers (Clients) Table', () => {
     expect(customer.company_name).toBeNull();
 
     // Cleanup
-    await prisma.clients.delete({ where: { id: customer.id } });
+    await prisma.customers.delete({ where: { id: customer.id } });
   });
 
   test('should store customer type correctly', async () => {
-    const customer = await prisma.clients.create({
+    const customer = await prisma.customers.create({
       data: {
         name: 'Type Test Customer',
         email: `type-${Date.now()}@example.com`,
@@ -217,11 +217,11 @@ test.describe('Database Validation - Customers (Clients) Table', () => {
     expect(customer.type).toBe('business');
 
     // Cleanup
-    await prisma.clients.delete({ where: { id: customer.id } });
+    await prisma.customers.delete({ where: { id: customer.id } });
   });
 
   test('should allow nullable billing address fields', async () => {
-    const customer = await prisma.clients.create({
+    const customer = await prisma.customers.create({
       data: {
         name: 'No Address Customer',
         email: `no-address-${Date.now()}@example.com`,
@@ -238,7 +238,7 @@ test.describe('Database Validation - Customers (Clients) Table', () => {
     expect(customer.billing_zip).toBeNull();
 
     // Cleanup
-    await prisma.clients.delete({ where: { id: customer.id } });
+    await prisma.customers.delete({ where: { id: customer.id } });
   });
 });
 

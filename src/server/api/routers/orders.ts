@@ -7,6 +7,7 @@ import { createFullName } from '@/lib/utils/name-utils';
 import { PrismaClient } from '@prisma/client';
 
 // Direct Prisma instance for raw SQL (advisory locks)
+// @allow-direct-prisma - Required for PostgreSQL advisory locks in order number generation
 const prisma = new PrismaClient();
 
 // ============================================================================

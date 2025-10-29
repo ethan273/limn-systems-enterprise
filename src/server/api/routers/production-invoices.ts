@@ -4,6 +4,7 @@ import { Prisma, PrismaClient } from '@prisma/client';
 import { quickbooksClient } from '@/lib/quickbooks/client';
 
 // Direct Prisma instance for raw SQL (advisory locks)
+// @allow-direct-prisma - Required for PostgreSQL advisory locks in payment number generation
 const prisma = new PrismaClient();
 
 // ============================================================================

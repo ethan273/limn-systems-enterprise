@@ -71,7 +71,7 @@ async function cleanTestData() {
     console.log(`✅ Deleted ${deletedLeads.count} test leads\n`);
 
     console.log('Deleting test clients...');
-    const deletedClients = await prisma.clients.deleteMany({
+    const deletedClients = await prisma.customers.deleteMany({
       where: { id: { startsWith: 'test-' } },
     });
     console.log(`✅ Deleted ${deletedClients.count} test clients\n`);

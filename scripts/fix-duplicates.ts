@@ -33,30 +33,30 @@ async function fixDuplicates() {
   console.log(`✅ Fixed ${contactDupes.length} duplicate emails in contacts\n`);
 
   console.log('🔧 Fixing duplicate emails in clients...');
-  
+
   const clientDupes = await prisma.$queryRaw<{email: string}[]>`
-    SELECT email 
-    FROM clients 
-    WHERE email IS NOT NULL 
-    GROUP BY email 
+    SELECT email
+    FROM customers
+    WHERE email IS NOT NULL
+    GROUP BY email
     HAVING COUNT(*) > 1
   `;
-  
+
   for (const { email } of clientDupes) {
-    const records = await prisma.clients.findMany({
+    const records = await prisma.customers.findMany({
       where: { email },
       orderBy: { created_at: 'asc' },
     });
-    
+
     if (records.length > 1) {
       const toDelete = records.slice(1);
       for (const record of toDelete) {
-        await prisma.clients.delete({ where: { id: record.id } });
+        await prisma.customers.delete({ where: { id: record.id } });
         console.log(`  Deleted duplicate client: ${email} (id: ${record.id})`);
       }
     }
   }
-  
+
   console.log(`✅ Fixed ${clientDupes.length} duplicate emails in clients\n`);
   console.log('🎉 All duplicates resolved!');
   

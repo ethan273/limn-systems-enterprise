@@ -52,7 +52,7 @@ async function dropClientsTable(databaseUrl: string, dbName: string) {
     console.log(`[${dbName}] clients table exists, checking for data...`);
 
     const clientCount = await prisma.$queryRawUnsafe<any[]>(`
-      SELECT COUNT(*) as count FROM clients;
+      SELECT COUNT(*) as count FROM customers;
     `);
 
     const count = parseInt(clientCount[0]?.count || '0');
