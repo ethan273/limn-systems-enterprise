@@ -401,11 +401,11 @@ export const materialCategoriesRouter = createTRPCRouter({
             },
           },
         },
-        orderBy: {
+        orderBy: ({
           materials: {
             _count: 'desc',
           },
-        },
+        } as any),
         take: 10,
       }),
     ]);

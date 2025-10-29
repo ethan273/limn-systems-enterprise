@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '../trpc/init';
 import { TRPCError } from '@trpc/server';
 
-export const workflowexecutionsRouter = createTRPCRouter({
+export const workflowExecutionsRouter = createTRPCRouter({
   getById: protectedProcedure.input(z.object({ id: z.string().uuid() })).query(async ({ ctx, input }) => {
     const record = await ctx.db.workflow_executions.findUnique({ where: { id: input.id } });
     if (!record) throw new TRPCError({ code: 'NOT_FOUND' });

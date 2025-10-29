@@ -63,7 +63,6 @@ export const apiCredentialRotationsRouter = createTRPCRouter({
           users: {
             select: {
               id: true,
-              name: true,
               email: true,
             },
           },
@@ -138,7 +137,6 @@ export const apiCredentialRotationsRouter = createTRPCRouter({
           },
           users: {
             select: {
-              name: true,
             },
           },
         },
@@ -184,7 +182,6 @@ export const apiCredentialRotationsRouter = createTRPCRouter({
           error_message: true,
           users: {
             select: {
-              name: true,
               email: true,
             },
           },
@@ -226,7 +223,6 @@ export const apiCredentialRotationsRouter = createTRPCRouter({
           },
           users: {
             select: {
-              name: true,
             },
           },
         },

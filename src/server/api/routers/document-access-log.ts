@@ -9,7 +9,7 @@ import { TRPCError } from '@trpc/server';
  * Tracks document access and views
  */
 
-export const LLDocumentAccessLogRouterRouter = createTRPCRouter({
+export const documentAccessLogRouter = createTRPCRouter({
   getById: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {

@@ -9,7 +9,7 @@ import { TRPCError } from '@trpc/server';
  * Manages additional specifications
  */
 
-export const LLAdditionalSpecsRouterRouter = createTRPCRouter({
+export const additionalSpecsRouter = createTRPCRouter({
   getById: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {

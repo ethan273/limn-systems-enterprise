@@ -9,7 +9,7 @@ import { TRPCError } from '@trpc/server';
  * Manages objects/elements on design boards
  */
 
-export const LLBoardObjectsRouterRouter = createTRPCRouter({
+export const boardObjectsRouter = createTRPCRouter({
   getById: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {

@@ -32,7 +32,6 @@ export const quickbooksConnectionsRouter = createTRPCRouter({
           users: {
             select: {
               id: true,
-              name: true,
               email: true,
             },
           },
@@ -91,7 +90,6 @@ export const quickbooksConnectionsRouter = createTRPCRouter({
           updated_at: true,
           users: {
             select: {
-              name: true,
               email: true,
             },
           },

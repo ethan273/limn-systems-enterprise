@@ -9,7 +9,7 @@ import { TRPCError } from '@trpc/server';
  * Tracks individual document approvals
  */
 
-export const LLDocumentApprovalsRouterRouter = createTRPCRouter({
+export const documentApprovalsRouter = createTRPCRouter({
   getById: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {

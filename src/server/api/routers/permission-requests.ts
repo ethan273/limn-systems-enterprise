@@ -49,14 +49,12 @@ export const permissionRequestsRouter = createTRPCRouter({
           users_permission_requests_requester_idTousers: {
             select: {
               id: true,
-              name: true,
               email: true,
             },
           },
           users_permission_requests_approver_idTousers: {
             select: {
               id: true,
-              name: true,
               email: true,
             },
           },
@@ -142,7 +140,6 @@ export const permissionRequestsRouter = createTRPCRouter({
           users_permission_requests_requester_idTousers: {
             select: {
               id: true,
-              name: true,
               email: true,
             },
           },
@@ -208,7 +205,6 @@ export const permissionRequestsRouter = createTRPCRouter({
           users_permission_requests_approver_idTousers: {
             select: {
               id: true,
-              name: true,
             },
           },
         },
@@ -246,7 +242,6 @@ export const permissionRequestsRouter = createTRPCRouter({
           users_permission_requests_requester_idTousers: {
             select: {
               id: true,
-              name: true,
               email: true,
             },
           },

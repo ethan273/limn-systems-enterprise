@@ -95,16 +95,17 @@ export default function ApiCredentialDetailPage() {
               <h3 className="text-sm font-medium text-muted-foreground mb-1">Credential Type</h3>
               <p className="text-base">{credential.credential_type}</p>
             </div>
-            {credential.scopes && (
+            {/* Scopes field doesn't exist in api_credentials schema - commented out */}
+            {/* {(credential as any).scopes && (
               <div className="col-span-2">
                 <h3 className="text-sm font-medium text-muted-foreground mb-1">Scopes</h3>
                 <div className="flex flex-wrap gap-2">
-                  {(credential.scopes as string[]).map((scope: string, i: number) => (
+                  {((credential as any).scopes as string[]).map((scope: string, i: number) => (
                     <Badge key={i} variant="outline"><Shield className="h-3 w-3 mr-1" />{scope}</Badge>
                   ))}
                 </div>
               </div>
-            )}
+            )} */}
             <div>
               <h3 className="text-sm font-medium text-muted-foreground mb-1">Created At</h3>
               <p className="text-base flex items-center gap-2">

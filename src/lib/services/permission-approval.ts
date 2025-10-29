@@ -127,7 +127,6 @@ async function notifyApprovers(
         select: {
           id: true,
           email: true,
-          full_name: true,
         },
       },
     },
@@ -147,7 +146,7 @@ async function notifyApprovers(
   // Get requester information
   const requester = await prisma.users.findUnique({
     where: { id: requesterId },
-    select: { email: true, full_name: true },
+    select: { email: true },
   });
 
   // Get permission information
@@ -164,7 +163,7 @@ async function notifyApprovers(
   approvers.forEach((approver) => {
     console.log(
       `[Permission Approval] Notification to ${approver.email}: ` +
-        `User "${requester?.full_name || requesterId}" requested permission ` +
+        `User "${requester?.email || requesterId}" requested permission ` +
         `"${permission?.permission_name || permissionId}" (${permission?.permission_key || 'unknown'})` +
         ` - Reason: "${reason}"`
     );
@@ -176,7 +175,7 @@ async function notifyApprovers(
   // await emailService.send({
   //   to: approvers.map(a => a.email),
   //   subject: `Permission Request Pending Approval`,
-  //   body: `User ${requester?.full_name} has requested permission ${permission?.permission_name}...`
+  //   body: `User ${requester?.email} has requested permission ${permission?.permission_name}...`
   // });
 }
 

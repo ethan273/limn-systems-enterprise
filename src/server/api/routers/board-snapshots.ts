@@ -9,7 +9,7 @@ import { TRPCError } from '@trpc/server';
  * Manages board version snapshots
  */
 
-export const LLBoardSnapshotsRouterRouter = createTRPCRouter({
+export const boardSnapshotsRouter = createTRPCRouter({
   getById: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {

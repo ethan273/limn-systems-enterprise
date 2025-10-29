@@ -9,7 +9,7 @@ import { TRPCError } from '@trpc/server';
  * Manages comments on design boards
  */
 
-export const LLBoardCommentsRouterRouter = createTRPCRouter({
+export const boardCommentsRouter = createTRPCRouter({
   getById: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {

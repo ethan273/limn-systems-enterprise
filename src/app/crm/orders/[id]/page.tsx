@@ -113,11 +113,11 @@ export default function OrderDetailPage() {
           <div>
             <h1 className="text-3xl font-bold">Order {order.order_number}</h1>
             <p className="text-muted-foreground">
-              {order.customers?.name || "Unknown Customer"}
+              {(order as any).customers?.name || "Unknown Customer"}
             </p>
           </div>
           <div className="flex items-center gap-2">
-            {getStatusBadge(order.status)}
+            {getStatusBadge(order.status || 'pending')}
             <Link href={`/crm/orders/${orderId}/edit`}>
               <Button variant="outline">Edit Order</Button>
             </Link>
@@ -147,14 +147,14 @@ export default function OrderDetailPage() {
                   <User className="h-4 w-4 inline mr-1" />
                   Customer
                 </p>
-                <p className="font-medium">{order.customers?.name || "Unknown"}</p>
+                <p className="font-medium">{(order as any).customers?.name || "Unknown"}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground mb-1">
                   <Package className="h-4 w-4 inline mr-1" />
                   Project
                 </p>
-                <p className="font-medium">{order.projects?.name || "N/A"}</p>
+                <p className="font-medium">{(order as any).projects?.name || "N/A"}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground mb-1">
@@ -187,15 +187,15 @@ export default function OrderDetailPage() {
                 Edit Order
               </Button>
             </Link>
-            {order.projects?.id && (
-              <Link href={`/crm/projects/${order.projects.id}`} className="w-full">
+            {(order as any).projects?.id && (
+              <Link href={`/crm/projects/${(order as any).projects.id}`} className="w-full">
                 <Button variant="outline" className="w-full">
                   View Project
                 </Button>
               </Link>
             )}
-            {order.customers?.id && (
-              <Link href={`/crm/customers/${order.customers.id}`} className="w-full">
+            {(order as any).customers?.id && (
+              <Link href={`/crm/customers/${(order as any).customers.id}`} className="w-full">
                 <Button variant="outline" className="w-full">
                   View Customer
                 </Button>
@@ -206,14 +206,14 @@ export default function OrderDetailPage() {
       </div>
 
       {/* Order Items */}
-      {order.order_items && order.order_items.length > 0 && (
+      {(order as any).order_items && (order as any).order_items.length > 0 && (
         <Card className="mt-6">
           <CardHeader>
-            <CardTitle>Order Items ({order.order_items.length})</CardTitle>
+            <CardTitle>Order Items ({(order as any).order_items.length})</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {order.order_items.map((item: any) => (
+              {(order as any).order_items.map((item: any) => (
                 <div key={item.id} className="border rounded-lg p-4">
                   <div className="flex justify-between items-start">
                     <div>
@@ -239,14 +239,14 @@ export default function OrderDetailPage() {
       )}
 
       {/* Invoices */}
-      {order.invoices && order.invoices.length > 0 && (
+      {(order as any).invoices && (order as any).invoices.length > 0 && (
         <Card className="mt-6">
           <CardHeader>
-            <CardTitle>Invoices ({order.invoices.length})</CardTitle>
+            <CardTitle>Invoices ({(order as any).invoices.length})</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {order.invoices.map((invoice: any) => (
+              {(order as any).invoices.map((invoice: any) => (
                 <div key={invoice.id} className="flex justify-between items-center p-3 border rounded-lg">
                   <div>
                     <p className="font-medium">{invoice.invoice_number}</p>

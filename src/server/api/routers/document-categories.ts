@@ -9,7 +9,7 @@ import { TRPCError } from '@trpc/server';
  * Manages document categorization
  */
 
-export const LLDocumentCategoriesRouterRouter = createTRPCRouter({
+export const documentCategoriesRouter = createTRPCRouter({
   getById: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {

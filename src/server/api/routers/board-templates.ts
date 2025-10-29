@@ -9,7 +9,7 @@ import { TRPCError } from '@trpc/server';
  * Manages reusable board templates
  */
 
-export const LLBoardTemplatesRouterRouter = createTRPCRouter({
+export const boardTemplatesRouter = createTRPCRouter({
   getById: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {

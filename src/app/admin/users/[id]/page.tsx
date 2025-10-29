@@ -13,8 +13,8 @@ export default function UserDetailPage() {
   const router = useRouter();
   const userId = params.id as string;
 
-  const { data: user, isLoading, error } = api.userProfile.getUserById.useQuery(
-    { userId },
+  const { data: user, isLoading, error } = api.users.getById.useQuery(
+    { id: userId },
     { enabled: !!userId }
   );
 

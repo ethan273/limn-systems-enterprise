@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '../trpc/init';
 import { TRPCError } from '@trpc/server';
 
-export const smsprovidersRouter = createTRPCRouter({
+export const smsProvidersRouter = createTRPCRouter({
   getById: protectedProcedure.input(z.object({ id: z.string().uuid() })).query(async ({ ctx, input }) => {
     const record = await ctx.db.sms_providers.findUnique({ where: { id: input.id } });
     if (!record) throw new TRPCError({ code: 'NOT_FOUND' });

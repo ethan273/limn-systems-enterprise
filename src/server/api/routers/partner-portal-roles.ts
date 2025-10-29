@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '../trpc/init';
 import { TRPCError } from '@trpc/server';
 
-export const partnerportalrolesRouter = createTRPCRouter({
+export const partnerPortalRolesRouter = createTRPCRouter({
   getById: protectedProcedure.input(z.object({ id: z.string().uuid() })).query(async ({ ctx, input }) => {
     const record = await ctx.db.partner_portal_roles.findUnique({ where: { id: input.id } });
     if (!record) throw new TRPCError({ code: 'NOT_FOUND' });

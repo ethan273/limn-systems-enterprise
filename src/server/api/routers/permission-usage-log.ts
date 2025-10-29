@@ -43,7 +43,6 @@ export const permissionUsageLogRouter = createTRPCRouter({
           users: {
             select: {
               id: true,
-              name: true,
               email: true,
             },
           },
@@ -131,7 +130,6 @@ export const permissionUsageLogRouter = createTRPCRouter({
           },
           users: {
             select: {
-              name: true,
             },
           },
         },
@@ -273,7 +271,6 @@ export const permissionUsageLogRouter = createTRPCRouter({
           timestamp: true,
           users: {
             select: {
-              name: true,
               email: true,
             },
           },
@@ -324,7 +321,6 @@ export const permissionUsageLogRouter = createTRPCRouter({
           ip_address: true,
           users: {
             select: {
-              name: true,
               email: true,
             },
           },
