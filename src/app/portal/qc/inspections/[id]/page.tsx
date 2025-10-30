@@ -1,10 +1,23 @@
 'use client';
 
+import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { EmptyState } from '@/components/common/EmptyState';
 import {
   ClipboardCheck,
@@ -28,10 +41,21 @@ export default function QCInspectionDetailPage() {
   const utils = api.useUtils();
   const inspectionId = params?.id as string;
 
+  const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [updateForm, setUpdateForm] = useState({
+    passed: 'true',
+    defectsFound: '0',
+    notes: '',
+  });
+
   const { data: inspection, isLoading, error } = api.portal.getQCInspectionById.useQuery(
     { inspectionId },
     { enabled: !!inspectionId }
   );
+
+  const updateStatusMutation = api.portal.updateQCInspectionStatus.useMutation();
 
   const formatDate = (date: Date | string | null | undefined) => {
     if (!date) return 'N/A';
@@ -62,6 +86,45 @@ export default function QCInspectionDetailPage() {
         Failed
       </Badge>
     );
+  };
+
+  const handleUpdateStatus = () => {
+    if (inspection) {
+      setUpdateForm({
+        passed: inspection.passed === null ? 'true' : inspection.passed ? 'true' : 'false',
+        defectsFound: String(inspection.defects_found || 0),
+        notes: inspection.notes || '',
+      });
+      setUpdateDialogOpen(true);
+    }
+  };
+
+  const handleSubmitUpdate = async () => {
+    try {
+      setSubmitting(true);
+
+      await updateStatusMutation.mutateAsync({
+        inspectionId,
+        passed: updateForm.passed === 'true',
+        defectsFound: parseInt(updateForm.defectsFound, 10),
+        notes: updateForm.notes || undefined,
+      });
+
+      // Show success
+      setSuccessMessage('Inspection status updated successfully');
+      setUpdateDialogOpen(false);
+      void utils.portal.getQCInspectionById.invalidate();
+
+      // Hide success message after 3 seconds
+      setTimeout(() => {
+        setSuccessMessage(null);
+      }, 3000);
+    } catch (error) {
+      console.error('Failed to update inspection:', error);
+      alert('Failed to update inspection status');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   // Handle query error
@@ -137,6 +200,14 @@ export default function QCInspectionDetailPage() {
           {getStatusBadge(inspection.passed)}
         </div>
       </div>
+
+      {/* Success Message */}
+      {successMessage && (
+        <div className="flex items-center gap-2 p-4 bg-success/10 text-success border border-success/20 rounded-lg">
+          <CheckCircle className="h-5 w-5" />
+          <span className="font-medium">{successMessage}</span>
+        </div>
+      )}
 
       {/* Summary Cards */}
       <div className="grid gap-4 md:grid-cols-3">
@@ -272,14 +343,108 @@ export default function QCInspectionDetailPage() {
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Inspections
             </Button>
-            {inspection.passed === null && (
-              <Button>
-                Update Status
-              </Button>
-            )}
+            <Button onClick={handleUpdateStatus}>
+              <ClipboardCheck className="h-4 w-4 mr-2" />
+              Update Status
+            </Button>
           </div>
         </CardContent>
       </Card>
+
+      {/* Update Status Dialog */}
+      <Dialog open={updateDialogOpen} onOpenChange={setUpdateDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Update Inspection Status</DialogTitle>
+            <DialogDescription>
+              Update the inspection results and quality status
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Pass/Fail Status */}
+            <div>
+              <Label>Inspection Result</Label>
+              <RadioGroup
+                value={updateForm.passed}
+                onValueChange={(value) =>
+                  setUpdateForm({ ...updateForm, passed: value })
+                }
+                className="mt-2"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="true" id="passed" />
+                  <Label htmlFor="passed" className="cursor-pointer flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-success" />
+                    Passed - Quality meets standards
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="false" id="failed" />
+                  <Label htmlFor="failed" className="cursor-pointer flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-destructive" />
+                    Failed - Quality issues found
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* Defects Found */}
+            <div>
+              <Label htmlFor="defects">Number of Defects Found</Label>
+              <Input
+                id="defects"
+                type="number"
+                min="0"
+                value={updateForm.defectsFound}
+                onChange={(e) =>
+                  setUpdateForm({ ...updateForm, defectsFound: e.target.value })
+                }
+              />
+            </div>
+
+            {/* Notes */}
+            <div>
+              <Label htmlFor="update-notes">Inspection Notes</Label>
+              <Textarea
+                id="update-notes"
+                placeholder="Add detailed inspection notes..."
+                value={updateForm.notes}
+                onChange={(e) =>
+                  setUpdateForm({ ...updateForm, notes: e.target.value })
+                }
+                rows={4}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setUpdateDialogOpen(false)}
+              disabled={submitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmitUpdate}
+              disabled={submitting}
+            >
+              {submitting ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Update Status
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

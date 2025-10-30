@@ -36,9 +36,19 @@ export default function CustomerProfilePage() {
   const [smsNotifications, setSmsNotifications] = useState(false);
   const [inAppNotifications, setInAppNotifications] = useState(true);
 
+  // Form state for profile editing
+  const [profileForm, setProfileForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    company_name: '',
+  });
+
   const { data: userInfo, isLoading: isLoadingUser, error: userError } = api.portal.getCurrentUser.useQuery();
+  const { data: customerProfile, isLoading: isLoadingProfile, error: profileError } = api.portal.getCustomerProfile.useQuery();
   const { data: portalSettings, isLoading: isLoadingSettings, error: settingsError } = api.portal.getPortalSettings.useQuery();
   const updatePreferencesMutation = api.portal.updateNotificationPreferences.useMutation();
+  const updateProfileMutation = api.portal.updateCustomerProfile.useMutation();
 
   // Get tRPC utils for cache invalidation
   const utils = api.useUtils();
@@ -62,9 +72,21 @@ export default function CustomerProfilePage() {
     }
   }, [portalSettings]);
 
+  // Initialize profile form when customer data loads
+  useEffect(() => {
+    if (customerProfile) {
+      setProfileForm({
+        name: customerProfile.name || '',
+        email: customerProfile.email || userInfo?.email || '',
+        phone: customerProfile.phone || '',
+        company_name: customerProfile.company_name || '',
+      });
+    }
+  }, [customerProfile, userInfo]);
+
   // Handle query errors
-  if (userError || settingsError) {
-    const error = userError || settingsError;
+  if (userError || settingsError || profileError) {
+    const error = userError || settingsError || profileError;
     return (
       <div className="space-y-6">
         <div className="page-header">
@@ -88,7 +110,7 @@ export default function CustomerProfilePage() {
     );
   }
 
-  if (isLoadingUser || isLoadingSettings) {
+  if (isLoadingUser || isLoadingSettings || isLoadingProfile) {
     return (
       <div className="page-container">
         <LoadingState message="Loading profile..." size="lg" />
@@ -96,7 +118,29 @@ export default function CustomerProfilePage() {
     );
   }
 
-  const handleSave = async () => {
+  const handleSaveProfile = async () => {
+    try {
+      setSaveStatus('saving');
+
+      // Save profile changes
+      await updateProfileMutation.mutateAsync(profileForm);
+
+      // Invalidate queries for instant updates
+      void utils.portal.getCustomerProfile.invalidate();
+
+      setSaveStatus('success');
+      setIsEditing(false);
+
+      setTimeout(() => {
+        setSaveStatus('idle');
+      }, 2000);
+    } catch (error) {
+      console.error('Failed to save profile:', error);
+      setSaveStatus('idle');
+    }
+  };
+
+  const handleSaveNotifications = async () => {
     try {
       setSaveStatus('saving');
 
@@ -107,10 +151,9 @@ export default function CustomerProfilePage() {
       });
 
       // Invalidate queries for instant updates
-      utils.portal.getPortalSettings.invalidate();
+      void utils.portal.getPortalSettings.invalidate();
 
       setSaveStatus('success');
-      setIsEditing(false);
 
       setTimeout(() => {
         setSaveStatus('idle');
@@ -124,10 +167,13 @@ export default function CustomerProfilePage() {
   const handleCancel = () => {
     setIsEditing(false);
     // Reset to original values
-    if (typeof notificationPrefs === 'object') {
-      setEmailNotifications(notificationPrefs.email || true);
-      setSmsNotifications(notificationPrefs.sms || false);
-      setInAppNotifications(notificationPrefs.in_app || true);
+    if (customerProfile) {
+      setProfileForm({
+        name: customerProfile.name || '',
+        email: customerProfile.email || userInfo?.email || '',
+        phone: customerProfile.phone || '',
+        company_name: customerProfile.company_name || '',
+      });
     }
   };
 
@@ -168,54 +214,81 @@ export default function CustomerProfilePage() {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Name */}
+          {/* Name & Email */}
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
               {isEditing ? (
-                <Input id="name" defaultValue={''} />
+                <Input
+                  id="name"
+                  value={profileForm.name}
+                  onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
+                  placeholder="Enter your full name"
+                />
               ) : (
-                <p className="text-sm font-medium">N/A</p>
+                <p className="text-sm font-medium">{customerProfile?.name || 'N/A'}</p>
               )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               {isEditing ? (
-                <Input id="email" type="email" defaultValue={userInfo?.email || ''} />
+                <Input
+                  id="email"
+                  type="email"
+                  value={profileForm.email}
+                  onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
+                  placeholder="your@email.com"
+                />
               ) : (
                 <div className="flex items-center gap-2">
                   <Mail className="h-4 w-4 text-muted-foreground" />
-                  <p className="text-sm font-medium">{userInfo?.email || 'N/A'}</p>
+                  <p className="text-sm font-medium">{customerProfile?.email || userInfo?.email || 'N/A'}</p>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Phone */}
+          {/* Phone & Company */}
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="phone">Phone</Label>
               {isEditing ? (
-                <Input id="phone" type="tel" defaultValue={''} />
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={profileForm.phone}
+                  onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
+                  placeholder="(555) 123-4567"
+                />
               ) : (
                 <div className="flex items-center gap-2">
                   <Phone className="h-4 w-4 text-muted-foreground" />
-                  <p className="text-sm font-medium">N/A</p>
+                  <p className="text-sm font-medium">{customerProfile?.phone || 'N/A'}</p>
                 </div>
               )}
             </div>
             <div className="space-y-2">
-              <Label>User Type</Label>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline">customer</Badge>
-              </div>
+              <Label htmlFor="company">Company Name</Label>
+              {isEditing ? (
+                <Input
+                  id="company"
+                  value={profileForm.company_name}
+                  onChange={(e) => setProfileForm({ ...profileForm, company_name: e.target.value })}
+                  placeholder="Your company name"
+                />
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Building className="h-4 w-4 text-muted-foreground" />
+                  <p className="text-sm font-medium">{customerProfile?.company_name || 'N/A'}</p>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Action Buttons (when editing) */}
           {isEditing && (
             <div className="flex gap-3 pt-4 border-t">
-              <Button onClick={handleSave} disabled={saveStatus === 'saving'}>
+              <Button onClick={handleSaveProfile} disabled={saveStatus === 'saving'}>
                 <Save className="h-4 w-4 mr-2" />
                 {saveStatus === 'saving' ? 'Saving...' : 'Save Changes'}
               </Button>
@@ -239,22 +312,24 @@ export default function CustomerProfilePage() {
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <Label className="text-muted-foreground">Company Name</Label>
-              <p className="text-sm font-medium mt-1">N/A</p>
+              <p className="text-sm font-medium mt-1">{customerProfile?.company_name || 'N/A'}</p>
             </div>
-            <div>
-              <Label className="text-muted-foreground">Industry</Label>
-              <p className="text-sm font-medium mt-1">N/A</p>
-            </div>
+            {(customerProfile as any)?.projects && (customerProfile as any).projects.length > 0 && (
+              <div>
+                <Label className="text-muted-foreground">Active Projects</Label>
+                <p className="text-sm font-medium mt-1">{(customerProfile as any).projects.length} project(s)</p>
+              </div>
+            )}
           </div>
 
-          {/* Address */}
+          {/* Address (if available from customer record) */}
           <div>
             <Label className="text-muted-foreground flex items-center gap-1">
               <MapPin className="h-4 w-4" />
               Business Address
             </Label>
             <div className="text-sm font-medium mt-1 space-y-1">
-              <p className="text-muted-foreground">No address on file</p>
+              <p className="text-muted-foreground">Contact support to update business address</p>
             </div>
           </div>
         </CardContent>
@@ -326,7 +401,7 @@ export default function CustomerProfilePage() {
 
           {/* Save Button */}
           <div className="pt-4 border-t">
-            <Button onClick={handleSave} disabled={saveStatus === 'saving'}>
+            <Button onClick={handleSaveNotifications} disabled={saveStatus === 'saving'}>
               <Save className="h-4 w-4 mr-2" />
               {saveStatus === 'saving' ? 'Saving...' : 'Save Notification Preferences'}
             </Button>

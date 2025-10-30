@@ -294,7 +294,13 @@ export default function CustomerFinancialsPage() {
                   {/* Actions */}
                   <div className="flex flex-wrap gap-3">
                     {/* Download Invoice */}
-                    <Button variant="outline" size="sm">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        window.open(`/api/invoices/${invoice.id}/pdf`, '_blank');
+                      }}
+                    >
                       <Download className="h-4 w-4 mr-2" />
                       Download PDF
                     </Button>

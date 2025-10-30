@@ -7,8 +7,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { EmptyState } from '@/components/common/EmptyState';
 import { PageHeader } from '@/components/common/PageHeader';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
@@ -28,6 +38,8 @@ import {
   Calendar,
   AlertTriangle,
   RefreshCw,
+  CheckCircle,
+  X,
 } from 'lucide-react';
 
 /**
@@ -38,11 +50,33 @@ export default function CustomerDocumentsPage() {
   const utils = api.useUtils();
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  // Upload form state
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadForm, setUploadForm] = useState({
+    documentType: 'other' as 'contract' | 'invoice' | 'shop_drawing' | 'photo' | 'other',
+    description: '',
+    projectId: '',
+  });
 
   const { data: documentsData, isLoading, error } = api.portal.getCustomerDocuments.useQuery({
     documentType: typeFilter === 'all' ? undefined : typeFilter,
     limit: 100,
     offset: 0,
+  });
+
+  // Get customer projects for linking
+  const { data: customerProfile } = api.portal.getCustomerProfile.useQuery();
+
+  // Create document mutation
+  const createDocument = api.portal.createCustomerDocument.useMutation({
+    onSuccess: () => {
+      void utils.portal.getCustomerDocuments.invalidate();
+    },
   });
 
   const documents = documentsData?.documents || [];
@@ -57,6 +91,71 @@ export default function CustomerDocumentsPage() {
       doc.description?.toLowerCase().includes(searchLower)
     );
   });
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      // Auto-detect document type based on file extension
+      const ext = file.name.split('.').pop()?.toLowerCase();
+      if (['jpg', 'jpeg', 'png', 'gif'].includes(ext || '')) {
+        setUploadForm(prev => ({ ...prev, documentType: 'photo' }));
+      } else if (['pdf'].includes(ext || '')) {
+        setUploadForm(prev => ({ ...prev, documentType: 'contract' }));
+      }
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!selectedFile) return;
+
+    try {
+      setUploading(true);
+      setUploadError(null);
+
+      // Upload to Supabase Storage
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+
+      const timestamp = Date.now();
+      const filePath = `customer-documents/${timestamp}-${selectedFile.name}`;
+
+      const { data, error: uploadError } = await supabase.storage
+        .from('documents')
+        .upload(filePath, selectedFile, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Create database record
+      await createDocument.mutateAsync({
+        name: selectedFile.name,
+        documentType: uploadForm.documentType,
+        storagePath: filePath,
+        storageBucket: 'documents',
+        fileSize: selectedFile.size,
+        mimeType: selectedFile.type,
+        projectId: uploadForm.projectId || undefined,
+        description: uploadForm.description || undefined,
+      });
+
+      // Reset and close
+      setUploadSuccess(true);
+      setTimeout(() => {
+        setUploadDialogOpen(false);
+        setSelectedFile(null);
+        setUploadForm({ documentType: 'other', description: '', projectId: '' });
+        setUploadSuccess(false);
+      }, 2000);
+    } catch (error) {
+      console.error('Upload error:', error);
+      setUploadError(error instanceof Error ? error.message : 'Upload failed');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const formatDate = (date: Date | string | null | undefined) => {
     if (!date) return 'N/A';
@@ -142,7 +241,7 @@ export default function CustomerDocumentsPage() {
             <h1 className="page-title">Documents</h1>
             <p className="page-subtitle">View and download project documents</p>
           </div>
-          <Button>
+          <Button onClick={() => setUploadDialogOpen(true)}>
             <Upload className="h-4 w-4 mr-2" />
             Upload Document
           </Button>
@@ -320,6 +419,151 @@ export default function CustomerDocumentsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Upload Dialog */}
+      <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Upload Document</DialogTitle>
+            <DialogDescription>
+              Upload a document related to your projects. Accepted file types: PDF, DOC, DOCX, JPG, PNG.
+            </DialogDescription>
+          </DialogHeader>
+
+          {uploadSuccess ? (
+            <div className="flex flex-col items-center justify-center py-8">
+              <CheckCircle className="h-12 w-12 text-success mb-4" />
+              <p className="font-medium text-success">Document uploaded successfully!</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* File Selection */}
+              <div className="space-y-2">
+                <Label htmlFor="file-upload">Select File</Label>
+                {selectedFile ? (
+                  <div className="flex items-center gap-2 p-3 border rounded-lg bg-muted/50">
+                    <File className="h-4 w-4" />
+                    <span className="flex-1 text-sm truncate">{selectedFile.name}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedFile(null)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
+                    <Input
+                      id="file-upload"
+                      type="file"
+                      className="hidden"
+                      onChange={handleFileSelect}
+                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                    />
+                    <label htmlFor="file-upload" className="cursor-pointer">
+                      <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                      <p className="text-sm font-medium">Click to select a file</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        PDF, DOC, DOCX, JPG, PNG up to 10MB
+                      </p>
+                    </label>
+                  </div>
+                )}
+              </div>
+
+              {/* Document Type */}
+              <div className="space-y-2">
+                <Label htmlFor="document-type">Document Type</Label>
+                <Select
+                  value={uploadForm.documentType}
+                  onValueChange={(value: any) =>
+                    setUploadForm({ ...uploadForm, documentType: value })
+                  }
+                >
+                  <SelectTrigger id="document-type">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="contract">Contract</SelectItem>
+                    <SelectItem value="invoice">Invoice</SelectItem>
+                    <SelectItem value="shop_drawing">Shop Drawing</SelectItem>
+                    <SelectItem value="photo">Photo</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Project Linking */}
+              {(customerProfile as any)?.projects && (customerProfile as any).projects.length > 0 && (
+                <div className="space-y-2">
+                  <Label htmlFor="project">Link to Project (Optional)</Label>
+                  <Select
+                    value={uploadForm.projectId}
+                    onValueChange={(value) =>
+                      setUploadForm({ ...uploadForm, projectId: value })
+                    }
+                  >
+                    <SelectTrigger id="project">
+                      <SelectValue placeholder="Select a project" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">None</SelectItem>
+                      {(customerProfile as any).projects.map((project: any) => (
+                        <SelectItem key={project.id} value={project.id}>
+                          {project.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Description */}
+              <div className="space-y-2">
+                <Label htmlFor="description">Description (Optional)</Label>
+                <Textarea
+                  id="description"
+                  placeholder="Add a brief description..."
+                  value={uploadForm.description}
+                  onChange={(e) =>
+                    setUploadForm({ ...uploadForm, description: e.target.value })
+                  }
+                  rows={3}
+                />
+              </div>
+
+              {/* Error Message */}
+              {uploadError && (
+                <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
+                  <AlertTriangle className="h-4 w-4" />
+                  {uploadError}
+                </div>
+              )}
+            </div>
+          )}
+
+          <DialogFooter>
+            {!uploadSuccess && (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => setUploadDialogOpen(false)}
+                  disabled={uploading}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleUpload}
+                  disabled={!selectedFile || uploading}
+                >
+                  {uploading ? 'Uploading...' : 'Upload'}
+                </Button>
+              </>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

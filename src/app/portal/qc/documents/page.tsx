@@ -66,6 +66,35 @@ export default function QCDocumentsPage() {
     return <FileText className="h-5 w-5 text-primary" />;
   };
 
+  const handleView = (doc: any) => {
+    if (doc.url || doc.download_url) {
+      window.open(doc.url || doc.download_url, '_blank');
+    }
+  };
+
+  const handleDownload = async (doc: any) => {
+    const url = doc.download_url || doc.url;
+    if (!url) return;
+
+    try {
+      // Fetch the file and trigger download
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = doc.name || 'document';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      console.error('Download error:', error);
+      // Fallback: open in new tab
+      window.open(url, '_blank');
+    }
+  };
+
   // Handle query error
   if (error) {
     return (
@@ -179,10 +208,22 @@ export default function QCDocumentsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2 ml-4">
-                      <Button variant="ghost" size="sm">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleView(doc)}
+                        disabled={!doc.url && !doc.download_url}
+                        title="View document"
+                      >
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDownload(doc)}
+                        disabled={!doc.url && !doc.download_url}
+                        title="Download document"
+                      >
                         <Download className="h-4 w-4" />
                       </Button>
                     </div>

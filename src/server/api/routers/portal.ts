@@ -1226,6 +1226,9 @@ export const portalRouter = createTRPCRouter({
       const [shipments, total] = await Promise.all([
         ctx.db.shipments.findMany({
           where,
+          include: {
+            production_orders: true,
+          },
           orderBy: {
             created_at: 'desc',
           },
@@ -1977,6 +1980,631 @@ export const portalRouter = createTRPCRouter({
       return { projects };
     }),
 
+  /**
+   * Get Designer Project by ID
+   * Returns full design project details with all relationships
+   */
+  getDesignerProjectById: designerPortalProcedure
+    .input(z.object({
+      projectId: z.string().uuid(),
+    }))
+    .query(async ({ ctx, input }) => {
+      const partnerId = ctx.entityId;
+
+      // Fetch the project with all related data
+      const project = await ctx.db.design_projects.findFirst({
+        where: {
+          id: input.projectId,
+          designer_id: partnerId, // Security: ensure designer owns this project
+        },
+        include: {
+          // Project requirements and briefs
+          design_briefs: {
+            include: {
+              design_projects: true,
+            },
+          },
+          // Design deliverables (files, submissions)
+          design_deliverables: {
+            orderBy: {
+              created_at: 'desc',
+            },
+          },
+          // Revision history
+          design_revisions: {
+            orderBy: {
+              created_at: 'desc',
+            },
+          },
+          // Mood boards
+          mood_boards: {
+            orderBy: {
+              created_at: 'desc',
+            },
+          },
+          // Related documents
+          documents: {
+            orderBy: {
+              created_at: 'desc',
+            },
+          },
+          // Customer information (if linked)
+          customers: true,
+          // Concepts (if linked)
+          concepts: true,
+          // Prototypes with all related data (CRITICAL: for prototype review workflow)
+          prototypes: {
+            include: {
+              // Production runs for each prototype
+              prototype_production: {
+                orderBy: {
+                  created_at: 'desc',
+                },
+              },
+              // Reviews from stakeholders
+              prototype_reviews: {
+                orderBy: {
+                  review_date: 'desc',
+                },
+              },
+              // Feedback from testing/reviews
+              prototype_feedback: {
+                orderBy: {
+                  feedback_date: 'desc',
+                },
+              },
+            },
+            orderBy: {
+              created_at: 'desc',
+            },
+          },
+        },
+      });
+
+      if (!project) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Design project not found or you do not have access to it',
+        });
+      }
+
+      return project;
+    }),
+
+  /**
+   * Get Designer Documents
+   * Returns all documents associated with designer's projects
+   */
+  getDesignerDocuments: designerPortalProcedure
+    .query(async ({ ctx }) => {
+      const designerId = ctx.entityId;
+
+      // Fetch all documents for this designer
+      const documents = await ctx.db.documents.findMany({
+        where: {
+          OR: [
+            { designer_id: designerId },
+            {
+              design_projects: {
+                designer_id: designerId,
+              },
+            },
+          ],
+          status: { not: 'deleted' },
+        },
+        include: {
+          design_projects: {
+            select: {
+              id: true,
+              name: true,
+              status: true,
+            },
+          },
+        },
+        orderBy: {
+          created_at: 'desc',
+        },
+        take: 100,
+      });
+
+      return { documents };
+    }),
+
+  /**
+   * Create Designer Document
+   * Upload a new document and link to design project
+   */
+  createDesignerDocument: designerPortalProcedure
+    .input(z.object({
+      name: z.string().min(1, 'Document name is required'),
+      documentType: z.enum(['brief', 'deliverable', 'mood_board', 'revision', 'reference', 'other']),
+      storagePath: z.string().min(1, 'Storage path is required'),
+      storageBucket: z.string().default('documents'),
+      fileSize: z.number().optional(),
+      mimeType: z.string().optional(),
+      designProjectId: z.string().uuid().optional(),
+      description: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const designerId = ctx.entityId;
+
+      // Get designer info from designers table
+      const designer = await ctx.db.designers.findUnique({
+        where: { id: designerId },
+        select: { name: true, company: true },
+      });
+
+      // Generate public URL from Supabase Storage
+      const { createClient } = await import('@/lib/supabase/server');
+      const supabase = await createClient();
+
+      const { data: urlData } = supabase.storage
+        .from(input.storageBucket)
+        .getPublicUrl(input.storagePath);
+
+      // Create document record
+      const document = await ctx.db.documents.create({
+        data: {
+          name: input.name,
+          original_name: input.name,
+          category: input.documentType,
+          type: input.mimeType || 'application/octet-stream',
+          size: input.fileSize ? BigInt(input.fileSize) : null,
+          storage_bucket: input.storageBucket,
+          storage_type: 'supabase',
+          url: urlData.publicUrl,
+          download_url: urlData.publicUrl,
+          designer_id: designerId,
+          design_project_id: input.designProjectId,
+          uploaded_by: designer?.name || 'Designer',
+          notes: `Storage Path: ${input.storagePath}\nUploaded by ${designer?.name || 'Designer'}${input.description ? `\nDescription: ${input.description}` : ''}`,
+          status: 'active',
+          approval_status: 'pending',
+          created_at: new Date(),
+          updated_at: new Date(),
+        },
+      });
+
+      return {
+        document,
+        success: true,
+        message: 'Document uploaded successfully',
+      };
+    }),
+
+  /**
+   * Get Designer Performance Metrics
+   * Returns performance data and statistics for the designer
+   */
+  getDesignerPerformance: designerPortalProcedure
+    .query(async ({ ctx }) => {
+      const designerId = ctx.entityId;
+
+      // Get all performance records for this designer
+      const performanceRecords = await ctx.db.designer_performance.findMany({
+        where: { designer_id: designerId },
+        include: {
+          design_projects: {
+            select: {
+              id: true,
+              name: true,
+              status: true,
+            },
+          },
+        },
+        orderBy: {
+          created_at: 'desc',
+        },
+      });
+
+      // Calculate aggregate metrics
+      const totalProjects = performanceRecords.length;
+      const avgQualityRating = totalProjects > 0
+        ? performanceRecords.reduce((sum, r) => sum + (r.quality_rating || 0), 0) / totalProjects
+        : 0;
+      const avgCreativityRating = totalProjects > 0
+        ? performanceRecords.reduce((sum, r) => sum + (r.creativity_rating || 0), 0) / totalProjects
+        : 0;
+      const avgCommunicationRating = totalProjects > 0
+        ? performanceRecords.reduce((sum, r) => sum + (r.communication_rating || 0), 0) / totalProjects
+        : 0;
+      const onTimeDeliveryRate = totalProjects > 0
+        ? (performanceRecords.filter(r => r.on_time_delivery).length / totalProjects) * 100
+        : 0;
+      const avgRevisionCount = totalProjects > 0
+        ? performanceRecords.reduce((sum, r) => sum + (r.revision_count || 0), 0) / totalProjects
+        : 0;
+      const wouldRehireRate = totalProjects > 0
+        ? (performanceRecords.filter(r => r.would_rehire).length / totalProjects) * 100
+        : 0;
+
+      return {
+        performanceRecords,
+        aggregateMetrics: {
+          totalProjects,
+          avgQualityRating: Math.round(avgQualityRating * 10) / 10,
+          avgCreativityRating: Math.round(avgCreativityRating * 10) / 10,
+          avgCommunicationRating: Math.round(avgCommunicationRating * 10) / 10,
+          onTimeDeliveryRate: Math.round(onTimeDeliveryRate),
+          avgRevisionCount: Math.round(avgRevisionCount * 10) / 10,
+          wouldRehireRate: Math.round(wouldRehireRate),
+        },
+      };
+    }),
+
+  /**
+   * Get Designer Feedback and Revisions
+   * Returns all feedback from revisions and prototype reviews
+   */
+  getDesignerFeedback: designerPortalProcedure
+    .query(async ({ ctx }) => {
+      const designerId = ctx.entityId;
+
+      // Get design revisions for designer's projects
+      const revisions = await ctx.db.design_revisions.findMany({
+        where: {
+          design_projects: {
+            designer_id: designerId,
+          },
+        },
+        include: {
+          design_projects: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          users_design_revisions_requested_byTousers: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: {
+          request_date: 'desc',
+        },
+        take: 50,
+      });
+
+      // Get prototype feedback for designer's projects
+      const prototypeFeedback = await ctx.db.prototype_feedback.findMany({
+        where: {
+          prototypes: {
+            design_projects: {
+              designer_id: designerId,
+            },
+          },
+        },
+        include: {
+          prototypes: {
+            select: {
+              id: true,
+              name: true,
+              version: true,
+              design_projects: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          feedback_date: 'desc',
+        },
+        take: 50,
+      });
+
+      return {
+        revisions,
+        prototypeFeedback,
+      };
+    }),
+
+  /**
+   * Get Designer Profile
+   * Returns designer profile information for settings page
+   */
+  getDesignerProfile: designerPortalProcedure
+    .query(async ({ ctx }) => {
+      const designerId = ctx.entityId;
+
+      const designer = await ctx.db.designers.findUnique({
+        where: { id: designerId },
+      });
+
+      if (!designer) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Designer profile not found',
+        });
+      }
+
+      return designer;
+    }),
+
+  /**
+   * Update Designer Profile
+   * Updates designer profile information
+   */
+  updateDesignerProfile: designerPortalProcedure
+    .input(z.object({
+      name: z.string().min(1).optional(),
+      company_name: z.string().optional(),
+      phone: z.string().optional(),
+      website: z.string().url().optional().or(z.literal('')),
+      portfolio_url: z.string().url().optional().or(z.literal('')),
+      specialties: z.array(z.string()).optional(),
+      design_style: z.array(z.string()).optional(),
+      years_experience: z.number().int().min(0).optional(),
+      hourly_rate: z.number().optional(),
+      currency: z.string().optional(),
+      notes: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const designerId = ctx.entityId;
+
+      // Prepare update data
+      const updateData: any = {
+        ...input,
+        updated_at: new Date(),
+      };
+
+      // Handle JSON fields
+      if (input.specialties) {
+        updateData.specialties = input.specialties;
+      }
+      if (input.design_style) {
+        updateData.design_style = input.design_style;
+      }
+
+      const designer = await ctx.db.designers.update({
+        where: { id: designerId },
+        data: updateData,
+      });
+
+      return {
+        designer,
+        success: true,
+        message: 'Profile updated successfully',
+      };
+    }),
+
+  /**
+   * Update Designer Notification Preferences
+   * Stores notification preferences in designer notes field (temporary solution)
+   */
+  updateDesignerNotificationPreferences: designerPortalProcedure
+    .input(z.object({
+      emailNotifications: z.boolean(),
+      smsNotifications: z.boolean(),
+      inAppNotifications: z.boolean(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const designerId = ctx.entityId;
+
+      // Get current designer
+      const designer = await ctx.db.designers.findUnique({
+        where: { id: designerId },
+      });
+
+      if (!designer) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Designer profile not found',
+        });
+      }
+
+      // Store preferences as JSON in a metadata field
+      // Note: In production, create a designer_settings table
+      const preferences = {
+        email: input.emailNotifications,
+        sms: input.smsNotifications,
+        in_app: input.inAppNotifications,
+      };
+
+      // For now, we'll append to notes field
+      const notificationMeta = `\n[NOTIFICATION_PREFS]${JSON.stringify(preferences)}[/NOTIFICATION_PREFS]`;
+      const currentNotes = designer.notes || '';
+      const cleanedNotes = currentNotes.replace(/\[NOTIFICATION_PREFS\].*?\[\/NOTIFICATION_PREFS\]/g, '');
+      const newNotes = cleanedNotes + notificationMeta;
+
+      await ctx.db.designers.update({
+        where: { id: designerId },
+        data: {
+          notes: newNotes,
+          updated_at: new Date(),
+        },
+      });
+
+      return {
+        success: true,
+        message: 'Notification preferences updated successfully',
+        preferences,
+      };
+    }),
+
+  /**
+   * Get Designer Submissions
+   * Returns all projects with deliverable submission status
+   */
+  getDesignerSubmissions: designerPortalProcedure
+    .query(async ({ ctx }) => {
+      const designerId = ctx.entityId;
+
+      // Get all design projects for this designer
+      const projects = await ctx.db.design_projects.findMany({
+        where: { designer_id: designerId },
+        include: {
+          design_deliverables: {
+            orderBy: {
+              created_at: 'desc',
+            },
+          },
+          customers: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: {
+          created_at: 'desc',
+        },
+      });
+
+      // Calculate submission status for each project
+      const projectsWithStatus = projects.map((project) => {
+        const deliverables = project.design_deliverables || [];
+        const totalDeliverables = deliverables.length;
+        const pendingDeliverables = deliverables.filter(d => d.status === 'pending').length;
+        const approvedDeliverables = deliverables.filter(d => d.status === 'approved').length;
+        const rejectedDeliverables = deliverables.filter(d => d.status === 'rejected').length;
+
+        let submissionStatus = 'not_started';
+        if (totalDeliverables === 0) {
+          submissionStatus = 'not_started';
+        } else if (approvedDeliverables === totalDeliverables) {
+          submissionStatus = 'completed';
+        } else if (rejectedDeliverables > 0) {
+          submissionStatus = 'needs_revision';
+        } else if (pendingDeliverables > 0) {
+          submissionStatus = 'in_review';
+        }
+
+        return {
+          ...project,
+          submissionStatus,
+          totalDeliverables,
+          pendingDeliverables,
+          approvedDeliverables,
+          rejectedDeliverables,
+        };
+      });
+
+      return { projects: projectsWithStatus };
+    }),
+
+  /**
+   * Submit Designer Deliverable
+   * Creates a new deliverable submission for a project
+   */
+  submitDesignerDeliverable: designerPortalProcedure
+    .input(z.object({
+      projectId: z.string().uuid(),
+      deliverableType: z.enum(['concept', 'sketch', 'render', 'final_design', 'technical_drawing', 'other']),
+      fileName: z.string().min(1),
+      fileUrl: z.string().min(1),
+      fileSize: z.number().optional(),
+      notes: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const designerId = ctx.entityId;
+
+      // Verify project belongs to designer
+      const project = await ctx.db.design_projects.findFirst({
+        where: {
+          id: input.projectId,
+          designer_id: designerId,
+        },
+      });
+
+      if (!project) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Project not found or you do not have access to it',
+        });
+      }
+
+      // Get current version number
+      const existingDeliverables = await ctx.db.design_deliverables.findMany({
+        where: {
+          design_project_id: input.projectId,
+          deliverable_type: input.deliverableType,
+        },
+        orderBy: {
+          version: 'desc',
+        },
+        take: 1,
+      });
+
+      const nextVersion = existingDeliverables.length > 0
+        ? (existingDeliverables[0].version || 1) + 1
+        : 1;
+
+      // Create deliverable record
+      const deliverable = await ctx.db.design_deliverables.create({
+        data: {
+          design_project_id: input.projectId,
+          deliverable_type: input.deliverableType,
+          version: nextVersion,
+          file_name: input.fileName,
+          file_url: input.fileUrl,
+          file_size: input.fileSize,
+          status: 'pending',
+          submitted_date: new Date(),
+          review_comments: input.notes,
+          created_at: new Date(),
+        },
+      });
+
+      return {
+        deliverable,
+        success: true,
+        message: 'Deliverable submitted successfully',
+      };
+    }),
+
+  /**
+   * Get Project Deliverables
+   * Returns all deliverables for a specific project
+   */
+  getProjectDeliverables: designerPortalProcedure
+    .input(z.object({
+      projectId: z.string().uuid(),
+    }))
+    .query(async ({ ctx, input }) => {
+      const designerId = ctx.entityId;
+
+      // Verify project access
+      const project = await ctx.db.design_projects.findFirst({
+        where: {
+          id: input.projectId,
+          designer_id: designerId,
+        },
+      });
+
+      if (!project) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Project not found or you do not have access to it',
+        });
+      }
+
+      const deliverables = await ctx.db.design_deliverables.findMany({
+        where: { design_project_id: input.projectId },
+        include: {
+          users: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: [
+          { deliverable_type: 'asc' },
+          { version: 'desc' },
+        ],
+      });
+
+      return { deliverables };
+    }),
+
   // ============================================
   // Factory Portal Procedures
   // ============================================
@@ -2066,6 +2694,280 @@ export const portalRouter = createTRPCRouter({
       });
 
       return { orders };
+    }),
+
+  /**
+   * Get Factory Documents
+   */
+  getFactoryDocuments: factoryPortalProcedure
+    .query(async ({ ctx }) => {
+      const partnerId = ctx.entityId;
+
+      const documents = await ctx.db.documents.findMany({
+        where: {
+          OR: [
+            // Documents linked to production orders from this factory
+            {
+              production_orders: {
+                factory_id: partnerId,
+              },
+            },
+            // Documents linked to quality inspections for this factory
+            {
+              quality_inspections: {
+                production_orders: {
+                  factory_id: partnerId,
+                },
+              },
+            },
+            // Documents created by the factory
+            {
+              uploaded_by: ctx.user?.id,
+            },
+          ],
+        },
+        include: {
+          production_orders: {
+            select: {
+              id: true,
+              order_number: true,
+              status: true,
+            },
+          },
+          quality_inspections: {
+            select: {
+              id: true,
+              inspector_name: true,
+            },
+          },
+        },
+        orderBy: {
+          created_at: 'desc',
+        },
+        take: 100,
+      });
+
+      // Get document URLs from Supabase
+      const { createClient } = await import('@/lib/supabase/server');
+      const supabase = createClient();
+
+      const documentsWithUrls = await Promise.all(
+        documents.map(async (doc) => {
+          let url: string | null = null;
+          let download_url: string | null = null;
+
+          if (doc.storage_path && doc.storage_bucket) {
+            const { data: urlData } = supabase.storage
+              .from(doc.storage_bucket)
+              .getPublicUrl(doc.storage_path);
+            url = urlData.publicUrl;
+
+            const { data: downloadData } = await supabase.storage
+              .from(doc.storage_bucket)
+              .createSignedUrl(doc.storage_path, 3600);
+            download_url = downloadData?.signedUrl || null;
+          }
+
+          return {
+            ...doc,
+            url,
+            download_url,
+          };
+        })
+      );
+
+      return {
+        documents: documentsWithUrls,
+      };
+    }),
+
+  /**
+   * Create Factory Document
+   */
+  createFactoryDocument: factoryPortalProcedure
+    .input(z.object({
+      name: z.string().min(1),
+      documentType: z.enum(['packing_list', 'qc_report', 'shipping_doc', 'invoice', 'certificate', 'other']),
+      storagePath: z.string().min(1),
+      storageBucket: z.string().min(1),
+      fileSize: z.number().optional(),
+      mimeType: z.string().optional(),
+      productionOrderId: z.string().uuid().optional(),
+      qualityInspectionId: z.string().uuid().optional(),
+      description: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.user?.id;
+
+      if (!userId) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'You must be logged in to upload documents',
+        });
+      }
+
+      // Verify access to production order if provided
+      if (input.productionOrderId) {
+        const order = await ctx.db.production_orders.findFirst({
+          where: {
+            id: input.productionOrderId,
+            factory_id: ctx.entityId,
+          },
+        });
+
+        if (!order) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Production order not found or you do not have access to it',
+          });
+        }
+      }
+
+      // Create document record
+      const document = await ctx.db.documents.create({
+        data: {
+          name: input.name,
+          category: input.documentType,
+          storage_path: input.storagePath,
+          storage_bucket: input.storageBucket,
+          size: input.fileSize ? BigInt(input.fileSize) : null,
+          mime_type: input.mimeType,
+          uploaded_by: userId,
+          production_order_id: input.productionOrderId,
+          quality_inspection_id: input.qualityInspectionId,
+          description: input.description,
+          created_at: new Date(),
+        },
+      });
+
+      return {
+        document,
+        success: true,
+        message: 'Document uploaded successfully',
+      };
+    }),
+
+  /**
+   * Get Factory Quality Reports
+   */
+  getFactoryQualityReports: factoryPortalProcedure
+    .query(async ({ ctx }) => {
+      const partnerId = ctx.entityId;
+
+      // Get quality inspections for this factory's production orders
+      const inspections = await ctx.db.quality_inspections.findMany({
+        where: {
+          production_orders: {
+            factory_id: partnerId,
+          },
+        },
+        include: {
+          production_orders: {
+            select: {
+              id: true,
+              order_number: true,
+              status: true,
+            },
+          },
+        },
+        orderBy: {
+          inspection_date: 'desc',
+        },
+        take: 50,
+      });
+
+      // Calculate aggregate metrics
+      const totalInspections = inspections.length;
+      const passedInspections = inspections.filter(i => i.passed === true).length;
+      const failedInspections = inspections.filter(i => i.passed === false).length;
+      const pendingInspections = inspections.filter(i => i.passed === null).length;
+      const passRate = totalInspections > 0 ? Math.round((passedInspections / totalInspections) * 100) : 0;
+      const totalDefects = inspections.reduce((sum, i) => sum + (i.defects_found || 0), 0);
+
+      return {
+        inspections,
+        aggregateMetrics: {
+          totalInspections,
+          passedInspections,
+          failedInspections,
+          pendingInspections,
+          passRate,
+          totalDefects,
+        },
+      };
+    }),
+
+  /**
+   * Update Factory Shipping Information
+   */
+  updateFactoryShipping: factoryPortalProcedure
+    .input(z.object({
+      orderId: z.string().uuid(),
+      trackingNumber: z.string().min(1).optional(),
+      shippingDate: z.date().optional(),
+      carrier: z.string().optional(),
+      notes: z.string().optional(),
+      markAsShipped: z.boolean().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const partnerId = ctx.entityId;
+
+      // Verify order belongs to this factory
+      const order = await ctx.db.production_orders.findFirst({
+        where: {
+          id: input.orderId,
+          factory_id: partnerId,
+        },
+      });
+
+      if (!order) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Production order not found or you do not have access to it',
+        });
+      }
+
+      // Prepare update data
+      const updateData: any = {};
+
+      if (input.trackingNumber) {
+        updateData.tracking_number = input.trackingNumber;
+      }
+
+      if (input.shippingDate) {
+        updateData.actual_ship_date = input.shippingDate;
+      }
+
+      if (input.carrier) {
+        updateData.shipping_carrier = input.carrier;
+      }
+
+      if (input.notes) {
+        // Append shipping notes to existing notes
+        const existingNotes = order.notes || '';
+        const timestamp = new Date().toISOString();
+        const newNote = `\n[SHIPPING UPDATE ${timestamp}]: ${input.notes}`;
+        updateData.notes = existingNotes + newNote;
+      }
+
+      if (input.markAsShipped && order.status === 'ready_to_ship') {
+        updateData.status = 'shipped';
+        if (!input.shippingDate) {
+          updateData.actual_ship_date = new Date();
+        }
+      }
+
+      // Update production order
+      const updatedOrder = await ctx.db.production_orders.update({
+        where: { id: input.orderId },
+        data: updateData,
+      });
+
+      return {
+        order: updatedOrder,
+        success: true,
+        message: 'Shipping information updated successfully',
+      };
     }),
 
   // ============================================
@@ -2230,6 +3132,50 @@ export const portalRouter = createTRPCRouter({
     }),
 
   /**
+   * Update QC Inspection Status
+   */
+  updateQCInspectionStatus: qcPortalProcedure
+    .input(z.object({
+      inspectionId: z.string().uuid(),
+      passed: z.boolean(),
+      defectsFound: z.number().int().min(0).optional(),
+      notes: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // Verify inspection exists and belongs to a project accessible by this QC tester
+      const inspection = await ctx.db.quality_inspections.findUnique({
+        where: { id: input.inspectionId },
+        include: {
+          manufacturer_projects: true,
+        },
+      });
+
+      if (!inspection) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Inspection not found',
+        });
+      }
+
+      // Update inspection
+      const updatedInspection = await ctx.db.quality_inspections.update({
+        where: { id: input.inspectionId },
+        data: {
+          passed: input.passed,
+          defects_found: input.defectsFound !== undefined ? input.defectsFound : undefined,
+          notes: input.notes || inspection.notes,
+          inspection_date: inspection.inspection_date || new Date(),
+        },
+      });
+
+      return {
+        inspection: updatedInspection,
+        success: true,
+        message: 'Inspection status updated successfully',
+      };
+    }),
+
+  /**
    * Get QC Documents
    */
   getQCDocuments: qcPortalProcedure
@@ -2270,5 +3216,150 @@ export const portalRouter = createTRPCRouter({
       });
 
       return { documents };
+    }),
+
+  /**
+   * Get Recent QC Uploads
+   * Returns recent documents uploaded by the current QC tester
+   */
+  getRecentQCUploads: qcPortalProcedure
+    .input(z.object({
+      limit: z.number().min(1).max(50).default(10),
+    }))
+    .query(async ({ ctx, input }) => {
+      const qcTesterId = ctx.entityId;
+
+      // Get documents uploaded by this QC tester (stored in notes field)
+      const documents = await ctx.db.documents.findMany({
+        where: {
+          notes: {
+            contains: qcTesterId, // QC tester ID stored in notes for tracking
+          },
+          category: {
+            in: ['inspection_report', 'quality_certificate', 'photos', 'other'],
+          },
+        },
+        orderBy: {
+          created_at: 'desc',
+        },
+        take: input.limit,
+      });
+
+      return { documents };
+    }),
+
+  /**
+   * Create QC Document
+   * Creates a document record after uploading to Supabase Storage
+   */
+  createQCDocument: qcPortalProcedure
+    .input(z.object({
+      name: z.string().min(1, 'Document name is required'),
+      category: z.enum(['inspection_report', 'quality_certificate', 'photos', 'other']),
+      storagePath: z.string().min(1, 'Storage path is required'),
+      storageBucket: z.string().default('documents'),
+      fileSize: z.number().optional(),
+      mimeType: z.string().optional(),
+      manufacturerProjectId: z.string().uuid().optional(),
+      qualityInspectionId: z.string().uuid().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const qcTesterId = ctx.entityId;
+      const qcTesterName = ctx.entity?.company_name || 'Unknown QC Tester';
+
+      // Get public URL from Supabase
+      const { createClient } = await import('@/lib/supabase/server');
+      const supabase = await createClient();
+
+      const { data: urlData } = supabase.storage
+        .from(input.storageBucket)
+        .getPublicUrl(input.storagePath);
+
+      // Create document record in database
+      const document = await ctx.db.documents.create({
+        data: {
+          name: input.name,
+          original_name: input.name,
+          category: input.category,
+          type: input.mimeType || 'application/octet-stream',
+          size: input.fileSize ? BigInt(input.fileSize) : null,
+          storage_bucket: input.storageBucket,
+          storage_type: 'supabase',
+          url: urlData.publicUrl,
+          download_url: urlData.publicUrl,
+          manufacturer_project_id: input.manufacturerProjectId,
+          quality_inspection_id: input.qualityInspectionId,
+          // Store QC tester info and storage path in notes field for tracking
+          notes: `Storage Path: ${input.storagePath}\nUploaded by ${qcTesterName} (QC Tester ID: ${qcTesterId})`,
+          created_at: new Date(),
+          updated_at: new Date(),
+        },
+      });
+
+      return {
+        document,
+        success: true,
+        message: 'Document uploaded successfully',
+      };
+    }),
+
+  /**
+   * Create Customer Document
+   * Creates a document record after uploading to Supabase Storage
+   */
+  createCustomerDocument: portalProcedure
+    .input(z.object({
+      name: z.string().min(1, 'Document name is required'),
+      documentType: z.enum(['contract', 'invoice', 'shop_drawing', 'photo', 'other']),
+      storagePath: z.string().min(1, 'Storage path is required'),
+      storageBucket: z.string().default('documents'),
+      fileSize: z.number().optional(),
+      mimeType: z.string().optional(),
+      projectId: z.string().uuid().optional(),
+      description: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const customerId = ctx.customerId;
+
+      // Get public URL from Supabase
+      const { createClient } = await import('@/lib/supabase/server');
+      const supabase = await createClient();
+
+      const { data: urlData } = supabase.storage
+        .from(input.storageBucket)
+        .getPublicUrl(input.storagePath);
+
+      // Get customer info for tracking
+      const customer = await ctx.db.customers.findUnique({
+        where: { id: customerId },
+        select: { name: true, email: true },
+      });
+
+      // Create document record in database
+      const document = await ctx.db.documents.create({
+        data: {
+          name: input.name,
+          original_name: input.name,
+          category: input.documentType,
+          type: input.mimeType || 'application/octet-stream',
+          size: input.fileSize ? BigInt(input.fileSize) : null,
+          storage_bucket: input.storageBucket,
+          storage_type: 'supabase',
+          url: urlData.publicUrl,
+          download_url: urlData.publicUrl,
+          customer_id: customerId,
+          project_id: input.projectId,
+          // Store upload info in notes field
+          notes: `Storage Path: ${input.storagePath}\nUploaded by ${customer?.name || 'Customer'} (Customer ID: ${customerId})${input.description ? `\nDescription: ${input.description}` : ''}`,
+          created_at: new Date(),
+          updated_at: new Date(),
+        },
+      });
+
+      return {
+        document,
+        success: true,
+        message: 'Document uploaded successfully',
+      };
     }),
 });

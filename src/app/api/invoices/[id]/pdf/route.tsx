@@ -1,47 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { prisma } from '@/lib/db';
+import { getUser } from '@/lib/auth/server';
+import { db } from '@/lib/db';
 import { renderToStream } from '@react-pdf/renderer';
 import { InvoicePDF, InvoiceData } from '@/lib/pdf/invoice-template';
-import { sendInvoiceEmail } from '@/lib/email/email-service';
 
-/**
- * Invoice PDF Generation API
- *
- * Generates and returns a PDF for a specific invoice.
- * Can be downloaded or emailed to the customer.
- *
- * GET /api/invoices/[id]/pdf
- *
- * Query Parameters:
- * - download: If set, triggers browser download (default: true)
- * - email: If set to customer email, sends PDF via email
- *
- * Response:
- * - application/pdf stream
- */
+export const dynamic = 'force-dynamic';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Get authenticated user
-    const supabase = createClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+    const { id } = await params;
 
-    if (authError || !user) {
+    // Get current user
+    const user = await getUser();
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const invoiceId = params.id;
-
     // Fetch invoice with related data
-    const invoice = await prisma.production_invoices.findUnique({
-      where: { id: invoiceId },
+    const invoice = await db.production_invoices.findUnique({
+      where: { id },
       include: {
         production_orders: {
           include: {
@@ -90,7 +70,7 @@ export async function GET(
       status: invoice.status || 'draft',
       orderNumber: invoice.production_orders?.order_number,
 
-      // Company info (hardcoded - should come from settings)
+      // Company info
       companyName: 'Limn Systems',
       companyAddress: '123 Business St',
       companyCity: 'San Francisco',
@@ -141,33 +121,6 @@ export async function GET(
       chunks.push(Buffer.from(chunk));
     }
     const pdfBuffer = Buffer.concat(chunks);
-
-    // Check if email parameter is provided
-    const searchParams = request.nextUrl.searchParams;
-    const emailTo = searchParams.get('email');
-
-    if (emailTo) {
-      // Send invoice via email
-      const emailResult = await sendInvoiceEmail(
-        emailTo,
-        invoice.invoice_number,
-        invoiceData.customerName,
-        pdfBuffer
-      );
-
-      if (!emailResult.success) {
-        return NextResponse.json(
-          { error: emailResult.error || 'Failed to send email' },
-          { status: 500 }
-        );
-      }
-
-      return NextResponse.json({
-        success: true,
-        message: `Invoice #${invoice.invoice_number} sent to ${emailTo}`,
-        messageId: emailResult.messageId,
-      });
-    }
 
     // Return PDF as downloadable file
     const filename = `invoice-${invoice.invoice_number}.pdf`;
