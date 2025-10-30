@@ -13,7 +13,7 @@ import { Search, Package, DollarSign, FileText, AlertCircle, AlertTriangle, Refr
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import { Breadcrumb } from "@/components/common";
+import { Breadcrumbs } from "@/components/common";
 
 export default function CRMOrdersPage() {
  const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -158,7 +158,12 @@ export default function CRMOrdersPage() {
 
  return (
  <div className="container mx-auto py-6 space-y-6">
- <Breadcrumb />
+ <Breadcrumbs
+        items={[
+          { label: 'CRM', href: '/crm' },
+          { label: 'Orders' }, // Current page
+        ]}
+      />
  {/* Header */}
  <div className="flex items-center justify-between">
  <div>

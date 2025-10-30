@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { Breadcrumb } from "@/components/common/Breadcrumb";
+import { Breadcrumbs } from "@/components/common";
 // Auth is handled by middleware - no client-side checks needed
 import { api } from "@/lib/api/client";
 import { useTableState } from "@/hooks/useTableFilters";
@@ -202,7 +202,12 @@ export default function ProductionShipmentsPage() {
 
   return (
     <div className="page-container">
-      <Breadcrumb />
+      <Breadcrumbs
+        items={[
+          { label: 'Production', href: '/production' },
+          { label: 'Shipments' }, // Current page
+        ]}
+      />
       <PageHeader
         title="Production Shipments"
         subtitle="Prepare and track shipments from production orders"

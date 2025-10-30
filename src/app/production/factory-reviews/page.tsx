@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { Breadcrumb } from "@/components/common/Breadcrumb";
+import { Breadcrumbs } from "@/components/common";
 import { api } from "@/lib/api/client";
 import { useTableState } from "@/hooks/useTableFilters";
 import { TableFilters } from "@/components/common";
@@ -198,7 +198,12 @@ export default function FactoryReviewsPage() {
 
   return (
     <div className="page-container">
-      <Breadcrumb />
+      <Breadcrumbs
+        items={[
+          { label: 'Production', href: '/production' },
+          { label: 'Factory Reviews' }, // Current page
+        ]}
+      />
       <PageHeader
         title="Factory Reviews"
         subtitle="On-site prototype inspection sessions"

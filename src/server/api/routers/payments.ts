@@ -8,6 +8,7 @@
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '../trpc/init';
 import { TRPCError } from '@trpc/server';
+import { triggerPaymentReceived } from '@/lib/notifications/triggers';
 
 export const paymentsRouter = createTRPCRouter({
   // ============================================================================
@@ -480,6 +481,18 @@ export const paymentsRouter = createTRPCRouter({
         });
 
         return { payment, allocation };
+      });
+
+      // Trigger payment notification
+      await triggerPaymentReceived({
+        invoiceId: input.invoiceId,
+        invoiceNumber: invoice.invoice_number,
+        amount: input.paymentAmount,
+        customerId: invoice.customer_id,
+        paymentMethod: input.paymentMethod,
+        transactionId: result.payment.id,
+      }).catch((error) => {
+        console.error('[Payments] Failed to send payment notification:', error);
       });
 
       return {

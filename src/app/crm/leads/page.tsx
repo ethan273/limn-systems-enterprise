@@ -40,7 +40,7 @@ import {
   StatsGrid,
   StatusBadge,
   TableFilters,
-  Breadcrumb,
+  Breadcrumbs,
   type FormField,
   type DataTableColumn,
   type DataTableRowAction,
@@ -449,7 +449,12 @@ export default function LeadsPage() {
 
   return (
     <div className="page-container">
-      <Breadcrumb />
+      <Breadcrumbs
+        items={[
+          { label: 'CRM', href: '/crm' },
+          { label: 'Leads' }, // Current page
+        ]}
+      />
       {/* Page Header */}
       <PageHeader
         title="Sales Pipeline"

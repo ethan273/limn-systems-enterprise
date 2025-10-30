@@ -54,7 +54,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import {
   PageHeader,
   StatsGrid,
-  Breadcrumb,
+  Breadcrumbs,
   type StatItem,
 } from "@/components/common";
 import { OrderCreationDialog, type OrderCreationFormData } from "@/components/crm/OrderCreationDialog";
@@ -766,7 +766,12 @@ export default function ProjectsPage() {
 
  return (
  <div className="page-container">
- <Breadcrumb />
+ <Breadcrumbs
+        items={[
+          { label: 'CRM', href: '/crm' },
+          { label: 'Projects' }, // Current page
+        ]}
+      />
  <PageHeader
  title="Projects"
  description="Manage client projects with integrated order creation and tracking"

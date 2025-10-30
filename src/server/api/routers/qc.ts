@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { createTRPCRouter, publicProcedure } from '../trpc/init';
 import { TRPCError } from '@trpc/server';
 import { sendNotificationToAdmins } from '@/lib/notifications/unified-service';
+import { triggerQCFailure } from '@/lib/notifications/triggers';
 
 export const qcRouter = createTRPCRouter({
   // ============================================================================
@@ -227,11 +228,26 @@ export const qcRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // Get the inspection details for notification context
+      // Get the inspection details with all related data for notifications
       const existingInspection = await ctx.db.qc_inspections.findUnique({
         where: { id: input.id },
         include: {
-          production_order: true,
+          production_order: {
+            include: {
+              orders: {
+                select: {
+                  id: true,
+                  order_number: true,
+                },
+              },
+              manufacturing_partners: {
+                select: {
+                  id: true,
+                },
+              },
+            },
+          },
+          qc_defects: true,
         },
       });
 
@@ -244,23 +260,26 @@ export const qcRouter = createTRPCRouter({
         },
       });
 
-      // Send notification for QC failures
-      if (input.status === 'failed' && existingInspection) {
-        const orderInfo = existingInspection.production_order
-          ? `for order ${existingInspection.production_order.order_number}`
-          : '';
+      // Send comprehensive notification for QC failures using unified trigger
+      if (input.status === 'failed' && existingInspection?.production_order?.orders) {
+        const order = existingInspection.production_order.orders;
+        const defectsFound = existingInspection.qc_defects?.length || 0;
+        const inspectorName = ctx.user?.email || 'Unknown Inspector';
+        const factoryId = existingInspection.production_order.manufacturing_partners?.id || existingInspection.production_order.factory_id;
 
-        await sendNotificationToAdmins({
-          title: 'QC Inspection Failed',
-          message: `QC inspection ${orderInfo} has failed. ${input.notes || 'No additional details provided.'}`,
-          category: 'production',
-          priority: 'urgent',
-          actionUrl: `/production/qc/${input.id}`,
-          actionLabel: 'Review QC Report',
-          channels: ['in_app', 'google_chat'],
-        }).catch((error) => {
-          console.error('[QC] Failed to send QC failure notification:', error);
-        });
+        if (factoryId) {
+          await triggerQCFailure({
+            inspectionId: input.id,
+            orderId: order.id,
+            orderNumber: order.order_number,
+            defectsFound,
+            inspectorName,
+            factoryId,
+            notes: input.notes,
+          }).catch((error) => {
+            console.error('[QC] Failed to send QC failure notification:', error);
+          });
+        }
       }
 
       // Send notification for critical on-hold status

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Breadcrumb } from "@/components/common/Breadcrumb";
+import { Breadcrumbs } from "@/components/common";
 // Auth is handled by middleware - no client-side checks needed
 import { api } from "@/lib/api/client";
 import { Package, Plus, AlertTriangle, RefreshCw } from "lucide-react";
@@ -68,7 +68,12 @@ export default function PackingListsPage() {
 
   return (
     <div className="page-container">
-      <Breadcrumb />
+      <Breadcrumbs
+        items={[
+          { label: 'Production', href: '/production' },
+          { label: 'Packing Lists' }, // Current page
+        ]}
+      />
       {/* Page Header */}
       <div className="page-header">
         <div>

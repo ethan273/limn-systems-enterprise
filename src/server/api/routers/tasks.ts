@@ -3,6 +3,7 @@ import { createCrudRouter } from '../utils/crud-generator';
 import { createTRPCRouter, publicProcedure } from '../trpc/init';
 import { db } from '@/lib/db';
 import { sendNotificationToUser } from '@/lib/notifications/unified-service';
+import { triggerTaskAssignment } from '@/lib/notifications/triggers';
 
 // Schema for creating tasks - matches updated database schema
 const createTaskSchema = z.object({
@@ -89,18 +90,17 @@ export const tasksRouter = createTRPCRouter({
     .mutation(async ({ ctx: _ctx, input }) => {
       const task = await db.createTask(input);
 
-      // Send notifications to assigned users
+      // Send notifications to assigned users using unified trigger
       if (input.assigned_to && input.assigned_to.length > 0) {
         await Promise.all(
           input.assigned_to.map(async (userId) => {
-            await sendNotificationToUser(userId, {
-              title: 'New Task Assigned',
-              message: `You have been assigned to task: "${input.title}"`,
-              category: 'task',
-              priority: input.priority === 'high' ? 'high' : 'normal',
-              actionUrl: `/tasks/${task.id}`,
-              actionLabel: 'View Task',
-              channels: ['in_app', 'email'],
+            await triggerTaskAssignment({
+              taskId: task.id,
+              taskName: input.title,
+              assigneeId: userId,
+              assignedBy: input.created_by,
+              dueDate: input.due_date ? new Date(input.due_date) : undefined,
+              priority: input.priority,
             }).catch((error) => {
               console.error('[Tasks] Failed to send assignment notification:', error);
             });

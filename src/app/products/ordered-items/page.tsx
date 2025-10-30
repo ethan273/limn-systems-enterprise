@@ -62,7 +62,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   PageHeader,
   StatsGrid,
-  Breadcrumb,
+  Breadcrumbs,
   type StatItem,
 } from "@/components/common";
 
@@ -748,7 +748,12 @@ export default function OrderedItemsPage() {
 
   return (
     <div className="page-container">
-      <Breadcrumb />
+      <Breadcrumbs
+        items={[
+          { label: 'Products', href: '/products' },
+          { label: 'Ordered Items' }, // Current page
+        ]}
+      />
       <PageHeader
         title="Ordered Items"
         description="Track and manage individual ordered items with material specifications"

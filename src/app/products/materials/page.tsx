@@ -16,7 +16,7 @@ import {
   DataTable,
   StatusBadge,
   TableFilters,
-  Breadcrumb,
+  Breadcrumbs,
   type FormField,
   type DataTableColumn,
   type DataTableRowAction,
@@ -473,7 +473,12 @@ export default function MaterialsPage() {
 
   return (
     <div className="page-container">
-      <Breadcrumb />
+      <Breadcrumbs
+        items={[
+          { label: 'Products', href: '/products' },
+          { label: 'Materials' }, // Current page
+        ]}
+      />
       <PageHeader
         title="Materials Management"
         subtitle="Manage all material options in unified system with collection associations"

@@ -28,7 +28,7 @@ import {
   StatsGrid,
   StatusBadge,
   TableFilters,
-  Breadcrumb,
+  Breadcrumbs,
   type DataTableColumn,
   type DataTableRowAction,
   type StatItem,
@@ -250,7 +250,12 @@ export default function CustomersPage() {
 
   return (
     <div className="page-container">
-      <Breadcrumb />
+      <Breadcrumbs
+        items={[
+          { label: 'CRM', href: '/crm' },
+          { label: 'Clients' }, // Current page
+        ]}
+      />
       {/* Page Header */}
       <PageHeader
         title="Clients"

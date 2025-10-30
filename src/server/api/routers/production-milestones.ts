@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '../trpc/init';
 import { TRPCError } from '@trpc/server';
+import { triggerProductionMilestone } from '@/lib/notifications/triggers';
 
 export const productionMilestonesRouter = createTRPCRouter({
   getById: protectedProcedure
@@ -76,10 +77,44 @@ export const productionMilestonesRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const { id, ...updateData } = input;
-      return await ctx.db.production_milestones.update({
+
+      // Get milestone with related data for notifications
+      const milestone = await ctx.db.production_milestones.findUnique({
+        where: { id },
+        include: {
+          production_orders: {
+            include: {
+              orders: {
+                select: {
+                  id: true,
+                  order_number: true,
+                  customer_id: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const updatedMilestone = await ctx.db.production_milestones.update({
         where: { id },
         data: { ...updateData, updated_at: new Date() },
       });
+
+      // Trigger notification if status changed to completed
+      if (input.status === 'completed' && milestone?.production_orders?.orders) {
+        await triggerProductionMilestone({
+          orderId: milestone.production_orders.orders.id,
+          orderNumber: milestone.production_orders.orders.order_number,
+          milestone: milestone.milestone_name,
+          productionStage: input.status,
+          customerId: milestone.production_orders.orders.customer_id,
+        }).catch((error) => {
+          console.error('[Production Milestones] Failed to send notification:', error);
+        });
+      }
+
+      return updatedMilestone;
     }),
 
   delete: protectedProcedure

@@ -27,7 +27,7 @@ import {
   LoadingState,
   DataTable,
   TableFilters,
-  Breadcrumb,
+  Breadcrumbs,
   type FormField,
   type DataTableColumn,
   type DataTableRowAction,
@@ -311,7 +311,12 @@ export default function ContactsPage() {
   return (
     <div className="page-container">
       {/* Breadcrumb Navigation */}
-      <Breadcrumb />
+      <Breadcrumbs
+        items={[
+          { label: 'CRM', href: '/crm' },
+          { label: 'Contacts' }, // Current page
+        ]}
+      />
 
       {/* Page Header with new PageHeader component */}
       <PageHeader

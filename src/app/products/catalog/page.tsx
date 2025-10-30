@@ -17,7 +17,7 @@ import {
   StatsGrid,
   FormDialog,
   TableFilters,
-  Breadcrumb,
+  Breadcrumbs,
   type DataTableColumn,
   type DataTableRowAction,
   type StatItem,
@@ -258,7 +258,12 @@ export default function CatalogItemsPage() {
 
   return (
     <div className="page-container">
-      <Breadcrumb />
+      <Breadcrumbs
+        items={[
+          { label: 'Products', href: '/products' },
+          { label: 'Catalog' }, // Current page
+        ]}
+      />
       {/* Page Header */}
       <PageHeader
         title="Catalog Items"

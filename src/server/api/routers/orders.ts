@@ -4,6 +4,7 @@ import { createTRPCRouter, publicProcedure } from '../trpc/init';
 import { generateProjectSku } from '@/lib/utils/project-sku-generator';
 import { generateFullSku } from '@/lib/utils/full-sku-generator';
 import { createFullName } from '@/lib/utils/name-utils';
+import { triggerOrderStatusChange } from '@/lib/notifications/triggers';
 import { PrismaClient } from '@prisma/client';
 
 // Direct Prisma instance for raw SQL (advisory locks)
@@ -586,6 +587,21 @@ export const ordersRouter = createTRPCRouter({
           },
         },
       });
+
+      // Trigger notification for order status change
+      if (updatedOrder.order_number && updatedOrder.status && updatedOrder.customer_id && currentOrder.status) {
+        await triggerOrderStatusChange({
+          orderId: updatedOrder.id,
+          orderNumber: updatedOrder.order_number,
+          oldStatus: currentOrder.status,
+          newStatus: updatedOrder.status,
+          customerId: updatedOrder.customer_id,
+          customerEmail: (updatedOrder as any).customers?.email || undefined,
+          customerName: (updatedOrder as any).customers?.name || undefined,
+        }).catch((error) => {
+          console.error('[Orders] Failed to send order status notification:', error);
+        });
+      }
 
       return updatedOrder;
     }),
