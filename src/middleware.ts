@@ -2,6 +2,7 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
+import { log } from '@/lib/logger';
 
 // Initialize Redis client for rate limiting
 function createRedis() {
@@ -102,12 +103,12 @@ export async function middleware(request: NextRequest) {
     const expectedSecret = process.env.CRON_SECRET;
 
     if (!expectedSecret) {
-      console.error('[middleware] CRON_SECRET not configured');
+      log.error('[middleware] CRON_SECRET not configured');
       return new NextResponse('Service configuration error', { status: 500 });
     }
 
     if (authHeader !== `Bearer ${expectedSecret}`) {
-      console.error('[middleware] Unauthorized cron request:', pathname);
+      log.error('[middleware] Unauthorized cron request', { pathname });
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
@@ -117,7 +118,7 @@ export async function middleware(request: NextRequest) {
 
   // Only log in development
   if (process.env.NODE_ENV === 'development') {
-    console.log('🚨 MIDDLEWARE ENTRY:', pathname);
+    log.info('🚨 MIDDLEWARE ENTRY', { pathname });
   }
 
   // Validate required environment variables
@@ -125,17 +126,18 @@ export async function middleware(request: NextRequest) {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.error('❌ MIDDLEWARE ERROR: Missing required Supabase environment variables');
-    console.error('Required environment variables:');
-    console.error('  - NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? '✅ SET' : '❌ MISSING');
-    console.error('  - NEXT_PUBLIC_SUPABASE_ANON_KEY:', supabaseAnonKey ? '✅ SET' : '❌ MISSING');
-    console.error('');
-    console.error('For GitHub Actions, configure these secrets in:');
-    console.error('  Repository Settings > Secrets and variables > Actions');
-    console.error('');
-    console.error('For local development, ensure .env or .env.local contains:');
-    console.error('  NEXT_PUBLIC_SUPABASE_URL=your_supabase_url');
-    console.error('  NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key');
+    log.error('❌ MIDDLEWARE ERROR: Missing required Supabase environment variables');
+    log.error('Required environment variables:', {
+      NEXT_PUBLIC_SUPABASE_URL: supabaseUrl ? '✅ SET' : '❌ MISSING',
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseAnonKey ? '✅ SET' : '❌ MISSING'
+    });
+    log.error('');
+    log.error('For GitHub Actions, configure these secrets in:');
+    log.error('  Repository Settings > Secrets and variables > Actions');
+    log.error('');
+    log.error('For local development, ensure .env or .env.local contains:');
+    log.error('  NEXT_PUBLIC_SUPABASE_URL=your_supabase_url');
+    log.error('  NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key');
 
     // Return 500 error with helpful message
     return new NextResponse(
@@ -206,7 +208,7 @@ export async function middleware(request: NextRequest) {
           const value = request.cookies.get(name)?.value;
           // Debug logging in production to diagnose cookie issues
           if (name.includes('supabase') && process.env.NODE_ENV === 'production') {
-            console.log(`[Middleware Cookie Read] ${name}: ${value ? 'EXISTS' : 'MISSING'}`);
+            log.info(`[Middleware Cookie Read] ${name}: ${value ? 'EXISTS' : 'MISSING'}`);
           }
           return value;
         },
@@ -266,13 +268,13 @@ export async function middleware(request: NextRequest) {
 
   // Enhanced logging for auth debugging
   if (authError) {
-    console.error(`❌ Middleware: Auth error for ${pathname}:`, authError.message);
+    log.error(`❌ Middleware: Auth error for ${pathname}`, { error: authError.message });
 
     // Log all cookies to debug
     const allCookies = request.cookies.getAll();
     const supabaseCookies = allCookies.filter(c => c.name.includes('supabase'));
-    console.error(`   Supabase cookies present: ${supabaseCookies.length}`);
-    console.error(`   Cookie names:`, supabaseCookies.map(c => c.name));
+    log.error(`   Supabase cookies present: ${supabaseCookies.length}`);
+    log.error(`   Cookie names:`, supabaseCookies.map(c => c.name));
   }
 
   // Handle root path - redirect based on authentication status
@@ -296,7 +298,7 @@ export async function middleware(request: NextRequest) {
     // Portal routes redirect to portal login
     if (pathname.startsWith('/portal')) {
       if (process.env.NODE_ENV === 'development') {
-        console.log(`🔒 Middleware: Redirecting unauthenticated user from ${pathname} to /portal/login`);
+        log.info(`🔒 Middleware: Redirecting unauthenticated user from ${pathname} to /portal/login`);
       }
       redirectUrl.pathname = '/portal/login';
       redirectUrl.searchParams.set('redirect', pathname);
@@ -305,7 +307,7 @@ export async function middleware(request: NextRequest) {
 
     // All other routes redirect to main login
     if (process.env.NODE_ENV === 'development') {
-      console.log(`🔒 Middleware: Redirecting unauthenticated user from ${pathname} to /login`);
+      log.info(`🔒 Middleware: Redirecting unauthenticated user from ${pathname} to /login`);
     }
     redirectUrl.pathname = '/login';
     redirectUrl.searchParams.set('redirect', pathname);
@@ -315,7 +317,7 @@ export async function middleware(request: NextRequest) {
   // Admin access control - only admins can access /admin routes
   if (pathname.startsWith('/admin')) {
     // Enhanced logging for debugging employee access issue
-    console.log(`[ADMIN ACCESS CHECK] Starting admin access check for user ${user.id} at ${pathname}`);
+    log.info(`[ADMIN ACCESS CHECK] Starting admin access check for user ${user.id} at ${pathname}`);
 
     // ✅ RBAC Migration: Check user roles via user_roles table
     const { data: userRoles, error: rolesError } = await supabase
@@ -325,17 +327,17 @@ export async function middleware(request: NextRequest) {
       .eq('is_active', true);
 
     // Log query result for debugging
-    console.log(`[ADMIN ACCESS] User: ${user.id}, roles:`, userRoles, 'error:', rolesError);
+    log.info(`[ADMIN ACCESS] User: ${user.id}`, { roles: userRoles, error: rolesError });
 
     let hasAdminRole = userRoles?.some(ur =>
       ur.role === 'admin' || ur.role === 'super_admin'
     ) ?? false;
 
-    console.log(`[ADMIN ACCESS] hasAdminRole after user_roles check: ${hasAdminRole}`);
+    log.info(`[ADMIN ACCESS] hasAdminRole after user_roles check: ${hasAdminRole}`);
 
     // ⚠️ FALLBACK: If no roles found, check user_type field for backward compatibility
     if (!hasAdminRole && (!userRoles || userRoles.length === 0)) {
-      console.log(`[ADMIN ACCESS FALLBACK] No roles found, checking user_type for user ${user.id}...`);
+      log.info(`[ADMIN ACCESS FALLBACK] No roles found, checking user_type for user ${user.id}...`);
 
       const { data: userProfile } = await supabase
         .from('user_profiles')
@@ -344,40 +346,40 @@ export async function middleware(request: NextRequest) {
         .single();
 
       if (userProfile) {
-        console.log(`[ADMIN ACCESS FALLBACK] User ${userProfile.email} has user_type: ${userProfile.user_type}`);
+        log.info(`[ADMIN ACCESS FALLBACK] User ${userProfile.email} has user_type: ${userProfile.user_type}`);
 
         // Allow access if user_type is admin or super_admin
         hasAdminRole = userProfile.user_type === 'super_admin' ||
                        userProfile.user_type === 'admin';
 
-        console.log(`[ADMIN ACCESS FALLBACK] hasAdminRole after user_type check: ${hasAdminRole}`);
+        log.info(`[ADMIN ACCESS FALLBACK] hasAdminRole after user_type check: ${hasAdminRole}`);
 
         // ADDITIONAL FALLBACK: Known admin test emails (for E2E tests where user_type may be 'employee')
         // This handles the case where test setup creates admin role in user_roles table
         // but RLS policies prevent reading it, and user_type is still 'employee'
         if (!hasAdminRole && userProfile.email === 'admin@test.com') {
-          console.log(`[ADMIN ACCESS FALLBACK] Known admin test email: ${userProfile.email}`);
+          log.info(`[ADMIN ACCESS FALLBACK] Known admin test email: ${userProfile.email}`);
           hasAdminRole = true;
         }
 
-        console.log(`[ADMIN ACCESS FALLBACK] hasAdminRole after email check: ${hasAdminRole}`);
+        log.info(`[ADMIN ACCESS FALLBACK] hasAdminRole after email check: ${hasAdminRole}`);
 
         if (hasAdminRole) {
-          console.log(`✅ [ADMIN ACCESS FALLBACK] Granted access for ${userProfile.email}`);
+          log.info(`✅ [ADMIN ACCESS FALLBACK] Granted access for ${userProfile.email}`);
         }
       }
     }
 
-    console.log(`[ADMIN ACCESS] Final hasAdminRole value: ${hasAdminRole}`);
+    log.info(`[ADMIN ACCESS] Final hasAdminRole value: ${hasAdminRole}`);
 
     if (!hasAdminRole) {
-      console.log(`🚫 Middleware: User ${user.id} denied access to admin area - REDIRECTING to /dashboard`);
+      log.info(`🚫 Middleware: User ${user.id} denied access to admin area - REDIRECTING to /dashboard`);
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = '/dashboard';
       return NextResponse.redirect(redirectUrl);
     }
 
-    console.log(`✅ Middleware: User ${user.id} has admin access (roles:`, userRoles?.map(r => r.role).join(', '), ')');
+    log.info(`✅ Middleware: User ${user.id} has admin access`, { roles: userRoles?.map(r => r.role).join(', ') });
   }
 
   // Portal access control - verify user has access to customer portal
@@ -402,7 +404,7 @@ export async function middleware(request: NextRequest) {
 
       if (!hasAccess) {
         if (process.env.NODE_ENV === 'development') {
-          console.log(`🚫 Middleware: User ${user.id} denied access to ${requestedPortalType} portal`);
+          log.info(`🚫 Middleware: User ${user.id} denied access to ${requestedPortalType} portal`);
         }
         const redirectUrl = request.nextUrl.clone();
         redirectUrl.pathname = '/portal/login';
@@ -411,7 +413,7 @@ export async function middleware(request: NextRequest) {
       }
 
       if (process.env.NODE_ENV === 'development') {
-        console.log(`✅ Middleware: User ${user.id} has valid ${requestedPortalType} portal access`);
+        log.info(`✅ Middleware: User ${user.id} has valid ${requestedPortalType} portal access`);
       }
     } else {
       // Generic /portal route - require customer portal access (customer_id must be set)
@@ -421,7 +423,7 @@ export async function middleware(request: NextRequest) {
 
       if (!hasCustomerPortal) {
         if (process.env.NODE_ENV === 'development') {
-          console.log(`🚫 Middleware: User ${user.id} denied access to /portal (not a customer portal user)`);
+          log.info(`🚫 Middleware: User ${user.id} denied access to /portal (not a customer portal user)`);
         }
         const redirectUrl = request.nextUrl.clone();
         redirectUrl.pathname = '/portal/login';
@@ -430,13 +432,13 @@ export async function middleware(request: NextRequest) {
       }
 
       if (process.env.NODE_ENV === 'development') {
-        console.log(`✅ Middleware: User ${user.id} has valid customer portal access`);
+        log.info(`✅ Middleware: User ${user.id} has valid customer portal access`);
       }
     }
   }
 
   if (process.env.NODE_ENV === 'development') {
-    console.log(`✅ Middleware: Allowing authenticated user (${user.id}) to access ${pathname}`);
+    log.info(`✅ Middleware: Allowing authenticated user (${user.id}) to access ${pathname}`);
   }
   // User is authenticated, allow access
   return response;
