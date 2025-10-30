@@ -116,6 +116,10 @@ import { furnitureDimensionsRouter } from './routers/furniture-dimensions';
 import { hotspotsRouter } from './routers/hotspots';
 import { invoiceItemsRouter } from './routers/invoice-items';
 import { manufacturerCommunicationsRouter } from './routers/manufacturer-communications';
+import { messagingRouter } from './routers/messaging';
+import { imageAnnotationsRouter } from './routers/image-annotations';
+import { workflowsRouter } from './routers/workflows';
+import { realtimeEventsRouter } from './routers/realtime-events';
 import { manufacturerContractsRouter } from './routers/manufacturer-contracts';
 import { manufacturerPerformanceRouter } from './routers/manufacturer-performance';
 import { manufacturerPricingRouter } from './routers/manufacturer-pricing';
@@ -169,7 +173,6 @@ import { webhookEndpointsRouter } from './routers/webhook-endpoints';
 import { workflowExecutionsRouter } from './routers/workflow-executions';
 import { workflowStepsRouter } from './routers/workflow-steps';
 import { workflowTemplatesRouter } from './routers/workflow-templates';
-import { workflowsRouter } from './routers/workflows';
 
 /**
  * Main API router
@@ -221,6 +224,12 @@ export const appRouter = createTRPCRouter({
   notificationPreferences: notificationPreferencesRouter,
   userProfile: userProfileRouter,
   profiles: profilesRouter,
+
+  // Messaging & Communications
+  messaging: messagingRouter,
+  imageAnnotations: imageAnnotationsRouter,
+  workflows: workflowsRouter,
+  realtimeEvents: realtimeEventsRouter,
 
   // Task Management
   tasks: tasksRouter,
@@ -409,7 +418,6 @@ export const appRouter = createTRPCRouter({
   workflowExecutions: workflowExecutionsRouter,
   workflowSteps: workflowStepsRouter,
   workflowTemplates: workflowTemplatesRouter,
-  workflows: workflowsRouter,
 });
 
 // Export type for client
