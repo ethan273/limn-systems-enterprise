@@ -120,6 +120,9 @@ import { messagingRouter } from './routers/messaging';
 import { imageAnnotationsRouter } from './routers/image-annotations';
 import { workflowsRouter } from './routers/workflows';
 import { realtimeEventsRouter } from './routers/realtime-events';
+import { workflowEngineRouter } from './routers/workflow-engine';
+import { taskAutomationRouter } from './routers/task-automation';
+import { workflowMonitoringRouter } from './routers/workflow-monitoring';
 import { manufacturerContractsRouter } from './routers/manufacturer-contracts';
 import { manufacturerPerformanceRouter } from './routers/manufacturer-performance';
 import { manufacturerPricingRouter } from './routers/manufacturer-pricing';
@@ -230,6 +233,9 @@ export const appRouter = createTRPCRouter({
   imageAnnotations: imageAnnotationsRouter,
   workflows: workflowsRouter,
   realtimeEvents: realtimeEventsRouter,
+  workflowEngine: workflowEngineRouter,
+  taskAutomation: taskAutomationRouter,
+  workflowMonitoring: workflowMonitoringRouter,
 
   // Task Management
   tasks: tasksRouter,
