@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * SEKO Shipping API Client
  *
@@ -149,7 +150,7 @@ export class SekoClient {
       const data = await response.json();
       return data.quotes || [];
     } catch (error) {
-      console.error("Error fetching SEKO quotes:", error);
+      log.error("Error fetching SEKO quotes:", { error });
       throw error;
     }
   }
@@ -197,7 +198,7 @@ export class SekoClient {
         estimated_delivery: data.estimated_delivery ? new Date(data.estimated_delivery) : undefined,
       };
     } catch (error) {
-      console.error("Error creating SEKO shipment:", error);
+      log.error("Error creating SEKO shipment:", { error });
       throw error;
     }
   }
@@ -236,7 +237,7 @@ export class SekoClient {
         })) || [],
       };
     } catch (error) {
-      console.error("Error tracking SEKO shipment:", error);
+      log.error("Error tracking SEKO shipment:", { error });
       throw error;
     }
   }
@@ -265,7 +266,7 @@ export class SekoClient {
       const data = await response.json();
       return data.label_url;
     } catch (error) {
-      console.error("Error fetching SEKO label:", error);
+      log.error("Error fetching SEKO label:", { error });
       throw error;
     }
   }
@@ -291,7 +292,7 @@ export class SekoClient {
 
       return true;
     } catch (error) {
-      console.error("Error cancelling SEKO shipment:", error);
+      log.error("Error cancelling SEKO shipment:", { error });
       throw error;
     }
   }

@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * API Credential Rotation Checker
  *
@@ -137,7 +138,7 @@ export async function checkCredentialRotations(): Promise<RotationAlert[]> {
 
     return alerts;
   } catch (error) {
-    console.error('Error checking credential rotations:', error);
+    log.error('Error checking credential rotations:', { error });
     return [];
   }
 }
@@ -150,11 +151,11 @@ export async function sendRotationNotifications(): Promise<void> {
     const alerts = await checkCredentialRotations();
 
     if (alerts.length === 0) {
-      console.log('[Credential Rotation] No alerts to send');
+      log.info('[Credential Rotation] No alerts to send');
       return;
     }
 
-    console.log(`[Credential Rotation] Found ${alerts.length} alerts`);
+    log.info(`[Credential Rotation] Found ${alerts.length} alerts`);
 
     // Group alerts by severity
     const criticalAlerts = alerts.filter((a) => a.severity === 'critical');
@@ -210,11 +211,11 @@ export async function sendRotationNotifications(): Promise<void> {
       }
     }
 
-    console.log(
+    log.info(
       `[Credential Rotation] Sent notifications: ${criticalAlerts.length} critical, ${warningAlerts.length} warnings, ${infoAlerts.length} info`
     );
   } catch (error) {
-    console.error('Error sending rotation notifications:', error);
+    log.error('Error sending rotation notifications:', { error });
   }
 }
 

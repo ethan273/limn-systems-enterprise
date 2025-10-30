@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 import React, { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -67,7 +68,7 @@ export function ShareLinkViewer({ token, searchParams }: ShareLinkViewerProps) {
 
         setViewTracked(true);
       } catch (error) {
-        console.error("Failed to track share link view:", error);
+        log.error("Failed to track share link view:", { error });
       }
     };
 
@@ -150,7 +151,7 @@ export function ShareLinkViewer({ token, searchParams }: ShareLinkViewerProps) {
           window.open(contentData.url, "_blank");
         }
       } catch (e) {
-        console.error("Failed to parse hotspot content:", e);
+        log.error("Failed to parse hotspot content:", { e });
       }
     }
   }, []);

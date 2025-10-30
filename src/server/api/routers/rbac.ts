@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * RBAC (Role-Based Access Control) tRPC Router
  *
@@ -259,7 +260,7 @@ export const rbacRouter = createTRPCRouter({
           select: { full_name: true, email: true },
         });
 
-        console.log(
+        log.info(
           `[RBAC] Role "${input.role}" assigned to user ${userProfile?.email || input.userId} by ${performedByProfile?.email || performedBy}`
         );
 
@@ -268,7 +269,7 @@ export const rbacRouter = createTRPCRouter({
           message: `Role "${input.role}" successfully assigned to ${userProfile?.full_name || 'user'}`,
         };
       } catch (error) {
-        console.error('[RBAC] Failed to assign role:', error);
+        log.error('[RBAC] Failed to assign role:', { error });
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: error instanceof Error ? error.message : 'Failed to assign role',
@@ -310,7 +311,7 @@ export const rbacRouter = createTRPCRouter({
           select: { full_name: true, email: true },
         });
 
-        console.log(
+        log.info(
           `[RBAC] Role "${input.role}" removed from user ${userProfile?.email || input.userId} by ${performedByProfile?.email || performedBy}`
         );
 
@@ -319,7 +320,7 @@ export const rbacRouter = createTRPCRouter({
           message: `Role "${input.role}" successfully removed from ${userProfile?.full_name || 'user'}`,
         };
       } catch (error) {
-        console.error('[RBAC] Failed to remove role:', error);
+        log.error('[RBAC] Failed to remove role:', { error });
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: error instanceof Error ? error.message : 'Failed to remove role',
@@ -361,7 +362,7 @@ export const rbacRouter = createTRPCRouter({
           select: { full_name: true, email: true },
         });
 
-        console.log(
+        log.info(
           `[RBAC] Roles set to [${input.roles.join(', ')}] for user ${userProfile?.email || input.userId} by ${performedByProfile?.email || performedBy}`
         );
 
@@ -371,7 +372,7 @@ export const rbacRouter = createTRPCRouter({
           roles: input.roles,
         };
       } catch (error) {
-        console.error('[RBAC] Failed to set user roles:', error);
+        log.error('[RBAC] Failed to set user roles:', { error });
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: error instanceof Error ? error.message : 'Failed to set user roles',
@@ -613,7 +614,7 @@ export const rbacRouter = createTRPCRouter({
         }
       }
 
-      console.log(
+      log.info(
         `[RBAC] Batch role assignment completed: ${results.success.length} succeeded, ${results.failed.length} failed`
       );
 

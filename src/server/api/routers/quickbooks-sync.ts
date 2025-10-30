@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { z } from 'zod';
 import { createTRPCRouter, publicProcedure } from '../trpc/init';
 import { quickbooksClient } from '@/lib/quickbooks/client';
@@ -289,7 +290,7 @@ export const quickbooksSyncRouter = createTRPCRouter({
           message: 'Invoice synced to QuickBooks successfully',
         };
       } catch (error: any) {
-        console.error('Error syncing invoice to QuickBooks:', error);
+        log.error('Error syncing invoice to QuickBooks:', error);
 
         // Log failed sync
         await ctx.db.quickbooks_sync_log.create({
@@ -439,7 +440,7 @@ export const quickbooksSyncRouter = createTRPCRouter({
           message: 'Payment synced to QuickBooks successfully',
         };
       } catch (error: any) {
-        console.error('Error syncing payment to QuickBooks:', error);
+        log.error('Error syncing payment to QuickBooks:', error);
 
         // Log failed sync
         await ctx.db.quickbooks_sync_log.create({

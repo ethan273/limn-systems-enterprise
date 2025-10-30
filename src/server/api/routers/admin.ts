@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Admin Router - User & Permission Management
  *
@@ -152,7 +153,7 @@ export const adminRouter = createTRPCRouter({
         });
 
         // DEBUG: Log what we're returning
-        console.log('[ADMIN API] users.list returning:', {
+        log.info('[ADMIN API] users.list returning:', {
           count: profiles.length,
           total,
           emails: profiles.map(p => p.email).slice(0, 5),
@@ -373,7 +374,7 @@ export const adminRouter = createTRPCRouter({
         });
 
         if (magicLinkError) {
-          console.error('[admin.users.create] Failed to generate magic link:', magicLinkError);
+          log.error('[admin.users.create] Failed to generate magic link:', magicLinkError);
         }
 
         // Get admin email from session
@@ -388,7 +389,7 @@ export const adminRouter = createTRPCRouter({
           userType: input.userType,
           invitedBy,
         }).catch(err => {
-          console.error('[admin.users.create] Failed to send invitation email:', err);
+          log.error('[admin.users.create] Failed to send invitation email:', err);
         });
 
         // Send Google Chat notification (non-blocking)
@@ -398,7 +399,7 @@ export const adminRouter = createTRPCRouter({
           invitedBy,
           userType: input.userType,
         }).catch(err => {
-          console.error('[admin.users.create] Failed to send Google Chat notification:', err);
+          log.error('[admin.users.create] Failed to send Google Chat notification:', err);
         });
 
         // Log the action

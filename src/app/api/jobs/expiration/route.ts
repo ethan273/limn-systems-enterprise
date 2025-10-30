@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Emergency Access Expiration Job API Route
  *
@@ -19,7 +20,7 @@ export async function POST(request: NextRequest) {
     const expectedToken = process.env.CRON_SECRET;
 
     if (!expectedToken) {
-      console.error('[Expiration Job] CRON_SECRET not configured');
+      log.error('[Expiration Job] CRON_SECRET not configured');
       return NextResponse.json(
         { error: 'Server configuration error' },
         { status: 500 }
@@ -27,11 +28,11 @@ export async function POST(request: NextRequest) {
     }
 
     if (authHeader !== `Bearer ${expectedToken}`) {
-      console.error('[Expiration Job] Unauthorized request');
+      log.error('[Expiration Job] Unauthorized request');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log('[Expiration Job] Authorized request received');
+    log.info('[Expiration Job] Authorized request received');
 
     // Run the job
     const result = await runEmergencyExpirationJob();
@@ -48,7 +49,7 @@ export async function POST(request: NextRequest) {
       errors: result.errors,
     });
   } catch (error) {
-    console.error('[Expiration Job] Error:', error);
+    log.error('[Expiration Job] Error:', { error });
 
     return NextResponse.json(
       {

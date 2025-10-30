@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Server-Sent Events (SSE) Endpoint - Phase 3 Session 3
  *
@@ -49,7 +50,7 @@ export async function GET(request: NextRequest) {
           const heartbeat = `: heartbeat ${Date.now()}\n\n`;
           controller.enqueue(encoder.encode(heartbeat));
         } catch (error) {
-          console.error('[SSE] Heartbeat error:', error);
+          log.error('[SSE] Heartbeat error:', { error });
           clearInterval(heartbeatInterval);
         }
       }, 30000); // Send heartbeat every 30 seconds
@@ -80,13 +81,13 @@ export async function GET(request: NextRequest) {
           //   controller.enqueue(encoder.encode(message));
           // }
         } catch (error) {
-          console.error('[SSE] Polling error:', error);
+          log.error('[SSE] Polling error:', { error });
         }
       }, 5000); // Poll every 5 seconds
 
       // Cleanup on connection close
       request.signal.addEventListener('abort', () => {
-        console.log('[SSE] Client disconnected:', user.id);
+        log.info('[SSE] Client disconnected:', user.id);
         clearInterval(heartbeatInterval);
         clearInterval(pollInterval);
         controller.close();

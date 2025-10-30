@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Permission Templates Service
  *
@@ -110,7 +111,7 @@ export async function createPermissionTemplate(data: {
       });
     }
 
-    console.log(`[Permission Templates] Created template: ${data.templateName} (${template.id})`);
+    log.info(`[Permission Templates] Created template: ${data.templateName} (${template.id})`);
 
     return {
       id: template.id,
@@ -126,7 +127,7 @@ export async function createPermissionTemplate(data: {
       updatedAt: template.updated_at,
     };
   } catch (error) {
-    console.error('[Permission Templates] Error creating template:', error);
+    log.error('[Permission Templates] Error creating template:', { error });
     throw new Error('Failed to create permission template');
   }
 }
@@ -181,7 +182,7 @@ export async function getPermissionTemplates(options?: {
       updatedAt: template.updated_at,
     }));
   } catch (error) {
-    console.error('[Permission Templates] Error getting templates:', error);
+    log.error('[Permission Templates] Error getting templates:', { error });
     return [];
   }
 }
@@ -229,7 +230,7 @@ export async function getTemplateWithPermissions(
       })),
     };
   } catch (error) {
-    console.error('[Permission Templates] Error getting template with permissions:', error);
+    log.error('[Permission Templates] Error getting template with permissions:', { error });
     return null;
   }
 }
@@ -283,9 +284,9 @@ export async function updateTemplatePermissions(
       data: { updated_at: new Date() },
     });
 
-    console.log(`[Permission Templates] Updated permissions for template ${templateId} by ${updatedBy}`);
+    log.info(`[Permission Templates] Updated permissions for template ${templateId} by ${updatedBy}`);
   } catch (error) {
-    console.error('[Permission Templates] Error updating template permissions:', error);
+    log.error('[Permission Templates] Error updating template permissions:', { error });
     throw new Error('Failed to update template permissions');
   }
 }
@@ -319,9 +320,9 @@ export async function deleteTemplate(
       },
     });
 
-    console.log(`[Permission Templates] Deleted template ${templateId} by ${deletedBy}`);
+    log.info(`[Permission Templates] Deleted template ${templateId} by ${deletedBy}`);
   } catch (error) {
-    console.error('[Permission Templates] Error deleting template:', error);
+    log.error('[Permission Templates] Error deleting template:', { error });
     throw new Error('Failed to delete template');
   }
 }
@@ -372,9 +373,9 @@ export async function applyTemplateToUser(
       });
     }
 
-    console.log(`[Permission Templates] Applied template ${template.templateName} to user ${userId} in organization ${options.organizationId}`);
+    log.info(`[Permission Templates] Applied template ${template.templateName} to user ${userId} in organization ${options.organizationId}`);
   } catch (error) {
-    console.error('[Permission Templates] Error applying template to user:', error);
+    log.error('[Permission Templates] Error applying template to user:', { error });
     throw new Error('Failed to apply template to user');
   }
 }
@@ -400,12 +401,12 @@ export async function batchApplyTemplateToUsers(
       await applyTemplateToUser(templateId, userId, appliedBy, options);
       successful++;
     } catch (error) {
-      console.error(`[Permission Templates] Failed to apply template to user ${userId}:`, error);
+      log.error(`[Permission Templates] Failed to apply template to user ${userId}:`, { error });
       failed++;
     }
   }
 
-  console.log(`[Permission Templates] Batch application complete: ${successful} successful, ${failed} failed`);
+  log.info(`[Permission Templates] Batch application complete: ${successful} successful, ${failed} failed`);
 
   return { successful, failed };
 }
@@ -456,7 +457,7 @@ export async function getUsersWithTemplate(
       return [...new Set(scopedPerms.map((p) => p.user_id))];
     }
   } catch (error) {
-    console.error('[Permission Templates] Error getting users with template:', error);
+    log.error('[Permission Templates] Error getting users with template:', { error });
     return [];
   }
 }
@@ -495,11 +496,11 @@ export async function cloneTemplate(
       })),
     });
 
-    console.log(`[Permission Templates] Cloned template ${templateId} to ${cloned.id} by ${clonedBy}`);
+    log.info(`[Permission Templates] Cloned template ${templateId} to ${cloned.id} by ${clonedBy}`);
 
     return cloned;
   } catch (error) {
-    console.error('[Permission Templates] Error cloning template:', error);
+    log.error('[Permission Templates] Error cloning template:', { error });
     throw new Error('Failed to clone template');
   }
 }
@@ -530,7 +531,7 @@ export async function getTemplateUsageStats(
       permissionCount: template.permissions.length,
     };
   } catch (error) {
-    console.error('[Permission Templates] Error getting template usage stats:', error);
+    log.error('[Permission Templates] Error getting template usage stats:', { error });
     return { totalUsers: 0, activeUsers: 0, permissionCount: 0 };
   }
 }

@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getQuickBooksClientByRealm } from '@/lib/quickbooks/auth';
@@ -40,7 +41,7 @@ interface QuickBooksWebhookPayload {
  */
 function verifyWebhookSignature(payload: string, signature: string): boolean {
   if (!QB_WEBHOOK_TOKEN) {
-    console.warn('[QuickBooks Webhook] Webhook token not configured - skipping verification');
+    log.warn('[QuickBooks Webhook] Webhook token not configured - skipping verification');
     return true; // Allow in development if token not set
   }
 
@@ -71,7 +72,7 @@ async function processInvoiceUpdate(
     const mapping = mappingArray.length > 0 ? mappingArray[0] : null;
 
     if (!mapping) {
-      console.log(`[QuickBooks Webhook] Invoice ${invoiceId} not found in mappings - skipping`);
+      log.info(`[QuickBooks Webhook] Invoice ${invoiceId} not found in mappings - skipping`);
       return;
     }
 
@@ -85,7 +86,7 @@ async function processInvoiceUpdate(
         },
       });
 
-      console.log(`[QuickBooks Webhook] Invoice ${mapping.limn_id} marked as cancelled`);
+      log.info(`[QuickBooks Webhook] Invoice ${mapping.limn_id} marked as cancelled`);
       return;
     }
 
@@ -112,9 +113,9 @@ async function processInvoiceUpdate(
       },
     });
 
-    console.log(`[QuickBooks Webhook] Invoice ${mapping.limn_id} synced from QuickBooks`);
+    log.info(`[QuickBooks Webhook] Invoice ${mapping.limn_id} synced from QuickBooks`);
   } catch (error) {
-    console.error('[QuickBooks Webhook] Error processing invoice update:', error);
+    log.error('[QuickBooks Webhook] Error processing invoice update:', { error });
     throw error;
   }
 }
@@ -140,7 +141,7 @@ async function processPaymentUpdate(
     const mapping = mappingArray.length > 0 ? mappingArray[0] : null;
 
     if (!mapping) {
-      console.log(`[QuickBooks Webhook] Payment ${paymentId} not found in mappings - skipping`);
+      log.info(`[QuickBooks Webhook] Payment ${paymentId} not found in mappings - skipping`);
       return;
     }
 
@@ -154,7 +155,7 @@ async function processPaymentUpdate(
         },
       });
 
-      console.log(`[QuickBooks Webhook] Payment ${mapping.limn_id} marked as voided`);
+      log.info(`[QuickBooks Webhook] Payment ${mapping.limn_id} marked as voided`);
       return;
     }
 
@@ -170,9 +171,9 @@ async function processPaymentUpdate(
       } as any,
     });
 
-    console.log(`[QuickBooks Webhook] Payment ${mapping.limn_id} synced from QuickBooks`);
+    log.info(`[QuickBooks Webhook] Payment ${mapping.limn_id} synced from QuickBooks`);
   } catch (error) {
-    console.error('[QuickBooks Webhook] Error processing payment update:', error);
+    log.error('[QuickBooks Webhook] Error processing payment update:', { error });
     throw error;
   }
 }
@@ -198,7 +199,7 @@ async function processCustomerUpdate(
     const mapping = mappingArray.length > 0 ? mappingArray[0] : null;
 
     if (!mapping) {
-      console.log(`[QuickBooks Webhook] Customer ${customerId} not found in mappings - skipping`);
+      log.info(`[QuickBooks Webhook] Customer ${customerId} not found in mappings - skipping`);
       return;
     }
 
@@ -211,7 +212,7 @@ async function processCustomerUpdate(
         } as any,
       });
 
-      console.log(`[QuickBooks Webhook] Customer ${mapping.limn_id} marked as inactive`);
+      log.info(`[QuickBooks Webhook] Customer ${mapping.limn_id} marked as inactive`);
       return;
     }
 
@@ -230,9 +231,9 @@ async function processCustomerUpdate(
       } as any,
     });
 
-    console.log(`[QuickBooks Webhook] Customer ${mapping.limn_id} synced from QuickBooks`);
+    log.info(`[QuickBooks Webhook] Customer ${mapping.limn_id} synced from QuickBooks`);
   } catch (error) {
-    console.error('[QuickBooks Webhook] Error processing customer update:', error);
+    log.error('[QuickBooks Webhook] Error processing customer update:', { error });
     throw error;
   }
 }
@@ -248,14 +249,14 @@ export async function POST(request: NextRequest) {
 
     // Verify webhook signature
     if (!verifyWebhookSignature(rawBody, signature)) {
-      console.error('[QuickBooks Webhook] Invalid signature');
+      log.error('[QuickBooks Webhook] Invalid signature');
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
 
     // Parse payload
     const payload: QuickBooksWebhookPayload = JSON.parse(rawBody);
 
-    console.log('[QuickBooks Webhook] Received webhook:', {
+    log.info('[QuickBooks Webhook] Received webhook:', {
       eventCount: payload.eventNotifications.length,
     });
 
@@ -267,7 +268,7 @@ export async function POST(request: NextRequest) {
       for (const entity of dataChangeEvent.entities) {
         const { name, id, operation } = entity;
 
-        console.log(`[QuickBooks Webhook] Processing ${name} ${operation}: ${id}`);
+        log.info(`[QuickBooks Webhook] Processing ${name} ${operation}: ${id}`);
 
         try {
           switch (name.toLowerCase()) {
@@ -284,10 +285,10 @@ export async function POST(request: NextRequest) {
               break;
 
             default:
-              console.log(`[QuickBooks Webhook] Unsupported entity type: ${name}`);
+              log.info(`[QuickBooks Webhook] Unsupported entity type: ${name}`);
           }
         } catch (error) {
-          console.error(`[QuickBooks Webhook] Error processing ${name} ${id}:`, error);
+          log.error(`[QuickBooks Webhook] Error processing ${name} ${id}:`, { error });
           // Continue processing other entities
         }
       }
@@ -295,7 +296,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, message: 'Webhook processed' });
   } catch (error) {
-    console.error('[QuickBooks Webhook] Error processing webhook:', error);
+    log.error('[QuickBooks Webhook] Error processing webhook:', { error });
     return NextResponse.json(
       { error: 'Failed to process webhook' },
       { status: 500 }

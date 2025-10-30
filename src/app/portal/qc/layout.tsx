@@ -1,4 +1,5 @@
 'use client';
+import { log } from '@/lib/logger';
 
 /**
  * QC Portal Layout
@@ -49,7 +50,7 @@ export default function QCPortalLayout({ children }: LayoutProps) {
       router.push('/portal/login');
       router.refresh();
     } catch (error) {
-      console.error('Sign out error:', error);
+      log.error('Sign out error:', { error });
       setSigningOut(false);
     }
   };

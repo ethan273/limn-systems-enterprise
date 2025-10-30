@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { getSupabaseAdmin } from './supabase';
 import { PrismaClient } from '@prisma/client';
 
@@ -2333,28 +2334,28 @@ export class DatabaseClient {
     }
 
     // Debug: Log the exact query being executed
-    console.log(`[DB DEBUG] Fetching from ${tableName} with where:`, JSON.stringify(where, null, 2));
+    log.info(`[DB DEBUG] Fetching from ${tableName} with where:`, JSON.stringify(where, null, 2));
 
     const { data, error } = await query;
 
     if (error) {
-      console.error(`[DB ERROR] Failed to fetch from ${tableName}:`, error);
+      log.error(`[DB ERROR] Failed to fetch from ${tableName}:`, { error });
 
       // DIAGNOSTIC: Show what credentials we're using when permission errors occur
       if (error.code === '42501') {
         const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-        console.error(`[DB ERROR] 🚨 PERMISSION DENIED (42501) - Diagnostic Info:`);
-        console.error(`  Table: ${tableName}`);
-        console.error(`  Service Key Present: ${!!serviceKey}`);
-        console.error(`  Service Key Prefix: ${serviceKey ? serviceKey.substring(0, 30) + '...' : 'MISSING'}`);
-        console.error(`  Expected pattern: eyJhbGciOiJIUzI1NiIsInR5cCI6...`);
-        console.error(`  If the prefix doesn't match, you may be using the ANON key instead of SERVICE_ROLE key`);
+        log.error(`[DB ERROR] 🚨 PERMISSION DENIED (42501) - Diagnostic Info:`);
+        log.error(`  Table: ${tableName}`);
+        log.error(`  Service Key Present: ${!!serviceKey}`);
+        log.error(`  Service Key Prefix: ${serviceKey ? serviceKey.substring(0, 30) + '...' : 'MISSING'}`);
+        log.error(`  Expected pattern: eyJhbGciOiJIUzI1NiIsInR5cCI6...`);
+        log.error(`  If the prefix doesn't match, you may be using the ANON key instead of SERVICE_ROLE key`);
       }
 
       throw new Error(`Failed to fetch from ${tableName}: ${error.message}`);
     }
 
-    console.log(`[DB DEBUG] Successfully fetched ${data?.length || 0} records from ${tableName}`);
+    log.info(`[DB DEBUG] Successfully fetched ${data?.length || 0} records from ${tableName}`);
     return (data || []).map((item: any) => this.transformDates(item));
   }
 
@@ -4973,7 +4974,7 @@ export class DatabaseClient {
       const { data, error, count } = await query;
 
       if (error) {
-        console.error('Error fetching users:', error);
+        log.error('Error fetching users:', { error });
         throw new Error(`Failed to fetch users: ${error.message}`);
       }
 
@@ -4983,7 +4984,7 @@ export class DatabaseClient {
 
       return { users, total, hasMore };
     } catch (error) {
-      console.error('Error in findManyUsers:', error);
+      log.error('Error in findManyUsers:', { error });
       throw error;
     }
   }
@@ -5004,13 +5005,13 @@ export class DatabaseClient {
         if (error.code === 'PGRST116') {
           return null; // User not found
         }
-        console.error('Error fetching user:', error);
+        log.error('Error fetching user:', { error });
         throw new Error(`Failed to fetch user: ${error.message}`);
       }
 
       return this.transformUser(data);
     } catch (error) {
-      console.error('Error in findUser:', error);
+      log.error('Error in findUser:', { error });
       throw error;
     }
   }
@@ -5030,13 +5031,13 @@ export class DatabaseClient {
         .order('name', { ascending: true });
 
       if (error) {
-        console.error('Error fetching users by IDs:', error);
+        log.error('Error fetching users by IDs:', { error });
         throw new Error(`Failed to fetch users: ${error.message}`);
       }
 
       return data?.map(this.transformUser.bind(this)) || [];
     } catch (error) {
-      console.error('Error in findUsersByIds:', error);
+      log.error('Error in findUsersByIds:', { error });
       throw error;
     }
   }

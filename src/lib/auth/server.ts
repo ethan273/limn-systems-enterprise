@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
@@ -39,7 +40,7 @@ export const getUser = cache(async () => {
 
     return user;
   } catch (error) {
-    console.error('Error getting user:', error);
+    log.error('Error getting user:', { error });
     return null;
   }
 });
@@ -59,7 +60,7 @@ export const getUserProfile = cache(async () => {
     
     return profile;
   } catch (error) {
-    console.error('Error getting user profile:', error);
+    log.error('Error getting user profile:', { error });
     return null;
   }
 });

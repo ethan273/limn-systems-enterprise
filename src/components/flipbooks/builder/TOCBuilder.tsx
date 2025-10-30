@@ -8,6 +8,7 @@
  */
 
 "use client";
+import { log } from '@/lib/logger';
 
 import React, { useState, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
@@ -278,7 +279,7 @@ export function TOCBuilder({
         alert(`TOC generated with warnings:\n${result.warnings.join("\n")}`);
       }
     } catch (error) {
-      console.error("Failed to generate TOC:", error);
+      log.error("Failed to generate TOC:", { error });
       alert(
         `Failed to generate TOC: ${error instanceof Error ? error.message : "Unknown error"}`
       );
@@ -298,7 +299,7 @@ export function TOCBuilder({
       setHasUnsavedChanges(false);
       onSave?.(result.tocData);
     } catch (error) {
-      console.error("Failed to save TOC:", error);
+      log.error("Failed to save TOC:", { error });
     }
   }, [flipbookId, tocData, updateTOCMutation, onSave]);
 
@@ -347,7 +348,7 @@ export function TOCBuilder({
    * Save item from dialog
    */
   const handleSaveItem = useCallback(() => {
-    console.log("handleSaveItem called", {
+    log.info("handleSaveItem called", {
       formTitle,
       formPageNumber,
       formLevel,
@@ -366,7 +367,7 @@ export function TOCBuilder({
       return;
     }
 
-    console.log("Validation passed, creating item");
+    log.info("Validation passed, creating item");
 
     const newItem: TOCItem = {
       id: editingItem?.id || `toc-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
@@ -428,7 +429,7 @@ export function TOCBuilder({
 
     setHasUnsavedChanges(true);
     setIsEditDialogOpen(false);
-    console.log("Item saved, dialog closed");
+    log.info("Item saved, dialog closed");
   }, [formTitle, formPageNumber, formLevel, formIcon, editingItem, parentForNewItem]);
 
   /**
@@ -472,7 +473,7 @@ export function TOCBuilder({
         URL.revokeObjectURL(url);
       }
     } catch (error) {
-      console.error("Failed to export TOC:", error);
+      log.error("Failed to export TOC:", { error });
     }
   }, [exportTOCQuery]);
 
@@ -495,7 +496,7 @@ export function TOCBuilder({
           setTocData(result.tocData);
           setHasUnsavedChanges(true);
         } catch (error) {
-          console.error("Failed to import TOC:", error);
+          log.error("Failed to import TOC:", { error });
         }
       };
       reader.readAsText(file);

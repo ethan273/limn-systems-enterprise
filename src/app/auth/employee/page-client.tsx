@@ -1,4 +1,5 @@
 'use client';
+import { log } from '@/lib/logger';
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
@@ -33,7 +34,7 @@ export default function EmployeeLoginPage() {
  const errorDetails = urlParams.get('details')
 
  if (oauthError) {
- console.error('OAuth error from URL:', { oauthError, errorDetails })
+ log.error('OAuth error from URL:', { oauthError, errorDetails })
  const errorMessage = errorDetails ?
  `OAuth Error: ${oauthError} - ${decodeURIComponent(errorDetails)}` :
  `OAuth Error: ${oauthError}`
@@ -59,7 +60,7 @@ export default function EmployeeLoginPage() {
  setError('Employee access requires a @limn.us.com email address')
  }
  } catch (error) {
- console.error('Session check error:', error)
+ log.error('Session check error:', { error })
  // Don't show error to user, just continue - Supabase connection issues
  // The page should still render for login
  }
@@ -81,8 +82,8 @@ export default function EmployeeLoginPage() {
  setError('')
 
  try {
- console.log('Starting Google OAuth flow...')
- console.log('Redirect URL will be:', `${window.location.origin}/auth/callback?type=employee`)
+ log.info('Starting Google OAuth flow...')
+ log.info('Redirect URL will be:', { details: `${window.location.origin}/auth/callback?type=employee` })
 
  const { data, error } = await supabase.auth.signInWithOAuth({
  provider: 'google',
@@ -98,18 +99,18 @@ export default function EmployeeLoginPage() {
  },
  })
 
- console.log('OAuth response:', { data, error })
+ log.info('OAuth response:', { data, error })
 
  if (error) {
- console.error('OAuth initiation error:', error)
+ log.error('OAuth initiation error:', { error })
  throw error
  }
 
- console.log('OAuth flow initiated successfully, should redirect to Google...')
+ log.info('OAuth flow initiated successfully, should redirect to Google...')
  // OAuth redirect will handle the rest - if we reach here without redirect, there's an issue
 
  } catch (error: unknown) {
- console.error('Google OAuth error:', error)
+ log.error('Google OAuth error:', { error })
  const errorMessage = error instanceof Error ? error.message : String(error)
  if (errorMessage.includes('fetch failed')) {
  setError('Connection to authentication service failed. Please check your internet connection and try again.')

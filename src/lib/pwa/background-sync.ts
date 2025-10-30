@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 interface QueuedAction {
   id: string;
@@ -39,7 +40,7 @@ class BackgroundSync {
     if ('serviceWorker' in navigator && 'sync' in ServiceWorkerRegistration.prototype) {
       navigator.serviceWorker.ready.then(registration => {
         (registration as any).sync.register('sync-queue').catch((err: Error) => {
-          console.warn('Background sync registration failed:', err);
+          log.warn('Background sync registration failed:', { err });
         });
       });
     }
@@ -75,7 +76,7 @@ class BackgroundSync {
       const queueJson = localStorage.getItem(this.QUEUE_KEY);
       return queueJson ? JSON.parse(queueJson) : [];
     } catch (error) {
-      console.error('Error reading sync queue:', error);
+      log.error('Error reading sync queue:', { error });
       return [];
     }
   }
@@ -86,7 +87,7 @@ class BackgroundSync {
     try {
       localStorage.setItem(this.QUEUE_KEY, JSON.stringify(queue));
     } catch (error) {
-      console.error('Error saving sync queue:', error);
+      log.error('Error saving sync queue:', { error });
     }
   }
 
@@ -112,7 +113,7 @@ class BackgroundSync {
         if (action.retryCount < this.MAX_RETRIES) {
           failedActions.push(action);
         } else {
-          console.error('Action exceeded max retries:', action);
+          log.error('Action exceeded max retries:', { action });
           this.showNotification('Sync failed', `Action ${action.type} could not be synced`);
         }
       } else {
@@ -139,9 +140,9 @@ class BackgroundSync {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      console.log('Action synced successfully:', action.type);
+      log.info('Action synced successfully:', action.type);
     } catch (error) {
-      console.error('Error syncing action:', error);
+      log.error('Error syncing action:', { error });
       throw error;
     }
   }

@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 import { useEffect } from 'react';
 
@@ -44,7 +45,7 @@ class PWAAnalytics {
 
     // Also log to console in development
     if (process.env.NODE_ENV === 'development') {
-      console.log('[PWA Analytics]', { category, action, label, value });
+      log.info('[PWA Analytics]', { category, action, label, value });
     }
   }
 
@@ -182,7 +183,7 @@ class PWAAnalytics {
           caches: cacheStats,
         });
       } catch (error) {
-        console.error('Error getting cache stats:', error);
+        log.error('Error getting cache stats:', { error });
         resolve({ totalSize: 0, cacheCount: 0, caches: [] });
       }
     });

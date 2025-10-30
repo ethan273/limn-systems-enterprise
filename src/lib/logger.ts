@@ -17,8 +17,9 @@
  */
 
 // Type definitions for logger interface
+// Flexible signature to support both structured logging and console-style logging
 export interface LogFn {
-  (_message: string, _meta?: Record<string, any>): void;
+  (_message: string, _meta?: any): void;
 }
 
 export interface Logger {
@@ -68,41 +69,68 @@ function createServerLogger(): Logger {
   });
 
   return {
-    error: (message: string, meta?: Record<string, any>) => {
-      if (meta) {
-        pinoLogger.error(meta, message);
+    error: (message: string, meta?: any) => {
+      // Convert meta to object if it's not already
+      const metaObj = (meta && typeof meta === 'object' && !Array.isArray(meta))
+        ? meta
+        : meta !== undefined
+        ? { details: meta }
+        : undefined;
+
+      if (metaObj) {
+        pinoLogger.error(metaObj, message);
       } else {
         pinoLogger.error(message);
       }
     },
-    warn: (message: string, meta?: Record<string, any>) => {
-      if (meta) {
-        pinoLogger.warn(meta, message);
+    warn: (message: string, meta?: any) => {
+      const metaObj = (meta && typeof meta === 'object' && !Array.isArray(meta))
+        ? meta
+        : meta !== undefined
+        ? { details: meta }
+        : undefined;
+
+      if (metaObj) {
+        pinoLogger.warn(metaObj, message);
       } else {
         pinoLogger.warn(message);
       }
     },
-    info: (message: string, meta?: Record<string, any>) => {
-      if (meta) {
-        pinoLogger.info(meta, message);
+    info: (message: string, meta?: any) => {
+      const metaObj = (meta && typeof meta === 'object' && !Array.isArray(meta))
+        ? meta
+        : meta !== undefined
+        ? { details: meta }
+        : undefined;
+
+      if (metaObj) {
+        pinoLogger.info(metaObj, message);
       } else {
         pinoLogger.info(message);
       }
     },
-    debug: (message: string, meta?: Record<string, any>) => {
-      if (meta) {
-        pinoLogger.debug(meta, message);
+    debug: (message: string, meta?: any) => {
+      const metaObj = (meta && typeof meta === 'object' && !Array.isArray(meta))
+        ? meta
+        : meta !== undefined
+        ? { details: meta }
+        : undefined;
+
+      if (metaObj) {
+        pinoLogger.debug(metaObj, message);
       } else {
         pinoLogger.debug(message);
       }
     },
-    http: (message: string, meta?: Record<string, any>) => {
+    http: (message: string, meta?: any) => {
       // Map to info level with http prefix
-      if (meta) {
-        pinoLogger.info({ ...meta, type: 'http' }, message);
-      } else {
-        pinoLogger.info({ type: 'http' }, message);
-      }
+      const metaObj = (meta && typeof meta === 'object' && !Array.isArray(meta))
+        ? { ...meta, type: 'http' }
+        : meta !== undefined
+        ? { details: meta, type: 'http' }
+        : { type: 'http' };
+
+      pinoLogger.info(metaObj, message);
     },
   };
 }
@@ -124,28 +152,53 @@ function createClientLogger(): Logger {
   };
 
   return {
-    error: (message: string, meta?: Record<string, any>) => {
-      console.error(...formatMessage('error', message, meta));
+    error: (message: string, meta?: any) => {
+      const metaObj = (meta && typeof meta === 'object' && !Array.isArray(meta))
+        ? meta
+        : meta !== undefined
+        ? { details: meta }
+        : undefined;
+      console.error(...formatMessage('error', message, metaObj));
     },
-    warn: (message: string, meta?: Record<string, any>) => {
-      console.warn(...formatMessage('warn', message, meta));
+    warn: (message: string, meta?: any) => {
+      const metaObj = (meta && typeof meta === 'object' && !Array.isArray(meta))
+        ? meta
+        : meta !== undefined
+        ? { details: meta }
+        : undefined;
+      console.warn(...formatMessage('warn', message, metaObj));
     },
-    info: (message: string, meta?: Record<string, any>) => {
+    info: (message: string, meta?: any) => {
       // Only log info in development on client
       if (isDevelopment) {
-        console.info(...formatMessage('info', message, meta));
+        const metaObj = (meta && typeof meta === 'object' && !Array.isArray(meta))
+          ? meta
+          : meta !== undefined
+          ? { details: meta }
+          : undefined;
+        console.info(...formatMessage('info', message, metaObj));
       }
     },
-    debug: (message: string, meta?: Record<string, any>) => {
+    debug: (message: string, meta?: any) => {
       // Only log debug in development on client
       if (isDevelopment) {
-        console.debug(...formatMessage('debug', message, meta));
+        const metaObj = (meta && typeof meta === 'object' && !Array.isArray(meta))
+          ? meta
+          : meta !== undefined
+          ? { details: meta }
+          : undefined;
+        console.debug(...formatMessage('debug', message, metaObj));
       }
     },
-    http: (message: string, meta?: Record<string, any>) => {
+    http: (message: string, meta?: any) => {
       // Only log http in development on client
       if (isDevelopment) {
-        console.log(...formatMessage('http', message, meta));
+        const metaObj = (meta && typeof meta === 'object' && !Array.isArray(meta))
+          ? meta
+          : meta !== undefined
+          ? { details: meta }
+          : undefined;
+        console.log(...formatMessage('http', message, metaObj));
       }
     },
   };
@@ -163,60 +216,61 @@ export const log = {
   /**
    * Log error message
    * @param message - Error message
-   * @param meta - Additional metadata (optional)
+   * @param meta - Additional metadata (optional) - accepts any type, automatically wrapped if needed
    *
    * @example
    * log.error('Database connection failed', { error: err.message, userId: '123' });
+   * log.error('Failed to connect', err); // Auto-wrapped as { details: err }
    */
-  error: (message: string, meta?: Record<string, any>) => {
+  error: (message: string, meta?: any) => {
     logger.error(message, meta);
   },
 
   /**
    * Log warning message
    * @param message - Warning message
-   * @param meta - Additional metadata (optional)
+   * @param meta - Additional metadata (optional) - accepts any type, automatically wrapped if needed
    *
    * @example
    * log.warn('API rate limit approaching', { remaining: 10, limit: 100 });
    */
-  warn: (message: string, meta?: Record<string, any>) => {
+  warn: (message: string, meta?: any) => {
     logger.warn(message, meta);
   },
 
   /**
    * Log info message
    * @param message - Info message
-   * @param meta - Additional metadata (optional)
+   * @param meta - Additional metadata (optional) - accepts any type, automatically wrapped if needed
    *
    * @example
    * log.info('User logged in', { userId: '123', email: 'user@example.com' });
    */
-  info: (message: string, meta?: Record<string, any>) => {
+  info: (message: string, meta?: any) => {
     logger.info(message, meta);
   },
 
   /**
    * Log HTTP request/response
    * @param message - HTTP message
-   * @param meta - Additional metadata (method, path, status, etc.)
+   * @param meta - Additional metadata (method, path, status, etc.) - accepts any type, automatically wrapped if needed
    *
    * @example
    * log.http('API request completed', { method: 'POST', path: '/api/users', status: 200 });
    */
-  http: (message: string, meta?: Record<string, any>) => {
+  http: (message: string, meta?: any) => {
     logger.http(message, meta);
   },
 
   /**
    * Log debug message (only in development)
    * @param message - Debug message
-   * @param meta - Additional metadata (optional)
+   * @param meta - Additional metadata (optional) - accepts any type, automatically wrapped if needed
    *
    * @example
    * log.debug('Cache hit', { key: 'user:123', ttl: 3600 });
    */
-  debug: (message: string, meta?: Record<string, any>) => {
+  debug: (message: string, meta?: any) => {
     logger.debug(message, meta);
   },
 };
@@ -235,19 +289,19 @@ export const log = {
  */
 export function createLogger(context: string): Logger {
   return {
-    error: (message: string, meta?: Record<string, any>) => {
+    error: (message: string, meta?: any) => {
       log.error(`[${context}] ${message}`, meta);
     },
-    warn: (message: string, meta?: Record<string, any>) => {
+    warn: (message: string, meta?: any) => {
       log.warn(`[${context}] ${message}`, meta);
     },
-    info: (message: string, meta?: Record<string, any>) => {
+    info: (message: string, meta?: any) => {
       log.info(`[${context}] ${message}`, meta);
     },
-    http: (message: string, meta?: Record<string, any>) => {
+    http: (message: string, meta?: any) => {
       log.http(`[${context}] ${message}`, meta);
     },
-    debug: (message: string, meta?: Record<string, any>) => {
+    debug: (message: string, meta?: any) => {
       log.debug(`[${context}] ${message}`, meta);
     },
   };

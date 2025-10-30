@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 /**
  * Flipbook Viewer V2 - CSS3D Page Turning
@@ -143,7 +144,7 @@ const Page = forwardRef<
         break;
 
       default:
-        console.warn(`Unknown hotspot type: ${hotspot.hotspot_type}`);
+        log.warn(`Unknown hotspot type: ${hotspot.hotspot_type}`);
     }
   };
 
@@ -338,7 +339,7 @@ export function FlipbookViewerV2({
         ? pageWidth / pageHeight
         : 2 / 2.8; // Default portrait ratio
 
-      console.log('[FlipbookViewerV2] Container and page info:', {
+      log.info('[FlipbookViewerV2] Container and page info:', {
         containerWidth,
         containerHeight,
         availableWidth,
@@ -406,7 +407,7 @@ export function FlipbookViewerV2({
 
       const actualRenderedWidth = isPortrait ? finalWidth : finalWidth * 2;
 
-      console.log('[FlipbookViewerV2] Final book size:', {
+      log.info('[FlipbookViewerV2] Final book size:', {
         width: finalWidth,
         height: finalHeight,
         isPortrait,
@@ -466,12 +467,12 @@ export function FlipbookViewerV2({
       containerRef.current
         .requestFullscreen()
         .then(() => setIsFullscreen(true))
-        .catch((err) => console.error("Fullscreen request failed:", err));
+        .catch((err) => log.error("Fullscreen request failed:", err));
     } else {
       document
         .exitFullscreen()
         .then(() => setIsFullscreen(false))
-        .catch((err) => console.error("Exit fullscreen failed:", err));
+        .catch((err) => log.error("Exit fullscreen failed:", err));
     }
   }, []);
 

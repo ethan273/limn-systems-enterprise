@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Unified Notification Service
  *
@@ -146,7 +147,7 @@ async function getUserPreferences(userId: string): Promise<UserNotificationPrefe
       } : undefined,
     };
   } catch (error) {
-    console.error('[Notifications] Error fetching user preferences:', error);
+    log.error('[Notifications] Error fetching user preferences:', { error });
     // Fallback to defaults on error
     return getDefaultPreferences();
   }
@@ -262,7 +263,7 @@ async function sendInAppNotification(
       notificationId: notification.id,
     };
   } catch (error) {
-    console.error('[Notifications] Error sending in-app notification:', error);
+    log.error('[Notifications] Error sending in-app notification:', { error });
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -308,7 +309,7 @@ async function sendEmailNotification(
 
     return { success: true };
   } catch (error) {
-    console.error('[Notifications] Error sending email notification:', error);
+    log.error('[Notifications] Error sending email notification:', { error });
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -343,7 +344,7 @@ async function sendGoogleChatNotification(
       error: result.error,
     };
   } catch (error) {
-    console.error('[Notifications] Error sending Google Chat notification:', error);
+    log.error('[Notifications] Error sending Google Chat notification:', { error });
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -494,6 +495,6 @@ export async function sendNotificationToUsersWithPermission(
 ): Promise<NotificationResult[]> {
   // TODO: Implement when RBAC tables are fully integrated
   // For now, send to admins as a safe fallback
-  console.log(`[Notifications] Sending to admins (permission: ${permission})`);
+  log.info(`[Notifications] Sending to admins (permission: ${permission})`);
   return sendNotificationToAdmins(params);
 }

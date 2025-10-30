@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc/init";
 import { TRPCError } from "@trpc/server";
@@ -654,7 +655,7 @@ export const partnersRouter = createTRPCRouter({
           portalModules: _portal_modules,
           grantedBy: ctx.session?.user?.email
         }).catch(err => {
-          console.error('[assignPortalAccess] Failed to send portal access email:', err);
+          log.error('[assignPortalAccess] Failed to send portal access email:', { error: err });
         });
 
         // TODO: Send magic link if requested
@@ -711,7 +712,7 @@ export const partnersRouter = createTRPCRouter({
           partnerName,
           revokedBy: ctx.session?.user?.email
         }).catch(err => {
-          console.error('[revokePortalAccess] Failed to send portal access revoked email:', err);
+          log.error('[revokePortalAccess] Failed to send portal access revoked email:', { error: err });
         });
 
         // Invalidate user sessions when employee is deactivated
@@ -719,9 +720,9 @@ export const partnersRouter = createTRPCRouter({
           try {
             const admin = await supabaseAdmin();
             await admin.auth.admin.signOut(updatedContact.user_id);
-            console.log(`[Partners] Invalidated sessions for user ${updatedContact.user_id} (employee deactivated)`);
+            log.info(`[Partners] Invalidated sessions for user ${updatedContact.user_id} (employee deactivated)`);
           } catch (error) {
-            console.error(`[Partners] Failed to invalidate sessions for user ${updatedContact.user_id}:`, error);
+            log.error(`[Partners] Failed to invalidate sessions for user ${updatedContact.user_id}:`, { error });
             // Non-blocking: Continue even if session invalidation fails
           }
         }

@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Flipbook Images Upload API Route
  *
@@ -146,14 +147,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert page records using Prisma createMany
-    console.log(`[Upload Images] Inserting ${pageRecords.length} pages for flipbook ${flipbookId}`);
+    log.info(`[Upload Images] Inserting ${pageRecords.length} pages for flipbook ${flipbookId}`);
 
     try {
       const result = await prisma.flipbook_pages.createMany({
         data: pageRecords,
       });
 
-      console.log(`[Upload Images] Successfully inserted ${result.count} pages`);
+      log.info(`[Upload Images] Successfully inserted ${result.count} pages`);
 
       // Fetch the created pages to return them (createMany doesn't return data)
       const pages = await prisma.flipbook_pages.findMany({
@@ -161,10 +162,10 @@ export async function POST(request: NextRequest) {
         orderBy: { page_number: 'asc' },
       });
 
-      console.log(`[Upload Images] Retrieved ${pages.length} total pages for flipbook`);
+      log.info(`[Upload Images] Retrieved ${pages.length} total pages for flipbook`);
 
     } catch (pagesError: any) {
-      console.error("[Upload Images] Error creating pages:", pagesError);
+      log.error("[Upload Images] Error creating pages:", pagesError);
       return NextResponse.json(
         { error: "Failed to create pages: " + pagesError.message },
         { status: 500 }
@@ -181,10 +182,10 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      console.log(`[Upload Images] Updated flipbook page_count to ${currentPageNumber}`);
+      log.info(`[Upload Images] Updated flipbook page_count to ${currentPageNumber}`);
 
     } catch (updateError: any) {
-      console.error("[Upload Images] Error updating flipbook:", updateError);
+      log.error("[Upload Images] Error updating flipbook:", updateError);
       // Don't fail the request, pages are already created
     }
 
@@ -202,7 +203,7 @@ export async function POST(request: NextRequest) {
       pages,
     });
   } catch (error: any) {
-    console.error("Image upload error:", error);
+    log.error("Image upload error:", error);
     return NextResponse.json(
       { error: error.message || "Failed to upload images" },
       { status: 500 }

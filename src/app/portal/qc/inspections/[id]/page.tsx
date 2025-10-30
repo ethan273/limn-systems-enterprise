@@ -1,4 +1,5 @@
 'use client';
+import { log } from '@/lib/logger';
 
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -120,7 +121,7 @@ export default function QCInspectionDetailPage() {
         setSuccessMessage(null);
       }, 3000);
     } catch (error) {
-      console.error('Failed to update inspection:', error);
+      log.error('Failed to update inspection:', { error });
       alert('Failed to update inspection status');
     } finally {
       setSubmitting(false);

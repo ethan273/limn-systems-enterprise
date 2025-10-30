@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /* eslint-disable security/detect-object-injection */
 /**
  * Background Jobs System for API Management
@@ -68,7 +69,7 @@ async function recordJobExecution(result: JobResult): Promise<void> {
   try {
     // This would store job execution history in a dedicated table
     // For now, we'll just log it
-    console.log('Job execution completed:', {
+    log.info('Job execution completed:', {
       type: result.jobType,
       status: result.status,
       duration: result.duration_ms,
@@ -77,7 +78,7 @@ async function recordJobExecution(result: JobResult): Promise<void> {
       failed: result.itemsFailed,
     });
   } catch (error) {
-    console.error('Failed to record job execution:', error);
+    log.error('Failed to record job execution:', { error });
   }
 }
 
@@ -89,7 +90,7 @@ export async function runHealthCheckJob(): Promise<JobResult> {
   const startedAt = new Date();
   const errors: string[] = [];
 
-  console.log('[Health Check Job] Starting...');
+  log.info('[Health Check Job] Starting...');
 
   try {
     const result = await performAllHealthChecks();
@@ -114,7 +115,7 @@ export async function runHealthCheckJob(): Promise<JobResult> {
 
     await recordJobExecution(jobResult);
 
-    console.log(
+    log.info(
       `[Health Check Job] Completed: ${result.successful}/${result.total} healthy`
     );
 
@@ -126,7 +127,7 @@ export async function runHealthCheckJob(): Promise<JobResult> {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     errors.push(errorMessage);
 
-    console.error('[Health Check Job] Failed:', errorMessage);
+    log.error('[Health Check Job] Failed:', errorMessage);
 
     const jobResult: JobResult = {
       jobType: 'health_check',
@@ -154,7 +155,7 @@ export async function runEmergencyExpirationJob(): Promise<JobResult> {
   const startedAt = new Date();
   const errors: string[] = [];
 
-  console.log('[Emergency Expiration Job] Starting...');
+  log.info('[Emergency Expiration Job] Starting...');
 
   try {
     const expiredCount = await expireEmergencyAccess();
@@ -176,7 +177,7 @@ export async function runEmergencyExpirationJob(): Promise<JobResult> {
 
     await recordJobExecution(jobResult);
 
-    console.log(
+    log.info(
       `[Emergency Expiration Job] Completed: ${expiredCount} access grants expired`
     );
 
@@ -188,7 +189,7 @@ export async function runEmergencyExpirationJob(): Promise<JobResult> {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     errors.push(errorMessage);
 
-    console.error('[Emergency Expiration Job] Failed:', errorMessage);
+    log.error('[Emergency Expiration Job] Failed:', errorMessage);
 
     const jobResult: JobResult = {
       jobType: 'emergency_expiration',
@@ -216,7 +217,7 @@ export async function runRotationCleanupJob(): Promise<JobResult> {
   const startedAt = new Date();
   const errors: string[] = [];
 
-  console.log('[Rotation Cleanup Job] Starting...');
+  log.info('[Rotation Cleanup Job] Starting...');
 
   try {
     const now = new Date();
@@ -234,7 +235,7 @@ export async function runRotationCleanupJob(): Promise<JobResult> {
       },
     });
 
-    console.log(`[Rotation Cleanup Job] Found ${expiredRotations.length} expired rotations`);
+    log.info(`[Rotation Cleanup Job] Found ${expiredRotations.length} expired rotations`);
 
     totalProcessed = expiredRotations.length;
 
@@ -243,12 +244,12 @@ export async function runRotationCleanupJob(): Promise<JobResult> {
       try {
         await completeRotation(rotation.id);
         totalCompleted++;
-        console.log(`[Rotation Cleanup Job] Completed rotation ${rotation.id}`);
+        log.info(`[Rotation Cleanup Job] Completed rotation ${rotation.id}`);
       } catch (error) {
         totalFailed++;
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         errors.push(`Rotation ${rotation.id}: ${errorMessage}`);
-        console.error(`[Rotation Cleanup Job] Failed to complete rotation ${rotation.id}:`, errorMessage);
+        log.error(`[Rotation Cleanup Job] Failed to complete rotation ${rotation.id}:`, errorMessage);
       }
     }
 
@@ -273,7 +274,7 @@ export async function runRotationCleanupJob(): Promise<JobResult> {
 
     await recordJobExecution(jobResult);
 
-    console.log(
+    log.info(
       `[Rotation Cleanup Job] Completed: ${totalCompleted}/${totalProcessed} rotations finalized`
     );
 
@@ -285,7 +286,7 @@ export async function runRotationCleanupJob(): Promise<JobResult> {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     errors.push(errorMessage);
 
-    console.error('[Rotation Cleanup Job] Failed:', errorMessage);
+    log.error('[Rotation Cleanup Job] Failed:', errorMessage);
 
     const jobResult: JobResult = {
       jobType: 'rotation_cleanup',
@@ -313,7 +314,7 @@ export async function runCredentialExpirationWarningJob(): Promise<JobResult> {
   const startedAt = new Date();
   const errors: string[] = [];
 
-  console.log('[Expiration Warning Job] Starting...');
+  log.info('[Expiration Warning Job] Starting...');
 
   try {
     // Get all active credentials with expiry dates
@@ -398,7 +399,7 @@ export async function runCredentialExpirationWarningJob(): Promise<JobResult> {
 
     await recordJobExecution(jobResult);
 
-    console.log(
+    log.info(
       `[Expiration Warning Job] Completed: ${totalWarnings} warnings sent for ${totalProcessed} credentials`
     );
 
@@ -410,7 +411,7 @@ export async function runCredentialExpirationWarningJob(): Promise<JobResult> {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     errors.push(errorMessage);
 
-    console.error('[Expiration Warning Job] Failed:', errorMessage);
+    log.error('[Expiration Warning Job] Failed:', errorMessage);
 
     const jobResult: JobResult = {
       jobType: 'credential_expiration_warning',
@@ -438,7 +439,7 @@ export async function runAuditLogCleanupJob(): Promise<JobResult> {
   const startedAt = new Date();
   const errors: string[] = [];
 
-  console.log('[Audit Log Cleanup Job] Starting...');
+  log.info('[Audit Log Cleanup Job] Starting...');
 
   try {
     const retentionDays = 90;
@@ -475,7 +476,7 @@ export async function runAuditLogCleanupJob(): Promise<JobResult> {
 
     await recordJobExecution(jobResult);
 
-    console.log(
+    log.info(
       `[Audit Log Cleanup Job] Completed: ${deleteResult.count} old logs deleted`
     );
 
@@ -487,7 +488,7 @@ export async function runAuditLogCleanupJob(): Promise<JobResult> {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     errors.push(errorMessage);
 
-    console.error('[Audit Log Cleanup Job] Failed:', errorMessage);
+    log.error('[Audit Log Cleanup Job] Failed:', errorMessage);
 
     const jobResult: JobResult = {
       jobType: 'audit_log_cleanup',
@@ -515,7 +516,7 @@ export async function runHealthHistoryCleanupJob(): Promise<JobResult> {
   const startedAt = new Date();
   const errors: string[] = [];
 
-  console.log('[Health History Cleanup Job] Starting...');
+  log.info('[Health History Cleanup Job] Starting...');
 
   try {
     const retentionDays = 90;
@@ -552,7 +553,7 @@ export async function runHealthHistoryCleanupJob(): Promise<JobResult> {
 
     await recordJobExecution(jobResult);
 
-    console.log(
+    log.info(
       `[Health History Cleanup Job] Completed: ${deleteResult.count} old health checks deleted`
     );
 
@@ -564,7 +565,7 @@ export async function runHealthHistoryCleanupJob(): Promise<JobResult> {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     errors.push(errorMessage);
 
-    console.error('[Health History Cleanup Job] Failed:', errorMessage);
+    log.error('[Health History Cleanup Job] Failed:', errorMessage);
 
     const jobResult: JobResult = {
       jobType: 'health_history_cleanup',
@@ -597,7 +598,7 @@ export async function getJobHistory(
 ): Promise<any[]> {
   // This would query a job_executions table
   // For now, return empty array as placeholder
-  console.log(`Getting job history for ${jobType || 'all jobs'}`);
+  log.info(`Getting job history for ${jobType || 'all jobs'}`);
   return [];
 }
 
@@ -691,7 +692,7 @@ export async function getJobsStatus(): Promise<{
  * @returns Job result
  */
 export async function triggerJob(jobType: JobType): Promise<JobResult> {
-  console.log(`Manually triggering job: ${jobType}`);
+  log.info(`Manually triggering job: ${jobType}`);
 
   switch (jobType) {
     case 'health_check':

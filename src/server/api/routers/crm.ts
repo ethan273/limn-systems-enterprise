@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { z } from 'zod';
 import { createCrudRouter } from '../utils/crud-generator';
 import { createTRPCRouter, publicProcedure } from '../trpc/init';
@@ -684,7 +685,7 @@ export const leadsRouter = createTRPCRouter({
           totalLeads: allLeads.length,
         };
       } catch (error) {
-        console.error('[getPipelineStats] Error:', error);
+        log.error('[getPipelineStats] Error:', { error });
         // Return safe defaults
         return {
           statusStats: [],
@@ -864,7 +865,7 @@ export const crmRouter = createTRPCRouter({
           })),
         };
       } catch (error) {
-        console.error('[getDashboardMetrics] Error:', error);
+        log.error('[getDashboardMetrics] Error:', { error });
         // Return safe defaults on error
         return {
           metrics: {

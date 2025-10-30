@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { prisma } from '@/lib/db';
@@ -70,9 +71,9 @@ export async function POST(request: NextRequest) {
           }),
         });
 
-        console.log('[QuickBooks Disconnect] Token revoked for realm:', connection.realm_id);
+        log.info('[QuickBooks Disconnect] Token revoked for realm:', connection.realm_id);
       } catch (error) {
-        console.warn('[QuickBooks Disconnect] Failed to revoke token:', error);
+        log.warn('[QuickBooks Disconnect] Failed to revoke token:', { error });
         // Continue even if revocation fails
       }
 
@@ -103,14 +104,14 @@ export async function POST(request: NextRequest) {
         });
     }
 
-    console.log('[QuickBooks Disconnect] Successfully disconnected QuickBooks for user:', user.id);
+    log.info('[QuickBooks Disconnect] Successfully disconnected QuickBooks for user:', user.id);
 
     return NextResponse.json({
       success: true,
       message: `Disconnected ${connections.length} QuickBooks ${connections.length === 1 ? 'connection' : 'connections'}`,
     });
   } catch (error) {
-    console.error('[QuickBooks Disconnect] Error:', error);
+    log.error('[QuickBooks Disconnect] Error:', { error });
     return NextResponse.json(
       { error: 'Failed to disconnect QuickBooks' },
       { status: 500 }

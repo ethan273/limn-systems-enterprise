@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import jwt from 'jsonwebtoken';
@@ -76,7 +77,7 @@ export default async function handler(
       },
     });
   } catch (error) {
-    console.error('Token refresh error:', error);
+    log.error('Token refresh error:', { error });
     
     if (error instanceof jwt.TokenExpiredError) {
       return res.status(401).json({ error: 'Refresh token expired' });

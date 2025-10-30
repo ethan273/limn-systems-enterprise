@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Email Service Utility
  *
@@ -41,7 +42,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<{ success: b
   const resend = getResend();
 
   if (!resend) {
-    console.warn('Resend not configured - RESEND_API_KEY environment variable not set');
+    log.warn('Resend not configured - RESEND_API_KEY environment variable not set');
     return {
       success: false,
       error: 'Email service not configured',
@@ -64,7 +65,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<{ success: b
     });
 
     if (result.error) {
-      console.error('Resend API error:', result.error);
+      log.error('Resend API error:', result.error);
       return {
         success: false,
         error: result.error.message || 'Failed to send email',
@@ -76,7 +77,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<{ success: b
       messageId: result.data?.id,
     };
   } catch (error: any) {
-    console.error('Email send error:', error);
+    log.error('Email send error:', error);
     return {
       success: false,
       error: error.message || 'Failed to send email',

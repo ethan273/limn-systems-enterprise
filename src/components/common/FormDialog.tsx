@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -218,19 +219,19 @@ export function FormDialog({
    */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('[FormDialog] Submit triggered', { title, formData });
+    log.info('[FormDialog] Submit triggered', { title, formData });
 
     if (!validateForm()) {
-      console.log('[FormDialog] Validation failed');
+      log.info('[FormDialog] Validation failed');
       return;
     }
 
-    console.log('[FormDialog] Validation passed, calling onSubmit...');
+    log.info('[FormDialog] Validation passed, calling onSubmit...');
 
     try {
-      console.log('[FormDialog] About to call onSubmit with data:', formData);
+      log.info('[FormDialog] About to call onSubmit with data:', formData);
       await onSubmit(formData);
-      console.log('[FormDialog] onSubmit completed successfully');
+      log.info('[FormDialog] onSubmit completed successfully');
 
       // Clear form on successful submit
       const clearedData: Record<string, unknown> = {};
@@ -240,11 +241,11 @@ export function FormDialog({
       setFormData(clearedData);
       setErrors({});
       onOpenChange(false);
-      console.log('[FormDialog] Dialog closed');
+      log.info('[FormDialog] Dialog closed');
     } catch (error) {
       // Error handling - errors from onSubmit will be caught here
-      console.error('[FormDialog] Form submission error:', error);
-      console.error('[FormDialog] Error details:', {
+      log.error('[FormDialog] Form submission error:', { error });
+      log.error('[FormDialog] Error details:', {
         message: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
       });

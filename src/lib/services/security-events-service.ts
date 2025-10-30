@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Security Events Service
  *
@@ -230,7 +231,7 @@ export async function logSecurityEvent(params: LogSecurityEventParams): Promise<
     }
   } catch (error) {
     // Log error but don't throw - we don't want audit logging to break the app
-    console.error('Failed to log security event:', error);
+    log.error('Failed to log security event:', { error });
   }
 }
 

@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /* eslint-disable security/detect-object-injection */
 /**
  * Access Control Middleware for API Credentials
@@ -64,7 +65,6 @@ export function isIpAllowed(
     return false;
   } catch (error) {
     // Invalid client IP
-    console.error('Invalid client IP:', clientIp, error);
     return false;
   }
 }
@@ -89,7 +89,7 @@ export function matchCIDR(ip: string, cidr: string): boolean {
 
     return parsedIp.match(parsedRange, parseInt(bits, 10));
   } catch (error) {
-    console.error('CIDR match error:', error);
+    log.error('CIDR match error:', { error });
     return false;
   }
 }
@@ -342,7 +342,7 @@ export async function checkAccess(params: {
 
     return { allowed: true };
   } catch (error) {
-    console.error('Access check error:', error);
+    log.error('Access check error:', { error });
     return {
       allowed: false,
       reason: 'Access check failed',

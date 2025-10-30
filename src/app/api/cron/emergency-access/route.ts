@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Emergency Access Expiration Cron Job
  *
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
     const cronSecret = process.env.CRON_SECRET;
 
     if (!cronSecret) {
-      console.error('[Cron:Emergency] CRON_SECRET not configured');
+      log.error('[Cron:Emergency] CRON_SECRET not configured');
       return NextResponse.json(
         { error: 'Cron secret not configured' },
         { status: 500 }
@@ -27,19 +28,19 @@ export async function GET(request: NextRequest) {
     }
 
     if (authHeader !== `Bearer ${cronSecret}`) {
-      console.error('[Cron:Emergency] Unauthorized request - invalid secret');
+      log.error('[Cron:Emergency] Unauthorized request - invalid secret');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    console.log('[Cron:Emergency] Starting emergency expiration job...');
+    log.info('[Cron:Emergency] Starting emergency expiration job...');
 
     // Run emergency expiration job
     const result = await runEmergencyExpirationJob();
 
-    console.log('[Cron:Emergency] Job completed:', {
+    log.info('[Cron:Emergency] Job completed:', {
       status: result.status,
       expired: result.itemsSucceeded,
       duration: result.duration_ms,
@@ -51,7 +52,7 @@ export async function GET(request: NextRequest) {
       result,
     });
   } catch (error) {
-    console.error('[Cron:Emergency] Error:', error);
+    log.error('[Cron:Emergency] Error:', { error });
     return NextResponse.json(
       {
         success: false,

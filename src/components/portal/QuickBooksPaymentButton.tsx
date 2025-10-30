@@ -1,4 +1,5 @@
 'use client';
+import { log } from '@/lib/logger';
 
 import { useState } from 'react';
 import { api } from '@/lib/api/client';
@@ -55,7 +56,7 @@ export function QuickBooksPaymentButton({
     },
     onError: (error) => {
       setPaymentStatus('error');
-      console.error('Payment initiation failed:', error.message);
+      log.error('Payment initiation failed:', error.message);
     },
   });
 

@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /* eslint-disable security/detect-non-literal-fs-filename */
 /* eslint-disable security/detect-object-injection */
 import fs from 'fs';
@@ -55,7 +56,7 @@ function parseEnvFile(filePath: string): Record<string, string> {
 
     return envVars;
   } catch (error) {
-    console.error(`Error parsing ${filePath}:`, error);
+    log.error(`Error parsing ${filePath}:`, { error });
     return {};
   }
 }

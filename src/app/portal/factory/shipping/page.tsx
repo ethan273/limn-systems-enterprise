@@ -1,4 +1,5 @@
 'use client';
+import { log } from '@/lib/logger';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -172,7 +173,7 @@ export default function FactoryShippingPage() {
         });
       }, 3000);
     } catch (error) {
-      console.error('Failed to update shipping:', error);
+      log.error('Failed to update shipping:', { error });
       alert('Failed to update shipping information');
     } finally {
       setSubmitting(false);

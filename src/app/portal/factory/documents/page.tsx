@@ -1,4 +1,5 @@
 'use client';
+import { log } from '@/lib/logger';
 
 import { useState } from 'react';
 import { api } from '@/lib/api/client';
@@ -121,7 +122,7 @@ export default function FactoryDocumentsPage() {
         });
 
       if (uploadError) {
-        console.error('Storage upload error:', uploadError);
+        log.error('Storage upload error:', { uploadError });
         alert('Failed to upload file to storage');
         return;
       }
@@ -156,7 +157,7 @@ export default function FactoryDocumentsPage() {
         });
       }, 2000);
     } catch (error) {
-      console.error('Upload failed:', error);
+      log.error('Upload failed:', { error });
       alert('Failed to upload document');
     } finally {
       setUploading(false);

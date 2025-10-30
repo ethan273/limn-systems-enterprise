@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Flipbook PDF Upload API Route
  *
@@ -83,7 +84,7 @@ export async function POST(request: NextRequest) {
       }, { status: 413 });
     }
 
-    console.log(`[PDF Upload] Uploading PDF: ${file.name}, size: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
+    log.info(`[PDF Upload] Uploading PDF: ${file.name}, size: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
 
     // Convert file to buffer
     const buffer = Buffer.from(await file.arrayBuffer());
@@ -94,7 +95,7 @@ export async function POST(request: NextRequest) {
     const title = pdfDoc.getTitle();
     const author = pdfDoc.getAuthor();
 
-    console.log(`[PDF Upload] Uploading PDF: ${file.name}, ${pageCount} pages`);
+    log.info(`[PDF Upload] Uploading PDF: ${file.name}, ${pageCount} pages`);
 
     // Initialize storage bucket (creates if doesn't exist)
     await initializeStorage();
@@ -103,7 +104,7 @@ export async function POST(request: NextRequest) {
     const pdfKey = generatePdfKey(flipbookId, file.name);
     const pdfUpload = await uploadToS3(buffer, pdfKey, "application/pdf");
 
-    console.log(`[PDF Upload] PDF uploaded successfully: ${pdfUpload.cdnUrl}`);
+    log.info(`[PDF Upload] PDF uploaded successfully: ${pdfUpload.cdnUrl}`);
 
     // Update flipbook with PDF URL and page count
     await prisma.flipbooks.update({
@@ -116,7 +117,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Trigger background page extraction job
-    console.log(`[PDF Upload] Triggering background page extraction...`);
+    log.info(`[PDF Upload] Triggering background page extraction...`);
     try {
       // Call extraction API in background (don't await, fire-and-forget)
       fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/flipbooks/extract-pages`, {
@@ -126,12 +127,12 @@ export async function POST(request: NextRequest) {
         },
         body: JSON.stringify({ flipbookId }),
       }).catch(err => {
-        console.error('[PDF Upload] Failed to trigger extraction:', err);
+        log.error('[PDF Upload] Failed to trigger extraction:', { error: err });
       });
 
-      console.log(`[PDF Upload] Background extraction job triggered`);
+      log.info(`[PDF Upload] Background extraction job triggered`);
     } catch (triggerError) {
-      console.error('[PDF Upload] Error triggering extraction:', triggerError);
+      log.error('[PDF Upload] Error triggering extraction:', triggerError);
       // Don't fail the upload if background job trigger fails
     }
 
@@ -148,7 +149,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error: any) {
-    console.error("[PDF Upload] Error:", error);
+    log.error("[PDF Upload] Error:", { error });
     return NextResponse.json(
       { error: error.message || "Failed to upload PDF" },
       { status: 500 }

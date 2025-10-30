@@ -1,4 +1,5 @@
 'use client';
+import { log } from '@/lib/logger';
 
 import { useState } from 'react';
 import { api } from '@/lib/api/client';
@@ -84,7 +85,7 @@ export default function QCSettingsPage() {
       utils.portal.getPortalSettings.invalidate();
       setIsEditing(false);
     } catch (error) {
-      console.error('Save error:', error);
+      log.error('Save error:', { error });
     } finally {
       setSaving(false);
     }

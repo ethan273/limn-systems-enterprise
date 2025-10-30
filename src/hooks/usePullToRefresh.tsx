@@ -5,6 +5,7 @@
  */
 
 'use client';
+import { log } from '@/lib/logger';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 
@@ -107,7 +108,7 @@ export function usePullToRefresh({
       try {
         await onRefresh();
       } catch (error) {
-        console.error('[PullToRefresh] Error during refresh:', error);
+        log.error('[PullToRefresh] Error during refresh:', { error });
       } finally {
         // Reset state
         setState({

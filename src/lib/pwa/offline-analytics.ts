@@ -6,6 +6,7 @@
  */
 
 'use client';
+import { log } from '@/lib/logger';
 
 interface AnalyticsEvent {
   id: string;
@@ -51,7 +52,7 @@ class OfflineAnalyticsBuffer {
 
     // Listen for online/offline events
     window.addEventListener('online', () => {
-      console.log('[Analytics] Connection restored - syncing buffered events');
+      log.info('[Analytics] Connection restored - syncing buffered events');
       this.syncBufferedEvents();
     });
 
@@ -127,15 +128,13 @@ class OfflineAnalyticsBuffer {
       if (buffer.length >= this.MAX_BUFFER_SIZE) {
         // Remove oldest events to make room
         buffer.splice(0, buffer.length - this.MAX_BUFFER_SIZE + 1);
-        console.warn('[Analytics] Buffer full - removed oldest events');
+        log.warn('[Analytics] Buffer full - removed oldest events');
       }
 
       buffer.push(event);
       this.saveBuffer(buffer);
-
-      console.log('[Analytics] Event buffered:', event.action, '- Total buffered:', buffer.length);
     } catch (error) {
-      console.error('[Analytics] Error buffering event:', error);
+      log.error('[Analytics] Error buffering event:', { error });
     }
   }
 
@@ -155,9 +154,9 @@ class OfflineAnalyticsBuffer {
         throw new Error(`Analytics API error: ${response.status}`);
       }
 
-      console.log('[Analytics] Event sent:', event.action);
+      log.info('[Analytics] Event sent:', event.action);
     } catch (error) {
-      console.error('[Analytics] Error sending event:', error);
+      log.error('[Analytics] Error sending event:', { error });
       throw error;
     }
   }
@@ -177,8 +176,6 @@ class OfflineAnalyticsBuffer {
       this.syncing = false;
       return { success: 0, failed: 0 };
     }
-
-    console.log('[Analytics] Syncing', buffer.length, 'buffered events');
 
     let success = 0;
     let failed = 0;
@@ -200,11 +197,11 @@ class OfflineAnalyticsBuffer {
             success += batch.length;
           } else {
             failed += batch.length;
-            console.error('[Analytics] Batch send failed:', response.status);
+            log.error('[Analytics] Batch send failed:', response.status);
           }
         } catch (error) {
           failed += batch.length;
-          console.error('[Analytics] Error sending batch:', error);
+          log.error('[Analytics] Error sending batch:', { error });
         }
       }
 
@@ -212,7 +209,6 @@ class OfflineAnalyticsBuffer {
       if (success > 0) {
         const remaining = buffer.slice(success);
         this.saveBuffer(remaining);
-        console.log('[Analytics] Sync complete:', success, 'sent,', failed, 'failed');
       }
     } finally {
       this.syncing = false;
@@ -229,7 +225,7 @@ class OfflineAnalyticsBuffer {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       return stored ? JSON.parse(stored) : [];
     } catch (error) {
-      console.error('[Analytics] Error reading buffer:', error);
+      log.error('[Analytics] Error reading buffer:', { error });
       return [];
     }
   }
@@ -241,7 +237,7 @@ class OfflineAnalyticsBuffer {
     try {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(buffer));
     } catch (error) {
-      console.error('[Analytics] Error saving buffer:', error);
+      log.error('[Analytics] Error saving buffer:', { error });
     }
   }
 
@@ -272,9 +268,9 @@ class OfflineAnalyticsBuffer {
   clearBuffer(): void {
     try {
       localStorage.removeItem(this.STORAGE_KEY);
-      console.log('[Analytics] Buffer cleared');
+      log.info('[Analytics] Buffer cleared');
     } catch (error) {
-      console.error('[Analytics] Error clearing buffer:', error);
+      log.error('[Analytics] Error clearing buffer:', { error });
     }
   }
 

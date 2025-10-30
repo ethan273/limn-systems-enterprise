@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Real-Time Client Utilities - Phase 3 Session 3
  *
@@ -24,8 +25,8 @@ export type RealtimeEvent = {
 
 export type SSEOptions = {
   endpoint?: string;
-  onEvent?: (event: RealtimeEvent) => void;
-  onError?: (error: Error) => void;
+  onEvent?: (_event: RealtimeEvent) => void;
+  onError?: (_error: Error) => void;
   reconnect?: boolean;
   reconnectDelay?: number;
 };
@@ -114,7 +115,7 @@ export function useMyEvents() {
  * ```tsx
  * const { events, connected, lastEvent } = useSSE({
  *   endpoint: '/api/events',
- *   onEvent: (event) => console.log('Received:', event),
+ *   onEvent: (_event) => log.info('Received:', { event }),
  * });
  * ```
  */
@@ -139,7 +140,7 @@ export function useSSE(options: SSEOptions = {}) {
 
       eventSource.onopen = () => {
         setConnected(true);
-        console.log('[SSE] Connected to', endpoint);
+        log.info('[SSE] Connected to', endpoint);
       };
 
       eventSource.onmessage = (messageEvent) => {
@@ -151,13 +152,13 @@ export function useSSE(options: SSEOptions = {}) {
           if (onEvent) {
             onEvent(event);
           }
-        } catch (error) {
-          console.error('[SSE] Failed to parse event:', error);
+        } catch (err) {
+          log.error('[SSE] Failed to parse event:', { error: err });
         }
       };
 
-      eventSource.onerror = (error) => {
-        console.error('[SSE] Connection error:', error);
+      eventSource.onerror = (_error) => {
+        log.error('[SSE] Connection error:', { error: _error });
         setConnected(false);
 
         // Close the connection
@@ -170,17 +171,17 @@ export function useSSE(options: SSEOptions = {}) {
         // Attempt to reconnect
         if (reconnect) {
           reconnectTimeoutRef.current = setTimeout(() => {
-            console.log('[SSE] Attempting to reconnect...');
+            log.info('[SSE] Attempting to reconnect...');
             connect();
           }, reconnectDelay);
         }
       };
 
       eventSourceRef.current = eventSource;
-    } catch (error) {
-      console.error('[SSE] Failed to establish connection:', error);
+    } catch (err) {
+      log.error('[SSE] Failed to establish connection:', { error: err });
       if (onError) {
-        onError(error as Error);
+        onError(err as Error);
       }
     }
   }, [endpoint, onEvent, onError, reconnect, reconnectDelay]);
@@ -274,7 +275,7 @@ export function usePublishEvent() {
   const mutation = api.realtimeEvents.publishEvent.useMutation();
 
   const publishEvent = useCallback(
-    (event: {
+    (_event: {
       eventType: 'message' | 'notification' | 'status_change' | 'workflow_update';
       eventName?: string;
       entityType: string;
@@ -285,7 +286,7 @@ export function usePublishEvent() {
       priority?: 'low' | 'normal' | 'high' | 'urgent';
       expiresInMinutes?: number;
     }) => {
-      return mutation.mutateAsync(event);
+      return mutation.mutateAsync(_event);
     },
     [mutation]
   );

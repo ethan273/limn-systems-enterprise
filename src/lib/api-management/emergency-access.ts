@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Emergency Access System for API Credentials
  *
@@ -239,7 +240,7 @@ export async function requestEmergencyAccess(params: {
       },
     });
   } catch (notificationError) {
-    console.error('Failed to send admin notifications:', notificationError);
+    log.error('Failed to send admin notifications:', { notificationError });
     // Don't fail the entire operation if notifications fail
     // Emergency access is still granted
   }

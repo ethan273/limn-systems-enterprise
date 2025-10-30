@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * OAuth tRPC Router
  *
@@ -164,7 +165,7 @@ export const oauthRouter = createTRPCRouter({
       // Revoke token with Google
       await revokeToken(decryptedAccessToken);
     } catch (error) {
-      console.error('Error revoking token with Google:', error);
+      log.error('Error revoking token with Google:', { error });
       // Continue to delete from database even if revocation fails
     }
 

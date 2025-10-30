@@ -5,7 +5,7 @@
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '../trpc/init';
 
-const WorkflowStateSchema = z.enum(['idle', 'running', 'paused', 'completed', 'failed']);
+const _WorkflowStateSchema = z.enum(['idle', 'running', 'paused', 'completed', 'failed']);
 
 export const workflowEngineRouter = createTRPCRouter({
   executeWorkflow: protectedProcedure

@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -113,11 +114,11 @@ export default function FlipbookUploadPage() {
       const BATCH_SIZE = 2;
       let totalUploaded = 0;
 
-      console.log(`[Upload] Starting batched upload of ${pageResults.length} pages in batches of ${BATCH_SIZE}`);
+      log.info(`[Upload] Starting batched upload of ${pageResults.length} pages in batches of ${BATCH_SIZE}`);
 
       for (let i = 0; i < pageResults.length; i += BATCH_SIZE) {
         const batchResults = pageResults.slice(i, i + BATCH_SIZE);
-        console.log(`[Upload] Batch ${Math.floor(i / BATCH_SIZE) + 1}: Processing pages ${i + 1}-${i + batchResults.length}`);
+        log.info(`[Upload] Batch ${Math.floor(i / BATCH_SIZE) + 1}: Processing pages ${i + 1}-${i + batchResults.length}`);
 
         const batchFormData = new FormData();
         batchFormData.append("flipbookId", flipbook.id);
@@ -128,7 +129,7 @@ export default function FlipbookUploadPage() {
           const result = batchResults[j];
           if (result) {
             const pageNumber = i + j + 1;
-            console.log(`[Upload] Adding page ${pageNumber} to batch (size: ${(result.blob.size / 1024).toFixed(2)}KB, dimensions: ${result.width}x${result.height})`);
+            log.info(`[Upload] Adding page ${pageNumber} to batch (size: ${(result.blob.size / 1024).toFixed(2)}KB, dimensions: ${result.width}x${result.height})`);
             batchFormData.append("files", result.blob, `page-${pageNumber}.jpg`);
             // Send dimensions as metadata
             batchFormData.append(`width_${pageNumber}`, result.width.toString());
@@ -136,7 +137,7 @@ export default function FlipbookUploadPage() {
           }
         }
 
-        console.log(`[Upload] Uploading batch to /api/flipbooks/upload-images...`);
+        log.info(`[Upload] Uploading batch to /api/flipbooks/upload-images...`);
 
         // Upload this batch
         const batchResponse = await fetch("/api/flipbooks/upload-images", {
@@ -144,11 +145,11 @@ export default function FlipbookUploadPage() {
           body: batchFormData,
         });
 
-        console.log(`[Upload] Batch response status: ${batchResponse.status} ${batchResponse.statusText}`);
+        log.info(`[Upload] Batch response status: ${batchResponse.status} ${batchResponse.statusText}`);
 
         if (!batchResponse.ok) {
           const responseText = await batchResponse.text();
-          console.error(`[Upload] Batch upload failed:`, responseText);
+          log.error(`[Upload] Batch upload failed:`, responseText);
           let errorMessage;
           try {
             const error = JSON.parse(responseText);
@@ -160,13 +161,13 @@ export default function FlipbookUploadPage() {
         }
 
         const batchResult = await batchResponse.json();
-        console.log(`[Upload] Batch upload successful:`, batchResult);
+        log.info(`[Upload] Batch upload successful:`, batchResult);
 
         totalUploaded += batchResults.length;
         toast.info(`Uploaded ${totalUploaded}/${pageCount} pages...`);
       }
 
-      console.log(`[Upload] All ${totalUploaded} pages uploaded successfully`);
+      log.info(`[Upload] All ${totalUploaded} pages uploaded successfully`);
 
       toast.success(`Flipbook created with ${pageCount} pages!`);
 
@@ -179,12 +180,12 @@ export default function FlipbookUploadPage() {
         }
       });
 
-      console.log(`[Upload] Cache invalidated, redirecting to builder...`);
+      log.info(`[Upload] Cache invalidated, redirecting to builder...`);
 
       // Redirect to builder
       router.push(`/flipbooks/builder?id=${flipbook.id}`);
     } catch (error: any) {
-      console.error("Upload error:", error);
+      log.error("Upload error:", { error });
       toast.error(`Failed to upload PDF: ${error.message}`);
     } finally {
       setIsUploading(false);

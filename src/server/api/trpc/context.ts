@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { db } from '@/lib/db';
 import type { CreateNextContextOptions } from '@trpc/server/adapters/next';
 import { createServerClient } from '@supabase/ssr';
@@ -79,7 +80,7 @@ const getSession = cacheWrapper(async (): Promise<Session | null> => {
       token_type: 'bearer',
     } as Session;
   } catch (error) {
-    console.error('[tRPC Context] Error getting session:', error);
+    log.error('[tRPC Context] Error getting session:', { error });
     return null;
   }
 });

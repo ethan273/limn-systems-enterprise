@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Process Scheduled Campaigns Cron Job
  *
@@ -44,7 +45,7 @@ export async function GET(request: Request) {
       },
     });
 
-    console.log(`[cron:scheduled-campaigns] Found ${scheduledCampaigns.length} campaigns to process`);
+    log.info(`[cron:scheduled-campaigns] Found ${scheduledCampaigns.length} campaigns to process`);
 
     const results: Array<{
       campaign_id: string;
@@ -59,7 +60,7 @@ export async function GET(request: Request) {
     // Process each campaign
     for (const campaign of scheduledCampaigns) {
       try {
-        console.log(`[cron:scheduled-campaigns] Processing campaign: ${campaign.id} - ${campaign.campaign_name}`);
+        log.info(`[cron:scheduled-campaigns] Processing campaign: ${campaign.id} - ${campaign.campaign_name}`);
 
         const result = await service.send(campaign.id);
 
@@ -70,7 +71,7 @@ export async function GET(request: Request) {
           sent_count: result.sent_count,
         });
 
-        console.log(`[cron:scheduled-campaigns] Successfully sent campaign: ${campaign.id}, sent ${result.sent_count} emails`);
+        log.info(`[cron:scheduled-campaigns] Successfully sent campaign: ${campaign.id}, sent ${result.sent_count} emails`);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
@@ -81,7 +82,7 @@ export async function GET(request: Request) {
           error: errorMessage,
         });
 
-        console.error(`[cron:scheduled-campaigns] Failed to send campaign: ${campaign.id}`, error);
+        log.error(`[cron:scheduled-campaigns] Failed to send campaign: ${campaign.id}`, { error });
 
         // Update campaign status to failed
         await db.email_campaigns.update({
@@ -97,7 +98,7 @@ export async function GET(request: Request) {
     const successCount = results.filter((r) => r.success).length;
     const failureCount = results.filter((r) => !r.success).length;
 
-    console.log(`[cron:scheduled-campaigns] Completed: ${successCount} successful, ${failureCount} failed`);
+    log.info(`[cron:scheduled-campaigns] Completed: ${successCount} successful, ${failureCount} failed`);
 
     return NextResponse.json({
       success: true,
@@ -108,7 +109,7 @@ export async function GET(request: Request) {
       timestamp: now.toISOString(),
     });
   } catch (error) {
-    console.error('[cron:scheduled-campaigns] Fatal error:', error);
+    log.error('[cron:scheduled-campaigns] Fatal error:', { error });
 
     return NextResponse.json(
       {

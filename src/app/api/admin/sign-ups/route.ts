@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { createClient } from '@supabase/supabase-js';
@@ -110,7 +111,7 @@ export async function GET(_request: NextRequest) {
       total: formattedSignUps.length,
     });
   } catch (error) {
-    console.error('Error fetching sign-ups:', error);
+    log.error('Error fetching sign-ups:', { error });
     return NextResponse.json(
       {
         success: false,
@@ -209,7 +210,7 @@ export async function POST(request: NextRequest) {
         });
 
         if (magicLinkError) {
-          console.error('[POST /api/admin/sign-ups] Failed to generate magic link:', magicLinkError);
+          log.error('[POST /api/admin/sign-ups] Failed to generate magic link:', magicLinkError);
           // Don't fail the approval, but log the error
         }
 
@@ -220,7 +221,7 @@ export async function POST(request: NextRequest) {
           magicLink: (magicLinkData as any)?.properties?.action_link || '#',
           userType: updatedSignUp.user_type || 'customer',
         }).catch(err => {
-          console.error('[POST /api/admin/sign-ups] Failed to send approval email:', err);
+          log.error('[POST /api/admin/sign-ups] Failed to send approval email:', { error: err });
         });
 
         // Send Google Chat notification (non-blocking)
@@ -229,10 +230,10 @@ export async function POST(request: NextRequest) {
           name: userName,
           approvedBy: reviewerEmail,
         }).catch(err => {
-          console.error('[POST /api/admin/sign-ups] Failed to send Google Chat notification:', err);
+          log.error('[POST /api/admin/sign-ups] Failed to send Google Chat notification:', { error: err });
         });
       } catch (error) {
-        console.error('[POST /api/admin/sign-ups] Error in approval notifications:', error);
+        log.error('[POST /api/admin/sign-ups] Error in approval notifications:', { error });
       }
 
       // Check if user already exists by email (check user_profiles instead of auth.users)
@@ -286,7 +287,7 @@ export async function POST(request: NextRequest) {
           },
         });
       } catch (auditError) {
-        console.error('[POST /api/admin/sign-ups] Failed to create audit log:', auditError);
+        log.error('[POST /api/admin/sign-ups] Failed to create audit log:', { error: auditError });
         // Don't fail the request if audit logging fails
       }
     } else {
@@ -296,7 +297,7 @@ export async function POST(request: NextRequest) {
         firstName: updatedSignUp.first_name || 'User',
         reason: reviewerNotes,
       }).catch(err => {
-        console.error('[POST /api/admin/sign-ups] Failed to send denial email:', err);
+        log.error('[POST /api/admin/sign-ups] Failed to send denial email:', { error: err });
       });
 
       // Send Google Chat notification (non-blocking)
@@ -306,7 +307,7 @@ export async function POST(request: NextRequest) {
         deniedBy: reviewerEmail,
         reason: reviewerNotes,
       }).catch(err => {
-        console.error('[POST /api/admin/sign-ups] Failed to send Google Chat notification:', err);
+        log.error('[POST /api/admin/sign-ups] Failed to send Google Chat notification:', { error: err });
       });
 
       // Log the rejection action (non-blocking, may fail due to RLS)
@@ -322,7 +323,7 @@ export async function POST(request: NextRequest) {
           },
         });
       } catch (auditError) {
-        console.error('[POST /api/admin/sign-ups] Failed to create audit log:', auditError);
+        log.error('[POST /api/admin/sign-ups] Failed to create audit log:', { error: auditError });
         // Don't fail the request if audit logging fails
       }
     }
@@ -337,7 +338,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error processing sign-up:', error);
+    log.error('Error processing sign-up:', { error });
     return NextResponse.json(
       {
         success: false,

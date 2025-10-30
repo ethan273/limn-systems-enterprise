@@ -1,4 +1,5 @@
 'use client';
+import { log } from '@/lib/logger';
 
 import { useState } from 'react';
 import { api } from '@/lib/api/client';
@@ -89,7 +90,7 @@ export default function QCDocumentsPage() {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(downloadUrl);
     } catch (error) {
-      console.error('Download error:', error);
+      log.error('Download error:', { error });
       // Fallback: open in new tab
       window.open(url, '_blank');
     }

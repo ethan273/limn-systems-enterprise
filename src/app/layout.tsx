@@ -1,3 +1,4 @@
+
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals-limn-brand.css"; // Switched to Limn brand theme
@@ -77,25 +78,25 @@ export default function RootLayout({
             __html: `
               (function() {
                 if ('serviceWorker' in navigator) {
-                  console.log('[SW Force Clear] Checking for service workers...');
+                  log.info('[SW Force Clear] Checking for service workers...');
                   navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                    console.log('[SW Force Clear] Found', registrations.length, 'service worker(s)');
+                    log.info('[SW Force Clear] Found', registrations.length, 'service worker(s)');
                     var unregistered = 0;
                     registrations.forEach(function(registration) {
-                      console.log('[SW Force Clear] Unregistering service worker:', registration.scope);
+                      log.info('[SW Force Clear] Unregistering service worker:', registration.scope);
                       registration.unregister().then(function(success) {
                         if (success) {
                           unregistered++;
-                          console.log('[SW Force Clear] Successfully unregistered service worker');
+                          log.info('[SW Force Clear] Successfully unregistered service worker');
                         }
                       });
                     });
                     if (unregistered > 0) {
-                      console.log('[SW Force Clear] Unregistered', unregistered, 'service worker(s)');
+                      log.info('[SW Force Clear] Unregistered', unregistered, 'service worker(s)');
                       // Clear all caches
                       if ('caches' in window) {
                         caches.keys().then(function(names) {
-                          console.log('[SW Force Clear] Clearing', names.length, 'cache(s)');
+                          log.info('[SW Force Clear] Clearing', names.length, 'cache(s)');
                           names.forEach(function(name) {
                             caches.delete(name);
                           });

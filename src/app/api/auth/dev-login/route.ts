@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
@@ -151,7 +152,7 @@ export async function POST(request: NextRequest) {
     if (authUsers.length > 0) {
       // User exists in Supabase auth
       actualUserId = authUsers[0].id;
-      console.log(`Using existing user ${testEmail} with ID ${actualUserId}`);
+      log.info(`Using existing user ${testEmail} with ID ${actualUserId}`);
 
       // Update password to ensure it matches test expectations (if needed)
       const { error: updateError } = await supabase.auth.admin.updateUserById(actualUserId, {
@@ -163,11 +164,11 @@ export async function POST(request: NextRequest) {
       });
 
       if (updateError) {
-        console.warn(`Could not update user metadata: ${updateError.message}`);
+        log.warn(`Could not update user metadata: ${updateError.message}`);
       }
     } else {
       // User doesn't exist in auth - create fresh
-      console.log(`Creating new auth user: ${testEmail}...`);
+      log.info(`Creating new auth user: ${testEmail}...`);
 
       const { data: newUser, error: createUserError } = await supabase.auth.admin.createUser({
         id: testUserId,
@@ -180,7 +181,7 @@ export async function POST(request: NextRequest) {
       });
 
       if (createUserError) {
-        console.error('Error creating test user:', createUserError);
+        log.error('Error creating test user:', { createUserError });
         // Don't fail immediately - user might exist with different ID
         // Query again to get actual ID
         const retryUsers = await prisma.$queryRaw<Array<{ id: string; email: string }>>`
@@ -192,14 +193,14 @@ export async function POST(request: NextRequest) {
 
         if (retryUsers.length > 0) {
           actualUserId = retryUsers[0].id;
-          console.log(`Found existing user after create failed: ${actualUserId}`);
+          log.info(`Found existing user after create failed: ${actualUserId}`);
         } else {
           await prisma.$disconnect();
           return NextResponse.json({ error: 'Failed to create test user', details: createUserError.message }, { status: 500 });
         }
       } else if (newUser?.user?.id) {
         actualUserId = newUser.user.id;
-        console.log(`Created new auth user: ${actualUserId}`);
+        log.info(`Created new auth user: ${actualUserId}`);
       }
     }
 
@@ -231,7 +232,7 @@ export async function POST(request: NextRequest) {
         } as any);
 
       if (createProfileError) {
-        console.error('Error creating user profile:', createProfileError);
+        log.error('Error creating user profile:', { createProfileError });
         return NextResponse.json({ error: 'Failed to create user profile' }, { status: 500 });
       }
     }
@@ -278,7 +279,7 @@ export async function POST(request: NextRequest) {
               .single();
 
             if (customerError) {
-              console.error('Error creating test customer:', customerError);
+              log.error('Error creating test customer:', { customerError });
             } else if (newCustomer) {
               entityId = (newCustomer as any).id;
             }
@@ -320,7 +321,7 @@ export async function POST(request: NextRequest) {
               .single();
 
             if (partnerError) {
-              console.error('Error creating test partner:', partnerError);
+              log.error('Error creating test partner:', { partnerError });
             } else if (newPartner) {
               entityId = (newPartner as any).id;
             }
@@ -349,7 +350,7 @@ export async function POST(request: NextRequest) {
           .insert(portalAccessData);
 
         if (portalAccessError) {
-          console.error(`Error creating ${userType} portal access:`, portalAccessError);
+          log.error(`Error creating ${userType} portal access:`, portalAccessError);
           // Don't fail the request, just log the error
         }
       }
@@ -363,7 +364,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (linkError || !linkData) {
-      console.error('Error generating auth link:', linkError);
+      log.error('Error generating auth link:', { linkError });
       return NextResponse.json({ error: 'Failed to generate auth link', details: linkError?.message }, { status: 500 });
     }
 
@@ -371,7 +372,7 @@ export async function POST(request: NextRequest) {
     const hashedToken = linkData.properties?.hashed_token;
 
     if (!hashedToken) {
-      console.error('No hashed_token in link data');
+      log.error('No hashed_token in link data');
       return NextResponse.json({ error: 'Failed to generate session tokens' }, { status: 500 });
     }
 
@@ -385,7 +386,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Dev login error:', error);
+    log.error('Dev login error:', { error });
     return NextResponse.json({
       error: 'Authentication failed',
       details: error instanceof Error ? error.message : 'Unknown error'

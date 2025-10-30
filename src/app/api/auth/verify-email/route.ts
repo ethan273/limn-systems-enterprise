@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
 import authService from '@/services/auth/auth.service';
 
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
-    console.error('Email verification error:', error);
+    log.error('Email verification error:', { error });
 
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Verification failed' },

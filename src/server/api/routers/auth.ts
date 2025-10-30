@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { z } from 'zod'
 import { createTRPCRouter, publicProcedure, protectedProcedure as _protectedProcedure, adminProcedure } from '../trpc/init'
 import { TRPCError } from '@trpc/server'
@@ -92,7 +93,7 @@ export const authRouter = createTRPCRouter({
           phone: input.phone,
           reason: input.reason_for_access
         }).catch(err => {
-          console.error('[requestAccess] Failed to send admin email:', err)
+          log.error('[requestAccess] Failed to send admin email:', { error: err })
         })
 
         // Send Google Chat notification (non-blocking)
@@ -103,7 +104,7 @@ export const authRouter = createTRPCRouter({
           userType: input.user_type,
           phone: input.phone
         }).catch(err => {
-          console.error('[requestAccess] Failed to send Google Chat notification:', err)
+          log.error('[requestAccess] Failed to send Google Chat notification:', { error: err })
         })
 
         // Send confirmation email to user (non-blocking)
@@ -113,7 +114,7 @@ export const authRouter = createTRPCRouter({
           userType: input.user_type,
           company: input.company
         }).catch(err => {
-          console.error('[requestAccess] Failed to send confirmation email:', err)
+          log.error('[requestAccess] Failed to send confirmation email:', { error: err })
         })
 
         return {
@@ -259,7 +260,7 @@ export const authRouter = createTRPCRouter({
             name: requestorName,
             approvedBy: reviewerName
           }).catch(err => {
-            console.error('[reviewRequest] Failed to send approval Google Chat notification:', err)
+            log.error('[reviewRequest] Failed to send approval Google Chat notification:', { error: err })
           })
 
           // Note: Magic link email is sent by Supabase automatically
@@ -274,7 +275,7 @@ export const authRouter = createTRPCRouter({
             deniedBy: reviewerName,
             reason: input.adminNotes || undefined
           }).catch(err => {
-            console.error('[reviewRequest] Failed to send denial Google Chat notification:', err)
+            log.error('[reviewRequest] Failed to send denial Google Chat notification:', { error: err })
           })
 
           // Send denial email to user (non-blocking)
@@ -283,7 +284,7 @@ export const authRouter = createTRPCRouter({
             firstName: request.first_name || 'User',
             reason: input.adminNotes || undefined
           }).catch(err => {
-            console.error('[reviewRequest] Failed to send denial email:', err)
+            log.error('[reviewRequest] Failed to send denial email:', { error: err })
           })
         }
 
@@ -348,7 +349,7 @@ export const authRouter = createTRPCRouter({
           recentRequests
         }
       } catch (error) {
-        console.error('[getRequestStats] Error:', error);
+        log.error('[getRequestStats] Error:', { error });
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to fetch request statistics'
@@ -431,7 +432,7 @@ export const authRouter = createTRPCRouter({
           email: input.email,
           userType: request.user_type || undefined
         }).catch(err => {
-          console.error('[sendMagicLink] Failed to send Google Chat notification:', err)
+          log.error('[sendMagicLink] Failed to send Google Chat notification:', { error: err })
         })
 
         return {

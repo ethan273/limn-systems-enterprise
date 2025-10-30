@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 import { useEffect } from 'react';
 import { AlertTriangle, RefreshCcw, Home } from 'lucide-react';
@@ -13,7 +14,7 @@ export default function CRMError({
  reset: () => void;
 }) {
  useEffect(() => {
- console.error('[CRM Module Error]:', error);
+ log.error('[CRM Module Error]:', error);
  }, [error]);
 
  return (

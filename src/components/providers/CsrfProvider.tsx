@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 /**
  * CSRF Provider Component
@@ -41,7 +42,7 @@ export function CsrfProvider({ children }: CsrfProviderProps) {
  fetch('/api/csrf')
  .then(res => res.json())
  .then(data => setToken(data.token))
- .catch(err => console.error('[CSRF] Failed to fetch token:', err));
+ .catch(err => log.error('[CSRF] Failed to fetch token:', err));
  };
 
  useEffect(() => {

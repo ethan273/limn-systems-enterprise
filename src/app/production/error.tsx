@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 /**
  * Production Module Error Boundary
@@ -23,7 +24,7 @@ export default function ProductionError({
 }) {
  useEffect(() => {
  // Log error to error reporting service (Sentry, etc.)
- console.error('[Production Module Error]:', error);
+ log.error('[Production Module Error]:', error);
  }, [error]);
 
  return (

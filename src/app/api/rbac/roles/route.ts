@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * RBAC API - Get User Roles
  *
@@ -50,7 +51,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('[RBAC API] Error fetching roles:', error);
+    log.error('[RBAC API] Error fetching roles:', { error });
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

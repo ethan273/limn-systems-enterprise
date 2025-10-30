@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Supabase Storage utilities for file uploads
  */
@@ -79,7 +80,7 @@ export async function uploadTaskAttachment(
       });
 
     if (error) {
-      console.error('Storage upload error:', error);
+      log.error('Storage upload error:', { error });
       return {
         success: false,
         error: error.message
@@ -101,7 +102,7 @@ export async function uploadTaskAttachment(
     };
 
   } catch (error) {
-    console.error('Upload error:', error);
+    log.error('Upload error:', { error });
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Upload failed'
@@ -120,13 +121,13 @@ export async function deleteTaskAttachment(filePath: string): Promise<boolean> {
       .remove([filePath]);
 
     if (error) {
-      console.error('Storage delete error:', error);
+      log.error('Storage delete error:', { error });
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error('Delete error:', error);
+    log.error('Delete error:', { error });
     return false;
   }
 }
@@ -143,7 +144,7 @@ export async function getDownloadUrl(filePath: string): Promise<string | null> {
 
     return data.publicUrl;
   } catch (error) {
-    console.error('Get URL error:', error);
+    log.error('Get URL error:', { error });
     return null;
   }
 }
@@ -167,13 +168,13 @@ export async function createThumbnail(
       });
 
     if (error) {
-      console.error('Thumbnail upload error:', error);
+      log.error('Thumbnail upload error:', { error });
       return null;
     }
 
     return data.path;
   } catch (error) {
-    console.error('Thumbnail error:', error);
+    log.error('Thumbnail error:', { error });
     return null;
   }
 }
@@ -226,7 +227,7 @@ export async function uploadProductImage(
       });
 
     if (error) {
-      console.error('Storage upload error:', error);
+      log.error('Storage upload error:', { error });
       return {
         success: false,
         error: error.message
@@ -248,7 +249,7 @@ export async function uploadProductImage(
     };
 
   } catch (error) {
-    console.error('Upload error:', error);
+    log.error('Upload error:', { error });
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Upload failed'
@@ -267,13 +268,13 @@ export async function deleteProductImage(filePath: string): Promise<boolean> {
       .remove([filePath]);
 
     if (error) {
-      console.error('Storage delete error:', error);
+      log.error('Storage delete error:', { error });
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error('Delete error:', error);
+    log.error('Delete error:', { error });
     return false;
   }
 }

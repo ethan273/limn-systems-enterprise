@@ -49,7 +49,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 import { Switch } from '@/components/ui/switch';
 import { Plus, Edit, Trash2, Copy, Activity, Filter } from 'lucide-react';
 import { toast } from 'sonner';

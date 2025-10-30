@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { prisma } from '@/lib/db';
@@ -74,7 +75,7 @@ export async function GET(_request: NextRequest) {
       activeConnections: formattedConnections.filter((c) => c.isActive && !c.tokenExpired).length,
     });
   } catch (error) {
-    console.error('[QuickBooks Status] Error:', error);
+    log.error('[QuickBooks Status] Error:', { error });
     return NextResponse.json(
       { error: 'Failed to fetch QuickBooks status' },
       { status: 500 }

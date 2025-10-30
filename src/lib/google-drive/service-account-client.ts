@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Google Drive Service Account Client
  *
@@ -157,7 +158,7 @@ export async function uploadFileToDrive(
       webContentLink: fileData.webContentLink || undefined,
     };
   } catch (error) {
-    console.error('Google Drive upload error:', error);
+    log.error('Google Drive upload error:', { error });
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Upload failed',
@@ -178,7 +179,7 @@ export async function deleteFileFromDrive(fileId: string): Promise<boolean> {
 
     return true;
   } catch (error) {
-    console.error('Google Drive delete error:', error);
+    log.error('Google Drive delete error:', { error });
     return false;
   }
 }
@@ -198,7 +199,7 @@ export async function getFileMetadata(fileId: string) {
 
     return response.data;
   } catch (error) {
-    console.error('Get file metadata error:', error);
+    log.error('Get file metadata error:', { error });
     return null;
   }
 }
@@ -221,7 +222,7 @@ export async function listDriveFiles(folderId?: string, pageSize = 100) {
 
     return response.data.files || [];
   } catch (error) {
-    console.error('List Google Drive files error:', error);
+    log.error('List Google Drive files error:', { error });
     return [];
   }
 }
@@ -234,7 +235,7 @@ export async function getDownloadUrl(fileId: string): Promise<string | null> {
     const metadata = await getFileMetadata(fileId);
     return metadata?.webContentLink || metadata?.webViewLink || null;
   } catch (error) {
-    console.error('Get download URL error:', error);
+    log.error('Get download URL error:', { error });
     return null;
   }
 }
@@ -261,7 +262,7 @@ export async function createFolder(
 
     return response.data.id || null;
   } catch (error) {
-    console.error('Create folder error:', error);
+    log.error('Create folder error:', { error });
     return null;
   }
 }
@@ -300,7 +301,7 @@ export async function updateFilePermissions(
 
     return true;
   } catch (error) {
-    console.error('Update permissions error:', error);
+    log.error('Update permissions error:', { error });
     return false;
   }
 }

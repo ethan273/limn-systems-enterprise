@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 import { useState } from "react";
 import { api } from "@/lib/api/client";
@@ -30,7 +31,7 @@ export default function TaskDepartmentSelect({ taskId, currentDepartment, onUpda
     },
     onError: (error) => {
       setIsUpdating(false);
-      console.error('Failed to update department:', error);
+      log.error('Failed to update department:', error);
     },
   });
 

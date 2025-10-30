@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 import React, { use, useState, useEffect } from "react";
 import { useRouter} from "next/navigation";
@@ -56,7 +57,7 @@ const safeDateFormat = (date: string | Date | null | undefined): string => {
     const dateObj = date instanceof Date ? date : parseISO(date);
     return dateObj.toISOString().split('T')[0];
   } catch (error) {
-    console.error('Error parsing date:', date, error);
+    log.error('Error parsing date:', { date, error });
     return '';
   }
 };

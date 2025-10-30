@@ -1,4 +1,5 @@
 'use client';
+import { log } from '@/lib/logger';
 
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api/client';
@@ -6,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
+
 import { Switch } from '@/components/ui/switch';
 import {
   User,
@@ -54,7 +55,7 @@ export default function CustomerProfilePage() {
   const utils = api.useUtils();
 
   // Extract notification preferences
-  const notificationPrefs = (portalSettings?.notification_preferences as any) || {
+  const _notificationPrefs = (portalSettings?.notification_preferences as any) || {
     email: true,
     sms: false,
     in_app: true,
@@ -135,7 +136,7 @@ export default function CustomerProfilePage() {
         setSaveStatus('idle');
       }, 2000);
     } catch (error) {
-      console.error('Failed to save profile:', error);
+      log.error('Failed to save profile:', { error });
       setSaveStatus('idle');
     }
   };
@@ -159,7 +160,7 @@ export default function CustomerProfilePage() {
         setSaveStatus('idle');
       }, 2000);
     } catch (error) {
-      console.error('Failed to save preferences:', error);
+      log.error('Failed to save preferences:', { error });
       setSaveStatus('idle');
     }
   };

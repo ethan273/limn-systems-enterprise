@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * EmptyState Component - Usage Examples
  *
@@ -21,7 +22,7 @@ export function NoDataExample() {
       description="Get started by adding your first customer"
       action={{
         label: 'Add Customer',
-        onClick: () => console.log('Add customer clicked'),
+        onClick: () => log.info('Add customer clicked'),
         icon: Plus,
         variant: 'default',
       }}
@@ -96,7 +97,7 @@ export function WithIconButtonExample() {
       description="Orders will appear here once they're created"
       action={{
         label: 'Create Order',
-        onClick: () => console.log('Create order clicked'),
+        onClick: () => log.info('Create order clicked'),
         icon: PackagePlus,
       }}
     />
@@ -116,7 +117,7 @@ export function SecondaryButtonExample() {
       description="Add contacts to keep track of key people"
       action={{
         label: 'Add Contact',
-        onClick: () => console.log('Add contact clicked'),
+        onClick: () => log.info('Add contact clicked'),
         icon: UserPlus,
         variant: 'secondary',
       }}

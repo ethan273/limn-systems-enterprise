@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Alert Evaluation Cron Job - Phase 3 Session 4
  *
@@ -23,11 +24,11 @@ export async function POST(request: NextRequest) {
   const cronSecret = process.env.CRON_SECRET;
 
   if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
-    console.error('[Cron] Unauthorized alert evaluation attempt');
+    log.error('[Cron] Unauthorized alert evaluation attempt');
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  console.log('[Cron] Starting alert evaluation...');
+  log.info('[Cron] Starting alert evaluation...');
 
   try {
     // Fetch all active alert rules
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log(`[Cron] Evaluating ${rules.length} alert rules...`);
+    log.info(`[Cron] Evaluating ${rules.length} alert rules...`);
 
     let triggeredCount = 0;
     let skippedCount = 0;
@@ -68,7 +69,7 @@ export async function POST(request: NextRequest) {
         // Check if rule is in cooldown period
         const inCooldown = await isAlertInCooldown(rule.id);
         if (inCooldown) {
-          console.log(`[Cron] Rule ${rule.name} (${rule.id}) is in cooldown, skipping`);
+          log.info(`[Cron] Rule ${rule.name} (${rule.id}) is in cooldown, skipping`);
           skippedCount++;
           continue;
         }
@@ -87,16 +88,16 @@ export async function POST(request: NextRequest) {
           Number(rule.threshold_value)
         );
 
-        console.log(
+        log.info(
           `[Cron] Rule ${rule.name}: metric=${metricValue}, threshold=${rule.threshold_value}, exceeded=${thresholdExceeded}`
         );
 
         if (thresholdExceeded) {
           // Trigger alert
-          console.log(`[Cron] Triggering alert for rule: ${rule.name}`);
+          log.info(`[Cron] Triggering alert for rule: ${rule.name}`);
 
           // Create alert trigger record
-          const alertTrigger = await db.alert_triggers.create({
+          const _alertTrigger = await db.alert_triggers.create({
             data: {
               alert_rule_id: rule.id,
               metric_value: metricValue,
@@ -137,7 +138,7 @@ export async function POST(request: NextRequest) {
             }
           );
 
-          console.log(`[Cron] Notification result for ${rule.name}:`, result);
+          log.info(`[Cron] Notification result for ${rule.name}:`, result);
 
           // Update alert rule
           await db.alert_rules.update({
@@ -151,7 +152,7 @@ export async function POST(request: NextRequest) {
           triggeredCount++;
         }
       } catch (error) {
-        console.error(`[Cron] Error evaluating rule ${rule.name}:`, error);
+        log.error(`[Cron] Error evaluating rule ${rule.name}:`, { error });
         errorCount++;
       }
     }
@@ -165,11 +166,11 @@ export async function POST(request: NextRequest) {
       errors: errorCount,
     };
 
-    console.log('[Cron] Alert evaluation complete:', summary);
+    log.info('[Cron] Alert evaluation complete:', summary);
 
     return NextResponse.json(summary);
   } catch (error) {
-    console.error('[Cron] Alert evaluation failed:', error);
+    log.error('[Cron] Alert evaluation failed:', { error });
     return NextResponse.json(
       {
         success: false,

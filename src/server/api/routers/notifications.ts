@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '../trpc/init';
 import { getSupabaseAdmin } from '@/lib/supabase';
@@ -311,7 +312,7 @@ export const notificationsRouter = createTRPCRouter({
       // Send push notification (non-blocking)
       if (notification && (notification as any).id) {
         sendPushForDatabaseNotification((notification as any).id).catch((err) => {
-          console.error('[Notifications] Failed to send push notification:', err);
+          log.error('[Notifications] Failed to send push notification:', err);
         });
       }
 

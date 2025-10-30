@@ -49,8 +49,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Switch } from '@/components/ui/switch';
+
+
 import {
   Plus,
   Edit,
@@ -59,8 +59,8 @@ import {
   Play,
   Pause,
   Archive,
-  Copy,
-  Eye,
+
+
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -269,7 +269,7 @@ export default function WorkflowBuilderPage() {
                 </div>
                 <div className="bg-info/5 border border-info rounded-md p-4 text-sm text-info">
                   <p className="font-medium mb-1">Next Steps:</p>
-                  <p>After creating the workflow, you'll be able to design the workflow using the visual builder.</p>
+                  <p>After creating the workflow, you&apos;ll be able to design the workflow using the visual builder.</p>
                 </div>
               </div>
               <DialogFooter>

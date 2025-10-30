@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { z } from 'zod';
 import { createCrudRouter } from '../utils/crud-generator';
 import { createTRPCRouter, publicProcedure } from '../trpc/init';
@@ -599,7 +600,7 @@ export const ordersRouter = createTRPCRouter({
           customerEmail: (updatedOrder as any).customers?.email || undefined,
           customerName: (updatedOrder as any).customers?.name || undefined,
         }).catch((error) => {
-          console.error('[Orders] Failed to send order status notification:', error);
+          log.error('[Orders] Failed to send order status notification:', error);
         });
       }
 

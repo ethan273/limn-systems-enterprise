@@ -6,6 +6,7 @@
  */
 
 'use client';
+import { log } from '@/lib/logger';
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -58,7 +59,7 @@ export function OfflineTaskManager() {
     async (entry: SyncQueueEntry) => {
       // This would call your actual API
       // For demo purposes, we'll just simulate success
-      console.log('[OfflineTaskManager] Syncing:', entry);
+      log.info('[OfflineTaskManager] Syncing:', entry);
 
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -128,7 +129,7 @@ export function OfflineTaskManager() {
       setShowForm(false);
       loadStats();
     } catch (err) {
-      console.error('[OfflineTaskManager] Error creating task:', err);
+      log.error('[OfflineTaskManager] Error creating task:', { error: err });
     }
   };
 
@@ -151,7 +152,7 @@ export function OfflineTaskManager() {
       setShowForm(false);
       loadStats();
     } catch (err) {
-      console.error('[OfflineTaskManager] Error updating task:', err);
+      log.error('[OfflineTaskManager] Error updating task:', { error: err });
     }
   };
 
@@ -165,7 +166,7 @@ export function OfflineTaskManager() {
       await remove(taskId);
       loadStats();
     } catch (err) {
-      console.error('[OfflineTaskManager] Error deleting task:', err);
+      log.error('[OfflineTaskManager] Error deleting task:', { error: err });
     }
   };
 
@@ -173,7 +174,7 @@ export function OfflineTaskManager() {
   const handleManualSync = async () => {
     try {
       await processQueue(async (entry: SyncQueueEntry) => {
-        console.log('[OfflineTaskManager] Manual sync:', entry);
+        log.info('[OfflineTaskManager] Manual sync:', entry);
         await new Promise(resolve => setTimeout(resolve, 500));
         return { success: true };
       });
@@ -181,7 +182,7 @@ export function OfflineTaskManager() {
       await loadQueue();
       await loadStats();
     } catch (err) {
-      console.error('[OfflineTaskManager] Error during manual sync:', err);
+      log.error('[OfflineTaskManager] Error during manual sync:', { error: err });
     }
   };
 

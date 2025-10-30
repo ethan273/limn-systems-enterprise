@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 /**
  * Embed Code Generator Component
@@ -157,7 +158,7 @@ export function EmbedCodeGenerator({
       // Reset copied state after 2 seconds
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error("Failed to copy:", err);
+      log.error("Failed to copy:", { err });
       toast.error("Failed to copy to clipboard");
     }
   }, []);

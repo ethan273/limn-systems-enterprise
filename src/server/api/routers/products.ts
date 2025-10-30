@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../trpc/init";
 
@@ -311,7 +312,7 @@ export const productsRouter = createTRPCRouter({
     // First check total count
     const totalCount = await (ctx.db as any).materials.count();
     const activeCount = await (ctx.db as any).materials.count({ where: { active: true } });
-    console.log(`[getAllMaterials] Total materials in DB: ${totalCount}, Active: ${activeCount}`);
+    log.info(`[getAllMaterials] Total materials in DB: ${totalCount}, Active: ${activeCount}`);
 
     // Fetch all materials
     const materials = await (ctx.db as any).materials.findMany({
@@ -452,7 +453,7 @@ export const productsRouter = createTRPCRouter({
           if (isFabricBrand && isFabricCollection) {
             // No enforcement - fabric collections can be independent from brands
             // This allows brands to be available everywhere but specific collections to be limited
-            console.log(`[createMaterial] Fabric Collection inheriting from Fabric Brand - allowing independent collection selection`);
+            log.info(`[createMaterial] Fabric Collection inheriting from Fabric Brand - allowing independent collection selection`);
           }
           // Fabric Colors must inherit from Fabric Collection
           else if (isFabricCollection && isFabricColor) {
@@ -571,7 +572,7 @@ export const productsRouter = createTRPCRouter({
           // Fabric Collections (children of Fabric Brands) can have different collections
           if (isFabricBrand && isFabricCollection) {
             // No enforcement - fabric collections can be independent from brands
-            console.log(`[updateMaterial] Fabric Collection updating - allowing independent collection selection`);
+            log.info(`[updateMaterial] Fabric Collection updating - allowing independent collection selection`);
           }
           // Fabric Colors must inherit from Fabric Collection
           else if (isFabricCollection && isFabricColor) {

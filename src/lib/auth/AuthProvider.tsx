@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User, SupabaseClient } from '@supabase/supabase-js';
@@ -41,7 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
  if (error) {
  // If profile doesn't exist, that's okay - user might not have one yet
  if (error.code === 'PGRST116') {
- console.log('No profile found for user, using default profile');
+ log.info('No profile found for user, using default profile');
  setProfile(null);
  return;
  }
@@ -49,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
  }
  setProfile(data as UserProfile);
  } catch (error) {
- console.error('Error fetching profile:', {
+ log.error('Error fetching profile:', {
  message: error instanceof Error ? error.message : 'Unknown error',
  code: (error as any)?.code,
  details: (error as any)?.details,
@@ -72,7 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
  useEffect(() => {
  const timeout = setTimeout(() => {
  if (loading) {
- console.warn('Auth initialization timeout after 10s - proceeding with current auth state');
+ log.warn('Auth initialization timeout after 10s - proceeding with current auth state');
  setLoading(false);
  }
  }, 10000);
@@ -88,11 +89,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
  setSupabase(client);
  } else if (typeof window !== 'undefined') {
  // If we're in browser but client is null, something is wrong
- console.error('Failed to initialize Supabase client in browser');
+ log.error('Failed to initialize Supabase client in browser');
  setLoading(false);
  }
  } catch (error) {
- console.error('Error initializing Supabase client:', error);
+ log.error('Error initializing Supabase client:', { error });
  setLoading(false);
  }
  }, []);
@@ -117,7 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
  await fetchProfile(user.id);
  }
  } catch (error) {
- console.error('Error initializing auth:', error);
+ log.error('Error initializing auth:', { error });
  } finally {
  setLoading(false);
  }

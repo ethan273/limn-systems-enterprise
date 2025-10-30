@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 import { useState, useRef, useCallback } from "react";
 import { api } from "@/lib/api/client";
@@ -88,7 +89,7 @@ export default function TaskAttachments({ taskId, onUpdate }: TaskAttachmentsPro
  alert('Unable to view file. Please try downloading instead.');
  }
  } catch (error) {
- console.error('Error viewing attachment:', error);
+ log.error('Error viewing attachment:', { error });
  alert('Error viewing file. Please try again.');
  }
  };
@@ -120,7 +121,7 @@ export default function TaskAttachments({ taskId, onUpdate }: TaskAttachmentsPro
  alert('Unable to download file. Please try again.');
  }
  } catch (error) {
- console.error('Error downloading attachment:', error);
+ log.error('Error downloading attachment:', { error });
  alert('Error downloading file. Please try again.');
  }
  };
@@ -208,11 +209,11 @@ export default function TaskAttachments({ taskId, onUpdate }: TaskAttachmentsPro
  });
  progressUpdates.set(fileKey, 100);
  } catch (dbError) {
- console.error(`Database save failed for ${file.name}:`, dbError);
+ log.error(`Database save failed for ${file.name}:`, dbError);
  progressUpdates.delete(fileKey);
  }
  } else {
- console.error(`Upload failed for ${file.name}:`, uploadResult.error);
+ log.error(`Upload failed for ${file.name}:`, uploadResult.error);
  // Show user-friendly error message
  alert(`Upload failed for ${file.name}: ${uploadResult.error}`);
  // Remove failed file from progress
@@ -225,7 +226,7 @@ export default function TaskAttachments({ taskId, onUpdate }: TaskAttachmentsPro
  setUploadProgress({});
  setIsUploadDialogOpen(false);
  } catch (error) {
- console.error('Upload error:', error);
+ log.error('Upload error:', { error });
  alert(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
  } finally {
  setUploading(false);

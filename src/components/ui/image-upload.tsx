@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 import React, { useState, useRef } from "react";
 import Image from "next/image";
@@ -73,7 +74,7 @@ export function ImageUpload({
  throw new Error(data.error || 'Upload failed');
  }
  } catch (err) {
- console.error('Upload error:', err);
+ log.error('Upload error:', { err });
  setError(err instanceof Error ? err.message : 'Failed to upload image');
  } finally {
  setIsUploading(false);

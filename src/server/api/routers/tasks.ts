@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { z } from 'zod';
 import { createCrudRouter } from '../utils/crud-generator';
 import { createTRPCRouter, publicProcedure } from '../trpc/init';
@@ -102,7 +103,7 @@ export const tasksRouter = createTRPCRouter({
               dueDate: input.due_date ? new Date(input.due_date) : undefined,
               priority: input.priority,
             }).catch((error) => {
-              console.error('[Tasks] Failed to send assignment notification:', error);
+              log.error('[Tasks] Failed to send assignment notification:', error);
             });
           })
         );
@@ -255,7 +256,7 @@ export const tasksRouter = createTRPCRouter({
                 actionLabel: 'View Task',
                 channels: ['in_app', 'email'],
               }).catch((error) => {
-                console.error('[Tasks] Failed to send assignment notification:', error);
+                log.error('[Tasks] Failed to send assignment notification:', error);
               });
             })
           );

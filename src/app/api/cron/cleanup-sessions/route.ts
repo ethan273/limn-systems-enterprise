@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Session Cleanup Cron Job (RBAC Phase 2.2)
  *
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
     const cronSecret = process.env.CRON_SECRET;
 
     if (!cronSecret) {
-      console.error('[Cron:SessionCleanup] CRON_SECRET not configured');
+      log.error('[Cron:SessionCleanup] CRON_SECRET not configured');
       return NextResponse.json(
         { error: 'Cron secret not configured' },
         { status: 500 }
@@ -34,21 +35,21 @@ export async function GET(request: NextRequest) {
     }
 
     if (authHeader !== `Bearer ${cronSecret}`) {
-      console.error('[Cron:SessionCleanup] Unauthorized request - invalid secret');
+      log.error('[Cron:SessionCleanup] Unauthorized request - invalid secret');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    console.log('[Cron:SessionCleanup] Starting session cleanup job...');
+    log.info('[Cron:SessionCleanup] Starting session cleanup job...');
 
     // Run cleanup job
     const terminatedCount = await cleanupInactiveSessions();
 
     const duration = Date.now() - startTime;
 
-    console.log('[Cron:SessionCleanup] Job completed:', {
+    log.info('[Cron:SessionCleanup] Job completed:', {
       terminatedSessions: terminatedCount,
       duration_ms: duration,
     });
@@ -65,7 +66,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     const duration = Date.now() - startTime;
 
-    console.error('[Cron:SessionCleanup] Error:', error);
+    log.error('[Cron:SessionCleanup] Error:', { error });
 
     return NextResponse.json(
       {

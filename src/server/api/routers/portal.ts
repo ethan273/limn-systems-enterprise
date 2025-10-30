@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Customer Portal tRPC Router
  * Phase 3: Customer Self-Service Portal
@@ -376,7 +377,7 @@ export const portalRouter = createTRPCRouter({
       // Phase 4E Fix: Block access if customerId is null (non-customer portal types)
       // This enforces that only customer portal users can access customer portal data
       if (!ctx.customerId) {
-        console.log('❌ [getDashboardStats] Access denied: customerId is null (non-customer portal type)');
+        log.info('❌ [getDashboardStats] Access denied: customerId is null (non-customer portal type)');
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'This portal type is not a customer portal. Please use the appropriate portal type.'
@@ -437,11 +438,11 @@ export const portalRouter = createTRPCRouter({
         }),
       ]);
 
-      console.log('✅ [Portal] getDashboardStats completed');
-      console.log('   Active Orders:', activeOrders);
-      console.log('   Pending Payments:', pendingPayments);
-      console.log('   Recent Shipments:', recentShipments);
-      console.log('   Documents:', documentsCount);
+      log.info('✅ [Portal] getDashboardStats completed');
+      log.info('   Active Orders:', { activeOrders });
+      log.info('   Pending Payments:', { pendingPayments });
+      log.info('   Recent Shipments:', { recentShipments });
+      log.info('   Documents:', { documentsCount });
 
       return {
         activeOrders,

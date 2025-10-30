@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 import { useState } from "react";
 import { api } from "@/lib/api/client";
@@ -31,7 +32,7 @@ export default function TaskStatusSelect({ taskId, currentStatus, onUpdate }: Ta
  },
  onError: (error) => {
  setIsUpdating(false);
- console.error('Failed to update status:', error);
+ log.error('Failed to update status:', error);
  },
  });
 

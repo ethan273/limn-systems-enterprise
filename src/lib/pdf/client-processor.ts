@@ -1,3 +1,4 @@
+
 /**
  * Client-Side PDF Processing Utilities
  *
@@ -113,7 +114,7 @@ export async function renderPdfPage(
  * const results = await renderAllPdfPages(
  *   file,
  *   { scale: 2.0, format: 'jpeg' },
- *   (current, total) => console.log(`Progress: ${current}/${total}`)
+ *   (current, total) => log.info(`Progress: ${current}/${total}`)
  * );
  * ```
  */

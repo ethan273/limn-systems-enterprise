@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { z } from 'zod';
 import { createCrudRouter } from '../utils/crud-generator';
 import { createTRPCRouter, publicProcedure } from '../trpc/init';
@@ -438,14 +439,14 @@ export const itemsRouter = createTRPCRouter({
     .input(z.object({ itemId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
       try {
-        console.log('getFurnitureDimensions called with itemId:', input.itemId);
+        log.info('getFurnitureDimensions called with itemId:', input.itemId);
         const result = await ctx.db.furniture_dimensions.findUnique({
           where: { item_id: input.itemId },
         });
-        console.log('getFurnitureDimensions result:', result ? 'Found' : 'Not found');
+        log.info('getFurnitureDimensions result:', result ? 'Found' : 'Not found');
         return result;
       } catch (error) {
-        console.error('getFurnitureDimensions error:', error);
+        log.error('getFurnitureDimensions error:', { error });
         throw error;
       }
     }),

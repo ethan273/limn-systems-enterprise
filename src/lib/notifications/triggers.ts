@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Notification Triggers
  *
@@ -35,7 +36,7 @@ export async function triggerOrderStatusChange(params: {
     });
 
     if (!customer) {
-      console.warn(`[Notifications] Customer not found: ${params.customerId}`);
+      log.warn(`[Notifications] Customer not found: ${params.customerId}`);
       return;
     }
 
@@ -46,7 +47,7 @@ export async function triggerOrderStatusChange(params: {
     });
 
     if (!userProfile) {
-      console.warn(`[Notifications] User profile not found for customer: ${customer.email}`);
+      log.warn(`[Notifications] User profile not found for customer: ${customer.email}`);
       return;
     }
 
@@ -73,9 +74,9 @@ export async function triggerOrderStatusChange(params: {
       },
     });
 
-    console.log(`[Notifications] Order status change notification sent for order ${params.orderNumber}`);
+    log.info(`[Notifications] Order status change notification sent for order ${params.orderNumber}`);
   } catch (error) {
-    console.error('[Notifications] Error sending order status notification:', error);
+    log.error('[Notifications] Error sending order status notification:', { error });
   }
 }
 
@@ -103,7 +104,7 @@ export async function triggerTaskAssignment(params: {
     });
 
     if (!assignee) {
-      console.warn(`[Notifications] Assignee not found: ${params.assigneeId}`);
+      log.warn(`[Notifications] Assignee not found: ${params.assigneeId}`);
       return;
     }
 
@@ -134,9 +135,9 @@ export async function triggerTaskAssignment(params: {
       },
     });
 
-    console.log(`[Notifications] Task assignment notification sent for task ${params.taskName}`);
+    log.info(`[Notifications] Task assignment notification sent for task ${params.taskName}`);
   } catch (error) {
-    console.error('[Notifications] Error sending task assignment notification:', error);
+    log.error('[Notifications] Error sending task assignment notification:', { error });
   }
 }
 
@@ -224,9 +225,9 @@ export async function triggerProductionMilestone(params: {
       }
     }
 
-    console.log(`[Notifications] Production milestone notification sent for order ${params.orderNumber}`);
+    log.info(`[Notifications] Production milestone notification sent for order ${params.orderNumber}`);
   } catch (error) {
-    console.error('[Notifications] Error sending production milestone notification:', error);
+    log.error('[Notifications] Error sending production milestone notification:', { error });
   }
 }
 
@@ -252,7 +253,7 @@ export async function triggerPaymentReceived(params: {
     });
 
     if (!customer) {
-      console.warn(`[Notifications] Customer not found: ${params.customerId}`);
+      log.warn(`[Notifications] Customer not found: ${params.customerId}`);
       return;
     }
 
@@ -263,7 +264,7 @@ export async function triggerPaymentReceived(params: {
     });
 
     if (!userProfile) {
-      console.warn(`[Notifications] User profile not found for customer: ${customer.email}`);
+      log.warn(`[Notifications] User profile not found for customer: ${customer.email}`);
       return;
     }
 
@@ -296,9 +297,9 @@ export async function triggerPaymentReceived(params: {
       },
     });
 
-    console.log(`[Notifications] Payment notification sent for invoice ${params.invoiceNumber}`);
+    log.info(`[Notifications] Payment notification sent for invoice ${params.invoiceNumber}`);
   } catch (error) {
-    console.error('[Notifications] Error sending payment notification:', error);
+    log.error('[Notifications] Error sending payment notification:', { error });
   }
 }
 
@@ -391,8 +392,8 @@ export async function triggerQCFailure(params: {
       }
     }
 
-    console.log(`[Notifications] QC failure notification sent for order ${params.orderNumber}`);
+    log.info(`[Notifications] QC failure notification sent for order ${params.orderNumber}`);
   } catch (error) {
-    console.error('[Notifications] Error sending QC failure notification:', error);
+    log.error('[Notifications] Error sending QC failure notification:', { error });
   }
 }

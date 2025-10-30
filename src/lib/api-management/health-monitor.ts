@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /* eslint-disable security/detect-object-injection */
 /**
  * Health Monitoring System for API Credentials
@@ -273,7 +274,7 @@ export async function performHealthCheck(
     return healthCheck;
   } catch (error) {
     // Log error but don't fail completely
-    console.error('Health check failed:', error);
+    log.error('Health check failed:', { error });
 
     // Store failure in database
     const healthCheck = (await prisma.api_health_check_results.create({
@@ -476,7 +477,7 @@ export async function performAllHealthChecks(): Promise<{
     },
   });
 
-  console.log(`Starting health checks for ${credentials.length} credentials...`);
+  log.info(`Starting health checks for ${credentials.length} credentials...`);
 
   const results: HealthCheckResult[] = [];
   let successful = 0;
@@ -498,7 +499,7 @@ export async function performAllHealthChecks(): Promise<{
           }
           return result;
         } catch (error) {
-          console.error(`Health check failed for ${cred.id}:`, error);
+          log.error(`Health check failed for ${cred.id}:`, { error });
           failed++;
           return null;
         }
@@ -508,7 +509,7 @@ export async function performAllHealthChecks(): Promise<{
     results.push(...batchResults.filter((r): r is HealthCheckResult => r !== null));
   }
 
-  console.log(`Health checks completed: ${successful} successful, ${failed} failed`);
+  log.info(`Health checks completed: ${successful} successful, ${failed} failed`);
 
   return {
     total: credentials.length,

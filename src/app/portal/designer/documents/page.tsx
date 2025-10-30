@@ -1,4 +1,5 @@
 'use client';
+import { log } from '@/lib/logger';
 
 import { useState } from 'react';
 import { api } from '@/lib/api/client';
@@ -105,7 +106,7 @@ export default function DesignerDocumentsPage() {
       const timestamp = Date.now();
       const filePath = `designer-documents/${timestamp}-${selectedFile.name}`;
 
-      const { data, error: uploadError } = await supabase.storage
+      const { data: _data, error: uploadError } = await supabase.storage
         .from('documents')
         .upload(filePath, selectedFile, {
           cacheControl: '3600',
@@ -113,7 +114,7 @@ export default function DesignerDocumentsPage() {
         });
 
       if (uploadError) {
-        console.error('Storage upload error:', uploadError);
+        log.error('Storage upload error:', { uploadError });
         alert('Failed to upload file to storage');
         return;
       }
@@ -146,7 +147,7 @@ export default function DesignerDocumentsPage() {
         });
       }, 2000);
     } catch (error) {
-      console.error('Upload failed:', error);
+      log.error('Upload failed:', { error });
       alert('Failed to upload document');
     } finally {
       setUploading(false);

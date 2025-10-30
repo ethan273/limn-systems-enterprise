@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 import { useState } from "react";
 import { FileText, Upload } from "lucide-react";
@@ -80,7 +81,7 @@ export function DocumentUploadDialog({ _open: open, onOpenChange, canvas, onDocu
       e.target.value = ''; // Reset input
       onOpenChange(false);
     } catch (error) {
-      console.error('Upload error:', error);
+      log.error('Upload error:', { error });
       toast.error(`Failed to upload: ${error instanceof Error ? error.message : 'Unknown error'}`);
       e.target.value = ''; // Reset input
     } finally {
@@ -123,21 +124,20 @@ export function DocumentUploadDialog({ _open: open, onOpenChange, canvas, onDocu
 
   const handlePDFUpload = async (file: File, canvas: fabric.Canvas) => {
     try {
-      console.log('Starting PDF upload...');
+      log.info('Starting PDF upload...');
 
       // Use shared PDF processing utility
       const { renderPdfFirstPage } = await import('@/lib/pdf/client-processor');
-      console.log('PDF processor loaded');
+      log.info('PDF processor loaded');
 
-      console.log('Rendering first page...');
+      log.info('Rendering first page...');
       const result = await renderPdfFirstPage(file, { scale: 1.5, format: 'png' });
-      console.log('Page rendered:', result.width, 'x', result.height);
 
       // Convert to Fabric image
       const imgUrl = result.dataUrl;
-      console.log('Creating Fabric image...');
+      log.info('Creating Fabric image...');
       const img = await fabric.FabricImage.fromURL(imgUrl);
-      console.log('Fabric image created');
+      log.info('Fabric image created');
 
       // Get page count for display
       const { getPdfMetadata } = await import('@/lib/pdf/client-processor');
@@ -174,26 +174,25 @@ export function DocumentUploadDialog({ _open: open, onOpenChange, canvas, onDocu
       canvas.add(group);
       canvas.setActiveObject(group);
       canvas.renderAll();
-      console.log('PDF added to canvas successfully');
+      log.info('PDF added to canvas successfully');
     } catch (error) {
-      console.error('PDF upload error:', error);
+      log.error('PDF upload error:', { error });
       throw error;
     }
   };
 
   const handleWordUpload = async (file: File, canvas: fabric.Canvas) => {
     try {
-      console.log('Starting Word upload...');
+      log.info('Starting Word upload...');
       const arrayBuffer = await file.arrayBuffer();
-      console.log('ArrayBuffer loaded:', arrayBuffer.byteLength, 'bytes');
 
-      console.log('Loading mammoth...');
+      log.info('Loading mammoth...');
       const mammoth = await import('mammoth');
-      console.log('Mammoth loaded');
+      log.info('Mammoth loaded');
 
-      console.log('Converting Word to HTML...');
+      log.info('Converting Word to HTML...');
       const result = await mammoth.convertToHtml({ arrayBuffer });
-      console.log('Conversion complete');
+      log.info('Conversion complete');
       const html = result.value;
 
       // Create a text box with the content
@@ -201,7 +200,7 @@ export function DocumentUploadDialog({ _open: open, onOpenChange, canvas, onDocu
       tempDiv.innerHTML = html;
       const text = tempDiv.textContent || tempDiv.innerText || '';
 
-      console.log('Extracted text length:', text.length);
+      log.info('Extracted text length:', text.length);
 
       const textBox = new fabric.Textbox(text.substring(0, 500) + (text.length > 500 ? '...' : ''), {
         left: canvas.width! / 2 - 250,
@@ -240,9 +239,9 @@ export function DocumentUploadDialog({ _open: open, onOpenChange, canvas, onDocu
       canvas.add(group);
       canvas.setActiveObject(group);
       canvas.renderAll();
-      console.log('Word document added to canvas successfully');
+      log.info('Word document added to canvas successfully');
     } catch (error) {
-      console.error('Word upload error:', error);
+      log.error('Word upload error:', { error });
       throw error;
     }
   };

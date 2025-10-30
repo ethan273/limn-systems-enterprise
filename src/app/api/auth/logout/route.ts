@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
@@ -41,7 +42,7 @@ export async function POST(_request: NextRequest) {
     const { error } = await supabase.auth.signOut();
 
     if (error) {
-      console.error('Logout error:', error);
+      log.error('Logout error:', { error });
       return NextResponse.json(
         { error: 'Failed to logout', details: error.message },
         { status: 500 }
@@ -60,7 +61,7 @@ export async function POST(_request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('Logout error:', error);
+    log.error('Logout error:', { error });
     return NextResponse.json(
       { error: 'Logout failed', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * TOC Extraction Utility
  *
@@ -103,7 +104,7 @@ async function convertOutlineToTOC(
       const pageNumber = await getPageNumberFromDest(outlineItem.dest, pdf);
 
       if (pageNumber === null) {
-        console.warn(
+        log.warn(
           `Could not determine page number for TOC item: ${outlineItem.title}`
         );
         continue;
@@ -131,7 +132,7 @@ async function convertOutlineToTOC(
 
       items.push(tocItem);
     } catch (error) {
-      console.error(`Error processing TOC item: ${outlineItem.title}`, error);
+      log.error(`Error processing TOC item: ${outlineItem.title}`, { error });
     }
   }
 
@@ -170,7 +171,7 @@ async function getPageNumberFromDest(
     // Return 1-indexed page number
     return pageIndex + 1;
   } catch (error) {
-    console.error('Error getting page number from destination:', error);
+    log.error('Error getting page number from destination:', { error });
     return null;
   }
 }

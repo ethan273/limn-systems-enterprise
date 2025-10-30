@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Permission Delegation Service
  *
@@ -81,7 +82,7 @@ export async function delegatePermission(
     },
   });
 
-  console.log(`[Permission Delegation] Created delegation ${delegation.id}: ${delegatorId} → ${delegateeId} for permission ${permissionId}`);
+  log.info(`[Permission Delegation] Created delegation ${delegation.id}: ${delegatorId} → ${delegateeId} for permission ${permissionId}`);
 
   return {
     id: delegation.id,
@@ -135,7 +136,7 @@ export async function revokeDelegation(
     },
   });
 
-  console.log(`[Permission Delegation] Revoked delegation ${delegationId} by ${revokedBy}: ${reason}`);
+  log.info(`[Permission Delegation] Revoked delegation ${delegationId} by ${revokedBy}: ${reason}`);
 }
 
 // ============================================
@@ -275,7 +276,7 @@ export async function expireOutdatedDelegations(): Promise<number> {
   });
 
   if (result.count > 0) {
-    console.log(`[Permission Delegation] Expired ${result.count} outdated delegations`);
+    log.info(`[Permission Delegation] Expired ${result.count} outdated delegations`);
   }
 
   return result.count;

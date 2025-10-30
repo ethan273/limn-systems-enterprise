@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Cleanup Jobs API Route
  *
@@ -23,7 +24,7 @@ export async function POST(request: NextRequest) {
     const expectedToken = process.env.CRON_SECRET;
 
     if (!expectedToken) {
-      console.error('[Cleanup Job] CRON_SECRET not configured');
+      log.error('[Cleanup Job] CRON_SECRET not configured');
       return NextResponse.json(
         { error: 'Server configuration error' },
         { status: 500 }
@@ -31,11 +32,11 @@ export async function POST(request: NextRequest) {
     }
 
     if (authHeader !== `Bearer ${expectedToken}`) {
-      console.error('[Cleanup Job] Unauthorized request');
+      log.error('[Cleanup Job] Unauthorized request');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log('[Cleanup Job] Authorized request received');
+    log.info('[Cleanup Job] Authorized request received');
 
     // Run all cleanup jobs in parallel
     const [auditResult, healthResult, expirationResult] = await Promise.all([
@@ -68,7 +69,7 @@ export async function POST(request: NextRequest) {
       ],
     });
   } catch (error) {
-    console.error('[Cleanup Job] Error:', error);
+    log.error('[Cleanup Job] Error:', { error });
 
     return NextResponse.json(
       {

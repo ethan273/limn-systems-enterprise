@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Notification System for API Management
  *
@@ -112,7 +113,7 @@ async function sendEmailNotification(
   recipients: string[]
 ): Promise<void> {
   try {
-    console.log('[Email] Sending notification:', {
+    log.info('[Email] Sending notification:', {
       to: recipients,
       subject: params.title,
       event: params.eventType,
@@ -125,7 +126,7 @@ async function sendEmailNotification(
 
     // For now, just log the notification
   } catch (error) {
-    console.error('[Email] Failed to send notification:', error);
+    log.error('[Email] Failed to send notification:', { error });
     throw error;
   }
 }
@@ -198,7 +199,7 @@ async function sendGoogleChatNotification(
       ],
     };
 
-    console.log('[Google Chat] Sending notification to webhook');
+    log.info('[Google Chat] Sending notification to webhook');
 
     // Send to Google Chat
     const response = await fetch(webhookUrl, {
@@ -214,9 +215,9 @@ async function sendGoogleChatNotification(
       throw new Error(`Google Chat API error: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
-    console.log('[Google Chat] Notification sent successfully');
+    log.info('[Google Chat] Notification sent successfully');
   } catch (error) {
-    console.error('[Google Chat] Failed to send notification:', error);
+    log.error('[Google Chat] Failed to send notification:', { error });
     throw error;
   }
 }
@@ -240,8 +241,6 @@ async function sendWebhookNotification(
       metadata: params.metadata,
     };
 
-    console.log('[Webhook] Sending notification to', urls.length, 'endpoints');
-
     const results = await Promise.allSettled(
       urls.map(async (url) => {
         const response = await fetch(url, {
@@ -262,12 +261,12 @@ async function sendWebhookNotification(
 
     const failures = results.filter((r) => r.status === 'rejected');
     if (failures.length > 0) {
-      console.error(`[Webhook] ${failures.length}/${urls.length} webhooks failed`);
+      log.error(`[Webhook] ${failures.length}/${urls.length} webhooks failed`);
     } else {
-      console.log('[Webhook] All notifications sent successfully');
+      log.info('[Webhook] All notifications sent successfully');
     }
   } catch (error) {
-    console.error('[Webhook] Failed to send notification:', error);
+    log.error('[Webhook] Failed to send notification:', { error });
     throw error;
   }
 }
@@ -278,7 +277,7 @@ async function sendWebhookNotification(
 async function storeInAppNotification(params: NotificationParams): Promise<void> {
   try {
     // This would store in a notifications table for display in the UI
-    console.log('[In-App] Storing notification:', {
+    log.info('[In-App] Storing notification:', {
       event: params.eventType,
       severity: params.severity,
     });
@@ -286,7 +285,7 @@ async function storeInAppNotification(params: NotificationParams): Promise<void>
     // Placeholder for database insertion
     // await prisma.notifications.create({ data: { ... } })
   } catch (error) {
-    console.error('[In-App] Failed to store notification:', error);
+    log.error('[In-App] Failed to store notification:', { error });
     throw error;
   }
 }
@@ -324,7 +323,7 @@ export async function sendNotification(params: NotificationParams): Promise<void
     };
 
     if (!config.enabled) {
-      console.log('[Notifications] System disabled, skipping notification');
+      log.info('[Notifications] System disabled, skipping notification');
       return;
     }
 
@@ -340,14 +339,14 @@ export async function sendNotification(params: NotificationParams): Promise<void
       severityOrder[params.severity] <
       severityOrder[config.severityThreshold || 'warning']
     ) {
-      console.log('[Notifications] Below severity threshold, skipping');
+      log.info('[Notifications] Below severity threshold, skipping');
       return;
     }
 
     // Check rate limiting
     const rateLimitKey = `${params.eventType}:${params.credentialId || 'global'}`;
     if (isRateLimited(rateLimitKey, config.rateLimitPerHour)) {
-      console.log('[Notifications] Rate limited, skipping');
+      log.info('[Notifications] Rate limited, skipping');
       return;
     }
 
@@ -375,14 +374,14 @@ export async function sendNotification(params: NotificationParams): Promise<void
 
     const failures = results.filter((r) => r.status === 'rejected');
     if (failures.length > 0) {
-      console.error(
+      log.error(
         `[Notifications] ${failures.length}/${promises.length} channels failed`
       );
     } else {
-      console.log('[Notifications] Sent successfully to all channels');
+      log.info('[Notifications] Sent successfully to all channels');
     }
   } catch (error) {
-    console.error('[Notifications] Failed to send notification:', error);
+    log.error('[Notifications] Failed to send notification:', { error });
   }
 }
 

@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * CSRF Protection Utilities
  *
@@ -74,7 +75,7 @@ export function checkCsrf(request: NextRequest): boolean {
   // Check for CSRF token in header
   const csrfToken = request.headers.get('x-csrf-token');
   if (!csrfToken) {
-    console.warn('[CSRF] Missing CSRF token in request');
+    log.warn('[CSRF] Missing CSRF token in request');
     return false;
   }
 

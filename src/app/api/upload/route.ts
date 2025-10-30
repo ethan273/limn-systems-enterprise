@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * File Upload API Route
  *
@@ -75,7 +76,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error('Upload error:', error);
+    log.error('Upload error:', { error });
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : 'Upload failed',

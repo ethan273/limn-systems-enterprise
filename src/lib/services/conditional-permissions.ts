@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Conditional Permissions Service
  *
@@ -149,7 +150,7 @@ export async function evaluateTimeCondition(
       conditionType: 'time',
     };
   } catch (error) {
-    console.error('[Conditional Permissions] Error evaluating time condition:', error);
+    log.error('[Conditional Permissions] Error evaluating time condition:', { error });
     return {
       allowed: false,
       reason: 'Error evaluating time condition',
@@ -271,7 +272,7 @@ export async function evaluateLocationCondition(
       conditionType: 'location',
     };
   } catch (error) {
-    console.error('[Conditional Permissions] Error evaluating location condition:', error);
+    log.error('[Conditional Permissions] Error evaluating location condition:', { error });
     return {
       allowed: false,
       reason: 'Error evaluating location condition',
@@ -361,7 +362,7 @@ export async function evaluateDeviceCondition(
       conditionType: 'device',
     };
   } catch (error) {
-    console.error('[Conditional Permissions] Error evaluating device condition:', error);
+    log.error('[Conditional Permissions] Error evaluating device condition:', { error });
     return {
       allowed: false,
       reason: 'Error evaluating device condition',
@@ -447,7 +448,7 @@ export async function evaluateIPCondition(
       conditionType: 'ip_range',
     };
   } catch (error) {
-    console.error('[Conditional Permissions] Error evaluating IP condition:', error);
+    log.error('[Conditional Permissions] Error evaluating IP condition:', { error });
     return {
       allowed: false,
       reason: 'Error evaluating IP condition',

@@ -1,4 +1,5 @@
 'use client';
+import { log } from '@/lib/logger';
 
 /**
  * Camera Capture Component
@@ -61,7 +62,7 @@ export function CameraCapture({
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to access camera';
-      console.error('Camera error:', errorMessage);
+      log.error('Camera error:', { errorMessage });
       onError?.(errorMessage);
       setIsOpen(false);
     }
@@ -148,7 +149,7 @@ export function CameraCapture({
       setCapturedPhotos((prev) => [...prev, compressed.dataUrl]);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to capture photo';
-      console.error('Capture error:', errorMessage);
+      log.error('Capture error:', { errorMessage });
       onError?.(errorMessage);
     }
   };

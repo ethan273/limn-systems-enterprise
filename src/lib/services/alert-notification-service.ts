@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Alert Notification Service - Phase 3 Session 4
  *
@@ -31,7 +32,7 @@ export type AlertNotification = {
 export async function sendAlertNotification(
   notification: AlertNotification,
   channels: AlertChannel[],
-  recipients: {
+  _recipients: {
     userIds?: string[];
     emails?: string[];
     roles?: string[];
@@ -43,11 +44,11 @@ export async function sendAlertNotification(
     try {
       switch (channel) {
         case 'email':
-          results.email = await sendEmailNotification(notification, recipients);
+          results.email = await sendEmailNotification(notification, _recipients);
           break;
 
         case 'in_app':
-          results.in_app = await sendInAppNotification(notification, recipients);
+          results.in_app = await sendInAppNotification(notification, _recipients);
           break;
 
         case 'google_chat':
@@ -55,11 +56,11 @@ export async function sendAlertNotification(
           break;
 
         case 'sms':
-          results.sms = await sendSMSNotification(notification, recipients);
+          results.sms = await sendSMSNotification(notification, _recipients);
           break;
       }
     } catch (error) {
-      console.error(`[Alert] Failed to send via ${channel}:`, error);
+      log.error(`[Alert] Failed to send via ${channel}:`, { error });
       results[channel] = false;
     }
   }
@@ -77,7 +78,7 @@ async function sendEmailNotification(
   recipients: { userIds?: string[]; emails?: string[]; roles?: string[] }
 ): Promise<boolean> {
   if (!resend) {
-    console.warn('[Alert] Resend not configured, skipping email notification');
+    log.warn('[Alert] Resend not configured, skipping email notification');
     return false;
   }
 
@@ -101,7 +102,7 @@ async function sendEmailNotification(
   // Get emails from roles (TODO: implement role-based email lookup)
 
   if (emailAddresses.length === 0) {
-    console.warn('[Alert] No email recipients found');
+    log.warn('[Alert] No email recipients found');
     return false;
   }
 
@@ -147,7 +148,7 @@ async function sendEmailNotification(
 
     return true;
   } catch (error) {
-    console.error('[Alert] Failed to send email:', error);
+    log.error('[Alert] Failed to send email:', { error });
     return false;
   }
 }
@@ -186,7 +187,7 @@ async function sendInAppNotification(
 
     return true;
   } catch (error) {
-    console.error('[Alert] Failed to send in-app notification:', error);
+    log.error('[Alert] Failed to send in-app notification:', { error });
     return false;
   }
 }
@@ -200,11 +201,11 @@ async function sendGoogleChatNotification(
   const webhookUrl = process.env.GOOGLE_CHAT_WEBHOOK_URL;
 
   if (!webhookUrl) {
-    console.warn('[Alert] Google Chat webhook not configured');
+    log.warn('[Alert] Google Chat webhook not configured');
     return false;
   }
 
-  const severityColor = {
+  const _severityColor = {
     info: '#3B82F6',
     warning: '#F59E0B',
     error: '#EF4444',
@@ -276,7 +277,7 @@ async function sendGoogleChatNotification(
 
     return response.ok;
   } catch (error) {
-    console.error('[Alert] Failed to send Google Chat notification:', error);
+    log.error('[Alert] Failed to send Google Chat notification:', { error });
     return false;
   }
 }
@@ -285,11 +286,11 @@ async function sendGoogleChatNotification(
  * Send SMS notification (placeholder)
  */
 async function sendSMSNotification(
-  notification: AlertNotification,
-  recipients: { userIds?: string[]; emails?: string[]; roles?: string[] }
+  _notification: AlertNotification,
+  _recipients: { userIds?: string[]; emails?: string[]; roles?: string[] }
 ): Promise<boolean> {
   // TODO: Implement SMS via Twilio or similar service
-  console.warn('[Alert] SMS notifications not yet implemented');
+  log.warn('[Alert] SMS notifications not yet implemented');
   return false;
 }
 

@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 /**
  * Video Player Modal
@@ -103,11 +104,11 @@ export function VideoPlayerModal({
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen()
         .then(() => setIsFullscreen(true))
-        .catch((err) => console.error('Fullscreen request failed:', err));
+        .catch((err) => log.error('Fullscreen request failed:', err));
     } else {
       document.exitFullscreen()
         .then(() => setIsFullscreen(false))
-        .catch((err) => console.error('Exit fullscreen failed:', err));
+        .catch((err) => log.error('Exit fullscreen failed:', err));
     }
   };
 

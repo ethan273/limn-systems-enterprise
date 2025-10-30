@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { fetchRequestHandler } from '@trpc/server/adapters/fetch';
 import { appRouter } from '@/server/api/root';
 import { createContext } from '@/server/api/trpc/context';
@@ -30,7 +31,7 @@ const handler = (req: NextRequest) =>
       // CRITICAL: Log errors in ALL environments (production included)
       // Suppress expected UNAUTHORIZED errors to reduce console noise
       if (error.code !== 'UNAUTHORIZED' && error.message !== 'UNAUTHORIZED') {
-        console.error(
+        log.error(
           `❌ tRPC failed on ${path ?? '<no-path>'}: ${error.message}`,
           error.cause ? `\nCause: ${JSON.stringify(error.cause)}` : ''
         );

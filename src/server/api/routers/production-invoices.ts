@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { z } from 'zod';
 import { createTRPCRouter, publicProcedure } from '../trpc/init';
 import { Prisma, PrismaClient } from '@prisma/client';
@@ -156,7 +157,7 @@ async function attemptQuickBooksSync(
     }))[0];
 
     if (!auth) {
-      console.log('QuickBooks not connected - skipping sync');
+      log.info('QuickBooks not connected - skipping sync');
       return;
     }
 
@@ -180,10 +181,10 @@ async function attemptQuickBooksSync(
     }))[0];
 
     if (!invoiceMapping) {
-      console.log(`Attempting to sync invoice ${invoiceId} to QuickBooks...`);
+      log.info(`Attempting to sync invoice ${invoiceId} to QuickBooks...`);
       // Note: We would need to implement the full sync logic here
       // For now, we just log that it should be synced
-      console.log('Invoice sync should be triggered via QuickBooks sync button in UI');
+      log.info('Invoice sync should be triggered via QuickBooks sync button in UI');
     }
 
     // Sync payment (if provided and not already synced)
@@ -198,15 +199,15 @@ async function attemptQuickBooksSync(
       }))[0];
 
       if (!paymentMapping) {
-        console.log(`Attempting to sync payment ${paymentId} to QuickBooks...`);
+        log.info(`Attempting to sync payment ${paymentId} to QuickBooks...`);
         // Note: We would need to implement the full sync logic here
         // For now, we just log that it should be synced
-        console.log('Payment sync should be triggered via QuickBooks sync button in UI');
+        log.info('Payment sync should be triggered via QuickBooks sync button in UI');
       }
     }
 
   } catch (error) {
-    console.error('QuickBooks sync attempt failed (non-blocking):', error);
+    log.error('QuickBooks sync attempt failed (non-blocking):', { error });
     // Don't throw - this is non-blocking
   }
 }

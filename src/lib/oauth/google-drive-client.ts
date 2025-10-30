@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Google Drive OAuth 2.0 Client
  *
@@ -184,7 +185,7 @@ export function validateOAuthConfig(): boolean {
   const missing = required.filter(key => !process.env[key]);
 
   if (missing.length > 0) {
-    console.error('Missing OAuth environment variables:', missing);
+    log.error('Missing OAuth environment variables:', missing);
     return false;
   }
 

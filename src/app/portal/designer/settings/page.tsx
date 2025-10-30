@@ -1,4 +1,5 @@
 'use client';
+import { log } from '@/lib/logger';
 
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api/client';
@@ -142,7 +143,7 @@ export default function DesignerSettingsPage() {
         setSaveStatus('idle');
       }, 2000);
     } catch (error) {
-      console.error('Failed to save profile:', error);
+      log.error('Failed to save profile:', { error });
       setSaveStatus('idle');
     }
   };
@@ -167,7 +168,7 @@ export default function DesignerSettingsPage() {
         setSaveStatus('idle');
       }, 2000);
     } catch (error) {
-      console.error('Failed to save notifications:', error);
+      log.error('Failed to save notifications:', { error });
       setSaveStatus('idle');
     }
   };

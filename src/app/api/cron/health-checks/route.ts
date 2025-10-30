@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Health Checks Cron Job
  *
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
     const cronSecret = process.env.CRON_SECRET;
 
     if (!cronSecret) {
-      console.error('[Cron:Health] CRON_SECRET not configured');
+      log.error('[Cron:Health] CRON_SECRET not configured');
       return NextResponse.json(
         { error: 'Cron secret not configured' },
         { status: 500 }
@@ -27,19 +28,19 @@ export async function GET(request: NextRequest) {
     }
 
     if (authHeader !== `Bearer ${cronSecret}`) {
-      console.error('[Cron:Health] Unauthorized request - invalid secret');
+      log.error('[Cron:Health] Unauthorized request - invalid secret');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    console.log('[Cron:Health] Starting health check job...');
+    log.info('[Cron:Health] Starting health check job...');
 
     // Run health check job
     const result = await runHealthCheckJob();
 
-    console.log('[Cron:Health] Job completed:', {
+    log.info('[Cron:Health] Job completed:', {
       status: result.status,
       processed: result.itemsProcessed,
       succeeded: result.itemsSucceeded,
@@ -53,7 +54,7 @@ export async function GET(request: NextRequest) {
       result,
     });
   } catch (error) {
-    console.error('[Cron:Health] Error:', error);
+    log.error('[Cron:Health] Error:', { error });
     return NextResponse.json(
       {
         success: false,

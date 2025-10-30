@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
 import { getUser } from '@/lib/auth/server';
 import { db } from '@/lib/db';
@@ -133,7 +134,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error('[Invoice PDF] Error generating PDF:', error);
+    log.error('[Invoice PDF] Error generating PDF:', { error });
     return NextResponse.json(
       { error: 'Failed to generate invoice PDF' },
       { status: 500 }

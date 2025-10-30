@@ -6,6 +6,7 @@
  */
 
 'use client';
+import { log } from '@/lib/logger';
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -191,7 +192,7 @@ export function SmartInstallPrompt() {
       const { outcome } = await deferredPrompt.userChoice;
 
       if (outcome === 'accepted') {
-        console.log('[Install] User accepted the install prompt');
+        log.info('[Install] User accepted the install prompt');
 
         // Track successful install
         if (userBehavior) {
@@ -203,11 +204,11 @@ export function SmartInstallPrompt() {
         setShowPrompt(false);
         setDeferredPrompt(null);
       } else {
-        console.log('[Install] User dismissed the install prompt');
+        log.info('[Install] User dismissed the install prompt');
         handleDismiss();
       }
     } catch (error) {
-      console.error('[Install] Error showing install prompt:', error);
+      log.error('[Install] Error showing install prompt:', { error });
     } finally {
       setInstalling(false);
     }

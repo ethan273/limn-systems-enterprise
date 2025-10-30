@@ -1,5 +1,6 @@
 "use client"
 
+import { log } from '@/lib/logger';
 import * as React from "react"
 import { Document, Page, pdfjs } from "react-pdf"
 import {
@@ -55,7 +56,7 @@ export function PDFViewer({
  }
 
  const handleDocumentLoadError = (err: Error) => {
- console.error("PDF load error:", err)
+ log.error("PDF load error:", { error: err })
  setError("Failed to load PDF document. Please try again.")
  setIsLoading(false)
  }

@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Resend Webhook Handler
  *
@@ -73,7 +74,7 @@ export async function POST(request: Request) {
 
     // Verify webhook signature
     if (!process.env.RESEND_WEBHOOK_SECRET) {
-      console.error('[webhook:resend] RESEND_WEBHOOK_SECRET not configured');
+      log.error('[webhook:resend] RESEND_WEBHOOK_SECRET not configured');
       return NextResponse.json(
         { error: 'Webhook secret not configured' },
         { status: 500 }
@@ -81,7 +82,7 @@ export async function POST(request: Request) {
     }
 
     if (!svixId || !svixTimestamp || !svixSignature) {
-      console.error('[webhook:resend] Missing required Svix headers');
+      log.error('[webhook:resend] Missing required Svix headers');
       return NextResponse.json(
         { error: 'Missing webhook headers' },
         { status: 400 }
@@ -98,19 +99,19 @@ export async function POST(request: Request) {
         'svix-signature': svixSignature,
       }) as ResendWebhookEvent;
     } catch (err) {
-      console.error('[webhook:resend] Webhook verification failed:', err);
+      log.error('[webhook:resend] Webhook verification failed:', { error: err });
       return NextResponse.json(
         { error: 'Invalid webhook signature' },
         { status: 400 }
       );
     }
 
-    console.log(`[webhook:resend] Received event: ${event.type}`);
+    log.info(`[webhook:resend] Received event: ${event.type}`);
 
     // Map Resend event type to our internal event type
     const eventType = mapResendEventType(event.type);
     if (!eventType) {
-      console.log(`[webhook:resend] Ignoring unknown event type: ${event.type}`);
+      log.info(`[webhook:resend] Ignoring unknown event type: ${event.type}`);
       return NextResponse.json({ success: true, ignored: true });
     }
 
@@ -167,7 +168,7 @@ export async function POST(request: Request) {
       },
     });
 
-    console.log(`[webhook:resend] Created tracking event: ${trackingEvent.id} for ${eventType}`);
+    log.info(`[webhook:resend] Created tracking event: ${trackingEvent.id} for ${eventType}`);
 
     // Update campaign metrics if campaign_id is available
     if (campaignId) {
@@ -193,7 +194,7 @@ export async function POST(request: Request) {
           },
         });
 
-        console.log(`[webhook:resend] Updated campaign ${campaignId} ${field}`);
+        log.info(`[webhook:resend] Updated campaign ${campaignId} ${field}`);
       }
     }
 
@@ -203,7 +204,7 @@ export async function POST(request: Request) {
       event_type: eventType,
     });
   } catch (error) {
-    console.error('[webhook:resend] Error processing webhook:', error);
+    log.error('[webhook:resend] Error processing webhook:', { error });
 
     return NextResponse.json(
       {

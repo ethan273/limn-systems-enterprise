@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
@@ -121,7 +122,7 @@ export function MediaUploader({
             accessToken = tokenResponse.result.data.accessToken;
           }
         } catch (error) {
-          console.error("Could not get Google Drive token:", error);
+          log.error("Could not get Google Drive token:", { error });
           // Continue without token - large files will fail gracefully
         }
       }
@@ -178,7 +179,7 @@ export function MediaUploader({
       setFiles([]);
       onUploadComplete?.();
     } catch (error) {
-      console.error("Upload error:", error);
+      log.error("Upload error:", { error });
       toast.error(error instanceof Error ? error.message : "Failed to upload files");
     } finally {
       setUploading(false);

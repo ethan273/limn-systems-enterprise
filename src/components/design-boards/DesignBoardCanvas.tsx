@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 // Fabric.js v6 uses named exports instead of a default namespace export
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -232,7 +233,7 @@ export function DesignBoardCanvas({ boardId, userId, board, onCanvasReady }: Des
             canvas.add(fabricObject);
           }
         } catch (error) {
-          console.error("Failed to load object:", error);
+          log.error("Failed to load object:", { error });
         }
       }
       canvas.renderAll();
@@ -354,7 +355,7 @@ export function DesignBoardCanvas({ boardId, userId, board, onCanvasReady }: Des
 
       // Handle image upload
       if (activeTool === 'image') {
-        console.log('Image tool clicked, calling handleImageUpload...');
+        log.info('Image tool clicked, calling handleImageUpload...');
         handleImageUpload(canvas, origX, origY);
         setActiveTool('select');
         isDown = false;
@@ -761,7 +762,7 @@ async function deserializeFabricObject(obj: any): Promise<fabric.Object | null> 
 
     return (fabricObj as any) || null;
   } catch (error) {
-    console.error("Failed to deserialize object:", error);
+    log.error("Failed to deserialize object:", { error });
     return null;
   }
 }
@@ -808,18 +809,16 @@ function createArrow(
 }
 
 function handleImageUpload(canvas: fabric.Canvas, x: number, y: number) {
-  console.log('handleImageUpload called with position:', x, y);
-
   // Create a hidden file input
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = 'image/*';
   input.style.display = 'none';
 
-  console.log('File input created, setting up handlers...');
+  log.info('File input created, setting up handlers...');
 
   input.onchange = async (e) => {
-    console.log('File input changed, file selected');
+    log.info('File input changed, file selected');
     const file = (e.target as HTMLInputElement).files?.[0];
     if (!file) {
       document.body.removeChild(input);
@@ -861,7 +860,7 @@ function handleImageUpload(canvas: fabric.Canvas, x: number, y: number) {
           // Clean up
           document.body.removeChild(input);
         }).catch((error) => {
-          console.error('Failed to load image:', error);
+          log.error('Failed to load image:', { error });
           toast.error('Failed to load image');
           document.body.removeChild(input);
         });
@@ -874,7 +873,7 @@ function handleImageUpload(canvas: fabric.Canvas, x: number, y: number) {
 
       reader.readAsDataURL(file);
     } catch (error) {
-      console.error('Image upload error:', error);
+      log.error('Image upload error:', { error });
       toast.error('Failed to upload image');
       document.body.removeChild(input);
     }
@@ -882,12 +881,12 @@ function handleImageUpload(canvas: fabric.Canvas, x: number, y: number) {
 
   // Append to body (required for some browsers)
   document.body.appendChild(input);
-  console.log('File input appended to body');
+  log.info('File input appended to body');
 
   // Trigger the file input
-  console.log('Attempting to click file input...');
+  log.info('Attempting to click file input...');
   input.click();
-  console.log('File input clicked');
+  log.info('File input clicked');
 }
 
 // Helper function to create star points

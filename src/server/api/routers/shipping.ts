@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure, publicProcedure } from '../trpc/init';
 import { sekoClient } from '@/lib/seko/client';
@@ -100,7 +101,7 @@ export const shippingRouter = createTRPCRouter({
           request_id: input.production_order_id,
         };
       } catch (error) {
-        console.error('Error fetching shipping quotes:', error);
+        log.error('Error fetching shipping quotes:', { error });
         throw new Error('Failed to fetch shipping quotes from SEKO');
       }
     }),
@@ -224,7 +225,7 @@ export const shippingRouter = createTRPCRouter({
           items_count: orderedItems.length,
         };
       } catch (error) {
-        console.error('Error creating shipment:', error);
+        log.error('Error creating shipment:', { error });
         throw new Error('Failed to create shipment');
       }
     }),
@@ -259,7 +260,7 @@ export const shippingRouter = createTRPCRouter({
 
         return tracking;
       } catch (error) {
-        console.error('Error tracking shipment:', error);
+        log.error('Error tracking shipment:', { error });
         throw new Error('Failed to track shipment');
       }
     }),
@@ -324,7 +325,7 @@ export const shippingRouter = createTRPCRouter({
 
         return { label_url: labelUrl };
       } catch (error) {
-        console.error('Error fetching label:', error);
+        log.error('Error fetching label:', { error });
         throw new Error('Failed to fetch shipping label');
       }
     }),
@@ -518,7 +519,7 @@ export const shippingRouter = createTRPCRouter({
         };
       } catch (error) {
         // If SEKO API fails, return cached data from database
-        console.warn('Failed to fetch live tracking from SEKO, returning cached data:', error);
+        log.warn('Failed to fetch live tracking from SEKO, returning cached data:', error);
         return shipment;
       }
     }),

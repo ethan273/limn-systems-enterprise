@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { createClient } from '@supabase/supabase-js'
 // createBrowserClient import removed - not used in this file
 
@@ -10,7 +11,7 @@ export function getSupabaseAdmin() {
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
     // CRITICAL DEBUG: Log env var status in production
-    console.log('[getSupabaseAdmin] Environment check:', {
+    log.info('[getSupabaseAdmin] Environment check:', {
       hasUrl: !!supabaseUrl,
       urlValue: supabaseUrl ? `${supabaseUrl.substring(0, 30)}...` : 'MISSING',
       hasServiceKey: !!supabaseServiceKey,
@@ -41,7 +42,7 @@ export function getSupabaseAdmin() {
         'See VERCEL_DEPLOYMENT.md for detailed instructions',
       ].join('\n');
 
-      console.error(errorMessage);
+      log.error(errorMessage);
       throw new Error(
         `Supabase configuration missing: ${missingVars.join(', ')} are required for database operations. ` +
         `See VERCEL_DEPLOYMENT.md for setup instructions.`
@@ -66,13 +67,13 @@ export function getSupabaseAdmin() {
     // This runs only once when the client is first created
     ;(async () => {
       try {
-        console.log('[getSupabaseAdmin] Testing database connectivity...');
+        log.info('[getSupabaseAdmin] Testing database connectivity...');
 
         // Test 1: Can we query a table?
         const testQuery = await _adminClient!.from('orders').select('id').limit(1);
 
         if (testQuery.error) {
-          console.error('[getSupabaseAdmin] ❌ Database test FAILED:', {
+          log.error('[getSupabaseAdmin] ❌ Database test FAILED:', {
             code: testQuery.error.code,
             message: testQuery.error.message,
             details: testQuery.error.details,
@@ -81,27 +82,27 @@ export function getSupabaseAdmin() {
 
           // Check if it's a permission error
           if (testQuery.error.code === '42501') {
-            console.error('[getSupabaseAdmin] 🚨 PERMISSION DENIED ERROR:');
-            console.error('  This suggests the SUPABASE_SERVICE_ROLE_KEY may be incorrect.');
-            console.error('  The service role key should have full database access.');
-            console.error('  Please verify in Vercel Dashboard that:');
-            console.error('  1. SUPABASE_SERVICE_ROLE_KEY contains the SERVICE ROLE key (not the anon key)');
-            console.error('  2. The key is from the correct Supabase project');
-            console.error('  3. The key matches the NEXT_PUBLIC_SUPABASE_URL');
+            log.error('[getSupabaseAdmin] 🚨 PERMISSION DENIED ERROR:');
+            log.error('  This suggests the SUPABASE_SERVICE_ROLE_KEY may be incorrect.');
+            log.error('  The service role key should have full database access.');
+            log.error('  Please verify in Vercel Dashboard that:');
+            log.error('  1. SUPABASE_SERVICE_ROLE_KEY contains the SERVICE ROLE key (not the anon key)');
+            log.error('  2. The key is from the correct Supabase project');
+            log.error('  3. The key matches the NEXT_PUBLIC_SUPABASE_URL');
           }
 
           // Check if it's a "table not found" error
           if (testQuery.error.code === '42P01' || testQuery.error.message?.includes('does not exist')) {
-            console.error('[getSupabaseAdmin] 🚨 TABLE NOT FOUND ERROR:');
-            console.error('  The "orders" table does not exist in the database.');
-            console.error('  This suggests you may be pointing to the wrong Supabase project.');
-            console.error('  Please verify NEXT_PUBLIC_SUPABASE_URL points to the correct project.');
+            log.error('[getSupabaseAdmin] 🚨 TABLE NOT FOUND ERROR:');
+            log.error('  The "orders" table does not exist in the database.');
+            log.error('  This suggests you may be pointing to the wrong Supabase project.');
+            log.error('  Please verify NEXT_PUBLIC_SUPABASE_URL points to the correct project.');
           }
         } else {
-          console.log('[getSupabaseAdmin] ✅ Database test PASSED - successfully queried orders table');
+          log.info('[getSupabaseAdmin] ✅ Database test PASSED - successfully queried orders table');
         }
       } catch (testError) {
-        console.error('[getSupabaseAdmin] ❌ Database test threw exception:', testError);
+        log.error('[getSupabaseAdmin] ❌ Database test threw exception:', testError);
       }
     })();
   }

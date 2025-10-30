@@ -1,4 +1,5 @@
 'use client';
+import { log } from '@/lib/logger';
 
 /**
  * Data Error Boundary
@@ -63,10 +64,9 @@ export class DataErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // Log error to console in development
     if (process.env.NODE_ENV === 'development') {
-      console.error(
-        `[DataErrorBoundary${this.props.context ? ` - ${this.props.context}` : ''}]:`,
-        error,
-        errorInfo
+      log.error(
+        `[DataErrorBoundary${this.props.context ? ` - ${this.props.context}` : ''}]`,
+        { error, errorInfo }
       );
     }
 

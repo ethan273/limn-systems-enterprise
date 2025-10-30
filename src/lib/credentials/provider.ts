@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Credentials Provider
  *
@@ -66,7 +67,7 @@ export async function getCredentials(
         where: { service_name: serviceName },
         data: { last_used_at: new Date() },
       })
-      .catch((err) => console.error('Failed to update last_used_at:', err));
+      .catch((err) => log.error('Failed to update last_used_at:', { err }));
 
     // Cache the result
     credentialsCache.set(serviceName, {
@@ -76,7 +77,7 @@ export async function getCredentials(
 
     return decrypted;
   } catch (error) {
-    console.error(`Error getting credentials for ${serviceName}:`, error);
+    log.error(`Error getting credentials for ${serviceName}:`, { error });
     throw error;
   }
 }
@@ -115,7 +116,7 @@ export async function hasCredentials(serviceName: string): Promise<boolean> {
 
     return credential?.is_active || false;
   } catch (error) {
-    console.error(`Error checking credentials for ${serviceName}:`, error);
+    log.error(`Error checking credentials for ${serviceName}:`, { error });
     return false;
   }
 }

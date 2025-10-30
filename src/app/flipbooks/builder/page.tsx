@@ -3,6 +3,7 @@
 // Force dynamic rendering for this page (uses searchParams)
 export const dynamic = 'force-dynamic';
 
+import { log } from '@/lib/logger';
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 import { api } from "@/lib/api/client";
@@ -71,7 +72,7 @@ function FlipbookBuilderContent() {
   // DEBUG: Log query data
   useEffect(() => {
     if (flipbook) {
-      console.log("[Builder] Flipbook data loaded:", {
+      log.info("[Builder] Flipbook data loaded:", {
         id: flipbook.id,
         title: flipbook.title,
         pageCount: flipbook.page_count,
@@ -157,7 +158,7 @@ function FlipbookBuilderContent() {
       utils.flipbooks.get.invalidate();
     },
     onError: (error) => {
-      console.error("Failed to generate TOC:", error);
+      log.error("Failed to generate TOC:", { error });
     },
   });
 
@@ -255,7 +256,7 @@ function FlipbookBuilderContent() {
           }
         );
       } catch (error) {
-        console.error("Failed to auto-generate TOC:", error);
+        log.error("Failed to auto-generate TOC:", { error });
         toast.info("PDF uploaded successfully. TOC generation failed.", {
           description: "You can manually generate TOC in the TOC tab.",
         });

@@ -5,6 +5,7 @@
  */
 
 'use client';
+import { log } from '@/lib/logger';
 
 import { useState, useEffect, useCallback } from 'react';
 import {
@@ -58,7 +59,7 @@ export function useOfflineTasks() {
       const allTasks = await getAllTasks();
       setTasks(allTasks);
     } catch (err) {
-      console.error('[useOfflineTasks] Error loading tasks:', err);
+      log.error('[useOfflineTasks] Error loading tasks:', { error: err });
       setError(err instanceof Error ? err.message : 'Failed to load tasks');
     } finally {
       setLoading(false);
@@ -75,7 +76,7 @@ export function useOfflineTasks() {
     try {
       return await getTask(id);
     } catch (err) {
-      console.error('[useOfflineTasks] Error getting task:', err);
+      log.error('[useOfflineTasks] Error getting task:', { error: err });
       return undefined;
     }
   }, []);
@@ -85,7 +86,7 @@ export function useOfflineTasks() {
     try {
       return await getTasksByStatus(status);
     } catch (err) {
-      console.error('[useOfflineTasks] Error getting tasks by status:', err);
+      log.error('[useOfflineTasks] Error getting tasks by status:', { error: err });
       return [];
     }
   }, []);
@@ -95,7 +96,7 @@ export function useOfflineTasks() {
     try {
       return await getTasksByPriority(priority);
     } catch (err) {
-      console.error('[useOfflineTasks] Error getting tasks by priority:', err);
+      log.error('[useOfflineTasks] Error getting tasks by priority:', { error: err });
       return [];
     }
   }, []);
@@ -105,7 +106,7 @@ export function useOfflineTasks() {
     try {
       return await getPendingSyncTasks();
     } catch (err) {
-      console.error('[useOfflineTasks] Error getting pending sync tasks:', err);
+      log.error('[useOfflineTasks] Error getting pending sync tasks:', { error: err });
       return [];
     }
   }, []);
@@ -116,7 +117,7 @@ export function useOfflineTasks() {
       await saveTask(task);
       await loadTasks(); // Reload tasks
     } catch (err) {
-      console.error('[useOfflineTasks] Error saving task:', err);
+      log.error('[useOfflineTasks] Error saving task:', { error: err });
       throw err;
     }
   }, [loadTasks]);
@@ -128,7 +129,7 @@ export function useOfflineTasks() {
       await loadTasks(); // Reload tasks
       return newTask;
     } catch (err) {
-      console.error('[useOfflineTasks] Error creating task:', err);
+      log.error('[useOfflineTasks] Error creating task:', { error: err });
       throw err;
     }
   }, [loadTasks]);
@@ -139,7 +140,7 @@ export function useOfflineTasks() {
       await deleteTask(id);
       await loadTasks(); // Reload tasks
     } catch (err) {
-      console.error('[useOfflineTasks] Error deleting task:', err);
+      log.error('[useOfflineTasks] Error deleting task:', { error: err });
       throw err;
     }
   }, [loadTasks]);
@@ -150,7 +151,7 @@ export function useOfflineTasks() {
       await bulkSaveTasks(tasksToSave);
       await loadTasks(); // Reload tasks
     } catch (err) {
-      console.error('[useOfflineTasks] Error bulk saving tasks:', err);
+      log.error('[useOfflineTasks] Error bulk saving tasks:', { error: err });
       throw err;
     }
   }, [loadTasks]);
@@ -195,7 +196,7 @@ export function useFormDraft(formType: string, formId?: string) {
           setDraft(existingDraft);
         }
       } catch (err) {
-        console.error('[useFormDraft] Error loading draft:', err);
+        log.error('[useFormDraft] Error loading draft:', { error: err });
       } finally {
         setLoading(false);
       }
@@ -222,7 +223,7 @@ export function useFormDraft(formType: string, formId?: string) {
       await saveDraft(draftToSave);
       setDraft({ ...draftToSave, updatedAt: Date.now() });
     } catch (err) {
-      console.error('[useFormDraft] Error saving draft:', err);
+      log.error('[useFormDraft] Error saving draft:', { error: err });
       throw err;
     } finally {
       if (autoSave) {
@@ -242,7 +243,7 @@ export function useFormDraft(formType: string, formId?: string) {
       await deleteDraft(draftId);
       setDraft(null);
     } catch (err) {
-      console.error('[useFormDraft] Error deleting draft:', err);
+      log.error('[useFormDraft] Error deleting draft:', { error: err });
       throw err;
     }
   }, [draftId]);
@@ -270,7 +271,7 @@ export function useAllDrafts(formType?: string) {
       const allDrafts = formType ? await getDraftsByType(formType) : await getAllDrafts();
       setDrafts(allDrafts);
     } catch (err) {
-      console.error('[useAllDrafts] Error loading drafts:', err);
+      log.error('[useAllDrafts] Error loading drafts:', { error: err });
     } finally {
       setLoading(false);
     }
@@ -286,7 +287,7 @@ export function useAllDrafts(formType?: string) {
       await loadDrafts(); // Reload drafts
       return count;
     } catch (err) {
-      console.error('[useAllDrafts] Error clearing old drafts:', err);
+      log.error('[useAllDrafts] Error clearing old drafts:', { error: err });
       return 0;
     }
   }, [loadDrafts]);
@@ -343,7 +344,7 @@ export function useOfflineSettings(userId: string) {
           setSettings(defaultSettings);
         }
       } catch (err) {
-        console.error('[useOfflineSettings] Error loading settings:', err);
+        log.error('[useOfflineSettings] Error loading settings:', { error: err });
       } finally {
         setLoading(false);
       }
@@ -358,7 +359,7 @@ export function useOfflineSettings(userId: string) {
       await saveUserSettings(newSettings);
       setSettings(newSettings);
     } catch (err) {
-      console.error('[useOfflineSettings] Error saving settings:', err);
+      log.error('[useOfflineSettings] Error saving settings:', { error: err });
       throw err;
     }
   }, []);
@@ -368,7 +369,7 @@ export function useOfflineSettings(userId: string) {
     try {
       return await getSetting<T>(userId, key, defaultValue);
     } catch (err) {
-      console.error('[useOfflineSettings] Error getting setting:', err);
+      log.error('[useOfflineSettings] Error getting setting:', { error: err });
       return defaultValue;
     }
   }, [userId]);
@@ -382,7 +383,7 @@ export function useOfflineSettings(userId: string) {
         setSettings(updatedSettings);
       }
     } catch (err) {
-      console.error('[useOfflineSettings] Error updating setting:', err);
+      log.error('[useOfflineSettings] Error updating setting:', { error: err });
       throw err;
     }
   }, [userId]);
@@ -415,7 +416,7 @@ export function useSyncQueue() {
       const pendingQueue = await getPendingSyncQueue();
       setQueue(pendingQueue);
     } catch (err) {
-      console.error('[useSyncQueue] Error loading queue:', err);
+      log.error('[useSyncQueue] Error loading queue:', { error: err });
     } finally {
       setLoading(false);
     }
@@ -436,7 +437,7 @@ export function useSyncQueue() {
       await loadQueue(); // Reload queue
       return result;
     } catch (err) {
-      console.error('[useSyncQueue] Error processing queue:', err);
+      log.error('[useSyncQueue] Error processing queue:', { error: err });
       throw err;
     } finally {
       setSyncing(false);
@@ -449,7 +450,7 @@ export function useSyncQueue() {
       await clearSyncQueue();
       await loadQueue(); // Reload queue
     } catch (err) {
-      console.error('[useSyncQueue] Error clearing queue:', err);
+      log.error('[useSyncQueue] Error clearing queue:', { error: err });
       throw err;
     }
   }, [loadQueue]);
@@ -488,7 +489,7 @@ export function useStorageStats() {
       const storageStats = await getStorageStats();
       setStats(storageStats);
     } catch (err) {
-      console.error('[useStorageStats] Error loading stats:', err);
+      log.error('[useStorageStats] Error loading stats:', { error: err });
     } finally {
       setLoading(false);
     }
@@ -505,7 +506,7 @@ export function useStorageStats() {
       await clearAllOfflineData();
       await loadStats(); // Reload stats
     } catch (err) {
-      console.error('[useStorageStats] Error clearing all data:', err);
+      log.error('[useStorageStats] Error clearing all data:', { error: err });
       throw err;
     }
   }, [loadStats]);
@@ -545,7 +546,7 @@ export function useAutoSync(
       setSyncResult(result);
       setLastSync(new Date());
     } catch (err) {
-      console.error('[useAutoSync] Error during sync:', err);
+      log.error('[useAutoSync] Error during sync:', { error: err });
     } finally {
       setSyncing(false);
     }
@@ -559,7 +560,7 @@ export function useAutoSync(
 
     // Sync immediately when coming online
     const handleOnline = () => {
-      console.log('[useAutoSync] Connection restored, syncing...');
+      log.info('[useAutoSync] Connection restored, syncing...');
       sync();
     };
 

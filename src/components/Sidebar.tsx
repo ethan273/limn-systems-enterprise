@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 import Link from "next/link";
 import Image from "next/image";
@@ -60,7 +61,7 @@ export default function Sidebar() {
  // Debug logging for roles (can be removed after verification)
  useEffect(() => {
    if (!rolesLoading && roles.length > 0) {
-     console.log('[Sidebar] User roles loaded:', roles);
+     log.info('[Sidebar] User roles loaded:', roles);
    }
  }, [roles, rolesLoading]);
 
@@ -295,7 +296,7 @@ export default function Sidebar() {
 
  // Debug log for Admin module
  if (module.label === 'Admin') {
-   console.log('[Sidebar] Admin module check:', {
+   log.info('[Sidebar] Admin module check:', {
      allowedUserTypes: module.allowedUserTypes,
      userRoles: roles,
      hasRequiredRole,

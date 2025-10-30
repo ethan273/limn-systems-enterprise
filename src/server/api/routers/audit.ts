@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Audit Router - Activity & Security Logging
  *
@@ -99,7 +100,7 @@ export const auditRouter = createTRPCRouter({
       ]);
 
       // DEBUG: Log what we're returning
-      console.log('[AUDIT API] getAdminLogs returning:', {
+      log.info('[AUDIT API] getAdminLogs returning:', {
         count: logs.length,
         total,
         sample: logs.slice(0, 2).map(l => ({ action: l.action, user: l.user_email, date: l.created_at }))
@@ -349,7 +350,7 @@ export const auditRouter = createTRPCRouter({
           },
         });
       } catch (error) {
-        console.error('Error fetching admin actions:', error);
+        log.error('Error fetching admin actions:', { error });
       }
 
       // Group by action manually
@@ -383,7 +384,7 @@ export const auditRouter = createTRPCRouter({
           },
         });
       } catch (error) {
-        console.error('Error fetching user actions:', error);
+        log.error('Error fetching user actions:', { error });
       }
 
       // Group by user_email manually

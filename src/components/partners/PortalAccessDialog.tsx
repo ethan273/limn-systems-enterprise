@@ -1,4 +1,5 @@
 'use client';
+import { log } from '@/lib/logger';
 
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api/client';
@@ -116,7 +117,7 @@ export function PortalAccessDialog({
       });
     } catch (error) {
       // Error handled by mutation
-      console.error('Failed to assign portal access:', error);
+      log.error('Failed to assign portal access:', { error });
     }
   };
 

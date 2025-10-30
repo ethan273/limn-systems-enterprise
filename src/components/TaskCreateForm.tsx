@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 import { useState } from "react";
 import { api } from "@/lib/api/client";
@@ -70,7 +71,7 @@ export default function TaskCreateForm({ onSuccess, onCancel }: TaskCreateFormPr
  onSuccess?.();
  },
  onError: (error) => {
- console.error("Failed to create task:", error);
+ log.error("Failed to create task:", { error });
  toast.error(`Failed to create task: ${error.message}`);
  },
  });
@@ -81,7 +82,7 @@ export default function TaskCreateForm({ onSuccess, onCancel }: TaskCreateFormPr
    return;
  }
  if (!currentUserId) {
-   console.warn('Cannot submit task: user not loaded yet');
+   log.warn('Cannot submit task: user not loaded yet');
    return;
  }
 
@@ -107,7 +108,7 @@ export default function TaskCreateForm({ onSuccess, onCancel }: TaskCreateFormPr
  blocks: [],
  });
  } catch (error) {
- console.error("Error creating task:", error);
+ log.error("Error creating task:", { error });
  } finally {
  setIsSubmitting(false);
  }

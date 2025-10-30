@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
@@ -84,7 +85,7 @@ export async function exportToPDF(
     // Save PDF
     pdf.save(filename);
   } catch (error) {
-    console.error('Error exporting PDF:', error);
+    log.error('Error exporting PDF:', { error });
     throw error;
   }
 }

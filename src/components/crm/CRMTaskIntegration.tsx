@@ -1,4 +1,5 @@
 'use client';
+import { log } from '@/lib/logger';
 
 import React, { useState } from 'react';
 import { api } from '@/lib/api/client';
@@ -350,7 +351,7 @@ export function CRMTaskIntegration({
 
  const _handleLinkExistingTask = (_taskId: string, _taskTitle: string) => {
  // Note: This would link an existing task to the entity
- console.log('Linking task', _taskId, 'to entity', entityId);
+ log.info('Linking task to entity', { taskId: _taskId, entityId });
  };
 
  const handleUnlinkTask = (taskId: string) => {

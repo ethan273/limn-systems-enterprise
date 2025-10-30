@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Email Service using Resend API
  *
@@ -52,7 +53,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
   try {
     // Validate Resend API key
     if (!process.env.RESEND_API_KEY) {
-      console.error('[Email] RESEND_API_KEY not configured');
+      log.error('[Email] RESEND_API_KEY not configured');
       return {
         success: false,
         error: 'Email service not configured',
@@ -82,21 +83,21 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     const { data, error } = await resend.emails.send(emailOptions);
 
     if (error) {
-      console.error('[Email] Resend API error:', error);
+      log.error('[Email] Resend API error:', { error });
       return {
         success: false,
         error: error.message || 'Failed to send email',
       };
     }
 
-    console.log('[Email] ✅ Email sent successfully:', data?.id);
+    log.info('[Email] ✅ Email sent successfully:', data?.id);
 
     return {
       success: true,
       messageId: data?.id,
     };
   } catch (error) {
-    console.error('[Email] Error sending email:', error);
+    log.error('[Email] Error sending email:', { error });
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -145,7 +146,7 @@ export async function sendTemplateEmail(
       text,
     });
   } catch (error) {
-    console.error('[Email] Error sending template email:', error);
+    log.error('[Email] Error sending template email:', { error });
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -197,7 +198,7 @@ async function getEmailTemplate(templateId: string) {
 
     return template;
   } catch (error) {
-    console.error('[Email] Error fetching template:', error);
+    log.error('[Email] Error fetching template:', { error });
     return null;
   }
 }

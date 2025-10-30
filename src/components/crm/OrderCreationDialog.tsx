@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 import React, { useState } from "react";
 import { api } from "@/lib/api/client";
@@ -146,8 +147,8 @@ export function OrderCreationDialog({
 
   // Debug: Log materials data to understand structure
   if (availableMaterials && availableMaterials.length > 0) {
-    console.log('[OrderCreationDialog] Total materials available:', availableMaterials.length);
-    console.log('[OrderCreationDialog] Sample material:', availableMaterials[0]);
+    log.info('[OrderCreationDialog] Total materials available:', availableMaterials.length);
+    log.info('[OrderCreationDialog] Sample material:', availableMaterials[0]);
   }
 
   // Filter by material category using parent-child relationships

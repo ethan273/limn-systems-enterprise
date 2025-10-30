@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 import { Moon, Sun, Monitor } from "lucide-react";
 import { useTheme } from "@/components/providers/ThemeProvider";
@@ -35,11 +36,11 @@ export default function ThemeToggleDropdown() {
       >
         <DropdownMenuItem
           onClick={() => {
-            console.log('Light mode clicked!');
+            log.info('Light mode clicked!');
             setTheme("light");
           }}
           onSelect={() => {
-            console.log('Light mode selected!');
+            log.info('Light mode selected!');
             setTheme("light");
           }}
           className="cursor-pointer"
@@ -49,11 +50,11 @@ export default function ThemeToggleDropdown() {
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => {
-            console.log('Dark mode clicked!');
+            log.info('Dark mode clicked!');
             setTheme("dark");
           }}
           onSelect={() => {
-            console.log('Dark mode selected!');
+            log.info('Dark mode selected!');
             setTheme("dark");
           }}
           className="cursor-pointer"
@@ -63,11 +64,11 @@ export default function ThemeToggleDropdown() {
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => {
-            console.log('System mode clicked!');
+            log.info('System mode clicked!');
             setTheme("system");
           }}
           onSelect={() => {
-            console.log('System mode selected!');
+            log.info('System mode selected!');
             setTheme("system");
           }}
           className="cursor-pointer"

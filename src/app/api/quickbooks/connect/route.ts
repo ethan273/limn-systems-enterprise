@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { prisma } from '@/lib/db';
@@ -72,12 +73,12 @@ export async function GET(request: NextRequest) {
     authUrl.searchParams.set('scope', 'com.intuit.quickbooks.accounting');
     authUrl.searchParams.set('state', state);
 
-    console.log('[QuickBooks] Initiating OAuth flow for user:', user.id);
+    log.info('[QuickBooks] Initiating OAuth flow for user:', user.id);
 
     // Redirect to QuickBooks authorization page
     return NextResponse.redirect(authUrl.toString());
   } catch (error) {
-    console.error('[QuickBooks Connect] Error:', error);
+    log.error('[QuickBooks Connect] Error:', { error });
     return NextResponse.json(
       { error: 'Failed to initiate QuickBooks connection' },
       { status: 500 }

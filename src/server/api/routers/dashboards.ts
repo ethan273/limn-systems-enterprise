@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { z } from 'zod';
 /* eslint-disable security/detect-object-injection */
 // Object injection is disabled for this file because all object access is on Prisma-typed objects
@@ -753,7 +754,7 @@ export const dashboardsRouter = createTRPCRouter({
         }
 
         // Fetch all data (in-memory filtering to avoid Supabase timezone bug)
-        console.log('[getExecutive] Fetching data from database...');
+        log.info('[getExecutive] Fetching data from database...');
         const [
           allOrders,
           allInvoices,
@@ -773,7 +774,7 @@ export const dashboardsRouter = createTRPCRouter({
           ctx.db.production_orders.findMany(),
           ctx.db.shipments.findMany(),
         ]);
-        console.log('[getExecutive] Data fetched successfully', {
+        log.info('[getExecutive] Data fetched successfully', {
           orders: allOrders.length,
           invoices: allInvoices.length,
           payments: allPayments.length,
@@ -967,7 +968,7 @@ export const dashboardsRouter = createTRPCRouter({
         departments,
       };
       } catch (error: any) {
-        console.error('[getExecutive] CRITICAL ERROR:', {
+        log.error('[getExecutive] CRITICAL ERROR:', {
           message: error?.message,
           stack: error?.stack,
           name: error?.name,
@@ -992,7 +993,7 @@ export const dashboardsRouter = createTRPCRouter({
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
       // Fetch data for insights
-      console.log('[getExecutiveInsights] Fetching data from database...');
+      log.info('[getExecutiveInsights] Fetching data from database...');
 
       let allOrders, allInvoices, projects, tasks, productionOrders;
       try {
@@ -1003,9 +1004,9 @@ export const dashboardsRouter = createTRPCRouter({
           ctx.db.tasks.findMany(),
           ctx.db.production_orders.findMany(),
         ]);
-        console.log('[getExecutiveInsights] Data fetched successfully');
+        log.info('[getExecutiveInsights] Data fetched successfully');
       } catch (error: any) {
-        console.error('[getExecutiveInsights] Database fetch CRITICAL ERROR:', {
+        log.error('[getExecutiveInsights] Database fetch CRITICAL ERROR:', {
           message: error?.message,
           stack: error?.stack,
           envCheck: {

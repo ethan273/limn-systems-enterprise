@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import crypto from 'crypto';
 
 // Encryption configuration
@@ -48,7 +49,7 @@ export function encryptCredentials(credentials: Record<string, unknown>): string
 
     return combined.toString('base64');
   } catch (error) {
-    console.error('Encryption error:', error);
+    log.error('Encryption error:', { error });
     throw new Error('Failed to encrypt credentials');
   }
 }
@@ -76,7 +77,7 @@ export function decryptCredentials(encryptedData: string): Record<string, unknow
 
     return JSON.parse(decrypted) as Record<string, unknown>;
   } catch (error) {
-    console.error('Decryption error:', error);
+    log.error('Decryption error:', { error });
     throw new Error('Failed to decrypt credentials');
   }
 }

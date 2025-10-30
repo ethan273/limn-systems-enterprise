@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * RBAC System Comprehensive Test Suite
  *
@@ -58,9 +59,9 @@ describe('RBAC System Tests', () => {
       testUserId = testUser.id;
       testDataCreated = true;
 
-      console.log('[RBAC Test Setup] Created test user:', testUserEmail);
+      log.info('[RBAC Test Setup] Created test user:', testUserEmail);
     } catch (error) {
-      console.error('[RBAC Test Setup] Failed to create test data:', error);
+      log.error('[RBAC Test Setup] Failed to create test data:', error);
       testDataCreated = false;
     }
   });
@@ -80,9 +81,9 @@ describe('RBAC System Tests', () => {
 
       await prisma.$disconnect();
 
-      console.log('[RBAC Test Cleanup] Cleaned up test data');
+      log.info('[RBAC Test Cleanup] Cleaned up test data');
     } catch (error) {
-      console.error('[RBAC Test Cleanup] Failed to cleanup:', error);
+      log.error('[RBAC Test Cleanup] Failed to cleanup:', error);
     }
   });
 
@@ -100,7 +101,7 @@ describe('RBAC System Tests', () => {
   describe('Role Assignment', () => {
     it('should assign a role to a user', async () => {
       if (!testDataCreated) {
-        console.warn('[RBAC Test] Skipping - test data not created');
+        log.warn('[RBAC Test] Skipping - test data not created');
         return;
       }
 

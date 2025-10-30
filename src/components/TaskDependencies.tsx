@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 import { useState } from "react";
 import { api as _api } from "@/lib/api/client";
@@ -159,7 +160,7 @@ export default function TaskDependencies({ taskId, onUpdate }: TaskDependenciesP
  if (!selectedTaskId) return;
 
  // Here you would call the API to create the dependency
- console.log('Adding dependency:', {
+ log.info('Adding dependency:', {
  fromTaskId: dependencyType === 'depends_on' ? selectedTaskId : taskId,
  toTaskId: dependencyType === 'depends_on' ? taskId : selectedTaskId,
  type: dependencyType,
@@ -174,7 +175,7 @@ export default function TaskDependencies({ taskId, onUpdate }: TaskDependenciesP
  if (confirm("Are you sure you want to remove this dependency?")) {
  // Remove the dependency from the state
  setDependencies(prev => prev.filter(dep => dep.id !== dependencyId));
- console.log('Removing dependency:', dependencyId);
+ log.info('Removing dependency:', { dependencyId });
  onUpdate?.();
  }
  };

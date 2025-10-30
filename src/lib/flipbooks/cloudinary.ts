@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Cloudinary Integration for Flipbook PDF Processing
  *
@@ -53,7 +54,7 @@ export async function uploadPdfToCloudinary(
   filename: string
 ): Promise<CloudinaryUploadResult> {
   try {
-    console.log(`[Cloudinary] Uploading PDF: ${filename} for flipbook ${flipbookId}`);
+    log.info(`[Cloudinary] Uploading PDF: ${filename} for flipbook ${flipbookId}`);
 
     // Upload as base64 string
     const base64Pdf = `data:application/pdf;base64,${buffer.toString('base64')}`;
@@ -68,8 +69,8 @@ export async function uploadPdfToCloudinary(
       pages: true, // Extract page count
     });
 
-    console.log(`[Cloudinary] PDF uploaded successfully: ${result.secure_url}`);
-    console.log(`[Cloudinary] Pages detected: ${result.pages || 'unknown'}`);
+    log.info(`[Cloudinary] PDF uploaded successfully: ${result.secure_url}`);
+    log.info(`[Cloudinary] Pages detected: ${result.pages || 'unknown'}`);
 
     return {
       publicId: result.public_id,
@@ -82,7 +83,7 @@ export async function uploadPdfToCloudinary(
       pages: result.pages,
     };
   } catch (error: any) {
-    console.error('[Cloudinary] PDF upload failed:', error);
+    log.error('[Cloudinary] PDF upload failed:', error);
     throw new Error(`Cloudinary PDF upload failed: ${error.message}`);
   }
 }
@@ -101,7 +102,7 @@ export async function uploadImageToCloudinary(
   pageNumber: number
 ): Promise<CloudinaryUploadResult> {
   try {
-    console.log(`[Cloudinary] Uploading image for flipbook ${flipbookId}, page ${pageNumber}`);
+    log.info(`[Cloudinary] Uploading image for flipbook ${flipbookId}, page ${pageNumber}`);
 
     // Upload as base64 string
     const base64Image = `data:image/jpeg;base64,${buffer.toString('base64')}`;
@@ -117,7 +118,7 @@ export async function uploadImageToCloudinary(
       fetch_format: 'auto', // Serve WebP/AVIF to supported browsers
     });
 
-    console.log(`[Cloudinary] Image uploaded successfully: ${result.secure_url}`);
+    log.info(`[Cloudinary] Image uploaded successfully: ${result.secure_url}`);
 
     return {
       publicId: result.public_id,
@@ -129,7 +130,7 @@ export async function uploadImageToCloudinary(
       resourceType: result.resource_type,
     };
   } catch (error: any) {
-    console.error('[Cloudinary] Image upload failed:', error);
+    log.error('[Cloudinary] Image upload failed:', error);
     throw new Error(`Cloudinary image upload failed: ${error.message}`);
   }
 }
@@ -151,7 +152,7 @@ export async function extractPdfPages(
   _flipbookId: string
 ): Promise<CloudinaryPageExtractionResult[]> {
   try {
-    console.log(`[Cloudinary] Extracting ${pageCount} pages from PDF: ${pdfPublicId}`);
+    log.info(`[Cloudinary] Extracting ${pageCount} pages from PDF: ${pdfPublicId}`);
 
     const pages: CloudinaryPageExtractionResult[] = [];
 
@@ -186,14 +187,14 @@ export async function extractPdfPages(
         height: 1600, // Approximate, Cloudinary will maintain aspect ratio
       });
 
-      console.log(`[Cloudinary] Page ${pageNum} URL generated: ${pageUrl}`);
+      log.info(`[Cloudinary] Page ${pageNum} URL generated: ${pageUrl}`);
     }
 
-    console.log(`[Cloudinary] ✅ Extracted ${pages.length} pages from PDF`);
+    log.info(`[Cloudinary] ✅ Extracted ${pages.length} pages from PDF`);
 
     return pages;
   } catch (error: any) {
-    console.error('[Cloudinary] Page extraction failed:', error);
+    log.error('[Cloudinary] Page extraction failed:', error);
     throw new Error(`Cloudinary page extraction failed: ${error.message}`);
   }
 }
@@ -205,7 +206,7 @@ export async function extractPdfPages(
  */
 export async function deleteFlipbookResources(flipbookId: string): Promise<void> {
   try {
-    console.log(`[Cloudinary] Deleting resources for flipbook: ${flipbookId}`);
+    log.info(`[Cloudinary] Deleting resources for flipbook: ${flipbookId}`);
 
     // Delete all resources in the flipbook folder
     await cloudinary.api.delete_resources_by_prefix(`flipbooks/${flipbookId}`, {
@@ -216,9 +217,9 @@ export async function deleteFlipbookResources(flipbookId: string): Promise<void>
     // Delete the folder
     await cloudinary.api.delete_folder(`flipbooks/${flipbookId}`);
 
-    console.log(`[Cloudinary] ✅ Deleted resources for flipbook: ${flipbookId}`);
+    log.info(`[Cloudinary] ✅ Deleted resources for flipbook: ${flipbookId}`);
   } catch (error: any) {
-    console.error('[Cloudinary] Resource deletion failed:', error);
+    log.error('[Cloudinary] Resource deletion failed:', error);
     throw new Error(`Cloudinary resource deletion failed: ${error.message}`);
   }
 }
@@ -250,7 +251,7 @@ export async function getPdfMetadata(publicId: string): Promise<{
       bytes: result.bytes,
     };
   } catch (error: any) {
-    console.error('[Cloudinary] Get metadata failed:', error);
+    log.error('[Cloudinary] Get metadata failed:', error);
     throw new Error(`Cloudinary get metadata failed: ${error.message}`);
   }
 }

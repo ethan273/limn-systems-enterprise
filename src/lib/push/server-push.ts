@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Server-Side Push Notification Service
  *
@@ -20,7 +21,7 @@ function initializeVapid() {
   const vapidSubject = process.env.VAPID_SUBJECT || 'mailto:admin@limn.us.com';
 
   if (!vapidPublicKey || !vapidPrivateKey) {
-    console.warn('[Push] VAPID keys not configured - push notifications disabled');
+    log.warn('[Push] VAPID keys not configured - push notifications disabled');
     return false;
   }
 
@@ -79,7 +80,7 @@ export async function sendPushNotification(
   payload: PushNotificationPayload
 ): Promise<PushDeliveryResult> {
   if (!vapidConfigured) {
-    console.warn('[Push] VAPID not configured, skipping push notification');
+    log.warn('[Push] VAPID not configured, skipping push notification');
     return {
       userId,
       successful: 0,
@@ -98,7 +99,7 @@ export async function sendPushNotification(
     });
 
     if (subscriptions.length === 0) {
-      console.log(`[Push] No active subscriptions for user ${userId}`);
+      log.info(`[Push] No active subscriptions for user ${userId}`);
       return {
         userId,
         successful: 0,
@@ -107,7 +108,7 @@ export async function sendPushNotification(
       };
     }
 
-    console.log(`[Push] Sending to ${subscriptions.length} device(s) for user ${userId}`);
+    log.info(`[Push] Sending to ${subscriptions.length} device(s) for user ${userId}`);
 
     // Send to all user's devices
     const results = await Promise.allSettled(
@@ -131,7 +132,7 @@ export async function sendPushNotification(
 
           return { deviceId: subscription.device_id, success: true };
         } catch (error: any) {
-          console.error(`[Push] Failed to send to device ${subscription.device_id}:`, error);
+          log.error(`[Push] Failed to send to device ${subscription.device_id}:`, { error });
 
           // Handle subscription errors (expired, invalid, etc.)
           if (error.statusCode === 410 || error.statusCode === 404) {
@@ -140,7 +141,7 @@ export async function sendPushNotification(
               where: { id: subscription.id },
               data: { is_active: false },
             });
-            console.log(`[Push] Deactivated invalid subscription for device ${subscription.device_id}`);
+            log.info(`[Push] Deactivated invalid subscription for device ${subscription.device_id}`);
           }
 
           throw error;
@@ -161,7 +162,7 @@ export async function sendPushNotification(
         };
       });
 
-    console.log(`[Push] Delivery complete: ${successful} successful, ${failed} failed`);
+    log.info(`[Push] Delivery complete: ${successful} successful, ${failed} failed`);
 
     return {
       userId,
@@ -170,7 +171,7 @@ export async function sendPushNotification(
       errors,
     };
   } catch (error) {
-    console.error('[Push] Error sending push notification:', error);
+    log.error('[Push] Error sending push notification:', { error });
     throw error;
   }
 }
@@ -193,7 +194,7 @@ export async function sendPushNotificationToUsers(
   const totalSuccessful = results.reduce((sum, r) => sum + r.successful, 0);
   const totalFailed = results.reduce((sum, r) => sum + r.failed, 0);
 
-  console.log(`[Push] Batch delivery complete: ${totalSuccessful} successful, ${totalFailed} failed across ${userIds.length} users`);
+  log.info(`[Push] Batch delivery complete: ${totalSuccessful} successful, ${totalFailed} failed across ${userIds.length} users`);
 
   return results;
 }
@@ -215,7 +216,7 @@ export async function sendPushForDatabaseNotification(
     });
 
     if (!notification) {
-      console.error(`[Push] Notification ${notificationId} not found`);
+      log.error(`[Push] Notification ${notificationId} not found`);
       return null;
     }
 
@@ -241,7 +242,7 @@ export async function sendPushForDatabaseNotification(
 
     return result;
   } catch (error) {
-    console.error('[Push] Error sending push for database notification:', error);
+    log.error('[Push] Error sending push for database notification:', { error });
     return null;
   }
 }
@@ -270,10 +271,10 @@ export async function cleanupExpiredSubscriptions(): Promise<number> {
       },
     });
 
-    console.log(`[Push] Deactivated ${result.count} expired subscriptions`);
+    log.info(`[Push] Deactivated ${result.count} expired subscriptions`);
     return result.count;
   } catch (error) {
-    console.error('[Push] Error cleaning up subscriptions:', error);
+    log.error('[Push] Error cleaning up subscriptions:', { error });
     return 0;
   }
 }

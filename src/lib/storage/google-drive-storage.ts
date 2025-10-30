@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Google Drive Storage Integration
  *
@@ -88,7 +89,7 @@ export async function uploadToGoogleDrive(
       publicUrl: fileData.webViewLink || undefined,
     };
   } catch (error) {
-    console.error('Google Drive upload error:', error);
+    log.error('Google Drive upload error:', { error });
     return {
       success: false,
       storageType: 'google_drive',
@@ -113,7 +114,7 @@ export async function deleteFromGoogleDrive(
 
     return true;
   } catch (error) {
-    console.error('Google Drive delete error:', error);
+    log.error('Google Drive delete error:', { error });
     return false;
   }
 }
@@ -135,7 +136,7 @@ export async function getGoogleDriveFileMetadata(
 
     return response.data;
   } catch (error) {
-    console.error('Get file metadata error:', error);
+    log.error('Get file metadata error:', { error });
     return null;
   }
 }
@@ -151,7 +152,7 @@ export async function getGoogleDriveDownloadUrl(
     const metadata = await getGoogleDriveFileMetadata(fileId, accessToken);
     return metadata?.webContentLink || metadata?.webViewLink || null;
   } catch (error) {
-    console.error('Get download URL error:', error);
+    log.error('Get download URL error:', { error });
     return null;
   }
 }
@@ -175,7 +176,7 @@ export async function listGoogleDriveFiles(
 
     return response.data.files || [];
   } catch (error) {
-    console.error('List Google Drive files error:', error);
+    log.error('List Google Drive files error:', { error });
     return [];
   }
 }
@@ -202,7 +203,7 @@ export async function createGoogleDriveFolder(
 
     return response.data.id || null;
   } catch (error) {
-    console.error('Create folder error:', error);
+    log.error('Create folder error:', { error });
     return null;
   }
 }
@@ -241,7 +242,7 @@ export async function updateGoogleDrivePermissions(
 
     return true;
   } catch (error) {
-    console.error('Update permissions error:', error);
+    log.error('Update permissions error:', { error });
     return false;
   }
 }

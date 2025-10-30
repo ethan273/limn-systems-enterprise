@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Flipbook Analytics tRPC Router
  *
@@ -139,7 +140,7 @@ export const flipbookAnalyticsRouter = createTRPCRouter({
           eventId: event.id,
         };
       } catch (error) {
-        console.error('[ANALYTICS] Error tracking view:', error);
+        log.error('[ANALYTICS] Error tracking view:', { error });
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: error instanceof Error ? error.message : 'Failed to track view',
@@ -171,7 +172,7 @@ export const flipbookAnalyticsRouter = createTRPCRouter({
           eventId: event.id,
         };
       } catch (error) {
-        console.error('[ANALYTICS] Error tracking page turn:', error);
+        log.error('[ANALYTICS] Error tracking page turn:', { error });
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: error instanceof Error ? error.message : 'Failed to track page turn',
@@ -215,7 +216,7 @@ export const flipbookAnalyticsRouter = createTRPCRouter({
           eventId: event.id,
         };
       } catch (error) {
-        console.error('[ANALYTICS] Error tracking hotspot click:', error);
+        log.error('[ANALYTICS] Error tracking hotspot click:', { error });
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: error instanceof Error ? error.message : 'Failed to track hotspot click',
@@ -267,7 +268,7 @@ export const flipbookAnalyticsRouter = createTRPCRouter({
           eventId: viewEvent.id,
         };
       } catch (error) {
-        console.error('[ANALYTICS] Error tracking session end:', error);
+        log.error('[ANALYTICS] Error tracking session end:', { error });
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: error instanceof Error ? error.message : 'Failed to track session end',
@@ -326,7 +327,7 @@ export const flipbookAnalyticsRouter = createTRPCRouter({
           conversionId: conversion.id,
         };
       } catch (error) {
-        console.error('[ANALYTICS] Error recording conversion:', error);
+        log.error('[ANALYTICS] Error recording conversion:', { error });
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: error instanceof Error ? error.message : 'Failed to record conversion',
@@ -464,7 +465,7 @@ export const flipbookAnalyticsRouter = createTRPCRouter({
           periodClicks: hotspotAnalytics.reduce((sum, h) => sum + h.periodClicks, 0),
         };
       } catch (error) {
-        console.error('[ANALYTICS] Error getting hotspot analytics:', error);
+        log.error('[ANALYTICS] Error getting hotspot analytics:', { error });
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: error instanceof Error ? error.message : 'Failed to get hotspot analytics',
@@ -588,7 +589,7 @@ export const flipbookAnalyticsRouter = createTRPCRouter({
           })),
         };
       } catch (error) {
-        console.error('[ANALYTICS] Error getting session duration stats:', error);
+        log.error('[ANALYTICS] Error getting session duration stats:', { error });
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: error instanceof Error ? error.message : 'Failed to get session duration stats',
@@ -688,7 +689,7 @@ export const flipbookAnalyticsRouter = createTRPCRouter({
           conversionTrend,
         };
       } catch (error) {
-        console.error('[ANALYTICS] Error getting conversion metrics:', error);
+        log.error('[ANALYTICS] Error getting conversion metrics:', { error });
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: error instanceof Error ? error.message : 'Failed to get conversion metrics',

@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getUser } from '@/lib/auth/server';
@@ -13,20 +14,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('Upload API called');
+    log.info('Upload API called');
     const formData = await request.formData();
-    console.log('FormData entries:', Array.from(formData.entries()).map(([k, v]) => [k, typeof v]));
+    log.info('FormData entries:', Array.from(formData.entries()).map(([k, v]) => [k, typeof v]));
     const file = formData.get('file') as File;
 
     if (!file) {
-      console.error('No file in formData');
+      log.error('No file in formData');
       return NextResponse.json(
         { success: false, error: 'No file provided' },
         { status: 400 }
       );
     }
 
-    console.log('File received:', { name: file.name, type: file.type, size: file.size });
+    log.info('File received:', { name: file.name, type: file.type, size: file.size });
 
     // Validate file size (10MB limit for images)
     const maxSize = 10 * 1024 * 1024; // 10MB
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !supabaseServiceKey) {
-      console.error('Missing Supabase environment variables');
+      log.error('Missing Supabase environment variables');
       return NextResponse.json(
         { success: false, error: 'Server configuration error' },
         { status: 500 }
@@ -82,7 +83,7 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    console.log('Uploading to Supabase:', { filePath, size: buffer.length, contentType: file.type });
+    log.info('Uploading to Supabase:', { filePath, size: buffer.length, contentType: file.type });
 
     // Upload to Supabase Storage
     const { data, error } = await supabase.storage
@@ -94,14 +95,14 @@ export async function POST(request: NextRequest) {
       });
 
     if (error) {
-      console.error('Storage upload error:', error);
+      log.error('Storage upload error:', { error });
       return NextResponse.json(
         { success: false, error: error.message },
         { status: 400 }
       );
     }
 
-    console.log('Upload successful:', data);
+    log.info('Upload successful:', data);
 
     // Get public URL
     const { data: urlData } = supabase.storage
@@ -119,7 +120,7 @@ export async function POST(request: NextRequest) {
       }
     });
   } catch (error) {
-    console.error('Upload API error:', error);
+    log.error('Upload API error:', { error });
     return NextResponse.json(
       { success: false, error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }

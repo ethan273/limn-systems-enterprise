@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Permission Approval Service
  *
@@ -102,7 +103,7 @@ async function grantTemporaryPermission(
     },
   });
 
-  console.log(
+  log.info(
     `[Permission Approval] Granted permission scope ${scope.id} to user ${userId} (expires: ${expiresAt ? expiresAt.toISOString() : 'never'})`
   );
 }
@@ -137,7 +138,7 @@ async function notifyApprovers(
     .map((ur) => ur.users!);
 
   if (approvers.length === 0) {
-    console.warn(
+    log.warn(
       `[Permission Approval] No approvers found for request ${requestId}. No security_admin or admin users available.`
     );
     return;
@@ -155,13 +156,13 @@ async function notifyApprovers(
     select: { permission_name: true, permission_key: true },
   });
 
-  console.log(
+  log.info(
     `[Permission Approval] Notifying ${approvers.length} approvers about request ${requestId}`
   );
 
   // Log notification details for each approver
   approvers.forEach((approver) => {
-    console.log(
+    log.info(
       `[Permission Approval] Notification to ${approver.email}: ` +
         `User "${requester?.email || requesterId}" requested permission ` +
         `"${permission?.permission_name || permissionId}" (${permission?.permission_key || 'unknown'})` +
@@ -236,7 +237,7 @@ export async function requestPermission(
   });
 
   if (autoApproval.approved) {
-    console.log(`[Permission Approval] Auto-approved request ${request.id}: ${autoApproval.reason}`);
+    log.info(`[Permission Approval] Auto-approved request ${request.id}: ${autoApproval.reason}`);
 
     // Grant the permission automatically
     await grantTemporaryPermission(
@@ -248,7 +249,7 @@ export async function requestPermission(
       null // No approver for auto-approval
     );
   } else {
-    console.log(`[Permission Approval] Created permission request ${request.id} for ${requesterId}`);
+    log.info(`[Permission Approval] Created permission request ${request.id} for ${requesterId}`);
 
     // Notify approvers
     await notifyApprovers(request.id, permissionId, requesterId, options.reason);
@@ -324,7 +325,7 @@ export async function approveRequest(
     },
   });
 
-  console.log(`[Permission Approval] Approved request ${requestId} by ${approverId}`);
+  log.info(`[Permission Approval] Approved request ${requestId} by ${approverId}`);
 
   // Grant the permission
   await grantTemporaryPermission(
@@ -367,7 +368,7 @@ export async function denyRequest(
     },
   });
 
-  console.log(`[Permission Approval] Denied request ${requestId} by ${approverId}: ${reason}`);
+  log.info(`[Permission Approval] Denied request ${requestId} by ${approverId}: ${reason}`);
 }
 
 /**
@@ -400,7 +401,7 @@ export async function cancelRequest(
     },
   });
 
-  console.log(`[Permission Approval] Cancelled request ${requestId} by requester ${requesterId}`);
+  log.info(`[Permission Approval] Cancelled request ${requestId} by requester ${requesterId}`);
 }
 
 // ============================================

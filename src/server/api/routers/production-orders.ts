@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { z } from 'zod';
 import { createTRPCRouter, publicProcedure } from '../trpc/init';
 import { Prisma, PrismaClient } from '@prisma/client';
@@ -474,7 +475,7 @@ export const productionOrdersRouter = createTRPCRouter({
 
           if (isDuplicateKeyError && attempt < MAX_RETRIES) {
             // Log the retry attempt
-            console.warn(`[production-orders] Duplicate order number detected on attempt ${attempt}. Retrying...`);
+            log.warn(`[production-orders] Duplicate order number detected on attempt ${attempt}. Retrying...`);
             lastError = error;
             // Wait a short time before retrying (exponential backoff)
             await new Promise(resolve => setTimeout(resolve, 100 * attempt));
@@ -540,7 +541,7 @@ export const productionOrdersRouter = createTRPCRouter({
           actionLabel: 'View Order',
           channels: ['in_app', 'google_chat'],
         }).catch((error) => {
-          console.error('[Production Orders] Failed to send completion notification:', error);
+          log.error('[Production Orders] Failed to send completion notification:', error);
         });
 
         return {
@@ -560,7 +561,7 @@ export const productionOrdersRouter = createTRPCRouter({
         actionLabel: 'View Order',
         channels: ['in_app'],
       }).catch((error) => {
-        console.error('[Production Orders] Failed to send status update notification:', error);
+        log.error('[Production Orders] Failed to send status update notification:', error);
       });
 
       return {

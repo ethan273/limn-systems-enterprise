@@ -1,4 +1,5 @@
 'use client';
+import { log } from '@/lib/logger';
 
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
@@ -53,7 +54,7 @@ export default function AdminApprovalDashboard() {
       const data = await response.json();
       setSignUps(data.signUps);
     } catch (error) {
-      console.error('Error fetching sign-ups:', error);
+      log.error('Error fetching sign-ups:', { error });
       toast({
         title: 'Error',
         description: 'Failed to load sign-up requests',
@@ -108,7 +109,7 @@ export default function AdminApprovalDashboard() {
       setAction(null);
       setReviewerNotes('');
     } catch (error) {
-      console.error('Error processing sign-up:', error);
+      log.error('Error processing sign-up:', { error });
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to process sign-up',

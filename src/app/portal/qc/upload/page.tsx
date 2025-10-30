@@ -1,4 +1,5 @@
 'use client';
+import { log } from '@/lib/logger';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -114,7 +115,7 @@ export default function QCUploadPage() {
           });
 
         if (error) {
-          console.error('Upload error:', error);
+          log.error('Upload error:', { error });
           throw error;
         }
 
@@ -151,7 +152,7 @@ export default function QCUploadPage() {
         setUploadProgress(0);
       }, 5000);
     } catch (error) {
-      console.error('Upload error:', error);
+      log.error('Upload error:', { error });
       setUploadError(error instanceof Error ? error.message : 'Upload failed');
     } finally {
       setUploading(false);
@@ -496,6 +497,7 @@ export default function QCUploadPage() {
           </DialogHeader>
           <div className="overflow-auto max-h-[70vh]">
             {previewDialog.type === 'image' && previewDialog.url && (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={previewDialog.url}
                 alt="Document preview"

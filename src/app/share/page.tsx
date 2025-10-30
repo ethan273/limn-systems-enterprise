@@ -5,6 +5,7 @@
  */
 
 'use client';
+import { log } from '@/lib/logger';
 
 import React, { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -86,7 +87,7 @@ function ShareTargetContent() {
       // Navigate to the appropriate page
       router.push(route);
     } catch (error) {
-      console.error('[Share] Error handling shared content:', error);
+      log.error('[Share] Error handling shared content:', { error });
       setUploading(false);
     }
   };

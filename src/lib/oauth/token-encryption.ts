@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * OAuth Token Encryption Utility
  *
@@ -98,7 +99,7 @@ export function validateEncryption(): boolean {
     const decrypted = decryptToken(encrypted);
     return testToken === decrypted;
   } catch (error) {
-    console.error('Encryption validation failed:', error);
+    log.error('Encryption validation failed:', { error });
     return false;
   }
 }

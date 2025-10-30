@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * AWS Secrets Manager Integration
  *
@@ -84,7 +85,7 @@ export async function createAWSSecret(options: CreateSecretOptions): Promise<str
 
     return response.ARN!;
   } catch (error) {
-    console.error('[AWS Secrets Manager] Error creating secret:', error);
+    log.error('[AWS Secrets Manager] Error creating secret:', { error });
     throw new Error(`Failed to create AWS secret: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
@@ -103,7 +104,7 @@ export async function getAWSSecret(secretId: string): Promise<Record<string, unk
 
     return JSON.parse(response.SecretString);
   } catch (error) {
-    console.error('[AWS Secrets Manager] Error retrieving secret:', error);
+    log.error('[AWS Secrets Manager] Error retrieving secret:', { error });
     throw new Error(`Failed to retrieve AWS secret: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
@@ -123,7 +124,7 @@ export async function updateAWSSecret(
 
     await getClient().send(command);
   } catch (error) {
-    console.error('[AWS Secrets Manager] Error updating secret:', error);
+    log.error('[AWS Secrets Manager] Error updating secret:', { error });
     throw new Error(`Failed to update AWS secret: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
@@ -141,7 +142,7 @@ export async function deleteAWSSecret(secretId: string, forceDelete = false): Pr
 
     await getClient().send(command);
   } catch (error) {
-    console.error('[AWS Secrets Manager] Error deleting secret:', error);
+    log.error('[AWS Secrets Manager] Error deleting secret:', { error });
     throw new Error(`Failed to delete AWS secret: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
@@ -171,7 +172,7 @@ export async function getAWSSecretMetadata(secretId: string) {
       }, {} as Record<string, string>),
     };
   } catch (error) {
-    console.error('[AWS Secrets Manager] Error getting secret metadata:', error);
+    log.error('[AWS Secrets Manager] Error getting secret metadata:', { error });
     throw new Error(`Failed to get AWS secret metadata: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
@@ -192,11 +193,11 @@ export async function enableAutomaticRotation(
     });
 
     await getClient().send(command);
-    console.log(`[AWS Secrets Manager] Enabled automatic rotation for ${secretId} (every ${rotationDays} days)`);
+    log.info(`[AWS Secrets Manager] Enabled automatic rotation for ${secretId} (every ${rotationDays} days)`);
   } catch (error) {
-    console.error('[AWS Secrets Manager] Error enabling rotation:', error);
+    log.error('[AWS Secrets Manager] Error enabling rotation:', { error });
     // Don't throw - rotation is optional
-    console.warn('Automatic rotation could not be enabled. You may need to set up a Lambda rotation function.');
+    log.warn('Automatic rotation could not be enabled. You may need to set up a Lambda rotation function.');
   }
 }
 
@@ -212,7 +213,7 @@ export async function rotateAWSSecretNow(secretId: string): Promise<void> {
 
     await getClient().send(command);
   } catch (error) {
-    console.error('[AWS Secrets Manager] Error rotating secret:', error);
+    log.error('[AWS Secrets Manager] Error rotating secret:', { error });
     throw new Error(`Failed to rotate AWS secret: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
@@ -252,7 +253,7 @@ export async function listAWSSecrets(prefix?: string) {
       })) || []
     );
   } catch (error) {
-    console.error('[AWS Secrets Manager] Error listing secrets:', error);
+    log.error('[AWS Secrets Manager] Error listing secrets:', { error });
     throw new Error(`Failed to list AWS secrets: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }

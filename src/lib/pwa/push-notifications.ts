@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 interface PushSubscriptionData {
   endpoint: string;
@@ -33,23 +34,23 @@ class PushNotificationManager {
     // Only request if not already granted or denied
     if (Notification.permission === 'default') {
       // Show custom prompt instead of browser default
-      console.log('[Push] User interaction detected - ready to request permission');
+      log.info('[Push] User interaction detected - ready to request permission');
     }
   }
 
   async requestPermission(): Promise<NotificationPermission> {
     if (!('Notification' in window)) {
-      console.error('Notifications not supported');
+      log.error('Notifications not supported');
       return 'denied';
     }
 
     const permission = await Notification.requestPermission();
 
     if (permission === 'granted') {
-      console.log('[Push] Notification permission granted');
+      log.info('[Push] Notification permission granted');
       await this.subscribeUser();
     } else {
-      console.log('[Push] Notification permission denied');
+      log.info('[Push] Notification permission denied');
     }
 
     return permission;
@@ -57,7 +58,7 @@ class PushNotificationManager {
 
   async subscribeUser(): Promise<PushSubscriptionData | null> {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      console.error('Push notifications not supported');
+      log.error('Push notifications not supported');
       return null;
     }
 
@@ -73,7 +74,7 @@ class PushNotificationManager {
         const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
 
         if (!vapidPublicKey) {
-          console.warn('[Push] VAPID public key not configured');
+          log.warn('[Push] VAPID public key not configured');
           return null;
         }
 
@@ -89,10 +90,10 @@ class PushNotificationManager {
       // Send subscription to server
       await this.sendSubscriptionToServer(subscriptionData);
 
-      console.log('[Push] User subscribed:', subscriptionData);
+      log.info('[Push] User subscribed:', subscriptionData);
       return subscriptionData;
     } catch (error) {
-      console.error('[Push] Failed to subscribe user:', error);
+      log.error('[Push] Failed to subscribe user:', { error });
       return null;
     }
   }
@@ -112,13 +113,13 @@ class PushNotificationManager {
         // Notify server to remove subscription
         await this.removeSubscriptionFromServer(this.extractSubscriptionData(subscription));
 
-        console.log('[Push] User unsubscribed');
+        log.info('[Push] User unsubscribed');
         return true;
       }
 
       return false;
     } catch (error) {
-      console.error('[Push] Failed to unsubscribe user:', error);
+      log.error('[Push] Failed to unsubscribe user:', { error });
       return false;
     }
   }
@@ -144,7 +145,7 @@ class PushNotificationManager {
 
       return { isSubscribed: false, subscription: null };
     } catch (error) {
-      console.error('[Push] Failed to get subscription status:', error);
+      log.error('[Push] Failed to get subscription status:', { error });
       return { isSubscribed: false, subscription: null };
     }
   }
@@ -176,7 +177,7 @@ class PushNotificationManager {
     }
   ): Promise<void> {
     if (!('serviceWorker' in navigator)) {
-      console.warn('[Push] Service Worker not available');
+      log.warn('[Push] Service Worker not available');
       return;
     }
 
@@ -194,7 +195,7 @@ class PushNotificationManager {
         requireInteraction: options.requireInteraction || false,
       } as NotificationOptions);
     } catch (error) {
-      console.error('[Push] Error showing action notification:', error);
+      log.error('[Push] Error showing action notification:', { error });
     }
   }
 
@@ -286,7 +287,7 @@ class PushNotificationManager {
         ] as any,
       } as NotificationOptions);
     } catch (error) {
-      console.error('[Push] Error showing grouped notification:', error);
+      log.error('[Push] Error showing grouped notification:', { error });
     }
   }
 
@@ -312,10 +313,10 @@ class PushNotificationManager {
       });
 
       if (!response.ok) {
-        console.error('[Push] Failed to save subscription to server');
+        log.error('[Push] Failed to save subscription to server');
       }
     } catch (error) {
-      console.error('[Push] Error sending subscription to server:', error);
+      log.error('[Push] Error sending subscription to server:', { error });
     }
   }
 
@@ -330,10 +331,10 @@ class PushNotificationManager {
       });
 
       if (!response.ok) {
-        console.error('[Push] Failed to remove subscription from server');
+        log.error('[Push] Failed to remove subscription from server');
       }
     } catch (error) {
-      console.error('[Push] Error removing subscription from server:', error);
+      log.error('[Push] Error removing subscription from server:', { error });
     }
   }
 

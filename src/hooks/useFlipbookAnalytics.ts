@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * useFlipbookAnalytics Hook
  *
@@ -54,12 +55,12 @@ export function useFlipbookAnalytics({
           referrer: document.referrer || undefined,
         });
 
-        console.log('[Analytics] View tracked:', {
+        log.info('[Analytics] View tracked:', {
           flipbookId,
           sessionId: sessionIdRef.current,
         });
       } catch (error) {
-        console.error('[Analytics] Failed to track view:', error);
+        log.error('[Analytics] Failed to track view:', { error });
       }
     };
 
@@ -88,7 +89,7 @@ export function useFlipbookAnalytics({
         durationSeconds,
       });
 
-      console.log('[Analytics] Session ended:', {
+      log.info('[Analytics] Session ended:', {
         flipbookId,
         sessionId,
         durationSeconds,
@@ -111,13 +112,13 @@ export function useFlipbookAnalytics({
           pageNumber,
         });
 
-        console.log('[Analytics] Page turn tracked:', {
+        log.info('[Analytics] Page turn tracked:', {
           flipbookId,
           sessionId: sessionIdRef.current,
           pageNumber,
         });
       } catch (error) {
-        console.error('[Analytics] Failed to track page turn:', error);
+        log.error('[Analytics] Failed to track page turn:', { error });
       }
     },
     [enabled, flipbookId, trackPageTurnMutation]
@@ -138,14 +139,14 @@ export function useFlipbookAnalytics({
           pageNumber,
         });
 
-        console.log('[Analytics] Hotspot click tracked:', {
+        log.info('[Analytics] Hotspot click tracked:', {
           flipbookId,
           sessionId: sessionIdRef.current,
           hotspotId,
           pageNumber,
         });
       } catch (error) {
-        console.error('[Analytics] Failed to track hotspot click:', error);
+        log.error('[Analytics] Failed to track hotspot click:', { error });
       }
     },
     [enabled, flipbookId, trackHotspotClickMutation]

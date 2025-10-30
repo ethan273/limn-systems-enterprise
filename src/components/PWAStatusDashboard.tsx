@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 import { useEffect, useState } from 'react';
 import { Wifi, WifiOff, Download, Bell, Database, Clock } from 'lucide-react';
@@ -99,7 +100,7 @@ export function PWAStatusDashboard() {
             caches: cacheData,
           };
         } catch (error) {
-          console.error('Error getting cache stats:', error);
+          log.error('Error getting cache stats:', { error });
         }
       }
 

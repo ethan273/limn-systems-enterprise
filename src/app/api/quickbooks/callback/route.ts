@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
 // import { createClient } from '@/lib/supabase/server'; // Unused - auth handled via oauth_states table
 import { prisma } from '@/lib/db';
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
 
     // Handle user cancellation
     if (error) {
-      console.log('[QuickBooks Callback] User cancelled authorization:', error);
+      log.info('[QuickBooks Callback] User cancelled authorization:', { error });
       return NextResponse.redirect(
         new URL('/admin/integrations/quickbooks?error=cancelled', request.url)
       );
@@ -42,7 +43,7 @@ export async function GET(request: NextRequest) {
 
     // Validate required parameters
     if (!code || !state || !realmId) {
-      console.error('[QuickBooks Callback] Missing required parameters');
+      log.error('[QuickBooks Callback] Missing required parameters');
       return NextResponse.redirect(
         new URL('/admin/integrations/quickbooks?error=missing_params', request.url)
       );
@@ -62,7 +63,7 @@ export async function GET(request: NextRequest) {
     const oauthState = oauthStateArray.length > 0 ? oauthStateArray[0] : null;
 
     if (!oauthState) {
-      console.error('[QuickBooks Callback] Invalid or expired state token');
+      log.error('[QuickBooks Callback] Invalid or expired state token');
       return NextResponse.redirect(
         new URL('/admin/integrations/quickbooks?error=invalid_state', request.url)
       );
@@ -87,7 +88,7 @@ export async function GET(request: NextRequest) {
 
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.json();
-      console.error('[QuickBooks Callback] Token exchange failed:', errorData);
+      log.error('[QuickBooks Callback] Token exchange failed:', errorData);
       return NextResponse.redirect(
         new URL('/admin/integrations/quickbooks?error=token_exchange_failed', request.url)
       );
@@ -117,7 +118,7 @@ export async function GET(request: NextRequest) {
         companyName = companyData.CompanyInfo?.CompanyName || companyName;
       }
     } catch (error) {
-      console.warn('[QuickBooks Callback] Failed to fetch company name:', error);
+      log.warn('[QuickBooks Callback] Failed to fetch company name:', { error });
     }
 
     // Store connection in database
@@ -182,7 +183,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    console.log('[QuickBooks Callback] Successfully connected to QuickBooks:', {
+    log.info('[QuickBooks Callback] Successfully connected to QuickBooks:', {
       userId: oauthState.user_id,
       realmId,
       companyName,
@@ -192,7 +193,7 @@ export async function GET(request: NextRequest) {
     const redirectUrl = (oauthState as any).redirect_url || '/admin/integrations/quickbooks';
     return NextResponse.redirect(new URL(`${redirectUrl}?success=true`, request.url));
   } catch (error) {
-    console.error('[QuickBooks Callback] Unexpected error:', error);
+    log.error('[QuickBooks Callback] Unexpected error:', { error });
     return NextResponse.redirect(
       new URL('/admin/integrations/quickbooks?error=unexpected', request.url)
     );

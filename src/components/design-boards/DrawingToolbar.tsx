@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 import { MousePointer2, Pencil, Square, Circle, Type, StickyNote, Minus, Eraser, ZoomIn, ZoomOut, Image, ArrowRight, Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight, Triangle, Star, Hexagon, Diamond, Columns } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -164,11 +165,11 @@ export function DrawingToolbar({ canvas }: DrawingToolbarProps) {
   // Handle image upload directly when button is clicked
   const handleImageUploadClick = () => {
     if (!canvas) {
-      console.error('Canvas not ready');
+      log.error('Canvas not ready');
       return;
     }
 
-    console.log('Image button clicked, opening file dialog...');
+    log.info('Image button clicked, opening file dialog...');
 
     // Create a hidden file input
     const input = document.createElement('input');
@@ -177,7 +178,7 @@ export function DrawingToolbar({ canvas }: DrawingToolbarProps) {
     input.style.display = 'none';
 
     input.onchange = async (e) => {
-      console.log('File selected');
+      log.info('File selected');
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) {
         document.body.removeChild(input);
@@ -213,7 +214,7 @@ export function DrawingToolbar({ canvas }: DrawingToolbarProps) {
             toast.success('Image added successfully');
             document.body.removeChild(input);
           }).catch((error) => {
-            console.error('Failed to load image:', error);
+            log.error('Failed to load image:', { error });
             toast.error('Failed to load image');
             document.body.removeChild(input);
           });
@@ -226,7 +227,7 @@ export function DrawingToolbar({ canvas }: DrawingToolbarProps) {
 
         reader.readAsDataURL(file);
       } catch (error) {
-        console.error('Image upload error:', error);
+        log.error('Image upload error:', { error });
         const { toast } = await import('sonner');
         toast.error('Failed to upload image');
         document.body.removeChild(input);
@@ -234,7 +235,7 @@ export function DrawingToolbar({ canvas }: DrawingToolbarProps) {
     };
 
     document.body.appendChild(input);
-    console.log('File input appended, clicking...');
+    log.info('File input appended, clicking...');
     input.click();
   };
 

@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * QC Mobile tRPC Router
  *
@@ -277,7 +278,7 @@ export const qcRouter = createTRPCRouter({
             factoryId,
             notes: input.notes,
           }).catch((error) => {
-            console.error('[QC] Failed to send QC failure notification:', error);
+            log.error('[QC] Failed to send QC failure notification:', error);
           });
         }
       }
@@ -297,7 +298,7 @@ export const qcRouter = createTRPCRouter({
           actionLabel: 'Review QC Report',
           channels: ['in_app', 'google_chat'],
         }).catch((error) => {
-          console.error('[QC] Failed to send QC on-hold notification:', error);
+          log.error('[QC] Failed to send QC on-hold notification:', error);
         });
       }
 

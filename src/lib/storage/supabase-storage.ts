@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Supabase Storage Integration
  *
@@ -49,7 +50,7 @@ export async function uploadToSupabase(
       });
 
     if (error) {
-      console.error('Supabase upload error:', error);
+      log.error('Supabase upload error:', { error });
       return {
         success: false,
         storageType: 'supabase',
@@ -69,7 +70,7 @@ export async function uploadToSupabase(
       publicUrl: urlData.publicUrl,
     };
   } catch (error) {
-    console.error('Supabase upload exception:', error);
+    log.error('Supabase upload exception:', { error });
     return {
       success: false,
       storageType: 'supabase',
@@ -91,13 +92,13 @@ export async function deleteFromSupabase(
       .remove([path]);
 
     if (error) {
-      console.error('Supabase delete error:', error);
+      log.error('Supabase delete error:', { error });
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error('Supabase delete exception:', error);
+    log.error('Supabase delete exception:', { error });
     return false;
   }
 }
@@ -116,7 +117,7 @@ export async function getSupabaseUrl(
 
     return data.publicUrl;
   } catch (error) {
-    console.error('Supabase get URL exception:', error);
+    log.error('Supabase get URL exception:', { error });
     return null;
   }
 }
@@ -135,13 +136,13 @@ export async function createSignedUrl(
       .createSignedUrl(path, expiresIn);
 
     if (error) {
-      console.error('Create signed URL error:', error);
+      log.error('Create signed URL error:', { error });
       return null;
     }
 
     return data.signedUrl;
   } catch (error) {
-    console.error('Create signed URL exception:', error);
+    log.error('Create signed URL exception:', { error });
     return null;
   }
 }
@@ -159,13 +160,13 @@ export async function listSupabaseFiles(
       .list(folder);
 
     if (error) {
-      console.error('List files error:', error);
+      log.error('List files error:', { error });
       return [];
     }
 
     return data || [];
   } catch (error) {
-    console.error('List files exception:', error);
+    log.error('List files exception:', { error });
     return [];
   }
 }
@@ -187,14 +188,14 @@ export async function ensureBucketExists(bucket: string): Promise<boolean> {
       });
 
       if (error) {
-        console.error('Create bucket error:', error);
+        log.error('Create bucket error:', { error });
         return false;
       }
     }
 
     return true;
   } catch (error) {
-    console.error('Ensure bucket exception:', error);
+    log.error('Ensure bucket exception:', { error });
     return false;
   }
 }

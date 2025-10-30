@@ -1,4 +1,5 @@
 'use client';
+import { log } from '@/lib/logger';
 
 import { useEffect, useState } from 'react';
 
@@ -23,7 +24,7 @@ export function ServiceWorkerRegistration() {
     const pwaEnabled = process.env.NEXT_PUBLIC_ENABLE_PWA === 'true';
 
     if (isDevelopment && !pwaEnabled) {
-      console.log('[SW] Service worker disabled in development mode');
+      log.info('[SW] Service worker disabled in development mode');
       return;
     }
 
@@ -38,7 +39,7 @@ export function ServiceWorkerRegistration() {
 
         if (!isSubscribed) return;
 
-        console.log('[SW] Service worker registered successfully:', reg);
+        log.info('[SW] Service worker registered successfully:', reg);
         setRegistration(reg);
 
         // Check for updates
@@ -46,11 +47,11 @@ export function ServiceWorkerRegistration() {
           const newWorker = reg.installing;
           if (!newWorker) return;
 
-          console.log('[SW] New service worker found, installing...');
+          log.info('[SW] New service worker found, installing...');
 
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              console.log('[SW] New service worker installed, ready to activate');
+              log.info('[SW] New service worker installed, ready to activate');
               // Could show update notification here
             }
           });
@@ -58,17 +59,17 @@ export function ServiceWorkerRegistration() {
 
         // Check for updates on load
         reg.update().catch((err) => {
-          console.warn('[SW] Update check failed:', err);
+          log.warn('[SW] Update check failed:', { error: err });
         });
 
         // Check for updates every hour
         setInterval(() => {
           reg.update().catch((err) => {
-            console.warn('[SW] Periodic update check failed:', err);
+            log.warn('[SW] Periodic update check failed:', { error: err });
           });
         }, 60 * 60 * 1000);
       } catch (error) {
-        console.error('[SW] Service worker registration failed:', error);
+        log.error('[SW] Service worker registration failed:', { error });
       }
     };
 
@@ -77,13 +78,13 @@ export function ServiceWorkerRegistration() {
       e.preventDefault();
       const installEvent = e as BeforeInstallPromptEvent;
       setInstallPrompt(installEvent);
-      console.log('[PWA] Install prompt captured');
+      log.info('[PWA] Install prompt captured');
     };
 
     // Handle successful installation
     const handleAppInstalled = () => {
       setInstallPrompt(null);
-      console.log('[PWA] App installed successfully');
+      log.info('[PWA] App installed successfully');
     };
 
     // Add event listeners

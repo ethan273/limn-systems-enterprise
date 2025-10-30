@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 /**
  * File Uploader Component
@@ -88,7 +89,7 @@ export function FileUploader({
         await uploadImagesToAPI();
       }
     } catch (error: any) {
-      console.error("Upload error:", error);
+      log.error("Upload error:", error);
 
       setUploadFiles((prev) =>
         prev.map((f) => ({
@@ -168,7 +169,7 @@ export function FileUploader({
       xhr.send(formData);
     });
 
-    console.log("[Cloudinary Upload] Complete:", cloudinaryUpload);
+    log.info("[Cloudinary Upload] Complete:", cloudinaryUpload);
 
     // Step 3: Trigger page extraction on our backend
     setUploadFiles((prev) =>

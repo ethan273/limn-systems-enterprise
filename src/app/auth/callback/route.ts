@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { createServerClient } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
@@ -31,10 +32,10 @@ async function logLoginAttempt(params: {
       login_time: new Date().toISOString(),
     });
 
-    console.log(`[Auth Callback] ✅ Logged login attempt: ${params.email} - ${params.success ? 'SUCCESS' : 'FAILED'}`);
+    log.info(`[Auth Callback] ✅ Logged login attempt: ${params.email} - ${params.success ? 'SUCCESS' : 'FAILED'}`);
   } catch (error) {
     // Don't fail auth if logging fails
-    console.error('[Auth Callback] Failed to log login attempt:', error);
+    log.error('[Auth Callback] Failed to log login attempt:', { error });
   }
 }
 
@@ -48,7 +49,7 @@ async function provisionUserProfile(
   userMetadata?: { full_name?: string; avatar_url?: string; name?: string }
 ) {
   if (!email) {
-    console.warn('[Auth Callback] No email provided for user profile provisioning');
+    log.warn('[Auth Callback] No email provided for user profile provisioning');
     return;
   }
 
@@ -87,22 +88,22 @@ async function provisionUserProfile(
           .single();
 
         if (updateError) {
-          console.error('[Auth Callback] Error updating user profile:', updateError);
+          log.error('[Auth Callback] Error updating user profile:', updateError);
           return existingProfile;
         }
 
-        console.log(`[Auth Callback] ✅ Updated user profile from OAuth`);
-        console.log(`[Auth Callback]    Email: ${email}`);
-        console.log(`[Auth Callback]    Name: ${(updatedProfile as any).name} ${updateData.name ? '(updated from OAuth)' : ''}`);
-        console.log(`[Auth Callback]    Role: ${(updatedProfile as any).user_type} (preserved)`);
-        console.log(`[Auth Callback]    Department: ${(updatedProfile as any).department} (preserved)`);
+        log.info(`[Auth Callback] ✅ Updated user profile from OAuth`);
+        log.info(`[Auth Callback]    Email: ${email}`);
+        log.info(`[Auth Callback]    Name: ${(updatedProfile as any).name} ${updateData.name ? '(updated from OAuth)' : ''}`);
+        log.info(`[Auth Callback]    Role: ${(updatedProfile as any).user_type} (preserved)`);
+        log.info(`[Auth Callback]    Department: ${(updatedProfile as any).department} (preserved)`);
         return updatedProfile;
       }
 
-      console.log(`[Auth Callback] ✅ User profile exists - no updates needed`);
-      console.log(`[Auth Callback]    Email: ${email}`);
-      console.log(`[Auth Callback]    Name: ${(existingProfile as any).name}`);
-      console.log(`[Auth Callback]    Role: ${(existingProfile as any).user_type}`);
+      log.info(`[Auth Callback] ✅ User profile exists - no updates needed`);
+      log.info(`[Auth Callback]    Email: ${email}`);
+      log.info(`[Auth Callback]    Name: ${(existingProfile as any).name}`);
+      log.info(`[Auth Callback]    Role: ${(existingProfile as any).user_type}`);
       return existingProfile;
     }
 
@@ -125,7 +126,7 @@ async function provisionUserProfile(
       userType = (pendingRequest as any).user_type || 'customer';
       firstName = (pendingRequest as any).first_name;
       lastName = (pendingRequest as any).last_name;
-      console.log(`[Auth Callback] Found approved access request - user_type: ${userType}`);
+      log.info(`[Auth Callback] Found approved access request - user_type: ${userType}`);
     } else if (email.endsWith('@limn.us.com')) {
       // Company emails get employee status by default
       // Super admin, specific departments, and roles should be assigned manually:
@@ -166,26 +167,26 @@ async function provisionUserProfile(
       .single();
 
     if (createError) {
-      console.error('[Auth Callback] Error creating user profile:', createError);
+      log.error('[Auth Callback] Error creating user profile:', createError);
       throw createError;
     }
 
-    console.log(`[Auth Callback] ✅ Created user profile: ${email} as ${userType}`);
-    console.log(`[Auth Callback]    Name: ${userName} (from ${userMetadata?.full_name ? 'OAuth provider' : 'email'})`);
+    log.info(`[Auth Callback] ✅ Created user profile: ${email} as ${userType}`);
+    log.info(`[Auth Callback]    Name: ${userName} (from ${userMetadata?.full_name ? 'OAuth provider' : 'email'})`);
     return newProfile;
   } catch (error) {
-    console.error('[Auth Callback] Error provisioning user profile:', error);
+    log.error('[Auth Callback] Error provisioning user profile:', { error });
 
     // DIAGNOSTIC: Show credentials info when permission errors occur
     if (error && typeof error === 'object' && 'code' in error && error.code === '42501') {
       const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-      console.error('[Auth Callback] 🚨 PERMISSION DENIED (42501) - Diagnostic Info:');
-      console.error(`  Operation: Create/update user_profiles record`);
-      console.error(`  Service Key Present: ${!!serviceKey}`);
-      console.error(`  Service Key Prefix: ${serviceKey ? serviceKey.substring(0, 30) + '...' : 'MISSING'}`);
-      console.error(`  Expected JWT pattern: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`);
-      console.error(`  HINT: Decode your key at https://jwt.io to verify it has "role":"service_role"`);
-      console.error(`        If it shows "role":"anon", you're using the wrong key!`);
+      log.error('[Auth Callback] 🚨 PERMISSION DENIED (42501) - Diagnostic Info:');
+      log.error(`  Operation: Create/update user_profiles record`);
+      log.error(`  Service Key Present: ${!!serviceKey}`);
+      log.error(`  Service Key Prefix: ${serviceKey ? serviceKey.substring(0, 30) + '...' : 'MISSING'}`);
+      log.error(`  Expected JWT pattern: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`);
+      log.error(`  HINT: Decode your key at https://jwt.io to verify it has "role":"service_role"`);
+      log.error(`        If it shows "role":"anon", you're using the wrong key!`);
     }
 
     // Don't throw - authentication should still succeed even if profile creation fails
@@ -193,7 +194,7 @@ async function provisionUserProfile(
 }
 
 export async function GET(request: NextRequest) {
-  console.log('[Auth Callback] 🔵 Handler invoked - request URL:', request.url);
+  log.info('[Auth Callback] 🔵 Handler invoked - request URL:', request.url);
 
   const { searchParams, origin: rawOrigin } = new URL(request.url)
   // Fix 0.0.0.0 to localhost for browser compatibility
@@ -204,7 +205,7 @@ export async function GET(request: NextRequest) {
   const errorDescription = searchParams.get('error_description')
   const userType = searchParams.get('type')
 
-  console.log('[Auth Callback] Parameters:', {
+  log.info('[Auth Callback] Parameters:', {
     code: code ? `${code.substring(0, 10)}...` : null,
     token: token ? `${token.substring(0, 10)}...` : null,
     error,
@@ -219,7 +220,7 @@ export async function GET(request: NextRequest) {
 
   // Handle magic link token (from dev login or email magic links)
   if (token && !code) {
-    console.log('[Auth Callback] 🔵 Magic link path - starting token verification');
+    log.info('[Auth Callback] 🔵 Magic link path - starting token verification');
     const cookieStore = await cookies();
 
     // Track cookies to set on response
@@ -255,7 +256,7 @@ export async function GET(request: NextRequest) {
       });
 
       if (error) {
-        console.error('Magic link verification error:', error);
+        log.error('Magic link verification error:', { error });
 
         // Log failed login attempt
         await logLoginAttempt({
@@ -276,15 +277,15 @@ export async function GET(request: NextRequest) {
         const userId = data.session.user.id;
         const userMetadata = data.session.user.user_metadata;
 
-        console.log('[Auth Callback] 🟢 Magic link session created - user:', userEmail, 'id:', userId);
+        log.info('[Auth Callback] 🟢 Magic link session created', { userEmail, userId });
 
         // Provision user profile (creates/updates user_profiles record)
-        console.log('[Auth Callback] 🔵 About to provision user profile for:', userEmail);
+        log.info('[Auth Callback] 🔵 About to provision user profile for', { userEmail });
         await provisionUserProfile(userId, userEmail, userMetadata);
-        console.log('[Auth Callback] 🟢 User profile provisioning completed for:', userEmail);
+        log.info('[Auth Callback] 🟢 User profile provisioning completed for', { userEmail });
 
         // Log successful login
-        console.log('[Auth Callback] 🔵 About to log login attempt for:', userEmail);
+        log.info('[Auth Callback] 🔵 About to log login attempt for', { userEmail });
         await logLoginAttempt({
           userId,
           email: userEmail || null,
@@ -293,7 +294,7 @@ export async function GET(request: NextRequest) {
           ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
           userAgent: request.headers.get('user-agent') || undefined,
         });
-        console.log('[Auth Callback] 🟢 Login attempt logged for:', userEmail);
+        log.info('[Auth Callback] 🟢 Login attempt logged for', { userEmail });
 
         // Track session and enforce limits (RBAC Phase 2.2)
         try {
@@ -303,7 +304,7 @@ export async function GET(request: NextRequest) {
             '0.0.0.0';
           const userAgent = request.headers.get('user-agent') || undefined;
 
-          console.log('[Auth Callback] 🔵 Tracking session for user:', userId);
+          log.info('[Auth Callback] 🔵 Tracking session for user', { userId });
           // Generate a proper UUID for session tracking (access tokens are JWTs, not UUIDs)
           const sessionTrackingId = crypto.randomUUID();
           await trackSessionCreation(sessionTrackingId, userId, {
@@ -311,7 +312,7 @@ export async function GET(request: NextRequest) {
             userAgent,
           });
 
-          console.log('[Auth Callback] 🔵 Enforcing session limits for user:', userId);
+          log.info('[Auth Callback] 🔵 Enforcing session limits for user', { userId });
           const roles = await getEffectiveRoles(userId);
           await enforceSessionLimits(
             userId,
@@ -319,10 +320,10 @@ export async function GET(request: NextRequest) {
             sessionTrackingId
           );
 
-          console.log('[Auth Callback] 🟢 Session tracked and limits enforced for:', userEmail);
+          log.info('[Auth Callback] 🟢 Session tracked and limits enforced for', { userEmail });
         } catch (trackError) {
           // Don't block login if session tracking fails
-          console.error('[Auth Callback] ⚠️ Failed to track session (non-blocking):', trackError);
+          log.error('[Auth Callback] ⚠️ Failed to track session (non-blocking)', { error: trackError });
         }
 
         // Determine final destination URL
@@ -347,7 +348,7 @@ export async function GET(request: NextRequest) {
 
         // Apply all cookies that Supabase tried to set
         // CRITICAL: Ensure cookies work in production (Vercel) AND incognito mode
-        console.log(`[Auth Callback] Setting ${cookiesToSetMagic.length} cookies for user ${userEmail}`);
+        log.info(`[Auth Callback] Setting ${cookiesToSetMagic.length} cookies for user ${userEmail}`);
         cookiesToSetMagic.forEach(({ name, value, options }) => {
           // CRITICAL FIX: Use 'none' in production to allow cookies in incognito/private mode
           // OAuth redirect chains require sameSite='none' to persist cookies across redirects
@@ -365,20 +366,20 @@ export async function GET(request: NextRequest) {
             // IMPORTANT: Don't override httpOnly - let Supabase decide (some cookies need client-side access)
           };
           response.cookies.set(name, value, cookieOptions);
-          console.log(`[Auth Callback] Cookie set: ${name}, sameSite=${cookieOptions.sameSite}, secure=${cookieOptions.secure}, httpOnly=${cookieOptions.httpOnly}`);
+          log.info(`[Auth Callback] Cookie set: ${name}, sameSite=${cookieOptions.sameSite}, secure=${cookieOptions.secure}, httpOnly=${cookieOptions.httpOnly}`);
         });
 
         return response;
       }
     } catch (error) {
-      console.error('Magic link callback error:', error);
+      log.error('Magic link callback error:', { error });
       return NextResponse.redirect(`${origin}/login?error=callback_failed`);
     }
   }
 
   // Handle OAuth code exchange
   if (code) {
-    console.log('[Auth Callback] 🔵 OAuth path - starting code exchange');
+    log.info('[Auth Callback] 🔵 OAuth path - starting code exchange');
     const cookieStore = await cookies();
 
     // Track cookies to set on response
@@ -430,15 +431,15 @@ export async function GET(request: NextRequest) {
         const userId = data.session.user.id
         const userMetadata = data.session.user.user_metadata
 
-        console.log('[Auth Callback] 🟢 OAuth session created - user:', userEmail, 'id:', userId);
+        log.info('[Auth Callback] 🟢 OAuth session created', { userEmail, userId });
 
         // Provision user profile (creates/updates user_profiles record)
-        console.log('[Auth Callback] 🔵 About to provision user profile for:', userEmail);
+        log.info('[Auth Callback] 🔵 About to provision user profile for', { userEmail });
         await provisionUserProfile(userId, userEmail, userMetadata);
-        console.log('[Auth Callback] 🟢 User profile provisioning completed for:', userEmail);
+        log.info('[Auth Callback] 🟢 User profile provisioning completed for', { userEmail });
 
         // Log successful login
-        console.log('[Auth Callback] 🔵 About to log login attempt for:', userEmail);
+        log.info('[Auth Callback] 🔵 About to log login attempt for', { userEmail });
         await logLoginAttempt({
           userId,
           email: userEmail || null,
@@ -447,7 +448,7 @@ export async function GET(request: NextRequest) {
           ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
           userAgent: request.headers.get('user-agent') || undefined,
         });
-        console.log('[Auth Callback] 🟢 Login attempt logged for:', userEmail);
+        log.info('[Auth Callback] 🟢 Login attempt logged for', { userEmail });
 
         // Track session and enforce limits (RBAC Phase 2.2)
         try {
@@ -457,7 +458,7 @@ export async function GET(request: NextRequest) {
             '0.0.0.0';
           const userAgent = request.headers.get('user-agent') || undefined;
 
-          console.log('[Auth Callback] 🔵 Tracking session for user:', userId);
+          log.info('[Auth Callback] 🔵 Tracking session for user', { userId });
           // Generate a proper UUID for session tracking (access tokens are JWTs, not UUIDs)
           const sessionTrackingId = crypto.randomUUID();
           await trackSessionCreation(sessionTrackingId, userId, {
@@ -465,7 +466,7 @@ export async function GET(request: NextRequest) {
             userAgent,
           });
 
-          console.log('[Auth Callback] 🔵 Enforcing session limits for user:', userId);
+          log.info('[Auth Callback] 🔵 Enforcing session limits for user', { userId });
           const roles = await getEffectiveRoles(userId);
           await enforceSessionLimits(
             userId,
@@ -473,10 +474,10 @@ export async function GET(request: NextRequest) {
             sessionTrackingId
           );
 
-          console.log('[Auth Callback] 🟢 Session tracked and limits enforced for:', userEmail);
+          log.info('[Auth Callback] 🟢 Session tracked and limits enforced for', { userEmail });
         } catch (trackError) {
           // Don't block login if session tracking fails
-          console.error('[Auth Callback] ⚠️ Failed to track session (non-blocking):', trackError);
+          log.error('[Auth Callback] ⚠️ Failed to track session (non-blocking)', { error: trackError });
         }
 
         // Determine final destination
@@ -517,7 +518,7 @@ export async function GET(request: NextRequest) {
 
         // Apply all cookies that Supabase tried to set
         // CRITICAL: Ensure cookies work in production (Vercel) AND incognito mode
-        console.log(`[Auth Callback OAuth] Setting ${cookiesToSet.length} cookies for user ${userEmail}`);
+        log.info(`[Auth Callback OAuth] Setting ${cookiesToSet.length} cookies for user ${userEmail}`);
         cookiesToSet.forEach(({ name, value, options }) => {
           // CRITICAL FIX: Use 'none' in production to allow cookies in incognito/private mode
           // OAuth redirect chains require sameSite='none' to persist cookies across redirects
@@ -535,7 +536,7 @@ export async function GET(request: NextRequest) {
             // IMPORTANT: Don't override httpOnly - let Supabase decide (some cookies need client-side access)
           };
           response.cookies.set(name, value, cookieOptions);
-          console.log(`[Auth Callback OAuth] Cookie set: ${name}, sameSite=${cookieOptions.sameSite}, secure=${cookieOptions.secure}, httpOnly=${cookieOptions.httpOnly}`);
+          log.info(`[Auth Callback OAuth] Cookie set: ${name}, sameSite=${cookieOptions.sameSite}, secure=${cookieOptions.secure}, httpOnly=${cookieOptions.httpOnly}`);
         });
 
         return response;
@@ -546,6 +547,6 @@ export async function GET(request: NextRequest) {
   }
 
   // Return to login page if no code or other issues
-  console.log('[Auth Callback] ⚠️ Fallback path - no code or token found, redirecting to login');
+  log.info('[Auth Callback] ⚠️ Fallback path - no code or token found, redirecting to login');
   return NextResponse.redirect(`${origin}/login?error=no_code`)
 }

@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '../trpc/init';
 import { TRPCError } from '@trpc/server';
@@ -110,7 +111,7 @@ export const productionMilestonesRouter = createTRPCRouter({
           productionStage: input.status,
           customerId: milestone.production_orders.orders.customer_id,
         }).catch((error) => {
-          console.error('[Production Milestones] Failed to send notification:', error);
+          log.error('[Production Milestones] Failed to send notification:', error);
         });
       }
 

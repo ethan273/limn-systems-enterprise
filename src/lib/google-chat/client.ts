@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Unified Google Chat Webhook Client
  *
@@ -52,7 +53,7 @@ export async function sendGoogleChatMessage(
 
   // Graceful degradation: webhook not configured
   if (!webhookUrl) {
-    console.warn('[Google Chat] Webhook URL not configured - skipping notification');
+    log.warn('[Google Chat] Webhook URL not configured - skipping notification');
     return {
       success: false,
       error: 'Webhook URL not configured',
@@ -74,7 +75,7 @@ export async function sendGoogleChatMessage(
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('[Google Chat] Webhook request failed:', {
+      log.error('[Google Chat] Webhook request failed:', {
         status: response.status,
         error: errorText,
       });
@@ -87,10 +88,10 @@ export async function sendGoogleChatMessage(
     // Update rate limiter
     rateLimiter.recordMessage(rateLimitKey);
 
-    console.log('[Google Chat] ✅ Message sent successfully');
+    log.info('[Google Chat] ✅ Message sent successfully');
     return { success: true };
   } catch (error) {
-    console.error('[Google Chat] Error sending message:', error);
+    log.error('[Google Chat] Error sending message:', { error });
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',

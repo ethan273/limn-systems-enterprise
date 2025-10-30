@@ -6,6 +6,7 @@
  */
 
 'use client';
+import { log } from '@/lib/logger';
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -52,12 +53,12 @@ export function ServiceWorkerUpdateManager() {
           const newWorker = registration.installing;
           if (!newWorker) return;
 
-          console.log('[SW Update] New service worker installing');
+          log.info('[SW Update] New service worker installing');
 
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               // New service worker installed and ready
-              console.log('[SW Update] New service worker installed');
+              log.info('[SW Update] New service worker installed');
 
               // Get version info
               const newVersion = getVersionFromWorker(newWorker);
@@ -85,10 +86,10 @@ export function ServiceWorkerUpdateManager() {
 
         // Check for updates immediately
         registration.update().catch(error => {
-          console.error('[SW Update] Error checking for updates:', error);
+          log.error('[SW Update] Error checking for updates:', { error });
         });
       } catch (error) {
-        console.error('[SW Update] Error setting up update listener:', error);
+        log.error('[SW Update] Error setting up update listener:', { error });
       }
     };
 
@@ -106,7 +107,7 @@ export function ServiceWorkerUpdateManager() {
     // Listen for messages from service worker
     navigator.serviceWorker.addEventListener('message', (event) => {
       if (event.data && event.data.type === 'VERSION_INFO') {
-        console.log('[SW Update] Service worker version:', event.data.version);
+        log.info('[SW Update] Service worker version:', event.data.version);
       }
     });
 
@@ -181,7 +182,7 @@ export function ServiceWorkerUpdateManager() {
         });
       }
     } catch (error) {
-      console.error('[SW Update] Error applying update:', error);
+      log.error('[SW Update] Error applying update:', { error });
       setUpdating(false);
     }
   };

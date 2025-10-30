@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
@@ -208,7 +209,7 @@ export function ImageManager({
  description: `${config.label} uploaded successfully`,
  });
  } catch (error) {
- console.error('Upload failed:', error);
+ log.error('Upload failed:', { error });
  toast({
  title: 'Upload Failed',
  description: 'Failed to upload image. Please try again.',
@@ -231,7 +232,7 @@ export function ImageManager({
  description: 'Image metadata updated successfully',
  });
  } catch (error) {
- console.error('Update failed:', error);
+ log.error('Update failed:', { error });
  toast({
  title: 'Update Failed',
  description: 'Failed to update image. Please try again.',
@@ -251,7 +252,7 @@ export function ImageManager({
  description: 'Image deleted successfully',
  });
  } catch (error) {
- console.error('Delete failed:', error);
+ log.error('Delete failed:', { error });
  toast({
  title: 'Delete Failed',
  description: 'Failed to delete image. Please try again.',

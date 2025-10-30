@@ -4,7 +4,7 @@
  */
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '../trpc/init';
-import { TRPCError } from '@trpc/server';
+import { } from '@trpc/server';
 
 const AnnotationShapeSchema = z.enum(['rectangle', 'circle', 'arrow', 'line', 'freehand', 'marker', 'text']);
 

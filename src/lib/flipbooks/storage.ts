@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Supabase Storage Utilities for Flipbooks
  *
@@ -34,7 +35,7 @@ export async function initializeStorage() {
     });
 
     if (error) {
-      console.error("Error creating storage bucket:", error);
+      log.error("Error creating storage bucket:", error);
       throw error;
     }
   }
@@ -59,7 +60,7 @@ export async function uploadToS3(
     });
 
   if (error) {
-    console.error("Upload error:", error);
+    log.error("Upload error:", error);
     throw new Error(`Failed to upload file: ${error.message}`);
   }
 
@@ -86,7 +87,7 @@ export async function deleteFromS3(key: string): Promise<void> {
     .remove([key]);
 
   if (error) {
-    console.error("Delete error:", error);
+    log.error("Delete error:", error);
     throw new Error(`Failed to delete file: ${error.message}`);
   }
 }

@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /* eslint-disable security/detect-object-injection */
 /**
  * Zero-Downtime Credential Rotation System
@@ -90,7 +91,7 @@ function getRotationStrategy(serviceType: string): RotationStrategy {
         generateNewCredential: async (oldCredential) => {
           // Placeholder for Stripe API key rotation
           // In production, this would call Stripe API to create a new key
-          console.log('Generating new Stripe API key...');
+          log.info('Generating new Stripe API key...');
 
           // Simulate API call
           await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -106,14 +107,14 @@ function getRotationStrategy(serviceType: string): RotationStrategy {
         },
         deactivateOldCredential: async (_oldCredential) => {
           // Placeholder for revoking old Stripe key
-          console.log('Deactivating old Stripe API key...');
+          log.info('Deactivating old Stripe API key...');
 
           // Simulate API call
           await new Promise((resolve) => setTimeout(resolve, 500));
         },
         rollback: async (_oldCredential, _newCredential) => {
           // Placeholder for rollback - delete new key
-          console.log('Rolling back Stripe rotation...');
+          log.info('Rolling back Stripe rotation...');
 
           // Simulate API call
           await new Promise((resolve) => setTimeout(resolve, 500));
@@ -126,7 +127,7 @@ function getRotationStrategy(serviceType: string): RotationStrategy {
         supportsRotation: true,
         generateNewCredential: async (_oldCredential) => {
           // Placeholder for Google OAuth refresh
-          console.log('Refreshing Google OAuth credentials...');
+          log.info('Refreshing Google OAuth credentials...');
 
           // Simulate API call
           await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -139,7 +140,7 @@ function getRotationStrategy(serviceType: string): RotationStrategy {
           };
         },
         deactivateOldCredential: async (_oldCredential) => {
-          console.log('Revoking old Google OAuth token...');
+          log.info('Revoking old Google OAuth token...');
           await new Promise((resolve) => setTimeout(resolve, 500));
         },
       };
@@ -230,7 +231,7 @@ export async function initiateRotation(
     });
 
     // Generate new credential
-    console.log(`Generating new credential for ${credentialId}...`);
+    log.info(`Generating new credential for ${credentialId}...`);
     const newCredential = await strategy.generateNewCredential(credential);
 
     // Update credential with new value (encrypted)
@@ -256,7 +257,7 @@ export async function initiateRotation(
     })) as RotationSession;
 
     // Start health checks
-    console.log(`Starting health checks for rotated credential ${credentialId}...`);
+    log.info(`Starting health checks for rotated credential ${credentialId}...`);
     let allHealthy = true;
 
     for (let i = 0; i < healthCheckCount; i++) {
@@ -268,13 +269,13 @@ export async function initiateRotation(
 
       if (healthCheck.status === 'unhealthy') {
         allHealthy = false;
-        console.error(
+        log.error(
           `Health check ${i + 1}/${healthCheckCount} failed:`,
           healthCheck.error_message
         );
 
         if (autoRollbackOnFailure) {
-          console.log('Auto-rollback enabled, reverting to old credential...');
+          log.info('Auto-rollback enabled, reverting to old credential...');
           await rollbackRotation(session.id);
           throw new Error(
             `Rotation failed health check: ${healthCheck.error_message}`
@@ -284,7 +285,7 @@ export async function initiateRotation(
         break;
       }
 
-      console.log(`Health check ${i + 1}/${healthCheckCount} passed`);
+      log.info(`Health check ${i + 1}/${healthCheckCount} passed`);
     }
 
     if (!allHealthy && !autoRollbackOnFailure) {
@@ -311,7 +312,7 @@ export async function initiateRotation(
       } as any,
     });
 
-    console.log(
+    log.info(
       `Rotation in grace period until ${gracePeriodEndsAt.toISOString()}`
     );
 
@@ -321,13 +322,13 @@ export async function initiateRotation(
       try {
         await completeRotation(session.id);
       } catch (error) {
-        console.error('Failed to complete rotation:', error);
+        log.error('Failed to complete rotation:', { error });
       }
     }, gracePeriodMinutes * 60 * 1000);
 
     return updatedSession;
   } catch (error) {
-    console.error('Rotation failed:', error);
+    log.error('Rotation failed:', { error });
     throw error;
   }
 }
@@ -370,7 +371,7 @@ export async function completeRotation(sessionId: string): Promise<void> {
 
     // Deactivate old credential if strategy supports it
     if (strategy.deactivateOldCredential) {
-      console.log('Deactivating old credential...');
+      log.info('Deactivating old credential...');
       await strategy.deactivateOldCredential({
         encrypted_value: session.old_credential_backup,
       });
@@ -385,9 +386,9 @@ export async function completeRotation(sessionId: string): Promise<void> {
       } as any,
     });
 
-    console.log(`Rotation ${sessionId} completed successfully`);
+    log.info(`Rotation ${sessionId} completed successfully`);
   } catch (error) {
-    console.error('Failed to complete rotation:', error);
+    log.error('Failed to complete rotation:', { error });
 
     // Mark as failed
     await prisma.api_credential_rotations.update({
@@ -446,9 +447,9 @@ export async function rollbackRotation(sessionId: string): Promise<void> {
       } as any,
     });
 
-    console.log(`Rotation ${sessionId} rolled back successfully`);
+    log.info(`Rotation ${sessionId} rolled back successfully`);
   } catch (error) {
-    console.error('Failed to rollback rotation:', error);
+    log.error('Failed to rollback rotation:', { error });
     throw error;
   }
 }

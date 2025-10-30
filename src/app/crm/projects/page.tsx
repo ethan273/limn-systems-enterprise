@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -604,7 +605,7 @@ export default function ProjectsPage() {
  utils.orders.getWithProductionDetails.invalidate();
 
  } catch (error: any) {
- console.error('Error creating order:', error);
+ log.error('Error creating order:', error);
  toast({
  title: "Error",
  description: error.message || "Failed to create order. Please try again.",

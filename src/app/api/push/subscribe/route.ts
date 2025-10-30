@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -49,11 +50,11 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log('[Push API] Subscription saved for user:', user.id);
+    log.info('[Push API] Subscription saved for user:', user.id);
 
     return NextResponse.json({ success: true, message: 'Subscription saved' });
   } catch (error) {
-    console.error('[Push API] Error saving subscription:', error);
+    log.error('[Push API] Error saving subscription:', { error });
     return NextResponse.json(
       { success: false, error: 'Failed to save subscription' },
       { status: 500 }

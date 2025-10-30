@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 /**
  * Catalog Documents Tab Component
@@ -136,7 +137,7 @@ export default function CatalogDocumentsTab({ itemId: _itemId }: CatalogDocument
       setDocumentToDelete(null);
       refetch();
     } catch (error) {
-      console.error("Error deleting document:", error);
+      log.error("Error deleting document:", { error });
     }
   };
 

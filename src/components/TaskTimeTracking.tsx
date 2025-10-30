@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 import { useState, useEffect } from "react";
 import { api } from "@/lib/api/client";
@@ -157,7 +158,7 @@ export default function TaskTimeTracking({ taskId, onUpdate }: TaskTimeTrackingP
       setCurrentStartTime(null);
       setElapsedTime(0);
     } catch (error) {
-      console.error('Failed to save time entry:', error);
+      log.error('Failed to save time entry:', { error });
     }
   };
 
@@ -186,7 +187,7 @@ export default function TaskTimeTracking({ taskId, onUpdate }: TaskTimeTrackingP
       setEntryDescription("");
       setIsAddEntryDialogOpen(false);
     } catch (error) {
-      console.error('Failed to save manual time entry:', error);
+      log.error('Failed to save manual time entry:', { error });
     }
   };
 
@@ -205,7 +206,7 @@ export default function TaskTimeTracking({ taskId, onUpdate }: TaskTimeTrackingP
       try {
         await deleteTimeEntryMutation.mutateAsync({ id: entryId });
       } catch (error) {
-        console.error('Failed to delete time entry:', error);
+        log.error('Failed to delete time entry:', { error });
       }
     }
   };
@@ -239,7 +240,7 @@ export default function TaskTimeTracking({ taskId, onUpdate }: TaskTimeTrackingP
       setEditMinutes("");
       setIsEditEntryDialogOpen(false);
     } catch (error) {
-      console.error('Failed to update time entry:', error);
+      log.error('Failed to update time entry:', { error });
     }
   };
 

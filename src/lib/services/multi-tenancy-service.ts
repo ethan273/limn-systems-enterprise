@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Multi-Tenancy Service
  *
@@ -90,7 +91,7 @@ export async function addOrganizationMember(data: {
       updatedAt: member.updated_at,
     };
   } catch (error) {
-    console.error('[Multi-Tenancy] Error adding organization member:', error);
+    log.error('[Multi-Tenancy] Error adding organization member:', { error });
     throw new Error('Failed to add organization member');
   }
 }
@@ -120,9 +121,9 @@ export async function removeOrganizationMember(
       },
     });
 
-    console.log(`[Multi-Tenancy] User ${userId} removed from organization ${organizationId} by ${removedBy}`);
+    log.info(`[Multi-Tenancy] User ${userId} removed from organization ${organizationId} by ${removedBy}`);
   } catch (error) {
-    console.error('[Multi-Tenancy] Error removing organization member:', error);
+    log.error('[Multi-Tenancy] Error removing organization member:', { error });
     throw new Error('Failed to remove organization member');
   }
 }
@@ -148,9 +149,9 @@ export async function updateOrganizationMemberRoles(
       },
     });
 
-    console.log(`[Multi-Tenancy] Updated roles for user ${userId} in organization ${organizationId} by ${updatedBy}`);
+    log.info(`[Multi-Tenancy] Updated roles for user ${userId} in organization ${organizationId} by ${updatedBy}`);
   } catch (error) {
-    console.error('[Multi-Tenancy] Error updating organization member roles:', error);
+    log.error('[Multi-Tenancy] Error updating organization member roles:', { error });
     throw new Error('Failed to update organization member roles');
   }
 }
@@ -185,7 +186,7 @@ export async function getOrganizationMembers(
       updatedAt: member.updated_at,
     }));
   } catch (error) {
-    console.error('[Multi-Tenancy] Error getting organization members:', error);
+    log.error('[Multi-Tenancy] Error getting organization members:', { error });
     throw new Error('Failed to get organization members');
   }
 }
@@ -213,7 +214,7 @@ export async function getUserOrganizations(userId: string) {
       joinedAt: membership.joined_at,
     }));
   } catch (error) {
-    console.error('[Multi-Tenancy] Error getting user organizations:', error);
+    log.error('[Multi-Tenancy] Error getting user organizations:', { error });
     throw new Error('Failed to get user organizations');
   }
 }
@@ -236,7 +237,7 @@ export async function isOrganizationMember(
 
     return member !== null;
   } catch (error) {
-    console.error('[Multi-Tenancy] Error checking organization membership:', error);
+    log.error('[Multi-Tenancy] Error checking organization membership:', { error });
     return false;
   }
 }
@@ -281,9 +282,9 @@ export async function grantOrganizationPermission(data: {
       },
     });
 
-    console.log(`[Multi-Tenancy] Granted permission ${data.permissionId} to user ${data.userId} in organization ${data.organizationId}`);
+    log.info(`[Multi-Tenancy] Granted permission ${data.permissionId} to user ${data.userId} in organization ${data.organizationId}`);
   } catch (error) {
-    console.error('[Multi-Tenancy] Error granting organization permission:', error);
+    log.error('[Multi-Tenancy] Error granting organization permission:', { error });
     throw new Error('Failed to grant organization permission');
   }
 }
@@ -310,9 +311,9 @@ export async function revokeOrganizationPermission(
       },
     });
 
-    console.log(`[Multi-Tenancy] Revoked permission ${permissionId} from user ${userId} in organization ${organizationId} by ${revokedBy}`);
+    log.info(`[Multi-Tenancy] Revoked permission ${permissionId} from user ${userId} in organization ${organizationId} by ${revokedBy}`);
   } catch (error) {
-    console.error('[Multi-Tenancy] Error revoking organization permission:', error);
+    log.error('[Multi-Tenancy] Error revoking organization permission:', { error });
     throw new Error('Failed to revoke organization permission');
   }
 }
@@ -346,7 +347,7 @@ export async function getUserOrganizationPermissions(
 
     return permissions.map((p) => p.permission_definitions.permission_key);
   } catch (error) {
-    console.error('[Multi-Tenancy] Error getting user organization permissions:', error);
+    log.error('[Multi-Tenancy] Error getting user organization permissions:', { error });
     return [];
   }
 }
@@ -369,7 +370,7 @@ export async function getUserOrganizationRoles(
 
     return (member?.organization_roles || []) as SystemRole[];
   } catch (error) {
-    console.error('[Multi-Tenancy] Error getting user organization roles:', error);
+    log.error('[Multi-Tenancy] Error getting user organization roles:', { error });
     return [];
   }
 }
@@ -453,7 +454,7 @@ export async function hasOrganizationPermission(
 
     return true;
   } catch (error) {
-    console.error('[Multi-Tenancy] Error checking organization permission:', error);
+    log.error('[Multi-Tenancy] Error checking organization permission:', { error });
     return false;
   }
 }
@@ -487,9 +488,9 @@ export async function setPrimaryOrganization(
       },
     });
 
-    console.log(`[Multi-Tenancy] Set primary organization ${organizationId} for user ${userId}`);
+    log.info(`[Multi-Tenancy] Set primary organization ${organizationId} for user ${userId}`);
   } catch (error) {
-    console.error('[Multi-Tenancy] Error setting primary organization:', error);
+    log.error('[Multi-Tenancy] Error setting primary organization:', { error });
     throw new Error('Failed to set primary organization');
   }
 }
@@ -509,7 +510,7 @@ export async function getPrimaryOrganization(userId: string): Promise<string | n
 
     return primary?.organization_id || null;
   } catch (error) {
-    console.error('[Multi-Tenancy] Error getting primary organization:', error);
+    log.error('[Multi-Tenancy] Error getting primary organization:', { error });
     return null;
   }
 }
@@ -547,9 +548,9 @@ export async function suspendOrganizationMember(
       },
     });
 
-    console.log(`[Multi-Tenancy] Suspended user ${userId} from organization ${organizationId} by ${suspendedBy}. Reason: ${reason}`);
+    log.info(`[Multi-Tenancy] Suspended user ${userId} from organization ${organizationId} by ${suspendedBy}. Reason: ${reason}`);
   } catch (error) {
-    console.error('[Multi-Tenancy] Error suspending organization member:', error);
+    log.error('[Multi-Tenancy] Error suspending organization member:', { error });
     throw new Error('Failed to suspend organization member');
   }
 }
@@ -591,9 +592,9 @@ export async function reactivateOrganizationMember(
       },
     });
 
-    console.log(`[Multi-Tenancy] Reactivated user ${userId} in organization ${organizationId} by ${reactivatedBy}`);
+    log.info(`[Multi-Tenancy] Reactivated user ${userId} in organization ${organizationId} by ${reactivatedBy}`);
   } catch (error) {
-    console.error('[Multi-Tenancy] Error reactivating organization member:', error);
+    log.error('[Multi-Tenancy] Error reactivating organization member:', { error });
     throw new Error('Failed to reactivate organization member');
   }
 }
@@ -616,10 +617,10 @@ export async function cleanupExpiredOrganizationPermissions(): Promise<number> {
       },
     });
 
-    console.log(`[Multi-Tenancy] Cleaned up ${result.count} expired organization permissions`);
+    log.info(`[Multi-Tenancy] Cleaned up ${result.count} expired organization permissions`);
     return result.count;
   } catch (error) {
-    console.error('[Multi-Tenancy] Error cleaning up expired permissions:', error);
+    log.error('[Multi-Tenancy] Error cleaning up expired permissions:', { error });
     return 0;
   }
 }

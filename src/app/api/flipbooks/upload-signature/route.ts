@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Cloudinary Upload Signature API Route
  *
@@ -63,7 +64,7 @@ export async function POST(request: NextRequest) {
       process.env.CLOUDINARY_API_SECRET!
     );
 
-    console.log(`[Upload Signature] Generated for flipbook: ${flipbookId}`);
+    log.info(`[Upload Signature] Generated for flipbook: ${flipbookId}`);
 
     // Return upload configuration for client
     return NextResponse.json({
@@ -77,7 +78,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error: any) {
-    console.error("[Upload Signature] Error:", error);
+    log.error("[Upload Signature] Error:", error);
     return NextResponse.json(
       { error: error.message || "Failed to generate upload signature" },
       { status: 500 }

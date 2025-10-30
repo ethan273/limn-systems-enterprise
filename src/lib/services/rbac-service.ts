@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Role-Based Access Control (RBAC) Service
  *
@@ -261,7 +262,7 @@ export async function getEffectiveRoles(userId: string): Promise<SystemRole[]> {
   // ⚠️ FALLBACK: If no roles found in user_roles table, derive from user_type
   // This handles migration period where user_roles table might not be populated yet
   if (directRoles.length === 0) {
-    console.log(`[RBAC] No roles found for user ${userId}, checking user_type fallback...`);
+    log.info(`[RBAC] No roles found for user ${userId}, checking user_type fallback...`);
 
     const userProfile = await prisma.user_profiles.findUnique({
       where: { id: userId },
@@ -269,7 +270,7 @@ export async function getEffectiveRoles(userId: string): Promise<SystemRole[]> {
     });
 
     if (userProfile?.user_type) {
-      console.log(`[RBAC] User ${userProfile.email} has user_type: ${userProfile.user_type}, deriving role...`);
+      log.info(`[RBAC] User ${userProfile.email} has user_type: ${userProfile.user_type}, deriving role...`);
 
       // Map user_type to role using standard mapping
       const USER_TYPE_TO_ROLE: Record<string, SystemRole> = {
@@ -287,7 +288,7 @@ export async function getEffectiveRoles(userId: string): Promise<SystemRole[]> {
 
       const derivedRole = USER_TYPE_TO_ROLE[userProfile.user_type];
       if (derivedRole) {
-        console.log(`[RBAC] Derived role: ${derivedRole} from user_type: ${userProfile.user_type}`);
+        log.info(`[RBAC] Derived role: ${derivedRole} from user_type: ${userProfile.user_type}`);
         directRoles = [derivedRole];
       }
     }
@@ -354,7 +355,7 @@ export async function getUserPermissions(userId: string): Promise<Permission[]> 
 
     if (roleIds.length === 0) {
       // Fallback to hardcoded mappings if roles not in database yet
-      console.warn(`[RBAC] No database roles found for ${effectiveRoles.join(', ')}, using hardcoded mappings`);
+      log.warn(`[RBAC] No database roles found for ${effectiveRoles.join(', ')}, using hardcoded mappings`);
       const permissions = new Set<Permission>();
       for (const role of effectiveRoles) {
         const rolePermissions = ROLE_PERMISSIONS[role] || [];
@@ -386,7 +387,7 @@ export async function getUserPermissions(userId: string): Promise<Permission[]> 
 
     return Array.from(permissionKeys);
   } catch (error) {
-    console.error('[RBAC] Error querying database permissions:', error);
+    log.error('[RBAC] Error querying database permissions:', { error });
     // Fallback to hardcoded mappings on error
     const permissions = new Set<Permission>();
     for (const role of effectiveRoles) {
@@ -562,7 +563,7 @@ export async function checkScopedPermission(
 
     return false;
   } catch (error) {
-    console.error('[RBAC] Error checking scoped permission:', error);
+    log.error('[RBAC] Error checking scoped permission:', { error });
     return false;
   }
 }
@@ -765,7 +766,7 @@ export async function migrateUserTypeToRoles(userId: string): Promise<void> {
       await assignRole(userId, role);
     } catch (error) {
       // Ignore if role already assigned
-      console.log(`Role ${role} already assigned to user ${userId}`);
+      log.info(`Role ${role} already assigned to user ${userId}`);
     }
   }
 }

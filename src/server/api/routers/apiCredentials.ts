@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { z } from 'zod';
 import { createTRPCRouter, superAdminProcedure } from '../trpc/init';
 import { encryptCredentials, maskCredential } from '@/lib/encryption/credentials';
@@ -38,7 +39,7 @@ export const apiCredentialsRouter = createTRPCRouter({
         users_api_credentials_updated_byTousers: cred.updated_by ? userMap.get(cred.updated_by) ?? null : null,
       })) as ApiCredentialWithRelations[];
     } catch (error) {
-      console.error('Error fetching API credentials:', error);
+      log.error('Error fetching API credentials:', { error });
       throw new Error('Failed to fetch API credentials');
     }
   }),
@@ -76,7 +77,7 @@ export const apiCredentialsRouter = createTRPCRouter({
           users_api_credentials_updated_byTousers: credential.updated_by ? userMap.get(credential.updated_by) ?? null : null,
         } as ApiCredentialWithRelations;
       } catch (error) {
-        console.error('Error fetching API credential:', error);
+        log.error('Error fetching API credential:', { error });
         throw new Error('Failed to fetch API credential');
       }
     }),
@@ -120,7 +121,7 @@ export const apiCredentialsRouter = createTRPCRouter({
 
         return newCredential;
       } catch (error) {
-        console.error('Error creating API credential:', error);
+        log.error('Error creating API credential:', { error });
         throw new Error('Failed to create API credential');
       }
     }),
@@ -165,7 +166,7 @@ export const apiCredentialsRouter = createTRPCRouter({
 
         return updatedCredential;
       } catch (error) {
-        console.error('Error updating API credential:', error);
+        log.error('Error updating API credential:', { error });
         throw new Error('Failed to update API credential');
       }
     }),
@@ -183,7 +184,7 @@ export const apiCredentialsRouter = createTRPCRouter({
 
         return { success: true };
       } catch (error) {
-        console.error('Error deleting API credential:', error);
+        log.error('Error deleting API credential:', { error });
         throw new Error('Failed to delete API credential');
       }
     }),
@@ -202,7 +203,7 @@ export const apiCredentialsRouter = createTRPCRouter({
 
         return { success: true };
       } catch (error) {
-        console.error('Error recording API usage:', error);
+        log.error('Error recording API usage:', { error });
         throw new Error('Failed to record API usage');
       }
     }),
@@ -252,7 +253,7 @@ export const apiCredentialsRouter = createTRPCRouter({
         users_api_credentials_updated_byTousers: cred.updated_by ? userMap.get(cred.updated_by) ?? null : null,
       })) as ApiCredentialWithRelations[];
     } catch (error) {
-      console.error('Error fetching expiring credentials:', error);
+      log.error('Error fetching expiring credentials:', { error });
       throw new Error('Failed to fetch expiring credentials');
     }
   }),
@@ -340,7 +341,7 @@ export const apiCredentialsRouter = createTRPCRouter({
           timeSeries,
         };
       } catch (error) {
-        console.error('Error fetching usage analytics:', error);
+        log.error('Error fetching usage analytics:', { error });
         throw new Error('Failed to fetch usage analytics');
       }
     }),
@@ -447,7 +448,7 @@ export const apiCredentialsRouter = createTRPCRouter({
         activeAlerts: alerts.filter(a => a.severity === 'critical' || a.severity === 'warning').length,
       };
     } catch (error) {
-      console.error('Error fetching security metrics:', error);
+      log.error('Error fetching security metrics:', { error });
       throw new Error('Failed to fetch security metrics');
     }
   }),
@@ -472,7 +473,7 @@ export const apiCredentialsRouter = createTRPCRouter({
         },
       };
     } catch (error) {
-      console.error('Error scanning environment:', error);
+      log.error('Error scanning environment:', { error });
       throw new Error('Failed to scan environment files');
     }
   }),
@@ -538,7 +539,7 @@ export const apiCredentialsRouter = createTRPCRouter({
         schedule: scheduleItems,
       };
     } catch (error) {
-      console.error('Error fetching rotation schedule:', error);
+      log.error('Error fetching rotation schedule:', { error });
       throw new Error('Failed to fetch rotation schedule');
     }
   }),

@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Session Management tRPC Router (RBAC Phase 2.2)
  *
@@ -61,7 +62,7 @@ export const sessionsRouter = createTRPCRouter({
         totalCount: transformedSessions.length,
       };
     } catch (error) {
-      console.error('[Sessions] Error fetching active sessions:', error);
+      log.error('[Sessions] Error fetching active sessions:', { error });
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Failed to fetch active sessions',
@@ -115,7 +116,7 @@ export const sessionsRouter = createTRPCRouter({
           input.reason || 'User requested termination'
         );
 
-        console.log(
+        log.info(
           `[Sessions] User ${ctx.session.user.id} terminated session ${input.sessionTrackingId}`
         );
 
@@ -128,7 +129,7 @@ export const sessionsRouter = createTRPCRouter({
           throw error;
         }
 
-        console.error('[Sessions] Error terminating session:', error);
+        log.error('[Sessions] Error terminating session:', { error });
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to terminate session',
@@ -175,7 +176,7 @@ export const sessionsRouter = createTRPCRouter({
             );
             terminatedCount++;
           } catch (error) {
-            console.error(
+            log.error(
               `[Sessions] Failed to terminate session ${session.id}:`,
               error
             );
@@ -183,7 +184,7 @@ export const sessionsRouter = createTRPCRouter({
           }
         }
 
-        console.log(
+        log.info(
           `[Sessions] User ${ctx.session.user.id} terminated ${terminatedCount}/${sessionsToTerminate.length} other sessions`
         );
 
@@ -199,7 +200,7 @@ export const sessionsRouter = createTRPCRouter({
           throw error;
         }
 
-        console.error('[Sessions] Error terminating all other sessions:', error);
+        log.error('[Sessions] Error terminating all other sessions:', { error });
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to terminate sessions',
@@ -267,7 +268,7 @@ export const sessionsRouter = createTRPCRouter({
         },
       };
     } catch (error) {
-      console.error('[Sessions] Error fetching security stats:', error);
+      log.error('[Sessions] Error fetching security stats:', { error });
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Failed to fetch security statistics',

@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { initTRPC, TRPCError } from '@trpc/server';
 import superjson from 'superjson';
 import { ZodError } from 'zod';
@@ -75,7 +76,7 @@ const enforceUserIsAdmin = t.middleware(async ({ ctx, next }) => {
 
   if (!isAdmin) {
     // Log unauthorized access attempt
-    console.error(
+    log.error(
       `[SECURITY] Unauthorized access attempt to admin endpoint by user: ${ctx.session.user.id} (${userProfile?.full_name || 'unknown'})`
     );
     throw new TRPCError({
@@ -85,7 +86,7 @@ const enforceUserIsAdmin = t.middleware(async ({ ctx, next }) => {
   }
 
   // Log authorized access for audit trail
-  console.log(
+  log.info(
     `[SECURITY] Admin access granted to user: ${ctx.session.user.id} (${userProfile?.full_name || 'unknown'})`
   );
 
@@ -117,7 +118,7 @@ const enforceUserIsSuperAdmin = t.middleware(async ({ ctx, next }) => {
 
   if (!isSuperAdmin) {
     // Log unauthorized access attempt
-    console.error(`[SECURITY] Unauthorized access attempt to super admin endpoint by user: ${ctx.session.user.id} (${userProfile?.full_name || 'unknown'})`);
+    log.error(`[SECURITY] Unauthorized access attempt to super admin endpoint by user: ${ctx.session.user.id} (${userProfile?.full_name || 'unknown'})`);
     throw new TRPCError({
       code: 'FORBIDDEN',
       message: 'Super admin access required. This incident has been logged.'
@@ -125,7 +126,7 @@ const enforceUserIsSuperAdmin = t.middleware(async ({ ctx, next }) => {
   }
 
   // Log authorized access for audit trail
-  console.log(`[SECURITY] Super admin access granted to user: ${ctx.session.user.id} (${userProfile?.full_name || 'unknown'})`);
+  log.info(`[SECURITY] Super admin access granted to user: ${ctx.session.user.id} (${userProfile?.full_name || 'unknown'})`);
 
   return next({
     ctx: {
@@ -161,7 +162,7 @@ const enforceUserIsManager = t.middleware(async ({ ctx, next }) => {
 
   if (!isManager) {
     // Log unauthorized access attempt
-    console.error(
+    log.error(
       `[SECURITY] Unauthorized access attempt to manager endpoint by user: ${ctx.session.user.id} (${userProfile?.full_name || 'unknown'})`
     );
     throw new TRPCError({
@@ -171,7 +172,7 @@ const enforceUserIsManager = t.middleware(async ({ ctx, next }) => {
   }
 
   // Log authorized access for audit trail
-  console.log(
+  log.info(
     `[SECURITY] Manager access granted to user: ${ctx.session.user.id} (${userProfile?.full_name || 'unknown'})`
   );
 
@@ -221,7 +222,7 @@ const enforceSessionIPValidation = t.middleware(async ({ ctx, next }) => {
     const validation = await validateSessionIP(sessionId, currentIP, userRole);
 
     if (!validation.valid) {
-      console.error(
+      log.error(
         `[SECURITY] Session IP validation failed for user ${ctx.session.user.id}: ${validation.reason}`
       );
 
@@ -239,7 +240,7 @@ const enforceSessionIPValidation = t.middleware(async ({ ctx, next }) => {
       throw error; // Re-throw TRPC errors (like force_logout)
     }
 
-    console.error('[SECURITY] IP validation error (non-blocking):', error);
+    log.error('[SECURITY] IP validation error (non-blocking):', { error });
     return next();
   }
 });
@@ -292,7 +293,7 @@ export function requirePermission(permission: Permission) {
     });
 
     if (!hasAccess) {
-      console.error(
+      log.error(
         `[SECURITY] Permission denied for user ${ctx.session.user.id} (${userProfile.full_name}): Required permission "${permission}" for ${path || 'endpoint'}`
       );
       throw new TRPCError({
@@ -346,7 +347,7 @@ export function requireAnyPermission(permissions: Permission[]) {
     const hasAccess = await hasAnyPermission(userProfile.id, permissions);
 
     if (!hasAccess) {
-      console.error(
+      log.error(
         `[SECURITY] Permission denied for user ${ctx.session.user.id} (${userProfile.full_name}): Required ANY of [${permissions.join(', ')}] for ${path || 'endpoint'}`
       );
       throw new TRPCError({
@@ -402,7 +403,7 @@ export function requireAllPermissions(permissions: Permission[]) {
     const hasAccess = await hasAllPermissions(userProfile.id, permissions);
 
     if (!hasAccess) {
-      console.error(
+      log.error(
         `[SECURITY] Permission denied for user ${ctx.session.user.id} (${userProfile.full_name}): Required ALL of [${permissions.join(', ')}] for ${path || 'endpoint'}`
       );
       throw new TRPCError({

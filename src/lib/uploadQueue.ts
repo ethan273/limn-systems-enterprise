@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Upload Queue
  * Manages photo uploads with retry logic, offline support, and progress tracking
@@ -253,7 +254,7 @@ export class UploadQueueManager {
 
       if (task.retries < MAX_RETRIES) {
         // Retry after delay
-        console.warn(`Upload failed, retrying (${task.retries}/${MAX_RETRIES})...`, errorMessage);
+        log.warn(`Upload failed, retrying (${task.retries}/${MAX_RETRIES})...`, errorMessage);
         task.status = 'pending';
         task.error = errorMessage;
         task.updatedAt = Date.now();
@@ -262,7 +263,7 @@ export class UploadQueueManager {
         await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS * task.retries));
       } else {
         // Max retries exceeded
-        console.error('Upload failed after max retries:', errorMessage);
+        log.error('Upload failed after max retries:', { errorMessage });
         task.status = 'failed';
         task.error = errorMessage;
         task.updatedAt = Date.now();
@@ -375,15 +376,15 @@ export class UploadQueueManager {
   private saveQueueToStorage(): void {
     try {
       // Convert blobs to data URLs for storage
-      const serializedQueue = this.queue.map((task) => ({
+      const _serializedQueue = this.queue.map((task) => ({
         ...task,
         blob: undefined, // Remove blob (too large for localStorage)
         blobUrl: task.status !== 'completed' ? URL.createObjectURL(task.blob) : undefined,
       }));
       // eslint-disable-next-line security/detect-object-injection
-      localStorage.setItem('qc-upload-queue', JSON.stringify(serializedQueue));
+      localStorage.setItem('qc-upload-queue', JSON.stringify(this.queue));
     } catch (error) {
-      console.error('Failed to save upload queue:', error);
+      log.error('Failed to save upload queue:', { error });
     }
   }
 
@@ -394,13 +395,12 @@ export class UploadQueueManager {
     try {
       const stored = localStorage.getItem('qc-upload-queue');
       if (stored) {
-        const serializedQueue = JSON.parse(stored);
+        const _serializedQueue = JSON.parse(stored);
         // Note: Blobs cannot be restored from localStorage
         // In Phase 5, we'll use IndexedDB to store blobs
-        console.log('Upload queue loaded from storage:', serializedQueue.length, 'tasks');
       }
     } catch (error) {
-      console.error('Failed to load upload queue:', error);
+      log.error('Failed to load upload queue:', { error });
     }
   }
 }

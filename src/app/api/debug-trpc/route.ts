@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { createContext } from '@/server/api/trpc/context';
 import { appRouter } from '@/server/api/root';
@@ -11,7 +12,7 @@ export async function GET() {
     // Create tRPC context (same as production)
     const ctx = await createContext({});
 
-    console.log('[DEBUG] Context created:', {
+    log.info('[DEBUG] Context created:', {
       hasSession: !!ctx.session,
       hasUser: !!ctx.user,
       userId: ctx.user?.id,

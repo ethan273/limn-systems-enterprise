@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Storage tRPC Router
  *
@@ -482,7 +483,7 @@ export const storageRouter = createTRPCRouter({
           path: data.path,
         };
       } catch (error) {
-        console.error('QC Photo upload error:', error);
+        log.error('QC Photo upload error:', { error });
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: error instanceof Error ? error.message : 'Upload failed',

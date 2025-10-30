@@ -1,4 +1,5 @@
 'use client';
+import { log } from '@/lib/logger';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -59,7 +60,7 @@ export default function DevLoginPage() {
  }
 
  } catch (error) {
- console.error('Dev login error:', error);
+ log.error('Dev login error:', { error });
  setError(error instanceof Error ? error.message : 'Login failed');
  setLoading(false);
  }

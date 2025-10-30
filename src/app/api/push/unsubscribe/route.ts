@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -28,11 +29,11 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log('[Push API] Subscription removed for user:', user.id);
+    log.info('[Push API] Subscription removed for user:', user.id);
 
     return NextResponse.json({ success: true, message: 'Subscription removed' });
   } catch (error) {
-    console.error('[Push API] Error removing subscription:', error);
+    log.error('[Push API] Error removing subscription:', { error });
     return NextResponse.json(
       { success: false, error: 'Failed to remove subscription' },
       { status: 500 }

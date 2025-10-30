@@ -1,4 +1,5 @@
 'use client';
+import { log } from '@/lib/logger';
 
 /**
  * Client Portal Login Page
@@ -122,7 +123,7 @@ function PortalLoginForm() {
  router.push(destination);
  router.refresh();
  } catch (err) {
- console.error('Login error:', err);
+ log.error('Login error:', { err });
  setError(err instanceof Error ? err.message : 'Invalid email or password');
  setLoading(false);
  }

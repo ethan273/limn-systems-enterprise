@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { sendRotationNotifications } from '@/lib/credentials/rotation-checker';
 
@@ -40,7 +41,7 @@ export async function GET(request: Request) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Error in check-rotations endpoint:', error);
+    log.error('Error in check-rotations endpoint:', { error });
     return NextResponse.json(
       {
         success: false,

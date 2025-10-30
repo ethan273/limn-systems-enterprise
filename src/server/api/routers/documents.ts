@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Documents tRPC Router
  *
@@ -282,7 +283,7 @@ export const documentsRouter = createTRPCRouter({
                 .remove([filePath]);
 
               if (deleteError) {
-                console.error('Supabase storage delete error:', deleteError);
+                log.error('Supabase storage delete error:', { deleteError });
                 // Don't throw - continue with database deletion even if storage delete fails
               }
             }
@@ -290,11 +291,11 @@ export const documentsRouter = createTRPCRouter({
         } else if (document.file_source === 'google_drive' && document.google_drive_file_id) {
           // Google Drive deletion would go here
           // For now, we'll just log it as it requires Google Drive API setup
-          console.log('Google Drive file deletion not implemented:', document.google_drive_file_id);
+          log.info('Google Drive file deletion not implemented:', document.google_drive_file_id);
           // TODO: Implement Google Drive file deletion when API is configured
         }
       } catch (storageError) {
-        console.error('Storage deletion error:', storageError);
+        log.error('Storage deletion error:', { storageError });
         // Continue with database deletion even if storage deletion fails
       }
 

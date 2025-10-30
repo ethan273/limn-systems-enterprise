@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Rate Limiting Utility
  *
@@ -62,7 +63,7 @@ function createRedisClient() {
   const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
 
   if (!redisUrl || !redisToken) {
-    console.warn('[rate-limit] Redis not configured, using in-memory rate limiting (not recommended for production)');
+    log.warn('[rate-limit] Redis not configured, using in-memory rate limiting (not recommended for production)');
     return null;
   }
 
@@ -186,7 +187,7 @@ export async function checkRateLimit(
 }> {
   // If no Redis configured, allow all requests (with warning)
   if (!limiter) {
-    console.warn('[rate-limit] Rate limiting bypassed - Redis not configured');
+    log.warn('[rate-limit] Rate limiting bypassed - Redis not configured');
     return {
       success: true,
       limit: 0,

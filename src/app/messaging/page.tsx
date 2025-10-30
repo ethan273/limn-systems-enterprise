@@ -34,7 +34,7 @@ import { formatDistanceToNow } from "date-fns";
 import { LoadingState, EmptyState } from "@/components/common";
 
 export default function MessagingPage() {
-  const router = useRouter();
+  const _router = useRouter();
   const [selectedThread, setSelectedThread] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");

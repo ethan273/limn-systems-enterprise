@@ -1,4 +1,5 @@
 'use client';
+import { log } from '@/lib/logger';
 
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -155,7 +156,7 @@ export function DashboardComparisonView({
       setMetrics(results);
       setLastCompared(new Date());
     } catch (error) {
-      console.error('Comparison failed:', error);
+      log.error('Comparison failed:', { error });
       alert('Failed to compare dashboards. Please try again.');
     } finally {
       setLoading(false);

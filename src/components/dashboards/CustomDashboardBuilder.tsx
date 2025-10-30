@@ -1,4 +1,5 @@
 'use client';
+import { log } from '@/lib/logger';
 
 import React, { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -269,7 +270,7 @@ export function CustomDashboardBuilder({
           updatedAt: new Date(),
         });
       } catch (error) {
-        console.error('Failed to import dashboard:', error);
+        log.error('Failed to import dashboard:', { error });
         alert('Invalid dashboard configuration file');
       }
     };

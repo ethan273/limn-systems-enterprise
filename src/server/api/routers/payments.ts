@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Payments tRPC Router
  *
@@ -492,7 +493,7 @@ export const paymentsRouter = createTRPCRouter({
         paymentMethod: input.paymentMethod,
         transactionId: result.payment.id,
       }).catch((error) => {
-        console.error('[Payments] Failed to send payment notification:', error);
+        log.error('[Payments] Failed to send payment notification:', error);
       });
 
       return {

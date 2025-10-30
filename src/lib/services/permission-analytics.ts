@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Permission Analytics Service
  *
@@ -104,7 +105,7 @@ export async function logPermissionUsage(
     });
   } catch (error) {
     // Don't throw - logging failures shouldn't block the request
-    console.error('[Permission Analytics] Failed to log permission usage:', error);
+    log.error('[Permission Analytics] Failed to log permission usage:', { error });
   }
 }
 

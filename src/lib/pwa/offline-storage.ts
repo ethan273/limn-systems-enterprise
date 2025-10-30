@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Offline Storage System using IndexedDB
  *
@@ -136,9 +137,7 @@ export async function getDB(): Promise<IDBPDatabase<LimnDB>> {
   }
 
   dbInstance = await openDB<LimnDB>(DB_NAME, DB_VERSION, {
-    upgrade(db, oldVersion, newVersion, _transaction) {
-      console.log('[Offline Storage] Upgrading database from', oldVersion, 'to', newVersion);
-
+    upgrade(db, _oldVersion, _newVersion, _transaction) {
       // Create tasks object store
       if (!db.objectStoreNames.contains('tasks')) {
         const taskStore = db.createObjectStore('tasks', { keyPath: 'id' });
@@ -146,7 +145,7 @@ export async function getDB(): Promise<IDBPDatabase<LimnDB>> {
         taskStore.createIndex('by-priority', 'priority');
         taskStore.createIndex('by-due-date', 'dueDate');
         taskStore.createIndex('by-sync-status', '_syncStatus');
-        console.log('[Offline Storage] Created tasks store');
+        log.info('[Offline Storage] Created tasks store');
       }
 
       // Create drafts object store
@@ -154,14 +153,14 @@ export async function getDB(): Promise<IDBPDatabase<LimnDB>> {
         const draftStore = db.createObjectStore('drafts', { keyPath: 'id' });
         draftStore.createIndex('by-form-type', 'formType');
         draftStore.createIndex('by-updated-at', 'updatedAt');
-        console.log('[Offline Storage] Created drafts store');
+        log.info('[Offline Storage] Created drafts store');
       }
 
       // Create settings object store
       if (!db.objectStoreNames.contains('settings')) {
         const settingsStore = db.createObjectStore('settings', { keyPath: 'id' });
         settingsStore.createIndex('by-user-id', 'userId');
-        console.log('[Offline Storage] Created settings store');
+        log.info('[Offline Storage] Created settings store');
       }
 
       // Create sync queue object store
@@ -170,18 +169,18 @@ export async function getDB(): Promise<IDBPDatabase<LimnDB>> {
         syncStore.createIndex('by-entity-type', 'entityType');
         syncStore.createIndex('by-timestamp', 'timestamp');
         syncStore.createIndex('by-retry-count', 'retryCount');
-        console.log('[Offline Storage] Created syncQueue store');
+        log.info('[Offline Storage] Created syncQueue store');
       }
     },
     blocked() {
-      console.warn('[Offline Storage] Database upgrade blocked by another connection');
+      log.warn('[Offline Storage] Database upgrade blocked by another connection');
     },
     blocking() {
-      console.warn('[Offline Storage] This connection is blocking a database upgrade');
+      log.warn('[Offline Storage] This connection is blocking a database upgrade');
     },
   });
 
-  console.log('[Offline Storage] Database initialized successfully');
+  log.info('[Offline Storage] Database initialized successfully');
   return dbInstance;
 }
 
@@ -242,7 +241,7 @@ export async function saveTask(task: Task): Promise<void> {
   }
 
   await db.put('tasks', task);
-  console.log('[Offline Storage] Task saved:', task.id);
+  log.info('[Offline Storage] Task saved:', task.id);
 
   // Queue for sync if offline
   if (!navigator.onLine) {
@@ -275,7 +274,7 @@ export async function createTaskOffline(taskData: Omit<Task, 'id' | 'createdAt' 
   };
 
   await db.put('tasks', task);
-  console.log('[Offline Storage] Task created offline:', task.id);
+  log.info('[Offline Storage] Task created offline:', task.id);
 
   // Queue for sync
   await queueSync({
@@ -297,7 +296,7 @@ export async function createTaskOffline(taskData: Omit<Task, 'id' | 'createdAt' 
 export async function deleteTask(id: string): Promise<void> {
   const db = await getDB();
   await db.delete('tasks', id);
-  console.log('[Offline Storage] Task deleted:', id);
+  log.info('[Offline Storage] Task deleted:', id);
 
   // Queue for sync if offline
   if (!navigator.onLine) {
@@ -324,8 +323,6 @@ export async function bulkSaveTasks(tasks: Task[]): Promise<void> {
     ...tasks.map(task => tx.store.put({ ...task, _syncStatus: 'synced' })),
     tx.done,
   ]);
-
-  console.log('[Offline Storage] Bulk saved', tasks.length, 'tasks');
 }
 
 // ============================================================================
@@ -366,7 +363,7 @@ export async function saveDraft(draft: Omit<FormDraft, 'updatedAt'>): Promise<vo
     updatedAt: Date.now(),
   };
   await db.put('drafts', draftWithTimestamp);
-  console.log('[Offline Storage] Draft saved:', draft.id);
+  log.info('[Offline Storage] Draft saved:', draft.id);
 }
 
 /**
@@ -375,7 +372,7 @@ export async function saveDraft(draft: Omit<FormDraft, 'updatedAt'>): Promise<vo
 export async function deleteDraft(id: string): Promise<void> {
   const db = await getDB();
   await db.delete('drafts', id);
-  console.log('[Offline Storage] Draft deleted:', id);
+  log.info('[Offline Storage] Draft deleted:', id);
 }
 
 /**
@@ -414,8 +411,6 @@ export async function clearOldDrafts(daysOld = 30): Promise<number> {
     ...oldDrafts.map(draft => tx.store.delete(draft.id)),
     tx.done,
   ]);
-
-  console.log('[Offline Storage] Cleared', oldDrafts.length, 'old drafts');
   return oldDrafts.length;
 }
 
@@ -441,7 +436,7 @@ export async function saveUserSettings(settings: UserSettings): Promise<void> {
     ...settings,
     updatedAt: Date.now(),
   });
-  console.log('[Offline Storage] Settings saved for user:', settings.userId);
+  log.info('[Offline Storage] Settings saved for user:', settings.userId);
 }
 
 /**
@@ -500,7 +495,6 @@ export async function updateSetting(userId: string, key: string, value: any): Pr
 export async function queueSync(entry: SyncQueueEntry): Promise<void> {
   const db = await getDB();
   await db.put('syncQueue', entry);
-  console.log('[Offline Storage] Queued for sync:', entry.operation, entry.entityType, entry.entityId);
 }
 
 /**
@@ -526,7 +520,7 @@ export async function getSyncQueueByType(entityType: SyncQueueEntry['entityType'
 export async function removeSyncQueueEntry(id: string): Promise<void> {
   const db = await getDB();
   await db.delete('syncQueue', id);
-  console.log('[Offline Storage] Removed from sync queue:', id);
+  log.info('[Offline Storage] Removed from sync queue:', id);
 }
 
 /**
@@ -543,7 +537,7 @@ export async function updateSyncQueueEntry(entry: SyncQueueEntry): Promise<void>
 export async function clearSyncQueue(): Promise<void> {
   const db = await getDB();
   await db.clear('syncQueue');
-  console.log('[Offline Storage] Sync queue cleared');
+  log.info('[Offline Storage] Sync queue cleared');
 }
 
 /**
@@ -555,8 +549,6 @@ export async function processSyncQueue(
   const queue = await getPendingSyncQueue();
   let success = 0;
   let failed = 0;
-
-  console.log('[Offline Storage] Processing sync queue:', queue.length, 'items');
 
   for (const entry of queue) {
     try {
@@ -580,7 +572,7 @@ export async function processSyncQueue(
 
         // Remove from queue if max retries exceeded (3)
         if (entry.retryCount >= 3) {
-          console.error('[Offline Storage] Max retries exceeded for:', entry.id);
+          log.error('[Offline Storage] Max retries exceeded for:', entry.id);
           await removeSyncQueueEntry(entry.id);
           failed++;
         } else {
@@ -588,7 +580,7 @@ export async function processSyncQueue(
         }
       }
     } catch (error) {
-      console.error('[Offline Storage] Error processing sync entry:', error);
+      log.error('[Offline Storage] Error processing sync entry:', { error });
       entry.retryCount++;
       entry.lastError = error instanceof Error ? error.message : 'Unknown error';
 
@@ -601,7 +593,6 @@ export async function processSyncQueue(
     }
   }
 
-  console.log('[Offline Storage] Sync complete:', success, 'success,', failed, 'failed');
   return { success, failed };
 }
 
@@ -651,7 +642,7 @@ export async function clearAllOfflineData(): Promise<void> {
     db.clear('syncQueue'),
   ]);
 
-  console.log('[Offline Storage] All offline data cleared');
+  log.info('[Offline Storage] All offline data cleared');
 }
 
 /**
@@ -707,5 +698,5 @@ export async function importOfflineData(data: {
 
   await Promise.all(operations);
 
-  console.log('[Offline Storage] Data imported successfully');
+  log.info('[Offline Storage] Data imported successfully');
 }

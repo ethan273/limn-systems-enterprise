@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Portal Test Login API
  * For Playwright tests only - creates Supabase session for portal users
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (sessionError) {
-      console.error('Error generating session:', sessionError);
+      log.error('Error generating session:', { sessionError });
       return NextResponse.json({ error: 'Failed to generate session' }, { status: 500 });
     }
 
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
     const token = tokenMatch ? tokenMatch[1] : null;
 
     if (!token) {
-      console.error('No token found in magic link');
+      log.error('No token found in magic link');
       return NextResponse.json({ error: 'Failed to extract auth token' }, { status: 500 });
     }
 
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Portal test login error:', error);
+    log.error('Portal test login error:', { error });
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

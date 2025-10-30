@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -116,9 +117,9 @@ export default function ContactsPage() {
 
   const handleConfirmDelete = () => {
     if (contactToDelete) {
-      console.log('[ContactsPage] DELETE triggered for contactId:', contactToDelete.id);
+      log.info('[ContactsPage] DELETE triggered for contactId:', contactToDelete.id);
       deleteContactMutation.mutate({ id: contactToDelete.id });
-      console.log('[ContactsPage] deleteContactMutation.mutate called');
+      log.info('[ContactsPage] deleteContactMutation.mutate called');
     }
   };
 
@@ -339,7 +340,7 @@ export default function ContactsPage() {
         description="Add a new contact to your CRM system."
         fields={createFormFields}
         onSubmit={async (data) => {
-          console.log('[ContactsPage] CREATE onSubmit called with data:', data);
+          log.info('[ContactsPage] UPDATE onSubmit called with data', { data, contactId: editContactId });
           const fullName = [data.first_name, data.last_name].filter(Boolean).join(' ');
           const mutationData = {
             first_name: data.first_name as string,
@@ -352,9 +353,9 @@ export default function ContactsPage() {
             notes: data.notes as string || undefined,
             tags: [],
           };
-          console.log('[ContactsPage] Calling createContactMutation.mutateAsync with:', mutationData);
+          log.info('[ContactsPage] Calling createContactMutation.mutateAsync with:', mutationData);
           await createContactMutation.mutateAsync(mutationData);
-          console.log('[ContactsPage] createContactMutation completed');
+          log.info('[ContactsPage] createContactMutation completed');
         }}
         submitLabel="Create Contact"
         isLoading={createContactMutation.isPending}
@@ -368,7 +369,7 @@ export default function ContactsPage() {
         description="Update contact information."
         fields={editFormFields}
         onSubmit={async (data) => {
-          console.log('[ContactsPage] UPDATE onSubmit called with data:', data, 'contactId:', editContactId);
+          log.info('[ContactsPage] UPDATE onSubmit called with data', { data, contactId: editContactId });
           const fullName = [data.first_name, data.last_name].filter(Boolean).join(' ');
           const mutationData = {
             id: editContactId,
@@ -383,9 +384,9 @@ export default function ContactsPage() {
               notes: data.notes as string || undefined,
             },
           };
-          console.log('[ContactsPage] Calling updateContactMutation.mutateAsync with:', mutationData);
+          log.info('[ContactsPage] Calling updateContactMutation.mutateAsync with:', mutationData);
           await updateContactMutation.mutateAsync(mutationData);
-          console.log('[ContactsPage] updateContactMutation completed');
+          log.info('[ContactsPage] updateContactMutation completed');
         }}
         submitLabel="Update Contact"
         isLoading={updateContactMutation.isPending}

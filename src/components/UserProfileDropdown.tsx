@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 import { UserIcon, Settings, LogOut } from "lucide-react";
 import { api } from "@/lib/api/client";
@@ -27,14 +28,14 @@ export default function UserProfileDropdown() {
 
   // Debug logging (dev only)
   if (process.env.NODE_ENV !== 'production') {
-    console.log('[UserProfileDropdown] User data:', { userData, isError, error });
+    log.info('[UserProfileDropdown] User data:', { userData, isError, error });
   }
 
   // Don't render if user not found
   if (isError || !userData) {
     // User not logged in or session expired
     if (isError && process.env.NODE_ENV !== 'production') {
-      console.warn('[UserProfileDropdown] User not authenticated:', error?.message);
+      log.warn('[UserProfileDropdown] User not authenticated:', error?.message);
     }
     return null;
   }
@@ -42,7 +43,7 @@ export default function UserProfileDropdown() {
   const handleSignOut = async () => {
     try {
       if (process.env.NODE_ENV !== 'production') {
-        console.log('[UserProfileDropdown] Signing out...');
+        log.info('[UserProfileDropdown] Signing out...');
       }
 
       // Clear all auth cookies manually
@@ -60,11 +61,11 @@ export default function UserProfileDropdown() {
         });
 
         if (response.ok && process.env.NODE_ENV !== 'production') {
-          console.log('[UserProfileDropdown] ✅ Sign out successful');
+          log.info('[UserProfileDropdown] ✅ Sign out successful');
         }
       } catch (apiError) {
         if (process.env.NODE_ENV !== 'production') {
-          console.log('[UserProfileDropdown] API logout failed (continuing anyway):', apiError);
+          log.info('[UserProfileDropdown] API logout failed (continuing anyway):', apiError);
         }
       }
 
@@ -72,7 +73,7 @@ export default function UserProfileDropdown() {
       window.location.href = '/login';
     } catch (error) {
       if (process.env.NODE_ENV !== 'production') {
-        console.error('[UserProfileDropdown] Sign out exception:', error);
+        log.error('[UserProfileDropdown] Sign out exception:', { error });
       }
       // Force redirect even on error
       window.location.href = '/login';

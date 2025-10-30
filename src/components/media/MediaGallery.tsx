@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 import { useState } from "react";
 import Image from "next/image";
@@ -63,7 +64,7 @@ export function MediaGallery({
       onRefresh?.();
     },
     onError: (error) => {
-      console.error("Delete error:", error);
+      log.error("Delete error:", error);
       toast.error("Failed to delete media");
     },
   });

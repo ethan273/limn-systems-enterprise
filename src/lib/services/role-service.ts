@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Role Determination Service (Legacy Compatibility Layer)
  *
@@ -33,7 +34,7 @@ export async function getUserRole(userId: string): Promise<UserRole> {
     // Map to simplified role for backward compatibility
     return mapSystemRolesToLegacyRole(systemRoles);
   } catch (error) {
-    console.error('[role-service] Error determining user role:', error);
+    log.error('[role-service] Error determining user role:', { error });
 
     // Fallback to old logic if RBAC fails
     try {
@@ -46,7 +47,7 @@ export async function getUserRole(userId: string): Promise<UserRole> {
       });
 
       if (!userProfile) {
-        console.warn(`[role-service] User profile not found: ${userId}`);
+        log.warn(`[role-service] User profile not found: ${userId}`);
         return 'unknown';
       }
 
@@ -65,7 +66,7 @@ export async function getUserRole(userId: string): Promise<UserRole> {
 
       return 'unknown';
     } catch (fallbackError) {
-      console.error('[role-service] Fallback also failed:', fallbackError);
+      log.error('[role-service] Fallback also failed:', fallbackError);
       return 'unknown';
     }
   }
@@ -181,7 +182,7 @@ export async function getUserRoles(userIds: string[]): Promise<Record<string, Us
         // eslint-disable-next-line security/detect-object-injection
         roles[userId] = role;
       } catch (error) {
-        console.error(`[role-service] Error getting role for user ${userId}:`, error);
+        log.error(`[role-service] Error getting role for user ${userId}:`, { error });
         // eslint-disable-next-line security/detect-object-injection
         roles[userId] = 'unknown';
       }

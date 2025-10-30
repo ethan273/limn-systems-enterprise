@@ -1,5 +1,6 @@
 /* eslint-disable security/detect-object-injection */
 'use client';
+import { log } from '@/lib/logger';
 
 import { useState } from 'react';
 import { api } from '@/lib/api/client';
@@ -120,7 +121,7 @@ export default function CustomerDocumentsPage() {
       const timestamp = Date.now();
       const filePath = `customer-documents/${timestamp}-${selectedFile.name}`;
 
-      const { data, error: uploadError } = await supabase.storage
+      const { data: _data, error: uploadError } = await supabase.storage
         .from('documents')
         .upload(filePath, selectedFile, {
           cacheControl: '3600',
@@ -150,7 +151,7 @@ export default function CustomerDocumentsPage() {
         setUploadSuccess(false);
       }, 2000);
     } catch (error) {
-      console.error('Upload error:', error);
+      log.error('Upload error:', { error });
       setUploadError(error instanceof Error ? error.message : 'Upload failed');
     } finally {
       setUploading(false);

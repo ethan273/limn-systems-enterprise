@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+
 import { Badge } from '@/components/ui/badge';
 import { EntityDetailHeader } from '@/components/common/EntityDetailHeader';
 import { StatusBadge } from '@/components/common/StatusBadge';
@@ -19,7 +19,7 @@ import {
   Palette,
   DollarSign,
   AlertCircle,
-  CheckCircle,
+
   FileText,
   Calendar,
   RefreshCw,

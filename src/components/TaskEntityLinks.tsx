@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 import { useState } from "react";
 import { api } from "@/lib/api/client";
@@ -109,7 +110,7 @@ export default function TaskEntityLinks({ taskId, onUpdate }: TaskEntityLinksPro
 
  const handleViewEntityDetails = (link: any) => {
  // In production, this would navigate to the entity details page
- console.log('Viewing entity details:', link);
+ log.info('Viewing entity details:', link);
  alert(`Viewing details for ${link.entity_type}: ${link.entity_name}\nEntity ID: ${link.entity_id}`);
  };
 

@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Data Isolation Tests
  *
@@ -101,7 +102,7 @@ beforeAll(async () => {
 
     testDataCreated = true;
   } catch (error) {
-    console.error('[RLS Test Setup] Failed to create test data:', error);
+    log.error('[RLS Test Setup] Failed to create test data:', error);
     testDataCreated = false;
   }
 });
@@ -145,14 +146,14 @@ afterAll(async () => {
 
     await prisma.$disconnect();
   } catch (error) {
-    console.error('[RLS Test Cleanup] Failed to cleanup test data:', error);
+    log.error('[RLS Test Cleanup] Failed to cleanup test data:', error);
   }
 });
 
 describe('Customer Data Isolation', () => {
   it('should prevent customers from accessing other customer data', async () => {
     if (!testDataCreated) {
-      console.warn('[RLS Test] Skipping - test data not created');
+      log.warn('[RLS Test] Skipping - test data not created');
       return;
     }
 
@@ -192,7 +193,7 @@ describe('Customer Data Isolation', () => {
 
   it('should filter production orders by customer_id via project relationship', async () => {
     if (!testDataCreated) {
-      console.warn('[RLS Test] Skipping - test data not created');
+      log.warn('[RLS Test] Skipping - test data not created');
       return;
     }
 
@@ -261,7 +262,7 @@ describe('Customer Data Isolation', () => {
 
   it('should filter shipments by customer_id via project relationship', async () => {
     if (!testDataCreated) {
-      console.warn('[RLS Test] Skipping - test data not created');
+      log.warn('[RLS Test] Skipping - test data not created');
       return;
     }
 
@@ -320,7 +321,7 @@ describe('Customer Data Isolation', () => {
 
   it('should filter documents by customer_id', async () => {
     if (!testDataCreated) {
-      console.warn('[RLS Test] Skipping - test data not created');
+      log.warn('[RLS Test] Skipping - test data not created');
       return;
     }
 
@@ -378,7 +379,7 @@ describe('Customer Data Isolation', () => {
 describe('Payment Workflow Security', () => {
   it('should block production start without deposit payment', async () => {
     if (!testDataCreated) {
-      console.warn('[RLS Test] Skipping - test data not created');
+      log.warn('[RLS Test] Skipping - test data not created');
       return;
     }
 
@@ -446,7 +447,7 @@ describe('Payment Workflow Security', () => {
 
   it('should block shipping without final payment', async () => {
     if (!testDataCreated) {
-      console.warn('[RLS Test] Skipping - test data not created');
+      log.warn('[RLS Test] Skipping - test data not created');
       return;
     }
 

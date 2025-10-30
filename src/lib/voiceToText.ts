@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Voice-to-Text Integration
  * Web Speech API wrapper for voice note capture in noisy factory environments
@@ -60,25 +61,25 @@ export async function startVoiceToText(
   };
 
   recognition.onerror = (event: any) => {
-    console.error('Speech recognition error:', event.error);
+    log.error('Speech recognition error:', event.error);
     onError?.(event.error);
   };
 
   recognition.onend = () => {
-    console.log('Speech recognition ended');
+    log.info('Speech recognition ended');
   };
 
   try {
     recognition.start();
-    console.log('Speech recognition started');
+    log.info('Speech recognition started');
 
     // Return stop function
     return () => {
       recognition.stop();
-      console.log('Speech recognition stopped');
+      log.info('Speech recognition stopped');
     };
   } catch (error) {
-    console.error('Error starting speech recognition:', error);
+    log.error('Error starting speech recognition:', { error });
     onError?.(String(error));
     return () => {};
   }

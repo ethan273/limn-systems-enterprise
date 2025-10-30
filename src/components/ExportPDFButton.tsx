@@ -1,4 +1,5 @@
 'use client';
+import { log } from '@/lib/logger';
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -27,7 +28,7 @@ export function ExportPDFButton({
     try {
       await exportDashboardToPDF(dashboardName, dateRange);
     } catch (error) {
-      console.error('PDF export failed:', error);
+      log.error('PDF export failed:', { error });
       alert('Failed to export PDF. Please try again.');
     } finally {
       setIsExporting(false);

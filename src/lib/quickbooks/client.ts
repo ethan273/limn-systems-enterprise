@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * QuickBooks Online API Client
  *
@@ -208,7 +209,7 @@ export class QuickBooksClient {
 
       return this.tokens;
     } catch (error) {
-      console.error("Error refreshing QuickBooks access token:", error);
+      log.error("Error refreshing QuickBooks access token:", { error });
       throw error;
     }
   }
@@ -253,7 +254,7 @@ export class QuickBooksClient {
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error("QuickBooks API request failed:", error);
+      log.error("QuickBooks API request failed:", { error });
       throw error;
     }
   }
@@ -275,7 +276,7 @@ export class QuickBooksClient {
         return await this.makeRequest<any>("POST", "/customer", customer);
       }
     } catch (error) {
-      console.error("Error syncing customer to QuickBooks:", error);
+      log.error("Error syncing customer to QuickBooks:", { error });
       throw error;
     }
   }
@@ -288,7 +289,7 @@ export class QuickBooksClient {
       const data = await this.makeRequest<any>("GET", `/customer/${customerId}`);
       return data.Customer;
     } catch (error) {
-      console.error("Error fetching customer from QuickBooks:", error);
+      log.error("Error fetching customer from QuickBooks:", { error });
       throw error;
     }
   }
@@ -305,7 +306,7 @@ export class QuickBooksClient {
       const data = await this.makeRequest<any>("POST", "/invoice", invoice);
       return data.Invoice;
     } catch (error) {
-      console.error("Error creating invoice in QuickBooks:", error);
+      log.error("Error creating invoice in QuickBooks:", { error });
       throw error;
     }
   }
@@ -321,7 +322,7 @@ export class QuickBooksClient {
       const data = await this.makeRequest<any>("POST", "/invoice", invoice);
       return data.Invoice;
     } catch (error) {
-      console.error("Error updating invoice in QuickBooks:", error);
+      log.error("Error updating invoice in QuickBooks:", { error });
       throw error;
     }
   }
@@ -334,7 +335,7 @@ export class QuickBooksClient {
       const data = await this.makeRequest<any>("GET", `/invoice/${invoiceId}`);
       return data.Invoice;
     } catch (error) {
-      console.error("Error fetching invoice from QuickBooks:", error);
+      log.error("Error fetching invoice from QuickBooks:", { error });
       throw error;
     }
   }
@@ -351,7 +352,7 @@ export class QuickBooksClient {
       const data = await this.makeRequest<any>("POST", "/payment", payment);
       return data.Payment;
     } catch (error) {
-      console.error("Error creating payment in QuickBooks:", error);
+      log.error("Error creating payment in QuickBooks:", { error });
       throw error;
     }
   }
@@ -364,7 +365,7 @@ export class QuickBooksClient {
       const data = await this.makeRequest<any>("GET", `/payment/${paymentId}`);
       return data.Payment;
     } catch (error) {
-      console.error("Error fetching payment from QuickBooks:", error);
+      log.error("Error fetching payment from QuickBooks:", { error });
       throw error;
     }
   }
@@ -386,7 +387,7 @@ export class QuickBooksClient {
         return await this.makeRequest<any>("POST", "/item", item);
       }
     } catch (error) {
-      console.error("Error syncing item to QuickBooks:", error);
+      log.error("Error syncing item to QuickBooks:", { error });
       throw error;
     }
   }
@@ -399,7 +400,7 @@ export class QuickBooksClient {
       const data = await this.makeRequest<any>("GET", `/item/${itemId}`);
       return data.Item;
     } catch (error) {
-      console.error("Error fetching item from QuickBooks:", error);
+      log.error("Error fetching item from QuickBooks:", { error });
       throw error;
     }
   }
@@ -419,7 +420,7 @@ export class QuickBooksClient {
       );
       return data.QueryResponse || [];
     } catch (error) {
-      console.error("Error executing QuickBooks query:", error);
+      log.error("Error executing QuickBooks query:", { error });
       throw error;
     }
   }

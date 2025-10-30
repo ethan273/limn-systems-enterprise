@@ -6,6 +6,7 @@
  */
 
 'use client';
+import { log } from '@/lib/logger';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 
@@ -254,7 +255,7 @@ export function useAdaptiveCaching(config: AdaptiveCachingConfig = {}) {
    */
   const prefetchResource = useCallback(async (url: string): Promise<void> => {
     if (!shouldPrefetch()) {
-      console.log('[Adaptive Cache] Prefetch skipped - poor connection');
+      log.info('[Adaptive Cache] Prefetch skipped - poor connection');
       return;
     }
 
@@ -265,9 +266,9 @@ export function useAdaptiveCaching(config: AdaptiveCachingConfig = {}) {
       link.href = url;
       document.head.appendChild(link);
 
-      console.log('[Adaptive Cache] Prefetched:', url);
+      log.info('[Adaptive Cache] Prefetched:', url);
     } catch (error) {
-      console.error('[Adaptive Cache] Prefetch error:', error);
+      log.error('[Adaptive Cache] Prefetch error:', { error });
     }
   }, [shouldPrefetch]);
 

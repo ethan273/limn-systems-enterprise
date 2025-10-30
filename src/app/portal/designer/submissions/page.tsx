@@ -1,4 +1,5 @@
 'use client';
+import { log } from '@/lib/logger';
 
 import { useState } from 'react';
 import { api } from '@/lib/api/client';
@@ -156,7 +157,7 @@ export default function DesignerSubmissionsPage() {
         });
 
       if (uploadError) {
-        console.error('Storage upload error:', uploadError);
+        log.error('Storage upload error:', { uploadError });
         alert('Failed to upload file to storage');
         return;
       }
@@ -192,7 +193,7 @@ export default function DesignerSubmissionsPage() {
         });
       }, 2000);
     } catch (error) {
-      console.error('Submit failed:', error);
+      log.error('Submit failed:', { error });
       alert('Failed to submit deliverable');
     } finally {
       setUploading(false);

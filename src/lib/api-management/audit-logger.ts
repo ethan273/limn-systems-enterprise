@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /* eslint-disable security/detect-object-injection */
 /**
  * Audit Logging System for API Credentials
@@ -126,7 +127,7 @@ export async function logCredentialAccess(params: {
     return auditLog;
   } catch (error) {
     // Never fail the main operation due to audit logging failure
-    console.error('Failed to log audit event:', error);
+    log.error('Failed to log audit event:', { error });
     throw error;
   }
 }

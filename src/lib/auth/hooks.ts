@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 import { createBrowserClient } from '@supabase/ssr';
 import { useEffect, useState } from 'react';
@@ -32,7 +33,7 @@ export function useUser() {
         const { data: { user } } = await supabase.auth.getUser();
         setUser(user);
       } catch (error) {
-        console.error('Error getting user:', error);
+        log.error('Error getting user:', { error });
       } finally {
         setLoading(false);
       }
@@ -64,7 +65,7 @@ export function useAuth() {
       router.push('/auth/login');
       router.refresh();
     } catch (error) {
-      console.error('Error signing out:', error);
+      log.error('Error signing out:', { error });
       throw error;
     }
   };
@@ -82,7 +83,7 @@ export function useAuth() {
       
       return { success: true };
     } catch (error) {
-      console.error('Error signing in with magic link:', error);
+      log.error('Error signing in with magic link:', { error });
       throw error;
     }
   };

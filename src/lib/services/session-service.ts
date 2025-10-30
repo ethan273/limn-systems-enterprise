@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Session Constraints Service (RBAC Phase 2.2)
  *
@@ -159,7 +160,7 @@ async function logSecurityEvent(event: {
   const validEventType = eventTypeMap[event.action];
 
   if (!validEventType) {
-    console.warn(`[SESSION] Skipping security event logging for unknown action: ${event.action}`);
+    log.warn(`[SESSION] Skipping security event logging for unknown action: ${event.action}`);
     return;
   }
 
@@ -176,9 +177,9 @@ async function logSecurityEvent(event: {
         created_at: new Date(),
       },
     });
-    console.log(`[SESSION] Security event logged: ${event.action} -> ${validEventType} for user ${event.userId}`);
+    log.info(`[SESSION] Security event logged: ${event.action} -> ${validEventType} for user ${event.userId}`);
   } catch (error) {
-    console.error('[SESSION] Failed to log security event:', error);
+    log.error('[SESSION] Failed to log security event:', { error });
   }
 }
 
@@ -292,7 +293,7 @@ export async function validateSessionIP(
 
     return { valid: true };
   } catch (error) {
-    console.error('[SESSION] Error validating session IP:', error);
+    log.error('[SESSION] Error validating session IP:', { error });
     // Fail open: allow request but log error
     return { valid: true };
   }
@@ -355,11 +356,11 @@ export async function enforceSessionLimits(
       });
     }
 
-    console.log(
+    log.info(
       `[SESSION] Enforced session limits for user ${userId}: terminated ${sessionsToTerminate.length} sessions (max: ${maxSessions})`
     );
   } catch (error) {
-    console.error('[SESSION] Error enforcing session limits:', error);
+    log.error('[SESSION] Error enforcing session limits:', { error });
   }
 }
 
@@ -426,9 +427,9 @@ export async function trackSessionCreation(
       },
     });
 
-    console.log(`[SESSION] Tracked session creation: ${sessionId} for user ${userId}`);
+    log.info(`[SESSION] Tracked session creation: ${sessionId} for user ${userId}`);
   } catch (error) {
-    console.error('[SESSION] Error tracking session creation:', error);
+    log.error('[SESSION] Error tracking session creation:', { error });
   }
 }
 
@@ -464,7 +465,7 @@ export async function getUserActiveSessions(userId: string): Promise<ActiveSessi
       geo_location: session.geo_location as any,
     }));
   } catch (error) {
-    console.error('[SESSION] Error getting active sessions:', error);
+    log.error('[SESSION] Error getting active sessions:', { error });
     return [];
   }
 }
@@ -487,7 +488,7 @@ export async function terminateSession(
     });
 
     if (!session) {
-      console.warn(`[SESSION] Session tracking not found: ${sessionId}`);
+      log.warn(`[SESSION] Session tracking not found: ${sessionId}`);
       return;
     }
 
@@ -503,9 +504,9 @@ export async function terminateSession(
       details: { sessionId, reason },
     });
 
-    console.log(`[SESSION] Terminated session ${sessionId}: ${reason}`);
+    log.info(`[SESSION] Terminated session ${sessionId}: ${reason}`);
   } catch (error) {
-    console.error('[SESSION] Error terminating session:', error);
+    log.error('[SESSION] Error terminating session:', { error });
   }
 }
 
@@ -576,7 +577,7 @@ export async function detectGeoAnomaly(
 
     return true;
   } catch (error) {
-    console.error('[SESSION] Error detecting geo anomaly:', error);
+    log.error('[SESSION] Error detecting geo anomaly:', { error });
     return false;
   }
 }
@@ -681,12 +682,12 @@ export async function cleanupInactiveSessions(): Promise<number> {
     });
 
     if (terminatedCount > 0) {
-      console.log(`[SESSION] Cleaned up ${terminatedCount} inactive sessions`);
+      log.info(`[SESSION] Cleaned up ${terminatedCount} inactive sessions`);
     }
 
     return terminatedCount;
   } catch (error) {
-    console.error('[SESSION] Error cleaning up inactive sessions:', error);
+    log.error('[SESSION] Error cleaning up inactive sessions:', { error });
     return 0;
   }
 }

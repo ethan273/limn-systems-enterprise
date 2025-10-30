@@ -1,4 +1,5 @@
 'use client';
+import { log } from '@/lib/logger';
 
 /**
  * Client Portal Layout
@@ -78,7 +79,7 @@ export default function PortalLayout({ children }: LayoutProps) {
  router.push('/portal/login');
  router.refresh();
  } catch (error) {
- console.error('Sign out error:', error);
+ log.error('Sign out error:', { error });
  setSigningOut(false);
  }
  };

@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { prisma } from '@/lib/db';
@@ -77,7 +78,7 @@ export async function POST(request: NextRequest) {
 
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.json();
-      console.error('[QuickBooks Refresh] Token refresh failed:', errorData);
+      log.error('[QuickBooks Refresh] Token refresh failed:', errorData);
 
       // If refresh token is invalid, deactivate connection
       if (errorData.error === 'invalid_grant') {
@@ -141,7 +142,7 @@ export async function POST(request: NextRequest) {
         // Ignore if record doesn't exist
       });
 
-    console.log('[QuickBooks Refresh] Successfully refreshed token for realm:', connection.realm_id);
+    log.info('[QuickBooks Refresh] Successfully refreshed token for realm:', connection.realm_id);
 
     return NextResponse.json({
       success: true,
@@ -149,7 +150,7 @@ export async function POST(request: NextRequest) {
       realmId: connection.realm_id,
     });
   } catch (error) {
-    console.error('[QuickBooks Refresh] Error:', error);
+    log.error('[QuickBooks Refresh] Error:', { error });
     return NextResponse.json(
       { error: 'Failed to refresh QuickBooks token' },
       { status: 500 }

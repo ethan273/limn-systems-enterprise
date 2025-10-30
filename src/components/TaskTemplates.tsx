@@ -1,4 +1,5 @@
 "use client";
+import { log } from '@/lib/logger';
 
 import { useState } from "react";
 import { api as _api } from "@/lib/api/client";
@@ -237,7 +238,7 @@ export default function TaskTemplates({ onCreateFromTemplate }: TaskTemplatesPro
  tasks: templateTasks.filter(task => task.title.trim()),
  };
 
- console.log('Creating template:', newTemplate);
+ log.info('Creating template:', { newTemplate });
  // Here you would call the API to create the template
 
  // Reset form
@@ -252,12 +253,12 @@ export default function TaskTemplates({ onCreateFromTemplate }: TaskTemplatesPro
  };
 
  const handleUseTemplate = (templateId: string) => {
- console.log('Using template:', templateId);
+ log.info('Using template:', { templateId });
  onCreateFromTemplate?.(templateId);
  };
 
  const deleteTemplate = (templateId: string) => {
- console.log('Deleting template:', templateId);
+ log.info('Deleting template:', { templateId });
  // Here you would call the API to delete the template
  setTemplateToDelete(null);
  };

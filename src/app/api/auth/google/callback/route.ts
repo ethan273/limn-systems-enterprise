@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Google OAuth 2.0 Callback Route
  *
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
 
     // Handle OAuth error (user denied access)
     if (error) {
-      console.error('OAuth error:', error);
+      log.error('OAuth error:', { error });
       return NextResponse.redirect(
         new URL(`/design/documents?error=oauth_denied`, request.url)
       );
@@ -101,7 +102,7 @@ export async function GET(request: NextRequest) {
       new URL(`/design/documents?success=google_connected`, request.url)
     );
   } catch (error) {
-    console.error('OAuth callback error:', error);
+    log.error('OAuth callback error:', { error });
 
     // Redirect with error message
     return NextResponse.redirect(

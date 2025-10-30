@@ -1,5 +1,6 @@
 "use client";
 
+
 /**
  * Realtime Subscription Hooks
  *
@@ -247,7 +248,7 @@ export function useMultiTableRealtime(subscriptions: Array<{
  *   orderId: '123',
  *   queryKey: ['production-order', '123'],
  *   onUpdate: (payload) => {
- *     console.log('Order updated:', payload.new);
+ *     log.info('Order updated:', payload.new);
  *   }
  * });
  *

@@ -6,6 +6,7 @@
  */
 
 'use client';
+import { log } from '@/lib/logger';
 
 import { useState } from 'react';
 import { FormDialog, type FormField } from './FormDialog';
@@ -53,7 +54,7 @@ export default function FormDialogTestDemo() {
     setLoading('simple', true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log('Simple form submitted:', data);
+      log.info('Simple form submitted:', data);
       alert(`Form submitted!\nName: ${data.name}\nEmail: ${data.email}`);
     } finally {
       setLoading('simple', false);
@@ -101,7 +102,7 @@ export default function FormDialogTestDemo() {
     setLoading('validation', true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      console.log('Validation form submitted:', data);
+      log.info('Validation form submitted:', data);
       alert(
         `Validation passed!\nUsername: ${data.username}\nAge: ${data.age}\nPassword: ${'*'.repeat(
           8
@@ -180,7 +181,7 @@ export default function FormDialogTestDemo() {
     setLoading('allTypes', true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 2000));
-      console.log('All types form submitted:', data);
+      log.info('All types form submitted:', data);
       alert(
         `All field types submitted!\n\n${Object.entries(data)
           .map(([key, value]) => `${key}: ${value}`)

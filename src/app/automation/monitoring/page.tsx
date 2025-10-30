@@ -14,7 +14,7 @@ import { useState } from 'react';
 import { Breadcrumb } from '@/components/common';
 import { api } from '@/utils/api';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+
 import {
   Card,
   CardContent,
@@ -41,8 +41,8 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Activity,
-  TrendingUp,
-  TrendingDown,
+
+
   AlertCircle,
   CheckCircle2,
   Clock,
@@ -59,7 +59,7 @@ export default function WorkflowMonitoringPage() {
   const { data: metrics, isLoading: metricsLoading, refetch: refetchMetrics } =
     api.workflowMonitoring.getExecutionMetrics.useQuery({ timeRange });
 
-  const { data: health, isLoading: healthLoading, refetch: refetchHealth } =
+  const { data: health, refetch: refetchHealth } =
     api.workflowMonitoring.getSystemHealth.useQuery();
 
   const { data: trends } = api.workflowMonitoring.getPerformanceTrends.useQuery({

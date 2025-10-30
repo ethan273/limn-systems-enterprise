@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Shared Rate Limiter for Google Chat Notifications
  *
@@ -25,7 +26,7 @@ export class RateLimiter {
 
     if (timeSinceLastMessage < MIN_INTERVAL_MS) {
       const waitTime = MIN_INTERVAL_MS - timeSinceLastMessage;
-      console.log(`[Rate Limiter] Waiting ${waitTime}ms before next message...`);
+      log.info(`[Rate Limiter] Waiting ${waitTime}ms before next message...`);
       await new Promise((resolve) => setTimeout(resolve, waitTime));
     }
   }

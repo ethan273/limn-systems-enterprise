@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Flipbooks tRPC Router
  *
@@ -118,7 +119,7 @@ export const flipbooksRouter = createTRPCRouter({
       try {
         const { limit, cursor, status, search } = input;
 
-        console.log('[FLIPBOOKS] Starting list query', { userId: ctx.session.user.id, limit, search });
+        log.info('[FLIPBOOKS] Starting list query', { userId: ctx.session.user.id, limit, search });
 
         // Get user profile to check if super_admin
         const userProfile = await ctx.db.user_profiles.findUnique({
@@ -126,7 +127,7 @@ export const flipbooksRouter = createTRPCRouter({
           select: { user_type: true },
         });
 
-        console.log('[FLIPBOOKS] User profile fetched', { userId: userProfile?.id });
+        log.info('[FLIPBOOKS] User profile fetched', { userId: userProfile?.id });
 
         // ✅ RBAC Migration: Check if user has super_admin role
         const isSuperAdmin = userProfile ? await hasRole(userProfile.id, SYSTEM_ROLES.SUPER_ADMIN) : false;
@@ -153,7 +154,7 @@ export const flipbooksRouter = createTRPCRouter({
           where.id = { lt: cursor };
         }
 
-        console.log('[FLIPBOOKS] Where clause built', { where });
+        log.info('[FLIPBOOKS] Where clause built', { where });
 
         // Query flipbooks base data
         // CRITICAL: Cannot use nested selects for relations when using explicit field select
@@ -187,7 +188,7 @@ export const flipbooksRouter = createTRPCRouter({
           },
         });
 
-        console.log('[FLIPBOOKS] Base query completed', { count: flipbooksBase.length });
+        log.info('[FLIPBOOKS] Base query completed', { count: flipbooksBase.length });
 
         // Fetch user profiles for all creators
         const creatorIds = [...new Set(flipbooksBase.map(f => f.created_by_id))];
@@ -235,14 +236,14 @@ export const flipbooksRouter = createTRPCRouter({
           flipbook_pages: pagesByFlipbook.get(flipbook.id) || [],
         }));
 
-        console.log('[FLIPBOOKS] Full query completed', { count: flipbooks.length });
+        log.info('[FLIPBOOKS] Full query completed', { count: flipbooks.length });
 
         return {
           flipbooks,
           nextCursor: flipbooks.length === limit ? flipbooks[flipbooks.length - 1]?.id : undefined,
         };
       } catch (error) {
-        console.error('[FLIPBOOKS] Error in list query:', error);
+        log.error('[FLIPBOOKS] Error in list query:', { error });
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: error instanceof Error ? error.message : 'Failed to fetch flipbooks',
@@ -257,7 +258,7 @@ export const flipbooksRouter = createTRPCRouter({
   get: protectedProcedure
     .input(getFlipbookInput)
     .query(async ({ ctx, input }) => {
-      console.log("[tRPC Get Flipbook] Querying for ID:", input.id);
+      log.info("[tRPC Get Flipbook] Querying for ID:", input.id);
 
       // CRITICAL FIX: Cannot use include at top level because flipbooks.status is Unsupported
       // Using include causes Prisma to auto-select ALL flipbooks fields including Unsupported
@@ -405,7 +406,7 @@ export const flipbooksRouter = createTRPCRouter({
         flipbook_versions: any[];
       };
 
-      console.log("[tRPC Get Flipbook] Result:", {
+      log.info("[tRPC Get Flipbook] Result:", {
         id: flipbook?.id,
         pageCount: flipbook?.page_count,
         pagesFound: flipbook?.flipbook_pages?.length || 0,
@@ -436,7 +437,7 @@ export const flipbooksRouter = createTRPCRouter({
     .input(createFlipbookInput)
     .mutation(async ({ ctx, input }) => {
       try {
-        console.log("Creating flipbook with data:", {
+        log.info("Creating flipbook with data:", {
           title: input.title,
           description: input.description,
           created_by_id: ctx.session.user.id,
@@ -463,13 +464,13 @@ export const flipbooksRouter = createTRPCRouter({
           },
         });
 
-        console.log("Flipbook created successfully:", flipbook.id);
+        log.info("Flipbook created successfully:", flipbook.id);
         return flipbook;
       } catch (error: any) {
-        console.error("Failed to create flipbook:", error);
-        console.error("Error code:", error.code);
-        console.error("Error message:", error.message);
-        console.error("Error meta:", error.meta);
+        log.error("Failed to create flipbook:", { error });
+        log.error("Error code:", error.code);
+        log.error("Error message:", error.message);
+        log.error("Error meta:", error.meta);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: error.message || "Failed to create flipbook",

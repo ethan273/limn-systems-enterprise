@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { unstable_cache } from 'next/cache';
 import { db } from '@/lib/db';
 
@@ -37,7 +38,7 @@ export const CACHE_DURATIONS = {
  */
 export const getCachedUserProfile = unstable_cache(
   async (userId: string) => {
-    console.log(`[Cache MISS] Fetching user profile: ${userId}`);
+    log.info(`[Cache MISS] Fetching user profile: ${userId}`);
 
     const profile = await db.user_profiles.findUnique({
       where: { id: userId },
@@ -58,7 +59,7 @@ export const getCachedUserProfile = unstable_cache(
  */
 export const getCachedProducts = unstable_cache(
   async (filters?: { category?: string; limit?: number }) => {
-    console.log('[Cache MISS] Fetching products', filters);
+    log.info('[Cache MISS] Fetching products', filters);
 
     const where: any = {};
 
@@ -89,7 +90,7 @@ export const getCachedProducts = unstable_cache(
  */
 export const getCachedDashboardStats = unstable_cache(
   async (userId: string, userType: string) => {
-    console.log(`[Cache MISS] Fetching dashboard stats for ${userId}`);
+    log.info(`[Cache MISS] Fetching dashboard stats for ${userId}`);
 
     // Determine filter based on user type
     const isCustomer = userType === 'customer';
@@ -161,7 +162,7 @@ export const getCachedDashboardStats = unstable_cache(
  */
 export const getCachedCustomers = unstable_cache(
   async (filters?: { status?: string; limit?: number; offset?: number }) => {
-    console.log('[Cache MISS] Fetching customers', filters);
+    log.info('[Cache MISS] Fetching customers', filters);
 
     const where: any = {};
 
@@ -203,7 +204,7 @@ export const getCachedCustomers = unstable_cache(
  */
 export const getCachedRecentInvoices = unstable_cache(
   async (customerId?: string, limit: number = 10) => {
-    console.log('[Cache MISS] Fetching recent invoices', { customerId, limit });
+    log.info('[Cache MISS] Fetching recent invoices', { customerId, limit });
 
     const where: any = {};
 
@@ -242,7 +243,7 @@ export const getCachedRecentInvoices = unstable_cache(
  */
 export const getCachedTaskStats = unstable_cache(
   async (userId?: string) => {
-    console.log('[Cache MISS] Fetching task stats', { userId });
+    log.info('[Cache MISS] Fetching task stats', { userId });
 
     const where: any = {};
 
@@ -301,7 +302,7 @@ export const getCachedTaskStats = unstable_cache(
 export async function revalidateCacheByTag(tag: string) {
   const { revalidateTag } = await import('next/cache');
   revalidateTag(tag);
-  console.log(`[Cache] Revalidated tag: ${tag}`);
+  log.info(`[Cache] Revalidated tag: ${tag}`);
 }
 
 /**
@@ -362,5 +363,5 @@ export async function revalidateAllCaches() {
   for (const tag of tags) {
     await revalidateCacheByTag(tag);
   }
-  console.log('[Cache] Revalidated all caches');
+  log.info('[Cache] Revalidated all caches');
 }

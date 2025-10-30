@@ -6,6 +6,7 @@
  */
 
 'use client';
+import { log } from '@/lib/logger';
 
 import { useState } from 'react';
 import { FormDialog, type FormField } from './FormDialog';
@@ -53,7 +54,7 @@ export function SimpleContactFormExample() {
     try {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log('Contact form submitted:', data);
+      log.info('Contact form submitted:', data);
       alert('Contact form submitted successfully!');
     } finally {
       setIsLoading(false);
@@ -149,7 +150,7 @@ export function CustomerFormExample() {
     try {
       // Simulate API call - replace with actual tRPC mutation
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      console.log('Customer created:', data);
+      log.info('Customer created:', data);
       alert('Customer created successfully!');
     } finally {
       setIsLoading(false);
@@ -247,7 +248,7 @@ export function TaskFormExample() {
     try {
       // Simulate API call - replace with actual tRPC mutation
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log('Task created:', data);
+      log.info('Task created:', data);
       alert('Task created successfully!');
     } finally {
       setIsLoading(false);
@@ -337,7 +338,7 @@ export function UserRegistrationExample() {
     try {
       // Simulate API call - replace with actual tRPC mutation
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      console.log('User registered:', data);
+      log.info('User registered:', data);
       alert('User registered successfully!');
     } finally {
       setIsLoading(false);
@@ -401,7 +402,7 @@ export function TRPCIntegrationExample() {
 
     // Simulation for this example
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    console.log('Customer created via tRPC:', data);
+    log.info('Customer created via tRPC:', data);
     alert('Customer created!');
   };
 

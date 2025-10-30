@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Health Check Job API Route
  *
@@ -19,7 +20,7 @@ export async function POST(request: NextRequest) {
     const expectedToken = process.env.CRON_SECRET;
 
     if (!expectedToken) {
-      console.error('[Health Check Job] CRON_SECRET not configured');
+      log.error('[Health Check Job] CRON_SECRET not configured');
       return NextResponse.json(
         { error: 'Server configuration error' },
         { status: 500 }
@@ -27,11 +28,11 @@ export async function POST(request: NextRequest) {
     }
 
     if (authHeader !== `Bearer ${expectedToken}`) {
-      console.error('[Health Check Job] Unauthorized request');
+      log.error('[Health Check Job] Unauthorized request');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log('[Health Check Job] Authorized request received');
+    log.info('[Health Check Job] Authorized request received');
 
     // Run the job
     const result = await runHealthCheckJob();
@@ -48,7 +49,7 @@ export async function POST(request: NextRequest) {
       errors: result.errors,
     });
   } catch (error) {
-    console.error('[Health Check Job] Error:', error);
+    log.error('[Health Check Job] Error:', { error });
 
     return NextResponse.json(
       {
