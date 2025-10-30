@@ -1943,6 +1943,77 @@ export class DatabaseClient {
     aggregate: (options?: any) =>
       (prisma as any).user_notification_preferences.aggregate(options),
   };
+
+  workflow_step_executions = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('workflow_step_executions', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('workflow_step_executions', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('workflow_step_executions', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('workflow_step_executions', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('workflow_step_executions', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('workflow_step_executions', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('workflow_step_executions', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('workflow_step_executions', options),
+    findFirst: (options?: { where?: Record<string, any>; include?: Record<string, any>; select?: Record<string, any>; orderBy?: Record<string, 'asc' | 'desc'> }) =>
+      (prisma as any).workflow_step_executions.findFirst(options),
+    groupBy: (options: any) =>
+      (prisma as any).workflow_step_executions.groupBy(options),
+    aggregate: (options?: any) =>
+      (prisma as any).workflow_step_executions.aggregate(options),
+  };
+  workflow_execution_logs = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('workflow_execution_logs', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('workflow_execution_logs', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('workflow_execution_logs', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('workflow_execution_logs', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('workflow_execution_logs', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('workflow_execution_logs', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('workflow_execution_logs', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('workflow_execution_logs', options),
+    findFirst: (options?: { where?: Record<string, any>; include?: Record<string, any>; select?: Record<string, any>; orderBy?: Record<string, 'asc' | 'desc'> }) =>
+      (prisma as any).workflow_execution_logs.findFirst(options),
+    groupBy: (options: any) =>
+      (prisma as any).workflow_execution_logs.groupBy(options),
+    aggregate: (options?: any) =>
+      (prisma as any).workflow_execution_logs.aggregate(options),
+  };
+  task_automation_rules = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('task_automation_rules', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('task_automation_rules', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('task_automation_rules', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('task_automation_rules', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('task_automation_rules', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('task_automation_rules', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('task_automation_rules', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('task_automation_rules', options),
+    findFirst: (options?: { where?: Record<string, any>; include?: Record<string, any>; select?: Record<string, any>; orderBy?: Record<string, 'asc' | 'desc'> }) =>
+      (prisma as any).task_automation_rules.findFirst(options),
+    groupBy: (options: any) =>
+      (prisma as any).task_automation_rules.groupBy(options),
+    aggregate: (options?: any) =>
+      (prisma as any).task_automation_rules.aggregate(options),
+  };
+
   addresses = {
     findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('addresses', options),
     findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>

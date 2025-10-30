@@ -7774,6 +7774,31 @@ model task_attachments {
   @@schema("public")
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model task_automation_rules {
+  id                 String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name               String          @db.VarChar(255)
+  description        String?
+  trigger_event      String          @db.VarChar(100)
+  trigger_conditions Json?           @default("{}")
+  task_template_id   String?         @db.Uuid
+  task_config        Json
+  assignment_rule    String?         @db.VarChar(50)
+  assignment_config  Json?
+  depends_on_tasks   Json?           @default("[]")
+  is_active          Boolean?        @default(true)
+  created_by         String?         @db.Uuid
+  created_at         DateTime?       @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime?       @default(now()) @db.Timestamptz(6)
+  user_profiles      user_profiles?  @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  task_templates     task_templates? @relation(fields: [task_template_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([is_active], map: "idx_task_automation_rules_active")
+  @@index([trigger_event], map: "idx_task_automation_rules_event")
+  @@schema("public")
+}
+
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model task_comments {
   id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -7812,14 +7837,15 @@ model task_entity_links {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model task_templates {
-  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name          String    @unique
-  description   String?
-  template_data Json
-  category      String?
-  is_active     Boolean?  @default(true)
-  created_at    DateTime? @default(now()) @db.Timestamp(6)
-  updated_at    DateTime? @default(now()) @db.Timestamp(6)
+  id                    String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                  String                  @unique
+  description           String?
+  template_data         Json
+  category              String?
+  is_active             Boolean?                @default(true)
+  created_at            DateTime?               @default(now()) @db.Timestamp(6)
+  updated_at            DateTime?               @default(now()) @db.Timestamp(6)
+  task_automation_rules task_automation_rules[]
 
   @@index([created_at], map: "idx_task_templates_created_at")
   @@index([is_active], map: "idx_task_templates_is_active")
@@ -8200,6 +8226,7 @@ model user_profiles {
   flipbook_share_links                                              flipbook_share_links[]
   flipbook_versions                                                 flipbook_versions[]
   flipbooks                                                         flipbooks[]
+  task_automation_rules                                             task_automation_rules[]
   templates                                                         templates[]
   user_notification_preferences                                     user_notification_preferences?
   users_user_profiles_idTousers                                     users                          @relation("user_profiles_idTousers", fields: [id], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -8308,31 +8335,77 @@ model webhook_endpoints {
   @@schema("public")
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model workflow_execution_logs {
+  id                       String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  execution_id             String                    @db.Uuid
+  step_execution_id        String?                   @db.Uuid
+  level                    String                    @db.VarChar(20)
+  message                  String
+  data                     Json?
+  created_at               DateTime?                 @default(now()) @db.Timestamptz(6)
+  workflow_executions      workflow_executions       @relation(fields: [execution_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  workflow_step_executions workflow_step_executions? @relation(fields: [step_execution_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([created_at(sort: Desc)], map: "idx_workflow_execution_logs_created")
+  @@index([execution_id], map: "idx_workflow_execution_logs_execution")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model workflow_executions {
-  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  workflow_id       String    @db.Uuid
-  started_at        DateTime? @default(now()) @db.Timestamptz(6)
-  completed_at      DateTime? @db.Timestamptz(6)
-  status            String    @default("running") @db.VarChar(20)
-  trigger_data      Json?     @default("{}")
-  execution_context Json?     @default("{}")
-  execution_result  Json?     @default("{}")
-  error_message     String?
-  error_details     Json?
-  duration_ms       Int?
-  steps_completed   Int?      @default(0)
-  steps_total       Int?
-  initiated_by      String?   @db.Uuid
-  cancelled_by      String?   @db.Uuid
-  created_at        DateTime? @default(now()) @db.Timestamptz(6)
-  workflows         workflows @relation(fields: [workflow_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id                       String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workflow_id              String                     @db.Uuid
+  started_at               DateTime?                  @default(now()) @db.Timestamptz(6)
+  completed_at             DateTime?                  @db.Timestamptz(6)
+  status                   String                     @default("running") @db.VarChar(20)
+  trigger_data             Json?                      @default("{}")
+  execution_context        Json?                      @default("{}")
+  execution_result         Json?                      @default("{}")
+  error_message            String?
+  error_details            Json?
+  duration_ms              Int?
+  steps_completed          Int?                       @default(0)
+  steps_total              Int?
+  initiated_by             String?                    @db.Uuid
+  cancelled_by             String?                    @db.Uuid
+  created_at               DateTime?                  @default(now()) @db.Timestamptz(6)
+  workflow_execution_logs  workflow_execution_logs[]
+  workflows                workflows                  @relation(fields: [workflow_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  workflow_step_executions workflow_step_executions[]
 
+  @@index([created_at(sort: Desc)], map: "idx_workflow_executions_created")
   @@index([created_at], map: "idx_workflow_executions_created_at")
   @@index([started_at(sort: Desc)], map: "idx_workflow_executions_started")
   @@index([status], map: "idx_workflow_executions_status")
   @@index([workflow_id], map: "idx_workflow_executions_workflow")
   @@index([workflow_id], map: "idx_workflow_executions_workflow_id")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model workflow_step_executions {
+  id                      String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  execution_id            String                    @db.Uuid
+  step_id                 String                    @db.VarChar(255)
+  step_type               String                    @db.VarChar(50)
+  step_name               String?                   @db.VarChar(255)
+  status                  String                    @default("pending") @db.VarChar(50)
+  input_data              Json?
+  output_data             Json?
+  error_message           String?
+  retry_count             Int?                      @default(0)
+  started_at              DateTime?                 @db.Timestamptz(6)
+  completed_at            DateTime?                 @db.Timestamptz(6)
+  created_at              DateTime?                 @default(now()) @db.Timestamptz(6)
+  workflow_execution_logs workflow_execution_logs[]
+  workflow_executions     workflow_executions       @relation(fields: [execution_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([execution_id], map: "idx_workflow_step_executions_execution")
+  @@index([status], map: "idx_workflow_step_executions_status")
   @@schema("public")
 }
 
@@ -8359,6 +8432,7 @@ model workflow_steps {
   @@schema("public")
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model workflow_templates {
   id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -8373,6 +8447,7 @@ model workflow_templates {
   created_at          DateTime? @default(now()) @db.Timestamptz(6)
   updated_at          DateTime? @default(now()) @db.Timestamptz(6)
 
+  @@index([category], map: "idx_workflow_templates_category")
   @@index([created_at], map: "idx_workflow_templates_created_at")
   @@index([updated_at], map: "idx_workflow_templates_updated_at")
   @@schema("public")
