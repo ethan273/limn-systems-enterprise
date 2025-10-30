@@ -94,14 +94,68 @@ export interface NotificationResult {
 }
 
 /**
- * Get user notification preferences
+ * Get user notification preferences from database
  *
- * Note: user_notification_preferences table doesn't exist yet.
- * For now, return default preferences for all users.
+ * Returns user-specific preferences if found, otherwise returns system defaults.
  */
-async function getUserPreferences(_userId: string): Promise<UserNotificationPreferences> {
-  // TODO: Implement when user_notification_preferences table is created
-  // Return default preferences for now
+async function getUserPreferences(userId: string): Promise<UserNotificationPreferences> {
+  try {
+    const prefs = await prisma.user_notification_preferences.findUnique({
+      where: { user_id: userId },
+    });
+
+    // If no preferences found, return defaults
+    if (!prefs) {
+      return getDefaultPreferences();
+    }
+
+    // Transform database format to UserNotificationPreferences format
+    const dbChannels = prefs.channels as any;
+    const dbCategories = prefs.categories as any;
+    const dbQuietHours = prefs.quiet_hours as any;
+
+    // Transform categories from DB format {category: {in_app, email, ...}}
+    // to interface format {category: {enabled, channels: []}}
+    const categories: UserNotificationPreferences['categories'] = {};
+
+    for (const [category, channelPrefs] of Object.entries(dbCategories)) {
+      const enabledChannels: NotificationChannel[] = [];
+      const channelObj = channelPrefs as any;
+
+      if (channelObj.in_app) enabledChannels.push('in_app');
+      if (channelObj.email) enabledChannels.push('email');
+      if (channelObj.google_chat) enabledChannels.push('google_chat');
+
+      categories[category as NotificationCategory] = {
+        enabled: enabledChannels.length > 0,
+        channels: enabledChannels,
+      };
+    }
+
+    return {
+      channels: {
+        in_app: dbChannels.in_app ?? true,
+        email: dbChannels.email ?? true,
+        google_chat: dbChannels.google_chat ?? false,
+      },
+      categories,
+      quietHours: dbQuietHours ? {
+        enabled: dbQuietHours.enabled ?? false,
+        start: dbQuietHours.start ?? '22:00',
+        end: dbQuietHours.end ?? '08:00',
+      } : undefined,
+    };
+  } catch (error) {
+    console.error('[Notifications] Error fetching user preferences:', error);
+    // Fallback to defaults on error
+    return getDefaultPreferences();
+  }
+}
+
+/**
+ * Get default notification preferences
+ */
+function getDefaultPreferences(): UserNotificationPreferences {
   return {
     channels: {
       in_app: true,

@@ -1918,6 +1918,31 @@ export class DatabaseClient {
     aggregate: (options?: any) =>
       (prisma as any).user_profiles.aggregate(options),
   };
+  user_notification_preferences = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('user_notification_preferences', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('user_notification_preferences', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('user_notification_preferences', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('user_notification_preferences', options),
+    upsert: (options: { where: Record<string, any>; create: Record<string, any>; update: Record<string, any> }) =>
+      (prisma as any).user_notification_preferences.upsert(options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('user_notification_preferences', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('user_notification_preferences', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('user_notification_preferences', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('user_notification_preferences', options),
+    findFirst: (options?: { where?: Record<string, any>; include?: Record<string, any>; select?: Record<string, any>; orderBy?: Record<string, 'asc' | 'desc'> }) =>
+      (prisma as any).user_notification_preferences.findFirst(options),
+    groupBy: (options: any) =>
+      (prisma as any).user_notification_preferences.groupBy(options),
+    aggregate: (options?: any) =>
+      (prisma as any).user_notification_preferences.aggregate(options),
+  };
   addresses = {
     findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('addresses', options),
     findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>

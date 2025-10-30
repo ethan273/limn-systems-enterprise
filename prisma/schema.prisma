@@ -4213,6 +4213,7 @@ model ordered_items_production {
   @@schema("public")
 }
 
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model orders {
@@ -4493,21 +4494,21 @@ model partner_contacts {
   last_login_at            DateTime? @db.Timestamptz(6)
   first_name               String?   @db.VarChar(255)
   last_name                String?   @db.VarChar(255)
-  employee_id              String?   @db.VarChar(100)
   department               String?   @db.VarChar(100)
-  employment_status        String?   @default("active") @db.VarChar(50)
-  employment_start_date    DateTime? @db.Timestamptz(6)
+  employee_id              String?   @db.VarChar(100)
   employment_end_date      DateTime? @db.Timestamptz(6)
+  employment_start_date    DateTime? @db.Timestamptz(6)
+  employment_status        String?   @default("active") @db.VarChar(50)
   users                    users?    @relation(fields: [user_id], references: [id], onUpdate: NoAction, map: "fk_partner_contacts_user")
   partners                 partners  @relation(fields: [partner_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([created_at], map: "idx_partner_contacts_created_at")
+  @@index([department], map: "idx_partner_contacts_department")
   @@index([email], map: "idx_partner_contacts_email")
+  @@index([employee_id], map: "idx_partner_contacts_employee_id")
+  @@index([employment_status], map: "idx_partner_contacts_employment_status")
   @@index([partner_id], map: "idx_partner_contacts_partner_id")
   @@index([updated_at], map: "idx_partner_contacts_updated_at")
-  @@index([employment_status], map: "idx_partner_contacts_employment_status")
-  @@index([department], map: "idx_partner_contacts_department")
-  @@index([employee_id], map: "idx_partner_contacts_employee_id")
   @@schema("public")
 }
 
@@ -5464,6 +5465,7 @@ model production_milestones {
   @@schema("public")
 }
 
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model production_orders {
@@ -8088,6 +8090,22 @@ model user_feature_overrides {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model user_notification_preferences {
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id       String        @unique @db.Uuid
+  channels      Json          @default("{\"email\": true, \"in_app\": true, \"google_chat\": false}")
+  categories    Json          @default("{\"task\": {\"email\": true, \"in_app\": true}, \"alert\": {\"email\": true, \"in_app\": true, \"google_chat\": true}, \"order\": {\"email\": true, \"in_app\": true}, \"system\": {\"email\": true, \"in_app\": true}, \"message\": {\"email\": false, \"in_app\": true}, \"payment\": {\"email\": true, \"in_app\": true}, \"shipping\": {\"email\": true, \"in_app\": true}, \"production\": {\"email\": false, \"in_app\": true}}")
+  quiet_hours   Json?
+  created_at    DateTime?     @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime?     @default(now()) @db.Timestamptz(6)
+  user_profiles user_profiles @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id], map: "idx_user_notification_preferences_user_id")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model user_permissions {
   id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   user_id     String    @db.Uuid
@@ -8137,34 +8155,34 @@ model user_preferences {
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model user_profiles {
-  id                                                                String                       @id @db.Uuid
+  id                                                                String                         @id @db.Uuid
   email                                                             String?
   name                                                              String?
   avatar_url                                                        String?
-  created_at                                                        DateTime?                    @default(now()) @db.Timestamp(6)
-  updated_at                                                        DateTime?                    @default(now()) @db.Timestamp(6)
-  title                                                             String?                      @db.VarChar(100)
-  user_type                                                         user_type_enum?              @default(employee)
-  is_active                                                         Boolean?                     @default(true)
-  department                                                        String?                      @db.VarChar(100)
-  hire_date                                                         DateTime?                    @db.Date
-  permissions                                                       Json?                        @default("{}")
-  is_sso_user                                                       Boolean?                     @default(false)
+  created_at                                                        DateTime?                      @default(now()) @db.Timestamp(6)
+  updated_at                                                        DateTime?                      @default(now()) @db.Timestamp(6)
+  title                                                             String?                        @db.VarChar(100)
+  user_type                                                         user_type_enum?                @default(employee)
+  is_active                                                         Boolean?                       @default(true)
+  department                                                        String?                        @db.VarChar(100)
+  hire_date                                                         DateTime?                      @db.Date
+  permissions                                                       Json?                          @default("{}")
+  is_sso_user                                                       Boolean?                       @default(false)
   sso_provider                                                      String?
   google_workspace_id                                               String?
-  last_sso_login                                                    DateTime?                    @db.Timestamptz(6)
-  user_id                                                           String?                      @unique @db.Uuid
+  last_sso_login                                                    DateTime?                      @db.Timestamptz(6)
+  user_id                                                           String?                        @unique @db.Uuid
   first_name                                                        String?
   last_name                                                         String?
-  full_name                                                         String?                      @default(dbgenerated("((COALESCE(first_name, ''::text) ||\nCASE\n    WHEN ((first_name IS NOT NULL) AND (last_name IS NOT NULL)) THEN ' '::text\n    ELSE ''::text\nEND) || COALESCE(last_name, ''::text))"))
+  full_name                                                         String?                        @default(dbgenerated("((COALESCE(first_name, ''::text) ||\nCASE\n    WHEN ((first_name IS NOT NULL) AND (last_name IS NOT NULL)) THEN ' '::text\n    ELSE ''::text\nEND) || COALESCE(last_name, ''::text))"))
   job_title                                                         String?
   raw_metadata                                                      Json?
   analytics_events                                                  analytics_events[]
   board_activity_log                                                board_activity_log[]
-  board_collaborators_board_collaborators_invited_byTouser_profiles board_collaborators[]        @relation("board_collaborators_invited_byTouser_profiles")
-  board_collaborators_board_collaborators_user_idTouser_profiles    board_collaborators[]        @relation("board_collaborators_user_idTouser_profiles")
-  board_comments_board_comments_resolved_byTouser_profiles          board_comments[]             @relation("board_comments_resolved_byTouser_profiles")
-  board_comments_board_comments_user_idTouser_profiles              board_comments[]             @relation("board_comments_user_idTouser_profiles")
+  board_collaborators_board_collaborators_invited_byTouser_profiles board_collaborators[]          @relation("board_collaborators_invited_byTouser_profiles")
+  board_collaborators_board_collaborators_user_idTouser_profiles    board_collaborators[]          @relation("board_collaborators_user_idTouser_profiles")
+  board_comments_board_comments_resolved_byTouser_profiles          board_comments[]               @relation("board_comments_resolved_byTouser_profiles")
+  board_comments_board_comments_user_idTouser_profiles              board_comments[]               @relation("board_comments_user_idTouser_profiles")
   board_objects                                                     board_objects[]
   board_snapshots                                                   board_snapshots[]
   board_templates                                                   board_templates[]
@@ -8172,19 +8190,20 @@ model user_profiles {
   design_boards                                                     design_boards[]
   document_access_log                                               document_access_log[]
   document_approval_workflow                                        document_approval_workflow[]
-  document_comments_document_comments_commented_byTouser_profiles   document_comments[]          @relation("document_comments_commented_byTouser_profiles")
-  document_comments_document_comments_resolved_byTouser_profiles    document_comments[]          @relation("document_comments_resolved_byTouser_profiles")
-  document_revisions_document_revisions_changed_byTouser_profiles   document_revisions[]         @relation("document_revisions_changed_byTouser_profiles")
-  document_revisions_document_revisions_reviewed_byTouser_profiles  document_revisions[]         @relation("document_revisions_reviewed_byTouser_profiles")
-  documents_documents_approved_byTouser_profiles                    documents[]                  @relation("documents_approved_byTouser_profiles")
-  documents_documents_uploaded_by_userTouser_profiles               documents[]                  @relation("documents_uploaded_by_userTouser_profiles")
+  document_comments_document_comments_commented_byTouser_profiles   document_comments[]            @relation("document_comments_commented_byTouser_profiles")
+  document_comments_document_comments_resolved_byTouser_profiles    document_comments[]            @relation("document_comments_resolved_byTouser_profiles")
+  document_revisions_document_revisions_changed_byTouser_profiles   document_revisions[]           @relation("document_revisions_changed_byTouser_profiles")
+  document_revisions_document_revisions_reviewed_byTouser_profiles  document_revisions[]           @relation("document_revisions_reviewed_byTouser_profiles")
+  documents_documents_approved_byTouser_profiles                    documents[]                    @relation("documents_approved_byTouser_profiles")
+  documents_documents_uploaded_by_userTouser_profiles               documents[]                    @relation("documents_uploaded_by_userTouser_profiles")
   flipbook_conversions                                              flipbook_conversions[]
   flipbook_share_links                                              flipbook_share_links[]
   flipbook_versions                                                 flipbook_versions[]
   flipbooks                                                         flipbooks[]
   templates                                                         templates[]
-  users_user_profiles_idTousers                                     users                        @relation("user_profiles_idTousers", fields: [id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users_user_profiles_user_idTousers                                users?                       @relation("user_profiles_user_idTousers", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user_notification_preferences                                     user_notification_preferences?
+  users_user_profiles_idTousers                                     users                          @relation("user_profiles_idTousers", fields: [id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users_user_profiles_user_idTousers                                users?                         @relation("user_profiles_user_idTousers", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([created_at], map: "idx_user_profiles_created_at")
   @@index([created_at(sort: Desc)], map: "idx_user_profiles_created_at_desc")
@@ -8581,6 +8600,38 @@ enum manufacturer_status_enum {
   @@schema("public")
 }
 
+enum order_priority_enum {
+  low
+  normal
+  high
+  urgent
+
+  @@schema("public")
+}
+
+enum order_status_enum {
+  draft
+  pending
+  confirmed
+  deposit_paid
+  sent_to_production
+  completed
+  freight_on_board
+  final_invoice_sent
+  cancelled
+
+  @@schema("public")
+}
+
+enum order_type_enum {
+  standard
+  custom
+  rush
+  sample
+
+  @@schema("public")
+}
+
 enum packing_material_type_enum {
   box
   padding
@@ -8601,11 +8652,35 @@ enum packing_status_enum {
   @@schema("public")
 }
 
+enum payment_status_enum {
+  pending
+  partial
+  paid
+  refunded
+  overdue
+
+  @@schema("public")
+}
+
 enum priority_enum {
   urgent
   high
   normal
   low
+
+  @@schema("public")
+}
+
+enum production_order_status_enum {
+  awaiting_deposit
+  deposit_paid
+  in_production
+  qc
+  packing
+  freight_on_board
+  shipped
+  delivered
+  cancelled
 
   @@schema("public")
 }
@@ -8711,63 +8786,6 @@ enum user_type_enum {
   admin
   factory
   qc_tester
-
-  @@schema("public")
-}
-
-// Order System Enums (Phase 1 - Order System 100% Production Ready)
-enum order_status_enum {
-  draft
-  pending
-  confirmed
-  deposit_paid
-  sent_to_production
-  completed
-  freight_on_board
-  final_invoice_sent
-  cancelled
-
-  @@schema("public")
-}
-
-enum production_order_status_enum {
-  awaiting_deposit
-  deposit_paid
-  in_production
-  qc
-  packing
-  freight_on_board
-  shipped
-  delivered
-  cancelled
-
-  @@schema("public")
-}
-
-enum payment_status_enum {
-  pending
-  partial
-  paid
-  refunded
-  overdue
-
-  @@schema("public")
-}
-
-enum order_priority_enum {
-  low
-  normal
-  high
-  urgent
-
-  @@schema("public")
-}
-
-enum order_type_enum {
-  standard
-  custom
-  rush
-  sample
 
   @@schema("public")
 }

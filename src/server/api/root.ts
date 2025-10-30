@@ -37,6 +37,7 @@ import { expensesRouter } from './routers/expenses';
 import { documentsRouter } from './routers/documents';
 import { dashboardsRouter } from './routers/dashboards';
 import { notificationsRouter } from './routers/notifications';
+import { notificationPreferencesRouter } from './routers/notification-preferences';
 import { userProfileRouter } from './routers/user-profile';
 import { profilesRouter } from './routers/profiles';
 import { templatesRouter } from './routers/templates';
@@ -217,6 +218,7 @@ export const appRouter = createTRPCRouter({
 
   // Notifications & User Profile
   notifications: notificationsRouter,
+  notificationPreferences: notificationPreferencesRouter,
   userProfile: userProfileRouter,
   profiles: profilesRouter,
 
