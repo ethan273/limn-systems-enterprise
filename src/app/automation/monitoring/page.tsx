@@ -80,11 +80,11 @@ export default function WorkflowMonitoringPage() {
   const getHealthColor = (status?: string) => {
     switch (status) {
       case 'healthy':
-        return 'text-green-600';
+        return 'text-success';
       case 'warning':
-        return 'text-yellow-600';
+        return 'text-warning';
       case 'critical':
-        return 'text-red-600';
+        return 'text-destructive';
       default:
         return 'text-gray-600';
     }
@@ -93,9 +93,9 @@ export default function WorkflowMonitoringPage() {
   const getHealthBadge = (status?: string) => {
     switch (status) {
       case 'healthy':
-        return <Badge className="bg-green-600">Healthy</Badge>;
+        return <Badge className="bg-success">Healthy</Badge>;
       case 'warning':
-        return <Badge className="bg-yellow-600">Warning</Badge>;
+        return <Badge className="bg-warning">Warning</Badge>;
       case 'critical':
         return <Badge variant="destructive">Critical</Badge>;
       default:
@@ -141,7 +141,7 @@ export default function WorkflowMonitoringPage() {
 
       {/* System Health Banner */}
       {health && (
-        <Card className={`border-2 ${health.status === 'healthy' ? 'border-green-200 bg-green-50/50' : health.status === 'warning' ? 'border-yellow-200 bg-yellow-50/50' : 'border-red-200 bg-red-50/50'}`}>
+        <Card className={`border-2 ${health.status === 'healthy' ? 'border-success bg-success/10' : health.status === 'warning' ? 'border-warning bg-warning/10' : 'border-destructive bg-destructive/10'}`}>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -191,7 +191,7 @@ export default function WorkflowMonitoringPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-green-600" />
+            <CheckCircle2 className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
             {metricsLoading ? (
@@ -210,7 +210,7 @@ export default function WorkflowMonitoringPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Failures</CardTitle>
-            <AlertCircle className="h-4 w-4 text-red-600" />
+            <AlertCircle className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
             {metricsLoading ? (
@@ -229,7 +229,7 @@ export default function WorkflowMonitoringPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Avg Execution Time</CardTitle>
-            <Clock className="h-4 w-4 text-blue-600" />
+            <Clock className="h-4 w-4 text-info" />
           </CardHeader>
           <CardContent>
             {metricsLoading ? (
@@ -265,7 +265,7 @@ export default function WorkflowMonitoringPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Running</CardTitle>
-              <Activity className="h-4 w-4 text-blue-600" />
+              <Activity className="h-4 w-4 text-info" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{queueStatus.running}</div>
@@ -276,7 +276,7 @@ export default function WorkflowMonitoringPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Pending</CardTitle>
-              <Clock className="h-4 w-4 text-yellow-600" />
+              <Clock className="h-4 w-4 text-warning" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{queueStatus.pending}</div>
@@ -322,11 +322,11 @@ export default function WorkflowMonitoringPage() {
                           </div>
                           <div className="flex items-center gap-6">
                             <div className="flex items-center gap-2">
-                              <CheckCircle2 className="h-4 w-4 text-green-600" />
+                              <CheckCircle2 className="h-4 w-4 text-success" />
                               <span className="text-sm">{trend.success} successful</span>
                             </div>
                             <div className="flex items-center gap-2">
-                              <AlertCircle className="h-4 w-4 text-red-600" />
+                              <AlertCircle className="h-4 w-4 text-destructive" />
                               <span className="text-sm">{trend.failed} failed</span>
                             </div>
                           </div>
@@ -336,10 +336,10 @@ export default function WorkflowMonitoringPage() {
                           <Badge
                             className={
                               successRate >= 95
-                                ? 'bg-green-600'
+                                ? 'bg-success'
                                 : successRate >= 80
-                                  ? 'bg-yellow-600'
-                                  : 'bg-red-600'
+                                  ? 'bg-warning'
+                                  : 'bg-destructive'
                             }
                           >
                             {successRate}% success

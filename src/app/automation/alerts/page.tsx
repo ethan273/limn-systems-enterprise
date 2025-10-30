@@ -372,7 +372,7 @@ export default function AlertManagementPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Alerts</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-yellow-600" />
+            <AlertTriangle className="h-4 w-4 text-warning" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -385,7 +385,7 @@ export default function AlertManagementPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Acknowledged</CardTitle>
-            <Clock className="h-4 w-4 text-blue-600" />
+            <Clock className="h-4 w-4 text-info" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -398,7 +398,7 @@ export default function AlertManagementPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Resolved</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-green-600" />
+            <CheckCircle2 className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -478,7 +478,7 @@ export default function AlertManagementPage() {
                         </TableCell>
                         <TableCell>
                           {rule.is_active ? (
-                            <Badge className="bg-green-600">
+                            <Badge className="bg-success">
                               <Activity className="h-3 w-3 mr-1" />
                               Active
                             </Badge>
@@ -504,7 +504,7 @@ export default function AlertManagementPage() {
                               onClick={() => handleDelete(rule.id)}
                               disabled={deleteMutation.isPending}
                             >
-                              <Trash2 className="h-4 w-4 text-red-600" />
+                              <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
                           </div>
                         </TableCell>
@@ -526,7 +526,7 @@ export default function AlertManagementPage() {
             <CardContent>
               {alerts.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  <CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-green-600 opacity-50" />
+                  <CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-success opacity-50" />
                   <p>No alerts triggered.</p>
                   <p className="text-sm mt-1">All systems are operating normally.</p>
                 </div>
@@ -548,7 +548,7 @@ export default function AlertManagementPage() {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                            <AlertTriangle className="h-4 w-4 text-warning" />
                             <span className="font-medium">{alert.message}</span>
                           </div>
                         </TableCell>
@@ -560,13 +560,13 @@ export default function AlertManagementPage() {
                             </Badge>
                           )}
                           {alert.status === 'acknowledged' && (
-                            <Badge className="bg-yellow-600">
+                            <Badge className="bg-warning">
                               <Clock className="h-3 w-3 mr-1" />
                               Acknowledged
                             </Badge>
                           )}
                           {alert.status === 'resolved' && (
-                            <Badge className="bg-green-600">
+                            <Badge className="bg-success">
                               <CheckCircle2 className="h-3 w-3 mr-1" />
                               Resolved
                             </Badge>

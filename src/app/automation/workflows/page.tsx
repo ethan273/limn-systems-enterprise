@@ -82,8 +82,8 @@ type Workflow = {
 
 const STATUS_COLORS = {
   draft: 'bg-gray-500',
-  active: 'bg-green-600',
-  paused: 'bg-yellow-600',
+  active: 'bg-success',
+  paused: 'bg-warning',
   archived: 'bg-gray-400',
 };
 
@@ -267,7 +267,7 @@ export default function WorkflowBuilderPage() {
                     </Select>
                   </div>
                 </div>
-                <div className="bg-blue-50 border border-blue-200 rounded-md p-4 text-sm text-blue-900">
+                <div className="bg-info/5 border border-info rounded-md p-4 text-sm text-info">
                   <p className="font-medium mb-1">Next Steps:</p>
                   <p>After creating the workflow, you'll be able to design the workflow using the visual builder.</p>
                 </div>
@@ -436,7 +436,7 @@ export default function WorkflowBuilderPage() {
                             onClick={() => handleStatusChange((workflow as Workflow).id, 'active')}
                             title="Activate workflow"
                           >
-                            <Play className="h-4 w-4 text-green-600" />
+                            <Play className="h-4 w-4 text-success" />
                           </Button>
                         )}
                         {((workflow as Workflow).status === 'draft' || (workflow as Workflow).status === 'paused') && (
@@ -466,7 +466,7 @@ export default function WorkflowBuilderPage() {
                           disabled={deleteMutation.isPending || (workflow as Workflow).status === 'active'}
                           title={(workflow as Workflow).status === 'active' ? 'Cannot delete active workflow' : 'Delete workflow'}
                         >
-                          <Trash2 className={`h-4 w-4 ${(workflow as Workflow).status === 'active' ? 'text-gray-400' : 'text-red-600'}`} />
+                          <Trash2 className={`h-4 w-4 ${(workflow as Workflow).status === 'active' ? 'text-muted-foreground' : 'text-destructive'}`} />
                         </Button>
                       </div>
                     </TableCell>
@@ -519,7 +519,7 @@ export default function WorkflowBuilderPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 text-sm text-yellow-900">
+              <div className="bg-warning/5 border border-warning rounded-md p-4 text-sm text-warning">
                 <p className="font-medium mb-1">Note:</p>
                 <p>To edit workflow nodes and edges, use the visual workflow builder.</p>
               </div>

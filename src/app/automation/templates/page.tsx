@@ -316,7 +316,7 @@ export default function WorkflowTemplatesPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Active</CardTitle>
-              <Activity className="h-4 w-4 text-green-600" />
+              <Activity className="h-4 w-4 text-success" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.active}</div>
@@ -325,7 +325,7 @@ export default function WorkflowTemplatesPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Inactive</CardTitle>
-              <Activity className="h-4 w-4 text-gray-400" />
+              <Activity className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.inactive}</div>
@@ -487,7 +487,7 @@ export default function WorkflowTemplatesPage() {
                           onClick={() => handleDelete(template.id)}
                           disabled={deleteMutation.isPending}
                         >
-                          <Trash2 className="h-4 w-4 text-red-600" />
+                          <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
                       </div>
                     </TableCell>

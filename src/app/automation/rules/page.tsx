@@ -382,7 +382,7 @@ export default function TaskAutomationRulesPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Active Rules</CardTitle>
-              <CheckCircle2 className="h-4 w-4 text-green-600" />
+              <CheckCircle2 className="h-4 w-4 text-success" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.activeRules}</div>
@@ -391,7 +391,7 @@ export default function TaskAutomationRulesPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Executions (24h)</CardTitle>
-              <TrendingUp className="h-4 w-4 text-blue-600" />
+              <TrendingUp className="h-4 w-4 text-info" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.executionsLast24h}</div>
@@ -400,7 +400,7 @@ export default function TaskAutomationRulesPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
-              <TrendingUp className="h-4 w-4 text-green-600" />
+              <TrendingUp className="h-4 w-4 text-success" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.successRate}%</div>
@@ -578,7 +578,7 @@ export default function TaskAutomationRulesPage() {
                               onClick={() => handleDelete(rule.id)}
                               disabled={deleteMutation.isPending}
                             >
-                              <Trash2 className="h-4 w-4 text-red-600" />
+                              <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
                           </div>
                         </TableCell>
@@ -623,7 +623,7 @@ export default function TaskAutomationRulesPage() {
                         </TableCell>
                         <TableCell>
                           {log.status === 'success' ? (
-                            <Badge variant="default" className="bg-green-600">
+                            <Badge variant="default" className="bg-success">
                               <CheckCircle2 className="h-3 w-3 mr-1" />
                               Success
                             </Badge>
