@@ -390,6 +390,10 @@ model users {
   sessions                                                              sessions[]
   admin_security_events                                                 admin_security_events[]
   admin_sessions                                                        admin_sessions[]
+  alert_rules_alert_rules_created_byTousers                             alert_rules[]                       @relation("alert_rules_created_byTousers")
+  alert_rules_alert_rules_updated_byTousers                             alert_rules[]                       @relation("alert_rules_updated_byTousers")
+  alert_triggers_alert_triggers_acknowledged_byTousers                  alert_triggers[]                    @relation("alert_triggers_acknowledged_byTousers")
+  alert_triggers_alert_triggers_resolved_byTousers                      alert_triggers[]                    @relation("alert_triggers_resolved_byTousers")
   analytics_dashboard_widgets                                           analytics_dashboard_widgets[]
   api_credential_audit_logs                                             api_credential_audit_logs[]
   api_credential_rotations                                              api_credential_rotations[]
@@ -397,6 +401,8 @@ model users {
   api_credentials_api_credentials_updated_byTousers                     api_credentials[]                   @relation("api_credentials_updated_byTousers")
   app_settings                                                          app_settings?
   automation_rules                                                      automation_rules[]
+  automation_workflows_automation_workflows_created_byTousers           automation_workflows[]              @relation("automation_workflows_created_byTousers")
+  automation_workflows_automation_workflows_updated_byTousers           automation_workflows[]              @relation("automation_workflows_updated_byTousers")
   budgets                                                               budgets[]
   client_files                                                          client_files[]
   collection_activities_collection_activities_created_byTousers         collection_activities[]             @relation("collection_activities_created_byTousers")
@@ -509,6 +515,7 @@ model users {
   quickbooks_oauth_states                                               quickbooks_oauth_states[]
   quickbooks_payment_reconciliation                                     quickbooks_payment_reconciliation[]
   quickbooks_sync_log                                                   quickbooks_sync_log[]
+  real_time_events                                                      real_time_events[]
   saved_searches                                                        saved_searches[]
   shipments                                                             shipments[]
   shipping_quotes                                                       shipping_quotes[]
@@ -701,6 +708,86 @@ model admin_settings {
 
   @@unique([category, key])
   @@index([updated_at], map: "idx_admin_settings_updated_at")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model alert_rules {
+  id                                  String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                                String           @db.VarChar(255)
+  description                         String?
+  metric                              String           @db.VarChar(100)
+  metric_source                       String?          @db.VarChar(100)
+  entity_id                           String?          @db.Uuid
+  threshold_type                      String           @db.VarChar(50)
+  threshold_value                     Decimal          @db.Decimal(10, 2)
+  threshold_unit                      String?          @db.VarChar(50)
+  evaluation_window_minutes           Int?             @default(5)
+  evaluation_frequency_minutes        Int?             @default(1)
+  alert_channels                      String[]
+  recipient_user_ids                  String[]         @db.Uuid
+  recipient_emails                    String[]
+  recipient_roles                     String[]
+  alert_title_template                String?
+  alert_message_template              String?
+  severity                            String?          @default("warning") @db.VarChar(50)
+  is_active                           Boolean?         @default(true)
+  send_resolved_notification          Boolean?         @default(true)
+  cooldown_minutes                    Int?             @default(15)
+  last_triggered_at                   DateTime?        @db.Timestamptz(6)
+  trigger_count                       Int?             @default(0)
+  created_by                          String?          @db.Uuid
+  updated_by                          String?          @db.Uuid
+  created_at                          DateTime?        @default(now()) @db.Timestamptz(6)
+  updated_at                          DateTime?        @default(now()) @db.Timestamptz(6)
+  users_alert_rules_created_byTousers users?           @relation("alert_rules_created_byTousers", fields: [created_by], references: [id], onUpdate: NoAction)
+  users_alert_rules_updated_byTousers users?           @relation("alert_rules_updated_byTousers", fields: [updated_by], references: [id], onUpdate: NoAction)
+  alert_triggers                      alert_triggers[]
+
+  @@index([created_at], map: "idx_alert_rules_created_at")
+  @@index([created_by], map: "idx_alert_rules_created_by")
+  @@index([entity_id], map: "idx_alert_rules_entity_id")
+  @@index([is_active], map: "idx_alert_rules_is_active")
+  @@index([metric], map: "idx_alert_rules_metric")
+  @@index([recipient_roles], map: "idx_alert_rules_recipient_roles", type: Gin)
+  @@index([recipient_user_ids], map: "idx_alert_rules_recipient_user_ids", type: Gin)
+  @@index([severity], map: "idx_alert_rules_severity")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model alert_triggers {
+  id                                          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  alert_rule_id                               String      @db.Uuid
+  metric_value                                Decimal?    @db.Decimal(10, 2)
+  threshold_value                             Decimal?    @db.Decimal(10, 2)
+  threshold_exceeded                          Boolean?
+  status                                      String?     @default("active") @db.VarChar(50)
+  severity                                    String?     @db.VarChar(50)
+  alert_title                                 String?
+  alert_message                               String?
+  channels_notified                           String[]
+  notified_user_ids                           String[]    @db.Uuid
+  notified_emails                             String[]
+  acknowledged_by                             String?     @db.Uuid
+  acknowledged_at                             DateTime?   @db.Timestamptz(6)
+  acknowledgment_notes                        String?
+  resolved_by                                 String?     @db.Uuid
+  resolved_at                                 DateTime?   @db.Timestamptz(6)
+  resolution_notes                            String?
+  triggered_at                                DateTime?   @default(now()) @db.Timestamptz(6)
+  expires_at                                  DateTime?   @db.Timestamptz(6)
+  created_at                                  DateTime?   @default(now()) @db.Timestamptz(6)
+  updated_at                                  DateTime?   @default(now()) @db.Timestamptz(6)
+  users_alert_triggers_acknowledged_byTousers users?      @relation("alert_triggers_acknowledged_byTousers", fields: [acknowledged_by], references: [id], onUpdate: NoAction)
+  alert_rules                                 alert_rules @relation(fields: [alert_rule_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users_alert_triggers_resolved_byTousers     users?      @relation("alert_triggers_resolved_byTousers", fields: [resolved_by], references: [id], onUpdate: NoAction)
+
+  @@index([acknowledged_by], map: "idx_alert_triggers_acknowledged_by")
+  @@index([resolved_by], map: "idx_alert_triggers_resolved_by")
+  @@index([alert_rule_id], map: "idx_alert_triggers_rule_id")
+  @@index([status], map: "idx_alert_triggers_status")
+  @@index([triggered_at], map: "idx_alert_triggers_triggered_at")
   @@schema("public")
 }
 
@@ -1043,6 +1130,38 @@ model automation_rules {
   @@index([created_by], map: "idx_automation_rules_created_by")
   @@index([is_active], map: "idx_automation_rules_is_active")
   @@index([updated_at], map: "idx_automation_rules_updated_at")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model automation_workflows {
+  id                                           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                                         String    @db.VarChar(255)
+  description                                  String?
+  workflow_type                                String?   @db.VarChar(50)
+  entity_type                                  String?   @db.VarChar(100)
+  entity_id                                    String?   @db.Uuid
+  nodes                                        Json?     @default("[]")
+  edges                                        Json?     @default("[]")
+  config                                       Json?     @default("{}")
+  status                                       String?   @default("draft") @db.VarChar(50)
+  version                                      Int?      @default(1)
+  is_template                                  Boolean?  @default(false)
+  created_by                                   String?   @db.Uuid
+  updated_by                                   String?   @db.Uuid
+  created_at                                   DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at                                   DateTime? @default(now()) @db.Timestamptz(6)
+  users_automation_workflows_created_byTousers users?    @relation("automation_workflows_created_byTousers", fields: [created_by], references: [id], onUpdate: NoAction)
+  users_automation_workflows_updated_byTousers users?    @relation("automation_workflows_updated_byTousers", fields: [updated_by], references: [id], onUpdate: NoAction)
+
+  @@index([created_at], map: "idx_automation_workflows_created_at")
+  @@index([created_by], map: "idx_automation_workflows_created_by")
+  @@index([entity_type, entity_id], map: "idx_automation_workflows_entity")
+  @@index([entity_type, entity_id, status], map: "idx_automation_workflows_entity_status")
+  @@index([is_template], map: "idx_automation_workflows_is_template")
+  @@index([status], map: "idx_automation_workflows_status")
+  @@index([workflow_type], map: "idx_automation_workflows_type")
+  @@index([updated_at], map: "idx_automation_workflows_updated_at")
   @@schema("public")
 }
 
@@ -6966,6 +7085,41 @@ model quickbooks_webhooks {
 
   @@index([processed], map: "idx_qb_webhooks_processed")
   @@index([realm_id], map: "idx_qb_webhooks_realm")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model real_time_events {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  event_type         String    @db.VarChar(100)
+  event_name         String?   @db.VarChar(255)
+  entity_type        String    @db.VarChar(100)
+  entity_id          String    @db.Uuid
+  event_data         Json?     @default("{}")
+  metadata           Json?     @default("{}")
+  recipient_user_ids String[]  @db.Uuid
+  delivered_to       String[]  @default([]) @db.Uuid
+  priority           String?   @default("normal") @db.VarChar(20)
+  status             String?   @default("pending") @db.VarChar(50)
+  expires_at         DateTime? @db.Timestamptz(6)
+  triggered_by       String?   @db.Uuid
+  source_ip          String?   @db.VarChar(45)
+  user_agent         String?
+  created_at         DateTime? @default(now()) @db.Timestamptz(6)
+  delivered_at       DateTime? @db.Timestamptz(6)
+  updated_at         DateTime? @default(now()) @db.Timestamptz(6)
+  users              users?    @relation(fields: [triggered_by], references: [id], onUpdate: NoAction)
+
+  @@index([created_at], map: "idx_real_time_events_created_at")
+  @@index([entity_type, entity_id], map: "idx_real_time_events_entity")
+  @@index([event_data], map: "idx_real_time_events_event_data", type: Gin)
+  @@index([event_type], map: "idx_real_time_events_event_type")
+  @@index([expires_at], map: "idx_real_time_events_expires_at")
+  @@index([metadata], map: "idx_real_time_events_metadata", type: Gin)
+  @@index([priority], map: "idx_real_time_events_priority")
+  @@index([recipient_user_ids], map: "idx_real_time_events_recipients", type: Gin)
+  @@index([status], map: "idx_real_time_events_status")
+  @@index([triggered_by], map: "idx_real_time_events_triggered_by")
   @@schema("public")
 }
 

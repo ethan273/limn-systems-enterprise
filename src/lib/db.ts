@@ -5455,6 +5455,102 @@ export class DatabaseClient {
       (prisma as any).automation_rules.aggregate(options),
   };
 
+  automation_workflows = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('automation_workflows', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('automation_workflows', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('automation_workflows', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('automation_workflows', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('automation_workflows', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('automation_workflows', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('automation_workflows', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('automation_workflows', options),
+    findFirst: (options?: { where?: Record<string, any>; include?: Record<string, any>; select?: Record<string, any>; orderBy?: Record<string, 'asc' | 'desc'> }) =>
+      (prisma as any).automation_workflows.findFirst(options),
+    groupBy: (options: any) =>
+      (prisma as any).automation_workflows.groupBy(options),
+    aggregate: (options?: any) =>
+      (prisma as any).automation_workflows.aggregate(options),
+  };
+
+  alert_rules = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('alert_rules', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('alert_rules', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('alert_rules', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('alert_rules', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('alert_rules', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('alert_rules', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('alert_rules', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('alert_rules', options),
+    findFirst: (options?: { where?: Record<string, any>; include?: Record<string, any>; select?: Record<string, any>; orderBy?: Record<string, 'asc' | 'desc'> }) =>
+      (prisma as any).alert_rules.findFirst(options),
+    groupBy: (options: any) =>
+      (prisma as any).alert_rules.groupBy(options),
+    aggregate: (options?: any) =>
+      (prisma as any).alert_rules.aggregate(options),
+  };
+
+  alert_triggers = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('alert_triggers', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('alert_triggers', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('alert_triggers', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('alert_triggers', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('alert_triggers', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('alert_triggers', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('alert_triggers', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('alert_triggers', options),
+    findFirst: (options?: { where?: Record<string, any>; include?: Record<string, any>; select?: Record<string, any>; orderBy?: Record<string, 'asc' | 'desc'> }) =>
+      (prisma as any).alert_triggers.findFirst(options),
+    groupBy: (options: any) =>
+      (prisma as any).alert_triggers.groupBy(options),
+    aggregate: (options?: any) =>
+      (prisma as any).alert_triggers.aggregate(options),
+  };
+
+  real_time_events = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('real_time_events', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('real_time_events', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('real_time_events', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('real_time_events', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('real_time_events', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('real_time_events', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('real_time_events', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('real_time_events', options),
+    findFirst: (options?: { where?: Record<string, any>; include?: Record<string, any>; select?: Record<string, any>; orderBy?: Record<string, 'asc' | 'desc'> }) =>
+      (prisma as any).real_time_events.findFirst(options),
+    groupBy: (options: any) =>
+      (prisma as any).real_time_events.groupBy(options),
+    aggregate: (options?: any) =>
+      (prisma as any).real_time_events.aggregate(options),
+  };
+
   budgets = {
     findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('budgets', options),
     findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
