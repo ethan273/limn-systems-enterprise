@@ -5052,6 +5052,30 @@ model pickup_requests {
   @@schema("public")
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model portal_access_audit {
+  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id        String        @db.Uuid
+  portal_type    String        @db.VarChar(50)
+  resource_type  String        @db.VarChar(100)
+  resource_id    String?       @db.Uuid
+  action         String        @db.VarChar(50)
+  access_granted Boolean
+  denial_reason  String?       @db.VarChar(255)
+  ip_address     String?       @db.Inet
+  user_agent     String?
+  created_at     DateTime?     @default(now()) @db.Timestamptz(6)
+  user_profiles  user_profiles @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([access_granted], map: "idx_portal_access_audit_access_granted")
+  @@index([created_at(sort: Desc)], map: "idx_portal_access_audit_created")
+  @@index([portal_type], map: "idx_portal_access_audit_portal_type")
+  @@index([resource_type, resource_id], map: "idx_portal_access_audit_resource")
+  @@index([user_id], map: "idx_portal_access_audit_user")
+  @@schema("public")
+}
+
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model portal_access_logs {
   id                 String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -5093,6 +5117,30 @@ model portal_activity_log {
   @@index([created_at], map: "idx_portal_activity_log_created_at")
   @@index([customer_id], map: "idx_portal_activity_log_customer_id")
   @@index([user_id], map: "idx_portal_activity_log_user_id")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model portal_activity_logs {
+  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  session_id      String?          @db.Uuid
+  user_id         String           @db.Uuid
+  portal_type     String           @db.VarChar(50)
+  activity_type   String           @db.VarChar(100)
+  entity_type     String?          @db.VarChar(100)
+  entity_id       String?          @db.Uuid
+  metadata        Json?
+  created_at      DateTime?        @default(now()) @db.Timestamptz(6)
+  portal_sessions portal_sessions? @relation(fields: [session_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user_profiles   user_profiles    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([activity_type], map: "idx_portal_activity_logs_activity_type")
+  @@index([created_at(sort: Desc)], map: "idx_portal_activity_logs_created")
+  @@index([entity_type, entity_id], map: "idx_portal_activity_logs_entity")
+  @@index([portal_type], map: "idx_portal_activity_logs_portal_type")
+  @@index([session_id], map: "idx_portal_activity_logs_session")
+  @@index([user_id], map: "idx_portal_activity_logs_user")
   @@schema("public")
 }
 
@@ -5221,29 +5269,33 @@ model portal_module_settings {
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model portal_sessions {
-  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  customer_id       String        @db.Uuid
-  portal_user_id    String?       @db.Uuid
-  session_token     String        @unique @db.VarChar(255)
-  ip_address        String?       @db.Inet
-  user_agent        String?
-  device_info       Json?         @default("{}")
-  started_at        DateTime?     @default(now()) @db.Timestamptz(6)
-  last_activity     DateTime?     @default(now()) @db.Timestamptz(6)
-  ended_at          DateTime?     @db.Timestamptz(6)
-  is_active         Boolean?      @default(true)
-  pages_visited     String[]      @default([])
-  actions_performed Json?         @default("[]")
-  is_suspicious     Boolean?      @default(false)
-  risk_score        Int?          @default(0)
-  customers         customers     @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  portal_users      portal_users? @relation(fields: [portal_user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id                   String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customer_id          String                 @db.Uuid
+  portal_user_id       String?                @db.Uuid
+  session_token        String                 @unique @db.VarChar(255)
+  ip_address           String?                @db.Inet
+  user_agent           String?
+  device_info          Json?                  @default("{}")
+  started_at           DateTime?              @default(now()) @db.Timestamptz(6)
+  last_activity        DateTime?              @default(now()) @db.Timestamptz(6)
+  ended_at             DateTime?              @db.Timestamptz(6)
+  is_active            Boolean?               @default(true)
+  pages_visited        String[]               @default([])
+  actions_performed    Json?                  @default("[]")
+  is_suspicious        Boolean?               @default(false)
+  risk_score           Int?                   @default(0)
+  portal_activity_logs portal_activity_logs[]
+  customers            customers              @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  portal_users         portal_users?          @relation(fields: [portal_user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([customer_id], map: "idx_portal_sessions_customer_id")
   @@index([is_active], map: "idx_portal_sessions_is_active")
   @@index([portal_user_id], map: "idx_portal_sessions_portal_user_id")
+  @@index([started_at(sort: Desc)], map: "idx_portal_sessions_started")
+  @@index([session_token], map: "idx_portal_sessions_token")
   @@schema("public")
 }
 
@@ -8226,6 +8278,8 @@ model user_profiles {
   flipbook_share_links                                              flipbook_share_links[]
   flipbook_versions                                                 flipbook_versions[]
   flipbooks                                                         flipbooks[]
+  portal_access_audit                                               portal_access_audit[]
+  portal_activity_logs                                              portal_activity_logs[]
   task_automation_rules                                             task_automation_rules[]
   templates                                                         templates[]
   user_notification_preferences                                     user_notification_preferences?

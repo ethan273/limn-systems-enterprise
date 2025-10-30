@@ -2014,6 +2014,77 @@ export class DatabaseClient {
       (prisma as any).task_automation_rules.aggregate(options),
   };
 
+  // Portal Activity Tracking
+  portal_sessions = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('portal_sessions', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('portal_sessions', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('portal_sessions', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('portal_sessions', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('portal_sessions', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('portal_sessions', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('portal_sessions', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('portal_sessions', options),
+    findFirst: (options?: { where?: Record<string, any>; include?: Record<string, any>; select?: Record<string, any>; orderBy?: Record<string, 'asc' | 'desc'> }) =>
+      (prisma as any).portal_sessions.findFirst(options),
+    groupBy: (options: any) =>
+      (prisma as any).portal_sessions.groupBy(options),
+    aggregate: (options?: any) =>
+      (prisma as any).portal_sessions.aggregate(options),
+  };
+  portal_activity_logs = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('portal_activity_logs', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('portal_activity_logs', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('portal_activity_logs', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('portal_activity_logs', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('portal_activity_logs', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('portal_activity_logs', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('portal_activity_logs', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('portal_activity_logs', options),
+    findFirst: (options?: { where?: Record<string, any>; include?: Record<string, any>; select?: Record<string, any>; orderBy?: Record<string, 'asc' | 'desc'> }) =>
+      (prisma as any).portal_activity_logs.findFirst(options),
+    groupBy: (options: any) =>
+      (prisma as any).portal_activity_logs.groupBy(options),
+    aggregate: (options?: any) =>
+      (prisma as any).portal_activity_logs.aggregate(options),
+  };
+  portal_access_audit = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('portal_access_audit', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('portal_access_audit', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('portal_access_audit', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('portal_access_audit', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('portal_access_audit', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('portal_access_audit', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('portal_access_audit', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('portal_access_audit', options),
+    findFirst: (options?: { where?: Record<string, any>; include?: Record<string, any>; select?: Record<string, any>; orderBy?: Record<string, 'asc' | 'desc'> }) =>
+      (prisma as any).portal_access_audit.findFirst(options),
+    groupBy: (options: any) =>
+      (prisma as any).portal_access_audit.groupBy(options),
+    aggregate: (options?: any) =>
+      (prisma as any).portal_access_audit.aggregate(options),
+  };
+
   addresses = {
     findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('addresses', options),
     findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
@@ -7497,30 +7568,6 @@ export class DatabaseClient {
       (prisma as any).portal_invitations.groupBy(options),
     aggregate: (options?: any) =>
       (prisma as any).portal_invitations.aggregate(options),
-  };
-
-  portal_sessions = {
-    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('portal_sessions', options),
-    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
-      this.findUniqueGeneric<Record<string, any>>('portal_sessions', options),
-    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
-      this.createGeneric<Record<string, any>>('portal_sessions', options),
-    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
-      this.updateGeneric<Record<string, any>>('portal_sessions', options),
-    delete: (options: { where: Record<string, any> }) =>
-      this.deleteGeneric('portal_sessions', options),
-    createMany: (options: { data: Record<string, any>[] }) =>
-      this.createManyGeneric('portal_sessions', options),
-    deleteMany: (options: { where: Record<string, any> }) =>
-      this.deleteManyGeneric('portal_sessions', options),
-    count: (options?: { where?: Record<string, any> }) =>
-      this.countGeneric('portal_sessions', options),
-    findFirst: (options?: { where?: Record<string, any>; include?: Record<string, any>; select?: Record<string, any>; orderBy?: Record<string, 'asc' | 'desc'> }) =>
-      (prisma as any).portal_sessions.findFirst(options),
-    groupBy: (options: any) =>
-      (prisma as any).portal_sessions.groupBy(options),
-    aggregate: (options?: any) =>
-      (prisma as any).portal_sessions.aggregate(options),
   };
 
   portal_users = {
