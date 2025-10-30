@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
+import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { api } from "@/lib/api/client";
 import { useTableState } from "@/hooks/useTableFilters";
 import { TableFilters } from "@/components/common";
@@ -197,6 +198,7 @@ export default function FactoryReviewsPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       <PageHeader
         title="Factory Reviews"
         subtitle="On-site prototype inspection sessions"

@@ -22,7 +22,7 @@ import {
   LoadingState,
   EmptyState,
 } from "@/components/common";
-import { EditableFieldGroup, EditableField } from "@/components/common/EditableField";
+import { EditableFieldGroup, EditableField, Breadcrumb } from "@/components/common";
 import {
   User,
   Mail,
@@ -361,6 +361,7 @@ export default function CRMProjectDetailPage({ params }: PageProps) {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       {/* Header Section */}
       <div className="page-header">
         <Button

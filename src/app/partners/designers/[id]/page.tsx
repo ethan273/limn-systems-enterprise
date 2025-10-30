@@ -7,10 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { EntityDetailHeader } from '@/components/common/EntityDetailHeader';
-import { InfoCard } from '@/components/common/InfoCard';
-import { EmptyState } from '@/components/common/EmptyState';
-import { LoadingState } from '@/components/common/LoadingState';
+import { EntityDetailHeader, InfoCard, EmptyState, LoadingState, Breadcrumb } from '@/components/common';
 import {
   Table,
   TableBody,
@@ -56,6 +53,7 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
   if (error) {
     return (
       <div className="page-container">
+        <Breadcrumb />
         <EmptyState
           icon={AlertTriangle}
           title="Failed to load designer details"
@@ -73,6 +71,7 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
   if (isLoading) {
     return (
       <div className="page-container">
+        <Breadcrumb />
         <LoadingState message="Loading designer details..." size="md" />
       </div>
     );
@@ -81,6 +80,7 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
   if (!designer) {
     return (
       <div className="page-container">
+        <Breadcrumb />
         <EmptyState
           icon={AlertCircle}
           title="Designer Not Found"
@@ -106,6 +106,7 @@ export default function DesignerDetailPage({ params }: DesignerDetailPageProps) 
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       {/* Header Section */}
       <div className="page-header">
         <Button

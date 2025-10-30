@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { BarChart3, Eye, MousePointerClick, Clock, TrendingUp, DollarSign, Target, Activity } from "lucide-react";
-import { PageHeader, LoadingState, StatsGrid, EmptyState, type StatItem } from "@/components/common";
+import { PageHeader, LoadingState, StatsGrid, EmptyState, Breadcrumb, type StatItem } from "@/components/common";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
@@ -186,6 +186,7 @@ export default function AnalyticsPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       {/* Page Header */}
       <PageHeader
         title="Flipbook Analytics"

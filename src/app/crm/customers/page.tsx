@@ -28,6 +28,7 @@ import {
   StatsGrid,
   StatusBadge,
   TableFilters,
+  Breadcrumb,
   type DataTableColumn,
   type DataTableRowAction,
   type StatItem,
@@ -249,6 +250,7 @@ export default function CustomersPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       {/* Page Header */}
       <PageHeader
         title="Clients"

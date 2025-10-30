@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
+import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { api } from "@/lib/api/client";
 import { useTableState } from "@/hooks/useTableFilters";
 import {
@@ -202,6 +203,7 @@ export default function PackingJobsPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       <PageHeader
         title="Packing Jobs"
         subtitle="Manage packing and prepare items for shipment"

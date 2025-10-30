@@ -7,10 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { EntityDetailHeader } from '@/components/common/EntityDetailHeader';
-import { InfoCard } from '@/components/common/InfoCard';
-import { EmptyState } from '@/components/common/EmptyState';
-import { LoadingState } from '@/components/common/LoadingState';
+import { EntityDetailHeader, InfoCard, EmptyState, LoadingState, Breadcrumb } from '@/components/common';
 import { EmployeeManagement } from '@/components/partners/EmployeeManagement';
 import {
   Table,
@@ -57,6 +54,7 @@ export default function SourcingDetailPage({ params }: SourcingDetailPageProps) 
   if (error) {
     return (
       <div className="page-container">
+        <Breadcrumb />
         <EmptyState
           icon={AlertTriangle}
           title="Failed to load sourcing details"
@@ -74,6 +72,7 @@ export default function SourcingDetailPage({ params }: SourcingDetailPageProps) 
   if (isLoading) {
     return (
       <div className="page-container">
+        <Breadcrumb />
         <LoadingState message="Loading sourcing details..." size="md" />
       </div>
     );
@@ -82,6 +81,7 @@ export default function SourcingDetailPage({ params }: SourcingDetailPageProps) 
   if (!sourcing) {
     return (
       <div className="page-container">
+        <Breadcrumb />
         <EmptyState
           icon={AlertCircle}
           title="Sourcing Not Found"
@@ -107,6 +107,7 @@ export default function SourcingDetailPage({ params }: SourcingDetailPageProps) 
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       {/* Header Section */}
       <div className="page-header">
         <Button

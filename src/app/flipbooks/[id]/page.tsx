@@ -7,7 +7,7 @@ import { ArrowLeft, Edit, Eye, BookOpen, Maximize2, AlertTriangle, RefreshCw, Co
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { LoadingState, PageHeader, EmptyState } from "@/components/common";
+import { LoadingState, PageHeader, EmptyState, Breadcrumb } from "@/components/common";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
@@ -133,6 +133,7 @@ export default function FlipbookViewerPage({
   return (
     <>
       <div className="page-container">
+        <Breadcrumb />
         {/* Page Header */}
         <PageHeader
           title={flipbook.title}

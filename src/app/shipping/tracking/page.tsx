@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 // Auth is handled by middleware - no client-side checks needed
 import { api } from "@/lib/api/client";
+import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -100,6 +101,7 @@ export default function TrackingPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       <div className="page-header">
         <div>
           <h1 className="page-title">Track Shipment</h1>

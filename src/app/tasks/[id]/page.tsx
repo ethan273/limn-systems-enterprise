@@ -8,11 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { EntityDetailHeader } from "@/components/common/EntityDetailHeader";
+import { EntityDetailHeader, EmptyState, LoadingState, PageHeader, Breadcrumb } from "@/components/common";
 // Unused: import { InfoCard } from "@/components/common/InfoCard";
-import { EmptyState } from "@/components/common/EmptyState";
-import { LoadingState } from "@/components/common/LoadingState";
-import { PageHeader } from "@/components/common";
 import { EditableField, EditableFieldGroup } from "@/components/common/EditableField";
 import TaskAttachments from "@/components/TaskAttachments";
 import TaskActivities from "@/components/TaskActivities";
@@ -220,6 +217,7 @@ export default function TaskDetailPage({ params }: PageProps) {
   if (error) {
     return (
       <div className="page-container">
+        <Breadcrumb />
         <PageHeader
           title="Task Details"
           subtitle="View and manage task information"
@@ -241,6 +239,7 @@ export default function TaskDetailPage({ params }: PageProps) {
   if (isLoading) {
     return (
       <div className="page-container">
+        <Breadcrumb />
         <LoadingState message="Loading task details..." size="md" />
       </div>
     );
@@ -249,6 +248,7 @@ export default function TaskDetailPage({ params }: PageProps) {
   if (!task) {
     return (
       <div className="page-container">
+        <Breadcrumb />
         <EmptyState
           icon={AlertCircle}
           title="Task Not Found"
@@ -271,6 +271,7 @@ export default function TaskDetailPage({ params }: PageProps) {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       {/* Header Section */}
       <div className="page-header">
         <Button

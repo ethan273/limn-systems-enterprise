@@ -2,6 +2,7 @@
 
 import React, { use } from "react";
 import { useRouter } from "next/navigation";
+import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { api } from "@/lib/api/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -144,6 +145,7 @@ export default function PackingJobDetailPage({ params }: PageProps) {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       <EntityDetailHeader
         icon={Package}
         title="Packing Job"

@@ -3,6 +3,7 @@
 import React, { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
+import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -196,6 +197,7 @@ export default function ShipmentDetailPage({ params }: PageProps) {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       <EntityDetailHeader
         icon={Package}
         title={shipment.shipment_number || "Shipment"}

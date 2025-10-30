@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -102,6 +103,7 @@ export default function NewPackingJobPage() {
   if (ordersError) {
     return (
       <div className="page-container">
+        <Breadcrumb />
         <PageHeader
           title="Create New Packing Job"
           subtitle="Prepare items for shipment"

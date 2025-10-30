@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { api } from '@/lib/api/client';
+import { Breadcrumb } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -208,6 +209,7 @@ export default function EditOrderPage() {
 
   return (
     <div className="container mx-auto p-6 max-w-4xl">
+      <Breadcrumb />
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button

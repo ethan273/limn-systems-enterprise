@@ -1,6 +1,6 @@
 "use client";
 
-import { PageHeader } from "@/components/common";
+import { PageHeader, Breadcrumb } from "@/components/common";
 import TaskTemplates from "@/components/TaskTemplates";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -16,6 +16,7 @@ export default function TaskTemplatesPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       <PageHeader
         title="Task Templates"
         subtitle="Reusable task templates for common workflows"

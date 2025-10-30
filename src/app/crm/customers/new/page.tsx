@@ -17,7 +17,7 @@ import {
   X,
   AlertCircle,
 } from 'lucide-react';
-import { PageHeader } from '@/components/common';
+import { PageHeader, Breadcrumb } from '@/components/common';
 import { toast } from 'sonner';
 
 export default function NewCustomerPage() {
@@ -79,6 +79,7 @@ export default function NewCustomerPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       <PageHeader
         title="New Customer"
         subtitle="Add a new customer to your CRM"

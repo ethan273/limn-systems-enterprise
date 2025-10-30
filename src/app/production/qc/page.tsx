@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
+import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { api } from "@/lib/api/client";
 import { Badge } from "@/components/ui/badge";
 import { useQualityInspectionsRealtime } from "@/hooks/useRealtimeSubscription";
@@ -238,6 +239,7 @@ export default function QCInspectionsPage() {
   if (error) {
     return (
       <div className="page-container">
+        <Breadcrumb />
         <PageHeader
           title="Quality Control"
           description="Mobile QC inspections and defect tracking"
@@ -258,6 +260,7 @@ export default function QCInspectionsPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       <PageHeader
         title="Quality Control"
         description="Mobile QC inspections and defect tracking"

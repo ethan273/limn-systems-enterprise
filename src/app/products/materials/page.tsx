@@ -16,6 +16,7 @@ import {
   DataTable,
   StatusBadge,
   TableFilters,
+  Breadcrumb,
   type FormField,
   type DataTableColumn,
   type DataTableRowAction,
@@ -472,6 +473,7 @@ export default function MaterialsPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       <PageHeader
         title="Materials Management"
         subtitle="Manage all material options in unified system with collection associations"

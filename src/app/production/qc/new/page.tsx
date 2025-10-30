@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -123,6 +124,7 @@ export default function NewQCInspectionPage() {
   if (productionItemsError || prototypesError) {
     return (
       <div className="container mx-auto p-6 max-w-3xl">
+        <Breadcrumb />
         <div className="space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api/client';
+import { Breadcrumb } from '@/components/common/Breadcrumb';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DateRangeSelector } from '@/components/DateRangeSelector';
@@ -133,6 +134,7 @@ export default function FinancialDashboardPage() {
   return (
     <div className="dashboard-page">
       <div id="dashboard-export-container">
+        <Breadcrumb />
         {/* Header */}
         <div className="dashboard-header">
         <div>

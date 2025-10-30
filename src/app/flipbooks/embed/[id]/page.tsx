@@ -22,7 +22,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/api/client";
-import { LoadingState } from "@/components/common";
+import { LoadingState, Breadcrumb } from "@/components/common";
 import { AlertTriangle } from "lucide-react";
 import dynamic from "next/dynamic";
 
@@ -178,6 +178,7 @@ export default function FlipbookEmbedPage({
   // Render flipbook viewer (minimal UI for embedding)
   return (
     <div className="w-full h-screen bg-background">
+      <Breadcrumb />
       <FlipbookViewerV2
         pages={flipbook.flipbook_pages as any} // Type casting for database schema compatibility
         initialPage={startPage}

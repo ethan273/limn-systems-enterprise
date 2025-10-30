@@ -2,6 +2,7 @@
 
 import React, { use, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -291,6 +292,7 @@ export default function ShopDrawingDetailPage({ params }: PageProps) {
 
  return (
  <div className="container mx-auto p-6 space-y-6">
+ <Breadcrumb />
  {/* Header */}
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-4">

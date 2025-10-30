@@ -2,6 +2,7 @@
 
 import React, { use } from "react";
 import { api } from "@/lib/api/client";
+import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EntityDetailHeader } from "@/components/common/EntityDetailHeader";
 import { InfoCard } from "@/components/common/InfoCard";
@@ -85,6 +86,7 @@ export default function TrackingDetailPage({ params }: PageProps) {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       {/* Shipment Header */}
       <EntityDetailHeader
         icon={Package}

@@ -12,6 +12,7 @@ import {
   LoadingState,
   StatusBadge,
   TableFilters,
+  Breadcrumb,
   type StatItem,
   type DataTableColumn,
   type DataTableRowAction,
@@ -338,6 +339,7 @@ export default function ProspectsPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       {/* Page Header */}
       <PageHeader
         title="Prospects"

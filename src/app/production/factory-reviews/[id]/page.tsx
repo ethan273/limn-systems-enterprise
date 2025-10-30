@@ -3,6 +3,7 @@
 import React, { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -282,6 +283,7 @@ export default function FactoryReviewDetailPage({ params }: PageProps) {
 
  return (
  <div className="page-container">
+ <Breadcrumb />
  {/* Header Section */}
  <div className="page-header">
  <Button

@@ -16,6 +16,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { api } from "@/lib/api/client";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/common/EmptyState";
+import { Breadcrumb } from "@/components/common";
 import { CreateFromTemplateDialog } from "@/components/design-boards/CreateFromTemplateDialog";
 
 // Design Boards list page with grid/list views
@@ -113,6 +114,8 @@ export default function DesignBoardsPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
+
       {/* Header */}
       <div className="page-header">
         <div>

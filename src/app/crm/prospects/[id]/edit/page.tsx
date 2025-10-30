@@ -28,7 +28,7 @@ import {
   RefreshCw,
   Flame,
 } from 'lucide-react';
-import { PageHeader, LoadingState } from '@/components/common';
+import { PageHeader, LoadingState, Breadcrumb } from '@/components/common';
 import { toast } from 'sonner';
 
 const LEAD_STATUSES = [
@@ -151,6 +151,7 @@ export default function EditProspectPage() {
   if (isLoading) {
     return (
       <div className="page-container">
+        <Breadcrumb />
         <LoadingState message="Loading prospect..." size="lg" />
       </div>
     );
@@ -195,6 +196,7 @@ export default function EditProspectPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       <PageHeader
         title="Edit Prospect"
         subtitle={`Update information for ${leadData.lead.name}`}

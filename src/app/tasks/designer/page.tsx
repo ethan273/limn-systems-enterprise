@@ -1,11 +1,12 @@
 "use client";
 
-import { PageHeader, EmptyState } from "@/components/common";
+import { PageHeader, EmptyState, Breadcrumb } from "@/components/common";
 import { Paintbrush } from "lucide-react";
 
 export default function DesignerTasksPage() {
   return (
     <div className="page-container">
+      <Breadcrumb />
       <PageHeader
         title="Designer Tasks"
         subtitle="Tasks assigned to design teams"

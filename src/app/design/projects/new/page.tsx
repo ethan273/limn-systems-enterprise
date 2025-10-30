@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
+import { Breadcrumb } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -111,6 +112,8 @@ export default function NewDesignProjectPage() {
     return (
       <div className="container mx-auto p-6 max-w-3xl">
         <div className="space-y-6">
+          <Breadcrumb />
+
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -152,6 +155,8 @@ export default function NewDesignProjectPage() {
   return (
     <div className="container mx-auto p-6 max-w-3xl">
       <div className="space-y-6">
+        <Breadcrumb />
+
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">

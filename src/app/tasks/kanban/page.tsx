@@ -22,6 +22,7 @@ import {
   LoadingState,
   EmptyState,
   StatsGrid,
+  Breadcrumb,
   type StatItem,
 } from "@/components/common";
 import {
@@ -194,6 +195,7 @@ export default function TasksKanbanPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       {/* Page Header */}
       <PageHeader
         title="Tasks Kanban"

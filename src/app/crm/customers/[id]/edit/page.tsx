@@ -19,7 +19,7 @@ import {
   AlertTriangle,
   RefreshCw,
 } from 'lucide-react';
-import { PageHeader, LoadingState } from '@/components/common';
+import { PageHeader, LoadingState, Breadcrumb } from '@/components/common';
 import { toast } from 'sonner';
 
 export default function EditCustomerPage() {
@@ -108,6 +108,7 @@ export default function EditCustomerPage() {
   if (isLoading) {
     return (
       <div className="page-container">
+        <Breadcrumb />
         <LoadingState message="Loading customer..." size="lg" />
       </div>
     );
@@ -152,6 +153,7 @@ export default function EditCustomerPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       <PageHeader
         title="Edit Customer"
         subtitle={`Update information for ${customerData.customer.name}`}

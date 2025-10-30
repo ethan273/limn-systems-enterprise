@@ -6,6 +6,7 @@ import { ArrowLeft, Save, Users, Download, Settings, FileUp, AlertTriangle, Refr
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api/client";
+import { Breadcrumb } from "@/components/common";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import { Loader2 } from "lucide-react";
@@ -201,6 +202,8 @@ export default function DesignBoardEditorPage({ params }: { params: Promise<{ id
 
   return (
     <div className="fixed inset-0 flex flex-col bg-background">
+      <Breadcrumb />
+
       {/* Top Toolbar */}
       <div className="flex items-center justify-between px-4 py-2 border-b bg-background z-50">
         {/* Left: Back Button & Board Name */}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { Breadcrumb } from '@/components/common/Breadcrumb';
 import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -98,6 +99,7 @@ export default function EditProductionOrderPage() {
   if (queryError) {
     return (
       <div className="page-container">
+        <Breadcrumb />
         <PageHeader
           title="Edit Production Order"
           subtitle="Update order details"

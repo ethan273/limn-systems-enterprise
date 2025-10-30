@@ -11,6 +11,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
+import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { api } from "@/utils/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -93,6 +94,7 @@ export default function PackingListDetailPage() {
   if (!job) {
     return (
       <div className="container mx-auto p-6">
+        <Breadcrumb />
         <Card>
           <CardHeader>
             <CardTitle>Packing Job Not Found</CardTitle>
@@ -145,6 +147,8 @@ export default function PackingListDetailPage() {
   const packingProgress = job.quantity > 0 ? (job.packed_quantity / job.quantity * 100).toFixed(0) : 0;
 
   return (
+    <>
+    <Breadcrumb />
     <div className="container mx-auto p-6 space-y-6">
       {/* Header with back button */}
       <div className="flex items-center justify-between">
@@ -390,5 +394,6 @@ export default function PackingListDetailPage() {
         </Card>
       )}
     </div>
+    </>
   );
 }

@@ -1,11 +1,12 @@
 "use client";
 
-import { PageHeader, EmptyState } from "@/components/common";
+import { PageHeader, EmptyState, Breadcrumb } from "@/components/common";
 import { Users } from "lucide-react";
 
 export default function ClientTasksPage() {
   return (
     <div className="page-container">
+      <Breadcrumb />
       <PageHeader
         title="Client Tasks"
         subtitle="Tasks related to client requests and deliverables"

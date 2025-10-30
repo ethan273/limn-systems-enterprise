@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Upload, FileUp, Loader2, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PageHeader } from "@/components/common";
+import { PageHeader, Breadcrumb } from "@/components/common";
 import { api } from "@/lib/api/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -193,6 +193,7 @@ export default function FlipbookUploadPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       {/* Page Header */}
       <PageHeader
         title="Create Flipbook from PDF"

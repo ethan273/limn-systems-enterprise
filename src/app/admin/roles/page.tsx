@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { Breadcrumb } from "@/components/common";
 import { api } from "@/lib/api/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -236,6 +237,7 @@ export default function RolesManagementPage() {
 
   return (
     <div className="container">
+      <Breadcrumb />
       {/* Header */}
       <div className="page-header">
         <div>

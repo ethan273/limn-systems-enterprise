@@ -7,6 +7,7 @@
  */
 
 import { useState } from 'react';
+import { Breadcrumb } from '@/components/common';
 import { api } from '@/lib/api/client';
 import { LoadingState, EmptyState } from '@/components/common';
 import Link from 'next/link';
@@ -149,6 +150,7 @@ export default function HealthMonitoringPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       {/* Back Navigation */}
       <Link
         href="/admin/api-management"

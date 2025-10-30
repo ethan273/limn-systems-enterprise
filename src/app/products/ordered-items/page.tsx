@@ -33,7 +33,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  
+
   DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubContent,
@@ -42,7 +42,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   Search,
-  
+
   Package,
   MoreVertical,
   Edit,
@@ -62,6 +62,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   PageHeader,
   StatsGrid,
+  Breadcrumb,
   type StatItem,
 } from "@/components/common";
 
@@ -747,6 +748,7 @@ export default function OrderedItemsPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       <PageHeader
         title="Ordered Items"
         description="Track and manage individual ordered items with material specifications"

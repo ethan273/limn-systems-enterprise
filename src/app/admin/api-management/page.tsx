@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Breadcrumb } from '@/components/common';
 import { api } from '@/lib/api/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -155,6 +156,7 @@ export default function ApiManagementDashboard() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       {/* Header */}
       <div className="page-header">
         <div className="flex items-center justify-between">

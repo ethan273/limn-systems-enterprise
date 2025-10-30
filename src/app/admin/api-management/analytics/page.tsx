@@ -8,6 +8,7 @@
  */
 
 import { useState } from 'react';
+import { Breadcrumb } from '@/components/common';
 import { api } from '@/lib/api/client';
 import Link from 'next/link';
 import {
@@ -213,6 +214,7 @@ export default function AnalyticsPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       {/* Back Navigation */}
       <Link
         href="/admin/api-management"

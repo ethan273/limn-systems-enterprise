@@ -7,10 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { EntityDetailHeader } from '@/components/common/EntityDetailHeader';
-import { InfoCard } from '@/components/common/InfoCard';
-import { EmptyState } from '@/components/common/EmptyState';
-import { LoadingState } from '@/components/common/LoadingState';
+import { EntityDetailHeader, InfoCard, EmptyState, LoadingState, Breadcrumb } from '@/components/common';
 import { EmployeeManagement } from '@/components/partners/EmployeeManagement';
 import {
   Table,
@@ -57,6 +54,7 @@ export default function FactoryDetailPage({ params }: FactoryDetailPageProps) {
   if (error) {
     return (
       <div className="page-container">
+        <Breadcrumb />
         <EmptyState
           icon={AlertTriangle}
           title="Failed to load factory details"
@@ -74,6 +72,7 @@ export default function FactoryDetailPage({ params }: FactoryDetailPageProps) {
   if (isLoading) {
     return (
       <div className="page-container">
+        <Breadcrumb />
         <LoadingState message="Loading factory details..." size="md" />
       </div>
     );
@@ -82,6 +81,7 @@ export default function FactoryDetailPage({ params }: FactoryDetailPageProps) {
   if (!factory) {
     return (
       <div className="page-container">
+        <Breadcrumb />
         <EmptyState
           icon={AlertCircle}
           title="Factory Not Found"
@@ -107,6 +107,7 @@ export default function FactoryDetailPage({ params }: FactoryDetailPageProps) {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       {/* Header Section */}
       <div className="page-header">
         <Button

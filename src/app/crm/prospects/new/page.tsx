@@ -42,7 +42,7 @@ import {
   ChevronsUpDown,
   Flame,
 } from 'lucide-react';
-import { PageHeader } from '@/components/common';
+import { PageHeader, Breadcrumb } from '@/components/common';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -179,6 +179,7 @@ export default function NewProspectPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       <PageHeader
         title="New Prospect"
         subtitle="Select a contact to convert into a qualified prospect"

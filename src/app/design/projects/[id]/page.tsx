@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { EntityDetailHeader } from "@/components/common/EntityDetailHeader";
 import { EmptyState } from "@/components/common/EmptyState";
 import { LoadingState } from "@/components/common/LoadingState";
+import { Breadcrumb } from "@/components/common";
 import { EditableFieldGroup, EditableField } from "@/components/common/EditableField";
 import { toast } from "@/hooks/use-toast";
 import { ArrowLeft, Calendar, DollarSign, FileText, Image, Layers, Briefcase, User, Edit, Check, X, Target, MessageSquare, AlertTriangle, RefreshCw } from "lucide-react";
@@ -224,6 +225,8 @@ export default function DesignProjectDetailPage({ params }: { params: Promise<{ 
 
  return (
  <div className="page-container">
+ <Breadcrumb />
+
  {/* Header Section */}
  <div className="page-header">
  <Button

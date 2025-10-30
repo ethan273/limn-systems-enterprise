@@ -2,7 +2,7 @@
 
 import { use, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { LoadingState } from '@/components/common/LoadingState';
+import { LoadingState, Breadcrumb } from '@/components/common';
 
 interface FactoryEditPageProps {
   params: Promise<{
@@ -25,6 +25,7 @@ export default function FactoryEditPage({ params }: FactoryEditPageProps) {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       <LoadingState message="Redirecting to factory details..." size="lg" />
     </div>
   );

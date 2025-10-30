@@ -12,6 +12,7 @@ import {
   EmptyState,
   LoadingState,
   TableFilters,
+  Breadcrumb,
   type DataTableColumn,
   type DataTableRowAction,
   type StatItem,
@@ -263,6 +264,8 @@ export default function DesignBriefsPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
+
       {/* Page Header */}
       <PageHeader
         title="Design Briefs"

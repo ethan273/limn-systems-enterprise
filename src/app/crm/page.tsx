@@ -2,6 +2,7 @@
 
 import { api } from '@/lib/api/client';
 import { DashboardStatCard } from '@/components/dashboard/DashboardStatCard';
+import { Breadcrumb } from '@/components/common/Breadcrumb';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Users, Building2, TrendingUp, Activity, Mail, Phone, Calendar, FileText } from 'lucide-react';
 import Link from 'next/link';
@@ -67,6 +68,9 @@ export default function CRMPage() {
 
   return (
     <div className="p-6 space-y-6">
+      {/* Breadcrumb Navigation */}
+      <Breadcrumb />
+
       {/* Header */}
       <div>
         <h1 className="page-title">CRM Dashboard</h1>

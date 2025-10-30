@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Breadcrumb } from '@/components/common';
 import { api } from '@/lib/api/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -78,6 +79,7 @@ export default function RotationSchedulePage() {
   if (error) {
     return (
       <div className="page-container">
+        <Breadcrumb />
         <PageHeader
           title="Rotation Schedule"
           subtitle="Manage and automate your API credential rotation schedule"
@@ -98,6 +100,7 @@ export default function RotationSchedulePage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       {/* Header */}
       <div className="page-header">
         <div>

@@ -2,6 +2,7 @@
 
 import React, { use, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -114,6 +115,7 @@ export default function QCInspectionDetailPage({ params }: PageProps) {
  if (error) {
  return (
  <div className="container mx-auto p-6">
+ <Breadcrumb />
  <div className="flex items-center gap-4 mb-6">
  <Button variant="ghost" size="sm" onClick={() => router.push("/qc")}>
  <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />

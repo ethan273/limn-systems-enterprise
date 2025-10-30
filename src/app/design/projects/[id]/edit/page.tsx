@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { LoadingState, EmptyState } from "@/components/common";
+import { LoadingState, EmptyState, Breadcrumb } from "@/components/common";
 
 export const dynamic = 'force-dynamic';
 
@@ -216,6 +216,8 @@ export default function EditDesignProjectPage({ params }: EditDesignProjectPageP
   return (
     <div className="container mx-auto p-6 max-w-3xl">
       <div className="space-y-6">
+        <Breadcrumb />
+
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">

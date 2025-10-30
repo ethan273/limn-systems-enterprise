@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Breadcrumb } from '@/components/common/Breadcrumb';
 import {
   Select,
   SelectContent,
@@ -111,6 +112,7 @@ export default function NewConceptPage() {
 
   return (
     <div className="container mx-auto p-6 max-w-4xl">
+      <Breadcrumb />
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-4">

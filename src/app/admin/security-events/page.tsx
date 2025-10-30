@@ -15,6 +15,7 @@
  */
 
 import { useState } from 'react';
+import { Breadcrumb } from '@/components/common';
 import { api } from '@/lib/api/client';
 import Link from 'next/link';
 import {
@@ -144,6 +145,7 @@ export default function SecurityEventsPage() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
+      <Breadcrumb />
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">

@@ -36,6 +36,7 @@ import {
   EmptyState,
   LoadingState,
   TableFilters,
+  Breadcrumb,
   type DataTableColumn,
   type DataTableRowAction,
   type StatItem,
@@ -314,6 +315,8 @@ function DesignDocumentsContent() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
+
       {/* Page Header */}
       <PageHeader
         title="Documents Library"

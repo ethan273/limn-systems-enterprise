@@ -12,6 +12,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Breadcrumb } from '@/components/common';
 import { api } from '@/utils/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -192,6 +193,7 @@ export default function EmailCampaignsPage() {
 
   return (
     <div className="container mx-auto py-8">
+      <Breadcrumb />
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Email Campaigns</h1>

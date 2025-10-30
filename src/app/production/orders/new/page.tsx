@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { LoadingState } from "@/components/common";
 
 /**
@@ -18,6 +19,7 @@ export default function NewProductionOrderPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       <LoadingState message="Redirecting to Projects..." size="lg" />
     </div>
   );

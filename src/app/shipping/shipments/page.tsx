@@ -4,6 +4,7 @@ import React from "react";
 import { useRouter } from "next/navigation";
 // Auth is handled by middleware - no client-side checks needed
 import { api } from "@/lib/api/client";
+import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { useTableState } from "@/hooks/useTableFilters";
 import { useShipmentsRealtime } from "@/hooks/useRealtimeSubscription";
 import { Badge } from "@/components/ui/badge";
@@ -247,6 +248,7 @@ export default function ShipmentsPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       <PageHeader
         title="All Shipments"
         description="Comprehensive shipment management with SEKO integration"

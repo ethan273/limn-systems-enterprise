@@ -2,6 +2,7 @@
 
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { api } from "@/lib/api/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -269,6 +270,7 @@ export default function ProductionOrderDetailPage({ params }: PageProps) {
 
  return (
  <div className="container mx-auto py-6">
+ <Breadcrumb />
  {/* Header */}
  <div className="mb-6">
  <Link href="/production/orders">

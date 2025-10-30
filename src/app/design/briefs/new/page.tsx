@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "@/hooks/use-toast";
 import { ArrowLeft, AlertTriangle, RefreshCw } from "lucide-react";
 import Link from "next/link";
-import { PageHeader, LoadingState } from "@/components/common";
+import { PageHeader, LoadingState, Breadcrumb } from "@/components/common";
 
 export const dynamic = 'force-dynamic';
 
@@ -132,6 +132,8 @@ export default function NewDesignBriefPage() {
 
   return (
     <div className="page-container max-w-4xl">
+      <Breadcrumb />
+
       {/* Back Button */}
       <div className="page-header">
         <Button variant="ghost" onClick={() => router.push("/design/briefs")} className="btn-secondary">

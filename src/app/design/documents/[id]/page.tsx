@@ -5,6 +5,7 @@ import { api } from "@/utils/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, FileText } from "lucide-react";
+import { Breadcrumb } from "@/components/common";
 
 export default function DesignDocumentDetailPage() {
   const params = useParams();
@@ -34,6 +35,8 @@ export default function DesignDocumentDetailPage() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
+      <Breadcrumb />
+
       <div className="flex items-center gap-4">
         <Button variant="outline" size="sm" onClick={() => router.push("/design/documents")}>
           <ArrowLeft className="h-4 w-4 mr-2" />Back

@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PageHeader, LoadingState, EmptyState } from "@/components/common";
+import { PageHeader, LoadingState, EmptyState, Breadcrumb } from "@/components/common";
 import { FileUploader } from "@/components/flipbooks/FileUploader";
 import { PageCanvas } from "@/components/flipbooks/PageCanvas";
 import { SortablePageList } from "@/components/flipbooks/SortablePageList";
@@ -405,6 +405,7 @@ function FlipbookBuilderContent() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       {/* Page Header */}
       <PageHeader
         title={flipbookId ? `Edit: ${flipbook?.title || 'Flipbook'}` : "New Flipbook"}

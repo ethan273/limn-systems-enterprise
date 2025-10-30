@@ -19,7 +19,7 @@ import {
   AlertTriangle,
   RefreshCw,
 } from 'lucide-react';
-import { PageHeader, LoadingState } from '@/components/common';
+import { PageHeader, LoadingState, Breadcrumb } from '@/components/common';
 import { toast } from 'sonner';
 
 export default function EditContactPage() {
@@ -104,6 +104,7 @@ export default function EditContactPage() {
   if (isLoading) {
     return (
       <div className="page-container">
+        <Breadcrumb />
         <LoadingState message="Loading contact..." size="lg" />
       </div>
     );
@@ -112,6 +113,7 @@ export default function EditContactPage() {
   if (queryError) {
     return (
       <div className="page-container">
+        <Breadcrumb />
         <PageHeader
           title="Edit Contact"
           subtitle="Update contact information"
@@ -155,6 +157,7 @@ export default function EditContactPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       <PageHeader
         title="Edit Contact"
         subtitle={`Update information for ${contactData.contact.name}`}

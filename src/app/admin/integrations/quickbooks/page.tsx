@@ -5,6 +5,7 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Breadcrumb } from '@/components/common';
 
 interface QuickBooksConnection {
   realmId: string;
@@ -144,6 +145,7 @@ function QuickBooksIntegrationContent() {
 
   return (
     <div className="quickbooks-integration-page">
+      <Breadcrumb />
       <div className="page-header">
         <h1>QuickBooks Integration</h1>
         <p className="page-description">

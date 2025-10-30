@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { Breadcrumb } from "@/components/common";
 import { api } from "@/lib/api/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -145,6 +146,7 @@ export default function DataExportPage() {
 
   return (
     <div className="container">
+      <Breadcrumb />
       {/* Header */}
       <div className="page-header">
         <div>

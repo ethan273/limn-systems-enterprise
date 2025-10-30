@@ -11,6 +11,7 @@ import {
   DataTable,
   StatsGrid,
   TableFilters,
+  Breadcrumb,
   type DataTableColumn,
   type StatItem,
 } from "@/components/common";
@@ -234,6 +235,7 @@ export default function FactoriesPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       {/* Page Header */}
       <PageHeader
         title="Factory Partners"

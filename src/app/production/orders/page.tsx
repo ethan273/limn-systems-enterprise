@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { api } from "@/lib/api/client";
 import { useTableState } from "@/hooks/useTableFilters";
 import { TableFilters } from "@/components/common";
@@ -186,6 +187,7 @@ function ProductionOrdersPageContent() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       {/* Page Header */}
       <PageHeader
         title="Production Orders"

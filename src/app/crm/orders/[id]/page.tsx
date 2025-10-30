@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Package, DollarSign, Calendar, User } from "lucide-react";
 import Link from "next/link";
+import { Breadcrumb } from "@/components/common";
 
 export default function OrderDetailPage() {
   const params = useParams();
@@ -97,6 +98,7 @@ export default function OrderDetailPage() {
 
   return (
     <div className="container mx-auto p-6">
+      <Breadcrumb />
       {/* Header */}
       <div className="mb-6">
         <Button

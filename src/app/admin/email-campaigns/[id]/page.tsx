@@ -11,6 +11,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
+import { Breadcrumb } from "@/components/common";
 import { api } from "@/utils/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -132,6 +133,7 @@ export default function EmailCampaignDetailPage() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
+      <Breadcrumb />
       {/* Header with back button and actions */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">

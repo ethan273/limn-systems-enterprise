@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Breadcrumb } from '@/components/common';
 import { api } from '@/lib/api/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -80,6 +81,7 @@ export default function AnalyticsPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       {/* Header */}
       <div className="page-header">
         <div>

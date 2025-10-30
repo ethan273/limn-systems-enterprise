@@ -11,6 +11,7 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
+import { Breadcrumb } from '@/components/common';
 import { api } from '@/utils/api';
 import { Button } from '@/components/ui/button';
 import {
@@ -77,6 +78,7 @@ export default function CampaignAnalyticsPage() {
 
   return (
     <div className="container mx-auto py-8">
+      <Breadcrumb />
       <div className="mb-8">
         <Button
           variant="ghost"

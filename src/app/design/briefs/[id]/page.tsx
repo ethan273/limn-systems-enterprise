@@ -9,6 +9,7 @@ import {
   EntityDetailHeader,
   LoadingState,
   EmptyState,
+  Breadcrumb,
   type EntityMetadata,
 } from "@/components/common";
 import { EditableFieldGroup, EditableField } from "@/components/common/EditableField";
@@ -196,6 +197,8 @@ export default function DesignBriefDetailPage({ params }: { params: Promise<{ id
 
   return (
     <div className="page-container">
+      <Breadcrumb />
+
       <EntityDetailHeader
         icon={FileText}
         title={brief.title}

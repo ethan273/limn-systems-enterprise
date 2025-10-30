@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
+import { Breadcrumb } from "@/components/common";
 import { api } from "@/utils/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -66,6 +67,7 @@ export default function ApiCredentialDetailPage() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
+      <Breadcrumb />
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="outline" size="sm" onClick={() => router.push("/admin/api-management/credentials")}>

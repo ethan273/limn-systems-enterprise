@@ -1,5 +1,6 @@
 'use client';
 
+import { Breadcrumb } from '@/components/common';
 import { api } from '@/lib/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -124,6 +125,7 @@ export default function SecurityDashboard() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       {/* Back Navigation */}
       <Link
         href="/admin/api-management"

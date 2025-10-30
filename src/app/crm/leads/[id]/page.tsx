@@ -12,6 +12,7 @@ import { StatusBadge } from "@/components/common/StatusBadge";
 import { EmptyState } from "@/components/common/EmptyState";
 import { LoadingState } from "@/components/common/LoadingState";
 import { EditableFieldGroup, EditableField } from "@/components/common/EditableField";
+import { Breadcrumb } from "@/components/common/Breadcrumb";
 import {
   User,
   Mail,
@@ -282,6 +283,7 @@ export default function LeadDetailPage({ params }: PageProps) {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       {/* Header Section */}
       <div className="page-header">
         <Button

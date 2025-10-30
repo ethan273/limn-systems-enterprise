@@ -14,6 +14,7 @@ import {
   EmptyState,
   EditableFieldGroup,
   EditableField,
+  Breadcrumb,
 } from "@/components/common";
 import {
   User,
@@ -310,6 +311,7 @@ export default function ProspectDetailPage({ params }: PageProps) {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       {/* Header Section */}
       <div className="page-header">
         <Button

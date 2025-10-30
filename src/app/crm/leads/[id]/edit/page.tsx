@@ -27,7 +27,7 @@ import {
   AlertTriangle,
   RefreshCw,
 } from 'lucide-react';
-import { PageHeader, LoadingState } from '@/components/common';
+import { PageHeader, LoadingState, Breadcrumb } from '@/components/common';
 import { toast } from 'sonner';
 
 const LEAD_STATUSES = [
@@ -141,6 +141,7 @@ export default function EditLeadPage() {
   if (isLoading) {
     return (
       <div className="page-container">
+        <Breadcrumb />
         <LoadingState message="Loading lead..." size="lg" />
       </div>
     );
@@ -185,6 +186,7 @@ export default function EditLeadPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       <PageHeader
         title="Edit Lead"
         subtitle={`Update information for ${leadData.lead.name}`}

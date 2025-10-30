@@ -11,6 +11,7 @@ import { EntityDetailHeader } from "@/components/common/EntityDetailHeader";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { EmptyState } from "@/components/common/EmptyState";
 import { LoadingState } from "@/components/common/LoadingState";
+import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { EditableField, EditableFieldGroup } from "@/components/common";
 import {
   User,
@@ -245,6 +246,9 @@ export default function ContactDetailPage({ params }: PageProps) {
 
   return (
     <div className="page-container">
+      {/* Breadcrumb Navigation */}
+      <Breadcrumb />
+
       {/* Header Section */}
       <div className="page-header">
         <Button

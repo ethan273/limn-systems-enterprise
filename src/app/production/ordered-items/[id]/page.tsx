@@ -11,6 +11,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
+import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { api } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -82,6 +83,7 @@ export default function OrderedItemDetailPage() {
   if (!item) {
     return (
       <div className="container mx-auto p-6">
+        <Breadcrumb />
         <Card>
           <CardHeader>
             <CardTitle>Ordered Item Not Found</CardTitle>
@@ -119,6 +121,7 @@ export default function OrderedItemDetailPage() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
+      <Breadcrumb />
       {/* Header with back button */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">

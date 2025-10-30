@@ -2,6 +2,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Breadcrumb } from '@/components/common';
 import { api } from '@/lib/api/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -452,6 +453,7 @@ export default function ApiKeysPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       {/* Header */}
       <div className="page-header">
         <div className="flex items-center gap-3">

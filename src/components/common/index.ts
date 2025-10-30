@@ -40,6 +40,9 @@ export { SpecificationsManager } from './SpecificationsManager';
 export { Breadcrumbs } from './Breadcrumbs';
 export type { BreadcrumbsProps, BreadcrumbItem } from './Breadcrumbs';
 
+export { Breadcrumb, PageBreadcrumb } from './Breadcrumb';
+export type { BreadcrumbProps, BreadcrumbItem as BreadcrumbItemSingle } from './Breadcrumb';
+
 export { ErrorBoundary } from './ErrorBoundary';
 export { ErrorState } from './ErrorState';
 

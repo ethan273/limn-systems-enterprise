@@ -28,6 +28,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import {
   PageHeader,
+  Breadcrumb,
   EmptyState,
   LoadingState,
   DataTable,
@@ -350,6 +351,7 @@ export default function TasksPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       {/* Page Header */}
       <PageHeader
         title="All Tasks"

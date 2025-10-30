@@ -27,6 +27,7 @@ import {
   LoadingState,
   DataTable,
   TableFilters,
+  Breadcrumb,
   type FormField,
   type DataTableColumn,
   type DataTableRowAction,
@@ -309,6 +310,9 @@ export default function ContactsPage() {
 
   return (
     <div className="page-container">
+      {/* Breadcrumb Navigation */}
+      <Breadcrumb />
+
       {/* Page Header with new PageHeader component */}
       <PageHeader
         title="Contacts"

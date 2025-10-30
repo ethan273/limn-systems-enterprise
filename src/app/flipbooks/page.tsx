@@ -19,6 +19,7 @@ import {
   DataTable,
   StatsGrid,
   TableFilters,
+  Breadcrumb,
   type DataTableColumn,
   type DataTableRowAction,
   type StatItem,
@@ -355,6 +356,7 @@ export default function FlipbooksPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       {/* Page Header */}
       <PageHeader
         title="Flipbook Library"

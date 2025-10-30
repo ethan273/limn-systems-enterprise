@@ -15,6 +15,7 @@ import {
   StatusBadge,
   PriorityBadge,
   TableFilters,
+  Breadcrumb,
   type DataTableColumn,
   type DataTableRowAction,
   type StatItem,
@@ -268,6 +269,8 @@ export default function DesignProjectsPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
+
       <PageHeader
         title="Design Projects"
         subtitle="Manage design projects from concept to final approval"

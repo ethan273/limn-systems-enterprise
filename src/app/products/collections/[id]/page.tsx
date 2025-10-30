@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EntityDetailHeader } from "@/components/common/EntityDetailHeader";
 import { InfoCard } from "@/components/common/InfoCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
+import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { EmptyState } from "@/components/common/EmptyState";
 import { LoadingState } from "@/components/common/LoadingState";
 import {
@@ -102,6 +103,7 @@ export default function CollectionDetailPage({ params }: PageProps) {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       {/* Header */}
       <div className="page-header">
         <Button

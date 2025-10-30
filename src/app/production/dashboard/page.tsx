@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { api } from "@/lib/api/client";
 import {
   PageHeader,
@@ -150,6 +151,7 @@ export default function ProductionDashboardPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       <PageHeader
         title="Production Dashboard"
         subtitle="Track production orders and progress in real-time"

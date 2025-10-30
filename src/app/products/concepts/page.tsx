@@ -17,6 +17,7 @@ import {
   StatusBadge,
   FormDialog,
   TableFilters,
+  Breadcrumb,
   type DataTableColumn,
   type DataTableRowAction,
   type StatItem,
@@ -219,6 +220,7 @@ export default function ConceptsPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       {/* Page Header */}
       <PageHeader
         title="Concepts"

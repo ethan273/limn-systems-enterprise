@@ -1,5 +1,6 @@
 'use client';
 
+import { Breadcrumb } from '@/components/common';
 import { api } from '@/lib/api/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -81,6 +82,7 @@ export default function MonitoringPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       {/* Header */}
       <div className="page-header">
         <div>

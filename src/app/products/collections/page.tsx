@@ -16,6 +16,7 @@ import {
   StatsGrid,
   StatusBadge,
   TableFilters,
+  Breadcrumb,
   type FormField,
   type DataTableColumn,
   type DataTableRowAction,
@@ -242,6 +243,7 @@ export default function CollectionsPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       {/* Page Header */}
       <PageHeader
         title="Collections"

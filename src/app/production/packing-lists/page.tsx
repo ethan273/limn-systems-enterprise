@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Breadcrumb } from "@/components/common/Breadcrumb";
 // Auth is handled by middleware - no client-side checks needed
 import { api } from "@/lib/api/client";
 import { Package, Plus, AlertTriangle, RefreshCw } from "lucide-react";
@@ -67,6 +68,7 @@ export default function PackingListsPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       {/* Page Header */}
       <div className="page-header">
         <div>

@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { api } from "@/utils/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { ArrowLeft, Package } from "lucide-react";
 
 export default function MaterialDetailPage() {
@@ -34,6 +35,7 @@ export default function MaterialDetailPage() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
+      <Breadcrumb />
       <div className="flex items-center gap-4">
         <Button variant="outline" size="sm" onClick={() => router.push("/products/materials")}>
           <ArrowLeft className="h-4 w-4 mr-2" />Back

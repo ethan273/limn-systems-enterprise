@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Breadcrumb } from "@/components/common";
 import {
   ArrowLeft,
   Loader2,
@@ -130,6 +131,7 @@ export default function NewDesignerPartnerPage() {
 
   return (
     <div className="container mx-auto p-6 max-w-3xl">
+      <Breadcrumb />
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">

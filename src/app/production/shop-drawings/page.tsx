@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
+import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { api } from "@/lib/api/client";
 import { useTableState } from "@/hooks/useTableFilters";
 import { TableFilters } from "@/components/common";
@@ -218,6 +219,7 @@ export default function ShopDrawingsPage() {
   if (error) {
     return (
       <div className="page-container">
+        <Breadcrumb />
         <PageHeader
           title="Shop Drawings"
           description="Manage production drawings with version control and approvals"
@@ -238,6 +240,7 @@ export default function ShopDrawingsPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       <PageHeader
         title="Shop Drawings"
         description="Manage production drawings with version control and approvals"

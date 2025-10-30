@@ -28,6 +28,7 @@ import {
   DataTable,
   StatsGrid,
   EmptyState,
+  Breadcrumb,
   LoadingState,
   StatusBadge,
   TableFilters,
@@ -486,6 +487,7 @@ export default function MyTasksPage() {
 
   return (
     <div className="page-container">
+      <Breadcrumb />
       {/* Page Header */}
       <PageHeader
         title="My Tasks"
