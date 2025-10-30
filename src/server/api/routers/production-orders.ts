@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { createTRPCRouter, publicProcedure } from '../trpc/init';
 import { Prisma, PrismaClient } from '@prisma/client';
+import { sendNotificationToAdmins } from '@/lib/notifications/unified-service';
 
 // Direct Prisma instance for raw SQL (advisory locks)
 // @allow-direct-prisma - Required for PostgreSQL advisory locks in production order/invoice number generation
@@ -529,12 +530,38 @@ export const productionOrdersRouter = createTRPCRouter({
           data: { status: 'awaiting_final_payment' },
         });
 
+        // Send completion notification to admins
+        await sendNotificationToAdmins({
+          title: 'Production Order Completed',
+          message: `Production order ${order.order_number} for "${order.item_name}" has been completed. Final invoice ${finalInvoice.invoice_number} generated.`,
+          category: 'production',
+          priority: 'normal',
+          actionUrl: `/production/orders/${order.id}`,
+          actionLabel: 'View Order',
+          channels: ['in_app', 'google_chat'],
+        }).catch((error) => {
+          console.error('[Production Orders] Failed to send completion notification:', error);
+        });
+
         return {
           order: updatedOrder,
           finalInvoice,
           message: `Production completed. Final invoice ${finalInvoice.invoice_number} generated. Shipping blocked until payment received.`,
         };
       }
+
+      // Send status update notification to admins for other status changes
+      await sendNotificationToAdmins({
+        title: `Production Order Status Update`,
+        message: `Production order ${order.order_number} status changed to "${input.status}"`,
+        category: 'production',
+        priority: input.status === 'quality_issue' || input.status === 'delayed' ? 'high' : 'normal',
+        actionUrl: `/production/orders/${order.id}`,
+        actionLabel: 'View Order',
+        channels: ['in_app'],
+      }).catch((error) => {
+        console.error('[Production Orders] Failed to send status update notification:', error);
+      });
 
       return {
         order: updatedOrder,

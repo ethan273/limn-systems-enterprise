@@ -8,6 +8,7 @@
 import { z } from 'zod';
 import { createTRPCRouter, publicProcedure } from '../trpc/init';
 import { TRPCError } from '@trpc/server';
+import { sendNotificationToAdmins } from '@/lib/notifications/unified-service';
 
 export const qcRouter = createTRPCRouter({
   // ============================================================================
@@ -226,6 +227,14 @@ export const qcRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      // Get the inspection details for notification context
+      const existingInspection = await ctx.db.qc_inspections.findUnique({
+        where: { id: input.id },
+        include: {
+          production_order: true,
+        },
+      });
+
       const inspection = await ctx.db.qc_inspections.update({
         where: { id: input.id },
         data: {
@@ -234,6 +243,44 @@ export const qcRouter = createTRPCRouter({
           completed_at: input.status === 'passed' || input.status === 'failed' ? new Date() : undefined,
         },
       });
+
+      // Send notification for QC failures
+      if (input.status === 'failed' && existingInspection) {
+        const orderInfo = existingInspection.production_order
+          ? `for order ${existingInspection.production_order.order_number}`
+          : '';
+
+        await sendNotificationToAdmins({
+          title: 'QC Inspection Failed',
+          message: `QC inspection ${orderInfo} has failed. ${input.notes || 'No additional details provided.'}`,
+          category: 'production',
+          priority: 'urgent',
+          actionUrl: `/production/qc/${input.id}`,
+          actionLabel: 'Review QC Report',
+          channels: ['in_app', 'google_chat'],
+        }).catch((error) => {
+          console.error('[QC] Failed to send QC failure notification:', error);
+        });
+      }
+
+      // Send notification for critical on-hold status
+      if (input.status === 'on_hold' && existingInspection) {
+        const orderInfo = existingInspection.production_order
+          ? `for order ${existingInspection.production_order.order_number}`
+          : '';
+
+        await sendNotificationToAdmins({
+          title: 'QC Inspection On Hold',
+          message: `QC inspection ${orderInfo} has been placed on hold. ${input.notes || 'No additional details provided.'}`,
+          category: 'production',
+          priority: 'high',
+          actionUrl: `/production/qc/${input.id}`,
+          actionLabel: 'Review QC Report',
+          channels: ['in_app', 'google_chat'],
+        }).catch((error) => {
+          console.error('[QC] Failed to send QC on-hold notification:', error);
+        });
+      }
 
       return {
         success: true,

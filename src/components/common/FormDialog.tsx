@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { FormFieldError, FormErrorSummary } from './FormFieldError';
 
 /**
  * Supported form field types
@@ -297,7 +298,7 @@ export function FormDialog({
               onChange={(e) => handleFieldChange(field.name, e.target.value)}
               disabled={isLoading}
             />
-            {error && <span className="form-error">{error}</span>}
+            <FormFieldError error={error} id={`${field.name}-error`} />
           </div>
         );
 
@@ -321,7 +322,7 @@ export function FormDialog({
               min={field.validation?.min}
               max={field.validation?.max}
             />
-            {error && <span className="form-error">{error}</span>}
+            <FormFieldError error={error} id={`${field.name}-error`} />
           </div>
         );
 
@@ -342,7 +343,7 @@ export function FormDialog({
               onChange={(e) => handleFieldChange(field.name, e.target.value)}
               disabled={isLoading}
             />
-            {error && <span className="form-error">{error}</span>}
+            <FormFieldError error={error} id={`${field.name}-error`} />
           </div>
         );
 
@@ -363,7 +364,7 @@ export function FormDialog({
               onChange={(e) => handleFieldChange(field.name, e.target.value)}
               disabled={isLoading}
             />
-            {error && <span className="form-error">{error}</span>}
+            <FormFieldError error={error} id={`${field.name}-error`} />
           </div>
         );
 
@@ -392,7 +393,7 @@ export function FormDialog({
                 ))}
               </SelectContent>
             </Select>
-            {error && <span className="form-error">{error}</span>}
+            <FormFieldError error={error} id={`${field.name}-error`} />
           </div>
         );
 
@@ -411,7 +412,7 @@ export function FormDialog({
             >
               {field.label}
             </Label>
-            {error && <span className="form-error">{error}</span>}
+            <FormFieldError error={error} id={`${field.name}-error`} />
           </div>
         );
 
@@ -463,7 +464,7 @@ export function FormDialog({
             {field.helperText && (
               <p className="text-sm text-muted-foreground mt-1">{field.helperText}</p>
             )}
-            {error && <span className="form-error">{error}</span>}
+            <FormFieldError error={error} id={`${field.name}-error`} />
           </div>
         );
 
@@ -481,6 +482,9 @@ export function FormDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
+          {/* Error Summary */}
+          <FormErrorSummary errors={errors} />
+
           {fields.map((field) => renderField(field))}
 
           <DialogFooter className="form-actions">

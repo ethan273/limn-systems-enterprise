@@ -152,13 +152,17 @@ export function FormField({
  * Form Summary Errors (displays all errors at top of form)
  */
 export interface FormErrorSummaryProps {
-  errors: Record<string, FieldError | undefined>;
+  errors: Record<string, FieldError | string | undefined>;
   className?: string;
 }
 
 export function FormErrorSummary({ errors, className }: FormErrorSummaryProps) {
   const errorEntries = Object.entries(errors).filter(
-    ([_, error]) => error?.message
+    ([_, error]) => {
+      if (!error) return false;
+      if (typeof error === 'string') return error.length > 0;
+      return error?.message;
+    }
   );
 
   if (errorEntries.length === 0) {
@@ -185,12 +189,15 @@ export function FormErrorSummary({ errors, className }: FormErrorSummaryProps) {
               : `There are ${errorEntries.length} errors with your submission`}
           </h3>
           <ul className="space-y-1 text-sm text-destructive">
-            {errorEntries.map(([field, error]) => (
-              <li key={field} className="flex items-start gap-2">
-                <span className="font-medium">{field}:</span>
-                <span>{error?.message}</span>
-              </li>
-            ))}
+            {errorEntries.map(([field, error]) => {
+              const message = typeof error === 'string' ? error : error?.message;
+              return (
+                <li key={field} className="flex items-start gap-2">
+                  <span className="font-medium">{field}:</span>
+                  <span>{message}</span>
+                </li>
+              );
+            })}
           </ul>
         </div>
       </div>

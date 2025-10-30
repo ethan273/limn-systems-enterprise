@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { createCrudRouter } from '../utils/crud-generator';
 import { createTRPCRouter, publicProcedure } from '../trpc/init';
 import { db } from '@/lib/db';
+import { sendNotificationToUser } from '@/lib/notifications/unified-service';
 
 // Schema for creating tasks - matches updated database schema
 const createTaskSchema = z.object({
@@ -86,7 +87,28 @@ export const tasksRouter = createTRPCRouter({
   create: publicProcedure
     .input(createTaskSchema)
     .mutation(async ({ ctx: _ctx, input }) => {
-      return await db.createTask(input);
+      const task = await db.createTask(input);
+
+      // Send notifications to assigned users
+      if (input.assigned_to && input.assigned_to.length > 0) {
+        await Promise.all(
+          input.assigned_to.map(async (userId) => {
+            await sendNotificationToUser(userId, {
+              title: 'New Task Assigned',
+              message: `You have been assigned to task: "${input.title}"`,
+              category: 'task',
+              priority: input.priority === 'high' ? 'high' : 'normal',
+              actionUrl: `/tasks/${task.id}`,
+              actionLabel: 'View Task',
+              channels: ['in_app', 'email'],
+            }).catch((error) => {
+              console.error('[Tasks] Failed to send assignment notification:', error);
+            });
+          })
+        );
+      }
+
+      return task;
     }),
   
   // Get all tasks with filters
@@ -206,7 +228,41 @@ export const tasksRouter = createTRPCRouter({
   update: publicProcedure
     .input(updateTaskSchema.extend({ id: z.string().uuid() }))
     .mutation(async ({ ctx: _ctx, input }) => {
-      return await db.updateTask(input);
+      // Get existing task to check for assignment changes
+      const existingTask = await db.findTask(input.id);
+      if (!existingTask) {
+        throw new Error('Task not found');
+      }
+
+      const updatedTask = await db.updateTask(input);
+
+      // Send notifications to newly assigned users
+      if (input.assigned_to && input.assigned_to.length > 0) {
+        const previousAssignees = existingTask.assigned_to || [];
+        const newAssignees = input.assigned_to.filter(
+          (userId: string) => !previousAssignees.includes(userId)
+        );
+
+        if (newAssignees.length > 0) {
+          await Promise.all(
+            newAssignees.map(async (userId: string) => {
+              await sendNotificationToUser(userId, {
+                title: 'Task Assigned',
+                message: `You have been assigned to task: "${existingTask.title}"`,
+                category: 'task',
+                priority: input.priority === 'high' ? 'high' : 'normal',
+                actionUrl: `/tasks/${input.id}`,
+                actionLabel: 'View Task',
+                channels: ['in_app', 'email'],
+              }).catch((error) => {
+                console.error('[Tasks] Failed to send assignment notification:', error);
+              });
+            })
+          );
+        }
+      }
+
+      return updatedTask;
     }),
 
   // Delete task
