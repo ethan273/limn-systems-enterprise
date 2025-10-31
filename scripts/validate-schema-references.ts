@@ -44,7 +44,7 @@ class SchemaValidator {
   };
 
   private schemaPath = path.join(process.cwd(), 'prisma', 'schema.prisma');
-  private excludeDirs = ['node_modules', '.next', 'dist', 'build', '.git'];
+  private excludeDirs = ['node_modules', '.next', 'dist', 'build', '.git', 'migrations'];
 
   /**
    * Initialize by parsing Prisma schema

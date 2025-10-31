@@ -266,39 +266,23 @@ const nextConfig = {
       },
     ];
 
-    // Content Security Policy - different for dev/prod
-    const cspDirectives = [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline'", // tRPC requires unsafe-eval
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com", // Tailwind + Google Fonts
-      "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com", // Explicit style-src-elem for external stylesheets
-      `img-src 'self' data: blob: https://${supabaseHostname}`,
-      "font-src 'self' https://fonts.gstatic.com", // Google Fonts
-      `connect-src 'self' https://${supabaseHostname} wss://${supabaseHostname} https://*.ingest.us.sentry.io https://api.cloudinary.com https://res.cloudinary.com`, // Supabase + Sentry + Cloudinary
-      "worker-src 'self' blob:", // Web Workers
-      "frame-src 'none'",
-      "object-src 'none'",
-      "base-uri 'self'",
-      "form-action 'self'",
-      "frame-ancestors 'none'",
-    ];
-
-    // Only upgrade to HTTPS in production (this was breaking local dev!)
-    if (!isDevelopment) {
-      cspDirectives.push("upgrade-insecure-requests");
-    }
-
-    const cspHeader = {
-      key: 'Content-Security-Policy',
-      value: cspDirectives.join('; '),
-    };
+    // =====================================================
+    // CSP MOVED TO MIDDLEWARE (Phase 1: Security Hardening)
+    // =====================================================
+    // Content Security Policy is now set dynamically in middleware
+    // with per-request nonces for improved security.
+    // See: src/middleware.ts and src/middleware/csp-nonce.ts
+    //
+    // IMPORTANT: CSP headers MUST be set in middleware to support nonces
+    // Static headers in next.config.js cannot access per-request nonces
+    // =====================================================
 
     return [
       {
         source: '/(.*)',
         headers: isDevelopment
-          ? [...baseHeaders, cspHeader]
-          : [...baseHeaders, ...productionHeaders, cspHeader],
+          ? [...baseHeaders]
+          : [...baseHeaders, ...productionHeaders],
       },
     ];
   },

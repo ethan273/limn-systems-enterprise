@@ -64,7 +64,7 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -73,30 +73,31 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         {/* CRITICAL: Immediately unregister old Service Workers to prevent stale cache */}
+        {/* Note: In CSP report-only mode, nonce not required for SSR scripts */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
                 if ('serviceWorker' in navigator) {
-                  log.info('[SW Force Clear] Checking for service workers...');
+                  console.log('[SW Force Clear] Checking for service workers...');
                   navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                    log.info('[SW Force Clear] Found', registrations.length, 'service worker(s)');
+                    console.log('[SW Force Clear] Found', registrations.length, 'service worker(s)');
                     var unregistered = 0;
                     registrations.forEach(function(registration) {
-                      log.info('[SW Force Clear] Unregistering service worker:', registration.scope);
+                      console.log('[SW Force Clear] Unregistering service worker:', registration.scope);
                       registration.unregister().then(function(success) {
                         if (success) {
                           unregistered++;
-                          log.info('[SW Force Clear] Successfully unregistered service worker');
+                          console.log('[SW Force Clear] Successfully unregistered service worker');
                         }
                       });
                     });
                     if (unregistered > 0) {
-                      log.info('[SW Force Clear] Unregistered', unregistered, 'service worker(s)');
+                      console.log('[SW Force Clear] Unregistered', unregistered, 'service worker(s)');
                       // Clear all caches
                       if ('caches' in window) {
                         caches.keys().then(function(names) {
-                          log.info('[SW Force Clear] Clearing', names.length, 'cache(s)');
+                          console.log('[SW Force Clear] Clearing', names.length, 'cache(s)');
                           names.forEach(function(name) {
                             caches.delete(name);
                           });

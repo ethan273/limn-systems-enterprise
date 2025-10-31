@@ -264,6 +264,7 @@ export default function Sidebar() {
  { label: "Analytics", href: "/admin/analytics" },
  { label: "API Management", href: "/admin/api-management" },
  { label: "Portal Management", href: "/admin/portals" },
+ { label: "Portal Access", href: "/admin/portal-access" },
  { label: "Approvals", href: "/admin/approvals" },
  { label: "Export", href: "/admin/export" },
  ]

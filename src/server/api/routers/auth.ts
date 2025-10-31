@@ -182,7 +182,12 @@ export const authRouter = createTRPCRouter({
     .input(z.object({
       requestId: z.string().uuid(),
       action: z.enum(['approve', 'deny']),
-      adminNotes: z.string().optional()
+      adminNotes: z.string().optional(),
+      // Portal access configuration (required for approval)
+      approvedPortalType: z.enum(['customer', 'designer', 'factory', 'qc']).optional(),
+      approvedModules: z.array(z.string()).optional(),
+      linkedOrganizationId: z.string().uuid().optional(),
+      organizationType: z.enum(['customer', 'partner']).optional()
     }))
     .mutation(async ({ ctx, input }) => {
       try {
@@ -203,7 +208,17 @@ export const authRouter = createTRPCRouter({
           })
         }
 
-        // Update the request status
+        // Validate required fields for approval
+        if (input.action === 'approve') {
+          if (!input.approvedPortalType || !input.approvedModules || input.approvedModules.length === 0) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'Portal type and at least one module are required when approving access requests'
+            })
+          }
+        }
+
+        // Update the request status with portal access configuration
         const updatedRequest = await ctx.db.pending_user_requests.update({
           where: { id: input.requestId },
           data: {
@@ -211,6 +226,10 @@ export const authRouter = createTRPCRouter({
             reviewed_at: new Date(),
             reviewed_by: ctx.session?.user?.id,
             admin_notes: input.adminNotes,
+            approved_portal_type: input.action === 'approve' ? input.approvedPortalType : null,
+            approved_modules: input.action === 'approve' ? input.approvedModules : null,
+            linked_organization_id: input.action === 'approve' ? input.linkedOrganizationId : null,
+            organization_type: input.action === 'approve' ? input.organizationType : null,
             updated_at: new Date()
           }
         })
@@ -226,7 +245,7 @@ export const authRouter = createTRPCRouter({
           const { error: magicLinkError } = await getSupabaseAdmin().auth.signInWithOtp({
             email: request.email,
             options: {
-              emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
+              emailRedirectTo: `${process.env.NEXT_PUBLIC_URL}/auth/callback`,
               data: {
                 company_name: request.company_name,
                 user_type: request.user_type,
@@ -413,19 +432,32 @@ export const authRouter = createTRPCRouter({
         }
 
         // Send magic link
+        log.info('[sendMagicLink] Attempting to send magic link', {
+          email: input.email,
+          redirectUrl: `${process.env.NEXT_PUBLIC_URL}/auth/callback`
+        });
+
         const { error } = await getSupabaseAdmin().auth.signInWithOtp({
           email: input.email,
           options: {
-            emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`
+            emailRedirectTo: `${process.env.NEXT_PUBLIC_URL}/auth/callback`
           }
         })
 
         if (error) {
+          log.error('[sendMagicLink] Supabase error:', {
+            error,
+            errorMessage: error.message,
+            errorStatus: error.status,
+            errorName: error.name
+          });
           throw new TRPCError({
             code: 'INTERNAL_SERVER_ERROR',
-            message: 'Failed to send magic link. Please try again.'
+            message: `Failed to send magic link: ${error.message}`
           })
         }
+
+        log.info('[sendMagicLink] Magic link sent successfully', { email: input.email });
 
         // Send Google Chat notification (non-blocking)
         notifyMagicLinkSent({

@@ -369,7 +369,7 @@ export const adminRouter = createTRPCRouter({
         const { data: magicLinkData, error: magicLinkError } = await getSupabaseAdmin().auth.signInWithOtp({
           email: input.email,
           options: {
-            emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
+            emailRedirectTo: `${process.env.NEXT_PUBLIC_URL}/auth/callback`,
           },
         });
 
@@ -952,9 +952,9 @@ export const adminRouter = createTRPCRouter({
      * For portal management dashboard
      */
     getAllPortalUsers: adminProcedure.query(async ({ ctx }) => {
-      const portalUsers = await ctx.db.customer_portal_access.findMany({
+      const portalUsers = await ctx.db.portal_access.findMany({
         include: {
-          users_customer_portal_access_user_idTousers: {
+          users_portal_access_user_idTousers: {
             select: {
               email: true,
             },
@@ -980,18 +980,18 @@ export const adminRouter = createTRPCRouter({
       .input(
         z.object({
           id: z.string().uuid(),
-          portalRole: z.string().optional(),
+          allowedModules: z.array(z.string()).optional(),
           isActive: z.boolean().optional(),
         })
       )
       .mutation(async ({ input, ctx }) => {
-        const { id, portalRole, isActive } = input;
+        const { id, allowedModules, isActive } = input;
 
         const updateData: any = {};
-        if (portalRole !== undefined) updateData.portal_role = portalRole;
+        if (allowedModules !== undefined) updateData.allowed_modules = allowedModules;
         if (isActive !== undefined) updateData.is_active = isActive;
 
-        await ctx.db.customer_portal_access.update({
+        await ctx.db.portal_access.update({
           where: { id },
           data: updateData,
         });
@@ -1009,7 +1009,7 @@ export const adminRouter = createTRPCRouter({
         })
       )
       .mutation(async ({ input, ctx }) => {
-        await ctx.db.customer_portal_access.delete({
+        await ctx.db.portal_access.delete({
           where: { id: input.id },
         });
 

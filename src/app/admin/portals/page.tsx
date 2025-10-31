@@ -107,7 +107,7 @@ export default function PortalManagementPage() {
     if (!editingUser) return;
     updateMutation.mutate({
       id: editingUser.id,
-      portalRole: editingUser.portal_role,
+      allowedModules: editingUser.allowed_modules as string[],
       isActive: editingUser.is_active,
     });
   };
@@ -129,7 +129,7 @@ export default function PortalManagementPage() {
   const filteredUsers = portalUsers?.filter((user: any) => {
     const matchesType = selectedPortalType === 'all' || user.portal_type === selectedPortalType;
     const matchesSearch = !searchQuery ||
-      user.users_customer_portal_access_user_idTousers?.email?.toLowerCase().includes(searchQuery.toLowerCase());
+      user.users_portal_access_user_idTousers?.email?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesType && matchesSearch;
   }) || [];
 
@@ -159,7 +159,7 @@ export default function PortalManagementPage() {
   // DataTable columns configuration
   const columns: DataTableColumn<any>[] = [
     {
-      key: 'users_customer_portal_access_user_idTousers',
+      key: 'users_portal_access_user_idTousers',
       label: 'Email',
       sortable: true,
       render: (value) => (
@@ -212,7 +212,7 @@ export default function PortalManagementPage() {
             size="sm"
             onClick={() => handleDelete(
               row.id as string,
-              (row.users_customer_portal_access_user_idTousers as { email?: string } | null)?.email || 'this user'
+              (row.users_portal_access_user_idTousers as { email?: string } | null)?.email || 'this user'
             )}
           >
             <Trash2 className="icon-sm icon-destructive" aria-hidden="true" />
@@ -415,7 +415,7 @@ export default function PortalManagementPage() {
             <DialogTitle>Edit Portal Access</DialogTitle>
             <DialogDescription>
               Update portal role and status for{' '}
-              {editingUser?.users_customer_portal_access_user_idTousers?.email || 'user'}
+              {editingUser?.users_portal_access_user_idTousers?.email || 'user'}
             </DialogDescription>
           </DialogHeader>
           <div className="form-container">

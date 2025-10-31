@@ -468,6 +468,9 @@ model users {
   permission_requests_permission_requests_requester_idTousers           permission_requests[]               @relation("permission_requests_requester_idTousers")
   permission_templates                                                  permission_templates[]
   permission_usage_log                                                  permission_usage_log[]
+  portal_access_portal_access_granted_byTousers                         portal_access[]                     @relation("portal_access_granted_byTousers")
+  portal_access_portal_access_revoked_byTousers                         portal_access[]                     @relation("portal_access_revoked_byTousers")
+  portal_access_portal_access_user_idTousers                            portal_access[]                     @relation("portal_access_user_idTousers")
   portal_activity_log                                                   portal_activity_log[]
   portal_configurations_portal_configurations_created_byTousers         portal_configurations[]             @relation("portal_configurations_created_byTousers")
   portal_configurations_portal_configurations_updated_byTousers         portal_configurations[]             @relation("portal_configurations_updated_byTousers")
@@ -1962,6 +1965,7 @@ model customers {
   orders_old                                      orders_old[]
   pandadoc_documents                              pandadoc_documents[]
   payments                                        payments[]
+  universal_portal_access                         portal_access[]
   portal_access_logs                              portal_access_logs[]
   portal_activity_log                             portal_activity_log[]
   portal_configurations                           portal_configurations?
@@ -4774,6 +4778,7 @@ model partners {
   partner_documents     partner_documents[]
   partner_performance   partner_performance[]
   users                 users?                 @relation(fields: [portal_user_id], references: [id], onUpdate: NoAction)
+  portal_access         portal_access[]
   production_orders     production_orders[]
   prototype_production  prototype_production[]
   shop_drawings         shop_drawings[]
@@ -4916,25 +4921,31 @@ model pending_sign_up {
   @@schema("public")
 }
 
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model pending_user_requests {
-  id                String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  email             String    @db.VarChar
-  first_name        String?   @db.VarChar
-  last_name         String?   @db.VarChar
-  company           String?   @db.VarChar
-  message           String?
-  status            String?   @default("pending") @db.VarChar
-  created_at        DateTime? @default(now()) @db.Timestamptz(6)
-  updated_at        DateTime? @default(now()) @db.Timestamptz(6)
-  phone             String?   @db.VarChar(20)
-  user_type         String?   @db.VarChar(50)
-  reason_for_access String?
-  requested_at      DateTime? @default(now()) @db.Timestamptz(6)
-  reviewed_at       DateTime? @db.Timestamptz(6)
-  reviewed_by       String?   @db.Uuid
-  admin_notes       String?
-  metadata          Json?     @default("{}")
+  id                     String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email                  String    @db.VarChar
+  first_name             String?   @db.VarChar
+  last_name              String?   @db.VarChar
+  company                String?   @db.VarChar
+  message                String?
+  status                 String?   @default("pending") @db.VarChar
+  created_at             DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime? @default(now()) @db.Timestamptz(6)
+  phone                  String?   @db.VarChar(20)
+  user_type              String?   @db.VarChar(50)
+  reason_for_access      String?
+  requested_at           DateTime? @default(now()) @db.Timestamptz(6)
+  reviewed_at            DateTime? @db.Timestamptz(6)
+  reviewed_by            String?   @db.Uuid
+  admin_notes            String?
+  metadata               Json?     @default("{}")
+  approved_portal_type   String?   @db.VarChar(50)
+  approved_modules       Json?     @default("[]")
+  linked_organization_id String?   @db.Uuid
+  organization_type      String?   @db.VarChar(50)
 
   @@index([created_at], map: "idx_pending_user_requests_created_at")
   @@index([status], map: "idx_pending_user_requests_status")
@@ -5192,6 +5203,38 @@ model pickup_requests {
   @@index([created_at], map: "idx_pickup_requests_created_at")
   @@index([status], map: "idx_pickup_requests_status")
   @@index([updated_at], map: "idx_pickup_requests_updated_at")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model portal_access {
+  id                                    String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                               String     @db.Uuid
+  portal_type                           String     @db.VarChar(50)
+  allowed_modules                       Json       @default("[]")
+  customer_id                           String?    @db.Uuid
+  partner_id                            String?    @db.Uuid
+  is_active                             Boolean    @default(true)
+  granted_by                            String?    @db.Uuid
+  granted_at                            DateTime   @default(now()) @db.Timestamptz(6)
+  revoked_at                            DateTime?  @db.Timestamptz(6)
+  revoked_by                            String?    @db.Uuid
+  last_accessed_at                      DateTime?  @db.Timestamptz(6)
+  metadata                              Json?      @default("{}")
+  created_at                            DateTime   @default(now()) @db.Timestamptz(6)
+  updated_at                            DateTime   @default(now()) @db.Timestamptz(6)
+  customers                             customers? @relation(fields: [customer_id], references: [id], onUpdate: NoAction, map: "fk_portal_access_customer")
+  users_portal_access_granted_byTousers users?     @relation("portal_access_granted_byTousers", fields: [granted_by], references: [id], onUpdate: NoAction, map: "fk_portal_access_granted_by")
+  partners                              partners?  @relation(fields: [partner_id], references: [id], onUpdate: NoAction, map: "fk_portal_access_partner")
+  users_portal_access_revoked_byTousers users?     @relation("portal_access_revoked_byTousers", fields: [revoked_by], references: [id], onUpdate: NoAction, map: "fk_portal_access_revoked_by")
+  users_portal_access_user_idTousers    users      @relation("portal_access_user_idTousers", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_portal_access_user")
+
+  @@index([granted_at(sort: Desc)], map: "idx_portal_access_granted_at")
+  @@index([is_active], map: "idx_portal_access_is_active")
+  @@index([portal_type], map: "idx_portal_access_portal_type")
+  @@index([user_id], map: "idx_portal_access_user_id")
   @@schema("public")
 }
 

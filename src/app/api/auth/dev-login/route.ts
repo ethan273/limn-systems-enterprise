@@ -241,7 +241,7 @@ export async function POST(request: NextRequest) {
     if (['designer', 'customer', 'factory', 'qc'].includes(userType as string)) {
       // Check if portal access already exists
       const { data: existingAccess } = await supabase
-        .from('customer_portal_access')
+        .from('portal_access')
         .select('*')
         .eq('user_id', actualUserId)
         .eq('portal_type', userType)
@@ -346,7 +346,7 @@ export async function POST(request: NextRequest) {
         }
 
         const { error: portalAccessError } = await supabase
-          .from('customer_portal_access')
+          .from('portal_access')
           .insert(portalAccessData);
 
         if (portalAccessError) {

@@ -9,6 +9,7 @@
  * - Proper type mapping between database, Prisma, and Zod
  */
 
+import 'dotenv/config';
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';

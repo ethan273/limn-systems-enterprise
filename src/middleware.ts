@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 import { log } from '@/lib/logger';
+import { generateNonce, buildCSPHeader, getCSPHeaderName } from '@/middleware/csp-nonce';
 
 // Initialize Redis client for rate limiting
 function createRedis() {
@@ -41,9 +42,28 @@ const publicApiLimiter = redis
  * Authentication Middleware
  * Protects all routes except public paths (login, auth, public assets)
  * Also adds rate limiting for webhooks and public endpoints
+ * Generates CSP nonce for secure inline script execution
  */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // =====================================================
+  // CSP NONCE GENERATION (Phase 1: Security Hardening)
+  // =====================================================
+  // Generate a unique nonce for this request to enable CSP without blocking inline scripts
+  const nonce = generateNonce();
+
+  // Clone request headers and add nonce for downstream access
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-nonce', nonce);
+
+  // Build CSP header with nonce (Phase 1: Security Hardening)
+  // IMPORTANT: Using report-only mode initially to monitor violations without breaking functionality
+  // Set reportOnly=false after testing across all 5 portals
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  const reportOnly = true; // Phase 1 Week 1: Report-only mode
+  const cspHeader = buildCSPHeader(nonce, isDevelopment, reportOnly);
+  const cspHeaderName = getCSPHeaderName(reportOnly);
 
   // =====================================================
   // RATE LIMITING FOR WEBHOOKS
@@ -189,13 +209,22 @@ export async function middleware(request: NextRequest) {
 
   // Allow public paths
   if (isPublicPath || isPublicPrefix) {
-    return NextResponse.next();
+    const response = NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    });
+    // Add CSP nonce to response headers for public paths too
+    response.headers.set('x-nonce', nonce);
+    // Add CSP header with nonce (Phase 1: Security Hardening)
+    response.headers.set(cspHeaderName, cspHeader);
+    return response;
   }
 
   // Create Supabase client with improved cookie handling
   const response = NextResponse.next({
     request: {
-      headers: request.headers,
+      headers: requestHeaders,
     },
   });
 
@@ -314,6 +343,70 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
+  // 🔒 CRITICAL SECURITY: Portal User Access Restriction
+  // Block portal users (customer, designer, manufacturer, contractor) from accessing internal routes
+  // Fetch user_type to determine if this is a portal-only user
+  const { data: userProfile } = await supabase
+    .from('user_profiles')
+    .select('user_type, email')
+    .eq('id', user.id)
+    .single();
+
+  const userType = userProfile?.user_type;
+  const isPortalOnlyUser = ['customer', 'designer', 'manufacturer', 'contractor'].includes(userType || '');
+
+  if (isPortalOnlyUser) {
+    // Portal users can ONLY access their specific portal routes and /portal/profile
+    // They are BLOCKED from all internal routes: /dashboard, /admin, /products, /production, /partners, etc.
+
+    // Determine which portal this user should access
+    let allowedPortalPath = '/portal';
+    switch (userType) {
+      case 'customer':
+        allowedPortalPath = '/portal/customer';
+        break;
+      case 'designer':
+        allowedPortalPath = '/portal/designer';
+        break;
+      case 'manufacturer':
+      case 'contractor':
+        allowedPortalPath = '/portal/factory';
+        break;
+    }
+
+    // Portal users can ONLY access routes under /portal (except auth callback)
+    // Allow /auth/callback for OAuth and magic link completion
+    const isAuthCallback = pathname === '/auth/callback';
+
+    if (!pathname.startsWith('/portal') && !isAuthCallback) {
+      // BLOCK: Portal user trying to access internal routes (dashboard, admin, products, etc.)
+      log.error(`🚫 SECURITY BLOCK: Portal user ${userType} (${userProfile?.email}) attempted to access restricted internal route: ${pathname}`);
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = allowedPortalPath;
+      redirectUrl.searchParams.set('error', 'unauthorized_access');
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    // Within /portal, restrict to their specific portal type
+    const isAccessingOwnPortal = pathname.startsWith(allowedPortalPath);
+    const isAccessingSharedPortal = pathname.startsWith('/portal/profile') ||
+                                     pathname.startsWith('/portal/documents') ||
+                                     pathname.startsWith('/portal/login');
+
+    if (!isAccessingOwnPortal && !isAccessingSharedPortal) {
+      // BLOCK: Portal user trying to access wrong portal type
+      log.error(`🚫 SECURITY BLOCK: Portal user ${userType} (${userProfile?.email}) attempted to access wrong portal: ${pathname}`);
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = allowedPortalPath;
+      redirectUrl.searchParams.set('error', 'wrong_portal');
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    if (process.env.NODE_ENV === 'development') {
+      log.info(`✅ Portal user ${userType} accessing allowed route: ${pathname}`);
+    }
+  }
+
   // Admin access control - only admins can access /admin routes
   if (pathname.startsWith('/admin')) {
     // Enhanced logging for debugging employee access issue
@@ -382,57 +475,85 @@ export async function middleware(request: NextRequest) {
     log.info(`✅ Middleware: User ${user.id} has admin access`, { roles: userRoles?.map(r => r.role).join(', ') });
   }
 
-  // Portal access control - verify user has access to customer portal
-  // Phase 4E: Block non-customer users from accessing /portal routes
+  // 🔒 ENHANCED PORTAL ACCESS CONTROL WITH MODULE PERMISSIONS
+  // Uses NEW portal_access table with granular module-level permissions
   if (pathname.startsWith('/portal') && pathname !== '/portal/login') {
-    // Query customer_portal_access to check if user has CUSTOMER portal access
-    const { data: portalAccessRecords } = await supabase
-      .from('customer_portal_access')
-      .select('portal_type, is_active, customer_id')
+    // Query portal_access to get user's portal access and allowed modules
+    const { data: portalAccessRecords, error: accessError } = await supabase
+      .from('portal_access')
+      .select('portal_type, is_active, allowed_modules, customer_id, partner_id')
       .eq('user_id', user.id)
       .eq('is_active', true);
 
-    // For /portal routes (not /portal/customer, /portal/designer, etc.), require customer portal access
-    const portalMatch = pathname.match(/^\/portal\/(customer|designer|factory|qc)(?:\/|$)/);
+    if (accessError) {
+      log.error(`❌ Middleware: Error fetching portal access for user ${user.id}`, { error: accessError.message });
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = '/portal/login';
+      redirectUrl.searchParams.set('error', 'access_check_failed');
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    // Parse route to extract portal type and module
+    // Examples:
+    // /portal/customer/orders -> { portalType: 'customer', module: 'orders' }
+    // /portal/designer/projects -> { portalType: 'designer', module: 'projects' }
+    // /portal/customer -> { portalType: 'customer', module: null }
+    // eslint-disable-next-line security/detect-unsafe-regex
+    const portalMatch = pathname.match(/^\/portal\/(customer|designer|factory|qc)(?:\/([^\/]+))?/);
 
     if (portalMatch) {
-      // Specific portal type requested
-      const requestedPortalType = portalMatch[1];
-      const hasAccess = portalAccessRecords?.some(
+      const requestedPortalType = portalMatch[1] as 'customer' | 'designer' | 'factory' | 'qc';
+      const requestedModule = portalMatch[2]; // e.g., 'orders', 'documents', 'projects', etc.
+
+      // Find matching portal access record
+      const portalAccess = portalAccessRecords?.find(
         record => record.portal_type === requestedPortalType && record.is_active
       );
 
-      if (!hasAccess) {
-        if (process.env.NODE_ENV === 'development') {
-          log.info(`🚫 Middleware: User ${user.id} denied access to ${requestedPortalType} portal`);
-        }
+      // STEP 1: Check if user has access to this portal type
+      if (!portalAccess) {
+        log.error(`🚫 SECURITY BLOCK: User ${user.id} (${userProfile?.email}) denied access to ${requestedPortalType} portal - No portal access record found`);
         const redirectUrl = request.nextUrl.clone();
         redirectUrl.pathname = '/portal/login';
         redirectUrl.searchParams.set('error', 'unauthorized_portal');
         return NextResponse.redirect(redirectUrl);
       }
 
-      if (process.env.NODE_ENV === 'development') {
-        log.info(`✅ Middleware: User ${user.id} has valid ${requestedPortalType} portal access`);
+      // STEP 2: Check module-level permissions (if accessing a specific module)
+      if (requestedModule) {
+        const allowedModules = portalAccess.allowed_modules as string[];
+        const hasModuleAccess = Array.isArray(allowedModules) && allowedModules.includes(requestedModule);
+
+        if (!hasModuleAccess) {
+          log.error(`🚫 SECURITY BLOCK: User ${user.id} (${userProfile?.email}) denied access to ${requestedPortalType}/${requestedModule} - Module not in allowed_modules: [${allowedModules?.join(', ')}]`);
+          const redirectUrl = request.nextUrl.clone();
+          redirectUrl.pathname = `/portal/${requestedPortalType}`;
+          redirectUrl.searchParams.set('error', 'unauthorized_module');
+          redirectUrl.searchParams.set('module', requestedModule);
+          return NextResponse.redirect(redirectUrl);
+        }
+
+        if (process.env.NODE_ENV === 'development') {
+          log.info(`✅ Middleware: User ${user.id} has valid ${requestedPortalType}/${requestedModule} access`);
+        }
+      } else {
+        // Accessing portal root without specific module - allow
+        if (process.env.NODE_ENV === 'development') {
+          log.info(`✅ Middleware: User ${user.id} has valid ${requestedPortalType} portal access (root)`);
+        }
       }
     } else {
-      // Generic /portal route - require customer portal access (customer_id must be set)
-      const hasCustomerPortal = portalAccessRecords?.some(
-        record => record.portal_type === 'customer' && record.customer_id !== null && record.is_active
-      );
-
-      if (!hasCustomerPortal) {
-        if (process.env.NODE_ENV === 'development') {
-          log.info(`🚫 Middleware: User ${user.id} denied access to /portal (not a customer portal user)`);
-        }
+      // Generic /portal route - require at least one active portal access
+      if (!portalAccessRecords || portalAccessRecords.length === 0) {
+        log.error(`🚫 SECURITY BLOCK: User ${user.id} (${userProfile?.email}) denied access to /portal - No active portal access found`);
         const redirectUrl = request.nextUrl.clone();
         redirectUrl.pathname = '/portal/login';
-        redirectUrl.searchParams.set('error', 'unauthorized_portal');
+        redirectUrl.searchParams.set('error', 'no_portal_access');
         return NextResponse.redirect(redirectUrl);
       }
 
       if (process.env.NODE_ENV === 'development') {
-        log.info(`✅ Middleware: User ${user.id} has valid customer portal access`);
+        log.info(`✅ Middleware: User ${user.id} has valid portal access (${portalAccessRecords.length} portal(s))`);
       }
     }
   }
@@ -440,6 +561,12 @@ export async function middleware(request: NextRequest) {
   if (process.env.NODE_ENV === 'development') {
     log.info(`✅ Middleware: Allowing authenticated user (${user.id}) to access ${pathname}`);
   }
+
+  // Add CSP nonce to response headers for authenticated routes
+  response.headers.set('x-nonce', nonce);
+  // Add CSP header with nonce (Phase 1: Security Hardening)
+  response.headers.set(cspHeaderName, cspHeader);
+
   // User is authenticated, allow access
   return response;
 }

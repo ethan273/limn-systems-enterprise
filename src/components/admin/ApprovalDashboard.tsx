@@ -1,7 +1,6 @@
 'use client';
-import { log } from '@/lib/logger';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { format } from 'date-fns';
 import {
   Check,
@@ -14,119 +13,159 @@ import {
   MessageSquare,
   CheckCircle2,
   XCircle,
+  Shield,
+  Layout,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from '@/hooks/use-toast';
+import { api } from '@/lib/api/client';
 
-interface PendingSignUp {
-  id: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  companyName?: string;
-  businessJustification?: string;
-  requestedAt: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
-}
+// Module configurations per portal type
+const PORTAL_MODULES = {
+  customer: [
+    { id: 'orders', label: 'Orders', description: 'View and manage orders' },
+    { id: 'documents', label: 'Documents', description: 'Access documents and files' },
+    { id: 'financials', label: 'Financials', description: 'View invoices and payments' },
+    { id: 'shipping', label: 'Shipping', description: 'Track shipments' },
+    { id: 'profile', label: 'Profile', description: 'Manage profile settings' },
+  ],
+  designer: [
+    { id: 'projects', label: 'Projects', description: 'View and manage projects' },
+    { id: 'submissions', label: 'Submissions', description: 'Submit and track designs' },
+    { id: 'documents', label: 'Documents', description: 'Access design files' },
+    { id: 'quality', label: 'Quality', description: 'Quality control and feedback' },
+    { id: 'settings', label: 'Settings', description: 'Portal settings' },
+  ],
+  factory: [
+    { id: 'orders', label: 'Orders', description: 'View production orders' },
+    { id: 'quality', label: 'Quality', description: 'Quality inspections' },
+    { id: 'shipping', label: 'Shipping', description: 'Shipping management' },
+    { id: 'documents', label: 'Documents', description: 'Access production docs' },
+    { id: 'settings', label: 'Settings', description: 'Portal settings' },
+  ],
+  qc: [
+    { id: 'inspections', label: 'Inspections', description: 'Conduct quality inspections' },
+    { id: 'history', label: 'History', description: 'View inspection history' },
+    { id: 'upload', label: 'Upload', description: 'Upload inspection photos/docs' },
+    { id: 'documents', label: 'Documents', description: 'Access QC documents' },
+    { id: 'settings', label: 'Settings', description: 'Portal settings' },
+  ],
+} as const;
+
+type PortalType = keyof typeof PORTAL_MODULES;
 
 export default function AdminApprovalDashboard() {
-  const [signUps, setSignUps] = useState<PendingSignUp[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [processingId, setProcessingId] = useState<string | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
-  const [selectedSignUp, setSelectedSignUp] = useState<PendingSignUp | null>(null);
-  const [reviewerNotes, setReviewerNotes] = useState('');
-  const [action, setAction] = useState<'approve' | 'reject' | null>(null);
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
+  const [selectedAction, setSelectedAction] = useState<'approve' | 'deny' | null>(null);
+  const [adminNotes, setAdminNotes] = useState('');
 
-  useEffect(() => {
-    fetchPendingSignUps();
-  }, []);
+  // Portal access configuration state
+  const [selectedPortalType, setSelectedPortalType] = useState<PortalType>('customer');
+  const [selectedModules, setSelectedModules] = useState<string[]>([]);
+  const [linkedOrganizationId, setLinkedOrganizationId] = useState('');
+  const [organizationType, setOrganizationType] = useState<'customer' | 'partner'>('customer');
 
-  const fetchPendingSignUps = async () => {
-    setLoading(true);
-    setRefreshing(true);
-    try {
-      const response = await fetch('/api/admin/sign-ups');
-      if (!response.ok) throw new Error('Failed to fetch sign-ups');
-      const data = await response.json();
-      setSignUps(data.signUps);
-    } catch (error) {
-      log.error('Error fetching sign-ups:', { error });
-      toast({
-        title: 'Error',
-        description: 'Failed to load sign-up requests',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+  // tRPC queries and mutations
+  const { data: requestsData, isLoading, refetch } = api.auth.getPendingRequests.useQuery({
+    status: 'pending',
+    limit: 50,
+  });
 
-  const handleAction = async (signUpId: string, actionType: 'approve' | 'reject') => {
-    const signUp = signUps.find((s) => s.id === signUpId);
-    if (!signUp) return;
-
-    setSelectedSignUp(signUp);
-    setAction(actionType);
-  };
-
-  const confirmAction = async () => {
-    if (!selectedSignUp || !action) return;
-
-    setProcessingId(selectedSignUp.id);
-    try {
-      const response = await fetch('/api/admin/sign-ups', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: selectedSignUp.id,
-          action,
-          reviewerNotes,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to process sign-up');
-      }
-
-      const data = await response.json();
-
+  const reviewMutation = api.auth.reviewRequest.useMutation({
+    onSuccess: (data) => {
       toast({
         title: 'Success',
         description: data.message,
       });
-
-      // Remove from list
-      setSignUps((prev) => prev.filter((s) => s.id !== selectedSignUp.id));
-
-      // Reset state
-      setSelectedSignUp(null);
-      setAction(null);
-      setReviewerNotes('');
-    } catch (error) {
-      log.error('Error processing sign-up:', { error });
+      refetch();
+      resetForm();
+    },
+    onError: (error) => {
       toast({
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to process sign-up',
+        description: error.message,
         variant: 'destructive',
       });
-    } finally {
-      setProcessingId(null);
+    },
+  });
+
+  const requests = requestsData?.requests || [];
+
+  const handleAction = (requestId: string, action: 'approve' | 'deny') => {
+    setSelectedRequestId(requestId);
+    setSelectedAction(action);
+
+    // Pre-select customer portal with all modules for approval
+    if (action === 'approve') {
+      setSelectedPortalType('customer');
+      setSelectedModules(PORTAL_MODULES.customer.map(m => m.id));
     }
   };
 
-  const cancelAction = () => {
-    setSelectedSignUp(null);
-    setAction(null);
-    setReviewerNotes('');
+  const toggleModule = (moduleId: string) => {
+    setSelectedModules(prev =>
+      prev.includes(moduleId)
+        ? prev.filter(id => id !== moduleId)
+        : [...prev, moduleId]
+    );
   };
 
-  if (loading && !refreshing) {
+  const toggleAllModules = (portalType: PortalType) => {
+    const allModules = PORTAL_MODULES[portalType].map(m => m.id);
+    if (selectedModules.length === allModules.length) {
+      setSelectedModules([]);
+    } else {
+      setSelectedModules(allModules);
+    }
+  };
+
+  const confirmAction = async () => {
+    if (!selectedRequestId || !selectedAction) return;
+
+    // Validate approval requires portal configuration
+    if (selectedAction === 'approve' && selectedModules.length === 0) {
+      toast({
+        title: 'Validation Error',
+        description: 'Please select at least one module for portal access',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    await reviewMutation.mutateAsync({
+      requestId: selectedRequestId,
+      action: selectedAction,
+      adminNotes: adminNotes || undefined,
+      approvedPortalType: selectedAction === 'approve' ? selectedPortalType : undefined,
+      approvedModules: selectedAction === 'approve' ? selectedModules : undefined,
+      linkedOrganizationId: (selectedAction === 'approve' && linkedOrganizationId) ? linkedOrganizationId : undefined,
+      organizationType: (selectedAction === 'approve' && linkedOrganizationId) ? organizationType : undefined,
+    });
+  };
+
+  const cancelAction = () => {
+    resetForm();
+  };
+
+  const resetForm = () => {
+    setSelectedRequestId(null);
+    setSelectedAction(null);
+    setAdminNotes('');
+    setSelectedPortalType('customer');
+    setSelectedModules([]);
+    setLinkedOrganizationId('');
+    setOrganizationType('customer');
+  };
+
+  const selectedRequest = requests.find(r => r.id === selectedRequestId);
+
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden="true" />
@@ -144,36 +183,36 @@ export default function AdminApprovalDashboard() {
               <CardTitle className="card-title-sm">Pending Requests</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="stat-value">{signUps.length}</div>
+              <div className="stat-value">{requests.length}</div>
             </CardContent>
           </Card>
         </div>
 
         <Button
           variant="outline"
-          onClick={fetchPendingSignUps}
-          disabled={refreshing}
+          onClick={() => refetch()}
+          disabled={isLoading}
         >
-          <RefreshCw className={`icon-sm ${refreshing ? 'animate-spin' : ''}`} aria-hidden="true" />
+          <RefreshCw className={`icon-sm ${isLoading ? 'animate-spin' : ''}`} aria-hidden="true" />
           Refresh
         </Button>
       </div>
 
-      {/* Sign-ups Table */}
-      {signUps.length === 0 ? (
+      {/* Requests Table */}
+      {requests.length === 0 ? (
         <Card>
           <CardContent className="empty-state">
             <CheckCircle2 className="icon-lg icon-success" aria-hidden="true" />
             <p className="empty-state-title">No Pending Requests</p>
             <p className="empty-state-description">
-              All sign-up requests have been reviewed
+              All access requests have been reviewed
             </p>
           </CardContent>
         </Card>
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle>Pending Sign-Up Requests</CardTitle>
+            <CardTitle>Pending Access Requests</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="table-container">
@@ -182,39 +221,49 @@ export default function AdminApprovalDashboard() {
                   <tr>
                     <th>User Details</th>
                     <th>Company</th>
-                    <th>Message</th>
+                    <th>User Type</th>
+                    <th>Reason</th>
                     <th>Requested</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {signUps.map((signUp) => (
-                    <tr key={signUp.id}>
+                  {requests.map((request) => (
+                    <tr key={request.id}>
                       <td>
                         <div>
                           <div className="font-medium">
-                            {signUp.firstName} {signUp.lastName}
+                            {request.first_name} {request.last_name}
                           </div>
                           <div className="text-sm text-muted-foreground flex items-center gap-1">
                             <Mail className="icon-xs" aria-hidden="true" />
-                            {signUp.email}
+                            {request.email}
                           </div>
                         </div>
                       </td>
                       <td>
-                        {signUp.companyName ? (
+                        {request.company ? (
                           <div className="flex items-center gap-1">
                             <Building className="icon-sm icon-muted" aria-hidden="true" />
-                            <span>{signUp.companyName}</span>
+                            <span>{request.company}</span>
                           </div>
                         ) : (
                           <span className="text-muted-foreground">—</span>
                         )}
                       </td>
                       <td>
+                        {request.user_type ? (
+                          <span className="inline-flex items-center px-2 py-1 rounded-md bg-primary/10 text-primary text-xs font-medium">
+                            {request.user_type}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </td>
+                      <td>
                         <div className="max-w-xs">
-                          {signUp.businessJustification ? (
-                            <p className="text-sm line-clamp-2">{signUp.businessJustification}</p>
+                          {request.reason_for_access ? (
+                            <p className="text-sm line-clamp-2">{request.reason_for_access}</p>
                           ) : (
                             <span className="text-muted-foreground">—</span>
                           )}
@@ -224,7 +273,7 @@ export default function AdminApprovalDashboard() {
                         <div className="flex items-center gap-1">
                           <Calendar className="icon-sm icon-muted" aria-hidden="true" />
                           <span className="text-sm">
-                            {format(new Date(signUp.requestedAt), 'MMM d, yyyy')}
+                            {request.requested_at ? format(new Date(request.requested_at), 'MMM d, yyyy') : '—'}
                           </span>
                         </div>
                       </td>
@@ -233,8 +282,8 @@ export default function AdminApprovalDashboard() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleAction(signUp.id, 'approve')}
-                            disabled={processingId === signUp.id}
+                            onClick={() => handleAction(request.id, 'approve')}
+                            disabled={reviewMutation.isPending}
                             className="btn-success"
                           >
                             <Check className="icon-sm" aria-hidden="true" />
@@ -243,12 +292,12 @@ export default function AdminApprovalDashboard() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleAction(signUp.id, 'reject')}
-                            disabled={processingId === signUp.id}
+                            onClick={() => handleAction(request.id, 'deny')}
+                            disabled={reviewMutation.isPending}
                             className="btn-destructive"
                           >
                             <X className="icon-sm" aria-hidden="true" />
-                            Reject
+                            Deny
                           </Button>
                         </div>
                       </td>
@@ -261,63 +310,178 @@ export default function AdminApprovalDashboard() {
         </Card>
       )}
 
-      {/* Confirmation Dialog */}
-      <Dialog open={!!selectedSignUp} onOpenChange={(open) => !open && cancelAction()}>
-        <DialogContent>
+      {/* Approval/Denial Dialog */}
+      <Dialog open={!!selectedRequest} onOpenChange={(open) => !open && cancelAction()}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {action === 'approve' ? (
+              {selectedAction === 'approve' ? (
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="icon-lg icon-success" aria-hidden="true" />
-                  <span>Approve Sign-Up Request</span>
+                  <span>Approve Access Request</span>
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
                   <XCircle className="icon-lg icon-destructive" aria-hidden="true" />
-                  <span>Reject Sign-Up Request</span>
+                  <span>Deny Access Request</span>
                 </div>
               )}
             </DialogTitle>
             <DialogDescription>
-              {action === 'approve'
-                ? 'This will create a new user account and grant access to the system.'
-                : 'This will decline the sign-up request. The user will not be notified.'}
+              {selectedAction === 'approve'
+                ? 'Configure portal access and send magic link to the user.'
+                : 'This will deny the access request. The user will be notified.'}
             </DialogDescription>
           </DialogHeader>
 
-          {selectedSignUp && (
+          {selectedRequest && (
             <div className="space-y-4">
+              {/* User Info Card */}
               <div className="card p-4">
                 <div className="space-y-2">
                   <div>
                     <span className="text-sm font-medium">Name:</span>
                     <span className="text-sm ml-2">
-                      {selectedSignUp.firstName} {selectedSignUp.lastName}
+                      {selectedRequest.first_name} {selectedRequest.last_name}
                     </span>
                   </div>
                   <div>
                     <span className="text-sm font-medium">Email:</span>
-                    <span className="text-sm ml-2">{selectedSignUp.email}</span>
+                    <span className="text-sm ml-2">{selectedRequest.email}</span>
                   </div>
-                  {selectedSignUp.companyName && (
+                  {selectedRequest.company && (
                     <div>
                       <span className="text-sm font-medium">Company:</span>
-                      <span className="text-sm ml-2">{selectedSignUp.companyName}</span>
+                      <span className="text-sm ml-2">{selectedRequest.company}</span>
+                    </div>
+                  )}
+                  {selectedRequest.phone && (
+                    <div>
+                      <span className="text-sm font-medium">Phone:</span>
+                      <span className="text-sm ml-2">{selectedRequest.phone}</span>
                     </div>
                   )}
                 </div>
               </div>
 
+              {/* Portal Access Configuration (only for approval) */}
+              {selectedAction === 'approve' && (
+                <div className="space-y-4 border rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Shield className="icon-sm text-primary" aria-hidden="true" />
+                    <h3 className="font-semibold">Portal Access Configuration</h3>
+                  </div>
+
+                  {/* Portal Type Selection */}
+                  <div className="form-field">
+                    <Label htmlFor="portal-type">Portal Type *</Label>
+                    <Select
+                      value={selectedPortalType}
+                      onValueChange={(value) => {
+                        setSelectedPortalType(value as PortalType);
+                        // Reset modules when changing portal type
+                        setSelectedModules(PORTAL_MODULES[value as PortalType].map(m => m.id));
+                      }}
+                    >
+                      <SelectTrigger id="portal-type">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="customer">Customer Portal</SelectItem>
+                        <SelectItem value="designer">Designer Portal</SelectItem>
+                        <SelectItem value="factory">Factory Portal</SelectItem>
+                        <SelectItem value="qc">QC Portal</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Module Selection */}
+                  <div className="form-field">
+                    <div className="flex items-center justify-between mb-2">
+                      <Label>Allowed Modules *</Label>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleAllModules(selectedPortalType)}
+                      >
+                        <Layout className="icon-xs mr-1" />
+                        {selectedModules.length === PORTAL_MODULES[selectedPortalType].length
+                          ? 'Deselect All'
+                          : 'Select All'}
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 p-3 border rounded-md">
+                      {PORTAL_MODULES[selectedPortalType].map((module) => (
+                        <div key={module.id} className="flex items-start space-x-2">
+                          <Checkbox
+                            id={`module-${module.id}`}
+                            checked={selectedModules.includes(module.id)}
+                            onCheckedChange={() => toggleModule(module.id)}
+                          />
+                          <div className="flex-1">
+                            <label
+                              htmlFor={`module-${module.id}`}
+                              className="text-sm font-medium leading-none cursor-pointer"
+                            >
+                              {module.label}
+                            </label>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              {module.description}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {selectedModules.length === 0 && (
+                      <p className="text-sm text-destructive mt-1">
+                        At least one module must be selected
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Organization Linking (Optional) */}
+                  <div className="form-field">
+                    <Label htmlFor="org-type">Link to Organization (Optional)</Label>
+                    <div className="flex gap-2">
+                      <Select
+                        value={organizationType}
+                        onValueChange={(value) => setOrganizationType(value as 'customer' | 'partner')}
+                      >
+                        <SelectTrigger id="org-type" className="w-[180px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="customer">Customer</SelectItem>
+                          <SelectItem value="partner">Partner</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <input
+                        type="text"
+                        placeholder="Organization ID (UUID)"
+                        value={linkedOrganizationId}
+                        onChange={(e) => setLinkedOrganizationId(e.target.value)}
+                        className="flex-1 px-3 py-2 border rounded-md"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Optional: Link this user to a specific customer or partner organization
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Admin Notes */}
               <div className="form-field">
                 <label htmlFor="reviewer-notes" className="form-label">
                   <MessageSquare className="icon-sm" aria-hidden="true" />
-                  Reviewer Notes (Optional)
+                  Admin Notes (Optional)
                 </label>
                 <Textarea
                   id="reviewer-notes"
                   placeholder="Add internal notes about this decision..."
-                  value={reviewerNotes}
-                  onChange={(e) => setReviewerNotes(e.target.value)}
+                  value={adminNotes}
+                  onChange={(e) => setAdminNotes(e.target.value)}
                   rows={3}
                 />
               </div>
@@ -325,28 +489,28 @@ export default function AdminApprovalDashboard() {
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={cancelAction} disabled={!!processingId}>
+            <Button variant="outline" onClick={cancelAction} disabled={reviewMutation.isPending}>
               Cancel
             </Button>
             <Button
               onClick={confirmAction}
-              disabled={!!processingId}
-              className={action === 'approve' ? 'btn-success' : 'btn-destructive'}
+              disabled={reviewMutation.isPending || (selectedAction === 'approve' && selectedModules.length === 0)}
+              className={selectedAction === 'approve' ? 'btn-success' : 'btn-destructive'}
             >
-              {processingId ? (
+              {reviewMutation.isPending ? (
                 <>
                   <Loader2 className="icon-sm animate-spin" aria-hidden="true" />
                   Processing...
                 </>
-              ) : action === 'approve' ? (
+              ) : selectedAction === 'approve' ? (
                 <>
                   <Check className="icon-sm" aria-hidden="true" />
-                  Approve
+                  Approve & Send Magic Link
                 </>
               ) : (
                 <>
                   <X className="icon-sm" aria-hidden="true" />
-                  Reject
+                  Deny Request
                 </>
               )}
             </Button>

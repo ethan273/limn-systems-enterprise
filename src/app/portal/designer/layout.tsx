@@ -38,8 +38,8 @@ export default function DesignerPortalLayout({ children }: LayoutProps) {
   // Get user info from tRPC - middleware already validated auth
   const { data: userInfo } = api.portal.getCurrentUser.useQuery();
 
-  // Fetch portal settings for module visibility control
-  const { data: portalSettings } = api.portal.getPortalSettings.useQuery();
+  // Fetch portal access from NEW portal_access table for module visibility control
+  const { data: portalAccess } = api.portal.getMyPortalAccess.useQuery();
 
   const handleSignOut = async () => {
     try {
@@ -62,12 +62,20 @@ export default function DesignerPortalLayout({ children }: LayoutProps) {
   // Use placeholder email while userInfo loads
   const displayEmail = userInfo?.email || 'Loading...';
 
+  // Find designer portal access and get allowed modules
+  const designerPortal = portalAccess?.portals?.find(p => p.portalType === 'designer');
+  const allowedModules = designerPortal?.allowedModules || [];
+
+  // Helper function to check if module is allowed
+  const hasModuleAccess = (moduleName: string) => allowedModules.includes(moduleName);
+
   const navigation = [
-    { name: 'Dashboard', href: '/portal/designer', icon: LayoutDashboard, show: true },
-    { name: 'Projects', href: '/portal/designer/projects', icon: Palette, show: portalSettings?.modules?.projects !== false },
-    { name: 'Documents', href: '/portal/designer/documents', icon: FileText, show: portalSettings?.modules?.documents !== false },
-    { name: 'Quality', href: '/portal/designer/quality', icon: CheckCircle, show: portalSettings?.modules?.quality !== false },
-    { name: 'Settings', href: '/portal/designer/settings', icon: Settings, show: true },
+    { name: 'Dashboard', href: '/portal/designer', icon: LayoutDashboard, show: true, module: null },
+    { name: 'Projects', href: '/portal/designer/projects', icon: Palette, show: hasModuleAccess('projects'), module: 'projects' },
+    { name: 'Submissions', href: '/portal/designer/submissions', icon: FileText, show: hasModuleAccess('submissions'), module: 'submissions' },
+    { name: 'Documents', href: '/portal/designer/documents', icon: FileText, show: hasModuleAccess('documents'), module: 'documents' },
+    { name: 'Quality', href: '/portal/designer/quality', icon: CheckCircle, show: hasModuleAccess('quality'), module: 'quality' },
+    { name: 'Settings', href: '/portal/designer/settings', icon: Settings, show: hasModuleAccess('settings'), module: 'settings' },
   ].filter(item => item.show);
 
   return (

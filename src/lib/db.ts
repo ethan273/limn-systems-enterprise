@@ -2877,6 +2877,32 @@ export class DatabaseClient {
     aggregate: (options?: any) =>
       (prisma as any).customer_portal_access.aggregate(options),
   };
+
+  // Modern portal access system (replaces customer_portal_access)
+  portal_access = {
+    findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('portal_access', options),
+    findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.findUniqueGeneric<Record<string, any>>('portal_access', options),
+    create: (options: { data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.createGeneric<Record<string, any>>('portal_access', options),
+    update: (options: { where: Record<string, any>; data: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>
+      this.updateGeneric<Record<string, any>>('portal_access', options),
+    delete: (options: { where: Record<string, any> }) =>
+      this.deleteGeneric('portal_access', options),
+    createMany: (options: { data: Record<string, any>[] }) =>
+      this.createManyGeneric('portal_access', options),
+    deleteMany: (options: { where: Record<string, any> }) =>
+      this.deleteManyGeneric('portal_access', options),
+    count: (options?: { where?: Record<string, any> }) =>
+      this.countGeneric('portal_access', options),
+    findFirst: (options?: { where?: Record<string, any>; include?: Record<string, any>; select?: Record<string, any>; orderBy?: Record<string, 'asc' | 'desc'> }) =>
+      (prisma as any).portal_access.findFirst(options),
+    groupBy: (options: any) =>
+      (prisma as any).portal_access.groupBy(options),
+    aggregate: (options?: any) =>
+      (prisma as any).portal_access.aggregate(options),
+  };
+
   customer_notifications = {
     findMany: (options?: QueryOptions) => this.findManyGeneric<Record<string, any>>('customer_notifications', options),
     findUnique: (options: { where: Record<string, any>; include?: Record<string, any>; select?: Record<string, any> }) =>

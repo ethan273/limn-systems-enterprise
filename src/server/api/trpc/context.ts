@@ -1,9 +1,13 @@
 import { log } from '@/lib/logger';
 import { db } from '@/lib/db';
+import { PrismaClient } from '@prisma/client';
 import type { CreateNextContextOptions } from '@trpc/server/adapters/next';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import type { Session } from '@supabase/supabase-js';
+
+// Create Prisma client for direct database access
+const prisma = new PrismaClient();
 
 /**
  * Conditional cache wrapper
@@ -105,6 +109,7 @@ export const createContext = cacheWrapper(async (opts: CreateNextContextOptions 
 
   return {
     db, // Our hybrid database client
+    prisma, // Direct Prisma client for tables not yet in DatabaseClient
     session,
     user: session?.user ?? null, // Extract user from session for convenience
     req: 'req' in opts ? opts.req : undefined,

@@ -45,19 +45,13 @@ function createServerLogger(): Logger {
   const isDevelopment = process.env.NODE_ENV === 'development';
 
   // Create Pino logger with configuration
+  // NOTE: pino-pretty transport with thread-stream doesn't work with Next.js Turbopack
+  // Use basic pino in development, structured JSON in production
   const pinoLogger = pino({
     level: isDevelopment ? 'debug' : 'info',
-    // Pretty print in development
-    transport: isDevelopment
-      ? {
-          target: 'pino-pretty',
-          options: {
-            colorize: true,
-            translateTime: 'HH:MM:ss',
-            ignore: 'pid,hostname',
-          },
-        }
-      : undefined,
+    // Disable transport in development (Turbopack compatibility issue)
+    // Use basic console output instead
+    transport: undefined,
     // Production: structured JSON logging
     formatters: isDevelopment
       ? undefined

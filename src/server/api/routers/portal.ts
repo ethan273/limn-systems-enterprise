@@ -26,10 +26,11 @@ const enforcePortalAccess = async (ctx: Context) => {
 
   // Check if user has active portal access
   // Note: findFirst not supported by wrapper, using findMany
-  const portalAccess = (await ctx.db.customer_portal_access.findMany({
+  const portalAccess = (await ctx.db.portal_access.findMany({
     where: {
       user_id: ctx.session.user.id,
       is_active: true,
+      portal_type: 'customer',
     },
     include: {
       customers: true,
@@ -77,7 +78,7 @@ const enforcePortalAccessByType = async (ctx: Context, requiredType?: string) =>
 
   // Check if user has active portal access
   // Note: findFirst not supported by wrapper, using findMany
-  const portalAccess = (await ctx.db.customer_portal_access.findMany({
+  const portalAccess = (await ctx.db.portal_access.findMany({
     where: {
       user_id: ctx.session.user.id,
       is_active: true,
@@ -85,6 +86,7 @@ const enforcePortalAccessByType = async (ctx: Context, requiredType?: string) =>
     },
     include: {
       customers: true,
+      partners: true,
     },
     take: 1,
   }))[0];
@@ -101,17 +103,17 @@ const enforcePortalAccessByType = async (ctx: Context, requiredType?: string) =>
 
   // Load entity based on type
   let entity: any = null;
-  if (portalAccess.entity_type === 'customer' && portalAccess.entity_id) {
+  if (portalAccess.portal_type === 'customer' && portalAccess.customer_id) {
     entity = await ctx.db.customers.findUnique({
-      where: { id: portalAccess.entity_id },
+      where: { id: portalAccess.customer_id },
     });
-  } else if (portalAccess.entity_type === 'partner' && portalAccess.entity_id) {
+  } else if ((portalAccess.portal_type === 'designer' || portalAccess.portal_type === 'factory') && portalAccess.partner_id) {
     entity = await ctx.db.partners.findUnique({
-      where: { id: portalAccess.entity_id },
+      where: { id: portalAccess.partner_id },
     });
-  } else if (portalAccess.entity_type === 'qc_tester' && portalAccess.entity_id) {
-    entity = await ctx.db.qc_testers.findUnique({
-      where: { id: portalAccess.entity_id },
+  } else if (portalAccess.portal_type === 'qc' && portalAccess.partner_id) {
+    entity = await ctx.db.partners.findUnique({
+      where: { id: portalAccess.partner_id },
     });
   } else if (portalAccess.customers) {
     // Fallback for backward compatibility
@@ -239,13 +241,14 @@ export const portalRouter = createTRPCRouter({
   getPortalAccess: universalPortalProcedure
     .query(async ({ ctx }) => {
       // Note: findFirst not supported by wrapper, using findMany
-      const access = (await ctx.db.customer_portal_access.findMany({
+      const access = (await ctx.db.portal_access.findMany({
         where: {
           user_id: ctx.session.user.id,
           is_active: true,
         },
         include: {
           customers: true,
+          partners: true,
         },
         take: 1,
       }))[0];
@@ -261,7 +264,7 @@ export const portalRouter = createTRPCRouter({
     .query(async ({ ctx }) => {
       // Determine portal type from portal access (default to 'customer' for backward compatibility)
       // Note: findFirst not supported by wrapper, using findMany
-      const portalAccess = (await ctx.db.customer_portal_access.findMany({
+      const portalAccess = (await ctx.db.portal_access.findMany({
         where: {
           user_id: ctx.session.user.id,
           is_active: true,
@@ -270,7 +273,7 @@ export const portalRouter = createTRPCRouter({
       }))[0];
 
       const portalType = portalAccess?.portal_type || 'customer';
-      const entityId = portalAccess?.entity_id || portalAccess?.customer_id;
+      const entityId = portalAccess?.customer_id || portalAccess?.partner_id;
 
       // Fetch universal module settings from portal_module_settings table
       const moduleSettings = await ctx.db.portal_module_settings.findMany({
@@ -3361,6 +3364,55 @@ export const portalRouter = createTRPCRouter({
         document,
         success: true,
         message: 'Document uploaded successfully',
+      };
+    }),
+
+  /**
+   * Get My Portal Access
+   * Fetches user's portal access from the NEW portal_access table
+   * Returns allowed modules for filtering navigation
+   */
+  getMyPortalAccess: protectedProcedure
+    .query(async ({ ctx }) => {
+      const userId = ctx.session.user.id;
+
+      // Fetch all active portal access records for this user from NEW portal_access table
+      const portalAccessRecords = await ctx.prisma.portal_access.findMany({
+        where: {
+          user_id: userId,
+          is_active: true,
+        },
+        select: {
+          id: true,
+          portal_type: true,
+          allowed_modules: true,
+          customer_id: true,
+          partner_id: true,
+          granted_at: true,
+        },
+      });
+
+      // If no access found, return empty array
+      if (!portalAccessRecords || portalAccessRecords.length === 0) {
+        return {
+          portals: [],
+          hasAccess: false,
+        };
+      }
+
+      // Transform to friendly format
+      const portals = portalAccessRecords.map((access) => ({
+        id: access.id,
+        portalType: access.portal_type,
+        allowedModules: access.allowed_modules as string[],
+        customerId: access.customer_id,
+        partnerId: access.partner_id,
+        grantedAt: access.granted_at,
+      }));
+
+      return {
+        portals,
+        hasAccess: true,
       };
     }),
 });

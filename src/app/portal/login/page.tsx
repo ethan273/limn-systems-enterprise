@@ -70,7 +70,7 @@ function PortalLoginForm() {
 
  // Verify user has portal access (any active access record)
  const { data: portalAccessRecords } = await supabase
- .from('customer_portal_access')
+ .from('portal_access')
  .select('*')
  .eq('user_id', data.user.id)
  .eq('is_active', true);

@@ -3,10 +3,10 @@ import { createTRPCRouter, protectedProcedure } from '../trpc/init';
 import { TRPCError } from '@trpc/server';
 
 /**
- * Customer Portal Access Router
+ * Portal Access Router
  *
- * Manages customer_portal_access table using ctx.db pattern.
- * Controls customer access permissions to portal features and data.
+ * Manages portal_access table using ctx.db pattern.
+ * Controls user access permissions to portal features and data across all portal types.
  */
 
 export const customerPortalAccessRouter = createTRPCRouter({
@@ -16,44 +16,46 @@ export const customerPortalAccessRouter = createTRPCRouter({
   getById: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      const access = await ctx.db.customer_portal_access.findUnique({
+      const access = await ctx.db.portal_access.findUnique({
         where: { id: input.id },
         select: {
           id: true,
-          portal_id: true,
-          customer_id: true,
           user_id: true,
-          access_level: true,
-          permissions: true,
-          expires_at: true,
+          portal_type: true,
+          allowed_modules: true,
+          customer_id: true,
+          partner_id: true,
+          is_active: true,
           granted_by: true,
           granted_at: true,
           revoked_at: true,
+          revoked_by: true,
+          last_accessed_at: true,
+          metadata: true,
           created_at: true,
           updated_at: true,
-          customer_portals: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
           customers: {
             select: {
               id: true,
-              name: true,
+              company_name: true,
             },
           },
-          user_profiles_customer_portal_access_user_idTouser_profiles: {
+          partners: {
             select: {
               id: true,
-              name: true,
+              company_name: true,
+            },
+          },
+          users_portal_access_user_idTousers: {
+            select: {
+              id: true,
               email: true,
             },
           },
-          user_profiles_customer_portal_access_granted_byTouser_profiles: {
+          users_portal_access_granted_byTousers: {
             select: {
               id: true,
-              name: true,
+              email: true,
             },
           },
         },
@@ -77,64 +79,66 @@ export const customerPortalAccessRouter = createTRPCRouter({
       z.object({
         limit: z.number().min(1).max(100).default(50),
         cursor: z.string().uuid().optional(),
-        portal_id: z.string().uuid().optional(),
+        portal_type: z.enum(['customer', 'designer', 'factory', 'qc']).optional(),
         customer_id: z.string().uuid().optional(),
+        partner_id: z.string().uuid().optional(),
         user_id: z.string().uuid().optional(),
-        access_level: z.string().optional(),
         active_only: z.boolean().default(true),
       })
     )
     .query(async ({ ctx, input }) => {
-      const { limit, cursor, portal_id, customer_id, user_id, access_level, active_only } = input;
+      const { limit, cursor, portal_type, customer_id, partner_id, user_id, active_only } = input;
 
       const where: any = {};
 
-      if (portal_id) {
-        where.portal_id = portal_id;
+      if (portal_type) {
+        where.portal_type = portal_type;
       }
 
       if (customer_id) {
         where.customer_id = customer_id;
       }
 
+      if (partner_id) {
+        where.partner_id = partner_id;
+      }
+
       if (user_id) {
         where.user_id = user_id;
       }
 
-      if (access_level) {
-        where.access_level = access_level;
-      }
-
       if (active_only) {
+        where.is_active = true;
         where.revoked_at = null;
-        where.OR = [
-          { expires_at: null },
-          { expires_at: { gt: new Date() } },
-        ];
       }
 
-      const accessRecords = await ctx.db.customer_portal_access.findMany({
+      const accessRecords = await ctx.db.portal_access.findMany({
         where,
         take: limit + 1,
         cursor: cursor ? { id: cursor } : undefined,
         orderBy: { granted_at: 'desc' },
         select: {
           id: true,
-          portal_id: true,
-          customer_id: true,
           user_id: true,
-          access_level: true,
-          expires_at: true,
+          portal_type: true,
+          allowed_modules: true,
+          customer_id: true,
+          partner_id: true,
+          is_active: true,
           granted_at: true,
           revoked_at: true,
           customers: {
             select: {
-              name: true,
+              company_name: true,
             },
           },
-          user_profiles_customer_portal_access_user_idTouser_profiles: {
+          partners: {
             select: {
-              name: true,
+              company_name: true,
+            },
+          },
+          users_portal_access_user_idTousers: {
+            select: {
               email: true,
             },
           },
@@ -154,47 +158,49 @@ export const customerPortalAccessRouter = createTRPCRouter({
     }),
 
   /**
-   * Get access for portal
+   * Get access for portal type
    */
-  getByPortal: protectedProcedure
+  getByPortalType: protectedProcedure
     .input(
       z.object({
-        portal_id: z.string().uuid(),
+        portal_type: z.enum(['customer', 'designer', 'factory', 'qc']),
         active_only: z.boolean().default(true),
       })
     )
     .query(async ({ ctx, input }) => {
       const where: any = {
-        portal_id: input.portal_id,
+        portal_type: input.portal_type,
       };
 
       if (input.active_only) {
+        where.is_active = true;
         where.revoked_at = null;
-        where.OR = [
-          { expires_at: null },
-          { expires_at: { gt: new Date() } },
-        ];
       }
 
-      const accessRecords = await ctx.db.customer_portal_access.findMany({
+      const accessRecords = await ctx.db.portal_access.findMany({
         where,
         orderBy: { granted_at: 'desc' },
         select: {
           id: true,
-          customer_id: true,
           user_id: true,
-          access_level: true,
-          permissions: true,
-          expires_at: true,
+          portal_type: true,
+          allowed_modules: true,
+          customer_id: true,
+          partner_id: true,
+          is_active: true,
           granted_at: true,
           customers: {
             select: {
-              name: true,
+              company_name: true,
             },
           },
-          user_profiles_customer_portal_access_user_idTouser_profiles: {
+          partners: {
             select: {
-              name: true,
+              company_name: true,
+            },
+          },
+          users_portal_access_user_idTousers: {
+            select: {
               email: true,
             },
           },
@@ -220,32 +226,28 @@ export const customerPortalAccessRouter = createTRPCRouter({
       };
 
       if (input.active_only) {
+        where.is_active = true;
         where.revoked_at = null;
-        where.OR = [
-          { expires_at: null },
-          { expires_at: { gt: new Date() } },
-        ];
       }
 
-      const accessRecords = await ctx.db.customer_portal_access.findMany({
+      const accessRecords = await ctx.db.portal_access.findMany({
         where,
         orderBy: { granted_at: 'desc' },
         select: {
           id: true,
-          portal_id: true,
           user_id: true,
-          access_level: true,
-          permissions: true,
-          expires_at: true,
+          portal_type: true,
+          allowed_modules: true,
+          customer_id: true,
+          is_active: true,
           granted_at: true,
-          customer_portals: {
+          customers: {
             select: {
-              name: true,
+              company_name: true,
             },
           },
-          user_profiles_customer_portal_access_user_idTouser_profiles: {
+          users_portal_access_user_idTousers: {
             select: {
-              name: true,
               email: true,
             },
           },
@@ -261,49 +263,53 @@ export const customerPortalAccessRouter = createTRPCRouter({
   create: protectedProcedure
     .input(
       z.object({
-        portal_id: z.string().uuid(),
-        customer_id: z.string().uuid(),
         user_id: z.string().uuid(),
-        access_level: z.string().default('read'),
-        permissions: z.any().optional(),
-        expires_at: z.date().optional(),
+        portal_type: z.enum(['customer', 'designer', 'factory', 'qc']),
+        allowed_modules: z.array(z.string()),
+        customer_id: z.string().uuid().optional(),
+        partner_id: z.string().uuid().optional(),
+        metadata: z.any().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       // Check for existing active access
-      const existing = await ctx.db.customer_portal_access.findFirst({
+      const existingArray = await ctx.db.portal_access.findMany({
         where: {
-          portal_id: input.portal_id,
           user_id: input.user_id,
+          portal_type: input.portal_type,
+          is_active: true,
           revoked_at: null,
         },
+        take: 1,
       });
 
-      if (existing) {
+      if (existingArray.length > 0) {
         throw new TRPCError({
           code: 'CONFLICT',
-          message: 'User already has active access to this portal',
+          message: 'User already has active access to this portal type',
         });
       }
 
-      const newAccess = await ctx.db.customer_portal_access.create({
+      const newAccess = await ctx.db.portal_access.create({
         data: {
-          portal_id: input.portal_id,
-          customer_id: input.customer_id,
           user_id: input.user_id,
-          access_level: input.access_level,
-          permissions: input.permissions,
-          expires_at: input.expires_at,
+          portal_type: input.portal_type,
+          allowed_modules: input.allowed_modules,
+          customer_id: input.customer_id || null,
+          partner_id: input.partner_id || null,
+          is_active: true,
           granted_by: ctx.user!.id,
           granted_at: new Date(),
+          metadata: input.metadata || {},
         },
         select: {
           id: true,
-          portal_id: true,
-          customer_id: true,
           user_id: true,
-          access_level: true,
-          expires_at: true,
+          portal_type: true,
+          allowed_modules: true,
+          customer_id: true,
+          partner_id: true,
+          is_active: true,
           granted_at: true,
         },
       });
@@ -318,13 +324,13 @@ export const customerPortalAccessRouter = createTRPCRouter({
     .input(
       z.object({
         id: z.string().uuid(),
-        access_level: z.string().optional(),
-        permissions: z.any().optional(),
-        expires_at: z.date().optional().nullable(),
+        allowed_modules: z.array(z.string()).optional(),
+        is_active: z.boolean().optional(),
+        metadata: z.any().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const access = await ctx.db.customer_portal_access.findUnique({
+      const access = await ctx.db.portal_access.findUnique({
         where: { id: input.id },
         select: { id: true },
       });
@@ -338,7 +344,7 @@ export const customerPortalAccessRouter = createTRPCRouter({
 
       const { id: _id, ...updateData } = input;
 
-      const updated = await ctx.db.customer_portal_access.update({
+      const updated = await ctx.db.portal_access.update({
         where: { id: input.id },
         data: {
           ...updateData,
@@ -346,9 +352,9 @@ export const customerPortalAccessRouter = createTRPCRouter({
         },
         select: {
           id: true,
-          access_level: true,
-          permissions: true,
-          expires_at: true,
+          allowed_modules: true,
+          is_active: true,
+          metadata: true,
           updated_at: true,
         },
       });
@@ -362,7 +368,7 @@ export const customerPortalAccessRouter = createTRPCRouter({
   revoke: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      const access = await ctx.db.customer_portal_access.findUnique({
+      const access = await ctx.db.portal_access.findUnique({
         where: { id: input.id },
         select: { id: true, revoked_at: true },
       });
@@ -381,15 +387,19 @@ export const customerPortalAccessRouter = createTRPCRouter({
         });
       }
 
-      const revoked = await ctx.db.customer_portal_access.update({
+      const revoked = await ctx.db.portal_access.update({
         where: { id: input.id },
         data: {
+          is_active: false,
           revoked_at: new Date(),
+          revoked_by: ctx.user!.id,
           updated_at: new Date(),
         },
         select: {
           id: true,
+          is_active: true,
           revoked_at: true,
+          revoked_by: true,
         },
       });
 
@@ -402,7 +412,7 @@ export const customerPortalAccessRouter = createTRPCRouter({
   delete: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      const access = await ctx.db.customer_portal_access.findUnique({
+      const access = await ctx.db.portal_access.findUnique({
         where: { id: input.id },
         select: { id: true },
       });
@@ -414,7 +424,7 @@ export const customerPortalAccessRouter = createTRPCRouter({
         });
       }
 
-      await ctx.db.customer_portal_access.delete({
+      await ctx.db.portal_access.delete({
         where: { id: input.id },
       });
 
@@ -427,28 +437,30 @@ export const customerPortalAccessRouter = createTRPCRouter({
   checkAccess: protectedProcedure
     .input(
       z.object({
-        portal_id: z.string().uuid(),
         user_id: z.string().uuid(),
+        portal_type: z.enum(['customer', 'designer', 'factory', 'qc']),
       })
     )
     .query(async ({ ctx, input }) => {
-      const access = await ctx.db.customer_portal_access.findFirst({
+      const accessArray = await ctx.db.portal_access.findMany({
         where: {
-          portal_id: input.portal_id,
           user_id: input.user_id,
+          portal_type: input.portal_type,
+          is_active: true,
           revoked_at: null,
-          OR: [
-            { expires_at: null },
-            { expires_at: { gt: new Date() } },
-          ],
         },
         select: {
           id: true,
-          access_level: true,
-          permissions: true,
-          expires_at: true,
+          portal_type: true,
+          allowed_modules: true,
+          customer_id: true,
+          partner_id: true,
+          is_active: true,
         },
+        take: 1,
       });
+
+      const access = accessArray.length > 0 ? accessArray[0] : null;
 
       return {
         hasAccess: !!access,
@@ -460,30 +472,17 @@ export const customerPortalAccessRouter = createTRPCRouter({
    * Get statistics
    */
   getStats: protectedProcedure.query(async ({ ctx }) => {
-    const [total, active, byLevel, byPortal] = await Promise.all([
-      ctx.db.customer_portal_access.count(),
-      ctx.db.customer_portal_access.count({
+    const [total, active, byType] = await Promise.all([
+      ctx.db.portal_access.count(),
+      ctx.db.portal_access.count({
         where: {
+          is_active: true,
           revoked_at: null,
-          OR: [
-            { expires_at: null },
-            { expires_at: { gt: new Date() } },
-          ],
         },
       }),
-      ctx.db.customer_portal_access.groupBy({
-        by: ['access_level'],
+      ctx.db.portal_access.groupBy({
+        by: ['portal_type'],
         _count: true,
-      }),
-      ctx.db.customer_portal_access.groupBy({
-        by: ['portal_id'],
-        _count: true,
-        orderBy: {
-          _count: {
-            portal_id: 'desc',
-          },
-        },
-        take: 10,
       }),
     ]);
 
@@ -491,13 +490,9 @@ export const customerPortalAccessRouter = createTRPCRouter({
       total,
       active,
       revoked: total - active,
-      byLevel: byLevel.map(l => ({
-        access_level: l.access_level,
-        count: l._count,
-      })),
-      topPortals: byPortal.map(p => ({
-        portal_id: p.portal_id,
-        access_count: p._count,
+      byType: byType.map(t => ({
+        portal_type: t.portal_type,
+        count: t._count,
       })),
     };
   }),

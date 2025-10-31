@@ -97,6 +97,7 @@ import { customerCommunicationPreferencesRouter } from './routers/customer-commu
 import { customerFinancialsRouter } from './routers/customer-financials';
 import { customerPortalAccessRouter } from './routers/customer-portal-access';
 import { customerPortalActivityRouter } from './routers/customer-portal-activity';
+import { portalAccessAdminRouter } from './routers/portal-access-admin';
 import { customerProductionNotificationsRouter } from './routers/customer-production-notifications';
 import { designApprovalsRouter } from './routers/design-approvals';
 import { designDeliverablesRouter } from './routers/design-deliverables';
@@ -390,6 +391,7 @@ export const appRouter = createTRPCRouter({
   customerPortalAccess: customerPortalAccessRouter,
   customerPortalActivity: customerPortalActivityRouter,
   portal: portalRouter,
+  portalAccessAdmin: portalAccessAdminRouter,
   portalConfigurations: portalConfigurationsRouter,
 
   // Flipbooks (Feature Flag Protected)

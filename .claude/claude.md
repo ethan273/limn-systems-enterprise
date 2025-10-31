@@ -281,6 +281,70 @@ const isAdmin = roles.includes('admin');
 
 **See [RBAC Patterns](patterns/rbac-patterns.md) for complete implementation guide**
 
+### Portal Access Control System
+
+**Status**: ✅ COMPLETE - Full Implementation (October 31, 2025)
+
+**System Overview:**
+- **1 Database Table**: `portal_access` with 12 fields, 8 indexes, RLS policies
+- **4 New Fields**: Added to `pending_user_requests` for approval configuration
+- **10 tRPC Endpoints**: 3 in portal router, 7 in new admin router
+- **Middleware Security**: Two-level enforcement (portal + module permissions)
+- **4 Portal Types**: customer, designer, factory, qc
+
+**Key Components:**
+1. **Database Foundation**: `portal_access` table with audit trail and metadata
+2. **Admin Approval**: Enhanced UI for portal type and module selection during approval
+3. **Security Middleware**: Route-level enforcement in `src/middleware.ts:478-558`
+4. **Portal Layouts**: Module filtering based on allowed_modules
+5. **Admin Management**: Complete CRUD UI at `/admin/portal-access`
+
+**Critical Files:**
+- **Migration**: `scripts/migrations/create-portal-access-system.sql` (applied to dev AND prod)
+- **Admin Router**: `src/server/api/routers/portal-access-admin.ts` (7 endpoints)
+- **Admin UI**: `src/components/admin/PortalAccessManagement.tsx` (600+ lines)
+- **Middleware**: `src/middleware.ts` (lines 478-558)
+- **Approval UI**: `src/components/admin/ApprovalDashboard.tsx` (rebuilt, 523 lines)
+
+**Module Lists:**
+- **Customer**: orders, documents, financials, shipping, profile
+- **Designer**: projects, submissions, documents, quality, settings
+- **Factory**: orders, quality, shipping, documents, settings
+- **QC**: inspections, history, upload, documents, settings
+
+**Documentation:**
+- Full Guide: `/Users/eko3/limn-systems-enterprise-docs/01-CURRENT/PORTAL-ACCESS-CONTROL-IMPLEMENTATION-2025-10-31.md`
+- Session Start: `/Users/eko3/limn-systems-enterprise-docs/00-SESSION-START/SESSION-START-2025-10-31.md`
+
+**System Flow:**
+1. Admin approves user with portal type + modules → stored in `pending_user_requests`
+2. User clicks magic link → `establish-session` creates `portal_access` record
+3. Middleware enforces portal and module permissions
+4. Portal layouts show only allowed modules
+5. Admin manages access post-approval at `/admin/portal-access`
+
+**Usage Example:**
+```typescript
+// In portal layout - fetch and filter navigation
+const { data: portalAccess } = api.portal.getMyPortalAccess.useQuery();
+const designerPortal = portalAccess?.portals?.find(p => p.portalType === 'designer');
+const allowedModules = designerPortal?.allowedModules || [];
+
+const navigation = [
+  { name: 'Projects', href: '/portal/designer/projects', show: allowedModules.includes('projects') },
+  // ... more items
+].filter(item => item.show);
+```
+
+**Admin Endpoints (portalAccessAdmin):**
+- `getAllPortalUsers` - List with filtering/pagination
+- `getUserPortalAccess` - Get user's access details
+- `updatePortalAccess` - Update modules/portal type
+- `revokePortalAccess` - Deactivate access
+- `reactivatePortalAccess` - Restore access
+- `addPortalAccess` - Grant new portal
+- `deletePortalAccess` - Permanent deletion
+
 ### Automation System Configuration
 
 **Status**: ✅ COMPLETE - All 4 Sessions Implemented (October 30, 2025)

@@ -38,8 +38,24 @@ export default function PortalLayout({ children }: LayoutProps) {
  const [sidebarOpen, setSidebarOpen] = useState(false);
  const [signingOut, setSigningOut] = useState(false);
 
+ // ✅ ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
  // Get user info from tRPC - middleware validates customer portal access
  const { data: userInfo, error: userInfoError, isError: userInfoIsError } = api.portal.getCurrentUser.useQuery();
+
+ // Fetch portal settings to determine navigation
+ const { data: portalSettings } = api.portal.getPortalSettings.useQuery(
+   undefined,
+   { enabled: pathname !== '/portal/login' } // Only fetch if not on login page
+ );
+
+ // Fetch notification count
+ const { data: notificationData } = api.portal.getNotifications.useQuery(
+   { limit: 1, offset: 0, read: false },
+   {
+     enabled: pathname !== '/portal/login', // Only fetch if not on login page
+     refetchInterval: 30000, // Refetch every 30 seconds
+   }
+ );
 
  // Phase 4E: Handle unauthorized access (non-customer portal users)
  if (userInfoIsError && userInfoError && pathname !== '/portal/login') {
@@ -59,17 +75,6 @@ export default function PortalLayout({ children }: LayoutProps) {
      </div>
    );
  }
-
- // Fetch portal settings to determine navigation
- const { data: portalSettings } = api.portal.getPortalSettings.useQuery();
-
- // Fetch notification count
- const { data: notificationData } = api.portal.getNotifications.useQuery(
- { limit: 1, offset: 0, read: false },
- {
- refetchInterval: 30000, // Refetch every 30 seconds
- }
- );
 
  const handleSignOut = async () => {
  try {
