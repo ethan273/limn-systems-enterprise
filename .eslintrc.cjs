@@ -56,6 +56,18 @@ module.exports = {
           }
         ]
       }
+    },
+    {
+      // Exception: Files that require direct Prisma access for PostgreSQL advisory locks
+      // These files use $executeRaw for atomic number generation which is not available in ctx.db
+      files: [
+        'src/server/api/routers/orders.ts',
+        'src/server/api/routers/production-invoices.ts',
+        'src/server/api/routers/production-orders.ts'
+      ],
+      rules: {
+        'no-restricted-imports': 'off'
+      }
     }
   ]
 };

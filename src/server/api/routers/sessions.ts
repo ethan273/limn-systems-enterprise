@@ -13,15 +13,11 @@ import { log } from '@/lib/logger';
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '../trpc/init';
 import { TRPCError } from '@trpc/server';
-import { PrismaClient } from '@prisma/client';
 import {
   getUserActiveSessions,
   terminateSession,
   type ActiveSession,
 } from '@/lib/services/session-service';
-
-// Use Prisma client directly for session_tracking (not in DatabaseClient)
-const prisma = new PrismaClient();
 
 export const sessionsRouter = createTRPCRouter({
   /**
@@ -91,7 +87,7 @@ export const sessionsRouter = createTRPCRouter({
 
       try {
         // Verify session belongs to current user
-        const sessionToTerminate = await prisma.session_tracking.findUnique({
+        const sessionToTerminate = await ctx.db.session_tracking.findUnique({
           where: { id: input.sessionTrackingId },
           select: { user_id: true, session_id: true },
         });
@@ -222,7 +218,7 @@ export const sessionsRouter = createTRPCRouter({
 
     try {
       // Get all sessions (active and terminated) for stats
-      const allSessions = await prisma.session_tracking.findMany({
+      const allSessions = await ctx.db.session_tracking.findMany({
         where: { user_id: ctx.session.user.id },
         select: {
           id: true,
