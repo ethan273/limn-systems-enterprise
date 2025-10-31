@@ -12,7 +12,6 @@ import { log } from '@/lib/logger';
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "@/server/api/trpc/init";
 import { TRPCError } from "@trpc/server";
-import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 
 /**
@@ -311,7 +310,7 @@ export const flipbookAnalyticsRouter = createTRPCRouter({
         }
 
         // Create conversion record
-        const conversion = await prisma.flipbook_conversions.create({
+        const conversion = await ctx.db.flipbook_conversions.create({
           data: {
             flipbook_id: input.flipbookId,
             session_id: input.sessionId,
@@ -647,7 +646,7 @@ export const flipbookAnalyticsRouter = createTRPCRouter({
         });
 
         // Get conversions
-        const conversions = await prisma.flipbook_conversions.findMany({
+        const conversions = await ctx.db.flipbook_conversions.findMany({
           where: {
             flipbook_id: input.flipbookId,
             ...(Object.keys(dateFilter).length > 0 ? { converted_at: dateFilter } : {}),
