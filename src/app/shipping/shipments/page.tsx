@@ -8,7 +8,7 @@ import { Breadcrumbs } from "@/components/common";
 import { useTableState } from "@/hooks/useTableFilters";
 import { useShipmentsRealtime } from "@/hooks/useRealtimeSubscription";
 import { Badge } from "@/components/ui/badge";
-import { ShippingStatusBadge } from "@/components/ui/status-badge";
+import { StatusBadge } from "@/components/common";
 import {
   TruckIcon,
   Package,
@@ -187,7 +187,7 @@ export default function ShipmentsPage() {
     {
       key: "status",
       label: "Status",
-      render: (value) => <ShippingStatusBadge status={(value as string) || "pending"} />,
+      render: (value) => <StatusBadge status={(value as string) || "pending"} />,
     },
     {
       key: "packages",

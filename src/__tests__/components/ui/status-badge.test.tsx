@@ -4,7 +4,7 @@
 
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { StatusBadge } from '@/components/ui/status-badge';
+import { StatusBadge } from '@/components/common';
 
 describe('StatusBadge', () => {
  it('should render with pending status', () => {

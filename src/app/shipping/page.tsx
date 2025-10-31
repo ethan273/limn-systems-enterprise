@@ -8,7 +8,7 @@ import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ShippingStatusBadge } from "@/components/ui/status-badge";
+import { StatusBadge } from "@/components/common";
 import {
   Table,
   TableBody,
@@ -325,7 +325,7 @@ export default function ShippingDashboardPage() {
                           )}
                         </TableCell>
                         <TableCell>
-                          <ShippingStatusBadge status={shipment.status || "pending"} />
+                          <StatusBadge status={shipment.status || "pending"} />
                         </TableCell>
                         <TableCell>
                           {shipment.shipped_date ? (
