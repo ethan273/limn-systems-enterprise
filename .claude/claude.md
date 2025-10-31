@@ -586,6 +586,56 @@ authLogger.info('Session created', { userId: '123' });
 - No additional portal features currently planned
 - Next phase: User feedback and production monitoring
 
+### ctx.db Pattern Enforcement - COMPLETE
+
+**Last Updated**: October 30, 2025, 19:18 PST
+**Status**: ✅ 100% ENFORCED - ESLint + Documentation Complete
+**Commit**: `066c91a`
+
+**Achievement**: Comprehensive ctx.db pattern enforcement with automatic ESLint validation, enhanced documentation, and 100% production verification.
+
+**ESLint Enforcement**:
+- **Rule Location**: `.eslintrc.cjs` (lines 39-71)
+- **Applies To**: All tRPC routers (`src/server/api/routers/**/*.ts`)
+- **Blocks**: Direct PrismaClient imports and `prisma` from `@/lib/db`
+- **Error Message**: Points to `.claude/patterns/database-patterns.md` for guidance
+
+**Documented Exceptions (3 files)**:
+1. `src/server/api/routers/orders.ts` - PostgreSQL advisory locks for order numbers
+2. `src/server/api/routers/production-invoices.ts` - PostgreSQL advisory locks for invoice numbers
+3. `src/server/api/routers/production-orders.ts` - PostgreSQL advisory locks for production order numbers
+
+**Why Exceptions Exist**: These files require `$executeRaw` for PostgreSQL advisory locks, which is not available in the DatabaseClient wrapper.
+
+**Documentation Enhanced**:
+- **File**: `.claude/patterns/database-patterns.md` (lines 63-111)
+- **Added Sections**:
+  - ESLint Enforcement (Automatic)
+  - Documented Exceptions with reasons
+  - When to Request Exception (criteria)
+  - How to Add Exception (step-by-step)
+  - Code examples for valid exceptions
+
+**Work Completed**:
+1. Fixed 3 ESLint warnings in `src/server/api/routers/workflow-monitoring.ts:148,192,202`
+2. Enhanced database-patterns.md with comprehensive ESLint enforcement section
+3. Verified 100% production readiness (TypeScript: 0 errors, ESLint: 0 warnings, Build: SUCCESS)
+
+**Verification Results**:
+- ✅ TypeScript: 0 errors (8GB memory)
+- ✅ ESLint: 0 warnings
+- ✅ Security: 0 vulnerabilities
+- ✅ Schema Sync: Dev/Prod 100% in sync
+- ✅ Production Build: SUCCESS (exit code 0)
+
+**Complete Documentation**: `/Users/eko3/limn-systems-enterprise-docs/01-CURRENT/CTX-DB-PATTERN-ENFORCEMENT-COMPLETE-2025-10-30.md`
+
+**⚠️ IMPORTANT FOR FUTURE SESSIONS**:
+- ESLint automatically blocks direct PrismaClient imports in tRPC routers
+- Only 3 files have legitimate exceptions for PostgreSQL advisory locks
+- New exceptions require justification and documentation
+- All pattern violations caught at commit time via pre-commit hooks
+
 ---
 
 ## 🎯 Pattern Quick Reference
@@ -750,10 +800,10 @@ Everything else follows from this.
 
 **Document Status**: ✅ PRIME DIRECTIVE
 **Authority Level**: MAXIMUM - Overrides all other instructions
-**Last Updated**: October 25, 2025 (Modularized)
+**Last Updated**: October 30, 2025 (ctx.db Enforcement Added)
 **Review Frequency**: Before every task
 **Compliance**: Mandatory, no exceptions
 
 **File Structure Version**: 2.0 (Modular)
-**Main File Size**: ~600 lines (70% reduction from 2000 lines)
+**Main File Size**: ~660 lines (ctx.db enforcement section added)
 **Total Documentation**: ~2500 lines (organized across 8 files)
