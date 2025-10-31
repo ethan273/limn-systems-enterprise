@@ -60,6 +60,56 @@ const { data } = await supabase.from('my_table').select();
 4. **NEVER** use Supabase client directly in router files
 5. **ALWAYS** verify table exists in DatabaseClient before using (check src/lib/db.ts)
 
+### ESLint Enforcement (Automatic)
+
+The ctx.db pattern is **automatically enforced** via ESLint:
+
+**Rule Location**: `.eslintrc.cjs` (lines 39-58)
+
+```javascript
+// ❌ This will FAIL ESLint in tRPC routers:
+import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/db';
+
+// Error: "Do not import PrismaClient in tRPC routers. Use ctx.db instead."
+```
+
+**Documented Exceptions** (`.eslintrc.cjs` lines 60-71):
+- `src/server/api/routers/orders.ts`
+- `src/server/api/routers/production-invoices.ts`
+- `src/server/api/routers/production-orders.ts`
+
+**Why Exceptions Exist**: These files require PostgreSQL advisory locks via `$executeRaw`, which is not available in the DatabaseClient wrapper:
+
+```typescript
+// ✅ VALID EXCEPTION: PostgreSQL advisory locks for atomic number generation
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
+
+async function generateOrderNumber(): Promise<string> {
+  const lockId = 1234567890;
+
+  // Advisory lock - NOT available in ctx.db
+  await prisma.$executeRaw`SELECT pg_advisory_lock(${lockId})`;
+
+  try {
+    // ... generate unique number ...
+  } finally {
+    await prisma.$executeRaw`SELECT pg_advisory_unlock(${lockId})`;
+  }
+}
+```
+
+**When to Request Exception**:
+1. Raw SQL queries that need `$executeRaw` or `$queryRaw`
+2. PostgreSQL-specific features (advisory locks, LISTEN/NOTIFY)
+3. Database operations not supported by DatabaseClient
+
+**How to Add Exception**:
+1. Add `@allow-direct-prisma` comment in your file
+2. Update `.eslintrc.cjs` to exclude your file
+3. Document WHY the exception is needed
+
 ### Complete CRUD Operations
 
 ```typescript

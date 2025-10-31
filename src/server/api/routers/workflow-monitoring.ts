@@ -145,7 +145,7 @@ export const workflowMonitoringRouter = createTRPCRouter({
       isActive: z.boolean().optional(),
       limit: z.number().default(50),
     }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ ctx: _ctx, input: _input }) => {
       // For MVP, return empty array (alert_rules table to be created)
       // In production, query ctx.db.alert_rules
       return { rules: [], total: 0 };
@@ -189,7 +189,7 @@ export const workflowMonitoringRouter = createTRPCRouter({
       id: z.string().uuid(),
       data: AlertRuleSchema.partial(),
     }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ ctx: _ctx, input: _input }) => {
       // MVP placeholder
       return { success: true, message: 'Alert rule updated (MVP)' };
     }),
@@ -199,7 +199,7 @@ export const workflowMonitoringRouter = createTRPCRouter({
    */
   deleteAlertRule: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ ctx: _ctx, input: _input }) => {
       // MVP placeholder
       return { success: true, message: 'Alert rule deleted (MVP)' };
     }),
