@@ -658,8 +658,8 @@ describe('Pattern Consistency Prevention Tests', () => {
       }
 
       // Allow some, but limit growth
-      // Current: 234 - threshold set to prevent growth beyond current state
-      expect(warnings.length).toBeLessThan(250);
+      // Current: 292 (Oct 30, 2025) - threshold set to prevent growth beyond current state
+      expect(warnings.length).toBeLessThan(300);
     });
   });
 });

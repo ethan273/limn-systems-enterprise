@@ -376,13 +376,13 @@ export class UploadQueueManager {
   private saveQueueToStorage(): void {
     try {
       // Convert blobs to data URLs for storage
-      const _serializedQueue = this.queue.map((task) => ({
+      const serializedQueue = this.queue.map((task) => ({
         ...task,
         blob: undefined, // Remove blob (too large for localStorage)
         blobUrl: task.status !== 'completed' ? URL.createObjectURL(task.blob) : undefined,
       }));
       // eslint-disable-next-line security/detect-object-injection
-      localStorage.setItem('qc-upload-queue', JSON.stringify(this.queue));
+      localStorage.setItem('qc-upload-queue', JSON.stringify(serializedQueue));
     } catch (error) {
       log.error('Failed to save upload queue:', { error });
     }

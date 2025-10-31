@@ -153,12 +153,12 @@ export function useSSE(options: SSEOptions = {}) {
             onEvent(event);
           }
         } catch (err) {
-          log.error('[SSE] Failed to parse event:', { error: err });
+          log.error('[SSE] Failed to parse event:', { error: err instanceof Error ? err.message : String(err) });
         }
       };
 
-      eventSource.onerror = (_error) => {
-        log.error('[SSE] Connection error:', { error: _error });
+      eventSource.onerror = (errorEvent) => {
+        log.error('[SSE] Connection error:', { error: errorEvent.type });
         setConnected(false);
 
         // Close the connection
@@ -179,7 +179,7 @@ export function useSSE(options: SSEOptions = {}) {
 
       eventSourceRef.current = eventSource;
     } catch (err) {
-      log.error('[SSE] Failed to establish connection:', { error: err });
+      log.error('[SSE] Failed to establish connection:', { error: err instanceof Error ? err.message : String(err) });
       if (onError) {
         onError(err as Error);
       }

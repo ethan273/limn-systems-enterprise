@@ -32,7 +32,7 @@ export type AlertNotification = {
 export async function sendAlertNotification(
   notification: AlertNotification,
   channels: AlertChannel[],
-  _recipients: {
+  recipients: {
     userIds?: string[];
     emails?: string[];
     roles?: string[];
@@ -44,11 +44,11 @@ export async function sendAlertNotification(
     try {
       switch (channel) {
         case 'email':
-          results.email = await sendEmailNotification(notification, _recipients);
+          results.email = await sendEmailNotification(notification, recipients);
           break;
 
         case 'in_app':
-          results.in_app = await sendInAppNotification(notification, _recipients);
+          results.in_app = await sendInAppNotification(notification, recipients);
           break;
 
         case 'google_chat':
@@ -56,7 +56,7 @@ export async function sendAlertNotification(
           break;
 
         case 'sms':
-          results.sms = await sendSMSNotification(notification, _recipients);
+          results.sms = await sendSMSNotification(notification, recipients);
           break;
       }
     } catch (error) {
